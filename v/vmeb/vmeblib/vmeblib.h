@@ -64,4 +64,5 @@ int daqlogbook_update_ACTConfig(unsigned int rundec, char *itemname,char *instna
 
 //dimwrap.c
 int getCALIBBC(char *detname);
+int get_DIMW32(char *service);
 

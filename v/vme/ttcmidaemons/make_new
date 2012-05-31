@@ -14,11 +14,18 @@ allEXES =
 else
 allEXES = $(EXEDIR)/ttcmidims $(EXEDIR)/exsctel
 endif
+
+ifeq ($(VMESITE), ALICE)
+NOVME=
+else
+NOVME=-DNOVME
+endif
+
 all: $(allEXES)
 
 #------------------------------------------- ttcmidims
 ttcmidims.o:ttcmidims.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(NOVME) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/ttcmidims: ttcmidims.o $(CTPLIB)/libctp.a
 	$(CC) $(LDFLAGS) $< $(LIBS) -o $@
 exsctel.o:exsctel.c

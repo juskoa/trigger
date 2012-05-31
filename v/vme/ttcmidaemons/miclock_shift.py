@@ -22,7 +22,7 @@ if os.environ['VMESITE']=='ALICE':
   MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
 else:
   #print "VMESITE:", os.environ['VMESITE']
-  MICLOCKID="/home/alice/trigger/v/vme/WORK/miclockid"
+  MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
 
 def signal_handler(signal, stack):
   global MICLOCKID
@@ -111,6 +111,8 @@ def callback1(now):
   ##mylog.logm("TTCMI/MICLOCK: %s. -WEB NOT UPDATED ##"%(now))
 
 def getShift():
+  if os.environ['VMESITE']!='ALICE':
+    return "0.05"
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
   iop= popen2.popen2(mcmd+" s", 1) #0- unbuffered, 1-line buffered
   line= iop[0].readline()
@@ -202,7 +204,7 @@ def callback_bm(bm):
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
   ## 
-  mylog.logm("callback_bm: "+bmname)
+  #mylog.logm("callback_bm: "+bmname)
   #if (prev_bmname=="RAMP") or (bmname=="FLAT TOP"):
   if bmname=="PREPARE RAMP":
     sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
@@ -224,19 +226,20 @@ def callback_bm(bm):
         #CJI mylog.logm("DLL_RESYNC NOT started...")
     mylog.logm("BEAM MODE:%s clock %s OK shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":
-      import sctel
-      mininf= "INF"
-      reload(sctel)
-      tn= sctel.TN()
-      tn.setPersitence(mininf)
-      tn.close()
-      mylog.logm("alidcsaux008 scope persitence: "+mininf)
+      if os.environ['VMESITE']=='ALICE':
+        import sctel
+        reload(sctel)
+        mininf= "INF"
+        tn= sctel.TN()
+        tn.setPersitence(mininf)
+        tn.close()
+        mylog.logm("alidcsaux008 scope persitence: "+mininf)
   else:
     #if (bm==13) or (bm==4): # BEAM DUMP/INJECTION SETUP BEAM adjust clock
     #if expclock != "LOCAL":
     #  checkandsave(cshift)   # not called from 29.6.
-    mylog.logm( "BEAM MODE:%s, clock %s not correct. miclock mode:%s shift:%s"%\
-      (bmname, WEB.miclock,WEB.clockchangemode, cshift) )
+    #mylog.logm( "BEAM MODE:%s, clock %s not correct. miclock mode:%s shift:%s"%\
+    #  (bmname, WEB.miclock,WEB.clockchangemode, cshift) )
     #print "%s bad clock:%s for beam mode:%s(%d) clock_change_mode:%s"%\
     #  (ltim, WEB.miclock, bmname,bm, WEB.clockchangemode)
     if (bm>=5) or (bm<=12):
@@ -259,13 +262,14 @@ def callback_bm(bm):
         if bmname=="RAMP":
            mininf= "INF"
       if mininf!="":
-        import sctel
-        reload(sctel)
-        tn= sctel.TN()
-        mylog.logm("setting scope persitence: "+mininf)
-        tn.setPersitence(mininf)
-        tn.close()
-        mylog.logm("alidcsaux008 scope persitence: "+mininf)
+        if os.environ['VMESITE']=='ALICE':
+          import sctel
+          reload(sctel)
+          tn= sctel.TN()
+          mylog.logm("setting scope persitence: "+mininf)
+          tn.setPersitence(mininf)
+          tn.close()
+          mylog.logm("alidcsaux008 scope persitence: "+mininf)
       ##mylog.logm("NOT CHANGED ##")
   mylog.flush()
 

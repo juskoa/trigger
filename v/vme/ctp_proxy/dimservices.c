@@ -449,8 +449,15 @@ while(1) {   //run forever
   if(vspbobr == -1) {
     //simulate:
     for(ix=0; ix<NBSTdcsmsg; ix++) {bstmsg[ix]= seqn;}; seqn++;
+    bstmsg[iBeamMode]= beammode;
     l2orbit= vmer32(L2_ORBIT_READ);
-    if(bstmsg[iBeamMode]>21) bstmsg[iBeamMode]= 0;
+    if((nlogbst % (5*60/BSTINTSECS))==0) {    // 1/5min
+      if(bstmsg[iBeamMode]==21) { // alternate between
+        bstmsg[iBeamMode]= 11;    // STABLE BEAMS
+      } else {
+        bstmsg[iBeamMode]= 21;    // NO BEAM
+      };
+    }
   } else {
     //real bst msg:
     l2orbit= vmer32(L2_ORBIT_READ);
@@ -460,14 +467,14 @@ while(1) {   //run forever
   newbeammode= bstmsg[iBeamMode];
   if(beammode != newbeammode) {
     w32 oldbeammode;
-    //char msg[80];
+    char msg[80];
     /* update beammode: */
     oldbeammode= beammode;
     beammode= newbeammode;
     //nclients=dis_selective_update_service(RESULTid, cids);
     nclients= dis_update_service(BEAMMODEid);
-    //sprintf(msg,"bstthread:BEAMMODE %d old:%d nclients:%d\n",
-    //  beammode, oldbeammode, nclients); prtLog(msg);
+    sprintf(msg,"bstthread:BEAMMODE %d old:%d nclients:%d\n",
+      beammode, oldbeammode, nclients); prtLog(msg);
   };
   nlogbst++;
   //if((nlogbst % (60/2/BSTINTSECS))==0) {    // monitor every half minute
@@ -480,8 +487,8 @@ while(1) {   //run forever
     rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
     prtLog(buffer);
   };
-  //if((nlogbst % (60/BSTINTSECS))==0) {    // 1/min
-  if((nlogbst % (20*60/BSTINTSECS))==0) {    // 1/20 mins
+  //if((nlogbst % (20*60/BSTINTSECS))==0) {    // 1/20 mins
+  if((nlogbst % (24*60*60/BSTINTSECS))==0) {    // 1/day
     char msg[200]; 
     sprintf(msg,"bst013: %x %x %x %x\n", bstmsg[iGPSusecs], bstmsg[iGPSsecs],
       bstmsg[iTurnCount], l2orbit);
@@ -501,8 +508,8 @@ running as thread (started once, with dim server)
 */
 void cthread(void *tag) {
 while(1) {   //run forever
-  w32 bst2ctp, bst3124; int rc;
-  char buffer[500];
+  w32 bst2ctp, bst3124; // int rc;
+  //char buffer[500];
   readctpcounters(0,0xffffffff);
   // check orbitsync (bobr vs. l2orbit):
   if(vspbobr != -1) {
@@ -511,8 +518,10 @@ while(1) {   //run forever
   } else {  //simulate 
     bst2ctp= bst2ctp+5; bst3124=((bst3124>>24)+1)<<24;
   };
+  /*
   sprintf(buffer, "mon ds001:ds002 N:%d:%d", bst2ctp, bst3124>>24);
   rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
+  */
   //prtLog(buffer);
   dtq_sleep(60);
   //dtq_sleep(1);  // debugging monscal
@@ -611,7 +620,7 @@ sprintf(msg, "BEAMMODEcaba size:%d NBST:%d bm:%d", *size, NBSTdcsmsg, beammode )
 prtLog(msg); 
 //updateNMCclients(&......); we do not keep track of these clients
 *msgp= &beammode;
-*size= 4*(sizeof(beammode));
+*size= sizeof(beammode);
 //printf("BEAMMODEcaba size:%d beammode:%d \n", *size, beammode);
 }
 /*----------------------------------------------------------- MONBSTcaba
@@ -1180,7 +1189,7 @@ strcpy(command, MYNAME); strcat(command, "/MONBST");
 MONBSTid=dis_add_service(command,0, bstmsg, 4*(NBSTdcsmsg),
   MONBSTcaba, 4567);  printf("%s:%d\n", command,MONBSTid);
 strcpy(command, MYNAME); strcat(command, "/BEAMMODE");
-BEAMMODEid=dis_add_service(command,0, &beammode, 4*(sizeof(w32)),
+BEAMMODEid=dis_add_service(command,0, &beammode, sizeof(w32),
   BEAMMODEcaba, 4567);  printf("%s:%d\n", command, BEAMMODEid);
 
 printf("serving...\n");

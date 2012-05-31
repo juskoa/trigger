@@ -36,6 +36,8 @@ w32 last_heartbeat=0xffffffff;
  (2**32-1)/1000000./60
 71.582788250000007 -i.e. >1hour if time is kept in micsecs... */
 
+w32 beammode=0x12345677;
+
 typedef struct t {
   w32 secs; w32 usecs;
 } Ttime;
@@ -53,7 +55,7 @@ typedef struct ad {
 } Tacde;
 
 int NACTIVE;
-Tacde ACTIVEDETS[NDETEC];   //0: not active   1: active
+Tacde ACTIVEDETS[NDETEC];
 
 void gotsignal(int signum) {
 char msg[100];
@@ -212,6 +214,14 @@ for(ix=0; ix<NDETEC; ix++) {
   if(ACTIVEDETS[ix].period==0) continue;  // not to be calibrated (according to .cfg)
   if(ACTIVEDETS[ix].deta==-1) {   //not active check if in global run
     if((gdets & (1<<ix))==(1<<ix)) {
+      if(ix==T00) {   // T0
+        //w32 beammode;
+        //beammode= get_DIMW32("CTPDIM/BEAMMODE");cannot be used inside callback
+        if(beammode== 11) { // STABLE BEAMS
+          printf("updateDETS:T0 not calibrated (STABLE BEAMS)\n");
+          continue;       // we do not want to calibrate T0 during  STABLE EBAMS
+        };
+      }
       if(addDET(ix)==0) actdets++;
     };
   } else {   // ix is active
@@ -536,6 +546,7 @@ checkCTP();
 printf("No initCTP. initCTP left to be done by main ctp-proxy when started\n"); 
 //initCTP();
 registerDIM();
+beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
 ads= shmupdateDETs();  // added from 18.11.2010
 if(ads>0){
   if(threadactive==0) {
@@ -560,6 +571,7 @@ while(1)  {
   /*dtq_sleep(2); */
   sleep(40);  // should be more than max. cal.trig period (33s for muon_trg)
   if(quit>0) break;
+  beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
   //ds_update();
 };  
 stopDIM(); cshmDetach();
