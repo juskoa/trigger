@@ -49,3 +49,4 @@ build
 *.out
 v/vme/monscall*/cnt
 */linux
+v/vme/CFG/ctp/DB
