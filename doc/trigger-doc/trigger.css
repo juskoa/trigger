@@ -1,0 +1,174 @@
+body {
+}
+
+@media screen
+{
+    body {
+        background-color: #FFFFFF;
+        color: #000000;
+	font-family: sans-serif;
+        font-size: 10pt;
+
+    }
+
+    /* Links */
+    a {
+        color: CornflowerBlue;
+        text-decoration: none; /* no underline */
+    }
+    a:visited {
+        color: CornflowerBlue;
+    }
+    a:hover {
+        color: blue;
+    }
+    
+    div.note,
+    div.tip,
+    div.important,
+    div.caution,
+    div.warning,
+    p.blurb
+    {
+	font-size: 9pt; /* A little bit smaller than the main text */
+	line-height: 1.2;
+	display: block;
+	margin: 1pc 4% 0pc 4%;
+	padding: 0.5pc 0.5pc 0.5pc 0.5pc;    
+	border: 1px solid #DCDCDC;
+        background-color: #F7F2E0;
+    }
+
+
+    
+    .screen {
+      font-family: monospace;
+      font-size: 90%;
+      background-color: #EFF5FB;
+      	border-style:solid;
+	border-color:#99C2FF;
+	border-width:1px;
+	margin-top:10px;
+	margin-bottom:10px;
+	margin-right:10px;
+	margin-left:10px;
+	padding-top:5px;
+	padding-bottom:5px;
+	padding-right:5px;
+	padding-left:5px;
+    }
+    
+    span.console-out > .screen {
+        font-family: monospace;
+        background-color: black;
+        color: white;
+	border-width:1px;
+	margin-top:1px;
+	margin-bottom:1px;
+	margin-right:50px;
+	margin-left:50px;
+	padding-top:1px;
+	padding-bottom:1px;
+	padding-right:10px;
+	padding-left:10px;
+    }
+
+    span.filebox-root > .screen {
+        font-family: monospace;
+	background-color: rgb(255, 242, 242);
+	border-style:solid;
+	border-color:pink;
+	border-width:1px;
+	margin-top:10px;
+	margin-bottom:10px;
+	margin-right:10px;
+	margin-left:10px;
+	padding-top:1px;
+	padding-bottom:1px;
+	padding-right:1px;
+	padding-left:1px;
+    }
+    
+    span.filebox-root > .screen > span.filename > .screen {
+	background-color: pink;
+	border-style:solid;
+	border-color:DeepPink;
+	border-width:1px;
+	margin-top:2px;
+	margin-bottom:-15px;
+	margin-right:5px;
+	margin-left:5px;
+	padding-top:5px;
+	padding-bottom:5px;
+	padding-right:5px;
+	padding-left:5px;
+    }
+    
+    span.filebox-root > .screen > span.filecontent > .screen {
+/*         font-family: monospace; */
+/*         background-color: white; */
+	background-color: white;
+	border-style:dashed;
+	border-color:blue;
+	border-width:1px;
+	margin-top:-15px;
+	margin-bottom:10px;
+	margin-right:5px;
+	margin-left:5px;
+	padding-top:10px;
+	padding-bottom:10px;
+	padding-right:10px;
+	padding-left:10px;
+    }
+    
+        span.filebox-user > .screen {
+        font-family: monospace;
+	background-color: #E6FFE6;
+	border-style:solid;
+	border-color:#80FF80;
+	border-width:1px;
+	margin-top:10px;
+	margin-bottom:10px;
+	margin-right:10px;
+	margin-left:10px;
+	padding-top:1px;
+	padding-bottom:1px;
+	padding-right:1px;
+	padding-left:1px;
+    }
+    
+    span.filebox-user > .screen > span.filename > .screen {
+	background-color:#c1ffc1;
+	border-style:solid;
+	border-color:#33CC33;
+	border-width:1px;
+	margin-top:2px;
+	margin-bottom:-15px;
+	margin-right:5px;
+	margin-left:5px;
+	padding-top:5px;
+	padding-bottom:5px;
+	padding-right:5px;
+	padding-left:5px;
+    }
+    
+    span.filebox-user > .screen > span.filecontent > .screen {
+/*         font-family: monospace; */
+/*         background-color: white; */
+	background-color: white;
+	border-style:dashed;
+	border-color:blue;
+	border-width:1px;
+	margin-top:-15px;
+	margin-bottom:10px;
+	margin-right:5px;
+	margin-left:5px;
+	padding-top:10px;
+	padding-bottom:10px;
+	padding-right:10px;
+	padding-left:10px;
+    }
+    
+    
+    
+}

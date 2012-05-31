@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<book xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en" version="5.0">
+  <info>
+    <title>Trigger oncall doc</title>
+    <author>
+      <firstname>Martin</firstname>
+      <surname>Vala</surname>
+    </author>
+    <copyright>
+      <year>2012</year>
+      <holder>Martin Vala</holder>
+    </copyright>
+  </info>
+  <chapter xml:id="Introduction">
+    <title>Introduction</title>
+    <para>What you have to do?</para>
+  </chapter>
+  <chapter xml:id="ConnectToP2">
+    <title>Connect to P2</title>
+    <para>You can use ssh</para>
+    <screen><command>ssh dakde</command></screen>
+  </chapter>    
+
+</book>
