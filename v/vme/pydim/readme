@@ -1,6 +1,6 @@
 Files in this directory
 -----------------------
-Server -popen to C:
+1. Server -popen to C:
 server.c       -DIM server, listening to:
     CTPRCFG/RCFG commands
                publishing:
@@ -12,8 +12,17 @@ pydimserver.py -works with server.c (popen), waiting messages from ctpproxy
 Client -popen to C:
 client.c       - DIM client (in c)
 
--------
+------------------------------------
+2. examples using /opt/pydim:
+Installation of pydim from rpm on 707 (19.3.2012):
+[alidcscom188] /data/dl/root/usr/local/trigger/root/Addons_64 > scp $dagw:/afs/cern.ch/lhcb/project/web/online/online-rpm-repo/slc5X/x86_64/RPMS/pydim-1.3.4-1.slc5.x86_64.rpm .
+[root@alidcscom707 Addons_64]# rpm -ivh pydim-1.3.4-1.slc5.x86_64.rpm
 
+simpleServer.py
+simpleClient.py
+
+------------------------------------
+3. py-extension (swig):
 Client -python extension using dimclient:
 clientpy.c, clientpy.i - python extension (swig) for DIM client
 clientpy.py    -py extension (built by buildso.sh)
@@ -24,7 +33,7 @@ testclientpy.py -example of python DIM client importing
                 clientpy extension module
 
 More elaborated:
-pydim.py -dim package (used by phases.py, finddims.py)
+pydim_ex.py -dim package (used by phases.py, finddims.py)
 
 phases.py      -example using more DIM servers (phase measurement),
                 importing pydim package

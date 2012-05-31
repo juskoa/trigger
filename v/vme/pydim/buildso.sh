@@ -14,7 +14,7 @@ if [ $? -ne 0 ] ;then
   exit
 fi
 # create $nam_wrap.o
-gcc -fPIC -c $nam.c ${nam}_wrap.c -I/usr/include/python2.3 \
+gcc -fPIC -c $nam.c ${nam}_wrap.c -I/usr/include/python2.4 \
  -I/opt/dim/dim
 # create _$nam.so
 #ld -shared --export-dynamic -rpath /opt/dim/linux $nam.o ${nam}_wrap.o -o _$nam.so

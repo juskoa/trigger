@@ -1,9 +1,9 @@
 #!/usr/bin/python
-import string,pydim, trigdb
+import string,pydim_ex, trigdb
 
 def ltuon(ltuname):
   print "--------------------------- %s connecting..."%ltuname
-  ltu= pydim.DimServerLtu(ltuname)   # connect
+  ltu= pydim_ex.DimServerLtu(ltuname)   # connect
   if ltu.tag==0:
     print "ltuproxy: %s down"%ltuname
     return 0
@@ -13,7 +13,7 @@ def ltuon(ltuname):
 
 def main():
   print "--------------------------- CTPDIM connecting..."
-  ctp= pydim.DimServerCtp()
+  ctp= pydim_ex.DimServerCtp()
   if ctp.tag==0:
     ctp.errprt("exiting...") ; return 
   else:

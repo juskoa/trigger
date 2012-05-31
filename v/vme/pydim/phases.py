@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import string,pydim, trigdb
+import string,pydim_ex, trigdb
 
 def measureFOLTU(ctpdim, ltuname):
   """ Input: ctpdim  -has to be connected
@@ -9,7 +9,7 @@ def measureFOLTU(ctpdim, ltuname):
   (ltuphase, fophase)    tuple of 2 integers
   """
   print "--------------------------- %s connecting..."%ltuname
-  ltu= pydim.DimServerLtu(ltuname)   # connect
+  ltu= pydim_ex.DimServerLtu(ltuname)   # connect
   # measure FO phase. Actually, it is enough to measure only once
   # -4 measurements for 4 connectors should be equal
   if ltu.tag==0: return None   # connect error
@@ -37,7 +37,7 @@ class fout:
 
 def main():
   print "--------------------------- CTPDIM connecting..."
-  ctp= pydim.DimServerCtp()
+  ctp= pydim_ex.DimServerCtp()
   if ctp.tag==0:
     ctp.errprt("exiting...") ; return 
   phases={}
