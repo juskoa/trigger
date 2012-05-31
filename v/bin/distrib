@@ -104,6 +104,7 @@ RVF='--no-recursion -rvf'
 for pn in $names ;do
   if [ $pn == 'vmeb' ] ;then
     echo "pwd:" `pwd`
+    rm -ri $VMECFDIR/../scripts
     mkdir $VMECFDIR/../scripts
     cd $VMECFDIR/../../bin
     cp -a vmebse_lab.bash $VMECFDIR/../scripts/vmebse.bash

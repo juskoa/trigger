@@ -95,7 +95,7 @@ if [ "$VMESITE" = 'ALICE' ] ;then
   server27=alidcscom707 # alitrir   see also alidcscom521
 elif [ "$VMESITE" = 'SERVER' ] ;then
   ctpvme=altri1
-  ttcmivme=NONE
+  ttcmivme=altri1
   server=$hname
   server27=NONE
 fi

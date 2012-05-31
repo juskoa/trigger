@@ -38,6 +38,7 @@ else
   rdir=$ult/$vdir
 fi
 # pit or lab:
+export VMEDRIVER=VMERCC     # VMERCC, SIMVME
 ix=`expr match "$hname" 'alidcs'`
 if [ "$ix" = '6' ] ;then   #pit
   export VMESITE=ALICE
@@ -47,6 +48,9 @@ if [ "$ix" = '6' ] ;then   #pit
   export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT
 else
   export VMESITE=SERVER
+  if [[ $hname != "altri1" ]] ;then
+    export VMEDRIVER=SIMVME
+  fi
   export VMEGCC=g++
   export DIM_DNS_NODE=pcald30
   export ACT_DB=daq:daq@pcald30/ACT
@@ -55,7 +59,6 @@ export VMEBDIR=$rdir/vmeb
 export VMECFDIR=$rdir/vme
 export VMEWORKDIR=~/v/vme
 export dbctp=$VMECFDIR/CFG/ctp/DB
-export VMEDRIVER=VMERCC     # VMERCC, VMECCT, AIX, CAENVME, SIMVME
 export DIMDIR=/opt/dim
 export SMIDIR=/opt/smi
 export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
