@@ -1,18 +1,17 @@
 Contents:
 ---------
-Files, detector names
-History
-Information about accessible hardware
-Information about possible CTP configuration
-Information about current CTP configuration
+List of files, detector names
+Config files format
 Software
+How to setup parted
+History
 
 See also: 
 DOC/rundemo*    -for latest versions of .rcfg file
 ctp_proxy/readme -description of .pcfg file
 
-Files, detector names
----------------------
+List of files, detector names
+------------------------------
 input files:
 DB/VALID.LTUS       -LTUs wireing: fo, busy, I2C connections
    VALID.CTPINPUTS  -CTP inputs connections, symbolic 
@@ -36,7 +35,6 @@ scanrcfg.py scans set of .rcfg files
 ctp.py      loader   (not used -CTP is loaded from ctp_proxy)
 
 Detector names:
---------------
 We use DAQ names:
 spd sdd ssd tpc trd tof phos cpv hmpid fmd pmd v0 t0 muon_trk muon_trg
 zdc emcal daq acorde
@@ -45,30 +43,8 @@ DCS recommedation:
 spd sdd ssd tpc trd tof phs cpv hmp fmd pmd v00 t00 mch mtr
 zdc emc tri ...
  
-History
--------
-11.3.2005 V1 
--parted.py P/F buttons implemented
--ctp.py -simple resource check/allocation for more partitions
-         before loading into CTP
--saved in file TRGDB_ED1.tgz
-
-11.2.2005 start working on V2. Main goals (to be considered):
-- focus on parted.py (1 partition to be loaded into CTP)
-- more shared resources (BC, RND inputs, BC mask)
-  special names: bc1, bc2, rnd1, rnd2 for trigger inputs can
-  be used in TRIGGER.DESCRIPTORS file
-- selected properties to be shown in addition to 'TDS names'
-- local Trigger descriptors concept: TDs description
-  can be presented directly in .partition file. In addition,
-  TDs given in TRIGGER.DESCRIPTORS file can be used too.
-  It is possible to add/delete/modify local TDs only.
-- negated inputs in TRIGGER.DESCRIPTORS file
-  (descriptors with these inputs to be loaded to 45-50 classes)
-
-
-Information about accessible hardware
--------------------------------------
+Config files format
+-------------------
 VALID.LTUS   -the names of all the ALICE detectors. Format:
 # detname=DAQdet fo focon bsyinp ltubase i2cchan i2cbran
 # detname -as used by ECS/DAQ
@@ -140,3 +116,32 @@ Scripts:
 parted.py -partition editor
 scanrcfg.py -scans set of .rcfg files
 ctp.py    -CTP loader (obsolete)
+
+How to setup parted
+-------------------
+
+export TRIGGER_DIR="<git-trigger>"
+# export TRIGGER_DIR="/tmp/trigger"
+export VMEBDIR=$TRIGGER_DIR/v/vmeb
+export VMECFDIR=$TRIGGER_DIR/v/vme
+export dbctp=$TRIGGER_DIR/v/vme/CFG/ctp/DB
+export PYTHONPATH="$VMEBDIR"
+
+$VMECFDIR/TRG_DBED/parted.py example
+
+History
+-------
+11.5.2012
+parted.py modifications started using github.
+Goal: lean git. Modifications in git version (not in vd on pcalicebhm10):
+    1. unknown cluster name: only warning 'Strange cluster name' on stdout
+    2. bug 'not filtering classes using inverted inputs' fixed
+
+see git log
+started work on: simpler class def. syntax:
+1. reading .partition
+
+2. writing .partition .pcfg .rcfg
+
+3. editing class in parted
+

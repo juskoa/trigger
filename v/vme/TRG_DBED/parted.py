@@ -101,10 +101,8 @@ else:
   L0F_NUMBER=12     # 12 (debug: 6)
   PFS_START=16
 lutzero="0x"+ '0'*(2**(L0F_NUMBER-2))
-#lutzero="0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 TRGCTPCFG= trigdb.Trgctpcfg()
 clgtimes= TRGCTPCFG.getTIMESHARING()
-
 
 def IntErr(fstr):
   print "Internal error:",fstr
@@ -123,6 +121,7 @@ def PrintInfo(fstr):
 def redline(inf):                 # ignore empty lines
   while(1):
     cltds= inf.readline()
+    if len(cltds)>0 and cltds[0]=='#':continue
     if cltds!='\n': break    
   return cltds
 def Parse1(clstring):
@@ -632,6 +631,7 @@ descriptor/l0f is used with any class in this partition.
     td= TDLTUS.findTD(self.name)
     #print "xx2:";td.trdprt()
     for i in td.inputs:
+      if i[0]=='*': i= i[1:]   # inverted input
       detn= TDLTUS.getInpDets(i)
       #print "xx3:",detn xx3: ['V0', 'SPD', 'V0', 'SPD', 'V0', 'V0']
       for det in detn:
@@ -1186,7 +1186,7 @@ class TrgClass:
       cluspart= clusname4clsname
     else:
       cluspart= mycluster.name
-    self.updateClassName(cluspart)
+    self.updateClassName(cluspart,composeName=None) # self.clsnamepart[] only
     self.clanumlog= 0   # 1..50 assigned in TrgPartition.loadfile()
     #print "TrgClass:",self.clsname,pars
     #print "TrgClass:", self.clsname," trde:" ; if self.trde: self.trde.prt()
@@ -1226,7 +1226,14 @@ class TrgClass:
       if k[:3]=='BCM':
         bcmix= int(k[3:])   # 1..12
         if (bcmix>=1) and (bcmix<=12):
-          self.bcms[bcmix-1]= 1; continue
+          self.bcms[bcmix-1]= 1
+          x=self.get_clsnamepart1(k)
+          if x==None:
+            PrintError("Undefined BCM%s in:"%bcmix,clstring)
+            self.trde= None
+            break
+          self.clsnamepart[1]= x
+          continue
         else:
           PrintError("Bad BCM%s in:"%bcmix,clstring)
           self.trde= None
@@ -1234,7 +1241,14 @@ class TrgClass:
       if k[:2]=='PF':
         bcmix= int(k[2:])   # 1..4
         if (bcmix>=1) and (bcmix<=4):
-          self.pfs[bcmix-1]= 1; continue
+          self.pfs[bcmix-1]= 1
+          x=self.get_clsnamepart2(k)
+          if x==None:
+            PrintError("Undefined PF%s in:"%bcmix,clstring)
+            self.trde= None
+            break
+          self.clsnamepart[1]= x
+          continue
         else:
           PrintError("Bad PF%s in:"%bcmix,clstring)
           self.trde= None
@@ -1251,6 +1265,23 @@ class TrgClass:
       #  continue
       self.trde= None
       PrintError("Bad TD:"+clstring); break
+    if self.clsname==None:
+       self.updateClassName(cluspart)
+  def get_clsnamepart1(self, k):
+    bcm= findSHR(k)
+    if bcm.value==None: return None
+    # bcmEMPTY -> E, bcmS -> S...
+    x= bcm.value[3:]
+    print "get_clsnamepart1:", x
+    if x=="EMPTY": x="E"
+    return x
+  def get_clsnamepart2(self, k):
+    bcm= findSHR(k)
+    if bcm.value==None: return None
+    # bcmEMPTY -> E, bcmS -> S...
+    x= bcm.value
+    print "get_clsnamepart2:", x
+    return x
   def prtClass(self):
     lfs=''
     for ix in (0,1):
@@ -1265,16 +1296,22 @@ class TrgClass:
           self.trde.l0funs[ix][1].l0fdefinition)
     print "prtClass:",self.getclsname(), " clsl0funs34:", lfs 
     print self.trde.getInpDets()
-  def updateClassName(self, cluspart):
+  def updateClassName(self, cluspart,composeName="yes"):
     #needed for new classes (after click on cluster button)
-    self.clsname= self.trde.name.replace('D','C',1)   #default class name
-    if self.clsname=='CEMPTY': self.clsname='CTRUE'
-    #if cluspart!='CENT ALL MUON TPC FAST':
-    if string.find('CENT ALL MUON TPC FAST ALLNOTRD',cluspart)<0:
-      print "Suggested cluster part of classname:%s not used, instead we use CENT"%cluspart
-      self.clsname= self.clsname+"-ABCE-NOPF-CENT"
+    if composeName==None:
+      self.clsname=None; 
+      p0= self.trde.name.replace('D','C',1)   #default class name
+      if p0=='CEMPTY': p0='CTRUE'
+      #if cluspart!='CENT ALL MUON TPC FAST':
+      if string.find('CENT ALL ALLNOTRD MUON TPC FAST ALLNOTRD CENTNOTRD',cluspart)<0:
+        # only warning pprinted:
+        print "Strange cluster name:%s"%cluspart
+      self.clsnamepart=[p0, "ABCE", "NOPF", cluspart]
     else:
-      self.clsname= self.clsname+"-ABCE-NOPF-%s"%(cluspart)
+      self.clsname= self.buildname()
+  def buildname(self):
+      return "%s-%s-%s-%s"%(self.clsnamepart[0], self.clsnamepart[1],\
+        self.clsnamepart[2], self.clsnamepart[3])
   def updateClassName1(self):
     dname= self.trde.name
     ixdash= self.clsname.find('-')
@@ -1590,14 +1627,20 @@ Currently, these times [in seconds] are defined for groups 1..9:
     #   print l0txt," -bad integer, L0 prescaler value set to 0"
     #   self.L0pr=0
   def getclsname(self, clustpart='yes'):
-    if self.clsname: 
-      r= str(self.clsname)
-      #print "getclsname:", clustpart
-      if clustpart==None: # cut off '-clusterName'
-        for i in range(len(r),0,-1):
-          if r[i-1]=='-': 
-            r= r[:i-1] ; break
-    else: r= self.trde.name; 
+    """
+    cluspart: None -trailing cluster part not given in returned name
+    new (from 11.5.2012:
+    return name built from clsnamepart[]
+    """
+    if self.clsname==None: 
+      return self.trde.name   # DESCRIPTOR name if not exists
+    #r= str(self.clsname)
+    r= self.buildname()
+    #print "getclsname:", clustpart
+    if clustpart==None: # cut off '-clusterName'
+      for i in range(len(r),0,-1):
+        if r[i-1]=='-': 
+          r= r[:i-1] ; break
     return r
   def clsnamecmd(self, event=None):
     newcn= self.clsnameent.getEntry().strip()
@@ -1806,7 +1849,7 @@ TopMenu->Show->classes'
   def show(self,master):
     self.clfr= myw.MywFrame(master,side=BOTTOM, bg=COLOR_CLUSTER)
     # prepare allclassesN/5 Frames (each for 5 classes):
-    print "TrgCluster.show:", len(self.cls)
+    #print "TrgCluster.show:", len(self.cls)
     self.tdsfrA= myw.MywFrame(self.clfr)
     self.tdslines=[]
     self.tdsfr= myw.MywFrame(self.tdsfrA,side=RIGHT)
@@ -2090,7 +2133,7 @@ class TrgPartition:
         "Negating classes:", negcls,"BCMs:", len(allbcms),\
         "PFs:",len(allpfs), "Clusters:", len(self.clusters),\
         "Output dets:",len(alloutdets), "Input dets:",len(allindets) 
-      print "Input dets:", allindets.keys()
+      #print "Input dets:", allindets.keys()
     return (len(allcls),negcls,len(allpfs),len(allbcms),len(self.clusters),len(alloutdets), len(allindets))
     #return (allcls,allpfs,self.clusters,alloutdets,allindets)
   def save(self, partname):
@@ -2793,8 +2836,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     self.downscaling=None
     while 1:
       cltds= redline(inf)
+      #print "cltds:",cltds
       if not cltds: break
-      if cltds[0]=='#':continue
+      #if cltds[0]=='#':continue   moved to redline
       if string.find(cltds, 'Version:')==0:   # has to be first line
         verline= string.split(cltds,' ')
         print "verline:",verline
@@ -2850,7 +2894,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         else:
           trgclass=TrgClass(clstring, None, clusname)
           if trgclass.trde==None:
-            PrintError(clstring+" -invalid definition", self)
+            PrintError(clstring+" -invalid class definition", self)
             continue
           #trgclass.prtClass()
           inds= trgclass.trde.getInpDets()
