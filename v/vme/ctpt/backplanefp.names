@@ -1,0 +1,97 @@
+CTPBSY
+Int1
+Int2
+StrL2D
+L2D1
+L2D2
+StrL1D
+L1D
+StrL0D
+L0D
+CluBSY1 
+CluBSY2
+CluBSY3
+CluBSY4
+CluBSY5 
+CluBSY6
+CluBSY7
+CluL11 
+CluL12
+CluL13 
+CluL14
+CluL15 
+CluL16
+CluL17 
+CluL01
+CluL02
+CluL03
+CluL04
+CluL05
+CluL06
+CluL07
+PP
+ScopeA
+ScopeB
+Orbit
+BC
+FP1Orbit
+FP1PP
+FP1L0
+FP1L1
+FP1L1D
+FP1StrL2D
+FP1L2D
+FP2Orbit
+FP2PP
+FP2L0
+FP2L1
+FP2L1D
+FP2StrL2D
+FP2L2D
+FP3Orbit
+FP3PP
+FP3L0
+FP3L1
+FP3L1D
+FP3StrL2D
+FP3L2D
+FP4Orbit
+FP4PP
+FP4L0
+FP4L1
+FP4L1D
+FP4StrL2D
+FP4L2D
+
+
+
+Backplane names:
+CTP BUSY -> CTPBSY
+Interaction1 -> Int1
+Interaction2 -> Int2
+Strobe -> StrL2D
+L2 Data 1 -> L2D1
+L2 Data 2 -> L2D2
+Strobe -> StrL1D
+Class L1 Data -> L1D
+Strobe -> StrL0D
+Class L0 Data -> L0D
+Cluster Busy (7) -> CluBSY1, CluBSY2, ....
+Cluster L1 (7) -> CluL11, CluL12,....
+Cluster L0 (7) -> CluL01,CluL02,...
+PrePulse -> PP
+Scope Probe A -> ScopeA
+Scope Probe B -> ScopeB
+Orbit -> Orbit
+BC -> BC
+
+Front Panel names: (there 4 sets since we have 4 FO connectors)
+Orbit -> FP1Orbit
+PrePulse -> FP1PP
+L0 -> FP1L0
+L1 -> FP1L1
+L1Data -> FP1L1D
+L2 Strobe -> FP1StrL2D
+L2 Data -> FP1L2D
+
+

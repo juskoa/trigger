@@ -1,0 +1,14 @@
+Why we check resources 2 times in ctp_LoadPartition:
+ HWold<-HW
+ ...
+ if((ret=checkResources(part))) 
+ ...
+ if((ret=addPartitions2HW(AllPartitions))){ //just check if enough resources
+ -this creates HW, but HW is later restored from HWold
+
+  Perhaps the reason is:
+  int checkInputs(Tpartition *part){
+  return(0);
+  i.e. inputs are not checked at all (but they are checked in addPArtitions2HW() )
+
+

@@ -1,0 +1,4 @@
+setAB(7,9)
+setglobalmode()
+busylogic( 4,3000000,4)
+#

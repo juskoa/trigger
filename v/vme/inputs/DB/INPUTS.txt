@@ -1,0 +1,6 @@
+#CTPInput DIMInput Level InpName DetName Signature
+   8        1       L1    V0A       V0      40
+   9        2       L1    V0B       V0      41 
+#   7        1       L0    LVDST1 LVDST       1
+  10        2       L1    LVDST2 LVDST      30
+  11        3       L0    LVDST3 LVDST     119

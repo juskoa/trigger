@@ -1,0 +1,55 @@
+Run 130547:
+ctp_proxy.log:
+25.08.2010 18:16:21: timestamp:pcfg1: pcfg PHYSICS_1 130547
+
+25.08.2010 18:16:21: timestamp:pcfg1:rc 1
+25.08.2010 18:16:40: timestamp:pcfg2: name2:PHYSICS_1 name:PHYSICS_1...
+25.08.2010 18:16:40: ***  Error:
+Wrong partition definition (cannot create .pcfg file) ret:-1
+25.08.2010 18:16:40: timestamp:ctp_LoadPartition finished PHYSICS_1 130547
+mserver.log:
+---------------- savepcfg:  PHYSICS_1
+Warning: No input choosen(class will be triggered all the time). 
+Logical class 11, cluster:ALLNOTRD, class name:CBEAMB-B-NOPF-ALLNOTRD
+Warning: Value bcmD of BCM4 ignored (not referenced)
+/home/trigger/v/vme/WORK/PHYSICS_1.pcfg  written
+Wed Aug 25 18:16:21 2010 PHYSICS_1.pcfg saved,
+Wed Aug 25 18:16:21 2010 rcscp...
+Wed Aug 25 18:16:42 2010 rcscp:0 from scp -B -2 /home/trigger/v/vme/WORK/PHYSICS_1.pcfg trigger@alidcsvme001:/tmp/PHYSICS_1.pcfg
+Wed Aug 25 18:21:04 2010 received:
+INFO Opening ACT:daq:daq@aldaqdb/ACT
+
+Questions:
+---------
+1.
+Why scp executed by os.system() took 21 seconds?
+Clue:
+- alidcsvme001 detecs the file presence by stat(). File is
+created in /tmp = 'in memory' filesystem. There should be enough space:
+[alidcsvme001] /home/alice/trigger/v/vme/WORK > df -h /
+Filesystem            Size  Used Avail Use% Mounted on
+-                      60M  8.9M   48M  16% /
+
+2.
+Why our config time (i.e. LOAD_PARTITION execution) increased from 13th August2010 from cca 10secs to 15 secs?
+Here is Vasco's mail from Nov 10:
+Date: Wed, 10 Nov 2010 17:18:06 +0100
+From: Vasco Barroso <vmcb@cern.ch>
+To: Anton Jusko <Anton.Jusko@cern.ch>
+Subject: Increase in CTP config time
+
+Hi Anton,
+
+I had a look at the possible correlation between the increase of the CTP
+config time and the introduction of the L0/L1/L2 inputs in the logbook:
+
+- the increase of the CTP config time starts around the 13th of August
+- the first run in the logbook with trigger inputs inserted is run 130889
+from 30th of August
+
+So apparently it is NOT correlated.
+
+Cheers,
+Vasco
+
+

@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+<TITLE>List Box Test</TITLE> <!-- <link type="text/css" rel="stylesheet" href="trigsim.css"> -->
+<style type="text/css">
+  body { color: black; background: white; }
+  textarea { background: rgb(204,204,255); font-size:80%;} 
+  input { background: rgb(204,204,255); } 
+  div.color {
+    background: rgb(204,204,255);
+    padding: 0.5em;
+    border: none;
+  }
+</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+var Result=""
+function testSelect(select) {
+  //Item = select.selectedIndex;
+  for(Item=0; Item<select.length; Item++) {
+    if(select.options[Item].selected) {
+      Result = Result + select.options[Item].text + " ";
+    }
+  };
+  //alert ("Index:"+select.selectedIndex+" Value:"+Result);
+  //document.writeln("<HTML><HEAD></HEAD><BODY><h1>docwrit</h1></BODY></HTML>")
+  alert (" Selected:"+Result);
+}
+function testButton (what){
+    alert ("what:"+what+" Result:"+Result);
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+
+<BR> <BR>
+<FORM NAME="testform" METHOD="GET" ACTION="show">
+<TABLE>
+<TR>
+<TD align=center>
+<a href="busy.html">busy</a> <BR>
+<SELECT NAME="busy" SIZE="10" MULTIPLE=True>
+<OPTION>busy1item
+<OPTION>busy2item
+</SELECT>
+
+<TD align=center>
+<a href="l0.html">l0</a><BR>
+<SELECT NAME="l0" SIZE="10" MULTIPLE=True>
+<OPTION>busy1item
+<OPTION>bLLLLLLLLL
+<OPTION SELECTED>l1
+</SELECT>
+
+<TD align=center>
+<a href="l1.html">l1</a><BR>
+<SELECT NAME="l1" SIZE="10" MULTIPLE=True>
+<OPTGROUP LABEL=items>
+<OPTION>This is item 1
+<OPTION>This is item 2
+<OPTION DISABLED=True>This is item 3
+<OPTION DISABLED=True>This is item 4
+<OPTION>This is item 5
+<OPTION>This is item 6
+<OPTION>This is item 7
+<OPTION>This is item 8
+<OPTION>This is item 9
+<OPTION>This is item 10
+</OPTGROUP>
+<OPTGROUP LABEL=L0timers>
+<OPTION>l0clstT
+<OPTION>l0clst1
+<OPTION>l0byclstT
+<OPTION DISABLED=True>l0byclst1
+<OPTION>l0byclst2
+</OPTGROUP>
+</SELECT> 
+</TABLE>
+<INPUT TYPE="submit" NAME="period" VALUE="def">
+<INPUT TYPE="submit" NAME="period" VALUE="last 10 hours" >
+<INPUT TYPE="reset" >
+<INPUT TYPE="button" NAME="refresh" Value="Refresh" 
+    onClick="testButton('rfrsh')">
+<BR>
+<BR><img src="graf.png">
+<BR><img src="graf.png">
+</FORM>
+</BODY>
+</HTML>
+

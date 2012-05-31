@@ -1,0 +1,7 @@
+#!/bin/bash
+$VMECFDIR/TRG_DBED/validate.py $1
+if [ $? -eq 0 ] ;then
+  echo "partition $1 ok, detailed log is in /tmp/validate.log"
+else
+  echo "partition $1 is not valid -check /tmp/validate.log file"
+fi

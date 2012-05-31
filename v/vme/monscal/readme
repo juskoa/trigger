@@ -1,0 +1,48 @@
+Master copy of this file is in $VMECFDIR/dimcoff/readme
+23/07/2009
+bin/xcounters.sh prepared for start/stop/status
+log files are kept in: ~tri/logs/
+21/02/2008
+How to start ?
+Under account tri@alidcscom026:
+cd ; cp /data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcoff/linux/dimccounters xcounters
+nohup ./xcounters > logs/xcounters.log
+
+17/12/07
+How to copy xcounters ?
+as tri@alidcscom06:   
+dir=/data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcoff
+cp $dir/linux/dimcounters xcounters
+
+How to compile ?
+as trigger@alidcsvme026
+cd $dir
+make linux/dimccounters
+
+How to test ?
+as trigger@alidcsvme026
+linux/sendcomm
+Also  see CTPDIM log file
+
+11.2.2008
+> > >   Fes pre Vas je skoro hotovy (este par testov). Pre Vas sa cely FES
+> > > zvrhne len na spustenie jedneho scriptu
+> > > 
+> > > dcs_fes_putData s parametrami run, det, fileId, inputFile , kde
+> > > 
+> > > run je cislo runu pre ktore kopirujete data
+> > > 
+> > > det je vas kod (TRI)
+> > > 
+> > > fileId je maximalne 128 znakovy tag, pod ktorym chcete umiestnit subor v
+> > > database (nieco ak o calibration, counters, kokotiny, alobo co chcete)
+> > > 
+> > > inputFile je plny path k Vasemu suboru.
+> > > 
+> > > tento script nakopiruje vas suborn a FES a zaregistruje ho v database a
+> > > tot vsjo
+> > > 
+> > >  aby som to odskusal, potrebujem Vas  public key pre ssh. Mozno by bolo
+> > > dobre, keby som dostal konto na vasu masinu a mohol san a nu na chvilku
+> > > nalobogovat, aby som to vyskusal?
+

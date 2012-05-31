@@ -1,0 +1,21 @@
+#Errors: PP L0 L1 L1M L1&L1M L2aM L2rWord
+# following line defines standard L2 sequence:
+# - 19 L1Classes: (0x31234... -> classes: 50,49,45,...),
+# -  4 L2classes: (0x1111     -> classes: 1,5,9,13)
+# - no Clusters: 0x0
+# Restart: repeat this sequence, until BREAK signal is received 
+L2A 0x3123456789012 0x1111 0x0 ESR Restart
+# following line defines EndOfData event: 
+# - 1 L1class (0x2000... -> class 50), 
+# - 1 L2class (0x1 -> class 1), 
+# - 1 Cluster (0x20 -> 6) and
+# - End Of Data event (roc=15 L1SwC L2SwC)
+# Last: emulation terminates after execution of this sequence
+L2A 0x2000000000000 0x1 0x20 roc=15 Last L1SwC L2SwC
+
+
+
+
+
+
+

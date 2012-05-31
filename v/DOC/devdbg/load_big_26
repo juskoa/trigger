@@ -1,0 +1,14 @@
+[alidcscom026] /data/ClientCommonRootFs/usr/local/trigger/v/bin > ls -l ~/CNTRRDtop - 12:02:16 up 76 days,  2:40, 18 users,  load average: 23.68, 21.30, 15.94
+After killing several rrdtool processes (owned by apache) load went down:
+
+Now (normal) situation with rrdtool:
+[root@alidcscom026 ~]#  ps aux |grep rrdtool
+root     24988  0.0  0.0  4684  656 pts/7    S+   12:21   0:00 grep rrdtool
+trigger  26117  0.0  0.0  3220  716 pts/7    S    Oct01   0:22 /usr/bin/rrdtool -
+trigger  26121  0.0  0.0  4428  464 pts/7    S    Oct01   0:00 sh -c /usr/bin/rrdtool - >ltu_rrdtool.log
+trigger  26124  0.0  0.0  4532  592 pts/7    S    Oct01   0:18 /usr/bin/rrdtool -
+
+top - 12:22:40 up 76 days,  3:01, 19 users,  load average: 0.40, 1.40, 6.49
+Tasks: 207 total,   1 running, 204 sleeping,   1 stopped,   1 zombie
+Cpu(s):  0.3% us,  0.8% sy,  0.0% ni, 98.5% id,  0.3% wa,  0.0% hi,  0.0% si
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+hname=`hostname`
+if [ "$hname" != 'alidcsvme004' -a  "$hname" != 'altri2' ] ;then
+  echo 'This script can be started only on alidcsvme004 (altri2 in lab)'
+  exit 16
+fi
+if [ $# -eq 0 ] ;then
+$VMECFDIR/switch/switch.exe <<-EOF
+q
+EOF
+elif [ $1 = "ltu" ] ;then
+$VMECFDIR/switch/switch.exe -noboardInit <<-EOF
+loadTable(0)
+q
+EOF
+elif [ $1 = "ctp" ] ;then
+$VMECFDIR/switch/switch.exe -noboardInit <<-EOF
+loadTable(1)
+q
+EOF
+else
+echo "only ltu or ctp allowed as one parameter"
+fi
+

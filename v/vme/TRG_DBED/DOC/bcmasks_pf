@@ -1,0 +1,84 @@
+BCMASKs handling:
+---------------
+Each possible BC mask is defined in file
+$VMECFDIR/CFG/ctp/DB/VALID.BCMASKS.
+There is 1 line per BC mask definition:
+bcmaskname definition
+
+where
+bcmaskname: any identifier (for example: septemberBunch)
+definition: the definition using 'H' for 1 'L' for 0 in the mask bit.
+Each mask bit can be preceeeded by decimal number defining
+the repetition of the bit. Brackets '(' ')' can be used for
+creating repetitive groups of bits. Examples:
+definition         BC mask
+HL2H               1011
+2(4HL3(HHL))       11110110110110 11110110110110
+See vmeb/txtproc.py bcm2bits() method -
+Lines starting with '#' are comments.
+
+PF protection handling
+----------------------
+Similar approach is used for PF protection circuits.
+There are max. 4 (PF1-4), PF circuits used/defined for 1 partition.
+In VALID.PFS there are lines defining possible PF definitions:
+PFname definition
+
+where PFname is any identifier (example: spdpf). The definition
+consists of 10 decimal/hexadecimal numbers:
+
+spdpf 0xa 0x0 0x0 1 63 63 63 4 4 0x02
+
+
+To do:
+-----
+1. partition editor
+-------------------
+parted.py:
+Four buttons, named BCmask1,...,BCmask4 in Shared resources window.
+Each button gives the choices defined in file VALID.BCMASKS.
+User can choose, through these buttons, up to 4 BC masks used
+in current partition.
+In Class window, it is possible to choose 1 of 4 BCmask
+defined in Shared resources window. Error is issued, if
+BCmaskX is referenced, but not defined.
+
+.partition file:
+At the beginning of the file, there are lines defining BC masks
+(if they are used in current partition):
+BCM* name 
+
+where:
+* is 1,2,3 or 4
+name is the name used in VALID.BCMASKS file for this mask.
+
+Similarly, for PF protection circuits: if PF circuit is used,
+its definition appears as:
+PF* name
+
+According to this, following methods should be modified in parted.py:
+TrgSHR.setValue()  -BCmask definition has name in addition now
+TrgSHR.getValue()
+TrgPartition.loadfile()
+TrgPartition.save()
+TrgPartition.savercfg() -the message received from ctp_proxy
+  will be changed
+
+In .pcfg file (this file is only created, not modified by parted.py)
+the following line has to be present if at least 1 BC mask is
+referenced in current partition:
+BCMASKS ABC...
+ABC... are 3564 characters long string consisting of hexadecimal digits
+(0,1,2,...,E,F). Each character contains the definition of 4 bits
+in 4 masks. E.g. B means 'BC masked -i.e. vetoed' for BCM1, BCM2 and BCM4.
+
+2. ctp_proxy
+------------
+- reading .pcfg file, BCmasks and PFs handling -allocation of right
+ BCmask/PF and sending this information to pydimserver
+- the message sent to pydimserver (in order to create .rcfg)
+ will be changed:
+ 8 numbers, defining the allocation of logical to physical
+ BCmasks/PFs, will be added
+
+

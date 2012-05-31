@@ -1,0 +1,87 @@
+Problem:
+Now, time sharing is allowed only with 1 partition. Another
+one with time sharing is not allowed (error message and LOAD_FAILURE).
+
+When time-sharing partition is active, the start/stop of next partition
+destroys the masking of classes for currently active class group.
+I.e. in avarage we loose 2 minutes of 'non DBEAMB' triggers per
+1 parallel run started/stoped during PHYSICS_1
+
+Goal:
+Now: All ctp classes are reloaded when run Start/stop.
+load2HW() should:
+- program ONLY new classes in case of START (it should not
+  touch the class masking of other partitions).
+- disable ONLY classes belonging to run being stopped in case of STOP
+
+Problems: 
+- load2HW() has no idea what partition is just being loaded/deleted.
+  1 parameter should be passed to it: *Tpartition pointing to 
+  'the ACTIVE timisharing partition'
+  or NULL if there is no such partition. load2HW can then avoid
+  'the class reprogramming' of the timeshared partition. 
+- Tpartition in case of STOP, should be copied (or reshuffle
+  the code -it is not existing in the time of the load2HW() call)
+
+- See also SOLVED/class_sharing point 4 (for the Timesharing usage by
+  more than 1 partition in parallel, forbidden now).
+
+Todo:
+Let's decide directly in addClasses2HW() -it is known there, if
+the partition just being loaded is 'old one' or 'new one'. I.e.:
+
+caseA: TS partition already loaded when start/stop another partition:
+  Start/Stop: do not program the classes of TS partition
+caseB: TS partition is being started/stopped
+  Start: program the clsses of TS partition (just being loaded 1st time)
+  Stop: program (disable) the classes of TS partition
+
+How to pass info to load2HW( *HW, char *TSname):
+
+TSname!=NULL: only in cases:
+  Start(part) TSname: the name of another TSpartition
+  Start(TSpart) TSname: NULL
+  Stop(part)  TSname: the name of another TSpartition
+  Stop(TSpart) TSname: NULL
+
+typedef struct TKlas{
+ ...
+ char *partname;  // !can be not valid (in load2HW when STOP partition)?
+}TKlas;
+
+- if partname valid: 
+    if TSname==NULL: // start TSpart or no TSpart at all
+      program this class
+    elif partname==NULL: // partname is just being deleted
+      ERROR -such class should not be present
+    elif TSname=partname:  // start part, there is already TSpart loaded
+      do not program this class
+    else
+      program this class
+
+ctp_StopPartition():
+  addPartiitons2HW()
+    addClasses2HW()
+  load2HW(&HW, TSname)           <<<===
+
+ctp_LoadPartition():
+  addPartiitons2HW()
+    addClasses2HW()
+  load2HW NOT CALLED HERE!
+
+ctp_StartPartition():
+  addPartiitons2HW()
+    addClasses2HW()
+  load2HW(&HW, TSname)                   <<<===
+
+Done:
+march/april: classes of TSpartition logged in load2HW()
+20.5.2010:
+'addClasses2HW old', 'addClasses2HW new' added (just log)
+20.5.
+ctp_LoadPartition -> checkResources(): yes, the check is done here
+(another TSpart cannot be loaded)
+20.5.
+Modified:
+<<<=== TSname added (the name of TS partition or "")
+

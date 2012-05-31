@@ -1,0 +1,19 @@
+include $(VMEBDIR)/com_defs.make
+CFLAGS= $(COMMONCFLAGS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ltu
+
+include $(VMEBDIR)/sc.make
+ifdef SERVER_LINK
+else
+S_OBJS = ltuinit.o ttcsubs.o setstdalonemode.o ltuCounters.o ltuslm.o ltussm.o ltubusyscope.o readtemp.o ltuadc.o
+endif
+
+all: $(S_OBJS)
+ifdef S_OBJS
+	-rm libltu.a
+	ar r libltu.a *.o
+endif
+.o: .c 
+*.o: $(VMECFDIR)/ltu/ltu.h
+clean:
+	-rm *.o
+

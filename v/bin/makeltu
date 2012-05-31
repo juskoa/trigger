@@ -1,0 +1,10 @@
+#!/bin/bash
+cd $VMEBDIR/vmeblib ; make
+cd $VMECFDIR/ltu/ltulib ; make
+$VMEBDIR/comp.py ltu
+cd $VMECFDIR/ltu_proxy ; make
+#
+#cd $VMECFDIR/ctp/ctplib ; make
+#$VMEBDIR/comp.py ctp
+#cd $VMECFDIR/ctp_proxy ; make
+

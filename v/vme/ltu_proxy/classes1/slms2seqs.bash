@@ -1,0 +1,1 @@
+../noclasses/slms2seqs.bash

@@ -1,0 +1,101 @@
+updateNMCclients:18.03.2008 11:18:33:new client:r:4 11867@altri1
+
+<18.03.2008 11:18:33:�d��d��d��d��d�<
+>18.03.2008 11:18:34:TTCinit()>
+<18.03.2008 11:18:34:Bgo0  delay:53 duration:54 mode:c data:800000
+<
+rUC:18.03.2008 11:18:34:Ooutl:46 us:1 ResultString:Bgo0  delay:53 duration:54 mode:c data:800000
+<---
+
+<18.03.2008 11:18:34:Bgo1  delay:3125 duration:54 mode:8 data:7e000000
+<
+rUC:18.03.2008 11:18:34:Ooutl:50 us:1 ResultString:Bgo1  delay:3125 duration:54 mode:8 data:7e000000
+<---
+
+<18.03.2008 11:18:34:Bgo2  delay:0 duration:0 mode:3 data:not set/sent
+<
+rUC:18.03.2008 11:18:34:Ooutl:50 us:1 ResultString:Bgo2  delay:0 duration:0 mode:3 data:not set/sent
+<---
+
+<18.03.2008 11:18:34:Warning: BUSY is ON before TTCrx init
+<
+rUC:18.03.2008 11:18:34:Ooutl:38 us:1 ResultString:Warning: BUSY is ON before TTCrx init
+<---
+
+<18.03.2008 11:18:35:FineDelay1:3126(0x0) FineDelay2:16459(0x80) CoarseDelay:0x0
+<0><::
+rUC:18.03.2008 11:18:35:Ooutl:66 us:1 ResultString:FineDelay1:3126(0x0) FineDelay2:16459(0x80) CoarseDelay:0x0
+<0>
+:
+<---
+
+client_exit_handler:18.03.2008 11:18:39:deleting:r:1:11867@altri1
+rUC:18.03.2008 11:19:26:Ooutl:29 us:0 ResultString:ReadTemperature TEMP_READ:1e
+<---
+
+rUC:18.03.2008 11:19:26:Ooutl:4 us:0 ResultString:<0>
+<---
+
+rUC:18.03.2008 11:19:26:Ooutl:2 us:0 ResultString::
+<---
+
+-------------------------------------------------------------------------------
+>18.03.2008 11:39:09:open muon_trk 2.1>
+<18.03.2008 11:39:09:PID 12281 (popen2 already active, clients:2)<::
+>18.03.2008 11:39:16:LTUinit()>
+<18.03.2008 11:39:16:LTUcode:0x56 serial#:0x2 VME ver:0xa7 LTUfpga:0xf3
+LTUsw version:2.2 11.03.2008
+BC_STATUS: 2: BC and Orbit input signals OK
+Switching to STANDALONE mode...
+<
+rUC:18.03.2008 11:39:16:Ooutl:156 us:1 ResultString:LTUcode:0x56 serial#:0x2 VME ver:0xa7 LTUfpga:0xf3
+LTUsw version:2.2 11.03.2008
+BC_STATUS: 2: BC and Orbit input signals OK
+Switching to STANDALONE mode...
+<---
+
+<18.03.2008 11:39:16:SETTING BUSY1,BUSY2
+Setting LAST_BC, PREPULSE_BC, CALIBRATION_BC, GAP_BC, L1/2_DEALY
+ORBIT_BC:91
+BC_DELAY_ADD:0 ns. TTC_INTERFACE before:0x8 now:0x8
+L1_FORMAT:3 L0(cable/TTC):8
+normal mode (no toggle), write to TTCvi...
+Disabling Error generation circuit...
+Setting Error selector:0 (Pre-pulse), ERdemand:0 (no error on demand)...
+LHC Gap Veto OFF, Automatic START signal: OFF...
+Quitting emulation...
+<
+rUC:18.03.2008 11:39:16:Ooutl:402 us:1 ResultString:SETTING BUSY1,BUSY2
+Setting LAST_BC, PREPULSE_BC, CALIBRATION_BC, GAP_BC, L1/2_DEALY
+ORBIT_BC:91
+BC_DELAY_ADD:0 ns. TTC_INTERFACE before:0x8 now:0x8
+L1_FORMAT:3 L0(cable/TTC):8
+normal mode (no toggle), write to TTCvi...
+Disabling Error generation circuit...
+Setting Error selector:0 (Pre-pulse), ERdemand:0 (no error on demand)...
+LHC Gap Veto OFF, Automatic START signal: OFF...
+Quitting emulation...
+<---
+
+rUC:18.03.2008 11:39:16:Ooutl:241 us:539765093 ResultString:Emulation status:0
+Clearing Emulator pipeline...
+Disabling BACKPLANE and Logic analyser outputs...
+Setting Scope A/B outs to 'not selected'...
+Initialising Snapshot memory to mode vme read...
+Clearing counters, including FIFO_MAX counter...
+<---
+
+rUC:18.03.2008 11:39:16:Ooutl:22 us:539765093 ResultString:LTU counters cleared.
+<---
+
+rUC:18.03.2008 11:39:16:Ooutl:184 us:539765093 ResultString:Bgo0  delay:53 duration:54 mode:c data:800000
+Bgo1  delay:3125 duration:54 mode:8 data:7e000000
+Bgo2  delay:0 duration:0 mode:3 data:not set/sent
+Warning: BUSY is ON before TTCrx init
+<---
+
+rUC:18.03.2008 11:39:17:Ooutl:62 us:539765093 ResultString:FineDelay1:3126(0x0) FineDelay2:16459(0x80) CoarseDelay:0x0
+:
+<---
+
+

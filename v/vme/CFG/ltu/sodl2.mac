@@ -1,0 +1,13 @@
+# Loading and executing SOD sequence...
+SLMload("WORK/sod.seq")
+SLMsetstart(3)
+vmeopw32(COUNT_PERIOD, 4000)
+SLMstart()
+SLMwaitemuend(0)
+# Loading and starting L2A loop... 
+SLMload("WORK/l2eod.seq")
+SLMsetstart(3)
+vmeopw32(COUNT_PERIOD, 4000)
+SLMstart()
+# Press 'Break emulation' button to break the loop and execute last EOD sequence...
+

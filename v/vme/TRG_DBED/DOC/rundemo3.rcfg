@@ -1,0 +1,59 @@
+VERSION: 3
+PARTITION: ALICE
+###########################################################################
+INPUTS:
+# BC1 BC2 RND1 RND2 -special names for onboard trigger generators
+#InName             Det    Level SignatureOrBCRNDvalue  InpNum 
+BC1                 CTP      0   4799999                0
+RND1                CTP      0   52076                  0
+VZERO                V0      0   42                     2       
+SPD_GFO             SPD      0   20                     4       
+0LSR                TPC      0   122                    24
+##########################################################################
+L0FUNCTIONS:
+# L0 functions can be defined with the name: L0Fxxxx  (max 16 chars)
+0FMB2 VZERO & SPD_GFO
+0FMB1 VZERO | ~SPD_GFO
+##########################################################################
+# Interaction is any function of first 4 L0 inputs (look-up table)
+# ored with signals RND1,RND2,BC1,BC2
+# Resulting INT* is logical OR of signals. In this example:
+# INT1 is defined as (VZERO & SPD_GF0) OR BC1
+# INT2 is defined as VZERO
+INTERACTIONS:
+INT1  0FMB2 BC1 
+#INT2  0xcccc -rejected -we use symbolic expression
+
+##########################################################################
+# Check compatibility with parted
+# It seems : rcfg descriptor = parted descriptors+rnd+bc
+DESCRIPTORS:
+# descriptor = list of inputs and functions, always AND between list items  
+MB1_RND1 VZERO SPD_GFO RND1
+MB2_BC1 0FMB1 BC1 
+D0LSR 0LSR
+EMPTY_RND1 RND1
+##########################################################################
+# Maximum of 6
+CLUSTERS:
+ALL 1 SPD SDD SSD TPC TRD TOF PHOS CPV HMPID MUON_TRK MUON_TRG PMD TRG FMD T0 V0 ZDC ACORDE EMCAL CTP DAQ_TEST
+##########################################################################
+# Maximum of 4
+PFS:
+NONE
+##########################################################################
+# Maximum of 4, NONE line present if no masks defined. H:BC vetoed L:valid BC
+BCMASKS: 
+BCM1 24L54(HL)3432L
+BCM2 1H3563L
+NONE
+##########################################################################
+# HW number of cluster is in clusters
+CLASSES:
+# Name   HW  Descriptor Cluster   PF       BCM  Prescaler  All(1) group time
+#                                                         Rare(0)  0-9  [secs]
+MB1      1  MB1_RND1    ALL     {NONE}   {BCM1,BCM2}   10  1     1     4
+MB2      3  MB2_BC1     ALL     {NONE}   {NONE}        0   1     0     0
+PULSER2  23  EMPTY_RND1  ALL     {NONE}   {NONE}        0   1     2     8
+C0LSR-E-NOPF-TPC  39  D0LSR  ALL {NONE}   {NONE}        0   1     2     8
+

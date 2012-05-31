@@ -1,0 +1,252 @@
+Contents:
+Files, detector names
+History
+Information about accessible hardware
+Information about possible CTP configuration
+Information about current CTP configuration
+Software
+
+Files
+-----
+input files:
+DB/VALID.LTUS       -connected LTUs, with appended fo and busy connections
+   VALID.CTPINPUTS  -connected CTP inputs, symbolic 
+                     names, signature info, connections
+                    -aliases for possible l0fun1/2, combined
+                     from names in this file
+   VALID.PFS        -all possible PF protection circuit definitions,
+                      symbolic name assigned to each
+   VALID.DESCRIPTORS-all recommended trigger descriptors. 
+                     Additional (user-defined) trig. descriptors can be
+                     defined in .partition file
+
+in/out file: *.PARTITION   
+Note: this file can contain, in its global part the reference 
+to alias in VALID.CTPINPUTS (l0fun1= l0f1) or direct definition 
+(l0fun1= V0 |T0). This is only in the case, it defines local TD(s).
+   The current definition of l0fun1/2 e.g.: l0fun1=0xLookupTable 
+is in ctp-loader.
+
+output file: *.CLASSES
+
+parted.py   partition editor
+ctp.py      loader
+
+Detector names:
+--------------
+
+spd sdd ssd tpc trd tof phs cpv hmp fmd pmd v00 t00 mch mtr
+zdc emc tri 
+ 
+History
+-------
+11.3.2005 V1 
+-parted.py P/F buttons implemented
+-ctp.py -simple resource check/allocation for more partitions
+         before loading into CTP
+-saved in file TRGDB_ED1.tgz
+
+11.2.2005 start working on V2. Main goals (to be considered):
+- focus on parted.py (1 partition to be loaded into CTP)
+- more shared resources (BC, RND inputs, BC mask)
+  special names: bc1, bc2, rnd1, rnd2 for trigger inputs can
+  be used in TRIGGER.DESCRIPTORS file
+- selected properties to be shown in addition to 'TDS names'
+- local Trigger descriptors concept: TDs description
+  can be presented directly in .partition file. In addition,
+  TDs given in TRIGGER.DESCRIPTORS file can be used too.
+  It is possible to add/delete/modify local TDs only.
+- negated inputs in TRIGGER.DESCRIPTORS file
+  (descriptors with these inputs to be loaded to 45-50 classes)
+
+
+Information about accessible hardware
+-------------------------------------
+VALID.LTUS   -the names of all the ALICE detectors. Format:
+symname=#.fo.focon
+# SPD detector connected to connector 2 of fo1
+pixel=0.1.2
+# SDD detector connected to connector 4 of fo2
+sdd=1.2.4
+# FMD detector, not connected:
+fmd=13
+The numbers/names for detectors as used by ECS/DAQ:
+Num name   Name     Code
+0          SPD      SPD
+1          SDD      SDD
+2          SSD      SSD
+3          TPC      TPC
+4          TRD      TRD
+5          TOF      TOF
+6         PHOS      PHS
+7          CPV      CPV
+8        HMPID      HMP
+9     MUON_TRK      MCH
+10    MUON_TRG      MTR
+11         PMD      PMD
+12         TRG      TRG
+13         FMD      FMD
+14          T0      T00
+15          V0      V00
+16         ZDC      ZDC
+17      ACORDE      ACO
+18       EMCal      EMC
+19         HLT      HLT
+99     GENERIC      ABC
+
+Fanout numbers: 1..6
+Connector numbers: 1..4
+              
+VALID.CTPINPUTS
+Consists of a single line for each detector contributing to
+the CTP inputs. 
+First identifier in each line is the name of the detector (from VALID.LTUS)
+followed by the names of signals feeding CTP inputs. 
+For each name the real CTP inputs should be assigned. Not assigned
+signal names will be ignored.
+Trigger descriptors consist generaly of all the levels of the CTP inputs.
+It means, that 1 Trigger descriptor definition will be loaded across
+3 boards (L0,L1,L2) -the inputs of 1 level will be configured 
+in corresponding board for the same class.
+
+   2 'L0 special functions' (according to TB approval 
+from 12. July 2005) can be defined and used by any class as L0 input. 
+The are defined as lookup table or logical expression.
+Their names start with l0f.
+An example: l0fvt= V0mb | T0
+The names of 4 logical variables used in logical expression defining l0f* 
+have to be defined and connected as 0.1-0.4 CTP inputs 
+in earlier lines of VALID.CTPINPUTS file.
+
+An example:
+T0 T0=0.1
+V0 V0mb=0.2 V0sc V0ce 
+TRD TRDpre 
+ZDC ZDC1_l0=0.3 ZDC2_l1=1.2
+l0f1 0xf0f0
+l0fvt (T0 | V0mb)& ZDC1_l0
+l0f3 0x00ff
+
+T0 detector contributes by 1 input to CTP (T0), which is connected
+to L0.1 input (there are 24 L0 inputs, 24 L1 inputs, 12 L2 inputs
+numbered from 1).
+Trigger descriptor ZDC will be configured for ClassN on L0 board
+(ZDC1_l0=0.3) and ClassN on L1 board (ZDC2_l1=1.2)
+3 L0 functions are defined (only 2 of them can be used simultaneously 
+in CTP). Each of l0f* is a logical combination
+of 1,2,3,4 L0 inputs.
+The l0f1 results in 1 for 8 input combinations:
+   1  2  3  4
+4  0  1  0  0
+5  0  1  0  1
+6  0  1  1  0
+7  0  1  1  1
+12 1  1  0  0
+13 1  1  0  1
+14 1  1  1  0
+15 1  1  1  1
+
+The number of lines in these files is arbitrary.
+
+Information about possible CTP configuration
+--------------------------------------------
+
+TRIGGER.PFS   
+The symbolic names for possible settings of P/F protection circuits:
+
+pf1 tha1 tha2 thb1 thb2 resolution interval
+pf2 ...
+
+TRIGGER.DESCRIPTORS defines all the  default trigger descriptors 
+available for Trigger classes definition.
+1 line describes 1 trigger descriptor.
+First identifier in the line is the Trigger descriptor name 
+followed by list of CTP inputs. The list of CTP inputs is composed from:
+- identifiers defined in VALID.CTPINPUTS file 
+- identifiers l0f* (defined at the end of VALID.CTPINPUTS file).
+
+   The use of CTP input not defined in VALID.CTPINPUTS file is illegal).
+Inverted inputs (i.e. active in case the input signal is not present) 
+are marked by '*' in front of the name (for inverted inputs, classes 45-50
+will be assigned during CTP configuration).
+
+For example trigger descriptors with the names MB, SC, CE are
+described by the following lines in TRIGGER.DESCRIPTORS file:
+
+MB T0 V0mb TRDpre ZDC1_l1 l0fvt
+SC T0 V0sc TRDpre ZDC2_l1 l0fvt l0f1
+CE T0 V0ce *TRDpre ZDC3_l1
+
+File NAME.partition describes 1 partition. Partition is created
+from VLAID.LTUS, TRIGGER.DESCRIPTORS and TRIGGER.PFS files -i.e.
+only the names defined in these files can be used to describe
+the partition.
+
+An example of .partition file:
+# 'user defined' shared resources. Their definition here, secures that
+# partition will not be loaded, if shared resource is already
+# set differently by previously loaded partition(s).
+BC1=22
+BC2=0
+RND1=0x23
+BCmask1='3654L'
+      ='20h 30l 10(2h 3l)'
+Inputs:
+# lines, formated in the same way as in file VALID.CTPINPUTS
+TDs:
+# 'user defined' trigger descriptors (the names present in 
+# TRIGGER.DESCRIPTOR file can be redefined here)
+TD1 TRDpre
+TD2 V0sc ZDC2_l1
+LTUs:
+Clusters:
+MB(pf1,pfN,L0pr=20,bcm1,bcm4,bc1,bc2,rnd1,rnd2,rare) SC TD1(pf2)
+HMPID TPC
+CE SC(pf2)
+TRD
+
+Explanation: 
+This file describes 2-cluster partition (2 lines per cluster). 
+First cluster is triggered by 3 trigger descriptors:
+      -MB (which is protected by 2 P/F protection circuits pf1, pf2) or 
+      -SC triggers or
+      -TD1 -this trigger descriptor is 'locally' defined, while MB, SC 
+       definitions are taken from global database file 
+       TRIGGER.DESCRIPTORS
+      In this cluster 2 detectors are included: HMPID and TPC.
+Second cluster is taking CE or SC (protected by pf2 P/F protection
+      circuit) triggers, and it controls TRD detector.
+
+.pcfg file:
+similar to .cfg file, but not the same. Printed together with .partition file.
+See readme.rlaj in v/vme/ctp_proxy directory.
+
+Information about current CTP configuration
+-------------------------------------------
+VALID.CTPINPUTS and VALID.LTUS files keep information 
+about current wiring of CTP inputs and outputs. 
+Note:
+The information about loaded parameters in CTP is kept in CTPloader
+and is part of the wider configuration scheme -involving LTU/TTCvi
+and FE (for triggering inputs, which can have different meaning -
+according to connected triggering detector) settings.
+
+Software
+--------
+Scripts:
+parted.py -partition editor
+ctp.py    -CTP loader
+
+GUI for CTP control, indepent on ECS (to be prepared):
+
+Active partitions:
+ P1: cluster1, cluster2      triggers sent:...
+ P2:...
+ ...
+ Actions: add/kill partition
+
+Free resources: Clusters: Classes: P/F:
+
+Global trigger: Status: RUNNING/STOPED/PAUSED
+                Actions: Start/Stop/Pause/Continue
+

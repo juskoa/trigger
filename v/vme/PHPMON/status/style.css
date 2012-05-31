@@ -1,0 +1,146 @@
+body.defualt {
+/*   font-family : "Comic Sans MS", cursive; */
+/* font-size: 15px; */
+/* font-size: 1.2em; */
+/* font-family : "Nimbus Sans T Regular"; */
+  font-family : sans-serif;
+}
+
+table.normal {
+  border-width: 2px 2px 2px 2px;
+  border-spacing: 0px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  border-collapse: separate;
+  background-color: white;
+}
+
+th.normal {
+  border-width: 1px 1px 1px 1px;
+  padding: 1px 1px 1px 1px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: white;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 77%; */
+  font-family : sans-serif;
+}
+
+td.normal {
+  text-align:center;
+  border-width: 1px 1px 1px 1px;
+  padding: 1px 1px 1px 1px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: white;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 77%; */
+  font-family : sans-serif;
+}
+
+td.serviceName {
+  text-align:center;
+  border-width: 1px 1px 1px 1px;
+  padding: 1px 1px 1px 1px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: white;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 100%; */
+  font-family : sans-serif;
+  font-weight : bold;
+}
+
+td.red {
+  text-align:center;
+  border-width: 1px 1px 1px 1px;
+  padding: 10px 10px 10px 10px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: red;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 77%; */
+  font-family : sans-serif;
+}
+td.green {
+  text-align:center;
+  border-width: 1px 1px 1px 1px;
+  padding: 10px 10px 10px 10px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: #99FF99;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 77%; */
+  font-family : sans-serif;
+}
+
+tr.red {
+  text-align:center;
+  border-width: 1px 1px 1px 1px;
+  padding: 10px 10px 10px 10px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: red;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 77%; */
+  font-family : sans-serif;
+}
+tr.green {
+  text-align:center;
+  border-width: 1px 1px 1px 1px;
+  padding: 10px 10px 10px 10px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  background-color: #99FF99;
+  -moz-border-radius: 0px 0px 0px 0px;
+/*   font-size : 77%; */
+  font-family : sans-serif;
+}
+
+
+td.leftmenu {
+  font-family : "Comic Sans MS", cursive;
+  padding: 10px 10px 10px 10px;
+  background-color: lightgreen; 
+  font-size : 14px;
+  font-weight : bold;
+/*   text-align:right; */
+}
+
+td.rightmenu {
+  font-family : "Comic Sans MS", cursive;
+  font-size : 12px;
+/*   padding: 10px 10px 10px 10px; */
+/*   font-size : 85%; */
+/*   text-align:right; */
+}
+
+td {
+  font-family : "Comic Sans MS", cursive;
+  font-size : 12px;
+/*   padding: 10px 10px 10px 10px; */
+/*   font-size : 85%; */
+/*   text-align:right; */
+}
+
+div.leftmenu {
+  text-align:right;
+}
+
+a:link.leftmenu {
+  text-decoration: none;
+  color: blue;
+}
+a:visited.leftmenu {
+  text-decoration: none;
+  color: blue;
+}
+a:active.leftmenu {
+  text-decoration: none;
+  color: blue;
+}
+a:hover.leftmenu {
+  text-decoration: none; 
+  color: red;
+}
+

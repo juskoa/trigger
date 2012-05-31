@@ -1,0 +1,55 @@
+Contents:
+1. Server
+2. Client
+ltuclient.c -used for ltuclient.rpm (ltuclient installed in ACR)
+ltucmd.c    -test various DIM scenarios
+doclient.c  - /DO + /RESULT scenario
+cmd1.c      -command sending "ttcrxreset" to LTUdim
+
+1. Server:
+---------
+. v/scripts/vmebse.bash
+cd v/vme/ltudim
+. dim/dssetenv.bash
+make linux/ltuserver
+Dns
+cd $VMECFDIR ; ltudim/linux/ltuserver tri 0x812000
+
+Server notes:
+- the relation between the name and its base address 
+  is hidden in ltuserver.c or popen2.c
+
+2. Client 
+---------------------------------- 
+
+cd v/vme
+. ltudim/dssetenv.bash
+. ../scripts/vmebse.bash
+rdir=~/v
+export VMEBDIR=$rdir/vmeb
+export VMECFDIR=$rdir/vme
+alias vmecrate=$VMEBDIR/crate.py
+
+cd ltudim
+make linux/ltuclient
+
+cd v/vme; ltudim/linux/ltuclient tri
+or:
+vmecrate tri
+ -> see: myw.DimLTUservers['tri']
+    if exists, DIM ltuserver tri is contacted:
+      tri/PIPE open
+      tri/DO 
+      ...
+      tri/PIPE close   -
+
+tri/DO getfile("CFG/ltu/t4.mac")    -get file
+
+ltucmd.c - an example of independent client (invoking TTCinit())
+
+3. Client distribution:
+-----------------------
+See DOC/readme
+
+----------------problems:
+logoff/on

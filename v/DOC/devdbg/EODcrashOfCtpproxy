@@ -1,0 +1,124 @@
+This is just archive of case, where it seems the dim client library call 
+cause the crash the ctp_proxy:
+...
+BCMASKS use: 1 0 0 0
+classgroups:
+1:1 
+8:119 
+CLASSES:
+CLA. 0 0x3fbfffbf 0x0 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:0 classgroup:1 PHYSICS_1 
+CLA. 1 0x3ebfffbf 0x0 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:1 classgroup:8 PHYSICS_1 
+CLA. 2 0x3ebfffbf 0x40 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:44 classgroup:8 PHYSICS_1 
+CLA. 3 0x3ebfffbf 0x400000 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:45 classgroup:8 PHYSICS_1 
+CLA. 4 0x3effffff 0x0 0xfef1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:2 classgroup:8 PHYSICS_1 
+CLA. 5 0x3ebffbbf 0x0 0xfff2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:3 classgroup:8 PHYSICS_1 
+CLA. 6 0x3ebffbbf 0x40 0xfff2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:46 classgroup:8 PHYSICS_1 
+CLA. 7 0x3ebffbbf 0x400000 0xfff2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:47 classgroup:8 PHYSICS_1 
+CLA. 8 0x3efffbff 0x0 0xfef2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:4 classgroup:8 PHYSICS_1 
+CLA. 9 0x3fffbfff 0x0 0xfff3 0x0 0x3fffffff 0x0 0x3f000fff hwcl:5 classgroup:0 PHYSICS_1 
+ClusterTable:0x1 0x3 0x2 0x0 0x0 0x0 
+CLUSTERS: HW0->P1  HW1->P3  HW2->P2 
+Detectors:SDD:0x1 SSD:0x1 TPC:0x5 TRD:0x1 HMPID:0x1 PHOS:0x1 PMD:0x1 MUON_TRK:0x3 MUON_TRG:0x3 FMD:0x3 T0:0x3 V0:0x3 ZDC:0x3 ACORDE:0x1 EMCAL:0x1 
+Masked detectors: 0x5fede 
+---------> End of printing: part name: PHYSICS_1 RunNum:113532
+17.03.2010 14:57:23: timestamp:partition inHW: PHYSICS_1 113532
+0 -> 1 hwclu:11 -> 3 hwclu:32 -> 2 hwclu:23 -> 0 hwclu:04 -> 0 hwclu:05 -> 0 hwclu:0
+CLA. 0 0x3fbfffbf 0x0 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:0 classgroup:1 PHYSICS_1 
+CLA. 1 0x3ebfffbf 0x0 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:1 classgroup:8 PHYSICS_1 
+CLA. 2 0x3ebfffbf 0x40 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:44 classgroup:8 PHYSICS_1 
+CLA. 3 0x3ebfffbf 0x400000 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:45 classgroup:8 PHYSICS_1 
+CLA. 4 0x3effffff 0x0 0xfef1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:2 classgroup:8 PHYSICS_1 
+CLA. 5 0x3ebffbbf 0x0 0xfff2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:3 classgroup:8 PHYSICS_1 
+CLA. 6 0x3ebffbbf 0x40 0xfff2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:46 classgroup:8 PHYSICS_1 
+CLA. 7 0x3ebffbbf 0x400000 0xfff2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:47 classgroup:8 PHYSICS_1 
+CLA. 8 0x3efffbff 0x0 0xfef2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:4 classgroup:8 PHYSICS_1 
+CLA. 9 0x3fffbfff 0x0 0xfff3 0x0 0x3fffffff 0x0 0x3f000fff hwcl:5 classgroup:0 PHYSICS_1 
+17.03.2010 14:57:23: timestamp:prepareRunConfig1: rcfg PHYSICS_1 113532 0x5fede 1 3 2 0 0 0 1 2 45 46 3 4 47 48 5 6 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0x0 0x0 0x0 0x0
+
+17.03.2010 14:57:25: Opening DAQlogbook:daq:daq@aldaqdb/LOGBOOK
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+17.03.2010 14:57:25: getInputDets:l0fs1:  0VBA | 0VBC l0fs2: current:  0VBA | 0VBC
+updateDAQClusters:run#:113532 cluster:1 det/inp/class mask:0x:7fede 84000 300000000007
+updateDAQClusters:run#:113532 cluster:2 det/inp/class mask:0x:20008 8 20
+updateDAQClusters:run#:113532 cluster:3 det/inp/class mask:0x:2fc00 84800 c00000000018
+detectfile rc:0 from stat(/tmp/r113532.rcfg)
+applying l0fs in ctp_alignment:0x6
+17.03.2010 14:57:25: L012 260 3952
+0BPC P 10 1000 1000
+0BPA P 5 0 0
+0MSL N 0 0 0
+0LSR P 0 1000 1000
+0VBA N 2 1000 1000
+0VBC N 2 0 0
+
+17.03.2010 14:57:25: updateDAQClusters: Run: 113532 file:/tmp/r113532.rcfg
+DAQlogbook_update_triggerConfig() rc:0
+
+17.03.2010 14:57:25: timestamp:rc:0 from updateDAQClusters()
+
+17.03.2010 14:57:25: timestamp:ctp_LoadPartition finished PHYSICS_1 113532
+SMIRTL - Wed Mar 17 14:57:26 2010 - TRIGGER::CTP in state RUNNING/EXECUTING_FOR(S)=PHYSICS_1
+17.03.2010 14:57:26: timestamp:callback:CTPRCFG/RCFG successful.
+17.03.2010 14:57:26: timestamp:callback:CTPRCFG/RCFG successful.
+SMIRTL - Wed Mar 17 14:57:50 2010 - TRIGGER::CTP executing START_PARTITION/PARTITION=PHYSICS_1
+# of pars expected:2, received: 1. 
+SMI: parname=PARTITION  param=PHYSICS_1 
+TRIGGER::CTP Got action START_PARTITION with parameters  PHYSICS_1
+SMIRTL - Wed Mar 17 14:57:50 2010 - TRIGGER::CTP in state EXECUTING/EXECUTING_FOR(S)=PHYSICS_1
+Starting partition: PHYSICS_1
+17.03.2010 14:57:50: checkBCMASKS: mask 1 allocated now
+SOD event ok at 0 attempt.
+load2HW: PHYSICS_1 part->hwallocated:3 hwclass:0 1 44 45 2 3 46 47 4 5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+load2HW: FO1 addres:0x1240 data:0x101 
+load2HW: FO2 addres:0x2240 data:0x50501 
+load2HW: FO3 addres:0x3240 data:0x10103 
+load2HW: FO4 addres:0x4240 data:0x10501 
+load2HW: FO5 addres:0x5240 data:0x50000 
+load2HW: FO6 addres:0x6240 data:0x50501 
+17.03.2010 14:57:52: Partition:PHYSICS_1 NEVERACTIVE group's hw classes:
+17.03.2010 14:57:52: TIMESHARING: 0 1 1 1 1 1 6 30 119 9
+17.03.2010 14:57:52: Run 113532: starting xcounters.
+SMIRTL - Wed Mar 17 14:57:53 2010 - TRIGGER::CTP in state RUNNING/EXECUTING_FOR(S)=PHYSICS_1
+17.03.2010 14:57:53: timestamp:callback:STARTRUNCOUNT successful.
+17.03.2010 14:57:53: timestamp:callback:CTPCALIB/DO u successful.
+SMIRTL - Wed Mar 17 15:12:13 2010 - TRIGGER::CTP executing STOP_PARTITION/PARTITION=PHYSICS_1
+# of pars expected:2, received: 1. 
+SMI: parname=PARTITION  param=PHYSICS_1 
+TRIGGER::CTP Got action STOP_PARTITION with parameters  PHYSICS_1
+SMIRTL - Wed Mar 17 15:12:13 2010 - TRIGGER::CTP in state EXECUTING/EXECUTING_FOR(S)=PHYSICS_1
+Send EOD and then unload the partition
+17.03.2010 15:12:13: Run 113532: stopping xcounters.
+
+------------------------------dims.log:
+17.03.2010 15:11:53: Proces 18282@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+...
+17.03.2010 15:12:13: Proces 18282@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+...
+17.03.2010 15:29:24: Proces 20985@alidcscom026.cern.ch, id=9 requested command STOPRUNCOUNTER
+17.03.2010 15:29:27:  List of active runs: 0 0 0 0 0 0 
+
+[alidcsvme001] /home/alice/trigger/v/vme/WORK > grep '17.03.2010 15:' dims.log |grep RUNCOUNTER
+...
+17.03.2010 15:09:53: Proces 18282@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:11:52: Proces 18282@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:11:53: Proces 18282@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:12:13: Proces 18282@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:29:24: Proces 20985@alidcscom026.cern.ch, id=9 requested command STOPRUNCOUNTER
+17.03.2010 15:38:50: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:38:50: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:40:12: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:40:15: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STOPRUNCOUNTER
+17.03.2010 15:42:30: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:42:31: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+17.03.2010 15:44:15: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STOPRUNCOUNTER
+17.03.2010 15:44:15: Proces 18653@alidcsvme001.cern.ch, id=9 requested command STARTRUNCOUNTER
+
+seems like STOPRUNCOUNTER was not sent from ctp_proxy (20985 -was manual STOP)
+and ctp_proxy crashed on call: 
+ dic_cmnd_callback(com,&run, size,&callback,TAGstopcount);

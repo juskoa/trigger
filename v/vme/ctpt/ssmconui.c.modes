@@ -1,0 +1,260 @@
+#include "ssmconnection.h"
+//-----------------------------------------------------------------------
+//             USER INTERFACE
+//-----------------------------------------------------------------------
+/*FGROUP FOModes
+ * ---------------------------------------------------------------FO2LTU()
+ * Connections between FO and LTUs.
+ * FO2LTU() -- ltu1 = top connector -> first in parameters !!!
+*/
+int FOConnection(){	
+ return A2BCD(3,"fo1_outgen","ltu1_i1",0); 
+ //return A2BCD(4,"fo4_outgen","ltu1_i1","ltu3_i1",0); 
+}	
+/*FGROUP FOModes
+ * ---------------------------------------------------------------FO2LTU()
+ * FO: generates PP,L0,L1,L1data
+ * LTU: receives PP,L0,L1,L1data
+ * FO2LTU() -- ltu1 = top connector -> first in parameters !!!
+*/
+int FOL0L1mode(){	
+ //return A2BCD(3,"fo4_igl0l1","ltu1_ipp",0); 
+ return A2BCD(4,"fo4_igl0l1","ltu1_ipp","ltu3_ipp",0); 
+}	
+/*FGROUP FOModes
+ * ---------------------------------------------------------------FO2LTU()
+ * 
+ * FO: Generates L2strobe,L2Data1,L2Data2
+ * LTU: receives L2strobe, L2data
+ * FO2LTU() -- ltu1 = top connector -> first in parameters !!!
+*/
+int FOL2mode(){	
+ //return A2BCD(3,"fo4_igl2","ltu1_ipp",0); 
+ return A2BCD(4,"fo4_igl2","ltu1_ipp","ltu3_ipp",0); 
+}
+//
+//-------------------------------L0 modes
+//
+/*FGROUP L0Modes
+ * L0 generates: l0clstt,l0clst[6..1],l0strobe,l0data,pp,int[2..1]
+ * F0 receives: l0clstt,l0clst[6..1],pp at input
+ *              l0data,int are on other board
+ *              pp[4..1],l0[4..1] at output
+ *              
+*/
+int L0FOconnection(){
+ return A2BCD(3,"l0_outgen","fo1_inmonl0",0);	
+}
+/*FGROUP L0Modes
+ * Check L0 - > mode FO boards connection
+*/
+int L0FOnconnection(){
+ return A2BCD(6,"l0_outgen","fo1_inmonl0","fo2_inmonl0","fo3_inmonl0","fo4_inmonl0",0);	
+}
+/*FGROUP L0Modes
+ */
+int L0L1connection(){
+ return A2BCD(3,"l0_outgen","l1_inmon",0);	
+}
+/*FGROUP L0Modes
+ */
+int L0L2connection(){
+ return A2BCD(3,"l0_outgen","l2_inmon",0);	
+}
+
+/*FGROUP L0Modes
+ * L0 generates: l0clstt,l0clst[6..1],l0strobe,l0data,pp,int[2..1]
+ * F0 receives: l0clstt,l0clst[6..1],pp at input
+ *              l0data,int are on other board
+ *              pp[4..1],l0[4..1] at output
+ *              
+*/
+int L0ingener(){
+ return A2BCD(3,"l0_ingen","fo1_inmonl0",0);	
+}
+/*FGROUP L0Modes
+ *  Output Monitor mode
+ *  Start L0 in recording mode and read SSM to memory.
+ *
+ */  
+int L0outmon(){
+ return A2BCD(2,"l0_outmon",0);
+}
+/*FGROUP L0Modes
+ *  Input Monitor mode
+ *  Start L0 in recording mode and read SSM to memory.
+ *
+ */  
+int L0inmon(){
+ return A2BCD(2,"l0_inmon",0);
+}
+
+/*FGROUP L0Modes
+ *  Output Monitor mode: testing PF
+ *  Input: almost all p/f settings
+ *  Set HW according to input
+ *  Examples with SB: 
+ *            th=1,deltaT=4,sbc1=3,res=0
+ *            th=1,deltaT=3,sbc1=6,res=1
+ *            th=1,deltaT=2,sbc1=7,res=2
+ *            th=1,deltaT=5,sbc1=10,res=1
+*/ 
+int L0testPF(w32 tha1,w32 tha2,w32 thb1,w32 thb2,w32 deltaTa,w32 deltaTb,w32 sbc1,w32 resa,w32 resb,w32 lut12D){
+ HardWare.ipf=1;
+ HardWare.THa1=tha1;
+ HardWare.THa2=tha2;
+ HardWare.THb1=thb1;
+ HardWare.THb2=thb2;
+ HardWare.deltaTa=deltaTa;
+ HardWare.deltaTb=deltaTb;
+ HardWare.sbc1=sbc1;
+ HardWare.scaleA=resa;
+ HardWare.scaleB=resb;
+ HardWare.delayA=0;
+ HardWare.nodelayAf=1;
+ HardWare.lut12D=lut12D;
+ HardWare.luta=0xe;
+ HardWare.lutb=0xe;
+ HardWare.delayedINTlut=0x0;
+ A2BCD(2,"l0_outmon",2);
+ return 0;
+}
+/*FGROUP L0Modes
+ *  Output Monitor mode: testing PF
+ *  Input: ipf : circuit
+ *  Read HW settings from HW !
+ *  Examples with SB: 
+ *            th=1,deltaT=4,sbc1=3,res=0
+ *            th=1,deltaT=3,sbc1=6,res=1
+ *            th=1,deltaT=2,sbc1=7,res=2
+ *            th=1,deltaT=5,sbc1=10,res=1
+*/ 
+int L0testPF2(int ipf){
+ HardWare.ipf=ipf;
+ getPFHW(1,ipf); //1=l0 board
+ printPFHW();
+ A2BCD(2,"l0_outmon",3);
+ return 0;
+}
+/*FGROUP L0Modes
+ *  Output Monitor mode: testing PF by random HW settings
+*/ 
+int L0rndPF(int ipf){
+ HardWare.ipf=ipf;
+ //A2BCD(2,"l0_outmon",4);
+ A2BCD(2,"l0_outmon",4);
+ return 0;
+}
+/*FGROUP L0Modes
+ *  Output Monitor mode: testing all 5 PF by random HW settings
+*/ 
+int L0rndallPF(){
+ A2BCD(2,"l0_outmon",6);
+ return 0;
+}
+/*FGROUP L0Modes
+ *  Output Monitor mode: testing all 5 PF by random HW settings
+*/ 
+int L0classom(){
+ A2BCD(2,"l0_outmon",1);
+ return 0;
+}
+//
+//--------------------L1 modes---------------------------------------
+//
+/*FGROUP L1Modes
+ *  Output Monitor mode
+ *  Start L1 in recording mode and read SSM to memory.
+ *
+ */  
+int L1outmon(){
+ return A2BCD(2,"l1_outmon",0);
+}
+/*FGROUP L1Modes
+ *  Input Monitor mode
+ *  Start L1 in recording mode and read SSM to memory.
+ *
+ */  
+int L1inmon(){
+ return A2BCD(2,"l1_inmon",0);
+}
+/*FGROUP L1Modes
+ * Input genereting mode
+*/ 
+int L1ingen(){
+ return A2BCD(2,"l1_ingen",0);
+}
+/*FGROUP L1Modes
+ * L1 connection
+ */ 
+int L1L2Connect(){
+ return A2BCD(3,"l1_outgen","l2_inmon",0);	
+}
+/*FGROUP L1Modes
+ * L1-> FO
+ */ 
+int L1FOconnection(){
+ return A2BCD(3,"l1_outgen","fo1_inmonl1",0);	
+}
+/*FGROUP L1Modes
+ * P/F testing:
+ * L0 generates int1/int2 in outgen mode by user defined sequence !
+ * L1 outmon getting p/f
+ * L2 inmon getting int1/int2
+ */ 
+int L1testPF2(int ipf){
+ HardWare.ipf=ipf;
+ getPFHW(2,ipf); //1=l0 board
+ printPFHW();
+ A2BCD(4,"l0_outgen","l2_inmon","l1_outmon",1);
+ return 0;
+}
+/*FGROUP L1Modes
+ * P/F testing:
+ * L0 board generating int1,int2 by BC down or RND
+ * L0 ssm outmon giving int2,int1
+ * L1 ssm outmon giving pf
+ */ 
+int L1testPF3(int ipf){
+ HardWare.ipf=ipf;
+ getPFHW(2,ipf); //1=l0 board
+ printPFHW();
+ A2BCD(4,"none_none","l0_outmon","l1_outmon",1);
+ return 0;
+}
+/*FGROUP L1Modes
+ * P/F testing:
+ * L0 board generates int1/2 by BC down or RND
+ * L1 board ssm gives inta/b/d -> pf1
+ */ 
+int L1testPF4(int ipf){
+ HardWare.ipf=ipf;
+ getPFHW(2,ipf); //1=l0 board
+ printPFHW();
+ A2BCD(2,"l1_outmon",1);
+ return 0;
+}
+
+//--------------------------------------L2 modes------------------------------------
+//
+//
+/*FGROUP L2Modes
+ * L2-> FO
+ */ 
+int L2FOconnection(){
+ return A2BCD(3,"l2_outgen","fo1_inmonl2",0);	
+}
+/*FGROUP L2Modes
+ * P/F testing:
+ * L0 board generating int1,int2 by BC down or RND
+ * L0 ssm outmon giving int2,int1
+ * L1 ssm outmon giving pf
+ */ 
+int L2testPF3(int ipf){
+ HardWare.ipf=ipf;
+ getPFHW(3,ipf); //1=l0 board
+ printPFHW();
+ A2BCD(4,"none_none","l0_outmon","l2_pf",1);
+ return 0;
+}
+

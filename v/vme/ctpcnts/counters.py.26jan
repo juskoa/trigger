@@ -1,0 +1,323 @@
+#!/usr/bin/python
+# 13.9. 2005 - Scope outputs selection for CTP boards
+from Tkinter import *
+import string,os, types, time,threading #, os.path, glob
+import myw, shmpyext
+
+class CTPcnts(myw.MultRegs):
+  c150=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50")
+  i124=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24")
+  t7=("1","2","3","4","5","6","T")
+  pf5=("1","2","3","4","T")
+  def __init__(self,tlw=None, vb=None):   #see myw.vbexec
+    self.mrmaster=tlw
+    #if self.mrmaster:
+    #  myw.RiseToplevel(self.mrmaster); return
+    #else:
+    self.mrmaster=myw.NewToplevel("CTP counters",self.hidemrm, tlw=self.mrmaster)
+    self.defcounters= os.environ['VMECFDIR'] +"/WORK/default.counters"
+    self.addw=None   #window for 'adding' (with new names)
+    self.regsframe= myw.MywFrame(self.mrmaster)
+    self.regsframe.bind("<Destroy>",self.hideregsframe)
+    self.cmdframe= myw.MywFrame(self.mrmaster)
+    self.stophistorygram=None   # thread stopping
+    self.boardfs={} # board->corresponding frame
+    # regs: contains 1 item (MywEntry,addr)
+    #       for all entries in self.regsframe
+    self.regs=[]   
+    self.butts=myw.MywHButtons(self.cmdframe, 
+      [
+       ("Read", self.allread),
+       #("Readshm", self.allreadshm),
+       #("Periodic read", self.perRead),
+       ("Add/Remove counter", self.addnewcnt)
+      ], helptext="""
+Read          -update fields of all the shown counters
+Periodic read - repeat updating once per second
+Add/remove    - add new/remove shown counter field
+""")
+       #("Quit", self.mrmaster.destroy)])
+    #self.addReg(("BUSY_local_orbit"))
+    try:
+      cf= open(self.defcounters,"r")
+    except IOError:
+      cf=None
+    if cf:
+      for line in cf.readlines():
+        self.addReg(line[:-1])
+      cf.close()
+  def addnewcnt(self):
+    #print "history:",self.history.isAlive()
+    if self.addw:
+      #return
+      myw.RiseToplevel(self.addw); return
+    else:
+      self.addw=myw.NewToplevel("Adding new CTP counter", self.hideaddw)
+    # see comment in self.indexmode()
+    self.l0frame= myw.MywFrame(self.addw); self.boardfs["l0"]=self.l0frame
+    l0label= myw.MywLabel(self.l0frame,label="L0 counters",
+      bg=myw.VmeBoard.CTPcolors["l0"], side=TOP)
+    self.makeit1("l0","byclst", CTPcnts.t7, "Test, 1-6 cluster BUSY")
+    self.makeit1("l0","l0pf", CTPcnts.pf5, "Test, 1-4 P/F output")
+    self.makeit1("l0","l0timers", ["allrare","time","l0rate28"],
+      """allrare, elapsed time and down-scaling veto ON for L0 class28
+in 16BCs intervals""")
+    #self.makeit1("l0","l0inp", CTPcnts.i124, "L0 input")
+    self.makeit1("l0","l0classB", CTPcnts.c150, "Class before vetos")
+    self.makeit1("l0","l0classA", CTPcnts.c150, "Class after vetos")
+    self.makeit1("l0","l0inp", CTPcnts.i124, "L0 input")
+    self.makeit1("l0","l0ifun", ("1","2"), "L0 input functions")
+    self.makeit1("l0","int", ["1","2","T","A","B", "D"],
+      "Interaction signals: 1,2,T and  P/F Interaction signals A,B,D")
+    self.makeit1("l0","l0counters", ["l0strobe","prepulse","s_soft"],
+      "L0 strobe (ANYCLST), Prepulse and SW trigger counters")
+    self.makeit1("l0","l0clst", CTPcnts.t7, "Test, 1-6 cluster trigger")
+    #
+    self.busyframe= myw.MywFrame(self.addw,side=TOP); 
+    self.boardfs["busy"]=self.busyframe
+    busylabel= myw.MywLabel(self.busyframe,label="BUSY counters",
+      bg=myw.VmeBoard.CTPcolors["busy"], side=TOP)
+    self.makeit1("busy","busyt", CTPcnts.i124,
+      "busy some timer")
+  def findAddr(self, cntlabel):
+    if string.find(cntlabel,"byclst")==0:
+      board="l0"; c= cntlabel[6];
+      if c=="T": n= 0
+      else: n= int(c)
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"l0clst")==0:
+      board="l0"; c= cntlabel[6];
+      if c=="T": n= 0
+      else: n= int(c)
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"l0pf")==0:
+      board="l0"; c= cntlabel[4];
+      if c=="T": n= 7
+      else: n= int(c)+7
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"int")==0:
+      board="l0"; c= cntlabel[3];
+      if c=="1": n= 92
+      elif c=="2": n= 93
+      elif c=="T": n= 94
+      elif c=="A": n= 95
+      elif c=="B": n= 96
+      elif c=="D": n= 97
+      else: 
+        myw.errorprint(self,"Bad int counter name:"+cntlabel)
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"l0inp")==0:
+      board="l0"; n= 65+ int(cntlabel[5:])
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"l0ifun")==0:
+      board="l0"; n= 89+ int(cntlabel[6:])
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"l0classB")==0:
+      board="l0"; n= 15+ int(cntlabel[8:])
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"l0classA")==0:
+      board="l0"; n= 99+ int(cntlabel[8:])
+      addr= hex(0x8000 + n*4)
+    elif string.find(cntlabel,"allrare")==0:
+      board="l0"; addr= "0x8000"
+    elif string.find(cntlabel,"time")==0:
+      board="l0"; addr= "0x8000"
+    elif string.find(cntlabel,"l0rate28")==0:
+      board="l0"; addr= "0x8000"
+    elif string.find(cntlabel,"l0strobe")==0:
+      board="l0"; addr= "0x8000"
+    elif string.find(cntlabel,"prepulse")==0:
+      board="l0"; addr= "0x8000"
+    elif string.find(cntlabel,"s_soft")==0:
+      board="l0"; addr= "0x8000"
+    elif string.find(cntlabel,"busyt")==0:
+      board="busy"; n= int(cntlabel[5:])
+      addr= hex(0x8000 + n*4)
+    else:
+      myw.errorprint(self, "unknown counter name:"+cntlabel)
+      addr=None; board=None
+    return addr,board
+  def makeit1(self, board,label, items, helptext):
+    l0inp= myw.MywMenuList(self.boardfs[board], items=items, side=TOP,
+      label=label, cmd=self.indexmod, #showactive=1,
+      defaults=self.findCnts(label, items),
+      helptext=helptext)
+  def indexmod(self,inst=None,ix=None):
+    """ 
+    2 types of MywMenuList (they can be optionaly with showactive=1):
+    1. items=["1","2","3"...]
+    2. items=["name1","name2",...]
+    """
+    #print "indexmod:...",inst,ix
+    cntname= inst.getLabel()
+    newvalue= inst.getEntry(ix)
+    #print "indexmod:",cntname,'<',ix,':', newvalue
+    cntgroup= string.split(cntname,":")
+    # use cntgroup[0], ix to find out:
+    # cntname -name of the counter (as it appears in 'CTP counters' widget)
+    # address of the counter
+    # board it belongs to (busy,l0,l1,l2,fo,int)
+    if cntgroup[0]=="l0counters" or cntgroup[0]=="l0timers":
+      cntname= inst.getItem(ix) 
+    else:
+      #cntname= cntgroup[0] + str(ix+1)
+      cntname= cntgroup[0] + inst.getItem(ix)
+    cntaddr,board=self.findAddr(cntname)
+    if newvalue==1:   # add counter
+      self.addReg(cntname)
+    else:             # remove counter
+      ixreg= self.find(cntname)
+      #print "indexmod.ixreg:",ixreg
+      self.regs[ixreg][0].destroyEntry()     
+      del(self.regs[ixreg])
+  def addReg(self, cntname):
+    """
+    cntname -counter name (label in MywEntry widget)
+    """
+    cntaddr,bname=self.findAddr(cntname)
+    #print "addReg:", self.rgitems
+    #self.addr.printEntry('MultRegaddReg:')
+    if bname==None: color= myw.COLOR_BGDEFAULT
+    else:
+      color=myw.VmeBoard.CTPcolors[bname]
+    if cntaddr==None: return
+    r= myw.MywEntry(self.regsframe, label=cntname,
+      bg= color,
+      side="top",width=12,expandentry='no'),cntaddr
+    #, cmdlabel=self.chooseReg)
+    #delaction=self.destroyReg, defaultinx=inx,
+    r[0].convertStart()
+    self.regs.append(r)
+  def find(self, cntlabel):
+    for ix in range(len(self.regs)):
+      if cntlabel== self.regs[ix][0].getLabel():
+        return ix
+    return None
+  def findCnts(self, nbase, items):
+    """2 types, according to items.
+    items[0]=="1":
+       -counter names: nbase1,nbase2,...
+    else:
+       -counter names: items[0],items[1],...
+    return (0,0,1,1,0,...) for all counters 
+    starting with string nbase
+    I.e. if counters 
+    L0_inp2 and L0_inp4 are choosen, findCnts(L0_inp) returns:
+    (0,1,0,1) -doesn't have to be the same # of items as
+    counters of given type.
+    """
+    maxn=len(items)
+    dfs=[]
+    for ix in range(maxn):
+      dfs.append(0)
+    if items[0]=="1":
+      for ix in range(len(self.regs)):
+        lbl= self.regs[ix][0].getLabel()   #name1, nameT
+        if string.find(lbl, nbase)==0:
+          #lbl= int(lbl[len(nbase):])-1
+          # dfs[n]= 1
+          for ix2 in range(len(items)):    # 1, T
+            if nbase+items[ix2]==lbl:
+              dfs[ix2]=1
+    else:   # items (list of strings -counters names)
+      for ix in range(len(self.regs)):
+        lbl= self.regs[ix][0].getLabel()
+        for ix2 in range(len(items)):
+          if items[ix2]==lbl:
+            dfs[ix2]=1
+    return dfs
+  def allreadshm(self):
+    for i in range(len(self.regs)):
+      addr= self.regs[i][1]
+      val=shmpyext.getcnt(i)
+      print "allreadshm:", addr,val
+    #vals=shmpyext.getcnts("get..",(1,2,3))
+    #print "allreadshm2:",vals
+  def allread(self):
+    cmd2=""
+    #for i in range(len(self.regs)):
+    #  addr= self.regs[i][1]
+    #  cmd2=cmd2+','+str(addr)
+    #print 'allread  :', self.addrs
+    cmd="vmeopmr32("+ str(len(self.regs))+')'
+    thdrn=myw.vbexec.vbinst.io.execute(cmd,ff=self.doout)
+    print 'CTPcounters.cmd:',cmd
+    print 'thrdn:',thdrn
+    myw.vbexec.vbinst.io.thds[thdrn].waitcmdw()
+    for i in range(len(self.regs)):
+      addr= self.regs[i][1]
+      myw.vbexec.vbinst.io.thds[thdrn].pwrite(addr+"\n")
+      print "allread:", addr
+  def perRead(self):
+    print "perRead"
+    #thread= threading.Thread(self.historygram,arg=(1))
+    self.history= threading.Thread(target=self.historygram)
+    self.stophistoygram=None
+    self.history.start()
+  def historygram(self, first=None):
+    if shmpyext.startstopfw(1) != 1:
+      myw.errorprint(self,"Cannot open shm")
+      return
+    fifo= open("/tmp/dataready","r")
+    #for n in range(10):
+    while 1:
+      #time.sleep(1)
+      line= fifo.readline()
+      if self.stophistorygram:
+        n=shmpyext.startstopfw(0)
+        print "RC from stopping fifo:",n
+        break
+      if line=='': break
+      print "hg:", line[:-1]
+    print "hg: finishing"
+  def doout(self,allvals):
+    #print "allread3:",allvals,':'
+    vlist=string.split(allvals); vll= len(vlist)
+    if vll != len(self.regs):
+      myw.errorprint(self, "%d != %d"%(vll,len(self.regs)))
+    #dbgprint(self,"allread2:",vlist)
+    for i in range(vll):
+      prevval= self.regs[i][0].getEntryHex()
+      #print "allread:",prevval,vlist[i]
+      if prevval != vlist[i]:
+        #self.regs[i][0].entry.configure(bg=myw.COLOR_VALCHANGED)
+        self.regs[i][0].setColor(myw.COLOR_VALCHANGED)
+      else:
+        #self.regs[i].entry.configure(bg=myw.COLOR_VALNORMAL)
+        self.regs[i][0].setColor()
+      self.regs[i][0].setEntry(vlist[i])
+  def hideregsframe(self,event):
+  #  print "hideregsframe...",event.widget
+    pass
+  def hideaddw(self,event):
+    #print "hideaddw...",event.widget
+    self.addw=None
+  def hidemrm(self,event):
+    #print "hidemrm...",event.widget
+    if event.widget== self.mrmaster:
+      self.stophistorygram=1
+      cf= open(self.defcounters,"w")
+      #myw.vbexec.vbinst.io.execute(cmd,ff=self.doout)
+      myw.vbexec.printmsg("Writing choosen counters names to file:"+self.defcounters+"\n")
+      for ix in range(len(self.regs)):
+        cntlabel= self.regs[ix][0].getLabel()
+        cf.write(cntlabel+'\n')
+      cf.close()
+      if self.addw:
+        print "destroying addreg-widget:",self.addw
+        self.addw.destroy()
+  def addCCB(self):
+    ccb= myw.MywButton(self.addqframe,label='Clear',cmd=self.cc,
+      helptext= 'Clear counters', side="right")
+  def cc(self):
+    self.board.io.execute("SLMclearcnts(0xfff)")
+
+def main():
+  myw.vbinit(None)
+  f = Tk()
+  #f.bind("<Destroy>", fdestroy)
+  CTPcnts(f)
+  f.mainloop()
+
+if __name__ == "__main__":
+  main()

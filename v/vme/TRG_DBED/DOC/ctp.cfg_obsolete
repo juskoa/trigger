@@ -1,0 +1,97 @@
+Hi,
+Here is an example, how 'CTP configuration' file should look like.
+The format should be higly modifiable -i.e. adding new parameters
+should not influence the programs already prepared for previously
+defined parameters. It should not contain redundant information-
+if there is any, it should be prepared by 'CTP configuration
+software' from this file.
+The proposal is not complete for now -we will discuss
+the necessary parameters along with the availabality of
+'programming model' for particular CTP boards.
+The configuration file consists of these parts:
+1. general parameters
+2. P/F circuits definitions
+3. Classes definitions
+4. Clusters definitions
+
+This file will be prepared:
+- by hand (it is text file) or 
+- from files, prepared beforehand by partition editor or
+- by 'CTP configuration file editor' -if we find out it to be convenient
+  to have such editor
+
+This file will be read by 'CTP configuration software', which
+performs the necessary checks/translations and loading into CTP boards.
+Bye, Anton
+
+#syntax:
+# general parameters:
+deadtime=80          # CTP dead time
+downsc1=1            # 2 BC scaled down generators
+downsc2=0x345a
+rnd1=0               # 2 random generators
+rnd2=3000
+calBC=3450           # Calibration BC (p.33)
+ppBC=3200            # Prepulse BC (p.33)
+L01delay=224         # L0-L1 dealy (p.48)
+BCM.1=2654L,1000(HL) # 3654 bits numbers defining 4 BC masks
+BCM.2=21,3400        # default: 3654L
+#-----------------------------------------------------------
+
+# P/F prot. circuits: (p.39) 
+# pf.x=(THa1,THa2,THb1,THb2,resolution,protection_interval), x=1..4
+pf.1=(1,2,3,4,200,32)
+#-----------------------------------------------------------
+
+# 50 Classes (p.29,32)
+# Each class configuration (x=1..50) consists of 4 parts:
+# L0-part, L1-part, L2-part, fed_cluster.
+# CLA.x=(
+# L0inputs, sdBC, rnd, allrare, clmask, BCmask,L0pf,L0prescaler,
+# L1inputs, L1pf,
+# L2inputs, L2pf,
+# fed_cluster)
+# where:
+# L*inputs (*=0,1,2) are trigger input definitions for Class x. 
+#          1 character is reserved for each input (24/20/6 inputs for
+#          L0/L1/L2 part):
+#          I -input (i.e. valid if present)
+#          N -negated input (i.e. valid if not present)
+#          D - don't care input
+#          N(negated) inputs are allowed only for classes 45..50
+# sdBC     0,1,2,3 -scaled-down BC inputs
+# rnd      0,1,2,3 -random trigger inputs
+# allrare  0,1     -AllRare L0 trigger veto input
+# clmask   0,1     -Class mask L0 trigger veto input
+# BCmask   0..15   -BC mask L0 trigger veto inputs
+# L0pf     0..15   -L0 p/f  L0 trigger veto inputs
+# L0prescaler 20 bits, Class L0 prescaler register
+# L1pf     0..15   -L1 p/f  L1 trigger veto inputs
+# L2pf     0..15   -L2 p/f  L2 trigger veto inputs
+# fed_cluster 0-6  -The cluster number where output of this 
+#             class is connected
+#      1...,...10....,...20....,
+CLA.1=(IDDDDDDDDDDIIIIIIIIIDDDD,2,3,1,0,15,0,10000,
+       DDDDDDIIIIIIIDDDDDDD,1,
+       DDIIDD,2,
+       3)
+#       1...,...10....,...20....,
+CLA.45=(INDDDDDDDDDIIIIIIIIIDDDD,2,3,1,0,15,0,10000,
+        NDDDDDIIIIIIIDDDDDDD,1,
+        NDIIDD,2,
+        3)
+#-----------------------------------------------------------
+
+# 6 clusters (p.47)
+# Each cluster (x=1..6) consists of 24 characters (1 character per
+# detector): I -detector belongs to this cluster
+#            N -detector doesn't belong to this cluster
+#     1...,...10....,...20....,
+CLU.1=IIIIIINNNNNNNNNNNNNNIIIN
+CLU.2=NNNNNNIIINNNNNNNNNNNNNNN
+#-----------------------------------------------------------
+
+# RoI part (50 classes, 6 clusters):  (p.49) -not clear to me now,
+# if it is necessary or not -probably, 1 flag for each Class in
+# (CLA.x=...) is enough?
+

@@ -1,0 +1,81 @@
+Contents:
+How to prepare list of CTP counter names
+History
+
+
+How to prepare list of CTP counter names (modified 25.10., 5.7.2010):
+----------------------------------------------------------
+1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
+   cd $VMEBDIR ; ./counters.py printnames >~/cnames
+   remove Error: lines from ~/cnames
+   check number of counters (should be 970):
+   wc ~/cnames
+Or in lab (we want full version of file from the pit):
+cd $dbctp ; mv VALID.LTUS lab/ ; cp pit/VALID.LTUS .
+cd $dbctp ; mv ttcparts.cfg lab/ ; cp pit/ttcparts.cfg .
+cd $VMEBDIR ; ./counters.py printnames >~/cnames
+cd $dbctp ; cp lab/VALID.LTUS .
+cd $dbctp ; cp  lab/ttcparts.cfg .
+
+2.
+File cnames is OK for PVSS (Jozef). For web interface we need sorted, no holes. 
+sort file by 2nd item (rel. address)
+cd ; sort -n -k 2 -t ' ' cnames >cnames.sorted2
+
+3. copy cnames.sorted2:
+[pcalicebhm05] /home/trigger > cp cnames.sorted2 /data/ClientCommonRootFs/usr/local/trigger/vd/vme/dimcdistrib/cnames.sorted2.pit
+
+4.
+-repeat the same for .lab version (with lab version of VALID.LTUS 
+and ttcparts.cfg):
+...
+[pcalicebhm05] /home/trigger > cp cnames.sorted2 /data/ClientCommonRootFs/usr/local/trigger/vd/vme/dimcdistrib/cnames.sorted2.pit
+
+Example (notes from 11.11.):
+---------------------------
+Adding new counters (12 counters for each FO board):
+- modify vme/ctp/ctpcounters.h
+- modify vmeb/counters.py (has be in agreement with ctp/ctpcounters.h)  
+  - at the beginning define correct # of counters on each board
+  - class CTPcnts
+      def addnewcnt
+      def findAddr
+      def printSPEC()
+- create new cnames.sorted2 file (see above) and place it to master copy:
+pcalicebhm05:/data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcdistrib
+
+History
+-------
+Files cnames.sorted2 created 19.9. and left in DOC directory
+   -corrected with ltu voltages 10.7.2007 (774 counters in total)
+There is script: aj@pcalicebhm05:bin/dimcDistrib for preparing
+dimclient distribution for 'CTP counters reading'.
+
+22.10.2007:
+New version of CTP counters:
+- epochsecs/mics: ctp in 3rd column
+- l2orbit: l2 in 3rd column
+- 5th column (created by using VALID.LTUS):
+  - N -not connected (fo and busy boards) or
+  - ctp for 'ctp related' counters or
+  - detector name taken from VALID.LTUS for 'detector related' counters:
+    (?:1-6 X:1-4 *:1-24 (bsy input)   #:1-24 (det number+1))
+fo?ppoutX 
+fo?l0outX
+fo?l1outX
+fo?l2stroX
+byin*
+byin_end*
+byin_last*
+ltuvolts*
+
+17.11.
+spare812-817   6 runx counters -see 
+dimservices.c:#define RUNXCOUNTERSSTART 812
+Nov. 2008
+14 counters  added on FO (34 -> 48) -glitches
+i.e. now:970 before:886 counters 
+970= 886+ (48-34)*6
+
+12.6.2010
+TSGROUP counter -replacing BUSY spare just before RUNX counters

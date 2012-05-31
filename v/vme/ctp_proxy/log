@@ -1,0 +1,6 @@
+ctp_Initproxy: cleaning CTP hw (all classes disabled, all BUSYs cleaned
+ctp_proxy TESTER 
+Commands: s(start) f(stop) p(pause) r(resume)
+          M(start MUON_TRK) S(stop MUON_TRK) H(start HMPID) F(stop HMPID)
+          h(HW print) t(print partition) q(quit)
+:

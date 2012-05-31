@@ -1,0 +1,60 @@
+Goal:
+provide certain set of class counters as DIM service. The rel. position
+of these counters in the array is fixed (value is 0 if class not defined).
+
+How to achieve it:
+A:
+-ctpdims will provide additional service: 
+CTPDIM/MONLUMCNTS.
+
+B:
+- there is global definition of 'what is sent to DCS at fixed positions'.
+The definition is used ONLY by ctp_proxy, when creating message 
+STARTRUNCOUNT for ctpdims .
+This definition is:
+int fixedadd; // 0,1,... (adress in output array provided by DIM)
+int type;  //raw input, class_before_vetos,...
+char name[40];   // input/class name (0TSC,CMUS1-AC-NOPF-ALLNOTRD)
+
+C:
+- ctpdims keeps information about loaded partitions. This info
+is received from ctp_proxy inside STARTRUNCOUNT/STOPRUNCOUNT
+commands.
+--------------------Proposal (later):
+Structure ActiveLumCounters is allocated 7 times (6 partitions+
+1 global one) in ctpdims (no need in ctp_proxy !).
+-------------------- NOW: ONLY PHYSICS_1 partition considered
+(i.e. only 1 allocation for PHYSICS_1 is enough).
+
+ActiveLumCounters:
+run_number
+0  rel. position in array970 (all ctp counters) array, -1:not active
+1
+2
+...
+MaxActiveLumCounters-1
+
+D:
+- ctpdims in time of STARTRUNCOUNT:
+  update 
+- ctpdims in time of STOPRUNCOUNT:
+  -apply received info,i.e. remove given run from ActiveLumCounters
+  -go through all active partitions and recreate new ActiveLumCounters[0]
+
+E:
+- ctp_proxy finds out at the LOAD_PARTITION time which classes
+will be active (by analysing .rcfg file). Info is sent to
+ctpdims through STARTRUNCOUNT DIM command later when run starts.
+Convenient place where to keep it is Tpartition structure.
+
+F:
+- STOPRUNCOUNT cmd to ctpdims stays the same (i.e. only run number)
+
+
+Modifications:
+E: no need to keep it in Tpartition (send directly to dims only
+with PHYSICS_1 partition).
+
+Status 14.9.:
+ctp_proxy/fixedcnts.c -it is enough to change table here
+(up to max. 50 counters), relink ctpproxy and restart

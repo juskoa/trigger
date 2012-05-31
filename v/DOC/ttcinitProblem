@@ -1,0 +1,63 @@
+1.Start stdalone/global run:
+    ECS:
+       SOR -> DCS
+       -execution of SOR.command
+       wait for SOR.command completion from all detectors:
+       -typically 30 secs for global run (typical time for ACORDE is 6 
+secs)
+
+2A. Start stdalone run:
+    ECS:
+       DAQ processes start (including SOR.script)
+       SOR.script executed before START
+       START ->ltuproxy
+    ltuproxy:
+       check BUSY: goto ERROR if busy
+       TTCinit
+       SOD generation
+       sleep 1 milsec
+       generate physics triggers
+
+2B. Start global run:
+    ECS:
+       NV_GOTOGLOBAL ->ltuproxy
+    ltuproxy:
+       set LTU to global mode
+       TTCinit
+       enable busy
+    ECS:
+       LOAD_PARTITION ->ctpproxy
+    ctpproxy:
+       check resources, update DAQlogbook
+    ECS:
+       start DAQ processes (including SOR.script )
+       SOR.script executed after NV_GOTOGLOBAL
+       START_PARTITION ->ctpproxy
+    ctpproxy:
+       SOD generation
+       enable physics triggers
+
+6A. Stop stdalone run:
+    ECS:
+       STOP ->ltuproxy
+    ltuproxy:
+       stop emulation
+       sleep 1ms
+       generate EOD
+
+6B. Stop global run:
+    ECS:
+       STOP_PARTITION ->ctpproxy
+    ctpproxy:
+       stop physics triggers
+       generate EOD
+    ECS:
+       NV_GOTOSTANDALONE_STOPPED ->ltuproxy
+    ltuproxy:
+       set LTU to stdalone mode
+       enable busy
+
+8. ECS:
+       DAQ processes stopped (this includes execution of EOR.script)
+       EOR.script started
+

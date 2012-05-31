@@ -1,0 +1,40 @@
+CCLIB=../vmeblibcc
+CC=$(VMEGCC)
+ifdef DATE_INFOLOGGER_DIR
+INCDIRS=-I$(DATE_INFOLOGGER_DIR)
+CCDEFS=
+else
+INCDIRS=
+CCDEFS=-DNOINFOLOGGER
+endif
+#ifeq ($(VMEGCC),g++)
+#CCDEFS +=-DCPLUSPLUS
+#endif
+ifdef DATE_DAQLOGBOOK_DIR
+INCDIRS +=-I$(DATE_DAQLOGBOOK_DIR) -I/opt/act
+CCDEFS +=-DDAQLOGBOOK
+endif
+
+COMMONCFLAGS= -Wall -g $(CCDEFS) $(INCDIRS)
+#COMMONCFLAGS= -Wall -g -DNOINFOLOGGER
+include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
+
+all: vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o loadFPGA.o dodif32.o \
+ prtError.o shmaccess.o infolog.o detectfile.o signature.o environment.o \
+ daqlogbook.o udplib.o actdb.o
+#all: vmewrap.o ranlux.o udplib.o 
+	-rm libvmeb.a
+	ar rs libvmeb.a *.o
+	cd $(CCLIB); rm libvmeb.a; ar rs libvmeb.a *.o
+vmewrap.o: vmewrap.c vmewrap.h vmewrapdefs.h
+	gcc -c $(CFLAGS) -D$(VMEDRIVER) $< -o $(CCLIB)/$@
+	$(CC) -c -DCPLUSPLUS $(CFLAGS) -D$(VMEDRIVER) $<
+udplib.o: udplib.c udplib.h 
+	gcc -c $(CFLAGS) $< -o $(CCLIB)/$@
+	$(CC) -c -DCPLUSPLUS $(CFLAGS) $<
+%.o: %.c *.h
+	gcc -c $(CFLAGS) $< -o $(CCLIB)/$@
+	$(CC) -c -DCPLUSPLUS $(CFLAGS) $<
+clean: 
+	-rm *.o
+	-rm $(CCLIB)/*.o

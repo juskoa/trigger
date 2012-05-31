@@ -1,0 +1,88 @@
+Goal: ECS want to set any parameter (present in ltu defaults)
+before run start. This value should be valid just for the
+run being started.
+
+Current phases when loading parameters:
+CFG/ltu/ltuttc.cfg -> SHM -> hw
+SHM can be modified interactively by defaults editor (and saved
+in ltuttc.cfg file).
+New way:
+        smi/SET_DEFAULT ------*
+                              V
+CFG/ltu/ltuttc.cfg -> SHM -> tempshm ->SOR-> hw
+but                   SHM -> ltuinit ->hw
+
+Todo:
+1. ltu_utils.c ltu_configure() is called at SOR (stdalone or global):
+   tempshm is used ONLY in ltu_configure!
+2. prapre shm->tempshm
+  -copy shm ->tempshm
+  -apply ECS/SET_DEFAULT modifications (if any) to tempshm
+3. similar approach needed in 
+  -Setglobalmode() and startemu()
+  -ltulib/ltuinit.c printltuDefaults (ECS last change modifications
+   should be printed)
+
+Done:
+19.4.2010
+ltu_utils.[ch]:  -preparation for 2 steps above:
+-the TTCinitgs() call moved to ltu_configure (was in Setglobalmode() 
+ and startemu())
+-setglobalmode() now called directly from ltu_configure to keep
+ right order -see note before TTCinitgs() call
+-ltu_configure now returns code (0:ok)
+-Setglobalmode() returns code now
+21.4.2010
+-ltulib/ltuinit.c setOptionMem(... Tltucfg *ltucfg) (1 par. added)
+ setOption() is just wrapping setOptionMem...
+ - copyltucfg(Tltucfg *dest, Tltucfg *source)
+
+-ltu_proxy.c: 
+ -SET_DEFAULT smi command fill (rewrites) templtucfg
+ -templtucfg is used in ltu_configure()
+ -templtucfg is reset (i.e.: templtucfg= shm) at:
+  -the start of ctp_proxy
+  -always after being used (after loaded to hw in ltu_configure)
+
+-ltulib/ltuinit.c: TTCinitgs,TTCrxregs(),printltuDefaults() are invoked from
+ ltu_configure() -so they use ltucfg passed through parameter
+ similarly ltulib/ltudimservcies.c
+
+26.4. upgrade done in the pit (inluding this feature).
+
+3.6.2010: still problem: when rate changed in defaults editor, stdalone has to be started 2 times to take this in effect
+Explanation:
+after SHM modification, templtucfg(SHM modifiaction not taken) 
+is loaded to hw and shm->templtucfg is done ONLY at the end of 
+ltu_configure() -after load to HW.
+Fix: make copy SHM ->templtucfg not only in ltu_configure, but
+after 'save' in DEFAULTS editor widget. This is done by:
+1. DEFEDIT_ID -always +1 when shm rewritten by defaults editor
+2. ltuproxy checks with each SMI command, if DEFEDIT_ID in templtucfg
+   is the same as in SHM.
+   YES - do nothing
+   >   - copy SHM->templtucfg
+Done:   
+- #define IXdefedit_id 7  in ltu.h
+- SMI_handle_command() modified
+- leave the copy SHM->templtucfg in ltu_configure! -needed for
+  two runs with different parameters from ECS (ECS should set ALL
+  parameters before each run)
+- setOptionMem used everywhere in ltu_proxy now (i.e. even for
+  explicitly def. parameters)
+Todo:
+- seems it is enough to change [IXdefedit_id] in setOption()
+  done
+8.6.
+still there was bug -muon_trg using different L2a sequences controlled by 
+ECS experienced problem: alwasy cal. triggers , even when not expected.
+Fixed around 17:00 -templtucfg is used everywhere,
+- shm -> templtucfg:
+  - when ECS cmd arrives 
+  - in startemu (as soon as emulation started, discard ECS changes)
+  - special processing at EOD (ltu_sodeod_present taken from templtucfg)
+
+
+
+
+

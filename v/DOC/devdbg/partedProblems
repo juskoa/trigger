@@ -1,0 +1,24 @@
+Problems:
+1. too many messages
+2. parted should issue ERROR when some classes not defiend correctly
+   (e.g.: usage of bad descriptor names found when .partition file
+   loaded).
+   Todo:
+   -warning when loaded + warning when saved!
+   but instead, it save partitions without error message
+
+---------------- savepcfg:  beam3
+after adding new class + save:
+allocShared:rc:: [None, None] None
+Warning: Class C0AMU-ABCE-NOPF-MUON CLA10 != 0
+Warning: Class C0LSR-ABCE-NOPF-TPC CLA11 != 10
+
+Done:
+20.5.2010
+Messages from processing of the DB files, are (PrintError(msg, self)
+not printed to stdout but saved in /tmp/parted.log
+Done for:
+class TrgDescriptor
+class TdsLtus:
+class TrgPartition:
+

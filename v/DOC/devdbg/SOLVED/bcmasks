@@ -1,0 +1,51 @@
+problem1: BCmasks not checked properly: recently loaded BCMASKS (4bits)
+          overwrites all the previously loaded masks
+
+The process of starting partition:
+ctp_LoadPartition
+  preparepcfg
+  checkPCFG
+  copyHardware(&HWold,&HW);   // HWold <- HW
+  part=readDatabase2Tpartition(name); 
+    ParseFile(lines,newpart)
+      part->rbif=BCMASK2Partition(lines[i],part->rbif);
+        findBCMasks(rbif->BCMASK, rbif->BCMASKuse);
+  applyMask
+    checkRES(bit, part, cls, &rbifnew)
+  checkResources
+  addPartitions(part)
+  addPartitions2HW(AllPartitions)
+  prepareRunConfig(part,1)
+  updateDAQClusters(part);
+  copyHardware(&HW,&HWold);   // HW <- HWold
+
+ctp_StartPartition
+  copyHardware(&HWold,&HW);
+  addStartedPartitions(part);
+  addPartitions2HW(StartedPartitions);
+  setALLDAQBusy(); 
+  generateXOD(part,'S')
+  load2HW(&HW)
+    loadBCmasks(rbif->BCMASK)
+  cshmAddPartition(part);
+  xcountersStart(part->run_number);
+  unsetALLDAQBusy();
+  
+-------------------- bcmasks focus:
+ctp_LoadPartition
+  checkResources
+    checkRBIF
+      cumRBIF(part1, &myrbif);
+        checkpairRBIF(...
+        checkBCMASKS(
+or
+ctp_LoadPartition and ctp_StartPartition
+  addPartitions2HW
+    addRBIF2HW
+      cumRBIF
+        checkpairRBIF(...
+        checkBCMASKS(
+
+fixed 15.12.2009: if masks used, they have to be used at the same place
+for different partitions. TESTED 15.12.2009 in lab.
+

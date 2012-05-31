@@ -1,0 +1,280 @@
+ctp_busy
+int1
+int2
+l2strobe
+l2data1
+l2data2
+l1strobe
+l1data
+l0strobe
+l0data
+byclstt
+byclst1
+byclst2
+byclst3
+byclst4
+byclst5
+byclst6
+l1clstt
+l1clst1
+l1clst2
+l1clst3
+l1clst4
+l1clst5
+l1clst6
+l0clstt
+l0clst1
+l0clst2
+l0clst3
+l0clst4
+l0clst5
+l0clst6
+pp
+ScopeA
+ScopeB
+Orbit
+BC
+FPOrbit
+FPPP
+FPL0
+FPL1
+FPL1D
+FPStrL2D
+FPL2D
+swtrg
+l0_1
+l0_2
+l0_3
+l0_4
+l0_5
+l0_6
+l0_7
+l0_8
+l0_9
+l0_10
+l0_11
+l0_12
+l0_13
+l0_14
+l0_15
+l0_16
+l0_17
+l0_18
+l0_19
+l0_20
+l0_21
+l0_22
+l0_23
+l0_24
+inttest
+pf1
+pf2
+pf3
+pf4
+pft
+bcmask1
+bcmask2
+bcmask3
+bcmask4
+scaledbc1
+scaledbc2
+rndtrg1
+rndtrg2
+l0funct1
+l0funct2
+deadtime
+l1clstt
+l1clst1
+l1clst2
+l1clst3
+l1clst4
+l1clst5
+l1clst6
+l1strobe
+l1data
+int_a
+int_b
+int_d
+dint_d
+esr
+class_b[28]
+class_a[28]
+class_b[48]
+class_a[48]
+pf1_dpa1
+pf1_dpa2
+pf1_dpb1
+pf1_dpb2
+l1_ack
+VMEwrite
+VMEread
+Dell0strobe
+Dell028
+Dell048
+l1_1
+l1_2
+l1_3
+l1_4
+l1_5
+l1_6
+l1_7
+l1_8
+l1_9
+l1_10
+l1_11
+l1_12
+l1_13
+l1_14
+l1_15
+l1_16
+l1_17
+l1_18
+l1_19
+l1_20
+l1_21
+l1_22
+l1_23
+l1_24
+dell1strobe
+l2strobe
+ctp_deadtime
+l0l1_deadtimet
+l0l1_deadtime1
+l0l1_deadtime2
+l0l1_deadtime3
+l0l1_deadtime4
+l0l1_deadtime5
+l0l1_deadtime6
+l2clstt
+l2clst1
+l2clst2
+l2clst3
+l2clst4
+l2clst5
+l2clst6
+l2a_ack
+l2_1
+l2_2
+l2_3
+l2_4
+l2_5
+l2_6
+l2_7
+l2_8
+l2_9
+l2_10
+l2_11
+l2_12
+any_l1clst
+dl_l1clst
+l2strobe[1]
+l2strobe[2]
+l2strobe[3]
+l2strobe[4]
+l2data[1]
+l2data[2]
+l2data[3]
+l2data[4]
+busy01
+busy02
+busy03
+busy04
+busy05
+busy06
+busy07
+busy08
+busy09
+busy10
+busy11
+busy12
+busy13
+busy14
+busy15
+busy16
+busy17
+busy18
+busy19
+busy20
+busy21
+busy22
+busy23
+busy24
+ddl.fb_d[0]
+ddl.fb_d[1]
+ddl.fb_d[2]
+ddl.fb_d[3]
+ddl.fb_d[4]
+ddl.fb_d[5]
+ddl.fb_d[6]
+ddl.fb_d[7]
+ddl.fb_d[8]
+ddl.fb_d[9]
+ddl.fb_d[10]
+ddl.fb_d[11]
+ddl.fb_d[12]
+ddl.fb_d[13]
+ddl.fb_d[14]
+ddl.fb_d[15]
+ddl.fb_ctrl
+ddl.fb_ten
+ddl.rd_state[0]
+ddl.rd_state[1]
+ddl.rd_state[2]
+ddl.rc_state[0]
+ddl.rc_state[1]
+ddl.rc_state[3]
+ddl.wr_state[0]
+ddl.wr_state[1]
+ddl.wr_state[2]
+ddl.arb_state[0]
+ddl.arb_state[1]
+ddl.eob_busy
+ddl.ddl_busy
+roi_strobe
+roi_data
+spare_out1
+spare_out2
+l1[1]
+l1[2]
+l1[3]
+l1[4]
+l1data[1]
+l1data[2]
+l1data[3]
+l1data[4]
+empty
+
+
+MAXNAMES = 300 !! if more change ssmctp.h   
+Backplane names:
+CTP BUSY -> CTPBSY
+Interaction1 -> Int1
+Interaction2 -> Int2
+Strobe -> StrL2D
+L2 Data 1 -> L2D1
+L2 Data 2 -> L2D2
+Strobe -> StrL1D
+Class L1 Data -> L1D
+Strobe -> StrL0D
+Class L0 Data -> L0D
+Cluster Busy (7) -> CluBSY1, CluBSY2, ....
+Cluster L1 (7) -> CluL11, CluL12,....
+Cluster L0 (7) -> CluL01,CluL02,...
+PrePulse -> PP
+Scope Probe A -> ScopeA
+Scope Probe B -> ScopeB
+Orbit -> Orbit
+BC -> BC
+
+Front Panel names: (there 4 sets since we have 4 FO connectors)
+Orbit -> FP1Orbit
+PrePulse -> FP1PP
+L0 -> FP1L0
+L1 -> FP1L1
+L1Data -> FP1L1D
+L2 Strobe -> FP1StrL2D
+L2 Data -> FP1L2D
+
+Front Panel nonLTU inputs:
+swtrg
+l0[1..24]

@@ -1,0 +1,2 @@
+# dets: 0-16,18,19: hex(0x1ffff | 1<<18 | 1<<19 )
+L2A 0x0 0xdffff000000 0x0 roc=14 Last ErrProne L1SwC L2SwC 

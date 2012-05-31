@@ -1,0 +1,2 @@
+QPLL_STATUS of RFRX board in TTCmi crate word should 
+be monitored (and warning issued somehow).

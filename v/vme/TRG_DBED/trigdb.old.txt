@@ -1,0 +1,53 @@
+Information about accessible hardware
+-------------------------------------
+VALID.LTUS   -the names of all the ALICE detectors
+VALID.TRGINP -the subset of VALID.LTUS. It lists ALICE detectors 
+              contributing to trigger inputs
+              
+VALID.CTPINPUTS
+Contains a single line, with the names of the CTP inputs
+with additional information about the detector it belongs to.
+First identifier in the line is the name of the detector (from VALID.LTUS)
+followed by the CTP input names. An example:
+  
+T0 T0
+V0 V0mb V0sc V0ce 
+TRD TRDpre 
+ZDC ZDC1_l1 ZDC2_l1
+
+Information about possible CTP configuration
+--------------------------------------------
+In file TRIGGER.DESCRIPTORS  1 line describes 1
+trigger descriptor - the symbolic name for 'physical trigger'.
+First identifier in the line is the Trigger descriptor name 
+followed by CTP inputs (from VALID.TRGINPUTS file).
+For example trigger descriptors with the names MB, SC, CE are
+described by following lines in TRIGGER.DESCRIPTORS file:
+
+MB T0 V0mb TRDpre ZDC1_l1
+SC T0 V0sc TRDpre ZDC2_l1
+CE T0 V0ce TRDpre ZDC3_l1
+
+${PARTITION}.CLASSES should be called .CLUSTERS, because it
+gives the list of clusters (for each cluster there are 2 lines)
+belonging to that partition.
+The format of the file:
+
+TDS: MB SC
+OUTPUT: HMPID TPC
+TDS: CE SC
+OUTPUT: TRD
+
+Explanation: this file describes 2-cluster partition.
+First cluster is triggered by MB or SC triggers and i
+      it controls 2 detectors: HMPID and TPC.
+Second cluster is taking CE or SC triggers, and it controls
+      TRD detector.
+
+Information about current CTP configuration
+-------------------------------------------
+This information is kept in ${PARTITION}.CURRCLASSES (again, more
+adequate would be .CURRCLUSTERS).
+The format is the same as for 'possible' configuration file. There
+are so many .CURRCLUSTERS files, as many active partitions exists.
+

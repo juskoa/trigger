@@ -1,0 +1,198 @@
+Content:
+1. Installation
+2. List of files in this directory
+3. cnames.sorted2, ltunames.sorted2
+3.1. monnames.txt
+4. History
+
+1. Installation
+---------------
+C and C++ examples of DIM clients using CTP dim services: 
+"CTPDIM/MONCOUNTERS" -CTP counters monitoring
+"CTPDIM/SWTRG"       -software trigger requesting
+
+Compilation of the client: 
+1. Modify SFX, CC variables in dimccounters.make (C or C++ client).
+   (C++ is available only for dimccounters)
+2.  make linux/dimccounters       (CTP/LTU counters monitoring)
+    or 
+    make linux/dimcswtrg          (the requests for SW trigger)
+3. make linux/server
+   CTPDIMt server doesn't have to be compiled, if CTPDIM
+   server (real server running with CTP) will be used.
+4. start client:
+Environment: 
+DIM_DNS_NODE=pcald30     (CERN public network)
+DIM_DNS_NODE=aldaqecs    (exp. area at Point2)
+
+linux/dimccounters CTPDIM       -connect to CTPDIM server
+linux/dimccounters hmpid        -connect to hmpid LTU dim server
+
+The message received from DIM server is array of 32 bits integers as
+seen in ctpcounters.h.
+The length of this array is 886 words (CTPDIM dim server) 
+or 26 (LTU dim servers -one for each LTU).
+
+2. List of files in this directory
+----------------------------------
+Source code of the examples are in these files:
+Example of the server, publishing counters:
+server.c              -similar code is used for real CTPDIM server
+
+Counters reading:
+ctpcounters.h  
+dimccounters.c        -example in C
+dimccounters.cxx      -example in C++
+dimccounters2.c       -example in C (more counters: temperature, voltages)
+                       make linux/dimccounters2
+Software trigger requests:
+dimctypes.h           -the format of message to be sent 
+                       with CTPDIM/SWTRG command
+dimcswtrg.c           -example in C how to ask for:
+                       - SWtrigger
+                       - SWtrigger status
+Makefile              -makefile
+
+allrare_client.c, allrare.make -example of client requesting ALL/RARE
+                                from DAQ
+
+The description of CTP counters can be found
+at ALICE trigger web page (http://www.ep.ph.bham.ac.uk/user/pedja/alice/
+-> List of Software notes)
+
+3. cnames.sorted2, ltunames.sorted2
+-----------------------------------
+The lines of this file contain:
+counter_name relative_position_from_0 board_name GTC detector
+...
+for all the CTP counters.
+
+Similar file ltunames.sorted2 is supplied for LTU counters, 
+published by LTU DIM servers. This file does not contain 5th column
+(detector) present in cnames.sorted2.
+
+counter_name 
+------------
+is the name of the counter, as used in CTP expert software.
+From CSTART_SPEC relative position (ctpcounters.h), special
+counters are located:
+- there are 2 counters (epoch*) for local 
+  unix time added by the CTP dim server at the time of reading 
+  counters from CTP into memory. These 2 integers keep
+  seconds and microseconds from Epoch -as returned by
+  gettimeofday() system routine on CTP VME processor.
+- orbit number (read from register on L2 board)
+- 11 pairs of temperature/volts for each CTP board
+- 24 words for LTU voltages (4 voltages packed in 1 word for each LTU)
+
+Special names 'spareX' are used for holes (i.e. not used locations) 
+in the message received from dim server.
+
+Special names 'spareXXXrunx' are used for 6 words giving information
+about active runs. Non-zero value in these counters denotes the
+number of active run (max. 6 active partitions simultaneously running).
+
+counter_name relative_position_from_0
+-------------------------------------
+relative position of the 32 bit word (from 0) in the array of words
+received from dim server
+
+board_name
+----------
+identifies the CTP board, where the counter is implemented
+In the current CTP setup in Birmingham CERN lab, the boards 
+FO2,3,4,5,6 are not present.
+
+GTC
+---
+Type of the counter:
+G -Gauge (temperature, voltage,...)
+C -Counter (l2orbit, l0counter,...)
+T -Timer (1 count corresponds to 400ns time interval. E.g.:busy1...)
+S -spare.
+
+detector
+--------
+This column contains the cabling information taken from VALID.LTUS file.
+It can be:
+detector_name  (SPD, HMPID,..)
+ctp            -if this counter is not related to any LTU
+N              -not connected
+
+Example:
+byin10 667 busy T MUON_TRK
+
+byin10 is timer read from busy board. BUSY input 10 on busy board
+is connected to MUON_TRK LTU.
+
+3.1. monnames.txt
+-----------------
+dsXXX LA name GTC
+
+processed by:
+CNTRRD/rrd.py
+CNTWEB/mons.py
+
+contributors:
+- ctpdims:   vme/ctp_proxy/dimservices.c
+- ttcmidims: vme/ttcmidaemons/ttcmidims.c
+
+New counter to be monitored:
+- modify dimcdistrib/monnames.txt
+- in .c:
+#include "udplib.h"
+int udpsock;
+
+if(envcmp("VMESITE", "ALICE")==0) {
+  udpsock= udpopens("alidcscom026", send2PORT);
+} else {
+  udpsock= udpopens("pcalicebhm05", send2PORT);
+};
+
+sprintf(buffer, "mon ds005 N:%d", tag); 
+rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
+
+4. History
+----------
+28.01.2007 C++ example (dimccounters.cxx) added
+29.01.2007 
+an example of client requesting software triggers added
+11.02.     
+CTPDIM server sends now 23 counters more. The relative
+position of counter values in input message is the same. 
+New ones are just added at the end -the length of the message is
+750 words (before 727). New counters:
+orbit: 24 orbit number read from L2 board
+temperature,voltages (22 values) 1 pair of words for each board.
+See dimccounters2.c example.
+18.02.2007
+An example of DIM server (server.c) publishing bogus counters added.
+It implements MONCOUNTERS service for regular counters reading and
+GETCOUNTERS command convenient at the End of run, when precise
+value of counters is needed withot waiting for end of monitoring
+interval.
+23.2.2007
+dodif32() corrected (before not correct for the counter overrun)
+10.7.2007
+24 LTU voltages (1 32 bits word compising 4 voltages) added.
+26.7.2007
+client dimccounters.c, reads 1 parameter: dim server name for
+reading counters from LTU dim server or CTPDIM for CTP counters
+28.9.2007
+BUSY counters: now 160 (instead of 48) 105counters/times+ 55 spares.
+Message received from CTPDIM is now 886 words long.
+- file cnames.sorted2: sorted, with added 'spare' counters
+20.11.2007
+spareXXXrunx   -6 spare counters (allocated for BUSY board) are now
+                devoted for the numbers of active runs.
+There are 4 counters description files:
+cnames.sorted2, the copy of cnames.sorted2.cernlab -describing
+          counters in CERN lab
+cnames.sorted2.pit -describing counters in experimental area in Point2
+ltunames.sorted2   -LTU counters
+7.7.2008
+allrare_client.c, allrare.make for DAQ prepared
+master copy of this directory is kept in v/vme/dimcdistrib
+11.11.2008
+14*6 l1spurious counters added, total number of counters: 970
+12.6.2010 CSTART_TSGROUP counter (in place of BUSY spare just before RUNX counters)

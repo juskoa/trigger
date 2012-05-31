@@ -1,0 +1,4 @@
+LDFLAGS+=-L/usr/local/linuxvme_util -lcctvme 
+#CFLAGS=-D$(VMEDRIVER) -I/usr/local/linuxvme -I$(VMEBDIR)
+CFLAGS=$(COMMONCFLAGS) -I/usr/local/linuxvme_util
+

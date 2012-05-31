@@ -1,0 +1,65 @@
+Hi all,
+Thank you for the code. I took dim,smi,TRG,ECS tars from
+/afs/cern.ch/user/j/jcmarin/public/InstallHMPID directory,
+and unpacked them in 
+~jusko1/public/ECS_ROOT (ECS, TRG) and in
+~juskoa/public/ECS_ROOT (dim, smi)
+
+I succeeded to start start_triggerDomain.sh, tpa.sh,start_trg_hi.sh.
+There is ~jusko1/public/ECS_ROOT/setenvvar.csh and README to
+start the whole thing (without PCA so far).
+More about that later, now I only want to write about the files
+used for 'information exchange' between ECS and trigger sw.
+
+VALID.LTUS   -the list of valid detector names
+VALID.TRGINP -the list of valid detectors contributing to
+              CTP inputs (should be subset of VALID.LTUS)
+
+${PARTITION}.CLASSES 
+-represents 'intended' partition (i.e. there can be hundreds of them)
+${PARTITION}.CURRCLASSES 
+-represents 'active' partition, i.e. max. 6 of such files can exists
+ in any time in ECS_ROOT/TRG directory.
+
+Question1: would not it be enough, to have in these files
+(.CLASSES, .CURRCLASSES) only 2 lines:
+INPUT and OUTPUT ? I.e. ECS would know only about conributing/controlled
+detectors for each partition and it doesn't take care about their
+division among the classes,clusters- it is under the responsibility
+of trigger software. In this case file ${PARTITION}.TRGINP file
+is not necessary.
+If yes, we should probably call them .PARTITION .CURRPARTITION.
+I prepared first version of class_editor - try it on lxplus by starting 
+cd ~jusko1/public/ECS_ROOT/TRG/
+./trgdbed.py
+From the user point of view, it uses Trigger descriptors as
+'input' -they are described in file TRIGGER.DESCRIPTORS and 
+represent 'physical triggers'(see Tab4.2 in TDR) and 
+LTUs (VALID.LTUS) as 'output'.
+
+Question2: The poposal of the communication between ECS 
+and trigger software (comment please if I am wrong):
+1. User creates partition description with class_editor, which
+   creates some files in ECS_ROOT/TRG/partitionDB  directory.
+   Among these files there will be ${PARTITION}.CLASSES file which
+   is the input for ECS (it is not used as the input by trigger sw).
+2. User asks ECS for the activation of partition PARTITION 
+3. ECS starts tpa.sh which takes as input ${PARTITION}.CLASSES file
+   and creates corresponding .smipp file, compiles it, and starts
+   ${PARTITION}_TRG domain with TPA, TPA_SERVER objects
+4. ECS issues START command to ${PARTITION}_TRG::TPA object.
+   TRIGGER::CTP-proxy is invoked by this action to modify
+   the CTP configuration.
+5. From now, the following TPA states are checked by ECS:
+   - RUNNING (ok, partition was loaded, and receives triggers)
+   - READYTOSTART -intermediate step, which means that
+     partition is not loaded, but files used as input for
+     ECS were already created for this partition 
+     ${PARTITION}.CURRCLASSES,${PARTITION}.TRGINP for now, 
+     probably more files in future.
+   - STOPPED -load was not successful -error message was sent
+     through TPA_MESSAGE object (not clear to me now what does it
+     mean, but I will learn later)
+
+Bye, Anton
+

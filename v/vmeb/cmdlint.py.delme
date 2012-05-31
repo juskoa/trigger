@@ -1,0 +1,318 @@
+#!/usr/bin/python
+#9.11.2002 threading/Lock added (i.e. 
+#          - if more commands for 1 exe than thay are queued
+#          - if more boards (more exes), they run parallely
+#4.1.2003  -scrollbar added for cmdlint log area
+#5.1.      -logfile option added
+#19.2.2004 -outfilter added, 'wait' for thread completion added
+# From May 6th OBSOLETE
+from Tkinter import *
+import os, popen2, sys, string, signal, time
+from threading import *
+
+#sys.path.append("/home/juskoa/ALICE/vmeb")
+import myw
+
+class myThread(Thread):
+  def __init__(self, target, args=(), name=None):
+    # we need a tuple here
+    if type(args)<>type((1,)):
+      args = (args,)
+    Thread.__init__(self, target=target, name=name, args=args)
+    self._uptime = time.ctime(time.time())
+    self.start()
+  def getUptime(self):
+    return self._uptime
+
+class cmdlint:
+  """
+  Usage:
+  1. start:
+  cli= cmdlint(command)
+       - creates control window (for command input/output)
+       - starts command through popen2
+  This should be started only once. 
+  In BOARD_u.py, user routine is called with just 1 parameter (vb) 
+  which is the instance of corresponding Myw.VmeBoard class.
+  vb.io points to cmdlint instance for the current board.
+
+  2. command execution (programmatically):
+  - cli.cmd.setEntry("input line"); cli.execute() 
+  OR:
+  - cli.execute(command,log,applout)  -execute command in
+    separate thread and WAIT FOR ITS COMPLETION.
+    Last 2 parameters are:
+  log:      'out' (default) -appl. output is logged in window
+            'no'
+  applout:  'out' (default) -returns application output (stdout)
+            '<>'  -returns ['s1','s2',...], s1,s2,... are
+                   strings found in <> brackets in the output text 
+            'no'  -returns None
+  OR:
+  - cli.executet(command, ff, log, applout)  -execute command
+    in separate thread and after its completion start ff in
+    the same thread. There is NO WAIT FOR THREAD COMPLETION.
+  log and applout:  -> see above
+  ff:    exit function, which gets one parameter: the text of
+         the output (if applout == 'out') or list of strings
+         found in <> brackets in the output (if applout=='<>') 
+
+  3.cli.write('text to be written to the window"
+  4.cli.stop()
+    -sends 'q\n' 
+    -closes i/o pipes, releases defunc proc
+  """
+  def write(self, text):
+    self.w.insert(END, text); self.w.see(END)
+    self.logit(text)
+  def getOutput(self, wout='out', applout='out'):
+    """ Process the output lines until:
+':\n' -> end of the command execution or 
+''    -> pipe broken
+wout:
+out   -> output written to log window
+no (any) ->output to log window suppresed
+applout:
+out   -> getOutput returns the output
+<>    -> output is filtered, only <> items returned in the list
+no (any) getOutput returns None
+    """
+    lastOutput=''; self.lineNumber=0
+    while 1:
+      line= self.io[0].readline()
+      #print ':',line,':'
+      #print "cmdlint:",line,"eol"
+      ##if buf and buf!="wait":
+      if line ==':\n':   #don't take last '\n:\n'
+        break
+      if wout =="out":
+        #nebavi if line[-1]=='\r':
+        #  self.w.delete("%d.0" %(self.lineNumber),END)
+        #else:
+        self.w.insert(END, line); self.w.see(END)
+        self.logit(line)
+      if applout =="out" or applout=="<>":
+        lastOutput=lastOutput+line
+        self.lineNumber= self.lineNumber+1
+      if line =='':
+        line="pipe from cmdline interface closed/broken\n"
+        self.w.insert(END, line); self.w.see(END)
+        break
+    if applout =="out":
+      return lastOutput
+    elif applout=="<>":
+      return self.outfilter(lastOutput)
+    else:
+      return None
+  ##def getlastOutput(self,filter='no'):
+  ##  #print "cmdlint.getlastOutput:",self.lastOutput,"---"
+  ##  if self.threadcmd.isAlive():
+  ##    #print 'waiting for the thread completion...'
+  ##    self.threadcmd.join()   # wait for the completion of the thread
+  ##  if filter=='<>':
+  ##    return self.outfilter(self.lastOutput)
+  ##  else:
+  ##    return self.lastOutput
+  def outfilter(self,text):
+    out=[];i=0
+    #print 'outfilter:',text
+    for s in text:
+        if(s=='>'):
+          if(len(out) == i):print "Wrong syntax ><";break;
+          i=i+1
+        if(len(out) != i ):
+          if(s == '<'):print "Wrong syntax <<";break;
+          out[i]=out[i]+s
+        if(s=='<'): out.append('')
+    #print "out=",out," i=",i
+    return out
+  def bindexecute(self,event):
+    self.execute()
+  #
+  def execute(self, cmd=None, log='out', applout='out'):
+    """
+    Wait for the end of thread, return depends on applout
+    log:     out, no=(any)
+    applout: out, <>, no=(any)
+    """
+    #print "cmdlint.execute:",cmd
+    if cmd!=None:
+      cmdtoex=cmd
+    else:
+      cmdtoex= self.cmd.getEntry()
+      self.cmd.setEntry("")
+    self.threadcmd= myThread(self.threadedexe, args=(cmdtoex,log,None,applout))
+    self.threadcmd.join()   # wait for the completion of the thread
+    #print 'execute:',self.lstOutput
+    if applout=='<>' or applout=='out':
+      return self.lstOutput
+    else:
+      return None
+  def executet(self, cmd=None, ff=None, log='out', applout='out'): 
+    #if ff==None:
+    #  print 'ERROR: executet(cmd,ff,...)  ff-has to be supplied!'
+    #  return
+    self.threadcmd= myThread(self.threadedexe, args=(cmd,log,ff,applout))
+
+  def threadedexe(self, cmdte, buf, ff, applout):
+    #print "threadexe:buf:",buf
+    if self.io == None:
+      print "Error: can't execute ",cmdte
+      return
+    #self.lockexe.acquire()
+    self.w.insert(END, cmdte+"\n", "INPUT"); self.w.see(END)
+    self.logit(":"+cmdte+"\n")
+    try:
+      self.io[1].write(cmdte+"\n")
+    except:
+      print 'cmdlint:cannot write to cmdline interface'
+      etype,evalue,etrace= sys.exc_info()
+      print 'exc_value:',evalue
+    if ff:
+      ff(self.getOutput(buf,applout))
+    else:
+      self.lstOutput= self.getOutput(buf,applout)
+    #self.lockexe.release()
+  #def popencall(self, cmd):
+  #  self.io= popen2.popen2(cmd, 1)   #0- unbuffered, 1-line buffered
+  #  self.getOutput()
+  def stop(self):
+    print "cmdlint.stop():"
+    try:
+      self.io[1].write("q\n")
+      self.io[0].close; self.io[1].close;
+    except:
+      print "Error: problems when closing popen pipe"
+    if self.lofi != None:
+      self.lofi.close()
+      self.lofi=None
+    #try:
+    if sys.platform != "win32":
+      os.waitpid(-1, os.WNOHANG)
+    #except os.error:
+    #  pass
+    self.tlio.destroy()
+  def kill(self):
+    print 'isAlive:',self.threadcmd.isAlive(),':'
+    print 'pid:',self.pidexe,':',self.lastOutput
+    os.kill(self.pidexe, signal.SIGUSR1)
+  def logit(self,ttl):
+    lfn=self.logfile.getEntry()
+    if lfn != None and len(lfn)>0:
+     if lfn[0] != " " and lfn != "None":
+      if self.lofi == None:
+        self.lofi= open(lfn,"a")
+      self.lofi.write(ttl)
+    else:
+      if self.lofi != None:
+        self.lofi.close()
+        self.lofi=None
+  def __init__(self, master=None, cmd="", bname="name not given", bbase=""):
+    print '# From May 6th OBSOLETE -use cmdlin2.py'
+    return
+    self.cfdir=os.environ['VMECFDIR']
+    self.lofi=None   # logifle object
+    self.lastOutput=''; self.lineNumber=0
+    #cmd=self.cfdir+'/\'+bname+'.exe'
+    #cmd=bname+'/\'+bname+'.exe this_is_arg1'
+    ##if master:
+    ##  self.tlio= Toplevel(master)
+    ##else:
+    ##  self.tlio=Tk(); 
+    self.tlio= Toplevel()
+    #print 'self.tlio.title(',bname,":",str(bbase),')'
+    #self.tlio.title(bname+":"+str(bbase))
+    self.tlio.title('%s:%s' % (bname,bbase))
+    #print self.io
+    #controls:
+    self.tp= Frame(self.tlio)
+    self.tp.pack(side="top")
+    self.cmd= myw.MywEntry(master=self.tp, label="cmd",defvalue=" ",width=44)
+    #cmdbind=self.execute)
+    self.cmd.entry.bind('<Key-Return>', self.bindexecute)
+    #
+    # ako da sa urobit callback s parametrom:
+    #cmdh= lambda s=self,x='11':s.execute(x)
+    #self.exbut= myw.MywButton(self.tp, "start", cmd=cmdh, side="left")
+    self.exbut= myw.MywButton(self.tp, "start", cmd=self.execute, side="left")
+    myw.MywButton(self.tp, "quit", cmd=self.stop, side='left')
+    self.ok= myw.MywButton(self.tp, "kill", cmd=self.kill, side='left')
+    self.logfile= myw.MywEntry(master=self.tp, label="Log:",defvalue="None",
+      width=10,helptext="Log file name")
+    #log area:
+    self.loga= Frame(self.tlio)
+    self.loga.pack(side=BOTTOM)
+    scrollbar = Scrollbar(self.loga)
+    self.w=Text(self.loga, yscrollcommand=scrollbar.set); 
+    self.w.pack(side=LEFT)
+    scrollbar.config(command=self.w.yview)
+    scrollbar.pack(side=RIGHT,fill='y')
+    self.w.tag_config("INPUT", foreground="red")
+    # or:
+    #import tkFont
+    #tkFont.families()
+    #ifont= tkFont.Font(family="Courier", size="10",weight="bold")
+    #w.tag_config("INPUT", foreground="red", font=ifont)
+    # to disable keyboard-write:
+    # w.cget("state")
+    #w.config(state="disabled") ; w.config(state="normal")
+    #print "cmdlint.cmd:",cmd
+    #---------------------------------- fork way
+    #if os.fork()==0:
+    #  self.io= popen2.popen2(cmd, 1)   #0- unbuffered, 1-line buffered
+    #  self.getOutput()
+    #  time.sleep(1)
+    #  sys.exit("exiting forked process")
+    #---------------------------------- thread way
+    # nohelp with the following (frozen if C loops)
+    # (python threads are for python )
+    #self.threadcmd= myThread(self.popencall, (cmd))
+    #
+    # following keeps the parent sdtdin/out:
+    #pid=os.spawnl(os.P_NOWAIT, cmd, cmd)
+    #print "cmdlint.pid:",pid
+    #time.sleep(2)
+    #---------------------------------- popen2 way
+    self.io=None
+    if not os.path.exists(string.split(cmd,None,1)[0]):
+      print "Where is ",cmd,"?"
+    else:
+      self.lockexe= Lock()
+      #von self.lockexe.acquire()
+      if sys.platform == "win32":
+        print "popen2..."
+        self.io= popen2.popen2(cmd, -1)
+      else:
+        self.io= popen2.popen2(cmd, 1) #0- unbuffered, 1-line buffered
+      #print "cmdlint:",cmd,":",os.getcwd(),":"
+      pidline=string.split(self.getOutput('out','out'),'\n',1)[0]
+      self.pidexe=None
+      clm,pid= string.split(pidline) 
+      if clm != "PID":
+        print "can't open cmdline interface (instead :... got:",clm,")"
+        self.io=None
+      else:
+        try:
+          ipid= int(pid)
+        except:
+          print "cannot open cmdline interface(instead pid got:",pid,")"
+          self.io=None
+        else:
+          self.pidexe=ipid
+      #von self.lockexe.release()
+
+def main():
+  if len(sys.argv)>1:
+    c= cmdlint(cmd=sys.argv[1])
+  else:
+    c= cmdlint()
+  #print "c.io:",c.io,"c:",c
+  if c.io !=None:
+    c.cmd.setEntry("blabla"); c.execute()
+    c.cmd.setEntry("executet"); c.executet("par.thread")
+    c.tlio.mainloop()
+
+if __name__ == "__main__":
+    main()
+
+

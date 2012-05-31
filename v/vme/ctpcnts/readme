@@ -1,0 +1,10 @@
+The software in this directory is prerequisite to ctp/counters.py -
+when started from command line, it draws counters values over time.
+Before starting it from command line:
+./counters.py
+hwreader has to be started:
+cd ctpcnts; ./hwreader
+
+Compilation:
+make shmpyext.so:
+make hwreader

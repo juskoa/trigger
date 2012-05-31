@@ -1,0 +1,51 @@
+#!/bin/bash
+function gethn() {
+if [ $1 -eq 17 ] ;then
+  hname="alidcsvme017"
+else
+  hname="alidcsvme00"$1
+fi
+}
+#allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 alidcsvme008 alidcsvme017'
+allvmes='alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
+#allvmes='alidcsvme002 alidcsvme003 alidcsvme005 alidcsvme006 alidcsvme007'
+if [ $# -eq 0 ] ;then
+  cat - <<-EOF
+Usage:
+rcmd N 'command' [d]
+     N       : 1..8 or 17 (alidcsvme00? 1:ctp 8:fanio 17:ttcmi)
+     command : to be executed
+     d       ; use for commands, which starts daemon (they use nohup, &)
+Examples:
+
+rcmd 3 uptime            -execute uptime on alidcsvme003
+rcmd uptime              -execute uptime on All vme computers:
+$allvmes
+EOF
+exit
+fi
+if [ $# -ge 2 ] ;then
+  gethn $1
+  remcmd=$2
+  allvmes=$hname
+  #ssh -2 "trigger@$hname" $remcmd 2>&1 |grep -v -e Scientific
+  #exit
+else
+  remcmd=$1
+fi
+for hn in $allvmes ;do
+  if [ "$3" == 'd' ] ;then
+    #ssh -2 -f "trigger@$hn" $remcmd     -zostava visiet (staci kilnut)
+    # nasledovne nezostava visiet, avsak chyba NL na konci prompt>
+    nohup ssh -2 -f "trigger@$hn" $remcmd </dev/null &
+    echo 'see nohup.out'
+  else
+    prxs=`ssh -2 "trigger@$hn" $remcmd 2>&1 |grep -v -e Scientific`
+    #ssh -2 "root@$hn" $remcmd
+    if [ -n "$prxs" ] ;then
+      echo "$hn:"
+      echo "$prxs"
+    fi
+  fi
+done
+

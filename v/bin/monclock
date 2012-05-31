@@ -1,0 +1,2 @@
+#!/bin/bash
+$VMECFDIR/ttcmidaemons/monshiftclock2.py $1

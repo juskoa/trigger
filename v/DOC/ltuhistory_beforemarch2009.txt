@@ -1,0 +1,746 @@
+LTU+TTCvi sw history
+--------------------
+Version 10    released: 30.09.2004
+- cmdbase.c: corrections for MSVISA (compiled under cygwin gcc 
+  and linked with VISA library, not fully tested on other PC)
+- VMECCT driver: 
+  -vmewrap.c allocates 4KB PCIspace for any board
+  -only 8 lsi devices present, so only 8 simultaneous VME opened
+   sessions possible in the system
+- ttcvi: serial number of the board is printed
+
+Version 1.1    released: 03.09.2004
+23.10.2004
+- if ltu is allocated (by /tmp/ltu..._busy), the message now shows the PID,...
+  of the process which allocated ltu
+3.10.2004
+- setDestination, setSSMVMEW added in Configuration. Useful for
+  catching B-chan. data in another LTU's snapshot memory instead of in TTCvi
+- "vmecrate nbi ..." -> do not initialise the vme boards
+4.10.2004
+- vmewrap.c:  now, micwait() calibrates itsef during 1st call
+- SimpleTests/busylogic slightly changed (counters/timers reset optionaly)
+5.10.2004
+- Counters window now shows L1FIFO_COUNTER..SUBBUSY_TIMER 
+- CTP emulator window now starts from values read from LTU. It means,
+  that it doesn't modify LTU regs (to be done: + loaded seq)
+6.10.2004
+- VmeBoard.__init__ creates for each board working directory
+  in $VMECFDIR/Board_nameBaseAddress. The name can be accessed
+  VmeBoard.workdir
+12.10. --released for tb2004 (i.e. from now, master copy is on
+  trgalice2004 in /local/trigger/v)
+- boardInit(): TTCvi destination + 'no test mode for L1 CTP out'
+- if vmecrate nbi ... stdalone/global mode is read and color of ltu frame is
+  accordingly choosen
+28.10.
+- ttcreset button added to ltu.c (ttcvi/ttcvi.exe invoked directly from
+  ltu.exe)
+- LTUinit button added in Configuration group
+30.10
+- vmx... addedd in vmewrap.c (multiple boards accessed from 1 executable)
+- VMECCT part in vmewrap.c modified according to 2 unplesant features of CCT:
+  - max. 8 lsi devices can be opened
+ 1.11
+- transient() calls added in ltu_u.py, cmdlin2.py, myw.py
+- top board programming now seems to be ok
+17.11. master copy now again in aj@epmp2
+- vme opened all the time (for VMECCT too, but not tested)
+29.12. 
+- cygwin/MSVISA support added (no vmx support for MSVISA)
+- better user interface for BUSY check/set/reset 
+
+Version 1.2      released 8.12.2004
+25.2.2005
+- myw.py: class MywMenuList added
+7.3.
+- ltu.c: LTU_SW_VER string constant introduced
+- ltu_u.py: user interface for BC/down scale, rnd generators improved
+7.10. Front panel ->ssm mode 
+      'L0 over TTC', mode
+      Orbit-error, PLL_RESET now possible
+10.10. LTU_SW_VER 1.4
+18.10. 
+- slmcmp.py -SLM compiler for sequencer memory instructions
+  in .slm text file (.seq files have the same format and are still valid)
+- it is possible now to reload LTU FPGA see script:
+  v/scripts/loadLTUfpga
+- new version of LTU FPGA:
+  v/vme/CFG/ltu/ltu_b4.rbf -old version of FPGA
+  ltu_f2.rbf -new version (L0 over fibre option implemented)
+  To use this option, following actions have to be done:
+  1. load new version of LTU FPGA
+     v/vme/scripts/loadLTUfpga ltu_f2.rbf BASE
+     BASE is 0x81x000   (necessary only if different from 0x810000)
+  2. By default, old/new versions of software, send L0 only 
+     through LVDS cable.
+     To activate 'L0 over TTC' option (see
+     http://www.ep.ph.bham.ac.uk/user/pedja/alice/ -> Proposals->
+     L0 over TTC), bit4 in register TTC_INTERFACE
+     has to be set, which can be done 
+     temporarily: by clicking 
+       ->Configuration->setTTCint -> 8 -> Start      or
+     at the time of LTU initialization when LTU sw is started: by 
+       adding following line to v/vme/CFG/ltu/init.mac file:
+       setTTCint(8)
+
+23.11. 2005 LTU
+Installation changed (note about VME2FPGA compilation)
+scripts/vmebse.bash
+ltu_u.py (line 198) bug fixed
+
+24.1.2006 ltu/slmcmp.py
+- Now, with L0 classes/clusters don't have to be defined
+  similarly for L2R (L2classe/clusters) and CL0, CLR
+- ltu_u.py: by default (no SLM sequence choosen) GUI is invoked
+- VME2FPGA.c -many compilation warnings removed
+
+-------------------------------------------Version 1.4.1   released 24.1.2006
+26.2.2006 vmeb/cmdbase.c vmeb/comp.py
+- ERR: function call f("1"... was as f(1...
+       i.e. in allnames table 1 and "1" were the same
+       In comp.py incorrect flag set for string parameters
+       i.e. for f(char *str,...)
+1.3.
+CFG/ltu/SLM/sodeod.slm example added and ltu_u.py modified -now
+more convenient way of saving .slm file
+11.4.2006
+ttcvi.c sendBroadcast() added
+26.4.2006
+ltu.c: now exit(8) if BOARD code != 0x56
+26.4.2006
+myw.compwidg() introduced: event.widget is string type!
+11.5.2006
+slmcomp.py,slmcmp.py: ESR flag now in 2 bits: 0.9 & 4.13
+19.5.2006
+slmcomp.py:
+spare2: word4 bit13   now: word4 bit14
+spare3: word4 bit12 -> error (this bit is assigned to CIT !) now:
+        word4.bit13==ESR
+
+-------------------------------------------Version 1.4.2   released 19.5.2006
+31.5.2006
+VMECCT compilation of vmewrap.c did not go through, now OK
+2.6.2006
+Snapshot memory 'Show' button did not react properly, now OK
+4.6.2006
+run*err.slm files prepared for testing of erroneous triggers detection
+6.6.2006
+GenTrigBusy corrected (L2a.seq was not loaded)
+27.6.2006
+ttcvi.c modified: bgoinit(0,... and bgoinit(1,... calls were changed,
+to initialise both Bgo channels with wider inhibit duration interval
+(now: 48 BCs, before: 1BCs).
+1.7.2006
+- DIM ltu client added (v/vme/dim and v/scripts/ltudimclient)
+  ltudimclient prepares v.tar -DIM client distribution file
+  It communicates with dim/linux/server -DIM server
+15.8.
+- getfile/putfile corrected (called only in case of DIM server)
+- help file for .slm editor improved
+3.9.
+- FlashMem.cfg file in v/vme (LTU fpga) replaced by link to f2 
+  version:ln -sf CFG/ltu/ltu_f2.rbf FlashMem.cfg
+15.9. 
+- 'L0 over TTC' is default now (LTU.TTC_INTERFACE=0x8)
+- BGo0 inhibit duration increased from 48 to 54 (programmed in ttcvi.c). 
+  Duration 49 causes the drift in the shift of BcntReset signal 
+  on TTCrx with respect to Orbit signal, which leads to 
+  'eventid mismatch'. The value 50 is the lowest one (no shift
+  seen), 4 added to be more secure.
+2.10.
+- myw.py: NewTopLevel used now (instead fo callin Toplevel), transient()
+  calls replaced by group() calls
+17.10.
+- v/vme/ltu/ltulib introduced, vmeai.make... modified
+- v/vme/ltudim -DIM server/client of ltu software (not tested thoroughly). 
+   See:
+   scripts/ltudimclient   -preparing distribution for ltu client
+18.10.2006 vmeb/vmeblib introduced (commmon library for ctp_proxy,ctp,ltu,ttcvi)
+
+23/10/06 -now Address modifier allowed with VMERCC/VMECCT i.e.:
+         /*BOARD t0 0xFC00 0xc A16 */    (A24 default)
+25/10/06 -ttcvi programming: ALICE uses TTCrx trigger mode '01'
+         (see Chapter 'Level1 trigger sequences' p.26 in TTCrx manual).
+         I.e. TTCrx Control register is now programmed as '0xf9'
+         (before now: 0xfb -> trigger mode '11')
+
+-------------------------------------------Version 1.4.3   17.10.2006
+- on the web  from 8.11.
+10.11.2006 'Examine SLM' button introduced in CTPemulator window -reading
+SLM.
+5.12.2006
+TTCvi: ttcvi.c: TTCrx reset added in ttcinit() (p.21 of TTCrx manual)
+15.12.2006
+ltulib/ltuinit.c:
+printf("CALIBRATION_BC: 128\n"); vmew32(CALIBRATION_BC,128);
+-------------------------------------------Version 1.5.0.  8.1.2007  
+4.1.2007
+- LTU FPGA is F3 (1.5.0 doesn't support F2 LTU FPGA)
+- CAENVME added in vmeblib/vmewrap.c  (by P. Antonioli).
+  $VMEBDIR/caenvme.setup file has to be set
+- new counters added, changed the way of the access to them
+- new scope signals added
+- Software LEDs in 'Scope Signals' widget added
+10.1.
+- Installation file modified (MSVISA removed,...)
+20.1
+- F3 firmware now replaced by new one (better ADC read for synchronisation
+  of inputs signals with BC
+27.1
+- ltu_proxy is now part of the standard LTUsw distribution (v/vme/ltu_proxy)
+28.1.
+- ltuclient.c, ltu_u.py, script/ltudimclient modified for correct 
+  operation over dim
+29.1.
+-------------------------------------------Version 1.5.0 8.1.2007 on WEB
+31.1.
+run*err.slm files now included in distrib (not distributed before)
+1.2.
+- crate.py, myw.py: 'nbi ltu' opened, unnecessarily, 2 pipes. 
+  Now only 1 is opened.
+2.2.
+- better ltu_proxy distribution
+16.2.
+- CALIBRATION_BC is 3556 (was incorrectly set to 128), and 
+  PREPULSE_BC is 128 (was not set)
+- v/scripts/ttcvi_ppdelay base ppdelay           script setting
+  Prepulse delay in BCs in relation to Orbit
+- warning "getfile(... doesn't not exist" when examining SLM
+  memory removed
+- ltu_proxy modified (see v/vme/ltu_proxy/ltu_proxy.c)
+17.2.
+- v/vme/ltu/VME2FPGA.c removed. Instead LoadFPGA(), common loadFPGA()
+  from vmeblib/loadFPGA.c
+-------------------------------------------Version 1.5.1 22.2.2007 on WEB
+23.2.
+dodif32.c moved to vmeb/vmeblib  (was in ctplib)
+2.3.
+scripts/distrib modified (checking $SMIDIR now)
+5.3.
+vmecrate nbi ltu   -exiting if board not in the crate
+ (before it was not noticed by software)
+8.3.
+ORBIT_BC set to 1 in ltulib/ltuinit.c
+12.2. 
+ltu.c ltuInit() -incorrect (else instead of #else)
+---------------Version 1.5.2. installed on pcald55
+17.3.
+LAST_BC, GAP_BC L1_DELAY, L2_DELAY -now set in ltuinit.c
+18.3.
+vmeb/myw.py: bad he2dec conversion in MywEntry for 32 bit numbers fixed.
+After TTCrxreset, TTCrx goes to not ready state
+for quite long time (400micsecs but possibly much more -according
+to the quality of the clock received over fibre), which can prevent
+the execution of following instructions sent over fibre
+Wait time after TTCrxreset set to 100 ms.
+18.3.
+ltu/ltu_u.py part 'Examine SLM' improved for ltudim client
+22.3.
+Random generation of start signal: more convenient way for
+period of Start signal (in us ms or seconds).
+24.3.
+ltu_proxy improvements:
+- only one script, common for all detectors, start_ltuproxy.sh
+- new parameters: busy on/off, L0 cable/ttc, orbitbc,
+  random/software/pulser/bc trigger
+17.4
+start_ltuproxy.sh 
+- the set of sod/eod/L2a .seq files can be choosen by defining
+   SEQFILES variable (noclasses or classes1). See noclasses/slms2seqs.bash.
+
+--------------- 19.4.2007 Version 1.5.3. installed on pcepess30 (hmpid)
+26.4.2007
+ltu_proxy: ltu_utils.c bug fixed (now SOD is sent correctly, before the
+           fix, it could happen, it was not sent)
+           Tested with MUON_TRG
+5.5.
+ltulib: many functions moved from ltu/ltu.c to ltu/ltulib/...
+Now ltu_proxy does not link ltu/ltu.o, it uses only ltu/ltulib/libltu.a
+5.5.
+ltu_proxy: RESET action quits emulation
+ltu_proxy: setOption() used to process parameters from cmd-line or START smi
+           command
+7.5.
+TTCreset: obsolete way: starting ttcvi.exe
+          new way (now implemented):
+          ltuInit() invokes ttcInit()  (ltulib/ltuinit.c)
+          ttcInit: the same actions as ttcinit (ttcinit is
+          now obsolete in ttcvi.c), opening another vme space in addition
+          to ltu's one already opened inside ltu.exe
+LTU/TTC parameters: are loaded in ltuInit() from file 
+          $VMECFDIR/CFG/ltu/ltuttc0x81X000.cfg
+          where X is LTU dial. 3 parameters can be set:
+          for LTU: TTC_INTERFACE, L1_FORMAT, BUSY_ENABLE
+          for TTC: TTCppdelay
+--------- Version 1.5.4 9.5.2007 installed on: lnxpool13 (phos)
+allocateltu() i.e. file /tmp/ltu_0x81X000 not used from now. User
+          should know who is using hardware
+ltu_u.py: minor bugs fixed (import types, more options for .slm file )
+13.5.
+VMEWORKDIR introduced (ltu, ltudim, ltu_proxy, vmeb, VME2FPGA direcories)
+From now:
+VMEWORKDIR -directory from which programs are started. This directory
+            has to contain:
+            WORK/
+            CFG/ltu/SLM/
+VMEBDIR    - vmeb directory (common)
+VMECFDIR   - executables for particular boards
+--------- Version 1.6  13.5.2007 installed on: pit
+14.5.
+ltu_proxy: 
+  -phos added
+  -only CAPITAL letters from SMI (and from command line too)
+  -ttcInit: - 1st time called from ltuInit (ltuInit called only once)
+            - next time called always at the START of the run
+15.5.
+ltulib/ttcsubs.c,ltuinit.c modified
+ttcDelays(Fine1, Fine2, Coarse) -for TTCrx settings
+ttcFEEreset: sends 'Front End Electronics reset' in B-channel
+             reserved code: 0x8 (4 bits) data: 0 (12 bits)
+16.5.
+ltudim/ -minor imporvements (popen2, ltuserver)
+--------- Version 1.7 22.5.2007 vmebltu-1.7.tar  
+installed on: SPD:lnxpool31, SDD:10.0.0.4
+25.5.
+ltu_proxy: usleep(1000) after clearCounters() -seems to be necessary for
+           SDD
+25.5.: above is not valid -they found problem with the FE configuration
+3.6.
+ltulib/setstdalonemode.c, ltu_proxy, crate.py : 
+Problem: with nbi, after power off/on LTU stayed unconfigured even
+after sw start.
+Now if nbi parameter given,
+the LTU board FPGA configuration starts if necessary.
+3.6.
+ltu_proxy modified. All parameters can be given in capitalts.
+2 types of .seq files:
+1. fixed (sod, eod, L2a -there is link from ltu_proxy directory, i.e.
+   abs. path: VMECFDIR/ltu_proxy)
+2. detector specific: in $VMEWORKDIR/CFG/ltu/SLMproxy/ directory          
+   again loadSLM() called with abs. path
+   The name of the file in this directory can be given as CONFIGURATION
+   parameter with START command in STANDALONE_STOPPED state
+5.6.
+v/vme/CFG/ltu/ltuttc.cfg used now (was: ...ltucfg0x81X000.cfg)
+This file is read only once: in ltu.c initmain()
+5.6.
+minor improvements in vmecrate.py, and ltudim/
+
+--------- Version 1.8 5.6.2007 vmebltu-1.8.tar  in the pit
+6.6.
+ltu_proxy: setOption: bug fixed (opt -> optarg)
+6.6.
+ltu_proxy is started from $VMEWORKDIR (untill now from VMECFDIR).
+Reasion: specific sequences loaded for different detectors
+7.6.
+ltu_proxy:
+ltucfg is now pointer to structure, rate<1 allowed as float number...
+9.6.
+-prtError.c now in vmeblib (was in ctplib)
+10.6.
+ltudimservices.c,popen2.c.ltudimserver.c -now in ltu_proxy/, they
+are linked with ltu_proxy. Still 2 VME spaces opened -1 for dim and
+1 opened with each SMI command.
+12.6.
+ltu_proxy: ltudimclient now can be started on the same host as server
+           If so, it has to have the same VMEWROKDIR -still check 
+           to be done if the same directories. In that case, get/put file
+           would not transfer the file
+v/vme/SLMproxy introduce (for ECS CONFIGURATION)
+file v/vme/CFG/ltu/ltuttc.cfg used from ltu_proxy and from ltu.exe
+
+--------------------- Version LTU_SW_VER "1.9 12.6.2007" vmebltu-1.9.tar
+installed: lnxpool31, pcepecss30 t0(vmealice01)
+13.6.
+bug: ltu_utils.c:w32 convertBC(float rate) {
+     ltudimservervices.c <unistd.h>
+15.6.
+correction in ltuinit.c:         (on t0@vmealice01)
+  } else if (!strcmp("UNDEFINED",optarg)) {
+    printf("MODE %s\n, doing nothing",optarg);
+and in ltu_proxy.c:
+         if ((strncmp(configuration,"NONE",4) == 0) ||
+             (strncmp(configuration,"UNDEFINED",9) == 0) ||
+
+26.6.
+- ttcPPdelay() added in 'Configuration' menu
+- ExpertConf FGROUP added (HIDDEN)
+27.6.
+- slmpcmp.py: For C* sequences, L1SwC and L2SwC flags are set too
+28.6.
+Client for LTU expert software:
+- LTU_CLIENT_VERSION string constant in ltuclient.c
+- preapring rpm distribution:
+  aj@altri1:
+  - match: 
+    LTU_SW_VERSION in v/vme/ltu/ltu.h
+    VERSION        in rpms/SPECS/ltuclient.spec
+      (release++ -for next rpm releases)
+    VERSION        in v/scripts/distrdimclient distrib
+    Start v/scripts/distrdimclient distrib
+   ->prepares ltuclient-VERSION.src.tar.gz in ~rpms/SOURCES
+  cd rpms/SPECS ; rpmbuild -ba ltuclient.spec
+   -> prepares ltuclient-VERSION.i386.rpm in ~rpms/RPMS
+
+- installation:
+  move: ~aj/rpms/RPMS/ltuclient-1.0-1.i386.rpm
+  as root:
+  rpm -ivh ltuclient-1.0-2.i386.rpm
+  as user:
+  . /opt/ltuclient/scripts/setup.sh
+       !!! instead vmecrate alias use ltuclient alias !!!
+  ltuclient daq or
+  $VMEBDIR/cratedim.sh daq
+  $? is: 0:ok  4:parameter/environment error   8:server cannot be contacted
+
+29.6.
+Bug in myw.py: when LTU in global mode, and "nbi" used, the color
+of main panel was not set to COLOR_WARNING. Now ok.
+30.6.
+ltu_configure();  now called only when lu_proxy starts (before it was
+called at the time of run start (i.e. -> STDALONE_RUNNING)  
+2.7. ---------------- ltuclient-1.0-2.i386.rpm released
+4.7.
+ttcPPdelay() 
+now it modifies only value on TTCvi board (ltucfg.ppdelay is not changed).
+7.7.
+VMEWORKDIR for ltuclient now OK (cratedim.sh and cratedim.py)
+/PIPE getclients
+8.7.
+MSG2ALL introduced in ltudimservices.c, cmdlin2.py:
+/PIPE MSG2ALL message \n                    (just 1 line !)
+issued from any client is broadcast to all the clients. On client
+side, MSG2ALL message is filtered in ioWindow.getOutput()
+In ltudimserver.log, the environment variable DIM_DNS_NODE is logged.
+8.7.
+DIMid in ltudimservices.c:
+if the attempt is made to write item with the same CID in MCclients[],
+old one is replaced by new one. Message in log is issued.
+9.7.
+cmdbase.c: bug: in expression evaluation( e.g. a=1+2 did not work
+in command line). cmdbase.c corrected (tokenSymbol and opPriorities
+arrays), now ok.
+9.7.
+ltu.c: in FGROUP SimpleTest: CosmicScan (for measurement of
+       Cosmic fanout LTU BC delay)
+9.7.
+ltu_u.py: class SOFTLEDS updated: now softleds are updated only
+during limited time (2 minutes).
+-------------------------------- LTU_SW_VER "2.0 11.7.2007"
+25.7.
+vmeb/comp.py:
+// comment in #define lines inside #REGSTART section allowed 
+   (token COMSTARTSLASH introduced)
+26.7.
+ltu_proxy: publishing now LTU counters (the same as ctpdimserver/client -
+shared memory used for, see dimcdistrib.
+21.8.    altri1+pit:
+v/vme/ltu_proxy/ltu_utils.h:
+line: void ltu_configure();          added
+v/vmeb/vmeblib/lexan.c:
+floatON=1;             (was 0)
+22.8.
+ttcvi.c: ttcdump() added (can be accessed from TTCconfig menu).
+23.8.
+ltu.c: include ../../vmeb/vmeblib/lexan.h
+23.8.
+CTPemulator: sw triggers gneration improved. starting sw triggers in
+another window suppressed completely. Now 2 options:
+>2secs   -after(milsecs)+ after_cancel used. SLMswstart(1,0) called
+<=2secs  - SLMswstart(N,milsecs) called
+13.9.
+v/scripts/setup.sh modified (LTU_CLIENT variable added for ECS)
+-i.e. it will be in the next ltuclient distribution.
+17.9.
+- Date time added to ltudimserver.log
+vmeblib/getdatetime: now returns: dd.mm.yyyy hh:mm:ss  (char[20])
+19.9.
+Now ltuclient should be able to continue (no restart needed), after
+ltuproxy restart. Modified:
+ltudim/ltuclient.c, ltu_proxy/ltudim, vmeb/myw.py,cmdlin2.py...
+/PIPE MSG2ALL /PIPE getclients   now seems to be OK
+21.9.
+- bug fixed in ltu_proxy.c: ltuDefaults() was not called before
+  readltuttcdb()
+-FineDelay1/2,CoarseDelay added to ltuttc.cfg
+25.9.
+setTTCint moved to ltuinit.c (ltulib) -should be called always after
+BC_DELAY_ADD change -now is 0 default for ltu and for ltu_proxy.
+27.9.
+CTP emulator: ltu_u.py: user interface improved. 
+-Emulation still active..  and Emulation not active comments added
+-'Examine SLM' button now shaded durng active emulation
+2.10.
+Bug fixed in ltu_u.py: in CTPemu window, now it is not possible duplicate
+'errors' widget when option 'Errors enabled' choosen repeatedly
+10.10.
+CFG/ltu/ltuttc.cfg and corresponding ltucfg global varibale 
+can be edited by client.
+11.10.
+rpms/RPMS/ltuclient-2.1-1.i386.rpm   -prepared for installation in the pit
+for current vnew sw (now vnew is used only by ACORDE and perhaps by
+DAQ). See DOC/readme
+18.10.
+ltu_u.py: when used with client the following problem:
+- WORK/slmseq.seq doesn't exist on server
+- vmecrate xxx started -> CTP emulator -> choose .slm -. Load sequence
+- Error: slmseq.seq does not exists on server (it should). It seems,
+DIM executes /PUTFILE command after /DO SLMload() command (in spite of
+calling /PUTFILE sooner!). This is fixed by adding line
+time.sleep(1) after execution of /PUTFILE command in ltu/ltu_u.py
+19.10.
+ltucfg: now in Shared memory together with ltu counters. ltucfg in shared
+memory initialised from defaults only once -with very 1st ltu.exe.
+Modifications done for ltu ltu_proxy
+29.10.
+Shared memory now OK 
+Defaults(current) -editor shares memory with ltu_proxy
+/opt/infoLogger -now used in ltu_proxy. See ltu_utils.c infolog()
+30.10.
+Bug fixed: now initStatic() called always. Before: Knm array
+for FineDelay calculation (was in ttcDefaults()) was 
+initialised only once, when shared memory was created.
+31.10.
+Bug fixed: in TTCinit, when FineDelay2 set, bit 0x80 was forced
+always to 1. Now not set, checked with TTCit and scope.
+1.10.
+ltu/ltulib/ltuslm.c: SLMload()   usleep(1000) between 2 vmew32() removed. 
+1.10.
+sod/eod/L2a.seq are read only (to prevent them mixing with
+real ones, used from ECS)
+2.10.
+-some bugs fixed. Main one: updateMCclients[] in ltudimservices.c
+now differentiates between MONCOUNTERS/RESULT services.
+-ltuclient now writes to separate WORK/ltuclient_PID.log file
+9.10.
+ltu_proxy: infolog changed: see ltu_utils infolog()
+11.1.2008
+vmeblib/ltuCounters.c: measureBusy (visible from SimpleTests group) added
+11.1.2008
+An attempt to add 'float' type for function return value.
+comp.py, cmdbase.c, modified but it is not implemented anyhow.
+To bed one:  (w32 (*)())measureBusy in ltu_cf.c should become
+probably  (float (*)())measureBusy 
+15.1.
+ltu_proxy/ltu_utils: Setstdalonemode() now uses START signal
+18.1.
+Bug fixed in ttcDelays (1ms between vmewrites now).
+18.1.
+For random rate and BC downscaled START signal rate in hz khz mhz
+introduced (myw.py modified)
+1.2.
+v/vme/ltudim/ltuclient.c improved.
+- fgets() now checked for EOF (empty string)
+- exit added for some cases (before endless loop entered)
+
+21.2. cosmicfo board now has separate sw (v/vme/cposmicfo)
+      LTUVERSION: 0xf3:ltu  0xc1:trigger generator  0xcd:cosmicfo  0xe1:lvdst
+
+13.3. pit -> altri1 aj/trigger
+17.3.
+ltulib/ltussm.c setvmespy(),setvmenormal(),printSSM() added
+18.3.
+ltu_proxy/ltudimservices.c:
+- RESULTcaba() modified:
+  The call updateNMCclients() moved before line: firstcaba=1 
+- updateNMCclients() modified:
+  line" firstcaba=1   added
+- readUntilColon() modified:
+  - bug in debugging output(commented anyhow) fixed
+  - rebuild completely, using startResult(),... + now, the whole
+    message is first read from the pipe (i.e. it has to be shorter
+    than MAXRESULT)!
+19.3.
+CTP emulator window: 2 entry fields added:
+repetitions
+repetitions_spacing
+for 'repetitive start of emulation'
+26.3.
+ltudimservices.c 
+-NL forced at the end of input message if not present.
+-updateservice(): "empty" is copied to ResultString after
+ the dis_selective_update call (the same for updateserviceButme() )
+ NOTE: MONCOUNTERS uses different buffer (buf1)
+27.3.
+~aj/bin/dopitultu
+28.3.
+slmcmp.py: NOSWC flag added forcing ClT L1SwC/L2SwC to 0
+29.3.2008
+Trigger input generator (LTU version 0xc1) comments and PULSE_DELAY,
+TRG_TOGGLE added into ltu.h
+30.3.
+ltu_proxy/ltu_utils.c
+- emulation killed if active in ltu_configure()
+- ltu_configure() called before TTCinit() in startemu
+- TTCinit done after putting LTU into global mode
+4.4.
+1 new message (ltulib/ttcsubs.c) added:
+Error: BUSY ON 10milsecs after FEEreset
+8.4.
+ltu/cfgedit.py slightly improved (error mesage in case o fwrong parameter)
+8.4.
+shm modified -array of w32 now prepared for future updates (the length
+of shm segment stays the same)
+8.4.
+ltulib/ltuinit.c -flags (kept in SHM) are now coded as 1 bit in flag word
+8.4.
+#define LTU_SW_VER "2.3 8.4.2008"
+~aj/bin/dopitu2
+14.4.
+v/scripts/loadLTUfpga (inthe pit too) changed -now allows
+loading from home directory on vme diskless computers
+4.5.
+-if files for getfile/putfile are the same (for client/server operation),
+the transmittion is not done
+-the version for labs: ltu_proxy.sh: the same directory is used
+ for client/server and for direct VME operation environment
+5.5.2008 
+2.2 ltuclient released for aldaqacr07 tests only
+#define LTU_SW_VER "2.3 28.4.2008"  -sent to muon_trk ->
+the distribution is in trigtest@altri1  TODO:
+-implement in the pit modifications described in 
+trigtest@altri1:v/DOC/readme  in order not to loose them after next
+copy of sw from the pit -> altri1
+
+6.5.2008
+ttcFEEcmd (see ltulib/ttcsubs.c in the pit and trigtest@altri1)
+16.5.
+ttcsubs.c: ttcFEEcmd bug fixed
+17.5.
+Bug: TTCinit() when called from ltu_proxy (at the SOR), does not set properly
+FineDelay1/2.
+Fix: initStatic() added in ltu_proxy.c
+     (fixed in pit, trigtest@altri1)
+20.5.
+copy pit-> triad@altri1:/usr/local/trigger
+23.5.
+master copy is in /usr/local/trigger on altri1
+23.5.
+ltuclient.c -problem with infocallback. Was err if *size >= MAXRESULT,
+now err if *size >MAXRESULT.
+25.5.
+LTUvi version ready (v/vme/ltu) -LTUFPGAVERSION has to be 0xbX.
+26.5.
+Files: history.txt, CTPhistory.txt, Installation, readme, CTPreadme
+are moved from this directory
+to altri1:/usr/local/trigger/v/DOC/
+26.5.
+trigger/bin/loadLTUfpga is valid for loading new FPGA:
+$VMECFDIR/CFG/ltu/readme should be modified and .rbf files kept in
+$VMECFDIR/CFG/ltu
+29.5.
+minor syntax bug fixed in ltu/ltu_u.py counters()
+3.6.2008 triad
+bug fiuxed in myw.py (hexa numbers in BC/RND field in CTPemulator were
+not processed correctly
+3.6. triad
+ltuinit.c ltu.h  -initialisation now for LTUvi in glob/stdalone better
+3.6. triad
+ltuclient-2.3.rpm installed on aldaqacr07.
+Now from aj@altri1 (see ~aj/vmay/DOC/readme)
+11.6.
+ltu_proxy/ltudimservices.c check for getgltuver() added
+12.6.
+ltulib/ttcsubs.c: ttcFEEcmd returns now 0 if OK
+12.6.
+ttcsubs.c:
+dawo= 0x80010000 | ((Command&0xf)<16);   //was <12 -bad till 12.6.2008 
+18.6.
+Gltuver= fpgainit();   added in ltu_proxy.c. (before,
+Gluver not initialised, -> TTCinit() not done at the start of run
+properly for ltuvi version
+24.6.  ttcsubs.c: FEEcmd now OK 
+ltuinit.c:
+setBC_DELAY_ADD() ok (setTTCint in both, LTUvi and in LTUno)
+bug fixed: PP_TIME was not returning right value
+ltudimservices.c: -minor comments, vmeopw allowed in global (for T0 pp scan)
+25.6.
+ltulib/ltucounters.c improved
+25.6.a  ------------------------------------------------------ ltu 3.1.
+ltu 3.1. released (1st LTUvi working with 0xb0 firmware)
+29.6.
+v/scripts/triad
+- should be started from any user account on altri1 wishing to develop
+(i.e. modify/compile) software in v/... directory
+2.7.
+busy transitions now printed during TTCrx not ready (ltu counters read as
+well)
+6.7.2008
+SSMANA/ and ltu_u.py updated for ltuvi version of SSM
+11.7.
+bug fixed in ttcDelays() (did not write delays at all). Now ok
+24.8.2008
+ltu_proxy/ltu_utils.c: waiting for first physical event after SOD removed!
+now just 1000usecs sleep after SOD.
+23.9.
+-RATE_LIMIT parameter added to ltuttc.cfg
+-bin/makeltu -make ltu ...
+-ltuInit() and TTCinitgs() now 1 parameter more: FE timeout waiting for FE ready
+ (starting ltuproxy does not wait for FE ready!)
+NOTE: SHM is reloaded ONLY AFTER SHM removed (ipcs -m, ipcrm shm shmid)
+- ADC _SELECT added in ltu.h  (BC phase measurement)
+- BCerror counter/timer is called now Interlock_count and Interlock_timer
+- ltu_u.py: scopeA -InterlockBUSY added
+15.10.
+EXEC (dis_add_info service) -to be used for PLL measurement started.
+See vme/ltudim/ vme/ltu_proxy/ltudimservices.c
+Not finished yet!
+20.10
+NOINFOLOGGER by default in vmeblib/makefile and ltu_proxy/GNUmakefile
+-> to be fixed somwhow (with VMESITE) !
+7.11.
+RATE_LIMIT programming: RateLimit() added in ltu.c 
+7.11.
+vme/ltudim/client.c: EXEC service: available for testing -try it to
+understand dic_info_service()
+24.11.
+ltu_proxy/GNUmakefile modified (VMESITE taken into account)
+26.11.
+ltulib/ttcsubs.c -FEEcmd modified (now OK before <16 now <12)
+26.11.     ----------------> updated on pcalicebhm05 (see UpdateServer)
+27.11
+vmeb/comp.py modified (better board.make created now)
+16.12.
+LTU_SW_VER 3.3 16.12.2008
+BC phase measurements:
+ADCI.c: getbcphase(), scan() preapred. I.e. for BC phase we can use:
+getbcphase(ltufo)
+scan()
+pllreset()
+Synchronisation with ECS, and check for toggle still to be done -i.e.:
+  -check toggling if necessary (by SSM reading)
+  -check if:
+    -STDALONE_STOPPED
+    -emulation is not running
+    -any other 'r' (interactive remote) client not active at least 10 minutes
+12.1.2008
+small fixes in ltu/ADCI.c
+1.2.2009
+ltuproxy.sh -exit changed to return
+infolog.c - #else added for ingolog_trg
+6.2.
+vmeb/myw.py modified -now vmecrate works correctly (i.e. right color
+according to global/stdalone mode) when started with
+[nbi] detname or [nbi] ltu=0x81...
+9.2.2009
+ltu_u.py, ltulib/ltuadc.c, mywrl.py:
+-better help texts
+-rndtest() is using now raw BC_DELAY_ADD values (i.e. not corrected
+by set_BC_DELAY_ADD() when set during scan)
+20.2.
+bug removed in ltulib/readtemp.c -the print here, destroyed
+communication between ltu client and ltu_proxy dim server.
+! $VMEWORKDIR/CFG/ltu/ltuttc.cfg MUST be prersent
+20.2.
+$VMECFDIR/CFG/ltu/ltuttc.cfgall -example of file
+$VMECFDIR/CFG/ltu/ltuttcR_pars.txt -doc about LTU parameters
+20.2.
+better help for FEEcmd
+24.2.
+ltulib/ltuinit.c, cfgedit.py chanegd. Lines starting with '!'
+are SYSTEM parameters: 
+-not visible to users
+-loaded always to shared memory (warning issued if different from
+ defaults). By this arrangment, we can set SYSTEM parameter in memory
+ after setting value directly in .cfg file manually

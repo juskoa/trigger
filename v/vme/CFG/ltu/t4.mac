@@ -1,0 +1,6 @@
+#------------------ stop emulation and set dest. to TTCvi
+#waitKB()
+setAB(23, 23)
+SLMquit()
+vmeopw32(MASTER_MODE,0)
+q

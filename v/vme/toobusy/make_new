@@ -1,0 +1,14 @@
+include $(VMEBDIR)/com_defs.make
+LIBS = $(CTPLD) $(VMEBLD) $(VMERCCLD)
+CFLAGS += -DBUSYEXE -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/..
+
+include $(VMEBDIR)/sc.make
+ifndef SERVER_LINK
+allEXES = $(EXEDIR)/toobusy.exe
+endif
+
+all: $(allEXES)
+
+$(EXEDIR)/toobusy.exe: toobusy.c
+	$(CC) $(CFLAGS) $< $(LIBS) -o $@
+

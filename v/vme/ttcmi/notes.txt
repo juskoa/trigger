@@ -1,0 +1,20 @@
+b3: 0x300000 A24
+b3: 0x400000 A24
+b3 and b4 to be initialised:
+0x12:0x05
+0x16:0x70
+ch1_ref ch2_ref ch3_ref are:  0x5 0x5 0x70
+
+rf2ttc: 0x0f00000 A32
+ORBIT1_LENGTH, POLARITY, COARSE_DELAY
+by default, ORB1 is choosen.
+ORB1: 0x7fb60:1 0x7fb58:0x26
+ORB2: 0x7fb20:1 0x7fb18:0x26
+ORBmain: 0x7fae0:1 0x7fad8:0x26
+
+%s/-colum /-column /g
+done for all *.tcl
+
+[alidcsvme017] /usr/local/trigger/v/vme/ttcmi/rf2ttc/tcltk > wish rf2ttc.tcl
+
+vme_peek

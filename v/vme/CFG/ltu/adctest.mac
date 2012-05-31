@@ -1,0 +1,7 @@
+setglobalmode()
+rndtest()
+# Press ENTER to switch this LTU to STDALONEmode and quit:
+waitKB()
+setstdalonemode()
+q
+

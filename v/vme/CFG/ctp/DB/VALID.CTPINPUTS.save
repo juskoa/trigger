@@ -1,0 +1,46 @@
+#InName=Det         Level  Signature InpNum  Dimnum Configured
+Small = ACORDE         0      1         7       3      1
+L0 =    ACORDE         0      1         4       1      1
+ML0 =   ACORDE         0      1         6       2      1
+T0C       =   T0       0     70         8       1      1
+T0A       =   T0       0     71         9       2      1
+T0vertex  =   T0       0     72        10       3      1
+T0SC      =   T0       0     73        11       4      1
+T0central =   T0       0     74        12       5      1
+#GlobalMult     = TOF   0     60         0       1      1
+#VerticalMuon   = TOF   0     61         0       2      1
+#LocalMult      = TOF   0     62         0       3      1
+#HorizontalMuon = TOF   0     63         0       4      1
+V01  =  V0             0     40         3       1      1
+MU1  =  MUON_TRG       0      1         2       1      1
+MU2  =  MUON_TRG       0      1         13      2      1
+MU3  =  MUON_TRG       0      1         14      3      1
+MU4  =  MUON_TRG       0      1         15      4      1
+MU5  =  MUON_TRG       0      1         16      5      1
+#test =  test       0      1         4       1      1
+# if you want also RND/BC and uncomment line 356 in inputs_u.py
+BC1   = CTP       0      0         25      0      1
+BC2   = CTP       0      0         26      0      1
+RND1  = CTP       0      0         27      0      1
+RND2  = CTP       0      0         28      0      1
+#
+# InName = Symbolic name of CTP input (Unique)
+# Det = Detector Name as used by DAQ
+# Level = 0,1,2
+# Signature = input signature 1-119  (Unique)
+# Inpnum =1-24 for L0,L1; 1-12 for L2 
+# Dimnum = 1-N N=number of CABLES from triggering detetctor to CTP
+#          This is the order number as used in communication with TIN proxy
+#           (i.e. in status word, in setting state)
+# Configured = 0-1;  1 - signature is found on this cable 
+#                     (i.e. this cable is used for this input)
+#
+#deliberate error (0.1 already defined)
+#ACORDE acl0=0.1 acml0=0.2   
+#
+# L0 function deffinitions: starts always with 'l0'
+#l0ferr = T0 | TRDpre
+#l0fok = T0 | acml0
+# l0flota=0xf0f0 - this format is forbidden
+# Comments:
+# - analysis of table consistency in parted

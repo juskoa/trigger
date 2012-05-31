@@ -1,0 +1,59 @@
+#!/bin/bash
+#This is to be started with right VMECFDIR, VMEBDIR
+#Usage: go to the end of this script
+if [ "$VMECFDIR" == "" ] ;then
+  echo "VMECFDIR not defined"
+  exit
+fi
+if [ "$VMEWORKDIR" == "" ] ;then
+  echo "VMEWORKDIR not defined"
+  exit
+fi
+if [ "$1" == "distrib" ] ;then
+VERSION="2.9"
+VDIR="vd"
+cd ; mkdir -p "ltuclient-$VERSION"
+mkdir -p "ltuclient-$VERSION/vmeb"
+mkdir -p "ltuclient-$VERSION/vme/ltudim/linux"
+mkdir -p "ltuclient-$VERSION/vme/ltu"
+mkdir -p "ltuclient-$VERSION/scripts"
+cd $VMECFDIR ; cd ../..
+#echo scp aj@pcalicebhm05:v/vme/ltudim/ltuclient.c ~/v/vme/ltuclient.c
+ cp $VDIR/vmeb/cmdlin2.py $VDIR/vmeb/cratedim.py \
+   $VDIR/vmeb/myw.py $VDIR/vmeb/cratedim.sh \
+   $VDIR/vmeb/counters.py ~/ltuclient-$VERSION/vmeb/
+ cp $VDIR/vme/ltudim/setup.sh ~/ltuclient-$VERSION/scripts/
+ cp $VDIR/vme/ltudim/linux/ltuclient ~/ltuclient-$VERSION/vme/ltudim/linux/
+ cp $VDIR/vme/ltudim/ltuclient.c $VDIR/vme/ltudim/ltucmd.c $VDIR/vme/ltudim/cmd1.c \
+   $VDIR/vme/ltudim/makefile \
+   $VDIR/vme/ltudim/makefile_common ~/ltuclient-$VERSION/vme/ltudim/
+ cp $VDIR/vme/ltu/ltu6.tcl $VDIR/vme/ltu/ltu_u.py $VDIR/vme/ltu/slmcomp.py \
+   $VDIR/vme/ltu/ltu_cf.py \
+   $VDIR/vme/ltu/slmcmp.py $VDIR/vme/ltu/mywrl.py $VDIR/vme/ltu/ssman.py \
+   $VDIR/vme/ltu/cfgedit.py \
+   ~/ltuclient-$VERSION/vme/ltu/
+ cp -a $VDIR/vme/WORKIMAGE ~/ltuclient-$VERSION/vme/
+ cd 
+ tar -czvf ~/rpms/SOURCES/ltuclient-$VERSION.src.tar.gz ltuclient-$VERSION
+ #echo "~/dimltuclient.tar created"
+ echo "~/rpms/SOURCES/ltuclient-$VERSION.src.tar.gz created"
+ echo "Now execute:"
+ echo 'cd ~/rpms/SPECS ; rpmbuild -ba ltuclient.spec'
+ echo "-> rpms/RPMS/ltuclient-$VERSION.rpm"
+elif [ "$1" == "make" ] ;then
+# after dimclient.tar is unpacked ( cd ~ ; tar -xf dimclient.tar)
+# make following directories in client account:
+cd $VMEWORKDIR
+mkdir -p WORK
+mkdir -p CFG/ltu/SLM
+cd $VMECFDIR/ltudim
+make linux/ltuclient
+echo "start client:"
+echo "vmecrate DETNAME"
+echo "where DETNAME is the name of your detector"
+else
+  echo "Usage:"
+  echo "distrdimclient make           -after unpacking dimclient.tar"
+  echo "distrdimclient distrib        -to prepare file dimclient.tar"
+  exit
+fi

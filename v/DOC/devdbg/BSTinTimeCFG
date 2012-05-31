@@ -1,0 +1,22 @@
+We do not keep the realtaion between LHC/CTP orbit numbering.
+Solution:
+Just another line needs be added to the timing config,
+format of the line (coming just after L012 line) would be:
+
+LHC clock ctporbit lhcturn utcsecs utcmics
+where:
+clock: beam1, beam2, ref or local
+ctporbit: int (24 bits)
+lhcturn: int (32bits). The LHC turn corresponding to ctporbit
+          (i.e. received in BST message in time of ctporbit)
+utcsecs/utcmics:  Universal time read from BST message together with
+lhcturn (seconds/microseconds, each 32 bits).
+These data would allow to find the relation
+between the numbering of orbits in ALICE and LHC.
+
+Antonello's suggestion: all the BST data should be put into timing
+config.
+
+Notes:
+the service CTPDIM/MONBST,see ctp_proxy/dimservices.c  is foreseen 
+for DCS (not yet tested)

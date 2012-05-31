@@ -1,0 +1,20 @@
+#!/bin/bash
+# ls -l `find . -mtime -4 -mtime +2 -name '*'`
+if [ $# -eq 0 ] ;then
+  cat - <<-EOF
+findIncfg 'string' [days]
+days: number of days (default -1)
+days: -4     yestreday, yesterday -1,...
+days: +5     older than  days
+EOF
+exit
+fi
+days='-1'
+if [ $# -ge 1 ] ;then
+  grstring=$1
+fi
+if [ $# -ge 2 ] ;then
+  days=$2
+fi
+grep "$grstring" `find . -mtime $days -name '*'`
+#grep \'$grstring\' `find . -mtime $days -name '*'`  nebavi

@@ -1,0 +1,22 @@
+#to be started on alidcsvme001
+# smaq CTP_INPUT DIRNAME
+if [ $# -eq 0 ] ;then
+  echo "Usage:"
+  echo "smaq ctp_input DIRNAME"
+  echo "DIRNAME -this directory is created at trigger@alidcscom027:SMAQ/"
+  exit
+fi
+sig=$1
+if [ $# -ge 2 ] ;then
+  export SMAQDATA="$2"
+else
+  export SMAQDATA="last"
+fi
+ssh -q2 trigger@alidcscom027 "mkdir -p SMAQ/$SMAQDATA"
+scp -Bq2 $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS trigger@alidcscom027:SMAQ/$SMAQDATA/
+cd ~/v/vme
+#$VMECFDIR/inputs/inputs.exe <<-EOF
+#inputsSMAQ(0,$sig)
+#EOF
+$VMECFDIR/smaq/smaq.exe $sig <<-EOF
+EOF

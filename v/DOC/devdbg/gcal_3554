@@ -1,0 +1,57 @@
+Seems, cal. trigger issued in standard 3556 BC, damages physics
+events generated too close (3554 BC).
+setup A
+-------
+Prepared in lab:
+1.
+pardefs/cal3554.partition -triggering in 3554 with VALID.BCMASK 3554.mask
+2.
+DB/gcalib.cfg -daq set for 1 cal. trg/sec
+3.
+INT_TEST_COUNT: 0
+tc_input1 counter counts L2a test class sequences
+INT_TEST_COUNT: 0x40  (0x4000 for tc_input2)
+tc_input1 counter counts L2a test class sequences with ClT==0
+INT_TEST_COUNT: 0x60  (0x6000 for tc_input2)
+tc_input1 counter counts L2a test class sequences with ClT==1
+4.
+ctp -> Tst class
+BC/mask: 3556 Detectors: SSD
+
+Result:
+------
+1. cal. trigger goes through (seen in tc_input1, fo1l0clstt fo1ppout1
+with mask: 3554H1L9H 
+l0classB1==fo1loclst1
+
+with mask: 3555H1L8H  (+1 BC)
+fol0clst1,l0classA1 are 1 less then l0classB1
+
+2. cal. trigger does not go through (seen only in fo1ppout1):
+with mask: 3544H1L19H -10 less
+with mask: 3549H1L14H -5 less
+with mask: 3551H1L12H -3 less
+with mask: 3553H1L10H -1 less
+
+3. 
+with mask: 3556H1L7H  (+2 BC =cal. bc)
+cal. goes through, counters ok:
+l0classB1 A1  fo1clst1 fo1l0out1 fo1ppout1 fo1l2stro1 fo1l0clstt
+6         6   6        6         1         6          1          cal-ph2bcs
+6         5   5        6         1         6          1          cal-ph0bcs
+6         5   5        6         1         6          1          cal-ph1bcs
+6         6   6        6         0         6          0          cal-ph22bcs
+6         6   6        6         1         6          1          cal-ph72*bcs
+
+14.12.
+bug found: BCmask programming: shifted by 2
+now: 0,1,2,3,...
+should be: 3562,3563,0,1,2,...
+14.12.
+when using SSM, bc0 is shifted by 6 with respect to Orbit start signal.
+Cure: set L0_BCOFFSET to 3558
+ What is the consequence for: sync triggers, BCID in L2a message?
+
+setup B
+-------
+try only physics with BC in 3554+3555

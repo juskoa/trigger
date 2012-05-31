@@ -1,0 +1,10 @@
+Current status (5.10.2010):
+1. bin/colschedule.bash
+ - shows/makes new link $dbctp/COLLISIONS.SCHEDULE
+ - send to update service CTPRCFG/CS
+
+Todo:
+If VALID.BCMASKS is not in ACT and COLLISIONS.SCHEDULE is,
+  download CS and create VALID.BCMASKS.
+See bin/ctpproxy.py switchgui/switched.switch(act)
+

@@ -1,0 +1,427 @@
+Content:
+1. Files, working directories
+2. Daemons
+3. how to debug
+4. new rrd database
+4A. new rrd databases for 2012:
+4.1. new rrd mon db:
+4.2. Notes for rrd scripting
+5. maintanance: start/stop all the daemons on alidcscom026
+6. WEB
+7. RRD notes
+8. analyse
+10. Cases
+
+1. Files, working directories
+-----------------------------
+VMECFDIR/CNTRRD/
+readctpc.c -dim client reading CTP counters and passing them to RRD
+readltuc.c -dim client reading LTU counters and passing them to RRD
+common.[ch]-common for both
+
+udpmonitor.c  -UDP server gathering UDP messages from monitoring processes
+udpclient.c   -test client (interactive)
+udplib.[ch]   -UDP library (used by server and client) -is in vmeblib
+
+analyse.c  -user interface for processing raw counters files
+
+htmlCtpBusys.py  -started once, it wait for messages from /tmp/htmlfifo
+   -create ~/CNTRRD/htmls/busyL0.html busy status file from:
+    1. ~/v/vme/WORK/RCFG/*.rcfg files 
+    2. trigger DB
+    3. /tmp/htmlfifo (pipe with readctpc: mkfifo /tmp/htmlfifo)
+
+rrd.py  -create rrd databases involved
+
+fetch.py -for debugging rrd
+
+From 17.10.2008, the software is in $VMECFDIR/CNTRRD. Working
+directories are in ~/CNTRRD:
+htmls   -htmls used (copy of these is in $VMECFDIR/CNTRRD) + 
+         created dynamically
+logs    -logs
+rawcnts -raw counters data (1 file per day)
+rrd     -rrd databases data
+
+2. Daemons
+----------
+On alidcscom026:
+CTP counters reading
+Start/stop:    cd CNTRRD ; nohup linux/readctpc >logs/readctpc.log &
+Sources: ~/CNTRRD/readctpc.c
+
+LTU counters reading
+Start/stop:    cd CNTRRD ; nohup linux/readltuc >logs/readctpc.log &
+Sources: ~/CNTRRD/readltuc.c
+
+Python dim server
+Start/stop: ~/CNTRRD/startClients.bash
+Sources:
+$VMECFDIR/pydim/pydimserver.py server.c
+- waits for DIM commands from ctp_proxy
+- creates ~/v/vme/WORK/RCFG/rXXXX.rcfg file
+- deletes ...rcfg file (or move to RCFG/delme/)
+  
+
+Html daemon:
+Start/stop: ~/CNTRRD/startClients.bash
+Sources:
+~/CNTRRD/htmlCtpBusys.py
+- Once per minute: checks RCFG directory for new files and
+  creates corresponding ~/CNTRRD/htmls/busyL0.html file
+
+dimcoff daemon:
+Start/stop:   see ~tri/readme
+Sources:
+$VMECFDIR/dimcoff/
+
+On alidcsvme001 or altri1:
+ctp proxy daemon:
+ctpproxy
+ctp dim server daemon:
+ctpdims
+
+3. how to debug
+---------------
+-----------What is running:
+ps -C pydimserver.py -o"%p %a" ; ps -C server -o"%p %a"
+ps -C htmlCtpBusys.py -o"%p %a"
+----------- Start
+cd CNTRRD
+export PYTHONPATH=$PYTHONPATH:$VMECFDIR/TRG_DBED
+nohup $VMECFDIR/pydim/pydimserver.py >logs/pydimserver.log &
+
+nohup ./htmlCtpBusys.py htmlfifo >logs/htmlCtpBusys.log &
+---------- Test if running:
+
+---------- Stop
+
+cd /data/ClientCommonRootFs/usr/local/trigger/v/vme/pydim 
+linux/client CTPRCFG/RCFG
+qs -stop server       qc -stop client
+rcfg crash 22         -create .rcfg or .debug file for crash.partition
+rcfg ALICE 22
+
+ps aux |grep htmlfifo    -kill cat /tmp/htmlfifo ... or
+linux/client CTPRCFG/RCFG
+echo q >/tmp/htmlfifo          -stop old one
+----------
+mask for t0 zdc acorde:
+hex((1<<13)+(1<<15)+(1<<16))
+'0x1a000'
+
+rename in RCFG directory (htmlCtpBusys.py works on .rcfg files)
+
+cd CNTRRD
+tail logs/htmlfifo.log    or edit htmlCtpBusys.input, grab with mouse
+./htmlCtpBusys.py busyL0
+mouse paste
+
+production:
+
+4. new rrd database
+-------------------
+startClients.bash stop rrd
+check $VMECFDIR/dimcdistrib/cnames.sorted2 ltunames.sorted2
+cd ~/CNTRRD
+mv rrd rrdBefore25oct2007
+mkdir rrd
+$VMECFDIR/CNTRRD/rrd.py cnow ctp
+RRD: ctp # of datasets: 1075            (on pcalicebhm05, 26.11.2008)
+OK u:0.02 s:0.09 r:0.11
+
+[alidcscom188] /home/alice/trigger/CNTRRD > $VMECFDIR/CNTRRD/rrd.py cnow ctp
+RRD: ctp # of datasets: 1075
+OK u:0.03 s:0.13 r:0.17
+
+$VMECFDIR/CNTRRD/rrd.py cnow ltu
+...
+
+Make sure, ctpdims and ltu_proxies are running:
+startClients.bash    (ctpdim should be running + ltu_proxies)
+The order of daemons starting:
+1. startClients.bash pydim start
+   startClients.bash html start    (or at least cat /tmp/htmlfifo)
+2. ctpproxy start   (initialise ctp hw!)
+3. ctpdims start
+4. ltuproxy daq start
+
+Now we can start counters reading:
+startClients rrd start
+[pcalicebhm05] /home/aj/CNTRRD > $VMECFDIR/CNTRRD/linux/readctpc >logs/readctpc.log &
+[pcalicebhm05] /home/aj/CNTRRD > $VMECFDIR/CNTRRD/linux/readltuc >logs/readltuc.log &
+
+0=01.01.1970 01:01:00: l0clstT:23 busytemp:25 busyvolts:d3748bd3 
+ERROR: illegal attempt to update using time 0 when last update time is 1163718000 (minimum one second step)
+...
+Correct EPOCHSECS/MICS position in readctpc.c; make
+Now OK
+
+4A. new rrd databases for 2012:
+---------------------------------
+lab:
+[pcalicebhm10] /home/trigger/CNTRRD/rrd > cd ../ ; $VMECFDIR/CNTRRD/rrd.py cnow ctp
+RRD: ctp # of datasets: 1075
+OK u:0.02 s:0.50 r:0.57
+$VMECFDIR/CNTRRD/rrd.py cnow ltu
+RRD: SPD # of datasets: 26
+OK u:0.00 s:0.01 r:0.01
+...
+[pcalicebhm10] /home/trigger/CNTRRD > $VMECFDIR/CNTRRD/rrd.py cnow mon
+RRD: mon # of datasets: 100
+OK u:0.00 s:0.07 r:0.07
+
+startClients.bash ctpdim start
+startClients.bash rrd start
+startClients.bash html start
+
+4.1. new rrd mon db:
+-------------------
+1.
+mon:    ->modify dimcdistrib/monnames.txt
+cd ~/CNTRRD
+$VMECFDIR/CNTRRD/rrd.py cnow mon
+[pcalicebhm05] /home/trigger/CNTRRD > ls -l rrd/mon.*
+-rw-r--r--  1 trigger alice 7555944 Jul 24 18:24 rrd/mon.rrd
+-rw-r--r--  1 trigger alice    1189 Jul 24 18:24 rrd/mon.text
+i.e. for 100 counters ~15Mbytes for .rrd
+-> see rrd/mon.text
+
+2. start monitor + client
+cd ~/CNTRRD ; $VMECFDIR/CNTRRD/linux/udpmonitor
+vd/vme/CNTRRD > linux/udpclient mon 5
+
+3. update:
+rrdtool -
+update rrd/mon.rrd now:val1:val2:val3
+
+rrdtool update rrd/mon.rrd -t ds001:ds002:ds003 N:val1:U:val2
+U- UNKNOWN    N- NOW
+rrdtool update rrd/mon.rrd -t ds001:ds002:ds003 N:10:20:30
+
+4. do graph: 
+cd ~/CNTRRD
+rrdtool graph image.png -e now -s end-3600s -t titlestr -v vertlabel -w 600 -h 100 DEF:ds001=rrd/mon.rrd:ds001:AVERAGE DEF:ds002=rrd/mon.rrd:ds002:AVERAGE LINE1:ds001#003300:name1 LINE1:ds002#0000cc:name2
+
+-u -r
+[pcalicebhm05] /home/trigger/CNTRRD > rrdtool graph image.png -e now-2h -s end-36000s -t titlestr -v vertlabel -w 600 -h 100 -u 1.5 -r DEF:ds001=rrd/mon.rrd:ds001:AVERAGE DEF:ds002=rrd/mon.rrd:ds002:AVERAGE LINE1:ds001#003300:name1 LINE1:ds002#0000cc:name2
+697x179
+
+-w 700 -h 200
+[pcalicebhm05] /home/trigger/CNTRRD > rrdtool graph image.png -e now-2h -s end-36000s -t titlestr -v vertlabel -w 700 -h 200 -u 1.5 -r DEF:ds001=rrd/mon.rrd:ds001:AVERAGE DEF:ds002=rrd/mon.rrd:ds002:AVERAGE LINE1:ds001#003300:name1 LINE1:ds002#0000cc:name2
+797x279
+
+5. view
+kview image.png 
+
+4.2. Notes for rrd scripting
+----------------------------
+1. last line gives the picture size. It seems it is 
+always +97/horizontal +79/vertical added to -w -h required dimensioons
+
+2. time:
+-e now-2h -s end-36000s 
+
+3. -u -r  (-r = rigid to force upper limit)
+   -l     lower limit
+-o (--logarithmic) -hangs (load >12) if Y values <0 !
+
+------------------------
+cat rrd/graph.txt
+graph graf.png -s 1243129900 -e 1243135900 --step 60 -w 600 -u 10000 -l 8000 DEF:ds001=rrd/mon.rrd:ds001:AVERAGE DEF:ds002=rrd/mon.rrd:ds002:AVERAGE DEF:ds003=rrd/mon.rrd:ds003:AVERAGE LINE1:ds001#003300:ds001 LINE1:ds002#0000cc:ds002 LINE1:ds003#660000:ds003 
+
+Create:
+DS:ds007:GAUGE:120:U:U
+         COUNTER
+Gauge: temperatures or number of people in a room 
+Counter: continuous incrementing
+5. maintanance
+--------------
+files to be removed (once per week?):
+as root:
+rm -f /home/alice/*/v/vme/WORK/ltuclient_*.log
+
+6. WEB
+------
+/etc/httpd/conf.d/python.conf:
+<Directory /var/www/html/CNTWEB>
+    SetHandler mod_python
+    PythonHandler mod_python.publisher
+    PythonDebug On
+</Directory>
+
+/var/www/html/index.html   -root start
+/var/www/html/CNTWEB/doc   -some doc
+/var/www/html/CNTWEB/cnt.py -script responding to http requests
+/var/www/html/CNTWEB/ltus.py -script responding to http requests
+/var/www/html/CNTWEB/cnames.sorted2, ltunames.sorted2 -links to dimcdistrib
+/var/www/html/htmls/       -link to ~CNTRRD/htmls (directory)
+/var/www/html/ex/        -some examps
+/var/www/html/publisher/ -some examps
+
+
+# note: http://pcalicebhm05.cern.ch/CNTWEB/cnt/     to initialise module
+
+cd
+cd CNTRRD
+ln -sf /dimcdistrib/ctpcounters.h
+cd /var/www/html
+ln -sf ~trigger/dimcdistrib/cnames.sorted2 cnames.sorted2 
+ln -sf ~trigger/dimcdistrib/ltunames.sorted2 ltunames.sorted2 
+! if not x for everybody, 'ERROR: Permission denied'
+[root@pcalicebhm05 home]# ls -ld trigger
+drwxr-x--x  25 trigger alice 4096 Nov 26 15:33 trigger
+
+026 -> pcalicebhm05 copy:
+See bin/VonZpituHtml
+
+after 026 -> pcalicebhm05 copy modify: 
+readltu.c   RRDDB IMAGES
+
+7. RRD notes
+------------
+rrdtool info rrd/mon.rrd
+rrdtool info rrd/TPCcounters.rrd |grep 'last_update'
+
+rra[0].rows = 10080     last week/min 24*60*7
+ds[epochmics].type = "GAUGE"
+ds[epochmics].minimal_heartbeat = 120
+ds[epochmics].min = NaN
+ds[epochmics].max = NaN
+ds[epochmics].last_ds = "125020"
+ds[epochmics].value = 1.2502000000e+06
+ds[epochmics].unknown_sec = 0
+
+rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -s 1163730000 -e 1163736000
+rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -s 1163730000 -e 1163730060
+CF: AVERAGE only (MIN MAX LAST not possible -not used)
+
+mon:
+cd ~/CNTRRD
+$VMECFDIR/CNTRRD/rrd.py c mon
+rrd.py u
+update:rrd/mon.rrd from time:1243119600, 300 values
+OK u:0.00 s:0.01 r:0.01
+update: None
+
+$VMECFDIR/CNTRRD/rrd.py g mon m 1243129900 100  ds001 ds002 ds003
+[pcalicebhm05] /home/trigger/CNTRRD > cat rrd/graph.txt
+graph graf.png -s 1243129900 -e 1243135900 --step 60 -w 600 -u 10000 -l 8000 DEF:ds001=rrd/mon.rrd:ds001:AVERAGE DEF:ds002=rrd/mon.rrd:ds002:AVERAGE DEF:ds003=rrd/mon.rrd:ds003:AVERAGE LINE1:ds001#003300:ds001 LINE1:ds002#0000cc:ds002 LINE1:ds003#660000:ds003 
+
+[root@pcalicebhm05 imgs]# cp ~trigger/CNTRRD/graf.png testjs.png
+attributes:
+-s
+-e
+-u -r         rigid (forcing upper limit)
+-l
+--step
+-w 600
+
+8. analyse
+----------
+getc,converth2i or strcpy():
+aj@tp:~/CNTRRD$ time $VMECFDIR/CNTRRD/linux/analyse
+real    0m0.397s
+user    0m0.376s
+sys     0m0.012s
+
+21.05.2011 03:30:01:0 0 0 0 0 0
+21.05.2011 03:30:45:2520d 0 0 0 0 0
+21.05.2011 03:30:46:2520d 0 0 0 0 0
+21.05.2011 03:31:02:2520d 0 0 0 0 0
+21.05.2011 03:32:02:2520d 0 0 0 0 0
+21.05.2011 03:32:45:2520d 0 0 0 0 0
+21.05.2011 03:32:46:2520d 0 0 0 0 0
+21.05.2011 03:33:02:2520d 0 0 0 0 0
+21.05.2011 03:33:03:0 0 0 0 0 0
+
+aj@tp:~/CNTRRD$ ~/git/vd/vme/CNTRRD/linux/analyse "21.05.2011 00:00:00" "21.05.2011 23:00:00" 152077 r152077 898 899
+
+date time l0time runx0 orbit l0class2b l0class2a l1class2b l1class2a l2class2b l2class2a busyin9_TRD busyclu1
+[alidcscom188] /home/alice/trigger/CNTRRD > $VMECFDIR/CNTRRD/linux/analyse "08.09.2011 23:54:00" "09.09.2011 00:51:59" 0 r160811_3 13 896 923 17 101 201 251 347 397 750 783
+08.09.2011 23:54:00 09.09.2011 00:51:59 0 r160811_3
+896 923 16 100 
+open_rawcnts: rawcnts/08.09.2011.rawcnts
+open_rawcnts: rawcnts/09.09.2011.rawcnts
+r160811_3: 64 lines written
+
+[alidcscom188] /home/alice/trigger/CNTRRD > $VMECFDIR/CNTRRD/linux/analyse "06.04.2012 17:58:00" "06.04.2012 18:17:00" 0 trd.cns 84
+
+10. Cases
+--------
+12.July - the number of words received from DIM server
+was changed from 750 -> 774 - i.e. 24 voltages for LTUs added.
+cd CNTRRD
+mv rrd rrdold             -archive (was:750 words from DIM server)
+./rrd.py c                -create new RRD database
+[pcalicebhm05] /home/aj/CNTRRD > linux/readctpc
+1184272777=12.07.2007 22:40:37: l0clstT:0 busytemp:24 busyvolts:ffffff00
+1184272837=12.07.2007 22:41:37: l0clstT:0 busytemp:24 busyvolts:0
+OK u:2.94 s:0.02 r:2.96
+OK u:2.94 s:0.02 r:2.96
+1184272897=12.07.2007 22:42:37: l0clstT:0 busytemp:24 busyvolts:0
+OK u:2.94 s:0.02 r:62.84
+1184272958=12.07.2007 22:43:38: l0clstT:0 busytemp:25 busyvolts:0
+OK u:2.94 s:0.02 r:123.03
+
+/var/www/html/CNTWEB/cnt.py:
+- class Config -added ltu
+- hml part...
+
+25.Oct 2007
+-----------
+kill linux/readctpc
+cd CNTRRD
+mv rrd rrdBefore25oct2007
+mkdir rrd
+./rrd.py c                -create new RRD database
+
+[pcalicebhm05] /home/aj/CNTRRD > linux/readctpc
+0=01.01.1970 01:01:00: l0clstT:23 busytemp:25 busyvolts:d3748bd3 
+ERROR: illegal attempt to update using time 0 when last update time is 1163718000 (minimum one second step)
+...
+Correct EPOCHSECS/MICS position in readctpc.c; make
+Now OK
+
+Testing (2 counters, fixed staring time) use:
+---------
+- modify rrd.py readcnames()
+./rrd.py c ; rrd.py u ; rrd.py g
+
+For CTP counters:
+----------------
+./rrd.py cnow
+linux/readctpc | rrdtool -
+
+13.02.2007: I2C,orbit (23 counters added) 
+I.e.: 750 counters in cnames.sorted2 file,
+750-11= 739    (from *volts word, 4 *volts[1-4] voltages created)
+739+44=783     counters for rrd
+
+modifications:
+- rrd.py: (*volts*) counters are treated separately: 4 db for each voltage
+- ctpcounters.c -> /home/aj/dimcdistrib/ctpcounters.h
+- readctp.c  -similarly, each *volts word is expanded to 4 rrd values
+  make linux/rrdctpc
+- recreate database:
+[pcalicebhm05] /home/aj/CNTRRD > mv rrd rrd-23
+mkdir rrd
+./rrd.py cnow >rrdpy.13022007
+- modify web interface:
+  su - ; cd /var/www/html/CNTWEB
+  cp ~aj/dimcdistrib/cnames.sorted2 .
+  gvim cnt.py ...
+
+graphs:
+-------
+./rrd.py g l2time   -for any counter in RRD (running with readctpc)
+
+Todo: 2 lines in 1 graph, any interval
+graph graf.png -s 04:08 -e 04:38 --step 60 -w 600 DEF:l0byclst1=rrd/ctpcounters.rrd:l0byclst1:AVERAGE DEF:l0inp4=rrd/ctpcounters.rrd:l0inp4:AVERAGE CDEF:dt=l0byclst1,l0inp4,/ LINE2:dt#006600:deadtime LINE2:l0inp4#330000:l0inp4
+
+graph graf.png -s'12:40 17.04.2008' -e's+30m' --step 60 -w 600 DEF:l0byclst1=rrd/ctpcounters.rrd:l0byclst1:AVERAGE DEF:l0inp4=rrd/ctpcounters.rrd:l0inp4:AVERAGE CDEF:dt=l0byclst1,l0inp4,/ LINE2:dt#006600:deadtime LINE2:l0inp4#330000:l0inp4
+
+Todo: last hour or 10hours: per minute    (info should be given)
+      last day/week or month: per hour       
+      last year per day
+

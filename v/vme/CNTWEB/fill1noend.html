@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+  <title>LHC filling scheme -> ALICE format</title>
+  <meta name="GENERATOR" content="Quanta Plus">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body bgproperties="fixed" bgcolor="#FFEFDE">
+
+<p>Insert a filling scheme definition from one of the following 
+two sources:</p> 
+<FORM name="lhcxlsinputs" action="translate" method="POST">
+<dl>
+<dt><b>lhc.txt</b></dt>
+<dd> Find corresponding text file at <A href="http://lpc.web.cern.ch/lpc/fillingschemes.htm">LHC filling schemes</A>. Copy/Paste only 'RF buckets' lines. Example:
+<pre>
+ inj 1      1     ring_1           1          25       1
+ inj 1      2     ring_2           1          25       1
+</pre>
+  LHC filling scheme. Name (e.g. 1000ns_50b_35_14_35):<INPUT type="text" name="fsname" value="#fsname#" size="20" maxlength="40" title="e.g. Single_13b_8_8_8"> <br>
+  <textarea name="lhcinp" rows="10" cols="110">
+#lhcinp#
+</textarea><br>
+  Click
+  <INPUT type="submit" name="lhc" value="LHC->ALICE" title="Make translation from LHC->ALICE BC numbers"> to calculate:
+<ol>
+</li><li>ALICE bunch numbers.</li>
+<li> 2 <b>Empty</b> bunches. They will be placed 16 BCs before colliding bunch in 2 largest B-B gaps.
+</li>
+<!-- 
+<li>
+  <INPUT type="checkbutton" name="parasitic" value="#parasitic#" title="Calculate/do not calculate parasitic bunches"> Parasitic bunch is preceeded by another bunch by less than 6 BCs. </li>
+-->
+</ol>
+<br>
+</dd>
+<dt><b>ALICE collisions schedule:</b></dt>
+<dd> Copy/Paste just part of the file defining one scheme. Empty bunches (E) are usually given in this file. Example:
+<pre>
+	746	A	300	2
+	1240	B	494	0
+	1735	E	395	3
+	3019	C	393	3  *
+</pre>
+Only first 1st, 2nd and 5th columns (Alice BC, bunch type, *) will be used when calculating the VALID.BCMASKS format suitable for ACT. <b>*</b> in 5th column marks parasitic bunch. Parasitic bunches are not considered for B and AC masks, but they are taken into account when calculating D mask (bunches where cosmic is allowed).
+<br>
+<!-- @annotation: annotation -->
+  <br>
+  <textarea name="xlsinp" rows="10" cols="70">
+#xlsinp#
+</textarea><br>
+<ul>
+<li> Add/modify/check <b>empty bunches (E) </b> if necessary,</li>
+<li> mark <b>parasitic bunches</b> by <b>*</b> in 5th column </li>
+</ul>
+<br>
+and press
+  <INPUT type="submit" name="xls" value="ALICE->VALID.BCMASKS" title="Input from .xls file"><br>
+
+</dd>
+<!-- 
+<dt>Current filling scheme</dt>
+<dd>Getbutton current filling scheme defined by DIP service. Add empty bunches (E).
+</dd>
+-->
+</dl><br>
+</FORM>
+VALID.BCMASK format:<br>
+<textarea name="bcmasks" rows="10" cols="80" readonly="true">
+#bcmasks#
+</textarea>
+

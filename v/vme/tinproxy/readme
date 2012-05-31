@@ -1,0 +1,22 @@
+1. compile/link server and client in linux directory:
+  export VMEGCC=cc
+  make
+
+2. Start Dns: alias Dns='/home/aj/smi/dim/linux/dns'
+  Dns
+
+3. Start server:
+  linux/server
+
+4. Start client:
+  linux/client
+  - the short 'usage mesage' will be printed
+
+Make distrib (for web): 
+rm tinproxy/linux/* ;tar -czvf tinproxy.tgz tinproxy/make* tinproxy/*.c tinproxy/readme tinproxy/linux
+
+---------------- particulars:
+EMCAL
+So you TIN proxy EMC/... services are published on alidcsdimdns,
+there are 10 channels, only channel 1 is used to control 0EMC signal.
+Best regards, Anton

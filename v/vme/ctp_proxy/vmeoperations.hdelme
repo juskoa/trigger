@@ -1,0 +1,20 @@
+/*---------------------------------------------------------------
+  Hardware operations
+-----------------------------------------------------------------*/
+// Set daq busy to all classes
+void setALLDAQBusy(w32 *daqbusy);
+void unsetALLDAQBusy(w32 daqbusy);
+// Set DAQ busy to partition after there was alldaq busy
+int setPartDAQBusy(Tpartition *part,w32 *daqbusy,w32 clustercode);
+// Unset DAQ busy to partition
+int unsetPartDAQBusy(Tpartition *part,w32 *daqbusy,w32 clustercode);
+// 
+w32 getPartitionBusyMask(Tpartition *part);
+// load HW to hw
+int loadHW();
+// generate sod/eod
+int generateXOD(Tpartition *part,char x);
+// swtrig
+int swtrg(int n,char trigtype, w32 BC);
+
+

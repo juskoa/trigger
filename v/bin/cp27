@@ -1,0 +1,26 @@
+#!/bin/bash
+if [ $# -lt 2 ] ;then
+  echo
+  echo "This scripts has to be started from: "
+  echo "       [alidcsvme001] /home/alice/trigger/v/vme/WORK "
+  cat - <<-EOF
+Give 2 parameters: 
+  1. subdirectory in trigger@alidcscom027:SMAQ/
+  2. the name of .dmp file (e.g.:l0_19_07.11.2009_08:11:03.dmp)
+Operation:
+The given file is scp-ed from alidcscom027 to
+alidcsvme001:/home/alice/trigger/v/vme/WORK/ssm.dmp
+
+Note:
+File can be examiden by SSMbrowser, follow these steps:
+1. DebugSSMcalls -> readSSMDump
+   Choose:
+   board: 1:L0, 2:L1, ... 
+   filename: "WORK/ssm.dmp"
+   -> start   -reads ssm.dmp file into memory
+2. SSMbrowser -> Refresh show signals
+EOF
+  exit
+fi
+scp -2 trigger@alidcscom027:SMAQ/$1/$2 ~/v/vme/WORK/ssm.dmp
+

@@ -1,0 +1,83 @@
+Vsetky sluzby by mali byt pouzite iba v pripade, ze nebezi globalny/stdalone
+run (busytools a SMAQ moze bezat aj paralelne).
+Master (dim client co bude volat tie sluzby), bude startovany rucne
+najma po zmene TTCmi clocku.
+
+LTU dimservices
+---------------
+1. DETNAME/GETBCPHASE ltufo
+   ltufo: 1 for LTU BC phase measurement
+          0 for FO  BC phase measurement
+   Note:
+     Toggling is expected in L1_data
+   Operation:
+   - read BC_DELAY_ADD, and set it to 0
+   - set ADC_SELECT 
+   - adcval= readADC()
+   - set BC_DEALY_ADD back to original value
+   RC: adcval
+
+2. DETNAME/PLLRESET
+   RC: confirmation 'PLLreset done' or 'not done' (LTU in global...)
+    
+3. DETNAME/ADCSCAN
+   Note:
+     Toggling is expected in L1_data
+   Operation:
+   - read BC_DELAY_ADD
+     for bcdel 0..31:
+       BC_DELAY_ADD= bcdel
+       adcval= readADC()
+   RC: array of 32 adc values
+
+4. toobusy on LTU:
+
+CTP dimservices
+---------------
+1. CTPDIM/TOGGLE detname onoff
+   detname: the name of detector (according to VALID.LTUS)
+   onoff:   1 start toggling
+            0 stop  toggling
+
+2. CTPDIM/CHECKPHASES
+   Operation:
+     - read BUSY_DELAY_ADD, set it to 0
+     - measure BC phase for L0/1/2 BUSY INT boards
+     - restore BC_DELAY_ADD
+   RC:
+     5 values for L0/1/2 BUSY INT boards
+
+3. CTPDIM/SMAQ
+DIM client subscribing to this service, specifies following
+input:
+- the condition triggering the SSM stop
+  Note: now the condition is: 
+    the change of the counter counting one of L0 CTP inputs
+
+After subscribing to SMAQ service, the client receives
+messages containing snapshot memory taken in the time when
+condition was fulfilled.
+Should the message:
+- be compressed? 4Mwords are read word by word from
+  VME, so I can imagine some simple compressing algorithm
+  squeezing together 'equal neighhbouring words' 
+- contain more information (time stamp, the value of the triggering
+  counter)...?
+
+4. toobusy on CTP
+
+5. DCS 
+------
+For the shutdown I will provide DIM service:
+shutdown cratename
+and
+shutdown_status cratename
+-we should agree on cratenames.
+
+- Ivan Kralik IR monitoring -provides services:
+  -total luminosity
+  -luminosity per bunch
+
+- BOBR should be read once per minute and BST messages should be
+  published as DIM service
+

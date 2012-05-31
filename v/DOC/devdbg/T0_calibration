@@ -1,0 +1,9 @@
+Following parameters commented in T0 defaults file (in jan 2010):
+ppdelay 3125    #
+Gppdelay        3387    #
+SBGO0DELAY      3446    # this was used by TTCvi
+GBGO0DELAY      151     # 53  this was used by TTCvi
+
+they should be removed completely later. 
+Problem:
+Are they ALL really useless (i.e. not used any more) with LTUvi version?

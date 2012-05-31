@@ -1,0 +1,17 @@
+#!/bin/bash
+mkdir /data/von211207 ; BCKP='/data/von211207'
+echo="copying to $BCKP..."
+cd /data/ClientCommonRootFs/usr/local
+time tar -zcf - trigger | dd of=$BCKP/ul_trigger.tgz >~/VonZpitu.log
+cd ~trigger 
+time tar -zcf - CNTRRD dimcdistrib bin C | dd of=$BCKP/home_trigger.tgz >>~/VonZpitu.log
+cd /var/www/html
+time tar -zcf - CNTWEB | dd of=$BCKP/web_trigger.tgz >>~/VonZpitu.log
+cd /data/ClientLocalRootFs
+time tar -zcf -  alidcsvme00[1-7]/home/alice/trigger/v/*/CFG \
+ alidcsvme008/home/alice/trigger/v/vme \
+ alidcsvme008/home/alice/trigger/bin \
+ | dd of=$BCKP/CFG.tgz >>~/VonZpitu.log
+ 
+
+

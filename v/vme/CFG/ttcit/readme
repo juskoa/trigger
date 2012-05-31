@@ -1,0 +1,10 @@
+[alidcsvme056] /home/alice/trigger > $VMECFDIR/ttcit/ttcit_upgrade.csh 29 /usr/local/trigger/v/vme/CFG/ttcit/PROTO_ver1
+
+26: busy input added on the board
+27: new snapshot format (corrected), ver. 23.3.2010
+
+next versions splitted (see readme files in both PROTO* directories):
+PROTO_ver1 -branch for BPIM (Antonello), crate alidcsvme056
+  board modified: scope outputs are normal TTL (3.3V, resistors removed)
+
+PROTO_ver2 -branch ttcit normal

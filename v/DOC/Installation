@@ -1,0 +1,113 @@
+Requirements
+------------
+Operation system: Linux
+Additional packages: python/tkinter (i.e 'yum install tkinter' on Linux)
+
+Installation (Unix)
+--------------------
+Create directory (let's call it v), and unpack tar file in it:
+cd v
+tar -xvf../vmebltu.tar
+
+Edit following files:
+v/scripts/vmebse.bash -setting of 3 environment variables:
+  VMEDRIVER -VMERCC (Atlas vme driver, Linux)
+             VMECCT (CCT vme driver, Linux)
+             AIX    (Motorola SBC, AIX)
+             CAENVME (CAEN vme driver, Linux)
+
+  VMECFDIR= ...v/vme   -specific software (ttcvi, ltu,...)
+  VMEBDIR= ...v/vmeb   -common software (for any vme board)
+  VMEWORKDIR= ...v/vme -working directory (temporary and config files)
+  DIMDIR, SMIDIR -you need to install DIM and SMI packages, if you want to
+                  use ltuproxy software together with ECS. 
+
+v/vmeb/vmeai.make.$VMEDRIVER   -link and include directories for VME driver
+
+ vme/CFG/ctp/DB/ttcparts.cfg  -specify your detector name (the same as used 
+    in ACR with command 'vmecrate detector_name'), 
+    the name of the computer where ltu_proxy will be started and 
+    the base address of your LTU board
+ vme/CFG/ltu/ltuttc.cfg -a template can be found in ltuttc.cfgall 
+
+By default, base addresses of LTU/TTCvi are 0x810000/0x800000. These defaults
+can be changed by modifying /*BOARD ... lines in source files before
+compile/link:
+v/vme/ltu/ltu.c   -in the first line, modify BASE address of 
+    the LTU board. Base address of the LTU board is 0x81x000, where x is 
+    set on the dial switch on LTU board. 
+
+The line '/*BOARD name base */' has to be the first line in the files, and
+only base address can be modified (i.e. /* BOARD... is incorrect because
+of space after /* ).
+
+Compilation/link
+----------------
+All the steps are in v/scripts/distrib script, i.e.:
+v/scripts/distrib make    -compile everything
+
+Start without ECS:
+-----------------
+If ltuproxy is not used in this case.
+vmecrate ltu              -start ltu software, LTU board is initialised
+vmecrate nbi ltu          -start ltu software, LTU board is NOT initialised
+vmecrate ltu=0x812000     -working with LTU with base 0x812000 (dial set to 2)
+
+When starting software first time after power up, LTU FPGA is loaded
+from on-board flash memory (unloaded LTU FPGA is indicated by front
+panel LEDs -they dim).
+
+There is TTCinit button in ->Configuration submenu. It has to be always
+executed after:
+- powering up the crate
+- disconnecting fibre between TTCex and your front-end
+
+Starting with ECS:
+-----------------
+ltuproxy has to be started first:
+ltuproxy detector_name start
+(ltuproxy started without parameters gives short help on its parameters).
+
+See v/detector_name/WORK/*.log files.
+LTU control software should be started now by command:
+vmecrate detector_name
+- this starts DIM client which connects to running ltuproxy.
+
+Note about shared memory:
+ltuproxy allocates, with first start, shared memory. LTU parameters placed
+in this memory, are persistent -i.e. they stay the same even if ltuproxy
+is restarted. These parameters:
+- are loaded to shared memory from file v/detector_name/CFG/ltu/ltuttc.cfg
+- can be modified (in shared memory) in 'Defaults editor' accessed
+  by pressing button: Configuration -> Deafults editor
+
+LTU FPGA firmware upgrade
+-------------------------
+Last version of the firmware is b3 (shown after the ltu software start).
+This version (ot higher) is used in all LTUs installed in experiment area.
+Firmware files are placed in v/vme/CFG/ltu/*.rbf.
+
+There is a link to current firmware file in $VMEWORK directory, i.e.:
+FlashMem.cfg -> CFG/ltu/ltu_b3.rbf
+The upgrade to the newest version is done by typing:
+
+v/vme/scripts/loadLTUfpga ltu_b3.rbf 0x81x000
+
+This script will create FlashMem.cfg link and loads the firmware
+to LTU flash memory.
+
+Wiring of the TTC partition (versions b0 and higher):
+------------------------------------------------------
+
+ LTU                            TTCex     wire
+board                           board
+
+                                           1
+BC    <------------------------ CLK2       2
+ORBIT ------------------------> B1         3
+                                           4
+L1    ------------------------> A1         5
+                                           7
+L0    --->FE<----------------- fibre       8
+BUSY1 <---FE                               9
+

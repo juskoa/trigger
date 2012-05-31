@@ -1,0 +1,121 @@
+#!/bin/bash
+# Start this script:
+# makeall 2>&1>~/makeall.gccor++
+# compiled in pit (gcc): 20.7.2009
+function cleancmp() {
+echo "========================== vmecomp package $1 $2"
+cd $VMECFDIR/$1 
+if [ "$2" == "clean" ] ;then
+  make -f $1.make clean
+fi
+$VMEBDIR/comp.py $1
+rc=$?
+if [ $rc != 0 ] ;then
+echo "vmecomp package $1 exiting with rc:$rc"
+exit
+fi
+}
+function cleanmake() {
+echo "========================== make package $1 $2"
+cd $VMECFDIR/$1 
+if [ "$2" == "clean" ] ;then
+  make clean
+fi
+make
+rc=$?
+if [ $rc != 0 ] ;then
+echo "making package $1 exiting with rc:$rc"
+exit
+fi
+}
+function complink() {
+cd $VMECFDIR/$1
+if [ "$2" == "clean" ] ;then
+  make clean
+fi
+make
+}
+function complinktoobusy() {
+cd $VMECFDIR/ctp
+g++ -DBUSYEXE -I $VMEBDIR/vmeblib -I $VMECFDIR/ctp -I$VMECFDIR/ctp_proxy toobusy.c -Lctplib -lctp -L $VMEBDIR/vmeblib -lvmeb -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc  -o toobusy.exe
+}
+# following packages not working for reasons:
+# to be modified for g++:
+#cleancmp ctpt
+#
+OTHERSmake=': ctp_proxy smaq ltu/ltulib SSMANA ltu_proxy ltudim tinproxy orbitsync dimcdistrib dimsc MORELTUS pydim CNTRRD ttcmidaemons filling dimcoff monscal++ fanio/dim :'
+OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
+#
+if [ "$#" -eq 0 ] ;then
+cat - <<-EOF
+Usage:
+makeall allctp [clean] -comp/link vmeb, vmeb/vmeblib, ctplib,ctp,ctp_proxy,smaq
+makeall allltu [clean] -   ltulib,ltu,SSMANA,VME2FPGA,ltu_proxy, ltudim
+makeall others [clean] -compile this:
+$OTHERSmake
+$OTHERScmp
+
+makeall package [clean]     -compile/link only 1 package (see above for names)
+EOF
+exit
+fi
+if [ "$2" = "clean" ] ;then
+  CLEAN="clean"
+else
+  CLEAN=""
+fi
+if [ "$1" = "allctp" ] ;then
+cd $VMEBDIR ; make clean ; make
+cd $VMEBDIR/vmeblib ; make clean ; make
+complink ctp/ctplib $CLEAN
+cleancmp ctp $CLEAN
+complinktoobusy
+#complink ctp_proxy
+cleanmake ctp_proxy $CLEAN
+#complink smaq
+cleanmake smaq $CLEAN
+elif [ "$1" = "allltu" ] ;then
+cleanmake ltu/ltulib $CLEAN
+cleancmp ltu $CLEAN
+cleanmake SSMANA $CLEAN
+cleancmp VME2FPGA $CLEAN
+cleanmake ltu_proxy $CLEAN
+cleanmake ltudim  $CLEAN
+elif [ "$1" = "others" ] ;then
+cleanmake tinproxy  $CLEAN
+cleanmake orbitsync $CLEAN
+cleanmake dimcdistrib $CLEAN
+#cleanmake dimsc     # only examples
+cleanmake MORELTUS $CLEAN
+cleanmake pydim $CLEAN
+cleanmake CNTRRD $CLEAN
+cleanmake ttcmidaemons $CLEAN
+cleanmake filling $CLEAN
+cleanmake dimcoff $CLEAN
+cleanmake monscal++ $CLEAN
+cleanmake fanio/dim $CLEAN
+# 
+cleancmp fanio $CLEAN
+cleancmp ttcmi $CLEAN
+cleancmp bobr $CLEAN
+cleancmp switch $CLEAN
+cleancmp ttcit $CLEAN
+elif [ "$1" = "inputs" ] ;then
+cleancmp inputs $CLEAN
+cleanmake inputs
+else
+  echo $OTHERSmake | grep " $1 " >/dev/null
+  if [ $? -eq 0 ] ;then
+    #echo "========================== cleanmake $1"
+    cleanmake $1 $CLEAN
+  else
+    echo $OTHERScmp | grep " $1 " >/dev/null
+    if [ $? -eq 0 ] ;then
+      #echo "========================== cleancmp $1"
+      cleancmp $1 $CLEAN
+    else
+      echo "========================== not found $1"
+    fi
+  fi
+fi
+#

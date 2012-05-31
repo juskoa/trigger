@@ -1,0 +1,68 @@
+[trg@aldaqacr07 vmeb]$ ltuclient v0
+Use right mouse button to get help
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "/usr/lib/python2.4/threading.py", line 442, in __bootstrap
+    self.run()
+  File "/usr/lib/python2.4/threading.py", line 422, in run
+    self.__target(*self.__args, **self.__kwargs)
+  File "/opt/ltuclient/vmeb/cmdlin2.py", line 168, in threadedexe
+    self.write(cmdte+"\n", "INPUT");
+  File "/opt/ltuclient/vmeb/cmdlin2.py", line 32, in write
+    self.w.insert(END, text, tag); self.w.see(END)
+  File "/usr/lib/python2.4/lib-tk/Tkinter.py", line 2921, in insert
+    self.tk.call((self._w, 'insert', index, chars) + args)
+RuntimeError: main thread is not in main loop
+-------------------
+private version is now in ~/aj/ltuclient , setup:
+. ~/aj/ltuclient/scripts/setup.sh
+
+----------
+-> myw.py 
+   -> 1920 self.io.execute()
+   -> 1920       rc= self.io.execute("getsgmode()",applout='<>')[0]
+    ...
+   -> cmdlin2.py: 410:       print "cmdlin2:execute:", self.thds
+
+???: cmdlin2 uses Tk before  the f.mainloop() call ?
+------------
+19.2.2010:
+debugging in the lab, see aj@pcalicebhm05:ltuclient*   (SLC5 too)
+with mtTkinter:
+[pcalicebhm11] /home/aj > ltuclient daq
+Use right mouse button to get help
+okf1
+okFrame
+okFuncs
+here openCmd  daq
+rc io.execute(getsgmode() 1
+okVmeBoard
+okMainloop
+here startFun F: ReadTemperature fnix: 12
+FunStart... 1 .46912500652800.46912502826264.46912502834384.46912502834528
+fcallstart:
+fcallstart:openCmd...
+1581: fcallstart:execute...
+412: cmdlin2:execute: [<cmdlin2.ioWindow instance at 0x2aaaab112998>, None, None, None]
+153: cmdlin2.executet.cmd: ReadTemperature()
+cmdlin2.executet: lock acquired
+21: myThread: <bound method ioWindow.threadedexe of <cmdlin2.ioWindow instance at 0xc55c4d0>> ('ReadTemperature()', 'out', None, 'out')
+
+-to iste aj bez mtTkinter
+
+Seems the fix is:
+cmdlin2.py:
+  def executet(self, cmd=None, ff=None, log='out', applout='out'): 
+    #if ff==None:
+    #  print 'ERROR: executet(cmd,ff,...)  ff-has to be supplied!'
+    #  return
+    self.cli.lockexe.acquire()
+    print "cmdlin2.executet.cmdNOTHREAD:",cmd
+    # no thread:
+    self.threadedexe(cmd,log,ff,applout) ; return
+myw.py:
+remove multiregs:
+    #self.FunMenu.add_command(label="multiregs", command=self.multreg)
+
+ltuclient ver 2.7 prepared and distributed 22.2.2010
+(see DOC/readme)

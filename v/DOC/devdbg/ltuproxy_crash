@@ -1,0 +1,72 @@
+[alidcscom026] /data/ClientCommonRootFs/usr/local/trigger/v/bin > vmecrate muon_trg
+Use right mouse button to get help
+can't open ioWindow interface (instead PID got: [] ):
+
+Error in cmdlin2.threadedexe: can't execute  getsgmode()
+
+[alidcsvme006] /home/alice/trigger/v/muon_trg/WORK > lth
+total 4840
+-rw-r--r--  1 trigger alice    3573 Oct  4 10:56 ltudimserver.log
+-rw-r--r--  1 trigger alice     153 Oct  4 10:56 slmseq.seq
+-rw-r--r--  1 trigger alice  767781 Oct  4 10:54 LTU-MUON_TRG.log
+-rw-r--r--  1 trigger alice  358453 Sep 15 18:02 LTU-MUON_TRG1009160822.log
+
+[alidcsvme006] /home/alice/trigger/v/muon_trg/WORK > tail LTU-MUON_TRG.log
+       3   TTCrx not ready  1
+      24   TTCrx config     0
+    2138   FEE reset        0
+    2150                    0
+Busy_ts:1 ON: 6009.2 micsecs
+TRIGGER::LTU-MUON_TRG -->    GLOBAL.
+SMIRTL - Mon Oct  4 10:52:10 2010 - TRIGGER::LTU-MUON_TRG in state GLOBAL
+SMIRTL - Mon Oct  4 10:54:26 2010 - TRIGGER::LTU-MUON_TRG executing NV_GOTOSTANDALONE_STOPPED
+TRIGGER::LTU-MUON_TRG -->    STDALONE.
+SMIRTL - Mon Oct  4 10:54:26 2010 - TRIGGER::LTU-MUON_TRG in state STANDALONE_STOPPED
+
+[alidcsvme006] /home/alice/trigger/v/muon_trg/WORK > tail ltudimserver.log
+<04.10.2010 10:55:56:<8><::
+>04.10.2010 10:55:56:vmeopr32(EMU_STATUS)>
+<04.10.2010 10:55:56:0x0<::
+getfile:04.10.2010 10:56:05:tag:20 size:22 name:CFG/ltu/SLM/PPL2A.slm<
+<04.10.2010 10:56:05:<
+<04.10.2010 10:56:05::<
+putfile:04.10.2010 10:56:09:WORK/slmseq.seq opened
+>04.10.2010 10:56:10:SLMload("WORK/slmseq.seq")>
+
+30427 trigger   15   0  2856 1164  964 D  4.3  0.1   0:58.80 ltu.exe
+
+------------------------- 22.10.2010
+WORK > vmecrate acorde
+Use right mouse button to get help
+can't open ioWindow interface (instead PID got: [] ):
+
+Error in cmdlin2.threadedexe: can't execute  getsgmode()
+
+[alidcscom026] /data/ClientLocalRootFs/alidcsvme005/home/alice/trigger/v/acorde/WORK > gvim ltudimserver.log
+...
+>22.10.2010 11:40:00:getCounters(21,1)>
+<22.10.2010 11:40:00:0x8a5a2
+0x89416
+0x8a5a2
+0x89416
+0x89417
+0x0
+0x0
+0x0
+0x452d10
+0x6f2
+0x0
+0x0
+0x0
+0x0
+0x6f2
+0x0
+0x6f2
+0x6f2
+0x6f2
+0x6f1
+0x0<::
+>22.10.2010 11:42:39:setOption("L0", "TTC")>
+
+
+

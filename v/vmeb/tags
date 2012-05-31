@@ -1,0 +1,818 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.5.4	//
+BoBaLengthcct	vmewrap.c	/^w32 BoBaLengthcct;$/;"	v
+DBG	cmdbase.c	/^int DBG= 0; \/*DBGstacks; *\/$/;"	v
+DBGlex	cmdbase.c	123;"	d	file:
+DBGstacks	cmdbase.c	122;"	d	file:
+DEVICE_CTL	vmewrap.c	64;"	d	file:
+DEVICE_CTL	vmxwrapdelme.c	34;"	d	file:
+DEVICE_LSI	vmewrap.c	63;"	d	file:
+DEVICE_LSI	vmxwrapdelme.c	33;"	d	file:
+DUMMYVAL	vmewrap.h	5;"	d
+DUMMYVAL	vmewrapdefs.h	5;"	d
+Delay	vmewrap.c	/^void Delay(int count)$/;"	f
+DiffSecUsec	vmewrap.c	/^w32 DiffSecUsec(w32 tsec,w32 tusec,w32 prevtsec,w32 prevtusec) {$/;"	f
+FALSE	cmdbase.c	91;"	d	file:
+FunStart	myw.py	/^class FunStart:$/;"	c
+FunStart	mywnewbits.py	/^class FunStart:$/;"	c
+FunStart	old/mywdec16.py	/^class FunStart:$/;"	c
+GetMicSec	vmewrap.c	/^void GetMicSec(w32 *tsec, w32 *tusec) {$/;"	f
+Kanvas	myw.py	/^class Kanvas(Canvas):$/;"	c
+MAXFUNPARS	cmdbase.c	126;"	d	file:
+MAXLILE	cmdbase.c	127;"	d	file:
+MAXNAMELENGTH	vmeaistd.h	1;"	d
+MAXNAMES	vmeaistd.h	2;"	d
+MAXSPECVMEF	vmesim.c	14;"	d	file:
+MAXVMESPACES	vmesim.c	13;"	d	file:
+MAXVMESPACES	vmewrap.c	89;"	d	file:
+MAXVMESPACES	vmxwrapdelme.c	59;"	d	file:
+MAXnargs	cmdbase.c	183;"	d	file:
+MAXnops	cmdbase.c	182;"	d	file:
+MAXvmeout	cmdbase.c	377;"	d	file:
+MLTC	vmewrap.c	118;"	d	file:
+MultRegs	myw.py	/^class MultRegs:$/;"	c
+MultRegs	mywnewbits.py	/^class MultRegs:$/;"	c
+MultRegs	old/mywdec16.py	/^class MultRegs:$/;"	c
+MywBits	myw.py	/^class MywBits:$/;"	c
+MywBits	mywnewbits.py	/^class MywBits:$/;"	c
+MywBits	old/mywdec16.py	/^class MywBits:$/;"	c
+MywButton	myw.py	/^class MywButton(Button, MywHelp):$/;"	c
+MywButton	mywnewbits.py	/^class MywButton(Button, MywHelp):$/;"	c
+MywButton	old/mywdec16.py	/^class MywButton(Button, MywHelp):$/;"	c
+MywEntry	myw.py	/^class MywEntry(Frame):$/;"	c
+MywEntry	mywnewbits.py	/^class MywEntry(Frame):$/;"	c
+MywEntry	old/mywdec16.py	/^class MywEntry(Frame):$/;"	c
+MywError	myw.py	/^class MywError:$/;"	c
+MywError	mywnewbits.py	/^class MywError:$/;"	c
+MywError	old/mywdec16.py	/^class MywError:$/;"	c
+MywFrame	myw.py	/^class MywFrame(Frame):$/;"	c
+MywFrame	mywnewbits.py	/^class MywFrame(Frame):$/;"	c
+MywFrame	old/mywdec16.py	/^class MywFrame(Frame):$/;"	c
+MywHButtons	myw.py	/^class MywHButtons(MywFrame):$/;"	c
+MywHButtons	mywnewbits.py	/^class MywHButtons(MywFrame):$/;"	c
+MywHButtons	old/mywdec16.py	/^class MywHButtons(MywFrame):$/;"	c
+MywHelp	myw.py	/^class MywHelp:$/;"	c
+MywHelp	mywnewbits.py	/^class MywHelp:$/;"	c
+MywHelp	old/mywdec16.py	/^class MywHelp:$/;"	c
+MywLabel	myw.py	/^class MywLabel(Label,MywHelp):$/;"	c
+MywLabel	mywnewbits.py	/^class MywLabel(Label,MywHelp):$/;"	c
+MywLabel	old/mywdec16.py	/^class MywLabel(Label,MywHelp):$/;"	c
+MywMenu	myw.py	/^class MywMenu(Menu, MywHelp):$/;"	c
+MywMenu	mywnewbits.py	/^class MywMenu(Menu, MywHelp):$/;"	c
+MywMenu	old/mywdec16.py	/^class MywMenu(Menu, MywHelp):$/;"	c
+MywMenu81632	myw.py	/^class MywMenu81632(MywxMenu):$/;"	c
+MywMenu81632	mywnewbits.py	/^class MywMenu81632(MywxMenu):$/;"	c
+MywMenu81632	old/mywdec16.py	/^class MywMenu81632(MywxMenu):$/;"	c
+MywMenuList	myw.py	/^class MywMenuList:$/;"	c
+MywMenuList	mywnewbits.py	/^class MywMenuList:$/;"	c
+MywMenuList	old/mywdec16.py	/^class MywMenuList:$/;"	c
+MywMenubutton	myw.py	/^class MywMenubutton(Menubutton, MywHelp):$/;"	c
+MywMenubutton	mywnewbits.py	/^class MywMenubutton(Menubutton, MywHelp):$/;"	c
+MywMenubutton	old/mywdec16.py	/^class MywMenubutton(Menubutton, MywHelp):$/;"	c
+MywRadio	myw.py	/^class MywRadio:$/;"	c
+MywRadio	mywnewbits.py	/^class MywRadio:$/;"	c
+MywRadio	old/mywdec16.py	/^class MywRadio:$/;"	c
+MywVMEEntry	myw.py	/^class MywVMEEntry(MywEntry):$/;"	c
+MywVMEEntry	mywnewbits.py	/^class MywVMEEntry(MywEntry):$/;"	c
+MywVMEEntry	old/mywdec16.py	/^class MywVMEEntry(MywEntry):$/;"	c
+MywxMenu	myw.py	/^class MywxMenu:$/;"	c
+MywxMenu	mywnewbits.py	/^class MywxMenu:$/;"	c
+MywxMenu	old/mywdec16.py	/^class MywxMenu:$/;"	c
+NewToplevel	myw.py	/^def NewToplevel(title, whenDestroyed=None, tlw=None,bg=None):$/;"	f
+NewToplevel	mywnewbits.py	/^def NewToplevel(title='???', whenDestroyed=None):$/;"	f
+NewToplevel	old/mywdec16.py	/^def NewToplevel(title='???', whenDestroyed=None):$/;"	f
+PCI_ADDRESS	vmewrap.c	65;"	d	file:
+PCI_ADDRESS	vmxwrapdelme.c	35;"	d	file:
+RegAddrs	vmesim.c	/^TRegAddrs RegAddrs[MAXSPECVMEF];$/;"	v
+RiseToplevel	myw.py	/^def RiseToplevel(tlw):$/;"	f
+RiseToplevel	mywnewbits.py	/^def RiseToplevel(tlw):$/;"	f
+RiseToplevel	old/mywdec16.py	/^def RiseToplevel(tlw):$/;"	f
+TRUE	cmdbase.c	90;"	d	file:
+TRegAddrs	vmesim.c	/^} TRegAddrs;$/;"	t	file:
+Tactmac	cmdbase.c	/^} Tactmac;$/;"	t	file:
+Tname	vmeaistd.h	/^} Tname;$/;"	t
+Tpardesc	vmeaistd.h	/^} Tpardesc;$/;"	t
+TspecVmeF	vmesim.h	/^typedef int (*TspecVmeF)(w8 *vmespace,w32 siz,int offset, w32 rw81632flags);$/;"	t
+Ttokentype	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	g
+Tvmespace	vmesim.c	/^} Tvmespace;$/;"	t	file:
+Tvmespace	vmewrap.c	/^} Tvmespace;$/;"	t	file:
+Tvmespace	vmxwrapdelme.c	/^} Tvmespace;$/;"	t	file:
+VMEDA16	vmesim.h	12;"	d
+VMEDA32	vmesim.h	13;"	d
+VMEDA8	vmesim.h	11;"	d
+VMEDAR	vmesim.h	8;"	d
+VMEDARWMASK	vmesim.h	7;"	d
+VMEDAW	vmesim.h	9;"	d
+VMEDAWIDTHMASK	vmesim.h	10;"	d
+Vbexec	myw.py	/^class Vbexec:$/;"	c
+Vbexecvoid	myw.py	/^class Vbexecvoid:$/;"	c
+VmeBoard	myw.py	/^class VmeBoard:$/;"	c
+VmeBoard	mywnewbits.py	/^class VmeBoard:$/;"	c
+VmeBoard	old/mywdec16.py	/^class VmeBoard:$/;"	c
+VmeCrate	myw.py	/^class VmeCrate:$/;"	c
+VmeCrate	mywnewbits.py	/^class VmeCrate:$/;"	c
+VmeCrate	old/mywdec16.py	/^class VmeCrate:$/;"	c
+VmeRW	myw.py	/^class VmeRW:$/;"	c
+VmeRW	mywnewbits.py	/^class VmeRW:$/;"	c
+VmeRW	old/mywdec16.py	/^class VmeRW:$/;"	c
+VmeReg	regs.py	/^class VmeReg($/;"	c
+WIN32	vmewrap.c	71;"	d	file:
+WIN32	vmewrap.c	73;"	d	file:
+ZNCdestroybf	myw.py	/^  def ZNCdestroybf(self, event):$/;"	m	class:VmeBoard
+ZNCdestroybf	mywnewbits.py	/^  def ZNCdestroybf(self, event):$/;"	m	class:VmeBoard
+ZNCdestroybf	old/mywdec16.py	/^  def ZNCdestroybf(self, event):$/;"	m	class:VmeBoard
+__call__	myw.py	/^  def __call__(self):$/;"	m	class:curry	file:
+__call__	myw.py	/^  def __call__(self, *args, **kwargs):$/;"	m	class:curry	file:
+__call__	mywnewbits.py	/^  def __call__(self):$/;"	m	class:curry	file:
+__call__	mywnewbits.py	/^  def __call__(self, *args, **kwargs):$/;"	m	class:curry	file:
+__call__	old/mywdec16.py	/^  def __call__(self):$/;"	m	class:curry	file:
+__call__	old/mywdec16.py	/^  def __call__(self, *args, **kwargs):$/;"	m	class:curry	file:
+__init__	cmdlin2.py	/^  def __init__(self, cli,ixthds):$/;"	m	class:ioWindow
+__init__	cmdlin2.py	/^  def __init__(self, cmd, board=None):$/;"	m	class:cmdlint
+__init__	cmdlin2.py	/^  def __init__(self, target, args=(), name=None):$/;"	m	class:myThread
+__init__	cmdlint.py.delme	/^  def __init__(self, master=None, cmd="", bname="name not given", bbase=""):$/;"	m	class:cmdlint
+__init__	cmdlint.py.delme	/^  def __init__(self, target, args=(), name=None):$/;"	m	class:myThread
+__init__	comp.py	/^  def __init__(self, boardName):$/;"	m	class:aiup
+__init__	exinh.py	/^  def __init__(self,vb, items=()):$/;"	m	class:labeledMenu
+__init__	myw.py	/^  def __init__(self, board):$/;"	m	class:MultRegs
+__init__	myw.py	/^  def __init__(self, callback, *args, **kwargs):$/;"	m	class:curry
+__init__	myw.py	/^  def __init__(self, crate=None, boardName="abc", baseAddr="",color=None,$/;"	m	class:VmeBoard
+__init__	myw.py	/^  def __init__(self, fun, *args, **kwargs):$/;"	m	class:curry
+__init__	myw.py	/^  def __init__(self, master, buttons, side=BOTTOM,helptext=None):$/;"	m	class:MywHButtons
+__init__	myw.py	/^  def __init__(self, master, label='butlabel', cmd=None, state=None,$/;"	m	class:MywButton
+__init__	myw.py	/^  def __init__(self, master, label='label', defvalue=' ',bind=None,$/;"	m	class:MywEntry
+__init__	myw.py	/^  def __init__(self, master, label='label',vmeaddr='VMEADDR',vb=None,$/;"	m	class:MywVMEEntry
+__init__	myw.py	/^  def __init__(self, master=None):$/;"	m	class:VmeCrate
+__init__	myw.py	/^  def __init__(self, master=None, borderwidth=1, relief=RAISED, side=None,$/;"	m	class:MywFrame
+__init__	myw.py	/^  def __init__(self, master=None, helptext=None, defval=0,$/;"	m	class:MywBits
+__init__	myw.py	/^  def __init__(self, master=None, label='noname',helptext=None,side=TOP,$/;"	m	class:MywMenubutton
+__init__	myw.py	/^  def __init__(self, master=None, label=None, helptext=None,$/;"	m	class:MywLabel
+__init__	myw.py	/^  def __init__(self, master=None,label="radio button",$/;"	m	class:MywRadio
+__init__	myw.py	/^  def __init__(self, master=None,label=None, cmd=None,$/;"	m	class:MywMenuList
+__init__	myw.py	/^  def __init__(self, master=None,label=None, delaction=None,$/;"	m	class:MywxMenu
+__init__	myw.py	/^  def __init__(self, tlw, canvasDestroyed=None, ctpcfg=None, **kw):$/;"	m	class:Kanvas
+__init__	myw.py	/^  def __init__(self, vb):$/;"	m	class:Vbexec
+__init__	myw.py	/^  def __init__(self, vb, fnix):$/;"	m	class:FunStart
+__init__	myw.py	/^  def __init__(self,master,helptext,hlpwidget=None):$/;"	m	class:MywHelp
+__init__	myw.py	/^  def __init__(self,master=None,helptext=None,cmd=None):$/;"	m	class:MywMenu
+__init__	myw.py	/^  def __init__(self,vboard):$/;"	m	class:VmeRW
+__init__	myw.py	/^ def __init__(self,errmsg="Unknown error",iow=None, fw=None):$/;"	m	class:MywError
+__init__	mywnewbits.py	/^  def __init__(self, board):$/;"	m	class:MultRegs
+__init__	mywnewbits.py	/^  def __init__(self, callback, *args, **kwargs):$/;"	m	class:curry
+__init__	mywnewbits.py	/^  def __init__(self, crate=None, boardName="abc", baseAddr="",color=None,$/;"	m	class:VmeBoard
+__init__	mywnewbits.py	/^  def __init__(self, fun, *args, **kwargs):$/;"	m	class:curry
+__init__	mywnewbits.py	/^  def __init__(self, master, buttons, side=BOTTOM,helptext=None):$/;"	m	class:MywHButtons
+__init__	mywnewbits.py	/^  def __init__(self, master, label='butlabel', cmd=None, state=None,$/;"	m	class:MywButton
+__init__	mywnewbits.py	/^  def __init__(self, master, label='label', defvalue=' ',bind=None,$/;"	m	class:MywEntry
+__init__	mywnewbits.py	/^  def __init__(self, master, label='label',vmeaddr='VMEADDR',vb=None,$/;"	m	class:MywVMEEntry
+__init__	mywnewbits.py	/^  def __init__(self, master=None):$/;"	m	class:VmeCrate
+__init__	mywnewbits.py	/^  def __init__(self, master=None, borderwidth=1, relief=RAISED, side=None,$/;"	m	class:MywFrame
+__init__	mywnewbits.py	/^  def __init__(self, master=None, helptext=None, defval=0,$/;"	m	class:MywBits
+__init__	mywnewbits.py	/^  def __init__(self, master=None, label='noname',helptext=None,side=TOP,$/;"	m	class:MywMenubutton
+__init__	mywnewbits.py	/^  def __init__(self, master=None, label=None, helptext=None,$/;"	m	class:MywLabel
+__init__	mywnewbits.py	/^  def __init__(self, master=None,label="radio button",$/;"	m	class:MywRadio
+__init__	mywnewbits.py	/^  def __init__(self, master=None,label=None, cmd=None,$/;"	m	class:MywMenuList
+__init__	mywnewbits.py	/^  def __init__(self, master=None,label=None, delaction=None,$/;"	m	class:MywxMenu
+__init__	mywnewbits.py	/^  def __init__(self, vb, fnix):$/;"	m	class:FunStart
+__init__	mywnewbits.py	/^  def __init__(self,master,helptext,hlpwidget=None):$/;"	m	class:MywHelp
+__init__	mywnewbits.py	/^  def __init__(self,master=None,helptext=None,cmd=None):$/;"	m	class:MywMenu
+__init__	mywnewbits.py	/^  def __init__(self,vboard):$/;"	m	class:VmeRW
+__init__	mywnewbits.py	/^ def __init__(self,errmsg="Unknown error",iow=None, fw=None):$/;"	m	class:MywError
+__init__	old/mywdec16.py	/^  def __init__(self, board):$/;"	m	class:MultRegs
+__init__	old/mywdec16.py	/^  def __init__(self, callback, *args, **kwargs):$/;"	m	class:curry
+__init__	old/mywdec16.py	/^  def __init__(self, crate=None, boardName="abc", baseAddr="",color=None,$/;"	m	class:VmeBoard
+__init__	old/mywdec16.py	/^  def __init__(self, fun, *args, **kwargs):$/;"	m	class:curry
+__init__	old/mywdec16.py	/^  def __init__(self, master, buttons, side=BOTTOM,helptext=None):$/;"	m	class:MywHButtons
+__init__	old/mywdec16.py	/^  def __init__(self, master, label='butlabel', cmd=None, state=None,$/;"	m	class:MywButton
+__init__	old/mywdec16.py	/^  def __init__(self, master, label='label', defvalue=' ',bind=None,$/;"	m	class:MywEntry
+__init__	old/mywdec16.py	/^  def __init__(self, master, label='label',vmeaddr='VMEADDR',vb=None,$/;"	m	class:MywVMEEntry
+__init__	old/mywdec16.py	/^  def __init__(self, master=None):$/;"	m	class:VmeCrate
+__init__	old/mywdec16.py	/^  def __init__(self, master=None, borderwidth=1, relief=RAISED, side=None,$/;"	m	class:MywFrame
+__init__	old/mywdec16.py	/^  def __init__(self, master=None, helptext=None, defval=0,$/;"	m	class:MywBits
+__init__	old/mywdec16.py	/^  def __init__(self, master=None, label='noname',helptext=None,side=TOP,$/;"	m	class:MywMenubutton
+__init__	old/mywdec16.py	/^  def __init__(self, master=None, label=None, helptext=None,$/;"	m	class:MywLabel
+__init__	old/mywdec16.py	/^  def __init__(self, master=None,label="radio button",$/;"	m	class:MywRadio
+__init__	old/mywdec16.py	/^  def __init__(self, master=None,label=None, cmd=None,$/;"	m	class:MywMenuList
+__init__	old/mywdec16.py	/^  def __init__(self, master=None,label=None, delaction=None,$/;"	m	class:MywxMenu
+__init__	old/mywdec16.py	/^  def __init__(self, vb, fnix):$/;"	m	class:FunStart
+__init__	old/mywdec16.py	/^  def __init__(self,master,helptext,hlpwidget=None):$/;"	m	class:MywHelp
+__init__	old/mywdec16.py	/^  def __init__(self,master=None,helptext=None,cmd=None):$/;"	m	class:MywMenu
+__init__	old/mywdec16.py	/^  def __init__(self,vboard):$/;"	m	class:VmeRW
+__init__	old/mywdec16.py	/^ def __init__(self,errmsg="Unknown error",iow=None, fw=None):$/;"	m	class:MywError
+a	tr.py	/^def a(*args, **kwargs):$/;"	f
+actmac	cmdbase.c	/^Tactmac *actmac= NULL;$/;"	v
+actmac1	cmdbase.c	/^Tactmac actmac1;$/;"	v
+add2allnames	cmdbase.c	/^\/*----------------------------------------------*\/ void add2allnames($/;"	f
+addBoard	myw.py	/^  def addBoard(self, board):$/;"	m	class:VmeCrate
+addBoard	mywnewbits.py	/^  def addBoard(self, board):$/;"	m	class:VmeCrate
+addBoard	old/mywdec16.py	/^  def addBoard(self, board):$/;"	m	class:VmeCrate
+addName	cmdbase.c	/^\/*----------------------------------*\/ Tname *addName(char *name, w32 fls) {$/;"	f
+addNameIndirect	cmdbase.c	/^\/*-----------------*\/ Tname *addNameIndirect(char *name, w32 fls, void *p) {$/;"	f
+addReg	myw.py	/^  def addReg(self, inx=None):$/;"	m	class:MultRegs
+addReg	mywnewbits.py	/^  def addReg(self, inx=None):$/;"	m	class:MultRegs
+addReg	old/mywdec16.py	/^  def addReg(self, inx=None):$/;"	m	class:MultRegs
+addcascade	myw.py	/^  def addcascade(self,cname):$/;"	m	class:MywMenu
+addcascade	mywnewbits.py	/^  def addcascade(self,cname):$/;"	m	class:MywMenu
+addcascade	old/mywdec16.py	/^  def addcascade(self,cname):$/;"	m	class:MywMenu
+addcommand	myw.py	/^  def addcommand(self,cname, cmd,disabled=None):$/;"	m	class:MywMenu
+addcommand	mywnewbits.py	/^  def addcommand(self,cname, cmd,disabled=None):$/;"	m	class:MywMenu
+addcommand	old/mywdec16.py	/^  def addcommand(self,cname, cmd,disabled=None):$/;"	m	class:MywMenu
+aiup	comp.py	/^class aiup:$/;"	c
+allread	myw.py	/^  def allread(self):$/;"	m	class:MultRegs
+allread	mywnewbits.py	/^  def allread(self):$/;"	m	class:MultRegs
+allread	old/mywdec16.py	/^  def allread(self):$/;"	m	class:MultRegs
+am	vmesim.c	/^  w32 am;$/;"	m	file:
+am	vmewrap.c	/^  w32 am;$/;"	m	file:
+am	vmxwrapdelme.c	/^  w32 am;$/;"	m	file:
+apply1	cmdbase.c	/^\/*--------------------*\/ Tname *apply1(enum Ttokentype operator, Tname *arg) {$/;"	f
+apply2	cmdbase.c	/^\/*------*\/ Tname *apply2(enum Ttokentype operator, Tname *arg1, Tname *arg2) {$/;"	f
+argstack	cmdbase.c	/^Tname *argstack[MAXnargs];$/;"	v
+backEntry	myw.py	/^  def backEntry(self):$/;"	m	class:MywxMenu
+backEntry	mywnewbits.py	/^  def backEntry(self):$/;"	m	class:MywxMenu
+backEntry	old/mywdec16.py	/^  def backEntry(self):$/;"	m	class:MywxMenu
+baseaddr	vmesim.c	/^  w32 baseaddr;$/;"	m	file:
+baseaddr	vmewrap.c	/^  w32 baseaddr;$/;"	m	file:
+baseaddr	vmxwrapdelme.c	/^  w32 baseaddr;$/;"	m	file:
+bindexecute	cmdlin2.py	/^  def bindexecute(self,event):$/;"	m	class:ioWindow
+bindexecute	cmdlint.py.delme	/^  def bindexecute(self,event):$/;"	m	class:cmdlint
+bindstop	cmdlin2.py	/^  def bindstop(self,event):         # x (win. manager) button$/;"	m	class:ioWindow
+cancel	myw.py	/^ def cancel(self, ev=None):$/;"	m	class:MywError
+cancel	mywnewbits.py	/^ def cancel(self, ev=None):$/;"	m	class:MywError
+cancel	old/mywdec16.py	/^ def cancel(self, ev=None):$/;"	m	class:MywError
+carry	ranlux.c	/^static double carry, dseeds[24];$/;"	v	file:
+cctclose	vmewrap.c	/^\/*---------------------------------------*\/ int cctclose() {$/;"	f
+cctopen	vmewrap.c	/^\/*--------------------------------------*\/ int cctopen() {$/;"	f
+checkLogFile	cmdbase.c	/^\/*----------------------------------------*\/ void checkLogFile( FILE **lf) {$/;"	f
+checkaddr	vmesim.c	/^int checkaddr(int vmespace, w32 offset, int *exityes) {$/;"	f
+checklabel	myw.py	/^def checklabel():$/;"	f
+checklabel	mywnewbits.py	/^def checklabel():$/;"	f
+checklabel	old/mywdec16.py	/^def checklabel():$/;"	f
+checklabel2	myw.py	/^def checklabel2():$/;"	f
+checklabel2	mywnewbits.py	/^def checklabel2():$/;"	f
+checklabel2	old/mywdec16.py	/^def checklabel2():$/;"	f
+cmdlint	cmdlin2.py	/^class cmdlint:$/;"	c
+cmdlint	cmdlint.py.delme	/^class cmdlint:$/;"	c
+compwidg	myw.py	/^def compwidg(event, tlw):$/;"	f
+convertStart	myw.py	/^  def convertStart(self,event=None):$/;"	m	class:MywEntry
+convertStart	mywnewbits.py	/^  def convertStart(self,event=None):$/;"	m	class:MywEntry
+convertStart	old/mywdec16.py	/^  def convertStart(self,event=None):$/;"	m	class:MywEntry
+count24	ranlux.c	/^static int i24, j24, count24, nskip;$/;"	v	file:
+curry	myw.py	/^class curry:$/;"	c
+curry	mywnewbits.py	/^class curry:$/;"	c
+curry	old/mywdec16.py	/^class curry:$/;"	c
+dbgprint	myw.py	/^def dbgprint(o, *pars):$/;"	f
+dbgprint	mywnewbits.py	/^def dbgprint(o, *pars):$/;"	f
+dbgprint	old/mywdec16.py	/^def dbgprint(o, *pars):$/;"	f
+dec2hex	myw.py	/^  def dec2hex(self,text):$/;"	m	class:MywEntry
+dec2hex	mywnewbits.py	/^  def dec2hex(self,text):$/;"	m	class:MywEntry
+dec2hex	old/mywdec16.py	/^  def dec2hex(self,text):$/;"	m	class:MywEntry
+defaultRM	vmewrap.c	/^ViSession defaultRM, instr; \/* Communication channels *\/$/;"	v
+delBoard	myw.py	/^  def delBoard(self):$/;"	m	class:VmeBoard
+delBoard	mywnewbits.py	/^  def delBoard(self):$/;"	m	class:VmeBoard
+delBoard	old/mywdec16.py	/^  def delBoard(self):$/;"	m	class:VmeBoard
+delName	cmdbase.c	/^\/*----------------------------------------------*\/ void delName(Tname *ix) {$/;"	f
+delNamefls	cmdbase.c	/^\/*-----------------------------------*\/ void delNamefls(Tname *ix, w32 flg) {$/;"	f
+delio	myw.py	/^  def delio(self):$/;"	m	class:VmeBoard
+delio	mywnewbits.py	/^  def delio(self):$/;"	m	class:VmeBoard
+delio	old/mywdec16.py	/^  def delio(self):$/;"	m	class:VmeBoard
+delthds	cmdlin2.py	/^  def delthds(self,ix):$/;"	m	class:cmdlint
+dest	myw.py	/^  def dest(self,event):$/;"	m	class:MywHelp
+dest	mywnewbits.py	/^  def dest(self,event):$/;"	m	class:MywHelp
+dest	old/mywdec16.py	/^  def dest(self,event):$/;"	m	class:MywHelp
+destroy	myw.py	/^  def destroy(self):$/;"	m	class:MywBits
+destroy	myw.py	/^  def destroy(self):$/;"	m	class:MywHButtons
+destroy	myw.py	/^  def destroy(self):$/;"	m	class:MywMenuList
+destroy	myw.py	/^  def destroy(self):$/;"	m	class:MywxMenu
+destroy	mywnewbits.py	/^  def destroy(self):$/;"	m	class:MywBits
+destroy	mywnewbits.py	/^  def destroy(self):$/;"	m	class:MywHButtons
+destroy	mywnewbits.py	/^  def destroy(self):$/;"	m	class:MywMenuList
+destroy	mywnewbits.py	/^  def destroy(self):$/;"	m	class:MywxMenu
+destroy	old/mywdec16.py	/^  def destroy(self):$/;"	m	class:MywBits
+destroy	old/mywdec16.py	/^  def destroy(self):$/;"	m	class:MywHButtons
+destroy	old/mywdec16.py	/^  def destroy(self):$/;"	m	class:MywMenuList
+destroy	old/mywdec16.py	/^  def destroy(self):$/;"	m	class:MywxMenu
+destroyEntry	myw.py	/^  def destroyEntry(self):$/;"	m	class:MywEntry
+destroyReg	myw.py	/^  def destroyReg(self, entrywidget):$/;"	m	class:MultRegs
+destroyReg	mywnewbits.py	/^  def destroyReg(self, entrywidget):$/;"	m	class:MultRegs
+destroyReg	old/mywdec16.py	/^  def destroyReg(self, entrywidget):$/;"	m	class:MultRegs
+disable	myw.py	/^  def disable(self):$/;"	m	class:MywButton
+disable	myw.py	/^  def disable(self):$/;"	m	class:MywMenuList
+disable	myw.py	/^  def disable(self):$/;"	m	class:MywxMenu
+disable	myw.py	/^  def disable(self, iix):$/;"	m	class:MywMenu
+disable	mywnewbits.py	/^  def disable(self):$/;"	m	class:MywButton
+disable	mywnewbits.py	/^  def disable(self):$/;"	m	class:MywMenuList
+disable	mywnewbits.py	/^  def disable(self):$/;"	m	class:MywxMenu
+disable	mywnewbits.py	/^  def disable(self, iix):$/;"	m	class:MywMenu
+disable	old/mywdec16.py	/^  def disable(self):$/;"	m	class:MywButton
+disable	old/mywdec16.py	/^  def disable(self):$/;"	m	class:MywMenuList
+disable	old/mywdec16.py	/^  def disable(self):$/;"	m	class:MywxMenu
+disable	old/mywdec16.py	/^  def disable(self, iix):$/;"	m	class:MywMenu
+doBOARD	comp.py	/^  def doBOARD(self):$/;"	m	class:aiup
+doEntry	myw.py	/^  def doEntry(self, xy, klas_method):$/;"	m	class:Kanvas
+doFGROUP	comp.py	/^  def doFGROUP(self):$/;"	m	class:aiup
+doFuncCall	cmdbase.c	/^\/*------------*\/ int doFuncCall(Tname *curfunc, char *line, int *iixtoken) {$/;"	f
+doHIDDEN	comp.py	/^  def doHIDDEN(self):$/;"	m	class:aiup
+doHelp	myw.py	/^  def doHelp(self, id, helptxt, dynhelp=None):$/;"	m	class:Kanvas
+doMacCall	cmdbase.c	/^\/*------------*\/ void doMacCall(Tname *curmac, char *line, int *iixtoken) {$/;"	f
+doREGSTART	comp.py	/^  def doREGSTART(self, v81632):$/;"	m	class:aiup
+do_cf	comp.py	/^  def do_cf(self):$/;"	m	class:aiup
+dobit	myw.py	/^  def dobit(self, xy, color=None, helptext=None):$/;"	m	class:Kanvas
+doexpr	cmdbase.c	/^\/*----------------------------------*\/ Tname *doexpr(char *line) {$/;"	f
+dolabel	myw.py	/^  def dolabel(self):$/;"	m	class:MywBits
+dolabel	myw.py	/^  def dolabel(self):$/;"	m	class:MywMenuList
+dolabel	mywnewbits.py	/^  def dolabel(self):$/;"	m	class:MywBits
+dolabel	mywnewbits.py	/^  def dolabel(self):$/;"	m	class:MywMenuList
+dolabel	old/mywdec16.py	/^  def dolabel(self):$/;"	m	class:MywBits
+dolabel	old/mywdec16.py	/^  def dolabel(self):$/;"	m	class:MywMenuList
+domakefile	comp.py	/^  def domakefile(self):$/;"	m	class:aiup
+doout	myw.py	/^  def doout(self,allvals):$/;"	m	class:MultRegs
+doout	mywnewbits.py	/^  def doout(self,allvals):$/;"	m	class:MultRegs
+doout	old/mywdec16.py	/^  def doout(self,allvals):$/;"	m	class:MultRegs
+dseeds	ranlux.c	/^static double carry, dseeds[24];$/;"	v	file:
+dummycmd	myw.py	/^  def dummycmd(self,event):$/;"	m	class:MywEntry
+efdestroy	myw.py	/^def efdestroy(event):$/;"	f
+emptyfun	cmdlin2.py	/^def emptyfun(out):$/;"	f
+emptyfun	myw.py	/^  def emptyfun(self,txt):$/;"	m	class:VmeBoard
+emptyfun	mywnewbits.py	/^  def emptyfun(self,txt):$/;"	m	class:VmeBoard
+emptyfun	old/mywdec16.py	/^  def emptyfun(self,txt):$/;"	m	class:VmeBoard
+enabdisa	myw.py	/^  def enabdisa(self, iix, state):$/;"	m	class:MywMenu
+enabdisa	mywnewbits.py	/^  def enabdisa(self, iix, state):$/;"	m	class:MywMenu
+enabdisa	old/mywdec16.py	/^  def enabdisa(self, iix, state):$/;"	m	class:MywMenu
+enable	myw.py	/^  def enable(self):$/;"	m	class:MywButton
+enable	myw.py	/^  def enable(self):$/;"	m	class:MywMenuList
+enable	myw.py	/^  def enable(self):$/;"	m	class:MywxMenu
+enable	myw.py	/^  def enable(self, iix):$/;"	m	class:MywMenu
+enable	mywnewbits.py	/^  def enable(self):$/;"	m	class:MywButton
+enable	mywnewbits.py	/^  def enable(self):$/;"	m	class:MywMenuList
+enable	mywnewbits.py	/^  def enable(self):$/;"	m	class:MywxMenu
+enable	mywnewbits.py	/^  def enable(self, iix):$/;"	m	class:MywMenu
+enable	old/mywdec16.py	/^  def enable(self):$/;"	m	class:MywButton
+enable	old/mywdec16.py	/^  def enable(self):$/;"	m	class:MywMenuList
+enable	old/mywdec16.py	/^  def enable(self):$/;"	m	class:MywxMenu
+enable	old/mywdec16.py	/^  def enable(self, iix):$/;"	m	class:MywMenu
+enterbit	myw.py	/^  def enterbit(self, event, hlptext="entering bit", dynhelp=None):$/;"	m	class:Kanvas
+entercb	myw.py	/^  def entercb(self,event):$/;"	m	class:MywHelp
+entercb	mywnewbits.py	/^  def entercb(self,event):$/;"	m	class:MywHelp
+entercb	old/mywdec16.py	/^  def entercb(self,event):$/;"	m	class:MywHelp
+err	comp.py	/^  def err(self, msg,s=""):$/;"	m	class:aiup
+errexit	cmdbase.c	/^\/*------------------------------------------*\/ void errexit(char *msg) {$/;"	f
+errorprint	myw.py	/^def errorprint(o, *pars):$/;"	f
+errorprint	mywnewbits.py	/^def errorprint(o, *pars):$/;"	f
+errorprint	old/mywdec16.py	/^def errorprint(o, *pars):$/;"	f
+execStart	cmdlin2.py	/^  def execStart(self):$/;"	m	class:ioWindow
+execute	cmdlin2.py	/^  def execute(self, cmd=None, log='out', applout='out',ff=None): $/;"	m	class:cmdlint
+execute	cmdlint.py.delme	/^  def execute(self, cmd=None, log='out', applout='out'):$/;"	m	class:cmdlint
+executet	cmdlin2.py	/^  def executet(self, cmd=None, ff=None, log='out', applout='out'): $/;"	m	class:ioWindow
+executet	cmdlint.py.delme	/^  def executet(self, cmd=None, ff=None, log='out', applout='out'): $/;"	m	class:cmdlint
+fcallstart	myw.py	/^  def fcallstart(self):$/;"	m	class:FunStart
+fcallstart	mywnewbits.py	/^  def fcallstart(self):$/;"	m	class:FunStart
+fcallstart	old/mywdec16.py	/^  def fcallstart(self):$/;"	m	class:FunStart
+fcallstop	myw.py	/^  def fcallstop(self):$/;"	m	class:FunStart
+fcallstop	mywnewbits.py	/^  def fcallstop(self):$/;"	m	class:FunStart
+fcallstop	old/mywdec16.py	/^  def fcallstop(self):$/;"	m	class:FunStart
+fdestroy	myw.py	/^def fdestroy(event):$/;"	f
+fillrand	cmdbase.c	/^\/*------------------------------------*\/ void fillrand(w32* arr, int arrsize){$/;"	f
+findBoard	myw.py	/^  def findBoard(self, boardname):$/;"	m	class:VmeCrate
+findBoard	mywnewbits.py	/^  def findBoard(self, boardname):$/;"	m	class:VmeCrate
+findBoard	old/mywdec16.py	/^  def findBoard(self, boardname):$/;"	m	class:VmeCrate
+findLabel	comp.py	/^  def findLabel(self, hn):$/;"	m	class:aiup
+findLabel	myw.py	/^  def findLabel(self, label):$/;"	m	class:MywMenu
+findLabel	mywnewbits.py	/^  def findLabel(self, label):$/;"	m	class:MywMenu
+findLabel	old/mywdec16.py	/^  def findLabel(self, label):$/;"	m	class:MywMenu
+findName	cmdbase.c	/^\/*----------------------------------------------*\/ Tname *findName(char *name) {$/;"	f
+findvmeregtyp	myw.py	/^  def findvmeregtyp(self, reg):$/;"	m	class:VmeBoard
+findvmeregtyp	mywnewbits.py	/^  def findvmeregtyp(self, reg):$/;"	m	class:VmeBoard
+findvmeregtyp	old/mywdec16.py	/^  def findvmeregtyp(self, reg):$/;"	m	class:VmeBoard
+finwh	myw.py	/^  def finwh(self,s):$/;"	m	class:MywHelp
+finwh	mywnewbits.py	/^  def finwh(self,s):$/;"	m	class:MywHelp
+finwh	old/mywdec16.py	/^  def finwh(self,s):$/;"	m	class:MywHelp
+fls	vmeaistd.h	/^  w32 fls;        \/* see flags description in cmdbase.c *\/$/;"	m
+fls	vmeaistd.h	/^  w32 fls;   \/* low 8 bits for par. type, higher bits$/;"	m
+flsCONS	cmdbase.c	170;"	d	file:
+flsFMSK	cmdbase.c	159;"	d	file:
+flsFchar	cmdbase.c	164;"	d	file:
+flsFfloat	cmdbase.c	162;"	d	file:
+flsFint	cmdbase.c	161;"	d	file:
+flsFvoid	cmdbase.c	163;"	d	file:
+flsFw81632	cmdbase.c	160;"	d	file:
+flsINDIRECT	cmdbase.c	166;"	d	file:
+flsSTRING	cmdbase.c	175;"	d	file:
+flsTEMP	cmdbase.c	168;"	d	file:
+flsTTM	cmdbase.c	157;"	d	file:
+flsUNDEF	cmdbase.c	179;"	d	file:
+flsVARIABLENP1	cmdbase.c	148;"	d	file:
+flsVME16	cmdbase.c	176;"	d	file:
+flsVME8	cmdbase.c	177;"	d	file:
+fp	vmeaistd.h	/^  w32 (*fp)();    \/* pointer to func *\/$/;"	m
+funbuts	myw.py	/^  def funbuts(self):$/;"	m	class:VmeBoard
+funbuts	mywnewbits.py	/^  def funbuts(self):$/;"	m	class:VmeBoard
+funbuts	old/mywdec16.py	/^  def funbuts(self):$/;"	m	class:VmeBoard
+funvmerw	myw.py	/^  def funvmerw(self):$/;"	m	class:VmeBoard
+funvmerw	mywnewbits.py	/^  def funvmerw(self):$/;"	m	class:VmeBoard
+funvmerw	old/mywdec16.py	/^  def funvmerw(self):$/;"	m	class:VmeBoard
+get1	myw.py	/^  def get1(self, cmd):$/;"	m	class:Vbexec
+get2	myw.py	/^  def get2(self, cmd, log="out"):$/;"	m	class:Vbexec
+getCrate	myw.py	/^def getCrate(f=None):$/;"	f
+getCrate	mywnewbits.py	/^def getCrate(f=None):$/;"	f
+getCrate	old/mywdec16.py	/^def getCrate(f=None):$/;"	f
+getEntry	exinh.py	/^  def getEntry(self):$/;"	m	class:labeledMenu
+getEntry	myw.py	/^  def getEntry(self):$/;"	m	class:MywBits
+getEntry	myw.py	/^  def getEntry(self):$/;"	m	class:MywEntry
+getEntry	myw.py	/^  def getEntry(self):$/;"	m	class:MywRadio
+getEntry	myw.py	/^  def getEntry(self):$/;"	m	class:MywxMenu
+getEntry	myw.py	/^  def getEntry(self, index):$/;"	m	class:MywMenuList
+getEntry	mywnewbits.py	/^  def getEntry(self):$/;"	m	class:MywBits
+getEntry	mywnewbits.py	/^  def getEntry(self):$/;"	m	class:MywEntry
+getEntry	mywnewbits.py	/^  def getEntry(self):$/;"	m	class:MywRadio
+getEntry	mywnewbits.py	/^  def getEntry(self):$/;"	m	class:MywxMenu
+getEntry	mywnewbits.py	/^  def getEntry(self, index):$/;"	m	class:MywMenuList
+getEntry	old/mywdec16.py	/^  def getEntry(self):$/;"	m	class:MywBits
+getEntry	old/mywdec16.py	/^  def getEntry(self):$/;"	m	class:MywEntry
+getEntry	old/mywdec16.py	/^  def getEntry(self):$/;"	m	class:MywRadio
+getEntry	old/mywdec16.py	/^  def getEntry(self):$/;"	m	class:MywxMenu
+getEntry	old/mywdec16.py	/^  def getEntry(self, index):$/;"	m	class:MywMenuList
+getEntryBin	myw.py	/^  def getEntryBin(self):$/;"	m	class:MywBits
+getEntryBin	myw.py	/^  def getEntryBin(self):$/;"	m	class:MywEntry
+getEntryBin	mywnewbits.py	/^  def getEntryBin(self):$/;"	m	class:MywEntry
+getEntryBin	old/mywdec16.py	/^  def getEntryBin(self):$/;"	m	class:MywBits
+getEntryBin	old/mywdec16.py	/^  def getEntryBin(self):$/;"	m	class:MywEntry
+getEntryHex	myw.py	/^  def getEntryHex(self):$/;"	m	class:MywEntry
+getEntryHex	mywnewbits.py	/^  def getEntryHex(self):$/;"	m	class:MywEntry
+getEntryHex	old/mywdec16.py	/^  def getEntryHex(self):$/;"	m	class:MywEntry
+getFlags	cmdbase.c	/^\/*----------------------------------*\/ w32 getFlags(Tname *ix) {$/;"	f
+getIndex	myw.py	/^  def getIndex(self):$/;"	m	class:MywxMenu
+getIndex	mywnewbits.py	/^  def getIndex(self):$/;"	m	class:MywxMenu
+getIndex	old/mywdec16.py	/^  def getIndex(self):$/;"	m	class:MywxMenu
+getItem	myw.py	/^  def getItem(self, index):$/;"	m	class:MywMenuList
+getLabel	myw.py	/^  def getLabel(self):$/;"	m	class:MywButton
+getLabel	myw.py	/^  def getLabel(self):$/;"	m	class:MywEntry
+getLabel	myw.py	/^  def getLabel(self):$/;"	m	class:MywLabel
+getLabel	myw.py	/^  def getLabel(self):$/;"	m	class:MywMenuList
+getLabel	myw.py	/^  def getLabel(self):$/;"	m	class:MywxMenu
+getLabel	mywnewbits.py	/^  def getLabel(self):$/;"	m	class:MywButton
+getLabel	old/mywdec16.py	/^  def getLabel(self):$/;"	m	class:MywButton
+getOutput	cmdlin2.py	/^  def getOutput(self, wout='out', applout='out'):$/;"	m	class:ioWindow
+getOutput	cmdlint.py.delme	/^  def getOutput(self, wout='out', applout='out'):$/;"	m	class:cmdlint
+getStringName	cmdbase.c	/^\/*----------------------------------*\/ char *getStringName(char *nm) {$/;"	f
+getToken	comp.py	/^  def getToken(self, meaningfull=''):$/;"	m	class:aiup
+getUptime	cmdlin2.py	/^  def getUptime(self):$/;"	m	class:myThread
+getUptime	cmdlint.py.delme	/^  def getUptime(self):$/;"	m	class:myThread
+getUsage	comp.py	/^  def getUsage(self):$/;"	m	class:aiup
+getValueName	cmdbase.c	/^\/*----------------------------------*\/ w32 getValueName(Tname *ix) {$/;"	f
+getValueNameDbg	cmdbase.c	/^\/*----------------------------------*\/ w32 getValueNameDbg(Tname *ix) {$/;"	f
+getcf	myw.py	/^  def getcf(self):$/;"	m	class:VmeBoard
+getcf	mywnewbits.py	/^  def getcf(self):$/;"	m	class:VmeBoard
+getcf	old/mywdec16.py	/^  def getcf(self):$/;"	m	class:VmeBoard
+getchar	comp.py	/^  def getchar(self):$/;"	m	class:aiup
+getcmdbut	myw.py	/^  def getcmdbut(self,name):$/;"	m	class:Vbexec
+getline	comp.py	/^  def getline(self):$/;"	m	class:aiup
+getline	myw.py	/^  def getline(self, cmd):$/;"	m	class:Vbexec
+getoutput	myw.py	/^  def getoutput(self):$/;"	m	class:Vbexec
+getsl	myw.py	/^  def getsl(self, cmd):$/;"	m	class:Vbexec
+getvme	myw.py	/^  def getvme(self):$/;"	m	class:MywVMEEntry
+getvme	mywnewbits.py	/^  def getvme(self):$/;"	m	class:MywVMEEntry
+getvme	old/mywdec16.py	/^  def getvme(self):$/;"	m	class:MywVMEEntry
+gotsignal	cmdbase.c	/^void gotsignal(int signum) {$/;"	f
+gt	myw.py	/^def gt(x,y):$/;"	f
+gt	mywnewbits.py	/^def gt(x,y):$/;"	f
+gt	old/mywdec16.py	/^def gt(x,y):$/;"	f
+handle	vmewrap.c	/^  int handle;$/;"	m	file:
+handle	vmewrap.c	/^int handle;$/;"	v
+handle	vmxwrapdelme.c	/^  int handle;$/;"	m	file:
+help	myw.py	/^  def help(self, event=None):$/;"	m	class:MywHelp
+help	mywnewbits.py	/^  def help(self, event=None):$/;"	m	class:MywHelp
+help	old/mywdec16.py	/^  def help(self, event=None):$/;"	m	class:MywHelp
+hex2dec	myw.py	/^  def hex2dec(self,text):$/;"	m	class:MywEntry
+hex2dec	mywnewbits.py	/^  def hex2dec(self,text):$/;"	m	class:MywEntry
+hex2dec	old/mywdec16.py	/^  def hex2dec(self,text):$/;"	m	class:MywEntry
+hex2ui	vmewrap.c	/^\/*---------------------------------------------*\/ w32 hex2ui(char *ich) {$/;"	f
+hexa	cmdbase.c	/^w32 hexa(char *hn) {$/;"	f
+i24	ranlux.c	/^static int i24, j24, count24, nskip;$/;"	v	file:
+ifnegorge	myw.py	/^  def ifnegorge(self,value, upperlimit, newifneg, newifge):$/;"	m	class:Kanvas
+ignoreWhite	comp.py	/^  def ignoreWhite(self, meaningfull=''):$/;"	m	class:aiup
+init_allnames	cmdbase.c	/^\/*----------------------------------------------*\/ void init_allnames() {$/;"	f
+instr	vmewrap.c	/^ViSession defaultRM, instr; \/* Communication channels *\/$/;"	v
+intvar	vmeaistd.h	/^  w32 intvar;     \/* $/;"	m
+ioWindow	cmdlin2.py	/^class ioWindow:$/;"	c
+isItalpha	cmdbase.c	/^\/*----------------------------------------------*\/ int isItalpha(char c) {$/;"	f
+isItdigit	cmdbase.c	/^\/*----------------------------------------------*\/ int isItdigit(char c) {$/;"	f
+ismacro	cmdbase.c	/^\/*----------------------------------*\/ int ismacro(Tname *mp) {$/;"	f
+isop	cmdbase.c	/^\/*-----------------------------------*\/ int isop(enum Ttokentype operator) {$/;"	f
+isunaryop	cmdbase.c	/^\/*------------------------------*\/ int isunaryop(enum Ttokentype operator) {$/;"	f
+j24	ranlux.c	/^static int i24, j24, count24, nskip;$/;"	v	file:
+kill	cmdlin2.py	/^  def kill(self, signal=signal.SIGUSR1):$/;"	m	class:ioWindow
+kill	cmdlint.py.delme	/^  def kill(self):$/;"	m	class:cmdlint
+label	myw.py	/^  def label(self, newlabel):$/;"	m	class:MywLabel
+label	mywnewbits.py	/^  def label(self, newlabel):$/;"	m	class:MywLabel
+label	old/mywdec16.py	/^  def label(self, newlabel):$/;"	m	class:MywLabel
+labeledMenu	exinh.py	/^class labeledMenu(myw.MywFrame, myw.MywMenu, myw.MywEntry):$/;"	c
+leavebit	myw.py	/^  def leavebit(self, event):$/;"	m	class:Kanvas
+leavecb	myw.py	/^  def leavecb(self,event):$/;"	m	class:MywHelp
+leavecb	mywnewbits.py	/^  def leavecb(self,event):$/;"	m	class:MywHelp
+leavecb	old/mywdec16.py	/^  def leavecb(self,event):$/;"	m	class:MywHelp
+lift	myw.py	/^  def lift(self, widg):$/;"	m	class:MywEntry
+logit	cmdlin2.py	/^  def logit(self,ttl):$/;"	m	class:ioWindow
+logit	cmdlint.py.delme	/^  def logit(self,ttl):$/;"	m	class:cmdlint
+loopspermic	vmewrap.c	/^w32 loopspermic=0; \/* cca 105 loops for vp110 1.2GHz *\/$/;"	v
+lower	myw.py	/^  def lower(self, widg):$/;"	m	class:MywEntry
+lsi_fd	vmewrap.c	/^int lsi_fd;$/;"	v
+macfile	cmdbase.c	/^  FILE *macfile;$/;"	m	file:
+macpars	cmdbase.c	/^  char macpars[MAXFUNPARS][MAXNAMELENGTH];$/;"	m	file:
+main	cmdbase.c	/^\/*----------------------------------------*\/ int main(int argn, char **argv) {$/;"	f
+main	cmdlin2.py	/^def main():$/;"	f
+main	cmdlint.py.delme	/^def main():$/;"	f
+main	comp.py	/^def main():$/;"	f
+main	crate.py	/^def main():$/;"	f
+main	exinh.py	/^def main():$/;"	f
+main	myw.py	/^def main():$/;"	f
+main	mywnewbits.py	/^def main():$/;"	f
+main	old/mywdec16.py	/^def main():$/;"	f
+main	regs.py	/^def main():$/;"	f
+mcmd	myw.py	/^  def mcmd(self):$/;"	m	class:MywBits
+mcmd	mywnewbits.py	/^  def mcmd(self):$/;"	m	class:MywBits
+mcmd	old/mywdec16.py	/^  def mcmd(self):$/;"	m	class:MywBits
+micwait	vmewrap.c	/^void micwait(int micsecs) {$/;"	f
+modexit	myw.py	/^  def modexit(self):$/;"	m	class:VmeRW
+modexit	mywnewbits.py	/^  def modexit(self):$/;"	m	class:VmeRW
+modexit	old/mywdec16.py	/^  def modexit(self):$/;"	m	class:VmeRW
+modifname	myw.py	/^  def modifname(self):$/;"	m	class:MywMenu81632
+modifname	myw.py	/^  def modifname(self):$/;"	m	class:MywMenuList
+modifname	myw.py	/^  def modifname(self):$/;"	m	class:MywxMenu
+modifname	mywnewbits.py	/^  def modifname(self):$/;"	m	class:MywMenu81632
+modifname	mywnewbits.py	/^  def modifname(self):$/;"	m	class:MywMenuList
+modifname	mywnewbits.py	/^  def modifname(self):$/;"	m	class:MywxMenu
+modifname	old/mywdec16.py	/^  def modifname(self):$/;"	m	class:MywMenu81632
+modifname	old/mywdec16.py	/^  def modifname(self):$/;"	m	class:MywMenuList
+modifname	old/mywdec16.py	/^  def modifname(self):$/;"	m	class:MywxMenu
+multreg	myw.py	/^  def multreg(self):$/;"	m	class:VmeBoard
+multreg	mywnewbits.py	/^  def multreg(self):$/;"	m	class:VmeBoard
+multreg	old/mywdec16.py	/^  def multreg(self):$/;"	m	class:VmeBoard
+myThread	cmdlin2.py	/^class myThread(Thread):$/;"	c
+myThread	cmdlint.py.delme	/^class myThread(Thread):$/;"	c
+name	vmeaistd.h	/^  char name[MAXNAMELENGTH];$/;"	m
+nargs	cmdbase.c	/^int nops, nargs;   \/* # of operators, args in corresponding stack *\/$/;"	v
+newhelp	myw.py	/^  def newhelp(self,helptext):$/;"	m	class:MywHelp
+newhelp	mywnewbits.py	/^  def newhelp(self,helptext):$/;"	m	class:MywHelp
+newhelp	old/mywdec16.py	/^  def newhelp(self,helptext):$/;"	m	class:MywHelp
+nmp	cmdbase.c	/^  int nmp; $/;"	m	file:
+nops	cmdbase.c	/^int nops, nargs;   \/* # of operators, args in corresponding stack *\/$/;"	v
+nskip	ranlux.c	/^static int i24, j24, count24, nskip;$/;"	v	file:
+nxtoken	cmdbase.c	/^\/*---------------*\/ enum Ttokentype nxtoken(char *line, char *cmd, int *ix) {$/;"	f
+ons	myw.py	/^  def ons(self):$/;"	m	class:MywMenuList
+ons	mywnewbits.py	/^  def ons(self):$/;"	m	class:MywMenuList
+ons	old/mywdec16.py	/^  def ons(self):$/;"	m	class:MywMenuList
+opPriorities	cmdbase.c	/^int opPriorities[]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0,$/;"	v
+openCmd	myw.py	/^  def openCmd(self):$/;"	m	class:VmeBoard
+openCmd	mywnewbits.py	/^  def openCmd(self):$/;"	m	class:VmeBoard
+openCmd	old/mywdec16.py	/^  def openCmd(self):$/;"	m	class:VmeBoard
+opstack	cmdbase.c	/^enum Ttokentype opstack[MAXnops];$/;"	v
+outfilter	cmdlin2.py	/^  def outfilter(self,text):$/;"	m	class:ioWindow
+outfilter	cmdlint.py.delme	/^  def outfilter(self,text):$/;"	m	class:cmdlint
+parCHAR	cmdbase.c	152;"	d	file:
+parINDIRECTPAR	cmdbase.c	147;"	d	file:
+parINT	cmdbase.c	150;"	d	file:
+parMASK	cmdbase.c	149;"	d	file:
+parW81632	cmdbase.c	151;"	d	file:
+pardesc	vmeaistd.h	/^  Tpardesc *pardesc;  \/*$/;"	m
+parseline	cmdbase.c	/^\/*---------------------------------------*\/ void parseline(char *line) {$/;"	f
+perRead	myw.py	/^  def perRead(self):$/;"	m	class:MultRegs
+perRead	mywnewbits.py	/^  def perRead(self):$/;"	m	class:MultRegs
+perRead	old/mywdec16.py	/^  def perRead(self):$/;"	m	class:MultRegs
+pf3help	myw.py	/^  def pf3help(self, event, hlptext="helppf3",dynhelp=None):$/;"	m	class:Kanvas
+plock	cmdlin2.py	/^  def plock(self, lockunlock):$/;"	m	class:ioWindow
+poparg	cmdbase.c	/^\/*--------------------*\/ Tname *poparg() {$/;"	f
+popop	cmdbase.c	/^\/*--------------------*\/ enum Ttokentype popop() {$/;"	f
+prerr	cmdbase.c	/^\/*------------------------------------------*\/ void prerr(char *msg) {$/;"	f
+prerr1	cmdbase.c	/^\/*------------------------------------------*\/ void prerr1(char *msg, int i) {$/;"	f
+prerr2	cmdbase.c	/^\/*----------------------------*\/ void prerr2(char *line, int erp, char *msg) {$/;"	f
+prerror	myw.py	/^def prerror():$/;"	f
+prerror	mywnewbits.py	/^def prerror():$/;"	f
+prerror	old/mywdec16.py	/^def prerror():$/;"	f
+printEntry	myw.py	/^  def printEntry(self, text='MywEntry.printEntry:'):$/;"	m	class:MywEntry
+printEntry	myw.py	/^  def printEntry(self, text='MywxMenu.printEntry:'):$/;"	m	class:MywxMenu
+printEntry	myw.py	/^  def printEntry(self, text='printEntry:'):$/;"	m	class:MywRadio
+printEntry	mywnewbits.py	/^  def printEntry(self, text='MywEntry.printEntry:'):$/;"	m	class:MywEntry
+printEntry	mywnewbits.py	/^  def printEntry(self, text='MywxMenu.printEntry:'):$/;"	m	class:MywxMenu
+printEntry	mywnewbits.py	/^  def printEntry(self, text='printEntry:'):$/;"	m	class:MywRadio
+printEntry	old/mywdec16.py	/^  def printEntry(self, text='MywEntry.printEntry:'):$/;"	m	class:MywEntry
+printEntry	old/mywdec16.py	/^  def printEntry(self, text='MywxMenu.printEntry:'):$/;"	m	class:MywxMenu
+printEntry	old/mywdec16.py	/^  def printEntry(self, text='printEntry:'):$/;"	m	class:MywRadio
+printHelp	cmdbase.c	/^\/*----------------------------------------------*\/ void printHelp(char *line) {$/;"	f
+printTname	cmdbase.c	/^\/*--------------------*\/ void printTname(Tname *arg, int niceprint) {$/;"	f
+printarg	cmdbase.c	/^\/*--------------------*\/ void printarg() {$/;"	f
+printboard	comp.py	/^  def printboard(self):$/;"	m	class:aiup
+printmsg	myw.py	/^  def printmsg(self, msg):$/;"	m	class:Vbexec
+printmsg	myw.py	/^  def printmsg(self,msg):$/;"	m	class:Vbexecvoid
+printop	cmdbase.c	/^\/*--------------------*\/ void printop() {$/;"	f
+printout	comp.py	/^  def printout(self):$/;"	m	class:aiup
+printvbnames	myw.py	/^  def printvbnames(self):$/;"	m	class:Vbexec
+priority	cmdbase.c	/^\/*--------------------*\/ int priority(enum Ttokentype operator) {$/;"	f
+prtbut	regs.py	/^def prtbut():$/;"	f
+prtfnames	ranlux.c	/^\/*----------------------------*\/ void prtfnames(char *dirname, char *suffix) {$/;"	f
+pusharg	cmdbase.c	/^\/*--------------------*\/ void pusharg(Tname *arg) {$/;"	f
+pushop	cmdbase.c	/^\/*--------------------*\/ void pushop(enum Ttokentype operator) {$/;"	f
+pwrite	cmdlin2.py	/^  def pwrite(self, lines):$/;"	m	class:ioWindow
+quit	cmdbase.c	/^int quit=0;$/;"	v
+quit	myw.py	/^  def quit(self):$/;"	m	class:VmeCrate
+quit	mywnewbits.py	/^  def quit(self):$/;"	m	class:VmeCrate
+quit	old/mywdec16.py	/^  def quit(self):$/;"	m	class:VmeCrate
+repeatErrorfocus	myw.py	/^ def repeatErrorfocus(self,cancel=None):$/;"	m	class:MywError
+repeatErrorfocus	mywnewbits.py	/^ def repeatErrorfocus(self,cancel=None):$/;"	m	class:MywError
+repeatErrorfocus	old/mywdec16.py	/^ def repeatErrorfocus(self,cancel=None):$/;"	m	class:MywError
+repeatRead	myw.py	/^  def repeatRead(self, cancel=None):$/;"	m	class:MultRegs
+repeatRead	mywnewbits.py	/^  def repeatRead(self, cancel=None):$/;"	m	class:MultRegs
+repeatRead	old/mywdec16.py	/^  def repeatRead(self, cancel=None):$/;"	m	class:MultRegs
+resetColor	myw.py	/^  def resetColor(self):$/;"	m	class:MywButton
+resetColor	myw.py	/^  def resetColor(self):$/;"	m	class:MywMenuList
+resetColor	myw.py	/^  def resetColor(self):$/;"	m	class:MywxMenu
+resetColor	mywnewbits.py	/^  def resetColor(self):$/;"	m	class:MywButton
+resetColor	mywnewbits.py	/^  def resetColor(self):$/;"	m	class:MywMenuList
+resetColor	mywnewbits.py	/^  def resetColor(self):$/;"	m	class:MywxMenu
+resetColor	old/mywdec16.py	/^  def resetColor(self):$/;"	m	class:MywButton
+resetColor	old/mywdec16.py	/^  def resetColor(self):$/;"	m	class:MywMenuList
+resetColor	old/mywdec16.py	/^  def resetColor(self):$/;"	m	class:MywxMenu
+retchar	comp.py	/^  def retchar(self, c):$/;"	m	class:aiup
+rnlx	ranlux.c	/^\/*----------------------------------------------------*\/ double rnlx()$/;"	f
+rw	vmesim.c	/^  char rw[4];   \/* should be bits... *\/$/;"	m	file:
+semantic	cmdbase.c	/^\/*--------------------*\/ Tname *semantic(enum Ttokentype arg, char *token) {$/;"	f
+setBackground	myw.py	/^  def setBackground(self, color):$/;"	m	class:MywButton
+setBackground	mywnewbits.py	/^  def setBackground(self, color):$/;"	m	class:MywButton
+setBackground	old/mywdec16.py	/^  def setBackground(self, color):$/;"	m	class:MywButton
+setColor	myw.py	/^  def setColor(self, color):$/;"	m	class:MywButton
+setColor	myw.py	/^  def setColor(self, color):$/;"	m	class:MywMenuList
+setColor	myw.py	/^  def setColor(self, color):$/;"	m	class:MywxMenu
+setColor	myw.py	/^  def setColor(self, color):$/;"	m	class:VmeBoard
+setColor	myw.py	/^  def setColor(self, color=None):$/;"	m	class:MywEntry
+setColor	mywnewbits.py	/^  def setColor(self, color):$/;"	m	class:MywButton
+setColor	mywnewbits.py	/^  def setColor(self, color):$/;"	m	class:MywMenuList
+setColor	mywnewbits.py	/^  def setColor(self, color):$/;"	m	class:MywxMenu
+setColor	mywnewbits.py	/^  def setColor(self, color):$/;"	m	class:VmeBoard
+setColor	mywnewbits.py	/^  def setColor(self, color=None):$/;"	m	class:MywEntry
+setColor	old/mywdec16.py	/^  def setColor(self, color):$/;"	m	class:MywButton
+setColor	old/mywdec16.py	/^  def setColor(self, color):$/;"	m	class:MywMenuList
+setColor	old/mywdec16.py	/^  def setColor(self, color):$/;"	m	class:MywxMenu
+setColor	old/mywdec16.py	/^  def setColor(self, color):$/;"	m	class:VmeBoard
+setColor	old/mywdec16.py	/^  def setColor(self, color=None):$/;"	m	class:MywEntry
+setEntry	myw.py	/^  def setEntry(self, index, val):$/;"	m	class:MywMenuList
+setEntry	myw.py	/^  def setEntry(self, newactiveix):$/;"	m	class:MywxMenu
+setEntry	myw.py	/^  def setEntry(self, text):$/;"	m	class:MywEntry
+setEntry	myw.py	/^  def setEntry(self, val):$/;"	m	class:MywBits
+setEntry	mywnewbits.py	/^  def setEntry(self, index, val):$/;"	m	class:MywMenuList
+setEntry	mywnewbits.py	/^  def setEntry(self, text):$/;"	m	class:MywEntry
+setEntry	mywnewbits.py	/^  def setEntry(self, val):$/;"	m	class:MywBits
+setEntry	old/mywdec16.py	/^  def setEntry(self, index, val):$/;"	m	class:MywMenuList
+setEntry	old/mywdec16.py	/^  def setEntry(self, newactiveix):$/;"	m	class:MywxMenu
+setEntry	old/mywdec16.py	/^  def setEntry(self, text):$/;"	m	class:MywEntry
+setEntry	old/mywdec16.py	/^  def setEntry(self, val):$/;"	m	class:MywBits
+setFlags	cmdbase.c	/^\/*----------------------------------*\/ void setFlags(Tname *ix, w32 fls) {$/;"	f
+setLabel	myw.py	/^  def setLabel(self,name):$/;"	m	class:MywButton
+setLabel	mywnewbits.py	/^  def setLabel(self,name):$/;"	m	class:MywButton
+setLabel	old/mywdec16.py	/^  def setLabel(self,name):$/;"	m	class:MywButton
+setValueName	cmdbase.c	/^\/*----------------------------------*\/ void setValueName(Tname *ix, w32 val) {$/;"	f
+setWarning	myw.py	/^  def setWarning(self,color):$/;"	m	class:Vbexec
+setcommand	myw.py	/^  def setcommand(self,cname, cmd,disabled=None):$/;"	m	class:MywMenu
+setcommand	mywnewbits.py	/^  def setcommand(self,cname, cmd,disabled=None):$/;"	m	class:MywMenu
+setcommand	old/mywdec16.py	/^  def setcommand(self,cname, cmd,disabled=None):$/;"	m	class:MywMenu
+setseeds	ranlux.c	/^\/*------------------------------------*\/ void setseeds(long seed, int lux) {$/;"	f
+shmsegid	vmesim.c	/^  int shmsegid;$/;"	m	file:
+simspace	vmesim.c	/^  w8 *simspace;$/;"	m	file:
+size	vmesim.c	/^  int size;$/;"	m	file:
+size	vmewrap.c	/^  int size;$/;"	m	file:
+size	vmxwrapdelme.c	/^  int size;$/;"	m	file:
+sizearg	cmdbase.c	/^\/*--------------------*\/ int sizearg() {$/;"	f
+sizeop	cmdbase.c	/^\/*--------------------*\/ int sizeop() {$/;"	f
+skipTokens	comp.py	/^  def skipTokens(self, tk2skip):$/;"	m	class:aiup
+specVmeF	vmesim.c	/^  TspecVmeF specVmeF;$/;"	m	file:
+specaddr	vmesim.c	/^  w32 specaddr;$/;"	m	file:
+startFun	myw.py	/^  def startFun(self, fnix):$/;"	m	class:VmeBoard
+startFun	mywnewbits.py	/^  def startFun(self, fnix):$/;"	m	class:VmeBoard
+startFun	old/mywdec16.py	/^  def startFun(self, fnix):$/;"	m	class:VmeBoard
+stop	cmdlin2.py	/^  def stop(self):$/;"	m	class:cmdlint
+stop	cmdlin2.py	/^  def stop(self,XorQuit=None):                   # quit button (or destory -x)$/;"	m	class:ioWindow
+stop	cmdlint.py.delme	/^  def stop(self):$/;"	m	class:cmdlint
+tASSIGN	vmeaistd.h	/^                tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,$/;"	e	enum:Ttokentype
+tCHAR	vmeaistd.h	/^                tVAR, tFUN, tVMEADR, tCHAR,$/;"	e	enum:Ttokentype
+tCOMMA	vmeaistd.h	/^                tCOMMA };$/;"	e	enum:Ttokentype
+tDIV	vmeaistd.h	/^                tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,$/;"	e	enum:Ttokentype
+tEOCMD	vmeaistd.h	/^                tEOCMD,$/;"	e	enum:Ttokentype
+tEQS	vmeaistd.h	/^                tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,$/;"	e	enum:Ttokentype
+tERR	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	e	enum:Ttokentype
+tFUN	vmeaistd.h	/^                tVAR, tFUN, tVMEADR, tCHAR,$/;"	e	enum:Ttokentype
+tHEXNUM	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	e	enum:Ttokentype
+tINTNUM	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	e	enum:Ttokentype
+tLEFT	vmeaistd.h	/^                tLEFT, tRIGHT, tLEFTA, tRIGHTA, $/;"	e	enum:Ttokentype
+tLEFTA	vmeaistd.h	/^                tLEFT, tRIGHT, tLEFTA, tRIGHTA, $/;"	e	enum:Ttokentype
+tMINUS	vmeaistd.h	/^                tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,$/;"	e	enum:Ttokentype
+tMULT	vmeaistd.h	/^                tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,$/;"	e	enum:Ttokentype
+tNONE	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	e	enum:Ttokentype
+tPLUS	vmeaistd.h	/^                tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,$/;"	e	enum:Ttokentype
+tRIGHT	vmeaistd.h	/^                tLEFT, tRIGHT, tLEFTA, tRIGHTA, $/;"	e	enum:Ttokentype
+tRIGHTA	vmeaistd.h	/^                tLEFT, tRIGHT, tLEFTA, tRIGHTA, $/;"	e	enum:Ttokentype
+tSTRING	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	e	enum:Ttokentype
+tSYMNAME	vmeaistd.h	/^enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,$/;"	e	enum:Ttokentype
+tVAR	vmeaistd.h	/^                tVAR, tFUN, tVMEADR, tCHAR,$/;"	e	enum:Ttokentype
+tVMEADR	vmeaistd.h	/^                tVAR, tFUN, tVMEADR, tCHAR,$/;"	e	enum:Ttokentype
+threadedexe	cmdlin2.py	/^  def threadedexe(self, cmdte, buf, ff, applout):$/;"	m	class:ioWindow
+threadedexe	cmdlint.py.delme	/^  def threadedexe(self, cmdte, buf, ff, applout):$/;"	m	class:cmdlint
+tokenSymbol	cmdbase.c	/^char *tokenSymbol[]={"NONE", "ERROR", "SYMNAME", "STRING", "INTNUM", "HEXNUM",$/;"	v
+toparg	cmdbase.c	/^\/*--------------------*\/ Tname *toparg() {$/;"	f
+topop	cmdbase.c	/^\/*--------------------*\/ enum Ttokentype topop() {$/;"	f
+two24	ranlux.c	/^static long   two24 = 16777216;$/;"	v	file:
+twom12	ranlux.c	/^static double twom12= 1.0\/4096.0;$/;"	v	file:
+twom24	ranlux.c	/^static double twom24= 1.0\/16777216.0;$/;"	v	file:
+typeName	cmdbase.c	/^\/*----------------------------------*\/ enum Ttokentype typeName(Tname *ix) {$/;"	f
+updateentry	myw.py	/^  def updateentry(self, event=None):$/;"	m	class:MywEntry
+updateentry	myw.py	/^  def updateentry(self, event=None):$/;"	m	class:MywVMEEntry
+updateentry	mywnewbits.py	/^  def updateentry(self, event=None):$/;"	m	class:MywEntry
+updateentry	mywnewbits.py	/^  def updateentry(self, event=None):$/;"	m	class:MywVMEEntry
+updateentry	old/mywdec16.py	/^  def updateentry(self, event=None):$/;"	m	class:MywEntry
+updateentry	old/mywdec16.py	/^  def updateentry(self, event=None):$/;"	m	class:MywVMEEntry
+usage	vmeaistd.h	/^  char *usage;  \/*$/;"	m
+usleep	cmdbase.c	/^usleep(int micsec) {$/;"	f
+vbinit	myw.py	/^def vbinit(vb):$/;"	f
+vmeclose	vmewrap.c	/^\/*---------------------------------------------*\/ int vmeclose() {$/;"	f
+vmeish	vmewrap.c	/^\/*---------------------*\/ void vmeish() {$/;"	f
+vmenp	vmeaistd.h	/^  w32 vmenp;    \/* $/;"	m
+vmeopen	vmewrap.c	/^\/*-----------*\/ int vmeopen(char *BoardBaseAddress, char *BoardSpaceLength) {$/;"	f
+vmeopmr32	cmdbase.c	/^void vmeopmr32(int n) {$/;"	f
+vmeopmr32_parameters	cmdbase.c	/^Tpardesc vmeopmr32_parameters[1]={{"count", flsVARIABLENP1}};$/;"	v
+vmeopr16	cmdbase.c	/^w16 vmeopr16(w32 adr) {$/;"	f
+vmeopr16_parameters	cmdbase.c	/^Tpardesc vmeopr16_parameters[1]={{"adr", 0}};$/;"	v
+vmeopr32	cmdbase.c	/^w32 vmeopr32(w32 adr) { $/;"	f
+vmeopr32_parameters	cmdbase.c	/^Tpardesc vmeopr32_parameters[1]={{"adr", 0}};$/;"	v
+vmeopr8	cmdbase.c	/^w8 vmeopr8(w32 adr) {$/;"	f
+vmeopr8_parameters	cmdbase.c	/^Tpardesc vmeopr8_parameters[1]={{"adr", 0}}; $/;"	v
+vmeopw16	cmdbase.c	/^void vmeopw16(w32 adr, w16 val) { vmew16(adr, val); }$/;"	f
+vmeopw16_parameters	cmdbase.c	/^Tpardesc vmeopw16_parameters[2]={{"adr", 0}, {"val", 0}};$/;"	v
+vmeopw32	cmdbase.c	/^void vmeopw32(w32 adr, w32 val) { vmew32(adr, val); }$/;"	f
+vmeopw32_parameters	cmdbase.c	/^Tpardesc vmeopw32_parameters[2]={{"adr", 0}, {"val", 0}};$/;"	v
+vmeopw8	cmdbase.c	/^void vmeopw8(w32 adr, w8 val) { vmew8(adr, val); }$/;"	f
+vmeopw8_parameters	cmdbase.c	/^Tpardesc vmeopw8_parameters[2]={{"adr", 0}, {"val", 0}};$/;"	v
+vmeptr	vmewrap.c	/^  w8 *vmeptr;    \/* NULL: this item in vxsp[] is empty *\/$/;"	m	file:
+vmeptr	vmewrap.c	/^w8 *vmeptr=NULL;$/;"	v
+vmeptr	vmxwrapdelme.c	/^  w8 *vmeptr;$/;"	m	file:
+vmer16	vmewrap.c	/^\/*----------------------------------------------*\/ w16 vmer16(w32 offset) {$/;"	f
+vmer32	vmewrap.c	/^\/*----------------------------------------------*\/ w32 vmer32(w32 offset) {$/;"	f
+vmer8	vmewrap.c	/^\/*----------------------------------------------*\/ w8 vmer8(w32 offset) {$/;"	f
+vmeread	myw.py	/^  def vmeread(self):$/;"	m	class:VmeRW
+vmeread	mywnewbits.py	/^  def vmeread(self):$/;"	m	class:VmeRW
+vmeread	old/mywdec16.py	/^  def vmeread(self):$/;"	m	class:VmeRW
+vmesimClose	vmesim.c	/^int vmesimClose(int vmespace) {$/;"	f
+vmesimOpen	vmesim.c	/^int vmesimOpen(int vmespace, w32 baseaddr, w32 size, w32 am) {$/;"	f
+vmesimr16	vmesim.c	/^w16 vmesimr16(int vmespace,w32 offset){$/;"	f
+vmesimr32	vmesim.c	/^w32 vmesimr32(int vmespace,w32 offset){$/;"	f
+vmesimr8	vmesim.c	/^w8  vmesimr8(int vmespace,w32 offset){$/;"	f
+vmesimreg	vmesim.c	/^int vmesimreg(TspecVmeF pf, int vmespace, w32 vmeaddr, w32 rw) {$/;"	f
+vmesimw16	vmesim.c	/^void vmesimw16(int vmespace,w32 offset, w16 value){$/;"	f
+vmesimw32	vmesim.c	/^void vmesimw32(int vmespace,w32 offset, w32 value){$/;"	f
+vmesimw8	vmesim.c	/^void vmesimw8(int vmespace,w32 offset, w8 value){$/;"	f
+vmespace	vmesim.c	/^  int vmespace;$/;"	m	file:
+vmew16	vmewrap.c	/^\/*----------------------------------*\/ void vmew16(w32 offset, w16 value) {$/;"	f
+vmew32	vmewrap.c	/^\/*----------------------------------*\/ void vmew32(w32 offset, w32 value) {$/;"	f
+vmew8	vmewrap.c	/^\/*----------------------------------*\/ void vmew8(w32 offset, w8 value) {$/;"	f
+vmewrite	myw.py	/^  def vmewrite(self):$/;"	m	class:VmeRW
+vmewrite	mywnewbits.py	/^  def vmewrite(self):$/;"	m	class:VmeRW
+vmewrite	old/mywdec16.py	/^  def vmewrite(self):$/;"	m	class:VmeRW
+vmxclose	vmewrap.c	/^\/*---------------------------------------------*\/ int vmxclose(int vsp) {$/;"	f
+vmxclose	vmxwrapdelme.c	/^\/*---------------------------------------------*\/ int vmxclose(int vsp) {$/;"	f
+vmxopen	vmewrap.c	/^\/*----*\/ int vmxopen(int *vsp, char *BoardBaseAddress, char *BoardSpaceLength) {$/;"	f
+vmxopen	vmxwrapdelme.c	/^\/*---------------------*\/ int vmxopen(int vsp, char *BoardBaseAddress,$/;"	f
+vmxr16	vmewrap.c	/^\/*--------------------------------------*\/ w16 vmxr16(int vsp, w32 offset) {$/;"	f
+vmxr16	vmxwrapdelme.c	/^\/*----------------------------------------------*\/ w16 vmxr16(int vsp, w32 offset) {$/;"	f
+vmxr32	vmewrap.c	/^\/*---------------------------------------*\/ w32 vmxr32(int vsp, w32 offset) {$/;"	f
+vmxr32	vmxwrapdelme.c	/^\/*----------------------------------------------*\/ w32 vmxr32(int vsp, w32 offset) {$/;"	f
+vmxr8	vmewrap.c	/^\/*----------------------------------------*\/ w8 vmxr8(int vsp, w32 offset) {$/;"	f
+vmxr8	vmxwrapdelme.c	/^\/*----------------------------------------*\/ w8 vmxr8(int vsp, w32 offset) {$/;"	f
+vmxw16	vmewrap.c	/^\/*----------------------------*\/ void vmxw16(int vsp, w32 offset, w16 value) {$/;"	f
+vmxw16	vmxwrapdelme.c	/^\/*----------------------------*\/ void vmxw16(int vsp, w32 offset, w16 value) {$/;"	f
+vmxw32	vmewrap.c	/^\/*----------------------------*\/ void vmxw32(int vsp, w32 offset, w32 value) {$/;"	f
+vmxw32	vmxwrapdelme.c	/^\/*----------------------------*\/ void vmxw32(int vsp, w32 offset, w32 value) {$/;"	f
+vmxw8	vmewrap.c	/^\/*----------------------------*\/ void vmxw8(int vsp, w32 offset, w8 value) {$/;"	f
+vmxw8	vmxwrapdelme.c	/^\/*----------------------------*\/ void vmxw8(int vsp, w32 offset, w8 value) {$/;"	f
+vsps	vmesim.c	/^Tvmespace *vsps[MAXVMESPACES]={NULL, NULL, NULL, NULL};$/;"	v
+vxsp	vmewrap.c	/^Tvmespace vxsp[MAXVMESPACES]=$/;"	v
+vxsp	vmxwrapdelme.c	/^Tvmespace vxsp[MAXVMESPACES]=$/;"	v
+w16	vmesim.h	/^typedef unsigned short int w16;$/;"	t
+w16	vmewrap.h	/^typedef unsigned short int w16;$/;"	t
+w16	vmewrapdefs.h	/^typedef unsigned short int w16;$/;"	t
+w16	vmxwrap.h	/^typedef unsigned short int w16;$/;"	t
+w32	vmesim.h	/^typedef unsigned long int w32;$/;"	t
+w32	vmewrap.h	/^typedef unsigned int w32;$/;"	t
+w32	vmewrapdefs.h	/^typedef unsigned int w32;$/;"	t
+w32	vmxwrap.h	/^typedef unsigned long int w32;$/;"	t
+w8	vmesim.h	/^typedef unsigned char w8;$/;"	t
+w8	vmewrap.h	/^typedef unsigned char w8;$/;"	t
+w8	vmewrapdefs.h	/^typedef unsigned char w8;$/;"	t
+w8	vmxwrap.h	/^typedef unsigned char w8;$/;"	t
+w81632	vmesim.h	5;"	d
+w81632	vmewrap.h	6;"	d
+w81632	vmewrapdefs.h	6;"	d
+w81632	vmxwrap.h	5;"	d
+waitcmdw	cmdlin2.py	/^  def waitcmdw(self):$/;"	m	class:ioWindow
+write	cmdlin2.py	/^  def write(self, text):$/;"	m	class:ioWindow
+write	cmdlin2.py	/^  def write(self, text=''):$/;"	m	class:cmdlint
+write	cmdlint.py.delme	/^  def write(self, text):$/;"	m	class:cmdlint

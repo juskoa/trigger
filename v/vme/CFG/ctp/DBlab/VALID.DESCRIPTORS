@@ -1,0 +1,174 @@
+DEMPTY # Always active
+DTRUE # Always active
+# Propagated inputs
+D0ASC 0ASC # ACORDE small scintillator
+D0ASL 0ASL # ACORDE single-muon
+D0AMU 0AMU # ACORDE multi-muon
+D0EMC 0EMC # EMCAL generic L0
+DINT1EMCT l0fINT1 0EMC
+D0SCO 0SCO # SPD cosmics
+D0SMB 0SMB # SPD minimum bias
+D0SH1 0SH1 # SPD high multiplicity
+DSH1 0SH1 # SPD high multiplicity
+DSCO1 0SH2 # SPD high multiplicity = 2
+D0HWU 0HWU # TRD wake up
+D1HCO 1HCO # TRD
+D0LSR 0LSR # TPC laser
+D0T0A 0T0A # T0 A was hit
+D0T0C 0T0C # T0 C was hit
+D0TVX 0TVX # T0 vertex
+D0TCE 0TCE
+D0TSC 0TSC
+D0VBA 0VBA # V0 beam-beam A
+D0VBC 0VBC # V0 beam-beam C
+D0VGA 0VGA # V0 beam-gas A
+D0VGC 0VGC # V0 beam-gas C
+D0MSL 0MSL # MUON_TRG single
+D0OB0 0OB0 # TOF cosmic back-to-back +/- 0
+D0OB1 0OB1 # TOF cosmic back-to-back +/- 1
+D0OB2 0OB2 # TOF cosmic back-to-back +/- 2
+D0OB3 0OB3 # TOF cosmic back-to-back +/- 3
+D0OBE 0OBE # TOF cosmic back-to-back for EMCAL
+D0OCP 0OCP # TOF cosmic for physics
+D0OCV 0OCV # TOF cosmic vertical
+D0OIT 0OIT # TOF cosmic for ITS
+D0PH0 0PH0 # PHOS L0
+D0PCO 0PCO # PHOS L0 cosmic
+D0ZSS 0ZSS # ZDC single side L0
+D1ZSE 1ZSE # ZDC
+D0RG1 0RG1 # DAQ - random 01
+D0RG2 0RG2 # DAQ - random 11
+D0RG3 0RG3 # DAQ - random 10
+D0RG4 0RG4 # DAQ - random 20
+D0RG5 0RG5 # DAQ - random 21
+D0RG6 0RG6 # DAQ - random 00
+D0SBK 0SBK
+D0MUL 0MUL
+D0VBK 0VBK
+#
+# Interactions
+DINT1 l0fINT1 # Interaction 1
+DINT1A l0fINT1 0BPA *0BPC # INT1 with beam from side A not C
+DINT1B l0fINT1 0BPA 0BPC # INT1 with beam from side A and C
+DINT1C l0fINT1 0BPC *0BPA # INT1 with beam from side C not A
+DINT1BEAM1 l0fINT1 0BPA # INT1 with beam from side A
+DINT1BEAM2 l0fINT1 0BPC # INT1 with beam from side C
+#
+DINT5 l0fVBOR # Interaction 5
+DINT5A l0fVBOR 0BPA *0BPC # INT5 with beam from side A not C
+DINT5B l0fVBOR 0BPA 0BPC # INT5 with beam from side A and C
+DINT5C l0fVBOR 0BPC *0BPA # INT5 with beam from side C not A
+DINT5BEAM1 l0fVBOR 0BPA # INT5 with beam from side A
+DINT5BEAM2 l0fVBOR 0BPC # INT5 with beam from side C
+DINT5WU l0fVBOR 0HWU # Interaction 5
+DINT6 0SMB # Interaction 6
+DINT6A 0SMB 0BPA *0BPC # INT6 with beam from side A not C
+DINT6B 0SMB 0BPA 0BPC # INT6 with beam from side A and C
+DINT6C 0SMB 0BPC *0BPA # INT6 with beam from side C not A
+DINT2 l0fVBOR 0SMB # Interaction 2
+DINT3 0SMB 0VBA 0VBC # Interaction 3
+DINT4 l0fINT4 # Interaction 4
+DSMBA 0SMB 0BPA # 0SMB with beam 1
+DSMBC 0SMB 0BPC # 0SMB with beam 2
+DSMBB 0SMB 0BPA 0BPC # 0SMB with beam 1 and 2
+DV0AA 0VBA 0BPA # 0VBA with beam 1
+DV0AC 0VBA 0BPC # 0VBA with beam 2
+DV0AB 0VBA 0BPA 0BPC # 0VBA with beam 1 and 2
+DV0CA 0VBC 0BPA # 0VBC with beam 1
+DV0CC 0VBC 0BPC # 0VBC with beam 2
+DV0CB 0VBC 0BPA 0BPC # 0VBC with beam 1 and 2
+DBEAMA 0BPA *0BPC # Beam from side A not C
+DBEAMC 0BPC *0BPA # Beam from side C not A
+DBEAMB 0BPA 0BPC # Beam from both sides
+DSMBTEST l0fTEST # Test for l0 finction (with 2 detectors)
+#
+# Muon interactions
+DMUS1 l0fINT1 0MSL # INT1 & Single muon
+DMUS1A l0fINT1 0MSL 0BPA *0BPC # INT1 & Single muon & beam A not C
+DMUS1C l0fINT1 0MSL 0BPC *0BPA # INT1 & Single muon & beam C not A
+DMUS1B l0fINT1 0MSL 0BPC 0BPA # INT1 & Single muon & beam A & beam C
+#
+DMUS5 l0fVBOR 0MSL # INT5 & Single muon
+DMUS5A l0fVBOR 0MSL 0BPA *0BPC # INT5 & Single muon & beam A not C
+DMUS5C l0fVBOR 0MSL 0BPC *0BPA # INT5 & Single muon & beam C not A
+DMUS5B l0fVBOR 0MSL 0BPC 0BPA # INT5 & Single muon & beam A & beam C
+DMUS5WU l0fVBOR 0MSL 0HWU
+DMUS6 0SMB 0MSL # INT6 & Single muon
+DMUS6A 0SMB 0MSL 0BPA *0BPC # INT6 & Single muon & beam A not C
+DMUS6C 0SMB 0MSL 0BPC *0BPA # INT6 & Single muon & beam C not A
+DMUS6B 0SMB 0MSL 0BPC 0BPA # INT6 & Single muon & beam A & beam C
+DMSNGL l0fVBOR 0MSL # V0OR & Single muon
+DMLKLO l0fVBOR 0MLL # V0OR & Dimuon like low
+DMULLO l0fVBOR 0MUL # V0OR & Dimuon unlike low
+DMLKHI l0fVBOR 0MLH # V0OR & Dimuon like high
+DMULHI l0fVBOR 0MUH # V0OR & Dimuon unlike high
+#
+# V0 descriptors
+DVBAND 0VBA 0VBC # V0 AND
+DVBOR l0fVBOR # V0 OR
+DVGOR l0fVGOR # V0 beam gas
+DVNGOR *0VGA *0VGC # V0 not beam gas
+DVIAND 0VBA 0VBC *0VGA *0VGC # V0 interaction AND
+DVIOR l0fVBOR *0VGA *0VGC # V0 interaction OR
+#
+# TRD descriptors
+DTRDCO1 0OB3 1HCO # TRD cosmic 1
+DTRDCO2 0HWU 1HCO # TRD cosmic 2
+DTRDCO3 0SCO 1HCO # TRD cosmic 3
+D0TRDSCO 0HWU 0SCO
+D0TRDOB3 0HWU 0OB3
+D0TRDOCP 0HWU 0OCP
+DBEAMBWU 0HWU 0BPC 0BPA
+DINT1WU l0fINT1 0HWU
+DINT1WUB l0fINT1 0HWU 0BPC 0BPA
+DINT1WUA l0fINT1 0HWU *0BPC 0BPA
+DINT1WUC l0fINT1 0HWU 0BPC *0BPA
+DSH1WU 0SH1 0HWU
+DMUS1WU l0fINT1 0MSL 0HWU
+DNOTWU  l0fINT1 *0HWU
+DNOTWUS l0fINT1 *0HWU 0SMB
+DNOTWUA l0fINT1 *0HWU 0VBA
+DNOTWUC l0fINT1 *0HWU 0VBC
+#
+# Simulated inputs
+DSIMBEAMA 0RG1 # Simulated beam from side A
+DSIMBEAMC 0RG2 # Simulated beam from side C
+DSIMBEAMB 0RG1 0RG2 # Simulated beam from both sides
+DSIMBEAMANOTC 0RG1 *0RG2 # Simulated beam from side A not C
+DSIMBEAMCNOTA 0RG2 *0RG1 # Simulated beam from side C not A
+DSIMVBOR l0fSIMVBOR # Simulated V0 OR
+DSIMINT1 l0fSIMINT1 # Simulated interaction 1
+DSIMSMBA 0RG3 0RG1 # Simulated 0SMB with beam 1
+DSIMSMBC 0RG3 0RG2 # Simulated 0SMB with beam 2
+DSIMSMBB 0RG3 0RG1 0RG2 # Simulated 0SMB with beam 1 and 2
+DSIMV0AA 0RG4 0RG1 # Simulated 0VBA with beam 1
+DSIMV0AC 0RG4 0RG2 # Simulated 0VBA with beam 2
+DSIMV0AB 0RG4 0RG1 0RG2 # Simulated 0VBA with beam 1 and 2
+DSIMINT1A l0fSIMINT1 0RG1 *0RG2 # Simulated INT1 with beam from A
+DSIMINT1C l0fSIMINT1 *0RG1 0RG2 # Simulated INT1 with beam from C
+DSIMINT1B l0fSIMINT1 0RG1 0RG2 # Simulated INT1 with beam from A & C
+DSIMINT1MU l0fSIMINT1MU # Simulated interaction 1 for MU
+DSIMINT1MUA l0fSIMINT1MU 0RG1 *0RG2 # Simulated INT1 for MU with beam from A
+DSIMINT1MUC l0fSIMINT1MU *0RG1 0RG2 # Simulated INT1 for MU with beam from C
+DSIMINT1MUB l0fSIMINT1MU 0RG1 0RG2 # Simulated INT1 for MU with beam from A & C
+DSIMMUS1 l0fSIMINT1MU 0RG5 # Simulated INT1&MUON
+DSIMMUS1A l0fSIMINT1MU 0RG5 0RG1 *0RG2 # Simulated INT1&MUON with beam from A
+DSIMMUS1C l0fSIMINT1MU 0RG5 *0RG1 0RG2 # Simulated INT1&MUON with beam from C
+DSIMMUS1B l0fSIMINT1MU 0RG5 0RG1 0RG2 # Simulated INT1&MUON with beam from A & C
+#
+# others (not properly defined)
+#D1ZSENEG *1ZSE
+#D0ZSS1ZMB 0ZSS 1ZMB
+#D0TRDAMU 0HWU 0AMU
+#D0TOFNTRD 0OB3 *0HWU
+#D0NTOFTRD *0OB3 0HWU
+#
+# for counting classes before vetos
+#DBPTXBandSMB 0SH1 0BPA 0BPC
+#DBPTXAandSMB 0SH1 0BPA
+#DBPTXCandSMB 0SH1 0BPC
+#D0MSLa0T0C 0MSL 0T0C
+#D0MSLa0VGA 0MSL 0VGA
+#D0T0Ca0VGA 0T0C 0VGA
+#D0T0Ca0MSLa0VGA 0T0C 0VGA 0MSL
+#D0EID1ZMB 0EID 1ZMB

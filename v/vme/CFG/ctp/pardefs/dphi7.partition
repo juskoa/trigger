@@ -1,0 +1,6 @@
+Version: 2
+BCM2 bcmB
+Clusters:
+ALL
+DPHI7(cn=CPHI7-B-NOPF-ALL,BCM2)
+PHOS

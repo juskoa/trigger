@@ -1,0 +1,680 @@
+/* 
+13.10.2004 VMECCT modified
+1 of the following (defined with gcc -Di$VMEDRIVER option):
+AIX
+VMECCT
+VMERCC
+SIMVME
+MSVISA
+
+1 of the following (defined directly in the source ):
+linux
+WIN32
+
+17.10. multiple vme spaces now possible:
+vmxopen(int vmespace,char *base, char *size)  (vmespace:0..9)
+vmeopen(...) == vmxopen(0,...)
+vmeclose() == vmxclose(0)
+vmer32(...) == vmxr32(0,...)
+
+vmxclose(int vmespace)
+vmx[rw][8,16,32]
+value= vmxr32(vmespace, offset)
+vmxw32(vmespace, offset, value)
+*/
+
+#define linux
+/* #define WIN32 */
+
+#ifdef WIN32
+  #include <stdio.h>
+  #include <signal.h>
+  #include <process.h>
+#endif
+#if defined(linux) || defined(AIX)
+  #include <stdio.h>
+  /* #include <stdlib.h> */
+  #include <sys/time.h>
+  #include <unistd.h>
+  #include <fcntl.h>
+  #include <signal.h>
+#endif 
+
+#include "vmewrap.h"
+#ifdef SIMVME 
+#include "vmesim.h"
+#endif
+#ifdef VMERCC 
+#include "rcc_error/rcc_error.h"
+#include "vme_rcc/vme_rcc.h"
+#endif
+#ifdef VMECCT 
+#include "vme_api.h"
+#define DEVICE_LSI      "lsi0"
+#define DEVICE_CTL      "ctl"
+#define PCI_ADDRESS     0xC0000000
+/*#define WINDOW_SIZE     1024*1024*7     0x1000 = 4KB */
+int lsi_fd;
+w8 *vmeptr=NULL;
+#endif
+#ifdef MSVISA 
+  /*#include "stdafx.h" */
+  #include "visa.h"
+#endif
+
+#include <stdlib.h>
+#include <string.h> 
+
+#ifdef MSVISA
+/* w32 *vmeptr=(w32 *)0; should not be used with VISA */
+ViSession defaultRM, instr; /* Communication channels */
+#endif
+#if defined(AIX) || defined(VMERCC) 
+w8 *vmeptr=NULL;
+int handle;
+#endif
+
+#define MAXVMESPACES 10
+typedef struct {
+  w32 baseaddr;
+  int size;
+  w32 am;
+  int handle;
+  w8 *vmeptr;
+} Tvmespace;
+Tvmespace vxsp[MAXVMESPACES]=
+{0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL,
+ 0,0,0,0,NULL};
+
+/* count:1 -> cca 0.5 micsec (for MLTC=15) */
+#define MLTC 15
+void Delay(int count)
+{
+        int i,j;
+        count = count*MLTC;
+        for (i=0; i<count; i++) {
+                j=i;
+        }
+}
+/*----------------------------------------------*/
+void GetMicSec(w32 *tsec, w32 *tusec) {
+int rc;
+struct timeval tv; struct timezone tz;
+rc=gettimeofday(&tv,&tz);
+*tsec=tv.tv_sec; *tusec=tv.tv_usec;
+}
+w32 DiffSecUsec(tsec,tusec,prevtsec,prevtusec) {
+w32 usecdiff;
+if( tusec >= prevtusec) {
+  usecdiff= 1000000*(tsec-prevtsec) + tusec-prevtusec;
+} else {
+  usecdiff= 1000000*(tsec-prevtsec-1) + prevtusec-tusec;
+};
+return(usecdiff);   /* in microseconds */
+}
+
+w32 loopspermic=0; /* cca 105 loops for vp110 1.2GHz */
+/*----------------------------------------------*/
+void micwait(int micsecs) {
+int i,j;
+if(loopspermic==0) {    /* calibrate */
+  w32 sec,usec,prevsec,prevusec,diffusec;
+  GetMicSec(&prevsec, &prevusec);
+  for(i=1; i<10000; i++) {if (i>0) continue;};
+  GetMicSec(&sec, &usec);
+  diffusec= DiffSecUsec(sec,usec,prevsec,prevusec);
+  loopspermic= 10000./diffusec;
+  /* printf("loopspermic:%d\n",loopspermic);  */
+};
+for(j=0; j<micsecs; j++) {
+  for(i=1; i<loopspermic; i++) {if (i>0) continue;};
+};
+}
+
+/*---------------------------------------------*/ w32 hex2ui(char *ich) {
+/* input: 023d or 023D rc: 573
+   operation: convert ich to binary */
+int i=0; w32 var4=0; char c;
+while( (c=ich[i]) != '\0') {
+  w32 ic=17;
+  if( c>='0' && c<='9') ic= c-'0';
+  if( c>='a' && c<='f') ic= c-'a'+ 10;
+  if( c>='A' && c<='F') ic= c-'A'+ 10;
+  if(ic!=17) var4= (var4<<4) | ic;
+  else break;
+  i++;
+};
+return(var4);
+}
+
+/*----------------------------------------------*/ w8 vmer8(w32 offset) {
+w8 retval=0xde;
+#ifdef SIMVME
+  retval=vmesimr8(0,offset);
+#else
+#ifdef WIN32
+#ifdef MSVISA
+{
+ViStatus status;
+w32 adr;
+adr= offset;
+status = viIn8(instr, VI_A24_SPACE, adr, &retval);
+if (status < VI_SUCCESS) {
+  printf("viIn8 error:%x reading:%x\n", status, adr);
+};
+};
+#endif   /* MSVISA */
+#endif   /* WIN32 */
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+retval= *(w8 *)(vmeptr+offset);
+#endif
+/*printf("vmer8 from %x value:%x\n", offset, retval);*/
+#endif   /*SIMVME */
+return(retval);
+}
+
+/*----------------------------------------------*/ w16 vmer16(w32 offset) {
+w16 retval=0xdead;
+#ifdef SIMVME
+  retval=vmesimr16(0,offset);
+#else
+#ifdef WIN32
+#ifdef MSVISA
+{
+ViStatus status;
+w32 adr;
+adr= offset;
+status = viIn16(instr, VI_A24_SPACE, adr, &retval);
+if (status < VI_SUCCESS) {
+  printf("viIn16 error:%x reading:%x\n", status, adr);
+};
+};
+#endif
+#endif   /* WIN32 */
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+retval= *(w16 *)(vmeptr+offset);
+#endif
+/*printf("vmer16 from %x value:%x\n", offset, retval);*/
+#endif   /*SIMVME */
+return(retval);
+}
+
+/*----------------------------------------------*/ w32 vmer32(w32 offset) {
+w32 retval=0xdeaddead;
+
+#ifdef SIMVME
+  retval=vmesimr32(0,offset);
+#else
+#ifdef WIN32
+#ifdef MSVISA
+{
+ViStatus status;
+w32 adr;
+adr= offset;
+status = viIn32(instr, VI_A24_SPACE, adr, &retval);
+if (status < VI_SUCCESS) {
+  printf("viIn32 error:%x reading:%x\n", status, adr);
+};
+};
+#endif
+#endif   /* WIN32 */
+
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+retval= *(w32 *)(vmeptr+offset);
+/*printf("vmer32 vmeptr:%x from %x value:%x\n", vmeptr, offset, retval); */
+#endif
+#endif   /* SIMVME */
+return(retval);
+}
+/*----------------------------------*/ void vmew8(w32 offset, w8 value) {
+#ifdef SIMVME
+  vmesimw8(0,offset,value);
+#else
+#ifdef WIN32
+#ifdef MSVISA
+{w32 adr;
+ViStatus status; /* For checking errors */
+/* adr= ((w32)(BASEam << 24) | (w32)BASEaddr | (w32)offset) + (w32)vmeptr; */
+adr=offset;
+status = viOut8(instr, VI_A24_SPACE, adr, value);
+if (status < VI_SUCCESS) {
+  printf("viOut8 error:%x\n", status);
+};
+};
+#endif
+#endif
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+*(w8 *)(vmeptr+offset)=value;
+#endif
+#endif   /* SIMVME */
+return;
+}
+/*----------------------------------*/ void vmew16(w32 offset, w16 value) {
+#ifdef SIMVME
+  vmesimw16(0,offset,value);
+#else
+#ifdef WIN32
+#ifdef MSVISA
+{w32 adr;
+ViStatus status; /* For checking errors */
+adr=offset;
+/* adr= ((w32)(BASEam << 24) | (w32)BASEaddr | (w32)offset) + (w32)vmeptr; */
+status = viOut16(instr, VI_A24_SPACE, adr, value);
+if (status < VI_SUCCESS) {
+  printf("viOut16 error:%x\n", status);
+};
+};
+#endif
+#endif
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+*(w16 *)(vmeptr+offset)=value;
+#endif
+#endif   /* SIMVME */
+return;
+}
+/*----------------------------------*/ void vmew32(w32 offset, w32 value) {
+#ifdef SIMVME
+  vmesimw32(0,offset,value);
+#else
+#ifdef WIN32
+#ifdef MSVISA
+{w32 adr;
+ViStatus status; /* For checking errors */
+adr=offset;
+/* adr= ((w32)(BASEam << 24) | (w32)BASEaddr | (w32)offset) + (w32)vmeptr; */
+status = viOut32(instr, VI_A24_SPACE, adr, value);
+if (status < VI_SUCCESS) {
+  printf("viOut32 error:%x\n", status);
+};
+};
+#endif
+#endif
+
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+*(w32 *)(vmeptr+offset)=value;
+#endif
+#endif   /* SIMVME */
+return;
+}
+
+/*---------------------*/ void vmeish() {
+int rccret=0;
+#if defined(VMERCC)
+rccret = VME_BusErrorRegisterSignal(SIGBUS);
+if (rccret != VME_SUCCESS) {
+  printf("VME_BusErrorRegisterSignal() error: %d\n",rccret);
+  VME_ErrorPrint(rccret);
+  exit(8);
+};
+#endif
+}
+
+#ifdef VMECCT
+w32 BoBaLengthcct;
+#endif
+/*----*/ int vmxopen(int vsp, char *BoardBaseAddress, char *BoardSpaceLength) {
+/* BaordBaseAddress: "0xa00000" or "VXI0::450" (VISA)
+ * BoardSpaceLength  "0xCB"
+ */
+w32 am=0xf0;
+int i;
+int rccret=0; /* For checking errors */
+w32 BoBaAd,BoBaLength;
+
+#ifdef MSVISA
+ViStatus status; /* For checking errors */
+#endif
+#ifdef VMERCC
+int lochandle;
+w8 *locvmeptr;
+static VME_MasterMap_t master_map = {0xa00000, 0xCB, VME_A24, 0};
+#endif
+#ifdef VMECCT
+w8 *locvmeptr;
+int lsifdi, ctl_fd, loclsi_fd;
+char version[200];
+w8 swapMode;
+PCI_IMAGE_DATA idata;
+#endif
+
+if(vxsp[vsp].vmeptr != NULL) {
+  printf("Trying to open already opened vme space %d\n",vsp);
+  rccret= 4; goto RCRET;
+};
+BoBaAd=hex2ui(&BoardBaseAddress[2]);
+BoBaLength=hex2ui(&BoardSpaceLength[2]);
+/*printf("base:%x Length:%x\n",BoBaAd,BoBaLength); */
+#ifdef SIMVME
+  if( rccret= vmesimOpen(vsp, BoBaAd, BoBaLength, 1) ) {
+    printf("vmesimOpen() error: %d\n",rccret);
+    goto EXIT8;
+  };
+#else
+#ifdef VMERCC
+if((rccret=VME_Open()) != VME_SUCCESS) {
+  printf("VME_Open() error: %d\n",rccret);
+  goto EXIT8;
+};
+master_map.vmebus_address= BoBaAd;
+master_map.window_size= BoBaLength;
+master_map.address_modifier= VME_A24;
+rccret = VME_MasterMap(&master_map, &lochandle);
+if (rccret != VME_SUCCESS) {
+  printf("VME_MasterMap() error: %d\n",rccret);
+  goto EXIT8;
+};
+rccret = VME_MasterMapVirtualAddress((int)lochandle, (u_int *)&locvmeptr);
+if (rccret != VME_SUCCESS) {
+  printf("VME_MasterMapVirtualAddress() error: %d\n",rccret);
+  goto EXIT8;
+};
+rccret = VME_BusErrorRegisterSignal(SIGBUS);
+if (rccret != VME_SUCCESS) {
+  printf("VME_BusErrorRegisterSignal() error: %d\n",rccret);
+  VME_ErrorPrint(rccret);
+  goto EXIT8;
+};
+vxsp[vsp].baseaddr= BoBaAd;
+vxsp[vsp].size= BoBaLength;
+vxsp[vsp].am= VME_A24;
+vxsp[vsp].handle= lochandle;
+vxsp[vsp].vmeptr= locvmeptr;
+#endif
+#ifdef VMECCT
+/* modified for tb2004:
+- only ltu, ttcvi,top boards used in tb2004, i.e.
+    ltu: 0x81X000
+  ttcvi: 0x80X000
+    top: 0x800200
+Always open device with the length 0x10000 (64KB) and modify then
+vmeptr accordingly
+*/
+/* BoBaLength= 0x10000;   4K with pciBusSpace 0 or 4. 64KB with 1,2,3,5,6,7 */
+rccret= vme_getApiVersion(version);
+/*printf("CCT API version:%s\n", version); */
+  /* open CTL device */
+ctl_fd= vme_openDevice(DEVICE_CTL);
+if (ctl_fd < 0) {
+  printf( "Cannot open device %s \n", DEVICE_CTL );
+  goto EXIT8;
+};
+swapMode = SWAP_MASTER; // 0x0 SWAP_MASTER SWAP_SLAVE SWAP_FAST SWAP_MASK SWAP_PORT
+rccret = vme_setByteSwap( ctl_fd, swapMode );
+vme_closeDevice( ctl_fd  );
+/*printf( "Byte swap: %x with return %d \n", swapMode, rccret );*/
+
+/* find out, if 64K window already mapped: */
+for(i=0; i<MAXVMESPACES; i++) {
+  if(vxsp[i].vmeptr!=NULL && 
+    (vxsp[i].baseaddr&0xffff0000 == BoBaAd&0xffff0000)) {
+    vxsp[vsp].baseaddr= BoBaAd;
+    vxsp[vsp].size= BoBaLength;
+    vxsp[vsp].am= VME_A24;
+    vxsp[vsp].handle= vxsp[i].handle;
+    vxsp[vsp].vmeptr= vxsp[i].vmeptr -
+      (vxsp[i].baseaddr-vxsp[i].baseaddr&0xffff0000) +
+      BoBaAd - (BoBaAd&0xffff0000);
+    /*printf(" vmexop..(%d):lsi_fd:%d vmeptr:%x\n",
+        vsp,vxsp[vsp].handle,vxsp[vsp].vmeptr); */
+    goto RCRET;
+  };
+};
+
+    /* prepare PCI image window */
+idata.pciAddress = PCI_ADDRESS;
+idata.vmeAddress = BoBaAd & 0xffff0000;
+//BoBaLengthcct= BoBaAd - idata.vmeAddress + 0x1000;
+idata.size = 0x10000;
+idata.dataWidth = VME_D32;        // data width 
+idata.addrSpace = VME_A24;  // A32
+idata.postedWrites = 1;
+idata.type = LSI_DATA;
+idata.mode = LSI_USER;
+idata.vmeCycle = 0;
+idata.pciBusSpace = 0;
+idata.ioremap = 1;      // 1 needed for vme_read and vme_write
+  /* open the LSI device */
+for(lsifdi=0; lsifdi<=7; lsifdi++) {
+  char lsidev[5];
+  /* if(lsifdi==0 || lsifdi==4) continue; */
+  sprintf(lsidev,"lsi%d",lsifdi);
+  loclsi_fd = vme_openDevice( lsidev );
+  if( loclsi_fd < 0 ) {
+    /* printf( "Cannot open %s \n", lsidev ); */
+  } else {
+    //printf("Using device %s loclsi_fd:%d\n", lsidev, loclsi_fd);
+    goto OKLSI;
+  };
+};
+printf( "Cannot open vme. Device lsi* not available\n");
+goto EXIT8;
+OKLSI:
+    /* enable PCI image window */
+rccret = vme_enablePciImage( loclsi_fd, &idata );
+if( rccret < 0 ) {
+  printf( "Cannot enable PCI image window: %d \n", rccret );
+  goto EXIT8;
+};
+/*printf("PCI image enable, vmeAddress:%x\n", idata.vmeAddress);*/
+/* rccret = vme_mmap( loclsi_fd, 0, BoBaLengthcct, (u_int *)&locvmeptr); */
+rccret = vme_mmap( loclsi_fd, 0, 0x10000, (u_int *)&locvmeptr); 
+if( rccret < 0 ) {
+  printf( "Cannot map the device: %d \n", rccret );
+  goto EXIT8;
+};
+locvmeptr= locvmeptr + (BoBaAd - (BoBaAd & 0xffff0000));
+vxsp[vsp].baseaddr= BoBaAd;
+vxsp[vsp].size= BoBaLength;
+vxsp[vsp].am= VME_A24;
+vxsp[vsp].handle= loclsi_fd;
+vxsp[vsp].vmeptr= locvmeptr;
+//printf(" vmexopen(%d):lsi_fd:%d vmeptr:%x\n",vsp,loclsi_fd, locvmeptr);
+#endif
+#ifdef MSVISA
+{char BBA[100]="a";
+
+/*printf("alignvar:%d BBA1:%s\n", alignvar, BBA);*/
+/*strcpy(BBA,BoardBaseAddress);*/
+status = viOpenDefaultRM(&defaultRM);
+if (status != VI_SUCCESS) {
+  printf("viOpenDefaultRM error:%x\n", status);
+  goto EXIT8;
+};
+strcpy(BBA, BoardBaseAddress);
+/*printf("BBA2:%s\n", BoardBaseAddress);*/
+strcat(BBA,"::INSTR");  
+/*strcpy(BBA, "VXI0::450::INSTR");*/
+/*printf("BBA:%s\n", BBA);*/
+status = viOpen(defaultRM, BBA, VI_NULL, VI_NULL, &instr);
+if (status != VI_SUCCESS) {
+  printf("viOpen error:%x\n", status);
+  goto EXIT8;
+};
+};
+#endif
+#ifdef AIX
+vmeptr=(w8 *)MapVME(BoBaAd,BoBaLength);
+/*void (*signal(int signum, void (*handler)(int)))(int); 
+ typedef void (*sighandler_t)(int);
+       sighandler_t signal(int signum, sighandler_t handler);
+*/
+/*
+printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
+  BoBaAd, BoardBaseAddress, vmeptr); */
+#endif
+#endif   /* SIMVME */
+RCRET:
+return(rccret);
+EXIT8:
+printf("Base address:%x Length: %d\n",BoBaAd, BoBaLength);
+exit(8);
+}
+/*-----------*/ int vmeopen(char *BoardBaseAddress, char *BoardSpaceLength) {
+int rc;
+FILE *rfile;
+int numofopen;
+rfile=fopen("/tmp/VME.log","r");
+if(rfile == NULL){
+ printf("vmeopen: CANNOT OPEN VME: vannot read file /tmp/VME.log \n");
+ return (-2);
+}
+fscanf(rfile,"%i",&numofopen);
+fclose(rfile);
+if(numofopen >= 8){	
+ printf("vmeopen: CANNOT OPEN VME: Number of opened VME files %i >= 8 \n",numofopen);
+ return(-1); 
+}       	
+#ifdef VMERCC
+rc= vmxopen(0, BoardBaseAddress, BoardSpaceLength);
+handle= vxsp[0].handle;
+vmeptr= vxsp[0].vmeptr;
+#endif
+#ifdef VMECCT
+rc= vmxopen(0, BoardBaseAddress, BoardSpaceLength);
+vmeptr= vxsp[0].vmeptr;
+#endif
+if(rc == 0){
+ rfile=fopen("/tmp/VME.log","w");
+ fprintf(rfile,"%i",numofopen+1);
+ fclose(rfile);
+} else printf(" vmeopen: VME NOT OPENED !, rc=%i \n",rc);
+return(rc);
+}
+
+/*---------------------------------------------*/ int vmexclose(int vsp) {
+int rccret=0; int i;
+w8 *locvmeptr;
+int lsi_fd;
+#ifdef SIMVME
+if( rccret= vmesimClose(0) ) {
+  printf("vmesimClose() error: %d\n",rccret);
+};
+#endif
+#ifdef VMERCC
+rccret = VME_MasterUnmap(vxsp[vsp].handle);
+if (rccret != VME_SUCCESS) {
+  printf("VME_MasterUnmap() error: %d\n",rccret);
+};
+vxsp[vsp].baseaddr= 0;
+vxsp[vsp].vmeptr= NULL;
+rccret = VME_Close();
+if (rccret != VME_SUCCESS) {
+  printf("VME_Close() error: %d\n",rccret);
+};
+#endif
+#ifdef MSVISA
+ViStatus status;
+status = viClose(instr);
+status = viClose(defaultRM);
+#endif
+#ifdef AIX
+UnmapVME();
+vmeptr=NULL;
+#endif
+#ifdef VMECCT 
+/* find out whether the window is used: */
+for(i=0; i<MAXVMESPACES; i++) {
+  if(vxsp[i].vmeptr!=NULL && (i != vsp) &&
+    (vxsp[vsp].baseaddr&0xffff0000 == vxsp[vsp].baseaddr&0xffff0000)) {
+    /* the window is still used: */
+    /*printf(" vmexclo..(%d):lsi_fd:%d vmeptr:%x\n",
+      vsp,vxsp[vsp].handle, vxsp[vsp].vmeptr); */
+    vxsp[vsp].vmeptr= NULL;
+    goto RCRET;
+  };
+};
+lsi_fd= vxsp[vsp].handle;
+locvmeptr= vxsp[vsp].vmeptr - 
+  (vxsp[vsp].baseaddr - (vxsp[vsp].baseaddr & 0xffff0000));
+//printf(" vmexclose(%d):lsi_fd:%d vmeptr:%x\n",vsp,lsi_fd, locvmeptr);
+/* rccret = vme_unmap( lsi_fd, (u_int )locvmeptr, BoBaLength); */
+rccret = vme_unmap( vxsp[vsp].handle, (u_int )locvmeptr, 0x10000); 
+if( rccret < 0 ) {
+  printf( "Cannot unmap PCI image window \n" );
+};
+rccret = vme_disablePciImage( lsi_fd );
+if( rccret != 0 ) {
+  printf( "Cannot disable PCI image window \n" );
+};
+  /* close LSI device */
+vme_closeDevice( lsi_fd ); 
+/*printf( "Device %s is closed: %d \n", DEVICE_LSI, lsi_fd );*/
+//usleep(1000000); -no help
+  /* close CTL device */
+/* vme_closeDevice( ctl_fd  ); */
+/*printf( "Device %s is closed: %d \n", DEVICE_CTL, ctl_fd );*/
+ vxsp[vsp].vmeptr=NULL;
+#endif
+RCRET:
+return(rccret);
+}
+/*---------------------------------------------*/ int vmeclose() {
+int rc;
+FILE *rfile;
+int numofopen;
+rc= vmexclose(0);
+vmeptr=NULL;
+if(rc == 0){
+ rfile=fopen("/tmp/VME.log","r");
+ if(rfile == NULL) {
+  printf("vmeclose: cannot open VME.log\n");
+  return(rc);
+ }	 
+ fscanf(rfile,"%i",&numofopen);
+ fclose(rfile);
+ rfile=fopen("/tmp/VME.log","w");
+ fprintf(rfile,"%i",numofopen-1);
+ fclose(rfile); 
+}
+return(rc);
+}
+/*----------------------------------------*/ w8 vmxr8(int vsp, w32 offset) {
+w8 retval=0xde;
+
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+retval= *(w8 *)(vxsp[vsp].vmeptr+offset);
+#endif
+return(retval);
+}
+/*--------------------------------------*/ w16 vmxr16(int vsp, w32 offset) {
+w16 retval=0xdead;
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+retval= *(w16 *)(vxsp[vsp].vmeptr+offset);
+#endif
+return(retval);
+}
+
+/*---------------------------------------*/ w32 vmxr32(int vsp, w32 offset) {
+w32 retval=0xdeaddead;
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+retval= *(w32 *)(vxsp[vsp].vmeptr+offset);
+#endif
+return(retval);
+}
+/*----------------------------*/ void vmxw8(int vsp, w32 offset, w8 value) {
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+*(w8 *)(vxsp[vsp].vmeptr+offset)=value;
+#endif
+return;
+}
+/*----------------------------*/ void vmxw16(int vsp, w32 offset, w16 value) {
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+*(w16 *)(vxsp[vsp].vmeptr+offset)=value;
+#endif
+return;
+}
+/*----------------------------*/ void vmxw32(int vsp, w32 offset, w32 value) {
+#if defined(AIX) || defined(VMERCC) || defined(VMECCT)
+*(w32 *)(vxsp[vsp].vmeptr+offset)=value;
+#endif
+return;
+}
+

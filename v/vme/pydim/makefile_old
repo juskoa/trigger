@@ -1,0 +1,55 @@
+CC=$(VMEGCC)
+#CC=gcc
+SDIR= .
+ODIR= linux
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+##LIBS= -L$(VMEBDIR)/vmeblib/linux_s -lvmeb -L/opt/act -lACT 
+LIBS= -L$(VMEBDIR)/vmeblib -lvmeb -L$(VMECFDIR)/ctp/ctplib -lctp -L/opt/act -lACT 
+#test pcalicebhm10 complink (no ctp) getINT12fromcfg -is missing:
+#LIBS= -L$(VMEBDIR)/vmeblib -lvmeb -L/opt/act -lACT 
+ifdef DATE_INFOLOGGER_DIR
+INCDIRS=-I$(DATE_INFOLOGGER_DIR)
+LIBS +=-L$(DATE_INFOLOGGER_DIR) -lInfo
+CCDEFS=
+else
+INCDIRS=
+CCDEFS=-DNOINFOLOGGER
+endif
+ifdef DATE_DAQLOGBOOK_DIR
+INCDIRS +=-I$(DATE_DAQLOGBOOK_DIR)
+CCDEFS +=-DDAQLOGBOOK
+LIBS +=-L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook 
+endif
+LIBS += $(MYSQLLIBS) -L$(DIMDIR)/linux -ldim
+ifeq ($(CC),g++)
+CCDEFS +=-DCPLUSPLUS
+endif
+
+CFLAGS= -g $(CCDEFS) $(INCDIRS) -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib -I$(VMECFDIR)/ctp_proxy -I$(VMECFDIR)/ctp/ctplib
+LDFLAGS = -lpthread
+
+all:    $(ODIR)/client $(ODIR)/server $(ODIR)/act_main $(ODIR)/comment2daqlog
+
+##$(VMEBDIR)/vmeblib/linux_s/libvmeb.a $(VMECFDIR)/ctp/ctplib/libctp.a
+
+$(ODIR)/server: $(ODIR)/server.o $(VMEBDIR)/vmeblib/lexan.h \
+ $(VMEBDIR)/vmeblib/libvmeb.a $(VMECFDIR)/ctp/ctplib/libctp.a \
+ /opt/act/libACT.a 
+	$(CC) $(LDFLAGS) $(ODIR)/server.o $(LIBS) \
+ -o $(ODIR)/server 
+$(ODIR)/server.o: $(SDIR)/server.c $(VMEBDIR)/vmeblib/lexan.h
+	$(CC) -c $(CFLAGS) $(SDIR)/server.c -o $(ODIR)/server.o
+
+$(ODIR)/client: $(SDIR)/client.c $(DIMDIR)/$(ODIR)/libdim.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/client.c \
+ -L$(DIMDIR)/linux -ldim -o $(ODIR)/client 
+# $(LIBS) -o $(ODIR)/client 
+$(ODIR)/comment2daqlog: $(SDIR)/comment2daqlog.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/comment2daqlog.c \
+ $(LIBS) -o $(ODIR)/comment2daqlog 
+$(ODIR)/act_main: $(SDIR)/act_main.c $(VMEBDIR)/vmeblib/libvmeb.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/act_main.c \
+ $(LIBS) -o $(ODIR)/act_main 
+clean:
+	-rm $(ODIR)/server $(ODIR)/client $(ODIR)/comment2daqlog
+

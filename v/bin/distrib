@@ -1,0 +1,157 @@
+#!/bin/bash
+# this script should be started  in trigger@pcalicebhm05 account. It creates
+# file vmebltu.tar in home directory
+#
+function rmnn() {
+cd $1
+pwd
+rm *.o *.pyc *old *.exe *.out .* *.s *.a
+}
+#
+#if [ `dirname $VMEBDIR` != `dirname $VMECFDIR` ] ;then
+#  echo "bad VMECFDIR, VMEBDIR ($VMECFDIR, $VMEBDIR)"
+#  exit
+#fi
+if [ $# -eq 0 ] ;then
+  cat - <<-EOF
+VMEBDIR, VMECFDIR env. variables have to be set correctly 
+currently they are:
+VMEBDIR=$VMEBDIR
+VMECFDIR=$VMECFDIR
+
+Usage:
+1. preparing LTU distribution:
+distrib ALL        -prepare LTU distribution ($HOME/vmebltu.tar)
+
+2. install LTU:
+unpack:
+cd v ; tar -xf../vmebltu.tar 
+  -now update the files: 
+     vmeb/vmeai.make.$VMEDRIVER
+     scripts/vmebse.bash
+  -set environment variables:
+. scripts/vmebse.bash
+  -compile and link:
+distrib make
+
+EOF
+  exit
+fi
+if [ "$VMECFDIR" == "" ] ;then
+  echo "VMECFDIR not defined"
+  exit
+fi
+if [ "$VMEBDIR" == "" ] ;then
+  echo "VMEBDIR not defined"
+  exit
+fi
+cfdir=`dirname $VMECFDIR`
+distrfile="$HOME/vmebltu.tar"
+if [ "$1" == "ALL" ] ;then
+  rm $distrfile
+  names='vmeb ltu ltu_proxy ltudim ttcvi VME2FPGA'     #vmeb has to be 1st!
+  #names='vmeb ltu ttcvi VME2FPGA'     #vmeb has to be 1st!
+else
+  names=$*
+fi
+if [ "$1" == "clean" ] ;then
+  #rmnn $VMECFDIR/ttcvi
+  #rm $VMECFDIR/ttcvi/ttcvi.make
+  rmnn $VMECFDIR/ltu
+  rm $VMECFDIR/ltu/ltu.make
+  rmnn $VMECFDIR/ltu/ltulib/linux_c
+  rm $VMECFDIR/SSMANA/ssmana.exe
+  rmnn $VMECFDIR/VME2FPGA
+  rm $VMECFDIR/VME2FPGA/VME2FPGA.make
+  rmnn $VMEBDIR
+  rmnn $VMEBDIR/vmeblib/linux_c
+  rm $VMECFDIR/ltu_proxy/linux/*
+  rm $VMECFDIR/ltudim/linux/*
+  exit
+fi
+if [ "$1" == "make" ] ;then
+  cd $VMEBDIR/vmeblib ; make
+  cd $VMECFDIR/ltu/ltulib ; make
+  if [ "$DIMDIR" == "" ] ;then
+    echo
+    echo "DIMDIR not defined -necessary for ltudim"
+    echo
+  else
+    cd $VMECFDIR/ltudim ; mkdir linux ; make
+  fi
+  #$VMEBDIR/comp.py ttcvi
+  $VMEBDIR/comp.py ltu
+  $VMEBDIR/comp.py VME2FPGA
+  cd $VMECFDIR/SSMANA ; gcc ssmanv.c -o ssmanv.exe
+  if [ "$SMIDIR" == "" ] ;then
+    echo
+    echo "SMIDIR not defined -necessary for ltu_proxy"
+    echo
+  else
+    cd $VMECFDIR/ltu_proxy ; make
+  fi
+  if [ -e $VMECFDIR/CFG/ltu/ltuttc.cfg ] ;then
+    echo "using existing $VMECFDIR/CFG/ltu/ltuttc.cfg"
+  else
+    echo "creating $VMECFDIR/CFG/ltu/ltuttc.cfg"
+    cp $VMECFDIR/CFG/ltu/ltuttc.cfglab $VMECFDIR/CFG/ltu/ltuttc.cfg
+  fi
+  mkdir -p $VMEWORKDIR/WORK
+  exit
+fi
+#mv ../vmebltu.tar ../vmebltu.tar.old
+RVF='--no-recursion -rvf'
+for pn in $names ;do
+  if [ $pn == 'vmeb' ] ;then
+    echo "pwd:" `pwd`
+    mkdir $VMECFDIR/../scripts
+    cd $VMECFDIR/../../bin
+    cp -a vmebse_lab.bash $VMECFDIR/../scripts/vmebse.bash
+    cp -a distrib ltuproxy.sh loadLTUfpga seq2slm.bash \
+      $VMECFDIR/../scripts/
+    cd `dirname $VMEBDIR`
+    #ls vmeb/*.c vmeb/*.py vmeb/vmeai.make* vmeb/*.h vmeb/*.bash
+    tar --no-recursion -cvf $distrfile vmeb/*.c vmeb/*.py \
+ vmeb/vmeai.make* vmeb/*.h \
+ vmeb/vmeblib/*.[ch] vmeb/vmeblib/Makefile vmeb/vmeblib/make_new \
+ vmeb/com_defs.make vmeb/lib_stuff.make \
+ vmeb/daq_defs.make vmeb/sc.make \
+ vmeb/vmeblib/linux_c/ \
+ vme/CFG/ctp/DB/ttcparts.cfg scripts/* \
+ vme/SSMANA/*.c DOC/Installation DOC/history.txt DOC/prog.txt 
+  elif [ $pn == 'VME2FPGA' ] ;then
+    cd $cfdir
+    tar -rvf $distrfile vme/$pn/*.py vme/$pn/*.h vme/$pn/*.c
+  elif [ $pn == 'ltu' ] ;then
+    cd $cfdir
+    ltd='vme/ltu' ; ltw='vme/WORK' ; lts='vme/CFG/ltu/SLM'
+    #lnc='vme/ltu_proxy/noclasses'
+    tar --no-recursion -rvf $distrfile $ltd/*.py $ltd/*.tcl \
+ $ltd/*.h $ltd/*.c \
+ $ltd/ltulib/*.c $ltd/ltulib/Makefile $ltd/ltulib/make_new \
+ $ltd/ltulib/linux_c/ \
+ vme/CFG/ltu/ltu_b5.rbf vme/CFG/ltu/ltu_b6.rbf \
+ vme/CFG/ltu/ltu2_b6.rbf vme/CFG/ltu/readme \
+ vme/CFG/ltu/init.mac vme/CFG/ltu/run.mac vme/CFG/ltu/ltuttc.cfgall \
+ vme/CFG/ltu/ltuttc.cfg \
+ vme/CFG/ltu/SLMproxy/eod.seq vme/CFG/ltu/SLMproxy/sod.seq \
+ vme/CFG/ltu/SLMproxy/L2a.seq \
+ vme/CFG/ltu/SLMproxy/sync.seq vme/CFG/ltu/SLMproxy/L2async.seq \
+ $lts/L2a.slm $lts/all.slm $lts/sod.slm $lts/eod.slm \
+ $lts/run*err.slm $lts/sync.slm $lts/L2async.slm $lts/synconly.slm
+  elif [ $pn == 'ltu_proxy' ] ;then
+    cd $cfdir ; ltp='vme/ltu_proxy'
+    tar $RVF $distrfile $ltp/*.[ch] \
+      $ltp/Makefile* $ltp/make_new $ltp/linux/
+  elif [ $pn == 'ltudim' ] ;then
+    cd $cfdir ; ltp='vme/ltudim'
+    tar $RVF $distrfile $ltp/*.c $ltp/makefile* $ltp/linux/
+  elif [ $pn == 'ttcvi' ] ;then
+    cd $cfdir ; ltp='vme/ttcvi'
+    tar $RVF $distrfile $ltp/ttcvi.h
+  else
+    cd $cfdir
+    #ls vme/$pn.cf vme/$pn/*_u.py
+    tar -rvf $distrfile vme/$pn/*.py vme/$pn/*.[hc] vme/CFG/$pn
+  fi
+done

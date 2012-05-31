@@ -1,0 +1,136 @@
+[altri1] /home/alice/aj/v/vme/ctp_proxy > ps
+  PID TTY          TIME CMD
+13984 pts/2    00:00:00 bash
+14233 pts/2    00:00:00 xterm
+14610 pts/2    00:00:00 xterm
+13148 pts/2    00:00:00 ps
+[altri1] /home/alice/aj/v/vme/ctp_proxy > ./swtrcheck.py 
+popen2(linux/test)
+runs: 10 okSOD: 10 okEOD: 10 ph: 165 ph received: 165
+runs: 20 okSOD: 20 okEOD: 20 ph: 330 ph received: 330
+runs: 30 okSOD: 30 okEOD: 30 ph: 492 ph received: 492
+runs: 40 okSOD: 40 okEOD: 40 ph: 653 ph received: 653
+runs: 50 okSOD: 50 okEOD: 50 ph: 815 ph received: 815
+runs: 60 okSOD: 60 okEOD: 60 ph: 979 ph received: 979
+runs: 70 okSOD: 70 okEOD: 70 ph: 1145 ph received: 1145
+runs: 80 okSOD: 80 okEOD: 80 ph: 1311 ph received: 1311
+runs: 90 okSOD: 90 okEOD: 90 ph: 1474 ph received: 1474
+runs: 100 okSOD: 100 okEOD: 100 ph: 1640 ph received: 1640
+runs: 110 okSOD: 110 okEOD: 110 ph: 1805 ph received: 1805
+runs: 120 okSOD: 120 okEOD: 120 ph: 1970 ph received: 1970
+runs: 130 okSOD: 130 okEOD: 130 ph: 2132 ph received: 2132
+runs: 140 okSOD: 140 okEOD: 140 ph: 2298 ph received: 2298
+runs: 150 okSOD: 150 okEOD: 150 ph: 2462 ph received: 2462
+runs: 160 okSOD: 160 okEOD: 160 ph: 2626 ph received: 2626
+runs: 170 okSOD: 170 okEOD: 170 ph: 2791 ph received: 2791
+runs: 180 okSOD: 180 okEOD: 180 ph: 2957 ph received: 2957
+runs: 190 okSOD: 190 okEOD: 190 ph: 3124 ph received: 3124
+runs: 200 okSOD: 200 okEOD: 200 ph: 3287 ph received: 3287
+runs: 210 okSOD: 210 okEOD: 210 ph: 3451 ph received: 3451
+runs: 220 okSOD: 220 okEOD: 220 ph: 3614 ph received: 3614
+runs: 230 okSOD: 230 okEOD: 230 ph: 3780 ph received: 3780
+runs: 240 okSOD: 240 okEOD: 240 ph: 3943 ph received: 3943
+runs: 250 okSOD: 250 okEOD: 250 ph: 4105 ph received: 4105
+runs: 260 okSOD: 260 okEOD: 260 ph: 4272 ph received: 4272
+runs: 270 okSOD: 270 okEOD: 270 ph: 4435 ph received: 4435
+runs: 280 okSOD: 280 okEOD: 280 ph: 4600 ph received: 4600
+runs: 290 okSOD: 290 okEOD: 290 ph: 4762 ph received: 4762
+runs: 300 okSOD: 300 okEOD: 300 ph: 4928 ph received: 4928
+runs: 310 okSOD: 310 okEOD: 310 ph: 5093 ph received: 5093
+runs: 320 okSOD: 320 okEOD: 320 ph: 5258 ph received: 5258
+runs: 330 okSOD: 330 okEOD: 330 ph: 5421 ph received: 5421
+runs: 340 okSOD: 340 okEOD: 340 ph: 5584 ph received: 5584
+runs: 350 okSOD: 350 okEOD: 350 ph: 5751 ph received: 5751
+runs: 360 okSOD: 360 okEOD: 360 ph: 5915 ph received: 5915
+runs: 370 okSOD: 370 okEOD: 370 ph: 6078 ph received: 6078
+runs: 380 okSOD: 380 okEOD: 380 ph: 6243 ph received: 6243
+runs: 390 okSOD: 390 okEOD: 390 ph: 6407 ph received: 6407
+runs: 400 okSOD: 400 okEOD: 400 ph: 6570 ph received: 6570
+runs: 410 okSOD: 410 okEOD: 410 ph: 6731 ph received: 6731
+runs: 420 okSOD: 420 okEOD: 420 ph: 6894 ph received: 6894
+runs: 430 okSOD: 430 okEOD: 430 ph: 7060 ph received: 7060
+runs: 440 okSOD: 440 okEOD: 440 ph: 7223 ph received: 7223
+runs: 450 okSOD: 450 okEOD: 450 ph: 7387 ph received: 7387
+runs: 460 okSOD: 460 okEOD: 460 ph: 7554 ph received: 7554
+runs: 470 okSOD: 470 okEOD: 470 ph: 7715 ph received: 7715
+runs: 480 okSOD: 480 okEOD: 480 ph: 7879 ph received: 7879
+runs: 490 okSOD: 490 okEOD: 490 ph: 8044 ph received: 8044
+runs: 500 okSOD: 500 okEOD: 500 ph: 8210 ph received: 8210
+runs: 510 okSOD: 510 okEOD: 510 ph: 8374 ph received: 8374
+runs: 520 okSOD: 520 okEOD: 520 ph: 8540 ph received: 8540
+runs: 530 okSOD: 530 okEOD: 530 ph: 8704 ph received: 8704
+runs: 540 okSOD: 540 okEOD: 540 ph: 8869 ph received: 8869
+runs: 550 okSOD: 550 okEOD: 550 ph: 9031 ph received: 9031
+runs: 560 okSOD: 560 okEOD: 560 ph: 9196 ph received: 9196
+runs: 570 okSOD: 570 okEOD: 570 ph: 9361 ph received: 9361
+runs: 580 okSOD: 580 okEOD: 580 ph: 9523 ph received: 9523
+runs: 590 okSOD: 590 okEOD: 590 ph: 9689 ph received: 9689
+runs: 600 okSOD: 600 okEOD: 600 ph: 9852 ph received: 9852
+runs: 610 okSOD: 610 okEOD: 610 ph: 10018 ph received: 10018
+runs: 620 okSOD: 620 okEOD: 620 ph: 10179 ph received: 10179
+runs: 630 okSOD: 630 okEOD: 630 ph: 10343 ph received: 10343
+runs: 640 okSOD: 640 okEOD: 640 ph: 10509 ph received: 10509
+runs: 650 okSOD: 650 okEOD: 650 ph: 10673 ph received: 10673
+runs: 660 okSOD: 660 okEOD: 660 ph: 10836 ph received: 10836
+runs: 670 okSOD: 670 okEOD: 670 ph: 11003 ph received: 11003
+runs: 680 okSOD: 680 okEOD: 680 ph: 11169 ph received: 11169
+runs: 690 okSOD: 690 okEOD: 690 ph: 11333 ph received: 11333
+runs: 700 okSOD: 700 okEOD: 700 ph: 11496 ph received: 11496
+runs: 710 okSOD: 710 okEOD: 710 ph: 11659 ph received: 11659
+runs: 720 okSOD: 720 okEOD: 720 ph: 11824 ph received: 11824
+runs: 730 okSOD: 730 okEOD: 730 ph: 11989 ph received: 11989
+runs: 740 okSOD: 740 okEOD: 740 ph: 12153 ph received: 12153
+runs: 750 okSOD: 750 okEOD: 750 ph: 12316 ph received: 12316
+runs: 760 okSOD: 760 okEOD: 760 ph: 12482 ph received: 12482
+runs: 770 okSOD: 770 okEOD: 770 ph: 12646 ph received: 12646
+runs: 780 okSOD: 780 okEOD: 780 ph: 12811 ph received: 12811
+runs: 790 okSOD: 790 okEOD: 790 ph: 12975 ph received: 12975
+runs: 800 okSOD: 800 okEOD: 800 ph: 13139 ph received: 13139
+runs: 810 okSOD: 810 okEOD: 810 ph: 13303 ph received: 13303
+runs: 820 okSOD: 820 okEOD: 820 ph: 13465 ph received: 13465
+runs: 830 okSOD: 830 okEOD: 830 ph: 13631 ph received: 13631
+runs: 840 okSOD: 840 okEOD: 840 ph: 13795 ph received: 13795
+runs: 850 okSOD: 850 okEOD: 850 ph: 13959 ph received: 13959
+runs: 860 okSOD: 860 okEOD: 860 ph: 14121 ph received: 14121
+runs: 870 okSOD: 870 okEOD: 870 ph: 14282 ph received: 14282
+runs: 880 okSOD: 880 okEOD: 880 ph: 14445 ph received: 14445
+runs: 890 okSOD: 890 okEOD: 890 ph: 14608 ph received: 14608
+runs: 900 okSOD: 900 okEOD: 900 ph: 14774 ph received: 14774
+runs: 910 okSOD: 910 okEOD: 910 ph: 14939 ph received: 14939
+runs: 920 okSOD: 920 okEOD: 920 ph: 15103 ph received: 15103
+runs: 930 okSOD: 930 okEOD: 930 ph: 15267 ph received: 15267
+runs: 940 okSOD: 940 okEOD: 940 ph: 15433 ph received: 15433
+runs: 950 okSOD: 950 okEOD: 950 ph: 15598 ph received: 15598
+runs: 960 okSOD: 960 okEOD: 960 ph: 15763 ph received: 15763
+runs: 970 okSOD: 970 okEOD: 970 ph: 15926 ph received: 15926
+runs: 980 okSOD: 980 okEOD: 980 ph: 16091 ph received: 16091
+runs: 990 okSOD: 990 okEOD: 990 ph: 16256 ph received: 16256
+runs: 1000 okSOD: 1000 okEOD: 1000 ph: 16419 ph received: 16419
+exiting  pcald36
+closing self.sockobj
+[altri1] /home/alice/aj/v/vme/ctp_proxy > 
+
+[altri1] /home/alice/aj/v/vme/ctp_proxy > ./swtrcheck.py 
+popen2(linux/test)
+runs: 10 okSOD: 10 okEOD: 10 ph: 5029 ph received: 5029
+runs: 20 okSOD: 20 okEOD: 20 ph: 10058 ph received: 10058
+runs: 30 okSOD: 30 okEOD: 30 ph: 15087 ph received: 15087
+runs: 40 okSOD: 40 okEOD: 40 ph: 20115 ph received: 20115
+runs: 50 okSOD: 50 okEOD: 50 ph: 25143 ph received: 25143
+runs: 60 okSOD: 60 okEOD: 60 ph: 30173 ph received: 30173
+runs: 70 okSOD: 70 okEOD: 70 ph: 35203 ph received: 35203
+runs: 80 okSOD: 80 okEOD: 80 ph: 40233 ph received: 40233
+runs: 90 okSOD: 90 okEOD: 90 ph: 45263 ph received: 45263
+runs: 100 okSOD: 100 okEOD: 100 ph: 50293 ph received: 50293
+runs: 110 okSOD: 110 okEOD: 110 ph: 55323 ph received: 55323
+runs: 120 okSOD: 120 okEOD: 120 ph: 60349 ph received: 60349
+runs: 130 okSOD: 130 okEOD: 130 ph: 65378 ph received: 65378
+runs: 140 okSOD: 140 okEOD: 140 ph: 70408 ph received: 70408
+runs: 150 okSOD: 150 okEOD: 150 ph: 75437 ph received: 75437
+runs: 160 okSOD: 160 okEOD: 160 ph: 80467 ph received: 80467
+runs: 170 okSOD: 170 okEOD: 170 ph: 85497 ph received: 85497
+runs: 180 okSOD: 180 okEOD: 180 ph: 90527 ph received: 90527
+runs: 190 okSOD: 190 okEOD: 190 ph: 95557 ph received: 95557
+runs: 200 okSOD: 200 okEOD: 200 ph: 100587 ph received: 100587
+exiting  pcald36
+

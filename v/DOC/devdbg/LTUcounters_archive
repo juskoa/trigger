@@ -1,0 +1,5 @@
+We do not have LTU counters (like ctp counters in CNTRRD/rawcnts/ -
+1 file per day).
+Goal:
+modify CNTRRD/readltuc.c so, it writes 1 file/day (or 24 files per day?)
+for LTU counters

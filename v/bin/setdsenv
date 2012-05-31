@@ -1,0 +1,46 @@
+# this should be started (from bash): . ./setdsenv
+# to be able to:
+# - start smiTrans, dns, did, smiSM, smiGUI,...
+# -to develop server's software in v/vme: CNTRRD, pydim, TRG_DBED,dimcdistrib
+rdir=/data/ClientCommonRootFs/usr/local/trigger/
+export VMEDRIVER=VMERCC
+export VMEBDIR=$rdir/v/vmeb
+export VMECFDIR=$rdir/v/vme
+export VMEWORKDIR=~/v/vme
+export PYTHONPATH=$VMEBDIR
+export VMESITE=SERVER  
+alias vmedirs='echo   VMEDRIVER:$VMEDRIVER    VMESITE:$VMESITE; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR'
+
+export DIM_DNS_NODE=pcald30
+dimd=/opt/dim
+smid=/opt/smi
+#
+#for ltu makefile
+export OS=Linux
+export ODIR=linux
+export DIMDIR=$dimd
+export SMIDIR=$smid
+#export PATH=$dimd/linux:$smid/linux:$PATH
+# for dns, smiGUI:
+export LD_LIBRARY_PATH=$dimd/linux:$smid/linux
+#
+# for LTUxx (has to be started without ./ from ltu directory)
+export PATH=$PATH:$rdir/bin
+alias TestServer=$DIMDIR/$ODIR/testServer
+alias TestClient=$DIMDIR/$ODIR/testClient
+alias Test_server=$DIMDIR/$ODIR/test_server
+alias Test_client=$DIMDIR/$ODIR/test_client
+alias Dns=$DIMDIR/$ODIR/dns
+alias Dim_get_service=$DIMDIR/$ODIR/dim_get_service
+alias Dim_send_command=$DIMDIR/$ODIR/dim_send_command
+alias DimBridge=$DIMDIR/$ODIR/DimBridge
+alias Did=$DIMDIR/$ODIR/did
+
+alias smiTrans=$SMIDIR/$ODIR/smiTrans
+alias smiGen=$SMIDIR/$ODIR/smiGen
+alias smiSM=$SMIDIR/$ODIR/smiSM
+alias smiSendCommand=$SMIDIR/$ODIR/smiSendCommand
+alias smiPreproc=$SMIDIR/$ODIR/smiPreproc
+alias smiKill=$SMIDIR/$ODIR/smiKill
+alias smiGUI=$SMIDIR/$ODIR/smiGUI
+

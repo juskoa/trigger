@@ -1,0 +1,37 @@
+Problem:
+to copy definition of interaction record from ctp.cfg file to rcfg file.
+It should be in the format of logical function of input names.
+
+Current status (TRG_DBED/DOC/rundemo3.rcfg):
+# Interaction is any function of first 4 L0 inputs (look-up table)
+# ored with signals RND1,RND2,BC1,BC2
+# Resulting INT* is logical OR of signals. In this example:
+# INT1 is defined as (VZERO & SPD_GF0) OR BC1
+# INT2 is defined as VZERO
+INTERACTIONS:
+INT1  0FMB2 BC1 
+#INT2  0xcccc -rejected -we use symbolic expression
+
+0FMB2 is defined in L0FUNCTIONS -which is not quite correct.
+
+Explanation:
+L0 functions: there can be max. 2 definitions used for L0 inputs in one time
+INT functions: in addition there are 2 INT functions.
+The question is:
+Should definition of INT functions be given in L0FUNCTIONS section?
+I see 2 ways how to cope with this:
+1. (I prefere this way):
+There are no INT function names -INT1 INT2 are directly defined
+in INT1/2 lines (with BC1/2 RND1/2 added with '|' operator
+2. 
+If yes, we should agree at least on different names for INT functions.
+L0 functions starts with '0' (currently with 'l0f'), let's INT functions
+start with 'intf'.
+
+------------
+22.1.2010 solved (see 1. above)  and tested in lab.
+Old way (i.e. lookup table with added BC1/2 RND1/2 -as they
+are loaded in ctp (propagates from ctp_proxy though DIM to pydim) is
+left as comment lines in .rcfg too
+
+

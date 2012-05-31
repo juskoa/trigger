@@ -1,0 +1,254 @@
+Contents:
+1.1. accounts, machines
+1.2. where are helps/notes
+2. files here
+3. How to prepare LTU distribution
+4. How to prepare ltuclient distribution
+5. Files in DOC directory:
+6. environment variables
+7. DAQ rpm...
+
+1.1. accounts, machines
+-----------------------
+trigger@pcalicebhm05:/data/ClientCommonRootFs/usr/local/trigger/vd
+Master copy of all the software. I.e the development should be done here
+and only then copied to:
+- ../v (diskless machines on CERN network)
+- pit (gcc used for compilations)
+
+/data/ClientCommonRootFs/usr/local/trigger/bin 
+Scripts for start/stop administration
+
+!!!!!!!
+We use g++ here (libraries are compiled wih g++) in vd directory.
+In the pit we use gcc
+
+trigger@altri1 -uses old (i.e. v) software -the one used for CERN network
+triad@altri1   -used new (vd) software
+
+1.2. where are helps/notes -master copies of files are:
+------------------------------------------------------
+trigger@pcalicebhm05:/data/ClientCommonRootFs/usr/local/trigger/vd/DOC
+trigger@pcalicebhm05: vd/vme/dimcdistrib/readme
+- CTP/LTU counters DIM servers and clients reading
+trigger@pcalicebhm05: vd/vme/CNTRRD/readme
+- Daemons (list of all daemons), rrd databses used, WEB interface
+triad@altri1: vd/vme/dimcoff/readme
+- more about dimcoff ( daemon providing:counters->Xcounters -> FXS)
+trigger@pcalicebhm05: vd/vme/TRG_DBED/DOC/
+- notes about .rcfg file
+
+trigger@pcalicebhm05: vd/vme/tinproxy/readme
+- example of client/server for TIN proxy server  (distributed to people)
+
+vd/vme/ttcmi/NOTES
+- notes concerning TTCmi (rf2ttc + rfrx)
+
+vd/vme/orbitsync/readme
+- notes concerning orbit sync (the calculation LHC<->CTP orbit number)
+vd/vme/switch/readme
+- notes concerning CTP/LTU switch
+vd/vme/ltudim/readme
+- notes concerning LTU dim client
+vd/vme/ltu_proxy/readme
+- notes concerning LTU proxy, dim server
+vd/vme/ctp_proxy/readme
+- notes concerning ctp_proxy, ctpdims server
+
+2. files here
+-------------
+readme       -this file
+gcc-pp       -notes for g++
+readmeCTP_obsolete
+Installation - text file distributed with LTU distribution
+
+history.txt    -changes in LTU sw (distributed with LTU sw vmebltu.tar)
+CTPhistory.txt -ctp + all the sw modifications. Notes concerning
+                only LTU (i.e. distributed with ltu sw) should go to
+                history.txt.
+counters.txt   -history about counters (dim, cfg file delivered with dim client...)
+newdimservices -dim services notes
+
+prog.txt -notes for programmer
+
+3. How to prepare LTU distribution
+----------------------------------
+In trigger@pcalicebhm05:...vd
+0. Prepare indexnew.html (according to DOC/history.txt)
+   aj@eprexa.ph.bham.ac.uk:public_web/ltu
+   scp index.html ixobsolete.html jusko1@lxplus.cern.ch:
+   aj@eprexa.ph.bham.ac.uk
+   mkdir public_web/ltu/08092009
+1. Modify: version in vd/vme/ltu/ltu.h
+           vd/DOC/history.txt
+2. 
+  make sure VMECFDIR, VMEBDIR are set and:
+  vd/bin/distrib ALL
+  scp ~/vmebltu.tar trigtest@altri1:
+3.
+  trigtest@altri1:
+  rm -r vold; mv v vold
+  mkdir v ; cd v ; tar -xvf ~/vmebltu.tar
+  . v/scripts/vmebse.bash
+  v/scripts/distrib make   (to get back all .o, executables in ~triad:/usr/lcoal/trigger/...)
+  scp ~/vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
+
+4. aj@eprexa
+   modify web:
+   cd public_web
+   gvim indexnew.html ixobsolete.html   modify
+   scp index.html ixobsolete.html aj@eprexa.ph.bham.ac.uk:public_web/ltu/
+   scp vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
+mail to detectors:   pine alias: detectors
+Dear users of LTUs,
+new distribution of LTU software, supporting LTUvi (TTCvi not required more)
+was released. It can be downloaded from:
+http://epweb2.ph.bham.ac.uk/user/jusko/ltu/index.html
+---------------------------------------
+26 in the pit:
+./distrib ALL
+in trigtest@altri1:
+- vmeb/vmeai.make.VMERCC copied from aj
+[altri1] /home/alice/trigtest/v/scripts > . ./vmebse.bash
+
+todo:   (aj -to be done in aj, 
+         X -to be done only in trigtest account
+         N - not necessary (not existing in pit)):
+aj pit trigtest
+n  n y     - no workdir (...0x811000) necesary in myw class VmeBoard
+   X y    - NOINFOLOGGER in vmeblib/makefile
+n  y y     -ltuttc.cfgall (add in distrib too)
+n  y y    - L2a.seq, sod.seq eod.seq:
+            CFG/ltu/SLMproxy -> links to vme/ltu_proxy/noclasses
+            CFG/ltu/SLM  -.slm + .seq copies
+n  y y    - isdigit in ltu_u.py replace by try:/except:
+n  y y    - SLMdump modified, scripts/distrib modified (WORK created)
+distrib clean/ALL
+n  X y    - scripts/ltuproxy.sh: VMEWORKDIR left untouched (comment 1 line)
+            i.e. in labs: VMEWORKDIR = VMECFDIR
+n  y y    - scripts/distrib: removed: WORKIMAGE,WORKSIMAGE,WORK/ssm.lst.all
+n  y y    -ltudim/ltuclient.c ltu_proxy/ltudimservices.c   -if file
+           is the same copy not made
+n  N y    -DOC/Installation updated
+n  X y    -NOINFOLLOGGER (vmeblib/makefile,ltu_proxy/GNUmakefile)
+n  y y    - distrib -CFG/ltu/SLMproxy is copied (only links to noclasses needed)
+
+4. How to prepare ltuclient distribution   in trigger@pcalicebhm05
+----------------------------------------
+- modify LTU_CLIENT_VERSION string constant in vd/vme/ltudim/ltuclient.c
+  11.10: 2.1   (was 1.0 in ltuclient.c and 2.0 in distrdimclient/ltuclient.spec)
+  25.4.  2.2 -attempt on alidcscom026 ,not working:
+  26.4.  2.2  -on aj@altri1: ltucmd.c added to distrdimclient
+               2.4 at 11.3.2009
+  12.4.  2.4  rpms moved to triad
+   8.9.  2.5 -on triad with mounted vd directory
+   4.2. 2010 2.6
+  22.2. 2010 2.7 no threads, done on trigger@05
+    2.7 -last SLC4 version (32 bit)
+    2.8 -first SLC5 version (x86_64) 21.1.2010
+  in:
+  - vd/vme/ltudim/ltuclient.c
+    COMPILE/LINK:  
+    cd vd/vme/ltudim ; make
+    -should be modified/done on x86_6 machine with v.2.8
+  - vd/bin/distrdimclient  (VERSION here)
+  - ~trigger/rpms/SPECS/ltuclient.spec   (Version: here)
+
+- preparing rpm distribution:
+  - match LTU_CLIENT_VERSION in vd/ltudim/ltuclient.c and 
+          'Version:' in rpms/SPECS/ltuclient.spec
+    (Release: is 'rpm-only' related)
+  distrdimclient distrib
+   ->prepares ltuclient-VERSION.src.tar.gz in ~rpms/SOURCES
+  cd ~/rpms/SPECS ; rpmbuild -ba ltuclient.spec
+     PROBLEM:
+[pcalicebhm10] /home/dl/root/usr/local/trigger/vd/vme/ltudim > cd ~/rpms/SPECS ; rpmbuild -ba ltuclient.spec
+g++  -g -I/opt/dim/dim  -DCPLUSPLUS -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux  ./ltucmd.c -L/opt/dim/linux -ldim -o linux/ltucmd  -lpthread
+make: *** No rule to make target `cmd1.c', needed by `linux/cmd1'.  Stop.
+error: Bad exit status from /var/tmp/rpm-tmp.27997 (%build)
+
+  ->should finish with exit 0
+  created files:
+  rpms/RPMS/ltuclient-2.7-1.i386.rpm
+
+
+- installation:
+  move: 
+[altri1] /home/alice/triad/rpms/RPMS > scp  ltuclient-2.5-1.i386.rpm root@pcalicebhm05:
+
+  as root:
+  rpm -e ltuclient
+  rpm -ivh ltuclient-2.5-1.i386.rpm
+  as user:
+  . /opt/ltuclient/scripts/setup.sh
+       !!! instead vmecrate alias use ltuclient alias !!!
+  ltuclient daq or
+  $VMEBDIR/cratedim.sh daq
+  $? is: 0:ok  4:parameter/environment error   8:server cannot be contacted
+
+[altri1] /home/alice/triad/rpms/RPMS > scp  ltuclient-2.5-1.i386.rpm aj@eprexa.ph.bham.ac.uk:public_web/ltuclient/
+and modify index.html in this directory
+
+=========================================
+LTU distribution made  22.2.2007 (22022007): (lnxpool01)
+1. trigger@altri1:
+  ajupdate ALLLTU
+  v/scripts/distrib clean
+  v/scripts/distrib ALL
+  check: vmeb/vmeai.make.VMERCC
+  v/scripts/distrib make   (to get back all .o, executables in ~trigger)
+  scp vmebltu.tar apixel@lnxpool20:
+2. apixel@lnxpool20:  
+mkdir v ; cd v ; tar -xf../vmebltu.tar
+- modify scripts/vmebse.bash, vmeb/vmeai.make.VMECCT
+. v/scripts/vmebse.bash 
+  v/scripts/distrib make
+  v/scripts/loadLTUfpga load 0x810000
+3. 16.6.2010 -lnxpool31: see file lnxpool31
+
+5. Files in DOC directory:
+--------------------------
+Files marked D (Distribution) are copied to distribution tar file
+-see scripts/distrib script for preparing distribution of sw delivered with LTU
+
+  readme         -this file
+D Installation   -how to install the software
+D history.txt    -sw modifications
+  myreadme.txt   -my (A. Jusko) notes
+D prog.txt       -programming
+  moreprog.txt   -more about programming
+  moreltus       -notes about programming with more LTUs in 1 crate
+  win32.txt      -notes about Windows/VS 6.0
+
+Other files:
+CTPreadme -notes about the CTP software
+cnames,cnames.sorted2 -list of CTP counter names
+CTPhistory.txt        -history of modifications for CTP sw
+logaug                - to do list + what was done in august 2006
+
+6. environment variables
+------------------------
+DATE_INFOLOGGER_DIR=/opt/infoLogger
+ref: vmeblib
+- if defined, INFOLOGGER is used
+
+DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
+ref: vmeblib
+- if defined, DAQLOGBOOK is used
+
+VMEGCC       gcc or g++
+
+VMESITE
+ALICE: pit environment
+SERVER: lab environment. Used for:
+ -ctp: vmeblib/daqlogbook.c, ctp_proxy/, ltu_proxy/
+ -i2c: ctplib/makefile ctplib/i2ctemp.c
+
+DIM_DNS_NODE
+aldaqecs in th pit pcald30 in lab
+
+7. DAQ rpm...
+-------------
+See:
+/afs/cern.ch/alice/daq/kits/dep/rpm/slc4 
+

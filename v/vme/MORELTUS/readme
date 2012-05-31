@@ -1,0 +1,5 @@
+findboards.c -find CTP boards in the crate
+setscope.py  -control more ltu.exe tasks (popen, for testing)
+findltus.c,findxltus.c -trying vme driver
+readtemp.c   - read temperature on the boards according to
+               /root/NOTES/boardsincrate file

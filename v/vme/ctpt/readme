@@ -1,0 +1,66 @@
+// Header files.
+ctp.h -> ../ctp/ctp.h
+ssmctp.h -> ../ctp/ssmctp.h
+ssmconnection.h 
+- constant definitions
+- global variables declarations
+- all functions declarations
+
+// *.c files
+ctpt.c -> ../ctp/ctp.c
+//
+ssmconnection.c
+- main program int A2BCD(int n,...)
+- Input/Output
+- Signal Manipulation
+- Pattern Generation
+- HardWare access
+- Steering routines:
+  int InitMode(int n,int *boards, w32 modecode,w32 submode); 
+  int SetBoardHW(int n,int *boards,w32 modecode,w32 submode);
+  int CheckMode(int n,int *boards, w32 modecode,w32 submode); 
+//
+ssmconui.c
+- so called user interface, the most routines are short
+  programs which call A2BCD
+- they appears on python menu in different groups:
+  - Connections: all possible board connections are tested
+  - Logic: FPGA logic of different boards is tested
+  - Monitor: monitoring of several boards simultaneously synchronising orbits
+    (monitoring of one board only can be done also directly with ssmcontrol)
+  - PastFuture: P/F tests
+  - Generate: used to start different generations
+  - DebCon: support routines which are useful to access directly in pythom menu
+  - DebConPat: support routines for pattern generation
+  - IntBoard: some useful routines of Interface board
+//
+ssmconl0.c
+- routines where L0 is generating or L0 only board
+//
+ssmconl1.c
+- routines where L1 is generating or L1 only board
+//
+ssmconl2.c
+- routines where L2 is generating or L2 only board
+//
+ssmconbu.c
+- routines where BUSY is generating or BUSY only board
+//
+ssmconfo.c
+- routines where Fun Out board is generating or only board
+//
+none.c
+- routines where none of the boards is generating.
+  For example if you want to monitor l0,l1,l2,busy,fo,ltu simultaneously
+  you use none board.
+  Other example: if L0 board generates trigger by downscale or random
+  and you analyse signals on other boards (L1,L2,FO) you use none.
+//
+pastfut.c
+- P/F is same on L1,L2 boards and similar on L0 board, so the same routines
+  are used to test it.
+//
+swtrigger.c
+- software trigger routines
+
+

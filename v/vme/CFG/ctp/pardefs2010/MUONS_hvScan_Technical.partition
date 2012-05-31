@@ -1,0 +1,7 @@
+Version: 2
+RND2 40khz
+BCM2 bcmB
+Clusters:
+MUON
+DEMPTY(cn=C0MSL-B-NOPF-MUON,BCM2,rnd2)
+MUON_TRK MUON_TRG

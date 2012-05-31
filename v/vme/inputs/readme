@@ -1,0 +1,50 @@
+20.12.08
+How to compare autocorrelation function filtered and notfiltered?
+1.) set the same rate in RND1 and RND2 in 'Shared resources'
+2.) vmecrate inputs (if not already running)
+3.) click 'INPUTS' (if not already running)
+4.) Choose  27 and 28 in inputs and do 'Auto'
+    RND1 (27) will show autocorrelation WITH filter
+    RND2 (28) will show autocorrelation WITHOUT filter.
+FILTER is only IN SOFTWARE. Hardware (both RND1 and RND2)
+generates sequence without filter.
+-----------------------------------------------------------------
+12.6
+- dimlibs added to v/vmeb/vmeai.make 
+   ifeq (BNAME,ADCI)
+    LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib -lctp -L$(DIMDIR)/linux -ldim
+    #CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
+  endif
+- gave up, did a patch for dim
+------------------------------------------------------------------
+2.8.07
+ADCI copied to inputs to have more reasonable name.
+Patch for DIMDIR needs to be done (isame as for ADCI)
+for inputs.exe and inputs.o
+-------------------------------------------------------------------
+11.6
+- patch removed, ctplib added in v/vmeb/vmeai.make
+--------------------------------------------------------------------
+7.6.
+- ADCI.make patched to include ctplib
+7.7.2009
+rm none.c inputspit.c
+mv make.inputs makefile + modified: (DIMDIR), ctplib added
+
+11.2.2010
+vme/inputs  modified (did not compile). Now compile:
+cd vme/inputs ; vmecomp inputs ;  make
+
+23.11.2011
+cd vme/inputs ; vmecomp inputs 
+now add 2 lines to inputs.make (before inputs.exe: line):
+CFLAGS +=-I$(DIMDIR)/dim
+LDFLAGS +=-L$(DIMDIR)/linux -ldim
+
+and repaeat vmecomp inputs
+
+23.11.:
+
+[altri1] /usr/local/trigger/vd/vme/inputs > make
+g++ /usr/local/trigger/vd/vmeb/cmdbase.o inputs_cf.o signature.o ssmbrowser.o inputs.o ssm.o alignment.o sync.o  -L/usr/local/trigger/vd/vme/ctp/ctplib/linux_c -lctp -L/opt/dim/linux -ldim -L/usr/local/trigger/vd/vmeb/vmeblib/linux_c -lvmeb -L/opt/infoLogger -lInfo -L/opt/libDAQlogbook -lDAQlogbook `/usr/bin/mysql_config --libs` -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lm -o inputs.exe
+[altri1] /usr/local/trigger/vd/vme/inputs > 

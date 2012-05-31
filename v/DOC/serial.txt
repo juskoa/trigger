@@ -1,0 +1,122 @@
+Pokusy s os (optical switch):
+From Terminal HOWTO:
+Null modem cables:
+    PC male DB25                          Terminal DB25
+      TxD   Transmit Data       2 --> 3       RxD   Receive Data
+      RxD   Receive Data        3 <-- 2       TxD   Transmit Data
+      SG    Signal Ground       7 --- 7       SG    Signal Ground
+      CTS   Clear To Send       5 <--20       DTR   Data Terminal Ready
+      RTS   Request To Send     4 --> 6       DSR   Data Set Ready
+
+  If you have a DB9 connector on your serial port, try the following:
+          PC DB9                                 Terminal DB25
+      RxD   Receive Data        2 <-- 2       TxD   Transmit Data
+      TxD   Transmit Data       3 --> 3       RxD   Receive Data
+      SG    Signal Ground       5 --- 7       SG    Signal Ground
+      CTS   Clear To Send       8 <--20       DTR   Data Terminal Ready
+      RTS   Request To Send     7 --> 6       DSR   Data Set Ready   **
+
+From Serial HOWTO:
+  15.1.  Pinout
+          PINOUT of the SERIAL PORT    (--> direction is out of PC)
+                  (Note DCD is sometimes labeled CD)
+  Pin #   Pin #   Acronym  Full-Name   Direction  What-it-May-Do/Mean
+  9-pin   25-pin
+   3       2      TxD     Transmit Data     -->   Transmits byte out of PC
+   2       3      RxD     Receive Data      <--   Receives bytes into PC
+   7       4      RTS     Request To Send   -->   RTS/CTS flow control
+   8       5      CTS     Clear To Send     <--   RTS/CTS flow control
+   6       6      DSR     Data Set Ready    <--   I'm ready to communicate
+   4      20      DTR     Data Terminal Ready-->  I'm ready to communicate
+   1       8      DCD     Data Carrier Detect<--  Modem connected to another
+   9      22      RI      Ring Indicator    <--   Telephone line ringing
+   5       7              Signal Ground
+
+
+-----------------
+optical switch on altri2:
+setserial /dev/ttyS2 baud_base 9600
+[root@altri2 ~]# setserial -a /dev/ttyS2
+/dev/ttyS2, Line 2, UART: 16550A, Port: 0x03e8, IRQ: 4
+        Baud_base: 9600, close_delay: 5000, divisor: 0
+        closing_wait: 37856
+        Flags: spd_normal skip_test auto_irq
+
+echo -e -n "*RST\0015" >/dev/ttyS1
+[root@altri2 ~]# od -t x1 reset.os
+0000000 2a 52 53 54 0d
+
+/dev/ttyS2 baud_base 115200
+stty -F /dev/ttyS2 -a
+speed 9600 baud; rows 0; columns 0; line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = <undef>;
+eol2 = <undef>; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R; werase = ^W;
+lnext = ^V; flush = ^O; min = 1; time = 0;
+-parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts
+-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff
+-iuclc -ixany -imaxbel
+opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt
+echoctl echoke
+- vsetko je s baud_base 115200 (s 9600 nebavi)
+
+Bavi avsak ERR1 opakuje stale:
+cat reset.os >/dev/ttyS2
+cat /dev/ttyS2
+0,OK
+ERR1
+-ERR1 sa opakuje vela razy
+
+Alebo:
+dd if=/dev/ttyS2 of=/tmp/ttys2 bs=1
+echo -e -n "*IDN?\0015" >/dev/ttyS2
+[root@altri2 tmp]# head /tmp/ttys2
+LT-917 V1.0.0
+ERR1
+-opakuje donekonecna
+echo -e -n "MAX#?\0015" >/dev/ttyS2
+[root@altri2 tmp]# head /tmp/ttys2
+24
+ERR1
+...
+------------------------------- cvicenie 7.9. 2009
+[root@altri2 ~]# stty -F /dev/ttyS2 -a
+speed 9600 baud; rows 0; columns 0; line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = <undef>;
+eol2 = <undef>; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R; werase = ^W;
+lnext = ^V; flush = ^O; min = 1; time = 0;
+-parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts
+-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff
+-iuclc -ixany -imaxbel
+opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt
+echoctl echoke
+[root@altri2 ~]# setserial -a /dev/ttyS2
+/dev/ttyS2, Line 2, UART: 16550A, Port: 0x03e8, IRQ: 4
+        Baud_base: 115200, close_delay: 50000, divisor: 0
+        closing_wait: 50880
+        Flags: spd_normal skip_test auto_irq
+
+1. window:
+dd if=/dev/ttyS2 of=/tmp/ttys2 bs=1
+2. window:
+ls -l /tmp/ttys2
+
+3. window:
+reset.os:
+
+cat reset.os >/dev/ttyS2
+
+equence of steps:
+1., 3., kill 1., head /tmp/ttys2
+ERR1
+ERR1
+...
+
+BUT: if reset is issued once without 'dd' waiting on ttyS2,
+and second time with 'dd' waiting, we get:
+[root@altri2 ~]# head /tmp/ttys2
+0,OK
+ERR1
+...
+ 

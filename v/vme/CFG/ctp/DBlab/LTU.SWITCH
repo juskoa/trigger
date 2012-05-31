@@ -1,0 +1,15 @@
+# see CTP.SWITCH for explanation about the content of this file
+# By default, TPCLaser is connected to TPC LTU pulser input:
+ TPCLaserL0 TPCLaser 1 36 10
+# ACORDE L0 (single-muon) connected to TPC LTU pulser input:
+#AcordeSuperRare18790 0ASL 1 47 10
+ AcordeCosmicL0 0ASL 1 47 13
+ trdpim00 TRDL0 0 12 11
+# 
+#spdl0_9  0SCO 0 13 12
+#spdl0_1 SPD1 0 17 12
+ spdl0_0 0SCO 0 13 12
+ spdl0_1 0SH1 0 17 8
+# it is not clear if 0 or 1 and if 31 or 32 shoudl be 
+# connected to 9 (LTU muontrg)
+ muontrg muontrg 0 43 9

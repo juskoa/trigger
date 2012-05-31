@@ -1,0 +1,322 @@
+/* ADCI.c
+5.7.2004
+from version >ac.rbf works only with front panel cabel connected with
+BC comming through L1 data wire. With version <=ac.rbf should work
+autonomously
+27.10.2005
+rndtest(): now PLL_RESET done after each change of BC_DELAY_ADD and
+           average wait for end of PLL_RESET is printed
+*/
+#include <unistd.h>    /* usleep */
+#include <stdio.h>
+#include <sys/time.h>
+#include "vmewrap.h"
+#define LTUMAIN
+#include "ltu.h"
+
+#define nread 300
+#define bit8 256
+#define bit0_7 (1+2+4+8+16+32+64+128)
+#define stable 10
+
+double rnlx();
+void setseeds(long,int);
+/***************************************************************/
+/*FGROUP Configuration GUI ADC_Scan
+Automatic synchronisation of CTP and LTU signal transitions. 
+Before this measurement is started,
+arrange the following:
+- this LTU is in GLOBAL mode
+- L1 Data signal (CTP input connector) is continuously toggled
+  by BCclock frequency/2
+*/
+/***************************************************************/
+/*         ADC  */
+/*FGROUP ADC
+Reads adc 300 times as quickly as possible and print it.
+*/
+void adcitest()
+{
+ struct timeval tval;
+ struct timezone tz;
+ long tsec0,tusec0;
+ int i;
+ int busy,value;
+ w32 buffer[nread];
+ long tt,time[nread];
+ 
+ 
+ gettimeofday(&tval,&tz);
+ tsec0=tval.tv_sec;
+ tusec0=tval.tv_usec;
+ 
+ for(i=0;i<nread;i++){
+   if( (i % 10000) == 0) vmew32(ADC_START,0x0);
+   buffer[i]=vmer32(ADC_DATA);
+   gettimeofday(&tval,&tz);
+   tt=(tval.tv_sec-tsec0)*1000000+(tval.tv_usec-tusec0);
+   time[i]=tt;
+ }
+ for(i=0;i<nread;i++){
+  busy= ((buffer[i]&bit8) == bit8);  /* bit 8 of buffer[i] */
+  value=buffer[i]&bit0_7;
+  if( (i % 20) == 0 ) printf(" SEQ TIME BUSY VALUE (Time in microsec) \n");
+  printf("%4i %4d   %d   %i \n",i,(int)time[i],busy,value);
+ }
+}
+/*----------------------------------------------------------------*/
+/*FGROUP ADC
+Reads ADC checking for busy and timeout.
+*/
+int readadc() {
+#define timeout 1000
+ //int i=0;
+ int value;
+ vmew32(ADC_START,0x0);
+ /*while(1) {
+   if(i>timeout) {
+   };
+   if(((vmer32(ADC_DATA)&bit8) == 0))
+   i++;
+ }; */ usleep(10000);
+  value = (vmer32(ADC_DATA)&bit0_7);
+ /*printf("adc= %i\n",value);*/
+ return value; 
+}
+/*-----------------------------------------------------------------------------*/
+/*FGROUP ADC
+Scan of BC delay with going from 0 to 31 
+Operation:
+- change BC_DELAY_ADD and do PLL_RESET
+- wait micsecs and until BC_STATUSpll bit is ok
+- readadc
+*/
+void scan(int micsecs) {
+int i,buf[32];
+int imax=0,imin=0;
+int val,bcsreads;
+for(i=0;i<32;i++){
+  vmew32(BC_DELAY_ADD,i);
+  vmew32(PLL_RESET, DUMMYVAL);
+   //usleep(10000);
+  usleep(micsecs); bcsreads=0;
+  while(1) {
+    w32 bcs;
+    bcs= vmer32(BC_STATUS);
+    if(bcs & BC_STATUSpll) break;
+    bcsreads++;
+  };
+   val=readadc();
+   buf[i]=val;
+   if(val>buf[imax]) imax=i;
+   if(val<buf[imin]) imin=i;
+   printf("i=%i, val=%i \n",i,buf[i]);
+ }; 
+ printf("max=%i %i min=%i %i bcsreads:%d\n",
+   imax,buf[imax],imin,buf[imin],bcsreads); 
+}
+/*FGROUP ADC
+Reads ADC using readadc and checking that two subsequent values are the same.
+*/
+int readadc_s()
+{
+ int value0,value1,i=0;
+ value0=readadc();
+ if(value0 == -1) return -1;
+ while( ( (value1=readadc()) != value0) && (i<stable) ){
+     if(value1 == -1) return -2;		 
+     value0=value1;
+     i++;
+    }
+ /*printf("i=%i value=%i \n",i,value0);*/   
+ if(i>=stable) return -3;    
+ return value1;
+} 
+/*----------------------------------------------------------------------*/
+/*FGROUP ADC
+Demonstrates time constant parameters of RL element in delay line.
+*/
+void adctimeconst(w32 delay0,w32 delay1)
+{
+ int i,val;
+ vmew32(BC_DELAY_ADD,delay0);
+ usleep(100000);
+ vmew32(BC_DELAY_ADD,delay1);
+ for(i=0;i<10;i++){
+
+  val=readadc();
+  printf(" %i adc=%i \n",i,val);
+  usleep(10000);
+ }
+ return ;
+}
+/*FGROUP ADC
+Generates random delays and measure adc for each of them.
+nscans: 0: do random scan (100 values)
+       >0: do seq. scan (delays 0-31), Repeat it nscans times
+*/
+void rndtest(int nscans) {
+#ifdef SIMVME
+#define NMEASUREMENTS 10
+#else
+#define NMEASUREMENTS 100
+#endif
+int i,value, all0mics,allmics, NSCANS,RANDOM;
+w32 delay;
+/* FILE *prn=fopen("WORK/bc.txt","w"); */
+//w8 delays[NMEASUREMENTS];
+//w8 vals[NMEASUREMENTS];
+setseeds(3,3); allmics=0; all0mics=0; delay=0; NSCANS=0;
+if(nscans==0) RANDOM=1; else RANDOM=0;
+i=0;
+while(1) {
+//for(i=0;i<NMEASUREMENTS;i++)
+  w32 seconds1,micseconds1, seconds2,micseconds2,diff;
+  if(RANDOM) {
+    if(i>=NMEASUREMENTS) break;
+    delay=32*rnlx();
+  } else {
+    if(delay>=32) {NSCANS++; delay=0;};
+    if(NSCANS>=nscans) break;
+  };
+  vmew32(BC_DELAY_ADD,delay);
+  /* PLL_RESET always after dealy change then wait for PLL_LOCK: */
+  GetMicSec(&seconds1, &micseconds1);
+  vmew32(PLL_RESET, DUMMYVAL);
+  /* first wait for 'unlocked' at least 300 milsecs 
+  while(1) {
+    w32 bcs;
+    bcs= vmer32(BC_STATUS);
+    GetMicSec(&seconds2, &micseconds2);
+    diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+    if( diff > 200000) break;
+    if((bcs & BC_STATUSpll)==0) break;
+  };
+  all0mics=all0mics+diff; */ 
+  while(1) {
+    w32 bcs;
+    bcs= vmer32(BC_STATUS);
+    if(bcs & BC_STATUSpll) break;
+  };
+  GetMicSec(&seconds2, &micseconds2);
+  diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+  allmics=allmics+diff;
+  value=readadc_s();
+  /*  fprintf(prn,"%i %i \n",delay,value); */
+  /*if(value < 0)  printf("%i \n",delay);
+   if( (i % 10) == 0)printf("%i\n",i);*/
+  //delays[i]= delay; vals[i]= value;
+  printf("<%i> <%i> \n",delay,value);
+  delay=delay+1; 
+  i++;
+};
+/* fclose(prn); */
+/*for(i=0;i<NMEASUREMENTS;i++){
+  printf("<%i> <%i> \n",delays[i],vals[i]);
+}; */
+/* rndtest finished. 
+    Average wait for PLL unlocked
+    Average wait for PLL */
+printf("<%f> <%f>\n", 1.0*all0mics/i,
+  1.0*allmics/i);
+}
+/*FGROUP ADC
+Do scan for 0..31 BC delays, return measured values in values array
+*/
+void rndtestA(int *values) {
+#ifdef SIMVME
+#define NMEASUREMENTS 10
+#else
+#define NMEASUREMENTS 100
+#endif
+int nscans=1,i,value, all0mics,allmics, NSCANS,RANDOM;
+w32 delay;
+/* FILE *prn=fopen("WORK/bc.txt","w"); */
+//w8 delays[NMEASUREMENTS];
+//w8 vals[NMEASUREMENTS];
+setseeds(3,3); allmics=0; all0mics=0; delay=0; NSCANS=0;
+if(nscans==0) RANDOM=1; else RANDOM=0;
+i=0;
+while(1) {
+//for(i=0;i<NMEASUREMENTS;i++)
+  w32 seconds1,micseconds1, seconds2,micseconds2,diff;
+  if(RANDOM) {
+    if(i>=NMEASUREMENTS) break;
+    delay=32*rnlx();
+  } else {
+    if(delay>=32) {NSCANS++; delay=0;};
+    if(NSCANS>=nscans) break;
+  };
+  vmew32(BC_DELAY_ADD,delay);
+  /* PLL_RESET always after dealy change then wait for PLL_LOCK: */
+  GetMicSec(&seconds1, &micseconds1);
+  vmew32(PLL_RESET, DUMMYVAL);
+  /* first wait for 'unlocked' at least 300 milsecs 
+  while(1) {
+    w32 bcs;
+    bcs= vmer32(BC_STATUS);
+    GetMicSec(&seconds2, &micseconds2);
+    diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+    if( diff > 200000) break;
+    if((bcs & BC_STATUSpll)==0) break;
+  };
+  all0mics=all0mics+diff; */ 
+  while(1) {
+    w32 bcs;
+    bcs= vmer32(BC_STATUS);
+    if(bcs & BC_STATUSpll) break;
+  };
+  GetMicSec(&seconds2, &micseconds2);
+  diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+  allmics=allmics+diff;
+  value=readadc_s();
+  /*  fprintf(prn,"%i %i \n",delay,value); */
+  /*if(value < 0)  printf("%i \n",delay);
+   if( (i % 10) == 0)printf("%i\n",i);*/
+  //delays[i]= delay; vals[i]= value;
+  //printf("<%i> <%i> \n",delay,value);
+  values[i]= value;
+  delay=delay+1; 
+  i++;
+};
+/* fclose(prn); */
+/*for(i=0;i<NMEASUREMENTS;i++){
+  printf("<%i> <%i> \n",delays[i],vals[i]);
+}; */
+/* rndtest finished. 
+    Average wait for PLL unlocked
+    Average wait for PLL */
+
+/*
+printf("<%f> <%f>\n", 1.0*all0mics/i,
+  1.0*allmics/i);
+*/
+}
+/**-------------------------------------------------------*/
+/*FGROUP ADC
+*/
+void setbcdelay(w32 delay) {
+ vmew32(BC_DELAY_ADD,delay);
+}
+/*FGROUP ADC
+rc: 2 BC_STATUS low bits: [BC_STATUSpll, BC_STATUSerr] */
+w32 getbcstatus() {
+ return 3&vmer32(BC_STATUS);
+}
+/*********************************************************
+void initmain() {
+printf("initmain called.\n");
+setseeds(3,3);
+#ifdef SIMVME
+printf("SIMVME active. Calling regfuns. \n");
+regfuns();
+#else
+#ifdef VMERCC
+printf("VMERCC active. \n");
+#else
+printf("OS not defined !. Exiting. \n");
+exit(8);
+#endif
+#endif
+}
+*/

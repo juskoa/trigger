@@ -1,0 +1,13 @@
+#!/bin/bash
+cd $VMECFDIR/CFG/ctp/pardefs
+pn=$1
+if [ $# -ne 1 ] ;then
+cat - <<-EOF
+Usage:
+showPartition ParttionName     (as used with parted, i.e. without suffix)
+EOF
+#ls -ld ALICE.partition ;ls -ld ALICE.pcfg
+#echo
+exit
+fi
+less $pn.partition

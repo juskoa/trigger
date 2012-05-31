@@ -1,0 +1,2 @@
+#!/bin/bash
+tail -f -n 100 ~trigger/v/vme/WORK/MONSCAL/display.log

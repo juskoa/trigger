@@ -1,0 +1,18 @@
+#Errors: PP L0 L1 L1M L1&L1M L2aM L2rWord
+# following line defines:
+# - 19 L1Classes: 0x31234... -> (50,49,45,...),
+# -  4 L2classes: 0x1111 -> (1,5,9,13)
+# - no Clusters: 0x0
+# - Start Of Data event: roc=14 L1SwC L2SwC 
+L2A 0x3123456789012 0x1111 0x0 roc=14 L1SwC L2SwC
+# following line defines: 
+# - 1 L1class (50), 
+# - 1 L2class (1), 
+# - 1 Cluster number 6 (0x20) and
+# - End Of Data event (roc=15 L1SwC L2SwC)
+L2A 0x1 0x2000000000000 0x20 roc=15 L1SwC L2SwC Last
+
+
+
+
+

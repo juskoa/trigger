@@ -1,0 +1,169 @@
+object: TRUE
+   state: TRUE/initial_state
+   
+.macro TPA(PARTITION)
+object: TPA
+   parameters: ORIGIN="${PARTITION}"
+   state: STOPPED/initial_state
+      action: START
+         if (any_in LTU_SET not_in_state STANDALONE_STOPPED) then
+            do MESSAGE(ORIGIN=ORIGIN,PARAM="ERROR^Not^all^LTUs^in^state^STANDALONE_STOPPED") TPA_MESSAGE
+         else
+            do PAUSE TRIGGER::CTP
+            terminate_action/state=PREPARING_00
+         endif   
+   state: PREPARING_00
+      when (TRIGGER::CTP in_state DORMANT) do NV_NEXT_STEP
+      action: NV_NEXT_STEP         
+         do NV_GOTOGLOBAL all_in LTU_SET
+         terminate_action/state=PREPARING_01
+   state: PREPARING_01         
+      when (all_in LTU_SET in_state GLOBAL) do NV_NEXT_STEP
+      action: NV_NEXT_STEP
+         do COMPUTE TPA_SERVER
+         terminate_action/state=PREPARING_02
+   state: PREPARING_02
+      when (TPA_SERVER in_state DONE) endInState READYTOSTART         
+      when (TPA_SERVER in_state ERROR) do NV_NEXT_STEP
+      action: NV_NEXT_STEP
+         do RESET TPA_SERVER
+         do NV_GOTOSTANDALONE_STOPPED all_in LTU_SET
+         terminate_action/state=PREPARING_03
+   state: PREPARING_03
+      when (all_in LTU_SET not_in_state GLOBAL) do NV_NEXT_STEP
+      action: NV_NEXT_STEP
+         do CONTINUE TRIGGER::CTP
+         terminate_action/state=PREPARING_04
+   state: PREPARING_04
+      when (TRIGGER:CTP in_state RUNNING and TPA_SERVER in_state WAITING) endInState STOPPED 
+   state: READYTOSTART
+      when (TRUE in_state TRUE) do NV_NEXT_STEP
+      action: NV_NEXT_STEP
+         do LOAD(NEWPARTITION="${PARTITION}") TRIGGER::CTP 
+         do RESET TPA_SERVER
+         do CONTINUE TRIGGER::CTP
+         terminate_action/state=RUNNING
+   state: RUNNING
+      action: GOTOPAUSED         
+         do PAUSE TRIGGER::CTP
+         terminate_action/state=PAUSING_00
+      action: STOP
+         do PAUSE TRIGGER::CTP
+         terminate_action/state=STOPPING_00
+   state: PAUSING_00
+      when (TRIGGER::CTP in_state DORMANT) do NV_NEXT_STEP
+      action: NV_NEXT_STEP            
+         do UNLOAD(PARTITION="${PARTITION}") TRIGGER::CTP
+         do CONTINUE TRIGGER::CTP
+         terminate_action/state=PAUSING_01
+   state: PAUSING_01
+      when (TRIGGER::CTP in_state RUNNING) endInState PAUSED      
+   state: PAUSED
+      action: RESUME         
+         do PAUSE TRIGGER::CTP
+         terminate_action/state=RESUMING_00
+      action: GOTOSTOPPED
+         do PAUSE TRIGGER::CTP
+         terminate_action/state=GOINGTOSTOPPED_00
+   state: RESUMING_00
+      when (TRIGGER::CTP in_state DORMANT) do NV_NEXT_STEP
+      action: NV_NEXT_STEP            
+         do LOAD(NEWPARTITION="${PARTITION}") TRIGGER::CTP
+         do CONTINUE TRIGGER::CTP
+         terminate_action/state=RESUMING_01
+   state: RESUMING_01
+      when (TRIGGER::CTP in_state RUNNING) endInState RUNNING      
+   state: GOINGTOSTOPPED_00
+      when (TRIGGER::CTP in_state DORMANT) do NV_NEXT_STEP
+      action: NV_NEXT_STEP            
+         do NV_GOTOSTANDALONE_STOPPED all_in LTU_SET 
+         terminate_action/state=GOINGTOSTOPPED_01
+   state: GOINGTOSTOPPED_01
+      when (all_in LTU_SET not_in_state GLOBAL) do NV_NEXT_STEP
+      action: NV_NEXT_STEP
+         do CONTINUE TRIGGER::CTP
+         terminate_action/state=GOINGTOSTOPPED_02
+   state: GOINGTOSTOPPED_02
+      when (TRIGGER::CTP in_state RUNNING) endInState STOPPED      
+   state: STOPPING_00
+      when (TRIGGER::CTP in_state DORMANT) do NV_NEXT_STEP
+      action: NV_NEXT_STEP            
+         do NV_GOTOSTANDALONE_STOPPED all_in LTU_SET 
+         terminate_action/state=STOPPING_01
+   state: STOPPING_01
+      when (all_in LTU_SET not_in_state GLOBAL) do NV_NEXT_STEP
+      action: NV_NEXT_STEP
+         do UNLOAD(PARTITION="${PARTITION}") TRIGGER::CTP
+         do CONTINUE TRIGGER::CTP
+         terminate_action/state=STOPPING_02
+   state: STOPPING_02
+      when (TRIGGER::CTP in_state RUNNING) endInState STOPPED      
+   state: ERROR
+      action: RESET
+         terminate_action/state=STOPPED         
+
+object: TPA_SERVER/associated
+   state: WAITING
+      action: COMPUTE
+   state: COMPUTING
+   state: DONE
+      action: RESET
+   state: ERROR
+      action: RESET      
+  
+object:TPA_FWM
+   state: EXCLUDED/initial_state
+      action: TAKE
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+      terminate_action/state=EXCLUDED
+
+object: TPA_UPDATESET
+   state: exist
+      action: REMOVEALL
+         REMOVEALL from LTU_SET
+
+object: TPA_MESSAGE
+   parameters: origin = "",message = ""
+   state: EXIST
+      action: MESSAGE(ORIGIN,PARAM)
+         set origin = ORIGIN
+         set message = PARAM
+         terminate_action/state=EXIST
+.endmacro      
+                                
+.macro LTU(DET)
+object: LTU-${DET}_UPDATESET
+   state: exist
+      action: INSERT
+         insert TRIGGER::LTU-${DET} in LTU_SET
+      action: REMOVE   
+         remove TRIGGER::LTU-${DET} from LTU_SET
+    
+object: TRIGGER::LTU-${DET}/associated
+   state: STANDALONE_STOPPED
+      action: NV_GOTOGLOBAL
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR 
+
+.endmacro       
+
+#include "tpa.invoke"
+
+objectSet: LTU_SET
+
+object: TRIGGER::CTP/associated
+   state: RUNNING
+      action: PAUSE
+   state: DORMANT
+      action: LOAD (NEWPARTITION)
+      action: UNLOAD (PARTITION)
+      action: CONTINUE
+                             
+
+

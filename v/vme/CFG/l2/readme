@@ -1,0 +1,13 @@
+-rw-r--r--  1 aj alice 141980 Jun 11  2007 l2_a3.rbf
+Tue Mar 11 07:51:39 CET 2008
+CTP inputs readout included
+Mon Jul 21 15:03:21 CEST 2008
+l2_a5.rbf
+recompiled with Normal PLLmode (till now was: no_compensation)
+Mon Aug  4 20:39:18 CEST 2008
+l2_logic_a5_1.rbf
+recompiled without CRC option, same fpga code
+Wed Aug 27 2008
+l2_logic_a6.rbf
+phase measurement included
+

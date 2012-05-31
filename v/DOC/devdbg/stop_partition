@@ -1,0 +1,3 @@
+Problem:
+when ctpproxy stopped, it should wait till all active runs are stopped.
+It does not work as expected...

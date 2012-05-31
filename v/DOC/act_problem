@@ -1,0 +1,11 @@
+26.3.2010
+In ACT, when modified through web interace, lines end with '0d0a'
+while unix files end with '0a'.
+dos2unix -n v.c v.c2
+converts bad file (dos end of lines) to unix format.
+If VALID.DESCRIPTORS is in dos format, some descriptors
+are simply ignored -bad .rcfg fiel is created then.
+Todo:
+1. do not create file if some descriptor is missing!
+2. modify parted to process dos format too
+

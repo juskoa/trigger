@@ -1,0 +1,33 @@
+Transition gcc -> g++
+---------------------
+cdult ; cp -a v vd
+. vmebse.bash swonly vd
+export VMEGCC=g++
+  see bin/makeall
+  rsync:
+  cdult ; cd v/vme
+  rsync -av SSMANA ../../vd
+From now vd is MASTER COPY of all the software.
+
+Common (often) changes:
+For makefiles:
+-------------
+ifeq ($(VMEGCC),g++)
+CCDEFS +=-DCPLUSPLUS
+endif
+clean:
+	-rm *.o
+added to all makefiles (let's use makefile (NOT Makefile)
+
+For .c files:
+-------------
+#ifdef CPLUSPLUS
+#include <dic.hxx>
+extern "C" {
+#include "DAQlogbook.h"
+}
+#else
+#include <dic.hxx>
+#include "DAQlogbook.h"
+#endif
+

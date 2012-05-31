@@ -1,0 +1,71 @@
+#19 TOF tofl0_4 0OB3 0 63 4 0 6 1 -1 1 #was Diagonal
+#18 TOF tofl0_6 0OCV 0 65 2 0 0 0 0 0 #was VerticalMuon
+# 8 TOF tofl0_1 0OIN 0 60 1 0 3 1 1 2 #was GlobalMult
+#sin detector nameweb namectp eq signature dimnum edge delay configured deltamin deltamax #comments
+8 TOF tofl0_1 0OIN 0 60 1 0 3 1 1 2 #or 0OCP (cosmic)
+1 SPD spdl0_8 0SMB 0 20 1 0 1 1 -3 0 #smb
+2 SPD spdl0_6 0SX1 0 26 7 0 1 1 1000 1000 #OLD:SPD6 - spd bkgnd
+3 SPD spdl0_4 0SH4 0 24 5 0 1 1 1000 1000 #OLD:SPD4 - high mult 4
+4 SPD spdl0_2 0SH2 0 22 3 0 1 1 1000 1000 #OLD:SPD2 - high mult 2
+5 SPD spdl0_0 0SBK 0 28 9 0 1 1 1000 1000 #
+6 TOF tofl0_5 0O1? 0 64 5 0 0 1 1000 1000 #was LocalMult
+7 TOF tofl0_3 0OUP 0 61 6 0 3 1 1000 1000 #ultraperipheral trigger, before special trigger for ITS
+9 DAQ DAQ7904 0RG6 0 0 0 0 1 1 1000 1000 #(0,0)
+10 DAQ DAQ7920 0RG5 1 0 0 1 1 1 1000 1000 #(2,1)
+11 TRD trdpim02 trdpim02 0 0 0 0 0 1 1000 1000 #
+12 TRD trdpim00 0HWU 0 83 1 0 0 1 1 1 #was TRDL0
+13 SPD spdl0_9 0SCO 0 29 10 0 1 1 1 4 #OLD:SPD9 - cosmic
+14 SPD spdl0_7 0SX2 0 27 8 0 1 1 1000 1000 #OLD:SPD7 - spd spare
+15 SPD spdl0_5 0SPF 0 25 6 0 1 1 1000 1000 #OLD:SPD5 - pfp threshold
+16 SPD spdl0_3 0SH3 0 23 4 0 1 1 1000 1000 #OLD:SPD3 - high mult 3
+17 SPD spdl0_1 0SH1 0 21 2 0 1 1 1000 1000 #OLD:SPD1 - high mult 1
+18 TOF tofl0_6 0OBE 0 65 2 0 0 1 1000 1000 #was VerticalMuon
+19 TOF tofl0_4 0OB0 0 63 4 0 6 1 -1 1 #TOF cosmic back-back
+20 TOF tofl0_2 0O2? 0 0 0 0 0 0 1000 1000 #
+21 DAQ DAQ7922 0RG4 1 0 0 0 0 1 1000 1000 #(2,0)
+22 DAQ DAQ7918 0RG3 1 0 0 1 1 2 1000 1000 #(1,0)
+23 DAQ DAQ7919 0RG2 1 0 0 1 1 2 1000 1000 #(1,1)
+24 TRD trdpim01 trdpim01 0 0 0 0 0 0 1000 1000 #
+25 DAQ BOBR BOBR 0 0 0 0 0 1 1000 1000 #
+29 V0 V0_2 0VBK 1 42 0 1 2 1 1000 1000 #BGA & BBC
+28 V0 V0_3 0VGC 1 44 0 1 3 1 1000 1000 #BGC & BBA
+27 V0 V0_4 0VBC 1 53 0 0 3 1 0 0 #BBC
+26 V0 V0_5 0VBA 1 52 0 0 3 1 1000 1000 #BBA
+30 V0 V0_1 0VNG 1 40 0 1 3 1 1000 1000 #BBA & BBC
+31 MUON_TRG L0_TriggerMuon3155 0MLL 0 113 4 1 0 1 1000 1000 #OLD:LSMULPT - dimuon like low
+32 MUON_TRG L0_TriggerMuon3153 0MUL 0 111 2 1 0 1 0 0 #OLD:USMULPT - dimuon unlike low
+33 MUON_TRG L0_TriggerMuon3152 0MUH 0 110 1 1 0 1 1000 1000 #OLD:USMUHPT - dimuon unlike high
+34 EMCAL emc_L0 0EMC 0 10 0 0 0 1 1000 1000 #
+35 ACORDE AcordeCosmicL0 0AMU 1 2 2 0 6 1 0 0 #OLD:ML0 - multi
+36 TPC TPCLaserL0 0LSR 1 122 1 0 0 1 1000 1000 #
+37 DAQ DAQ7921 0RG1 1 0 0 0 2 1 1000 1000 #(0,1)
+38 T0 T0_5 0TCE 0 74 5 0 0 1 1000 1000 #OLD:T0Central
+39 T0 T0_4 0TSC 0 73 4 0 0 1 1000 1000 #OLD:T0SC
+40 T0 T0_3 0TVX 0 72 3 0 9 1 1000 1000 #OLD:T0vertex - vtx
+41 T0 T0_2 0T0A 0 71 2 1 7 1 1000 1000 #OLD:T0A - A was hit
+42 T0 T0_1 0T0C 0 70 1 0 5 1 1000 1000 #OLD:T0C - C was hit
+43 MUON_TRG L0_TriggerMuon3156 0MSL 0 115 6 1 0 1 0 0 #OLD:SNGMUON - single
+44 MUON_TRG L0_TriggerMuon3154 0MLH 0 112 3 1 0 1 1000 1000 #OLD:LSMUHPT - dimuon like high
+45 PHOS phosL0 0PH0 0 4 0 1 0 1 1000 1000 #OLD:phosL0 - PHOS level 0
+46 ACORDE AcordeCable18787 0ASC 1 0 3 0 0 1 1000 1000 #OLD:Small - small scintillator
+47 ACORDE AcordeSuperRare18790 0ASL 1 1 1 0 12 1 0 0 #OLD:L0 - single
+48 ZDC ZDCSingleSideL0 0ZSS 1 100 0 0 0 1 1000 1000 #OLD:ZDCSingleSideL0 - single side L0
+49 DAQ BPTXC 0BPC 0 0 0 1 10 1 1000 1000 #OLD:BPTXC - bptx C
+50 DAQ BPTXA 0BPA 0 0 0 0 5 1 0 0 #
+0 PHOS phosL0 0PCO 0 8 0 1 0 1 1000 1000 #cosmic
+0 MUON_TRG notknown 0MBK 0 114 3 1 0 1 1000 1000 #muon background
+0 PHOS notknown 0PLD 0 0 0 0 0 1 1000 1000 #
+0 TRD trdpim03 trdpim03 0 0 0 0 0 0 1000 1000 #
+0 TRD trdpim05 trdpim05 0 0 0 0 0 0 1000 1000 #
+0 TRD trdpim07 trdpim07 0 0 0 0 0 0 1000 1000 #
+0 V0 none none 1 41 0 0 0 0 1000 1000 #BBA | BBC
+0 V0 none 0VGC 1 45 0 0 0 0 1000 1000 #BGC
+0 V0 V0_2 0VGA 1 42 0 1 3 1 1000 1000 #BGA & BBC
+0 V0 none none 1 46 0 0 0 0 1000 1000 #CTA1 & CTC1
+0 V0 none none 1 47 0 0 0 0 1000 1000 #CTA1 | CTC1
+0 V0 none none 1 48 0 0 0 0 1000 1000 #CTA2 & CTC2
+0 V0 none none 1 49 0 0 0 0 1000 1000 #CTA2 | CTC2
+0 V0 none none 1 50 0 0 0 0 1000 1000 #MTA & MTC
+0 V0 none none 1 51 0 0 0 0 1000 1000 #MTA | MTC
+0 V0 none 0VGI 1 54 0 0 0 0 1000 1000 #BGA | BGC - Gas individual
+0 V0 none 0VGT 1 55 0 0 0 0 1000 1000 #(BGA & BBC) | (BGC & BBA) -Gas total

@@ -1,0 +1,39 @@
+Now ltuproxy is not aware of run number. For log, it is required
+to set DATE_RUN_NUMBER env. varibale, so the log message
+from ltu proxy can be filtered with run number too.
+
+Modifications: done 19.5.
+ltu_proxy.c
+infolog_SetStream(dimservernameCAP,-1) ->
+Add: -process RUN_NUMBR parameter
+infolog_SetStream(dimservernameCAP,RUN_NUMBER)
+for actions: START, NV_GOTOGLOBAL
+and
+for actions: STOP,NV_GOTOSTANDALONE_STOPPED
+RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER)
+
+mails
+-----
+May 12th:
+The next version of the ECS will send to the LTU START commands with 'at
+least 3' parameters
+
+START(CONFIGURATION, MODE, RUN_NUMBER)
+
+The number of parameters will not always be 3.
+
+There will be one exception.
+
+During V0 GATE_TUNING runs the existing version of the ECS sends START
+commands with 3 parameters.
+
+The next version will send START commands with 4 parameters
+
+ START(CONFIGURATION, MODE, RUN_NUMBER, FINEDELAY1)
+Ciao
+
+Franco
+
+PS I have 'discovered' the (obviously forgotten) exception when trying
+to modify the code. I hope I have not missed other exceptions.
+

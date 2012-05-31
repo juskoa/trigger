@@ -1,0 +1,6 @@
+20.10.04
+*Bug in vmewrap.c:
+in vmexlose()
+vmesp[vsp].vmeptr=NULL
+* monitoring of vmeaccess added in vmeopen amd vmeclose
+  it goes to file /tmp/VME.log

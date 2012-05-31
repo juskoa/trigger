@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+  <title></title>
+  <meta name="GENERATOR" content="Quanta Plus">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+
+
+<p>Insert a filling scheme definition from one of the following 
+three sources:</p> 
+<dl>
+<dt>fillschemes*.xlsx</dt>
+<dd> file. Copy/Paste just part of the file defining one scheme, including last line containing number <b>3564</b>. Empty bunches (E) are usually given in this file. Example:
+<pre>
+	746	A	300	2
+	1240	B	494	0
+	1735	E	395	3
+	3019	C	393	3
+			3564
+</pre>
+Only first 2 columns (Alice BC and bunch type) are used as input when calculating VALID.BCMASKS form convenient for ACT.
+</dd>
+<!-- 
+<dt>lhc.txt</dt>
+<dd> Find corresponding text file at <A href="http://lpc.web.cern.ch/lpc/fillingschemes.htm">LHC filling schemes</A>. Copy/Paste only 'RF buckets' lines. Example:
+<pre>
+ inj 1      1     ring_1           1          25       1
+ inj 1      2     ring_2           1          25       1
+</pre>
+Add empty bunches (E).
+</dd>
+<dt>Current filling scheme</dt>
+<dd>Getbutton current filling scheme defined by DIP service. Add empty bunches (E).
+</dd>
+-->
+</dl>
+
+<FORM name="test" action="translate" method="POST">
+<!-- @annotation: annotation -->
+  Filling scheme definition:<br>
+  <textarea name="xlsinp" rows="10" cols="70">
+text from xls(x)aa
+</textarea><br>
+  <INPUT type="submit" name="xls" value="from .xls" title="Input from .xls file"><br>
+  Filling scheme definition in VALID.BCMASK format:<br>
+</FORM>
+<textarea name="maskout" rows="10" cols="80" readonly="true">
+VALID.BCMASK instance
+</textarea>
+</body>
+</html>

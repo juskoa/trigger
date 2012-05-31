@@ -1,0 +1,21 @@
+Problem:
+
+28.05.2010 20:59:33: ***  Error:
+nextclassgroup not found in PHYSICS_1 partition
+SMIRTL - Fri May 28 21:09:06 2010 - TRIGGER::CTP executing STOP_PARTITION/PARTITION=PHYSICS_1
+# of pars expected:2, received: 1. 
+SMI: parname=PARTITION  param=PHYSICS_1 
+TRIGGER::CTP Got action STOP_PARTITION with parameters  PHYSICS_1
+SMIRTL - Fri May 28 21:09:06 2010 - TRIGGER::CTP in state EXECUTING/EXECUTING_FOR(S)=PHYSICS_1
+Send EOD and then unload the partition
+28.05.2010 21:09:06: Run 121178: stopping xcounters.
+28.05.2010 21:09:06: ***  Error:
+stopTimer: timer was not started for PHYSICS_1 partition (0)
+EOD event ok at 0 attempt.
+28.05.2010 21:09:07: timestamp:prepareRunConfig1: rcfgdel PHYSICS_1 121178
+similar cse: run 121182
+Todo:
+if only 1 TS group present, ignore it
+DOne:
+01.08.2010 20:42:26: Only 1 time sharing group defined, ignored
+

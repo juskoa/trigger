@@ -1,0 +1,83 @@
+LTUDIR := ${VMECFDIR}/ltu
+TTCVIDIR := ${VMECFDIR}/ttcvi
+ifdef DATE_INFOLOGGER_DIR
+INFOLOG=-I$(DATE_INFOLOGGER_DIR)
+LDINFOLOG=-L$(DATE_INFOLOGGER_DIR) -lInfo
+else
+INFOLOG=-DNOINFOLOGGER
+LDINFOLOG=
+endif
+ifdef DATE_DAQLOGBOOK_DIR
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+DAQLOGBOOK_LINK=-L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook $(MYSQLLIBS)
+DAQLIB=$(DATE_DAQLOGBOOK_DIR)/libDAQlogbook.a
+else
+DAQLOGBOOK_LINK=
+DAQLIB=
+endif
+#DIMDIR := /opt/dim  DIMDIR, SMIDIR set in v/scripts/vmebse.bash
+#SMIDIR := /opt/smi
+TRG_BIN := linux
+CFLAGS = -I${VMEBDIR}/vmeblib $(INFOLOG)
+ifeq ($(VMEGCC),g++)
+CFLAGS +=-DCPLUSPLUS
+endif
+
+CC := $(VMEGCC) -g -Wall $(CFLAGS) 
+DIMLIB := -L${DIMDIR}/linux -ldim $(LDINFOLOG)
+LTULIB := -L${LTUDIR}/ltulib -lltu -L${VMEBDIR}/vmeblib -lvmeb
+#SMILIB := -L${SMIDIR}/linux/libsmiui.lib,libsmi.lib
+SMILIB := -L${SMIDIR}/linux -lsmi -lsmiui
+LTUOBJS=${TRG_BIN}/ltu_utils.o ${TRG_BIN}/ltudimservices.o ${TRG_BIN}/popen2.o
+LTULIBS=${SMIDIR}/linux/libsmi.a ${SMIDIR}/linux/libsmiui.a \
+	${DIMDIR}/linux/libdim.a ${DAQLIB} \
+	${LTUDIR}/ltulib/libltu.a ${VMEBDIR}/vmeblib/libvmeb.a
+
+include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
+LIB_VMEDRIVER := $(LDFLAGS) -lpthread
+
+#all: ${TRG_BIN}/ltudimserver ${TRG_BIN}/ltu_proxy 
+all: ${TRG_BIN}/ltu_proxy 
+        
+# Create the binaries
+${TRG_BIN}/ltu_proxy: ${TRG_BIN}/ltu_proxy.o ${LTUOBJS} ${LTULIBS}
+	${CC} ${TRG_BIN}/ltu_proxy.o ${LTUOBJS} \
+	${LTULIB} ${DIMLIB} ${SMILIB} ${DAQLOGBOOK_LINK} ${LIB_VMEDRIVER} -o $@
+#${TRG_BIN}/ltudimserver: ${TRG_BIN}/ltudimserver.o \
+#	${TRG_BIN}/ltudimservices.o ${TRG_BIN}/popen2.o
+#	${CC} ${TRG_BIN}/ltudimserver.o \
+#	${TRG_BIN}/ltudimservices.o ${TRG_BIN}/popen2.o \
+#	${LTULIB} ${DIMLIB} ${SMILIB} ${LIB_VMEDRIVER} -o $@
+
+#${TRG_BIN}/ltu_proxy_noctp: ${TRG_BIN}/ltu_proxy_noctp.o ${LTUOBJS} ${LTULIBS}
+#	${CC} ${TRG_BIN}/ltu_proxy_noctp.o ${LTUOBJS} \
+#	${DIMLIB} ${SMILIB} ${LTULIB} ${LIB_VMEDRIVER} -o $@
+ 
+# Create the objects                
+${TRG_BIN}/popen2.o: popen2.c 
+	${CC} -c \
+	$< -o $@
+${TRG_BIN}/ltudimservices.o: ltudimservices.c 
+	${CC} -c -I${VMEBDIR} -I$(LTUDIR) -I${DIMDIR}/dim \
+	$< -o $@
+${TRG_BIN}/ltu_utils.o: ltu_utils.c 
+	${CC} -c -I${VMEBDIR} -I${LTUDIR} -I${TTCVIDIR} \
+	$< -o $@
+${TRG_BIN}/ltu_proxy.o: ltu_proxy.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/vmeblib.h
+#	@echo $<
+	${CC} -c -I${SMIDIR}/smixx -I${DIMDIR}/dim  -I${LTUDIR} $< -o $@
+${TRG_BIN}/ltudimserver.o: ltudimserver.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/lexan.h
+	@echo $<
+	${CC} -c -I${DIMDIR}/dim  -I${LTUDIR} $< -o $@
+${TRG_BIN}/ltu_proxy_noctp.o: ltu_proxy_noctp.c 
+	${CC} -c -I${SMIDIR}/smixx -I${DIMDIR}/dim -I${LTUDIR} $< -o $@
+
+# Clean objects and core                                
+clean:
+	/bin/rm -f $(TRG_BIN)/*.o core
+
+
+# Clean everything
+distclean:
+	/bin/rm -f $(TRG_BIN)/*
+

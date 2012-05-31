@@ -1,0 +1,83 @@
+>>> hex(0x20000+(4*(42-25)))
+'0x20044'
+
+Connected:
+1..24 RxLow
+1..5 13..17 SPD
+
+1..11  13..23   RxHigh
+10 ACORDE cosmic eq
+11 TPC laser eq
+21 ACORDE L0   eq
+22 ACORDE superrare   eq
+23 ZDC single eq
+
+
+
+Txctp: 2..13 -> ctp1 ctp12
+      14..25 -> ctp13 ctp24
+
+Config file:
+#comment
+name eq in out ctpin
+name -as written on web
+eq   - 0: without equalizer
+in   -switch input 1..50   0: not connected
+out  -switch output 1..25 (0: not connected)
+ctpin-the 5th column in VALID.CTPINPUTS. 
+      0: not connected
+      should be always out-1 -which is the default if not present
+
+spdl0_9 0 1 2
+spdl0_7 0 2 3
+spdl0_5 0 3 4
+spdl0_3 0 4 0
+spdl0_1 0 5 6
+tofl0_5 0 6 7
+tofl0_3 0 7 8
+tofl0_1 0 8 9
+trdpim06 0 9 10
+trdpim04 0 10 11
+trdpim02 0 11 12
+trdpim00 0 12 13
+spdl0_10 0 13 14
+spdl0_8 0 14 15
+spdl0_6 0 15 16
+spdl0_4 0 16 17
+spdl0_2 0 17 18
+tofl0_6 0 18 19
+tofl0_4 0 19 20
+tofl0_2 0 20 21
+trdpim07 0 21 22
+trdpim05 0 22 23
+trdpim03 0 23 24
+trdpim01 0 24 25
+V0_5 0 26 0
+V0_4 0 27 0
+V0_3 0 28 0
+V0_2 0 29 0
+V0_1 0 30 0
+L0_TriggerMuon3155 0 31 0
+L0_TriggerMuon3153 0 32 0
+L0_TriggerMuon3152 0 33 0
+emc_L0 0 34 0
+AcordeCosmicL0 1 35 0
+TPCLaserL0 1 36 0
+T0_5 0 38 0
+T0_4 0 39 0
+T0_3 0 40 0
+T0_2 0 41 0
+T0_1 0 42 0
+L0_TriggerMuon3156 0 43 0
+L0_TriggerMuon3154 0 44 0
+phosL0 0 45 0
+AcordeCable18787 1 46 0
+AcordeSuperRare18790 1 47 5
+ZDCSingleSideL0 1 48 0
+
+LTU switch
+----------
+TPCLaserL0 1 36 10
+AcordeSuperRare18790 1 47 13
+trdpim00 0 12 11
+

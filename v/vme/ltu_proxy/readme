@@ -1,0 +1,36 @@
+Files:
+------
+ltu_proxy.c, ltu_utils.[ch]        -ltu proxy code
+
+ltudimservices.c, popen2.c
+-DIM server part (counters reading, ltuclient requests)
+
+ltudimserver.c   -link only DIM server -i.e. for debugging DIM part
+
+noclasses/ -standard sod/eod/l2a sequences used by ltuproxy for DAQ runs
+
+DIM services:
+-------------
+/RESULT
+/MONCOUNTERS
+/EXEC -not used, only test: type /EXEC in cmd: entry
+
+DIM commands:
+-------------
+/DO
+    logon
+    logoff
+    qs     -quit server
+    q      -quit client
+/PIPE
+      open
+      close  -not implemented yet
+      getclients
+      MSG2ALL message
+example: in cmd: entry (cmdlin2.py) type:
+/PIPE getclients    ! space after getclients!
+
+/PUTFILE
+/GETFILE
+/GFETCOUNTERS
+

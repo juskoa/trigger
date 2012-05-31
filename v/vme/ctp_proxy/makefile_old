@@ -1,0 +1,108 @@
+# test makefile: start: make linux/XXX   where XXX is:
+# ctp_proxy  -for ref's ctp_proxy
+# test    -testing ctp_proxy functions interactively  
+# dims    - dim server part testing (later dim server will be
+#           started from ctp_Initproxy)
+# dimc    -testing example of dim client using dims (CTPDIM/) sevices
+include makefile_common
+CTPLIB=../ctp/ctplib/libctp.a $(VMEBDIR)/vmeblib/libvmeb.a
+SDIR= .
+
+proxyOBJS=$(ODIR)/ctp_proxy.o \
+ $(ODIR)/cfg2part.o $(ODIR)/clgroups.o \
+ $(ODIR)/dimservices.o $(ODIR)/fixedcnts.o
+
+CTPOBJS=$(proxyOBJS) $(CTPLIB)
+all: $(ODIR)/ctp_proxy $(ODIR)/test $(ODIR)/dims $(ODIR)/ctpshm.exe $(ODIR)/dimc \
+ $(ODIR)/gcalib.exe $(ODIR)/act.exe $(ODIR)/main_fixedcnts
+#------------------------------------------ ctp_proxy
+
+$(ODIR)/ctp_proxy: $(ODIR)/main_ctp.o $(proxyOBJS) $(CTPLIB)
+	$(CC) $(LDFLAGS) $(ODIR)/main_ctp.o $(proxyOBJS) \
+ -o $(ODIR)/ctp_proxy $(EXTRALIBS)
+$(ODIR)/main_fixedcnts: main_fixedcnts.c $(ODIR)/fixedcnts.o
+	$(CC) $(LDFLAGS) main_fixedcnts.c $(ODIR)/fixedcnts.o \
+ -o $(ODIR)/main_fixedcnts $(EXTRALIBS)
+	
+$(ODIR)/main_ctp.o:$(SDIR)/main_ctp.c $(SDIR)/Tpartition.h \
+    $(SDIR)/ctp_proxy.h
+	$(CC) $(CFLAGS) -c -o $(ODIR)/main_ctp.o main_ctp.c
+
+$(ODIR)/ctp_proxy.o:$(SDIR)/ctp_proxy.c $(SDIR)/ctp_proxy.h \
+  $(SDIR)/Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $(ODIR)/ctp_proxy.o ctp_proxy.c
+
+$(ODIR)/dimservices.o:$(SDIR)/dimservices.c $(SDIR)/Tpartition.h
+	$(CC) $(CFLAGS) -c -o $(ODIR)/dimservices.o dimservices.c
+
+$(ODIR)/cfg2part.o:$(SDIR)/cfg2part.c $(SDIR)/Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $(ODIR)/cfg2part.o cfg2part.c
+$(ODIR)/clgroups.o:$(SDIR)/clgroups.c $(SDIR)/Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $(ODIR)/clgroups.o clgroups.c
+$(ODIR)/fixedcnts.o:$(SDIR)/fixedcnts.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/fixedcnts.o fixedcnts.c
+
+#------------------------------------------ test
+$(ODIR)/test.o:$(SDIR)/ctp_proxy.h $(SDIR)/Tpartition.h $(SDIR)/test.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/test.o test.c
+
+$(ODIR)/test: $(ODIR)/test.o $(CTPOBJS)
+	$(CC) $(LDFLAGS) $(ODIR)/test.o $(proxyOBJS) \
+ -o $(ODIR)/test $(EXTRALIBS)
+
+#------------------------------------------- dims
+$(ODIR)/dims.o:$(SDIR)/dims.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $(ODIR)/dims.o dims.c
+$(ODIR)/dims: $(ODIR)/dims.o $(ODIR)/dimservices.o $(CTPLIB)
+	$(CC) $(LDFLAGS) $(ODIR)/dims.o $(ODIR)/dimservices.o \
+ -o $(ODIR)/dims $(EXTRALIBS)
+
+#------------------------------------------- gcalib
+$(ODIR)/gcalib.o:$(SDIR)/gcalib.c 
+	$(CC) $(CFLAGS) -c -o $(ODIR)/gcalib.o gcalib.c
+$(ODIR)/gcalib.exe: $(ODIR)/gcalib.o $(CTPLIB)
+	$(CC) $(LDFLAGS) $(ODIR)/gcalib.o \
+ -o $(ODIR)/gcalib.exe $(EXTRALIBS)
+
+#------------------------------------------- ctpshm
+$(ODIR)/main_shm.o:$(SDIR)/main_shm.c Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $(ODIR)/main_shm.o main_shm.c
+$(ODIR)/ctpshm.exe: $(ODIR)/main_shm.o $(ODIR)/cfg2part.o $(CTPLIB)
+	$(CC) $(LDFLAGS) $(ODIR)/main_shm.o $(ODIR)/cfg2part.o \
+ -o $(ODIR)/ctpshm.exe $(EXTRALIBS)
+#------------------------------------------- ctpshm
+$(ODIR)/main_act.o:$(SDIR)/main_act.c Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $(ODIR)/main_act.o main_act.c
+$(ODIR)/act.exe: $(ODIR)/main_act.o $(ODIR)/cfg2part.o $(CTPLIB) \
+ $(VMEBDIR)/vmeblib/libvmeb.a /opt/act/libACT.a 
+	$(CC) $(LDFLAGS) $(ODIR)/main_act.o \
+ -o $(ODIR)/act.exe $(EXTRALIBS_ACT)
+# -o $(ODIR)/act.exe $(EXTRALIBS)
+#-------------------------------------------- dimc
+$(ODIR)/dimc.o:$(SDIR)/dimc.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $(ODIR)/dimc.o dimc.c
+$(ODIR)/dimc: $(ODIR)/dimc.o
+	$(CC) $(LDFLAGS) $(ODIR)/dimc.o \
+ -o $(ODIR)/dimc $(EXTRALIBS)
+
+#-------------------------------------------- sendcomm
+$(ODIR)/sendcomm.o:$(SDIR)/sendcomm.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $(ODIR)/sendcomm.o sendcomm.c
+$(ODIR)/sendcomm: $(ODIR)/sendcomm.o
+	$(CC) $(LDFLAGS) $(ODIR)/sendcomm.o \
+ -o $(ODIR)/sendcomm $(EXTRALIBS)
+#-------------------------------------------- dimcswtrg
+$(ODIR)/dimcswtrg.o:$(SDIR)/dimcswtrg.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $(ODIR)/dimcswtrg.o dimcswtrg.c
+$(ODIR)/dimcswtrg: $(ODIR)/dimcswtrg.o
+	$(CC) $(LDFLAGS) $(ODIR)/dimcswtrg.o \
+ -o $(ODIR)/dimcswtrg $(EXTRALIBS)
+
+#-------------------------
+../ctp/ctplib/libctp.a:../ctp/ctplib/*.c
+	cd ../ctp/ctplib ; make
+$(VMEBDIR)/vmeblib/libvmeb.a:$(VMEBDIR)/vmeblib/*.c
+	cd $(VMEBDIR)/vmeblib ; make
+clean:
+	-rm -f $(ODIR)/*.o
+

@@ -1,0 +1,18 @@
+-rw-r--r--  1 aj alice 118462 Sep 27 16:40 busy_a3.rbf
+
+13.3.2008
+busy_a4.rbf
+BUSY_MINI error fixed
+TEST_ADD changed from H"130" to H"1FA"
+14.7.
+busy_a6.rbf
+BUSY_OVERLAP added, fixing overlapping clusters problem
+Mon Jul 21 14:55:26 CEST 2008
+busy_a7.rbf
+recompiled with Normal PLLmode (till now was: no_compensation)
+Mon Aug  4 20:39:18 CEST 2008
+busy_a7_1.rbf
+recompiled without CRC option, same fpga code
+Thu Aug 28 2008
+busy_logic_a8.rbf
+pahse monitoring included

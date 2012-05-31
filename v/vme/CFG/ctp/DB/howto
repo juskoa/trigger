@@ -1,0 +1,29 @@
+1. How to change time slots for 'timed class groups'?
+On alidcscom026:
+cdult
+cd v/vme/ctp_proxy
+edit cfg2part.c
+look for line: clg_ (it is line 465):
+
+int clg_defaults[MAXCLASSGROUPS]= {0,1,1,1,1,1,6,7,8,9};  
+
+edit this line according to needed time slots for each class group.
+The setting above means:
+classgroup active_time [secs]
+0          always active
+1          1
+2          1
+3          1
+4          1
+5          1
+6          6
+7          7
+8          8
+9          9
+
+Save file, compile ctpproxy:
+make
+
+Restart ctpproxy (make sure no global run is active when restarting ctpproxy):
+alidcsvme001> ctpproxy restart
+

@@ -1,0 +1,5 @@
+ds01 1 ttcmiclock G
+ds02 1 ttcmiorbit G
+ds03 1 any G
+ds04 1 any G
+ds05 1 any G

@@ -1,0 +1,76 @@
+Problem:
+14.1.2010: Pietro Antonioli's request (see the end of this note):
+Because of their (t0 + tof) limitations in TDC, they cannot work
+with cal. trigger close to the Orbit (current CALIBRATION_BC 3556).
+They want to have cal. trigger sooner 3526 at least,  3520 would be
+save.
+Suggested solution:
+allow CALIBRATION_BC as parameter in ltuttc.cfg. This parameter
+will be Used:
+- for LTU -CALIBRATION_BC register)
+- in CTP (ctplib/swtrigger.c) when global calibration initiated
+  TC_SET[11..0] -the same as CALIBRATION_BC in LTU
+- PP_TIME calculation for LTU (24.1.2010) is:3479-ppL0
+  (it should be 3490-ppL0 according to timingpars.c and 'Timing of TTC
+  partition - LTUvi version)
+- it seems no other register(s) are affected
+
+TOdo:
+ltu_proxy: 
+- take CALIBRATION_BC + PP_TIME from ltuttc.cfg file (current way)
+- change the formula in ltuttc.cfg calculating PP_TIME:
+  PP_TIME= CALIBRATION_BC - 77- ppL0;
+global calibration:
+- in ctp expert sw and in calib.daemon (swtrigger.c): take it from 
+  corresponding ltuttc.cfg file (?-ACT? or we start our SQLdb?) 
+  or from ltuproxy (DIM)
+
+Done:
+25.1.2010: ltu_proxy side done, i.e.:
+ltuproxy: new service CALIBBC added (can be tested with ltudim/linux/ltucmd)
+          to be called from ctplib/swtrigger.c)...
+new parameter (CALIBRATION_BC, calibbc in Tltucfg structure) 
+added in ltuttc.cfg.
+26.1.2010
+ctplib/swtrigger.c -contacts ltuproxy to get right CALIBRATION_BC
+ctp/testclass.py   -modified (cal. trigs+CALIBRATION_BC requested
+                    from corresponding ltuproxy by default)
+PP_TIME= CALIBRATION_BC - 77- ppL0
+is now in $dbctp/../../ltu/ltuttc.cfgall
+
+OK, tested in lab
+--------------------------------------------------------
+Date: Thu, 14 Jan 2010 23:50:37 +0100
+From: Pietro Antonioli <Pietro.Antonioli@bo.infn.it>
+To: Anton Jusko <Anton.Jusko@cern.ch>
+Cc: KARAVICHEVA TATYANA LYVOVNA <tatiana@inr.ru>,
+    Pierre Vande Vyvre <Pierre.Vande.Vyvre@cern.ch>
+Subject: event bunch selected for calibration event
+
+Dear Anton,
+
+as I anticipated to you by phone we finally identified today an horridous
+bug (which I would call "TDC vulnerability"), which affected
+calibration data of T0 (taken with pre-pulse and calibration triggers).
+
+In short the TDC in use at TOF and T0 detector showed
+producing crazy results (in terms of hit matching and hit time)
+if a bunch reset reaches the chips very close after an L1 is
+delivered to chips.
+
+In practice currently calibration triggers are sent (L1) at bunch
+3557. We found that are safe for us only triggers before bunch
+3520. It is a microsecond before but still well within LHC gap veto
+window so I hope it will not be a problem for you to modify
+that parameter.
+
+I guess this param is common to all detectors, but perhaps
+we could make it different (within a specific window) between
+the various sub-systems if there are specific requests.
+I'm cc-copying Pierre because I'm not sure of DAQ implications
+of such an approach. In that case individual detectors
+should have, in my opinion, a key in the ltu config file
+to modify the CALIBRATION_BC register you showed me today.
+
+Cheers, Pietro
+

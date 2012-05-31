@@ -1,0 +1,3 @@
+#!/bin/csh
+source /opt/smi/.setup 
+smiGUI TRIGGER

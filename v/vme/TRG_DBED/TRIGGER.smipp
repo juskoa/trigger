@@ -1,0 +1,34 @@
+object: CTP/associated
+   state: RUNNING
+      action: PAUSE
+   state: DORMANT
+      action: LOAD (NEWPARTITION)
+      action: UNLOAD (PARTITION)
+      action: CONTINUE
+
+.macro LTU(DET)
+object: LTU-${DET}/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION)
+      action: NV_GOTOGLOBAL
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-${DET}_FWM
+   state: EXCLUDED/initial_state
+      action: TAKE
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+      terminate_action/state=EXCLUDED
+
+.endmacro
+
+#include "TRIGGER.invoke"
+

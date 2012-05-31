@@ -1,0 +1,22 @@
+L2R 0x0000000000000 0x2000000000000 0x21 Last Restart roc=14 L1SwC
+# following line defines EndOfData event: 
+# - 1 L1class (0x2000... -> class 50), 
+# - 1 L2class (0x1 -> class 1), 
+# - 1 Cluster (0x20 -> 6) and
+# - End Of Data event (roc=15 L1SwC L2SwC)
+# Last: emulation terminates after execution of this sequence
+# L2A 0x2000000000000 0x1 0x20 roc=15 Last L1SwC L2SwC
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+#!/bin/bash
+cd $VMECFDIR/CFG/ctp/pardefs
+pn=`basename $1 .partition`
+if [ $# -ne 1 ] ;then
+cat - <<-EOF
+Usage:
+linkPartition ParttionName     (as used with parted, i.e. without suffix)
+
+Current link:
+EOF
+ls -ld ALICE.partition ;ls -ld ALICE.pcfg
+echo
+exit
+fi
+if [ $# -eq 1 -a "$pn" != "$1" ] ;then
+  echo
+  echo "Warning: it is enough to supply only partition name, i.e.:"
+  echo "linkPartition $pn"
+  echo
+fi
+echo
+if [ -e "$pn.partition" ] ;then
+ if [ -e "$pn.pcfg" ] ;then
+  echo Before:
+  ls -ld ALICE.partition ;ls -ld ALICE.pcfg
+  ln -sf $pn.partition ALICE.partition
+  ln -sf $pn.pcfg ALICE.pcfg
+  echo
+  echo Now:
+  ls -ld ALICE.partition ;ls -ld ALICE.pcfg
+  echo
+ else
+  echo "Error:"
+  echo "$pn.pcfg does not exist"
+  echo "in `pwd` directory (start parted $pn and save the partition)"
+  echo
+ fi
+else
+  echo "Error:"
+  echo "$pn.partition does not exist"
+  echo "in `pwd` directory"
+  echo
+fi
+

@@ -1,0 +1,268 @@
+ttcmidims.c -DIM server controlling the ALICE clock
+             see bin/ttcmidims.sh for start/stop/status
+miclock.py  -user (operator) interface. dim client watching:
+               TTCMI/MICLOCK
+               TTCMI/MICLOCK_TRANSITION
+               CTPDIM/BEAMMODE
+               user cmdline input
+             and setting the clock in man/auto mode.
+ttcmic.py   -obsolete (to be deleted)
+gendimclient.py   -generic pydim client 
+monshiftclock2.py -monitor clock shift:
+sctel.py -scope control
+exsctel.c -system("sctel.py MININF") -test before usage in ttcmidims.c
+
+Shift on CORDE (manual):
+When we are on LOCAL clock:
+- change file $dbctp/clockshift
+  (ok -DIM publishing CORDE shift is taking value from CORDE board directly!)
+- sshmi , vmecrate nbi corde ; readall ; -> set -> delay 7: ps: 6050 or 4880
+- startClients.bash ttcmidim stop/start
+- update daq logbook manually, or:
+  'Clock shift' in daq logbook is MADE AUTOMATICALLY (writeall does it)
+  Title:  'Clock shift'
+  Text: changed from 29 713(21630ps) to 29 633(20830ps) 
+
+------------ Services (seen on aldaqecs DIM name server):
+TTCMI/MICLOCK 
+LOCAL BEAM1 BEAM2 or REF
+
+TTCMI/MICLOCK_TRANSITION
+0 -the stable clock (i.e. the change of the clock is 
+   not foreseen). The current clock is defined by TTCMI/MICLOCK)
+3 -the clock will be changed in 3 minutes
+2 -the clock will be changed in 2 minutes
+1 -the clock will be changed in 1 minute
+
+infolog and DAQlogbook is updated also.
+
+TTCMI/SHIFT
+13.03. 18:44: '0.017667' (<type 'float'>)
+13.03. 18:44: '0.029844' (<type 'float'>)
+13.03. 18:44: '0.029844' (<type 'float'>)
+
+>miclock_shift.py
+enter BEAM1 BEAM2 REF LOCAL man auto (now:man) or q:
+TTCMI/MICLOCK: BEAM1. -WEB NOT UPDATED ##
+TTCMI/MICLOCK_TRANSITION: 0.
+21. 3. 19:58 BEAM MODE:STABLE BEAMS clock BEAM1 OK shift:0.1557
+21. 3. 21:46 BEAM MODE:BEAM DUMP clock BEAM1 not correct. miclock mode:man shift:0.1586
+TTCMI/MICLOCK_TRANSITION: 3.
+TTCMI/MICLOCK_TRANSITION: 2.
+TTCMI/MICLOCK_TRANSITION: 1.
+TTCMI/MICLOCK: LOCAL. -WEB NOT UPDATED ##
+TTCMI/MICLOCK_TRANSITION: 0.
+
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:15d
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:154
+      ORBIN_DELAY25_ORB2 0x7d024:140
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+--------------------------------------miclock_shift.py log:
+14.04. 22:50 ## vesion -i.e. miclock_shift.py
+enter BEAM1 BEAM2 REF LOCAL man auto (now:man) or q:
+TTCMI/MICLOCK: BEAM1. -WEB NOT UPDATED ##
+14.04. 22:51 callback_bm: RAMP
+14.04. 22:51 BEAM MODE:RAMP clock BEAM1 OK shift:0.2094
+14.04. 22:51 TTCMI/MICLOCK_TRANSITION: 0.
+14.04. 22:59 callback_bm: FLAT TOP
+14.04. 22:59 getfsdip.py act...
+50ns_228b+1small_214_12_180_36bpi_8inj
+colschedule.bash rc: 0
+14.04. 22:59 BEAM MODE:FLAT TOP clock BEAM1 OK shift:0.2027
+14.04. 23:01 callback_bm: SQUEEZE
+14.04. 23:01 Clock shift 212ps left unchaged
+14.04. 23:01 BEAM MODE:SQUEEZE clock BEAM1 OK shift:0.2122
+14.04. 23:11 callback_bm: BEAM DUMP
+14.04. 23:11 Clock shift 209ps left unchaged
+14.04. 23:11 BEAM MODE:BEAM DUMP, clock BEAM1 not correct. miclock mode:man shift:0.2094
+14.04. 23:11 TTCMI/MICLOCK_TRANSITION: 3.
+14.04. 23:12 TTCMI/MICLOCK_TRANSITION: 2.
+14.04. 23:13 TTCMI/MICLOCK_TRANSITION: 1.
+TTCMI/MICLOCK: LOCAL. -WEB NOT UPDATED ##
+14.04. 23:14 TTCMI/MICLOCK_TRANSITION: 0.
+
+------------------------
+Connected to alidcsaux008.
+Escape character is '^]'.
+Agilent Technologies DSO9254A MY49280137
+
+SCPI> :DISPLAY:PERSISTENCE?
+INF
+SCPI> :DISPLAY:PERSISTENCE MIN
+SCPI> :DISPLAY:PERSISTENCE INF
+SCPI> :QUIT
+
+SCPI> :EXIT
+
+SCPI> exit
+
+SCPI> quit
+
+SCPI> 
+telnet> quit
+Connection closed.
+
+yes, than I will provide just:
+time fo3 corde co2 
+The clock you get from TTCMI/MICLOCK
+and beam mode from CTPDIM/BEAMMODE (number).
+
+BCmainQPLL BCmainError -2 bits read from RF2TTC board, Marian
+wants to see trend from these 2 bits also,
+They are provided by another DIM service: MICLOCK/QPLL
+publishing hexadecimal string of 9 bits (0: least significant bit):
+8: TTCrx status  0:error 1:ok
+Bits 76 54 32 10 contains QPLLerror and QPLLlocked bits
+of BC1 BC2 BCref and BCmain outputs on RF2TTCboard.
+QPLLerror: 0:ok  1:error 
+QPLLlocked: 0:not locked 1:locked
+
+We would like to see the thread following TTCrx status (bit8)
+and BCmain outputs (bits 1 and 0).
+
+problem:
+sctel.rep:Agilent Technologies DSO9254A MY49280137
+
+SCPI> 
+measured: 1320071155.481 -5.7033E-09 -1.94314E-08 -8.8563E-09
+measured: 1320071165.695 -3.3422E-09 -1.94601E-08 -2.23334E-08
+measured: 1320071175.762 -1.94933E-08 -1.93975E-08 -1.49634E-08
+measured: 1320071185.830 -4.2911E-09 -1.93915E-08 -1.98907E-08
+measured: 1320071195.895 -1.34523E-08 -1.93925E-08 -2.12572E-08
+closing telnet...
+opening telnet...
+sctel.rep:Agilent Technologies DSO9254A MY49280137
+SCPI> 
+measured: 1320071256.965 :MEASURE:DELTATIME? CHANNEL2,CHANNEL4 -1.94575E-08 -1.5
+3258E-08
+measured: 1320071267.126 -1.26753E-08 -1.94599E-08 -2.08537E-08
+measured: 1320071277.185 -1.86158E-08 -1.94695E-08 -1.40366E-08
+measured: 1320071287.245 -1.30703E-08 -1.94362E-08 -2.0141E-09
+measured: 1320071297.306 -2.1998E-09 -1.94286E-08 -1.22963E-08
+closing telnet...
+opening telnet...
+sctel.rep:Agilent Technologies DSO9254A MY49280137
+
+SCPI> 
+measured: 1320071358.365 -1.34671E-08 -1.94198E-08 -8.3486E-09
+measured: 1320071368.602 -1.94254E-08 -1.94779E-08 -2.18882E-08
+measured: 1320071378.655 -1.80615E-08 -1.94127E-08 -1.763E-10
+measured: 1320071388.714 -2.39105E-08 -1.93899E-08 -2.26839E-08
+measured: 1320071398.785 -1.61172E-08 -1.93811E-08 -2.36695E-08
+closing telnet...
+opening telnet...
+sctel.rep:Agilent Technologies DSO9254A MY49280137
+
+SCPI> 
+measured: 1320071459.863 -2.21077E-08 -1.94815E-08 -2.07213E-08
+measured: 1320071470.067 -9.7135E-09 -1.93462E-08 -1.99097E-08
+measured: 1320071480.146 -9.4847E-09 -1.94071E-08 -2.42818E-08
+measured: 1320071490.203 -2.32596E-08 -1.93957E-08 -1.53528E-08
+measured: 1320071500.260 -1.68273E-08 -1.93952E-08 -7.5829E-09
+closing telnet...
+opening telnet...
+sctel.rep:Agilent Technologies DSO9254A MY49280137
+SCPI> 
+measured: 1320071561.390 :MEASURE:DELTATIME? CHANNEL2,CHANNEL4 -1.94171E-08 -1.28361E-08
+measured: 1320071571.631 -1.14742E-08 -1.93910E-08 -2.35095E-08
+measured: 1320071581.682 -1.31695E-08 -1.93683E-08 -3.2146E-09
+measured: 1320071591.747 -7.9348E-09 -1.94177E-08 -8.1556E-09
+measured: 1320071601.804 -8.8168E-09 -1.93780E-08 -2.25132E-08
+closing telnet...
+opening telnet...
+sctel.rep:Agilent Technologies DSO9254A MY49280137
+
+SCPI> 
+measured: 1320071662.875 -2.19447E-08 -1.94067E-08 -9.7441E-09
+
+----- crash 1.11.2011
+measured: 1320112299.747
+Traceback (most recent call last):
+  File "./sctelServer.py", line 95, in ?
+    main()
+  File "./sctelServer.py", line 82, in main
+    scopedata= tn.measure()
+  File "/data/dl/root/usr/local/trigger/v/vme/ttcmidaemons/sctel.py", line 52, in measure
+    fo3= self.cmdF(":MEASURE:DELTATIME? CHANNEL2,CHANNEL4\n")
+  File "/data/dl/root/usr/local/trigger/v/vme/ttcmidaemons/sctel.py", line 37, in cmdF
+    self.tn.write(cmd)
+  File "/usr/lib/python2.4/telnetlib.py", line 292, in write
+    self.sock.sendall(buffer)
+  File "<string>", line 1, in sendall
+socket.error: (32, 'Broken pipe')
+-------------------------------------
+closing telnet...
+Traceback (most recent call last):
+  File "./sctelServer.py", line 95, in ?
+    main()
+  File "./sctelServer.py", line 88, in main
+    tn.close()
+  File "/data/dl/root/usr/local/trigger/v/vme/ttcmidaemons/sctel.py", line 22, in close
+    self.tn.write("\003\n")    # ok (closes connection)
+  File "/usr/lib/python2.4/telnetlib.py", line 292, in write
+    self.sock.sendall(buffer)
+  File "<string>", line 1, in sendall
+socket.error: (32, 'Broken pipe')
+----------
+happened when 'Don't send report' pressed in scope window:
+[alidcscom188] /home/alice/trigger/v/vme/WORK > tail sctelServer.log 
+  File "./sctelServer.py", line 100, in ?
+    main()
+  File "./sctelServer.py", line 87, in main
+    tn.close() 
+  File "/data/dl/root/usr/local/trigger/v/vme/ttcmidaemons/sctel.py", line 22, in close
+    self.tn.write("\003\n")    # ok (closes connection)
+  File "/usr/lib/python2.4/telnetlib.py", line 292, in write
+    self.sock.sendall(buffer)
+  File "<string>", line 1, in sendall
+socket.error: (32, 'Broken pipe')
+------------ 5.11.2011:
+-rw-r--r-- 1 601 600   69632 2011-11-05 10:37 sctelServer.log
+measured: 1320485825.669 -2.07707E-08 -1.93846E-08 -2.47414E-08
+measured: 1320485835.983 -2.08529E-08 -1.93754E-08 -2.47093E-08
+measured: 1320aj@tp:~/t8/v/vme/WORK$ 
+
+---------------- 6.11.
+measured: 1320616900.132 -2.08323E-08 -1.94854E-08 -2.40786E-08
+cannot write
+(<class socket.error at 0xb7b814ac>, <socket.error instance at 0xb7b89d6c>, <traceback object at 0xb7b88b94>)
+cannot write
+(<class socket.error at 0xb7b814ac>, <socket.error instance at 0xb7b89d6c>, <traceback object at 0xb7b88be4>)
+cannot write
+(<class socket.error at 0xb7b814ac>, <socket.error instance at 0xb7b89d6c>, <traceback object at 0xb7b88b94>)
+measured: 1320616910.489
+restarting telnet (close + open with next measurement)...
+cannot writeclose
+(<class socket.error at 0xb7b814ac>, <socket.error instance at 0xb7b89d6c>, <traceback object at 0xb7b88be4>)
+opening telnet...
+cannot open telnet to alidcsaux008
+(<class socket.error at 0xb7b814ac>, <socket.error instance at 0xb7b89dac>, <traceback object at 0xb7b88b94>)
+sctel.prompt1:
+opening telnet...
+sctel.prompt1:Agilent Technologies DSO9254A MY49280137
+SCPI> 
+fo3 once more 1 time
+measured: 1320616952.502 -2.07628E-08 -1.94787E-08 -2.38000E-08
+
+------------ 7.11.2011
+measured: 1320621724.632 -1.15357E-08 -1.94599E-08 -2.2878E-09
+measured: 1320621734.827 -6.81E-11 -1.93887E-08 -1.87797E-08
+beammode_cb. Message received: '3' (<type 'int'>)
+beammode_cb. Message received: '6' (<type 'int'>)
+miclock_cb. Message received: 'BEAM1 ' (<type 'str'>)
+beammode_cb. Message received: '7' (<type 'int'>)
+beammode_cb. Message received: '8' (<type 'int'>)
+beammode_cb. Message received: '9' (<type 'int'>)
+beamm
+>>> time.localtime(1320621734.827)
+(2011, 11, 7, 0, 22, 14, 0, 311, 0)
+

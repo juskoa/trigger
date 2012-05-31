@@ -1,0 +1,48 @@
+monscal++:
+Functionality:
+- send run counters to daqlogbook via api
+- send run counters to ocdb via DCS fxs
+- displays run counters counts,rates in text format in display.log
+  which can be inspected by showmonscal (rolling) or monscal (gview)
+Working environment:
+tri@alidcscom188:
+mkdir -p cnt delme delme/cnt MONSCAL
+
+These options can be chosen bitwise as first argument of main:
+1- display
+2- daq
+4- ocdb
+e.g. 6 send counters to daq and ocdb, but does not produce diaplay log
+     1 produces only display log
+
+There is second argument in which switches on/off 
+the final step of copying file to dcs/fxs (calling chochula script)
+The default is NOT copy. 
+
+The exe file of monscal++ is called linux/MonScal
+and it is produced by monscal++/makefile started in directory monscal++.
+MonScal copy linux/monscalnow is called from script monscal.sh with argument 1.
+MonScal copy /home/tri/xcountersdaq is called from xcounters.sh with argument 6.
+To copy MonScal to tri do:
+[alidcscom188] /home/tri > cp -a /data/dl/root/usr/local/trigger/v/vme/monscal++/linux/MonScal xcountersdaq
+
+Some older version of MonScal classes are used in
+amore by evgenij to interface ctp config and counters to amore.
+They can be used alo in c++ version of ctpproxy, if ever.
+ 
+
+dimcoff:
+c version of MonScal.  Development stopped
+when MonScal started. Directory dimcoff 
+can be deleted from pit updates as soon as
+I copy/rewrite sendcomm.c which is still used for
+monitoring
+ 
+xcounters:
+There is also copy of previous version of monscal++ in directory 
+xcounters. At some point I was thinking about doing independent branch
+of MonScal called xcounters. 
+Directory xcounters can be deleted from pit now.
+
+
+

@@ -1,0 +1,45 @@
+Problem:
+we should start the usage of subversion for trigger sw.
+Idea: use CERN svn server with clients on pcalicebhm05,epmp3,pit
+See:http://svn.web.cern.ch/svn/
+This document should be moved to SOLVED/ only when svn was used
+at least once for standard operations, i.e.:
+- several updates on server:
+- download new version in bhamlab,cernlab,pit
+
+Done:
+-svn client installed on pcalicebhm05 and alidcscom026:
+ done 14.1.2010 (on pcalicebhm05): yum install subversion
+-Jan 18 15:28 created master copy:
+ -vytvoreny svn project v cerne:
+  ?ako
+ -skopirovane cele vd z pcalicebhm05 na server
+  ?ako
+ -vd znovu vytvorene zo servra:
+  mkdir vd
+  svn co https://svn.cern.ch/reps/ALICECTP/trunk vd
+
+Repository is at:
+/afs/cern.ch/project/svn/reps/ALICECTP/
+
+ 
+Typicke akcie:
+1. zisti stav (ukaze vztah medzi lokalnou kopiou a repository):
+cd vd ; svn status -u
+-u -ukaze aj co mam byt updatnute zo servra (*)
+
+- zisti stav (ukaze subory v repository pre danu dir):
+svn list
+
+2. ak vytvoris subor, treba oznamit do svn aby ho spravoval:
+cd dir ; svn add subor
+
+3. vymazanie suboru (lokalne aj v repository):
+cd dir ; svn del subor
+
+4. zapis do repository svoje zmeny (v celom strome):
+cd vd
+svn --username juskoa -m "TIMESHARING in ctp.cfg and more..." commit
+
+5. stiahni zmeny zo servra do lokalnej pracovnej kopie:
+svn update

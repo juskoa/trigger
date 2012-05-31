@@ -1,0 +1,45 @@
+# LDFLAGS+, COMMONCFLAGS, CFLAGS:
+include $(VMEBDIR)/com_defs.make
+include $(VMEBDIR)/daq_defs.make
+COMMONCFLAGS += $(daqCCDEFS) $(daqINCDIRS)
+
+include $(VMEBDIR)/sc.make
+
+ifeq ($(VMEDRIVER),SIMVME)
+vmewro:=vmesim.o
+else
+vmewro:=
+endif
+ifdef DIMDIR
+dimwrapo:=dimwrap.o
+endif
+ifdef SERVER_LINK
+S_OBJS := ranlux.o lexan.o timeroutines.o dodif32.o \
+ prtError.o shmaccess.o infolog.o detectfile.o environment.o \
+ daqlogbook.o udplib.o actdb.o $(dimwrapo) bakery.o doItemName.o
+else
+S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o \
+ loadFPGA.o dodif32.o prtError.o shmaccess.o infolog.o \
+ detectfile.o signature.o environment.o daqlogbook.o \
+ udplib.o $(dimwrapo) bakery.o
+endif
+
+all: $(vmewro) $(S_OBJS)
+	-rm libvmeb.a
+	ar rs libvmeb.a *.o
+#ifeq ($(notdir $(CURDIR)), linux_s)
+#	echo "dir1:" $(notdir $(CURDIR)) $(HOSTNAME)
+#else
+#	echo "dir2:" $(notdir $(CURDIR))
+#endif
+udplib.o: udplib.c udplib.h 
+	$(CC) $(CFLAGS) -c -o $@ $<
+dimwrap.o: dimwrap.c
+	$(CC) $(CFLAGS) -c -I$(DIMDIR)/dim -o $@ $<
+bakery.o: bakery.c bakery.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+#%.o: %.c    nebavi
+.o: .c .h
+	$(CC) $(CFLAGS) -o $@ $<
+clean: 
+	rm *.o

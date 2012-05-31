@@ -1,0 +1,68 @@
+23.10.2009
+0T0A 0->7
+0SMB 3->2
+0VBC 3->1
+
+24.10.2009
+BPTA 0->6
+
+12.11.2009
+0BPA 2 1000 1000 -> 4 0 0
+0MSL 0 1000 1000 -> 0 0 0
+0MUL 0 1000 1000 -> 0 0 0
+0SMB 2 1000 1000 -> 0 -3 0
+0VBC 1 1000 1000 -> 3 0 0
+0HWU 7 1000 1000 -> 7 1 1
+0OB3 6 0 1       -> 6 -1 1
+0RG1 0 -> 1
+0RG2 0 -> 1
+0RG3 0 -> 1
+0RG6 0 -> 1
+
+17.11.
+0RG* signals shifted (seems they change with DAQ generator restart)
+
+20.11.
+V0 inputs (0VGA 0VGC 0VBC 0VBA 0VNG) should be delayed by the same
+number of BCs. I.e. from today they are all delayed by 3 BCs (changed in
+L0.INPUTS...).
+Before just 0VGA and 0VBC were delayed by 3BCs (all the others were 0).
+
+20.11. 21:46
+See daqlogbook 
+0VBA 3 -> 2
+0VBC 3 -> 2
+0BPA 4 -> 6
+
+23.11. around 17:00:
+0BPC 8 -> 11
+11.12. around 19:30
+0HWU 7->0
+0BPC 11->10
+
+8.2.2010:
+from ctp2009logs/:
+0SMB:          m  d   min:sec
+delay 3 before 10.23. 19:59
+delay 2 before 11.12. 13:28
+delay 0 after  11.12. 13:28
+
+0VBA:
+delay 0 before 11.21. 15:52
+delay 2  after 11.21. 15:52
+
+0VBC:
+delay 3 before 10.23. 19:59
+delay 1 after  10.23. 19:59
+delay 3 after  11.12. 13:28
+delay 2 after  11.21. 15:52
+
+30.3.2010
+0VBA and 0VBC edge changed from N -> P (based on SYNC measurement
+from 26.3.2010).
+30.3.2010
+0BPC delay changed 5->6. Based on alignment measuremnet with both
+beams during night.
+15.4.
+BPTXC = 10->11 BC, BPTXA = 6->5
+difference should be 6 BCs always

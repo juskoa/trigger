@@ -1,0 +1,27 @@
+#T0 T0=0.1   
+#InName=Det Level Signature  InpNum  Dimnum Configured
+V0mb = V0    0      1         1       1        1
+V0sc = V0    0      2         2       2        1
+V0ee = V0    0      3         2       2        0
+V0aa = V0    0      4         0       3        0
+V0cc = V0    0      5         0       3        1
+# InName = Symbolic name of CTP input (Unique)
+# Det = Detector Name as used by DAQ
+# Level = 0,1,2
+# Signature = input signature 1-119  (Unique)
+# Inpnum =1-24 for L0,L1; 1-12 for L2 
+# Dimnum = 1-N N=number of CABLES from triggering detetctor to CTP
+#          This is the order number as used in communication with TIN proxy
+#           (i.e. in status word, in setting state)
+# Configured = 0,1;  1 - signature to be found on this cable 
+#                     (i.e. this cable is used for this input)
+#
+#deliberate error (0.1 already defined)
+#ACORDE acl0=0.1 acml0=0.2   
+#
+# L0 function deffinitions: starts always with 'l0'
+l0ferr = T0 | TRDpre
+l0fok = T0 | acml0
+# l0flota=0xf0f0 - this format is forbidden
+# Comments:
+# - analysis of table consistency in parted

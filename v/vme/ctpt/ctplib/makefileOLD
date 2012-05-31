@@ -1,0 +1,10 @@
+GCC=gcc
+VMEB=../../../vmeb
+all: readBICfile.o checkCTP.o notInCrate.o
+	ar r libctp.a *.o
+readBICfile.o: readBICfile.c ctp.h $(VMEB)/vmewrap.h ssmctp.h
+	$(GCC) -c -I$(VMEB) readBICfile.c
+checkCTP.o: checkCTP.c ctp.h $(VMEB)/vmewrap.h
+	$(GCC) -c -I$(VMEB) checkCTP.c
+notInCrate.o: notInCrate.c ctp.h $(VMEB)/vmewrap.h
+	$(GCC) -c -I$(VMEB) notInCrate.c

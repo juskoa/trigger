@@ -1,0 +1,8 @@
+Version: 2
+BCM1 bcmEMPTY
+BCM2 bcmB
+BCM3 bcmAC
+Clusters:
+MUON
+DEMC1(cn=CEMC1-ABCE-NOPF-MUON)
+EMCAL

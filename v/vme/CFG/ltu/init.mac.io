@@ -1,0 +1,6 @@
+setDestination(0x1f)
+SLMload("/home/alice/trigger/v/vme/CFG/ltu/SLM/CL2a.seq")
+SLMsetstart(11)
+vmeopw32(COUNT_PERIOD, 4000)
+SLMstart()
+setAB(5, 23)

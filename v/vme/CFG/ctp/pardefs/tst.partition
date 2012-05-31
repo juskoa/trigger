@@ -1,0 +1,6 @@
+Version: 2
+BC1 1khz
+Clusters:
+ALL
+DTRUE(cn=CTRUE-ABCE-NOPF-ALL,bc1)
+SSD

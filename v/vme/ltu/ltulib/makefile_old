@@ -1,0 +1,12 @@
+VMEB=$(VMEBDIR)/vmeblib
+CC=$(VMEGCC) 
+CFLAGS= -g -Wall -I$(VMEB) -I$(VMECFDIR)/ltu
+
+all: ltuinit.o ttcsubs.o setstdalonemode.o ltuCounters.o ltuslm.o ltussm.o ltubusyscope.o readtemp.o ltuadc.o
+	-rm libltu.a
+	ar r libltu.a *.o
+.o: .c 
+*.o: $(VMECFDIR)/ltu/ltu.h
+clean:
+	-rm *.o
+

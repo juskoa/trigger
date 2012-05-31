@@ -1,0 +1,19 @@
+lnxpool31 (15.6.2010):
+useradd -u 1000 -m  -s/bin/bash -d /clienthome/apixel -c'Anton Jusko' apixel
+userdel -r apixel
+
+[apixel@lnxpool31] sw > tar -xf ../vmebltu.tar
+[apixel@lnxpool31] ~ > mkdir -p v/vme/WORK
+[pcalicebhm05] /opt > tar -czvf ~/opt.tgz dim smi infoLogger
+-> sw/opt
+
+modified: scripts/vmebse.bash 
+vmeb/vmeai.make.VMERCC:
+CCROOT=/afs/cern.ch/atlas/project/tdaq/inst/tdaq/tdaq-02-00-03/installed
+LDFLAGS +=-L$(RCCROOT)/i686-slc5-gcc43-dbg/lib -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lDFDebug
+CFLAGS=$(COMMONCFLAGS) -I$(RCCROOT)/include
+
+mkdir -p v/vme/CFG/ltu
+cd v/vme/CFG/ltu
+cp $VMECFDIR/CFG/ltu/ltuttc.cfg .
+

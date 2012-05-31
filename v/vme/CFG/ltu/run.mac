@@ -1,0 +1,17 @@
+# prerequisities:
+# CFG/ltu/SLM/sod.seq    -StartOfData sequence
+# CFG/ltu/SLM/l2eod.seq  -L2a loop + EndOfData sequence
+SLMload("WORK/sod.seq")
+SLMstart()
+SLMswstart(1,0)
+#wait 100 micsec for SOD:
+SLMwaitemuend(100)
+# 4000 -> one L2a per 100 micsecs (for BC downscaled START signal):
+vmeopw32(COUNT_PERIOD, 4000)
+# 3 -> BC downscaled 'START signal' choosen
+SLMsetstart(3)
+SLMload("WORK/l2eod.seq")
+# Start emulation:
+SLMstart()
+# Press 'Break emulation' button to stop L2a generation, generate EOD
+# and finish emulation:

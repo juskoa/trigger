@@ -1,0 +1,16 @@
+Problem:
+TRD wants to analyse CTP readout, but they do not have info
+about our inputs (15.1.2010):
+Currently, only 'USED' CTP inputs are written, but your
+case calls for 'ALL' to be written in config file (now
+we do not have information about the trigger inputs
+in CTP readout!).
+I found, in our achive, following info about trigger
+inputs from the time of run 105143:
+InName = Det Level  Signature InpNum
+0OBE   = TOF    0        65     14
+0OB3   = TOF    0        63     18
+
+Todo:
+include all ctp inputs in .cfg file
+Done in March 2010

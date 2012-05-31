@@ -1,0 +1,7 @@
+#!/bin/bash
+rcmd $1 'ltuproxy killall'
+rcmd $1 'rm v/vme/WORK/LTU*'
+nohup rcmd $1 'ltuproxy startall' &
+rcmd $1 'ls -l v/*/WORK/LTU*.log'
+rcmd $1 'ltuproxy active'
+

@@ -1,0 +1,16 @@
+An example of simple DIM server/client.
+1 command (ENABLE)
+1 service (SSD/STATUS)
+
+1. compile/link server and client in linux directory:
+  make
+
+2. Start Dns: alias Dns='/home/aj/smi/dim/linux/dns'
+  Dns
+
+3. Start server:
+  linux/server
+
+4. Start client:
+  linux/client
+  - the short 'usage mesage' will be printed

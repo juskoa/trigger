@@ -1,0 +1,7 @@
+#!/bin/bash
+if [[ -z "$2" ]] ;then
+nn="15"
+else
+nn="$2"
+fi
+ls -lt $1 |head -$nn

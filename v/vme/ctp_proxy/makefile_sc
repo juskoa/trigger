@@ -1,0 +1,61 @@
+include $(VMEBDIR)/com_defs.make
+
+ifdef SERVER_LINK
+allEXES= $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/main_fixedcnts \
+ $(EXEDIR)/sendcomm
+else
+allEXES= $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
+ $(EXEDIR)/ctpshm.exe $(EXEDIR)/gcalib.exe
+endif
+$(info allEXES:$(allEXES))
+# check if target is all or part of allEXES:
+#ifeq ($(findstring linux_, $(notdir $(CURDIR))), linux_)
+
+MAKE = gmake
+DAQLOGBOOK=/opt/libDAQlogbook
+INFOLOG := /opt/infoLogger
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+
+ifeq ($(VMEDRIVER),SIMVME)
+EXTRALIBS = $(DIMLD) \
+ -L$(CTPLIB) -lctp -L$(VMEBLIB) -lvmeb 
+else
+#EXTRALIBS = -L$(DIMDIR)/linux -ldim -L$(SMIDIR)/linux -lsmi 
+EXTRALIBS = -L$(SMIDIR)/linux -lsmi $(DIMLD) \
+ -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc \
+ -L$(CTPLIB) -lctp $(VMEBLD) \
+ -L$(DAQLOGBOOK) -lDAQlogbook \
+ -L/opt/act -lACT -L$(INFOLOG) -lInfo \
+ $(MYSQLLIBS)
+EXTRALIBS_ACT = -L$(CTPLIB) -lctp $(VMEBLD) \
+ -L$(DAQLOGBOOK) -lDAQlogbook \
+ -L/opt/act -lACT -L$(INFOLOG) -lInfo \
+ $(MYSQLLIBS)
+#
+endif
+
+CFLAGS = -Wall -g -I$(DIMDIR)/dim -I$(SMIDIR)/smixx -I$(VMEBLIB)/.. \
+ -I$(CTPLIB)/.. -I$(DAQLOGBOOK) -I$(INFOLOG)
+ifeq ($(CC),g++)
+CFLAGS +=-DCPLUSPLUS
+endif
+LDFLAGS = -g -lpthread
+ifeq ($(VMESITE), ALTRI2)
+ CFLAGS += -DTEST
+endif
+ifeq ($(VMESITE), TEST)
+ CFLAGS += -DTEST
+endif
+
+#ifeq ($(OS),Linux)
+	CFLAGS += -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux
+#ifneq ($(SHAREABLE),no)
+#	SHAREABLE = yes
+	LIBFLAGS += -shared
+#endif
+#endif
+
+#ifneq ($(THREADS),yes)
+#	CFLAGS += -DNOTHREADS
+#endif
+

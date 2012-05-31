@@ -1,0 +1,54 @@
+PbPbNOPF11 v5: downscaled to 0: 
+  | ALLNOTRD: CPBI2-B/AC/E CPBI1-B/ACE C0TVX-B CVHN-B/ACE CVLN-B/ACE
+  | CENTNOTRD:CPBI2PHS-B/ACE
+  |
+  ->v6: 8 EMCAL classes downscaled to 0 
+  | ->v10: obsoleted
+  |   |  sync downscaling: _B1:1% (100) _B2:10% (9)  _RND2:67% (1431655764)
+  |   ->v14: 14.11.2011
+  |        2 sync-downscaled classes 
+  |        CVLN_B2-B-NOPF-ALLNOTRD, CVHN_R2-B-NOPF-ALLNOTRD
+  |        now correctly defined (bc2,rnd2 parameter now in)
+  ->v9: sync downscaling: _B1:1% (100) _B2:10% (9)  _RND2:67% (1431655764)
+    ->v11: 14.11.2011
+      |  CPBI1MSL-[B,ACE]-NOPF-MUON downscaled to 5.9%  (tbc)
+      ->v12: 14.11.2011 obsoleted
+      |    clusters reshuffled to prevent class50 allocation to C0LSR class
+      ->v13: 14.11.2011
+        |  2 sync-downscaled classes 
+        |  CVLN_B2-B-NOPF-ALLNOTRD, CVHN_R2-B-NOPF-ALLNOTRD
+        |  now correctly defined (bc2,rnd2 parameter now in)
+        ->v15: 15.11.
+        | |  Minbias     [ CPBI2WU_B1, CPBI2_B1 ]       B1 ->  DownScalingFactor = 201
+        | |  Central     [ CVHNWU_R2, CVHN_R2 ]         R2 ->  DownScalingFactor =   3.3
+        | |  SemiCentral [ CVLNWU_B2, CVLN_B2 ]         B2 ->  DownScalingFactor =  15
+        | |  Muon Single [ CPBI1MSL-[B,ACE]-NOPF-MUON ]    ->   DownScalingFactor = 32
+        | |  Barrel UPC  [ CCUP4-[B,AC,E]-NOPF-CENTNOTRD ] ->   DownScalingFactor = 2     
+        | ->v16: 15.11.
+        | | |  Minbias     [ CPBI2WU_B1, CPBI2_B1 ]       B1 ->  DownScalingFactor = 133
+        | | |  Central     [ CVHNWU_R2, CVHN_R2 ]         R2 ->  DownScalingFactor =   2.2
+        | | |  SemiCentral [ CVLNWU_B2, CVLN_B2 ]         B2 ->  DownScalingFactor =  10
+        | | |  Muon Single [ CPBI1MSL-[B,ACE]-NOPF-MUON ]    ->   DownScalingFactor = 22
+        | | |  Barrel UPC  [ CCUP4-[B,AC,E]-NOPF-CENTNOTRD ] ->   DownScalingFactor = 2
+        | | ->v18: 16.11.2011
+        | |   |  for IRrate=2kHz
+        | |   ->PbPbNOPF11_2kHz.v21 17.11.2011 (not changed: 133, 2.2, 10, 22)
+        | ->v19: 16.11.2011
+        |   |  for IRrate=3kHz
+        |   ->PbPbNOPF11_1kHz.v20 17.11.2011 (not changed: 201,3.3,15,32)
+        ->v17: 16.11.2011
+          |  for IRrate=1kHz
+          ->PbPbNOPF11_1kHz.v20 17.11.2011
+                MinBias    : 67
+                Central    :  1.1
+                SemiCentral:  5 
+                MSL        : 12
+               
+PbPbNOPF11Test v16: 3x10min CVLN, CVHN, CPBI2, to be started with ctp.cfg PbPb11Test.v3
+divided into 3 partitions:
+  PbPbNOPF11TestPBI2 (v17)
+  PbPbNOPF11TestVHN (v16)
+  PbPbNOPF11TestVLN (v16)
+
+pPbNOPF11 v17: 16.11.2011
+  requires ctp.cfg PbPb11.v3

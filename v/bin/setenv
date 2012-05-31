@@ -1,0 +1,80 @@
+#!/bin/bash
+HN=`hostname -s`
+XY='-Y'
+if [ $HN = 'alidcscom026' -o $HN = 'alidcscom027' -o $HN = 'pcalicebhm05' ] ;then
+  export CCRFS=/data/ClientCommonRootFs
+  export CLRFS=/data/ClientLocalRootFs
+  export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
+  export ULT=$CCRFS/usr/local/trigger
+  export tr26='trigger@alidcscom026'
+  export tr188='trigger@alidcscom188'
+  export tr521='trigger@alidcscom521'
+elif [ $HN = 'pcalicebhm10' ] ;then
+  export CCRFS=/home/dl/root
+  export CLRFS=/home/dl/snapshot
+  export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
+  export ULT=$CCRFS/usr/local/trigger
+  export tr1='trigger@altri1'
+  export tr2='trigger@altri2'
+  export trp2='trigger@altri2'
+elif [ $HN = 'alidcscom188' ] ;then
+  export CCRFS=/data/dl/root
+  export CLRFS=/data/dl/snapshot
+  export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
+  export ULT=$CCRFS/usr/local/trigger
+  export tr26='trigger@alidcscom026'
+  export tr27='trigger@alidcscom027'
+  export tr521='trigger@alidcscom521'
+  alias ctp="ssh -q -2 -f trigger@alidcsvme001 vmecrate nbi ctp"
+  alias miclock="$VMECFDIR/ttcmidaemons/miclock.py"
+  alias fanin=$ult/bin/fanin
+  alias dcson='rdesktop -g1280x1024 alitrion001'
+elif [ $HN = 'tp' ] ;then
+  export ULT=/home/aj/triad
+elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
+  export CCRFS=''
+  export CLRFS=''
+  export ULT=/usr/local/trigger
+else
+  export ULT=/usr/local/trigger
+  export CCRFS=''
+  export CLRFS=''
+  cd ~/v/vme/WORK
+fi
+export dbctp=$VMECFDIR/CFG/ctp/DB
+alias tinclient=$CCRFS/usr/local/trigger/v/vme/dimsc/linux/client
+alias l0inputdb="cd $VMECFDIR/switchgui; ./l0inputdb.py; cd -"
+alias switched="cd $VMECFDIR/switchgui; ./switched.py; cd -"
+export trir='trigger@alidcscom707'
+export dagw='jusko1@aldaqgw02'
+export lxp='jusko1@lxplus'
+export p2=$ULT/TrigDoc/POINT2
+#export PATH="$PATH:$ULT/bin"   is in vmebse.bash
+alias cdult="cd $ULT"
+alias getact="ssh trigger@alidcscom188 getact.bash"
+alias lth="ls -lt |head"
+alias cdbin="cd $ULT/root/bin"
+alias sx="ssh $XY"
+alias xt='xterm -bg black -fg gray60 &'
+alias mail='pine -f /var/spool/mail/root'
+if [ "$VMESITE" = 'ALICE' ] ;then
+alias ssh1="ssh $XY trigger@alidcsvme001"
+alias ssh2="ssh $XY trigger@alidcsvme002"
+alias ssh3="ssh $XY trigger@alidcsvme003"
+alias ssh4="ssh $XY trigger@alidcsvme004"
+alias ssh5="ssh $XY trigger@alidcsvme005"
+alias ssh6="ssh $XY trigger@alidcsvme006"
+alias ssh7="ssh $XY trigger@alidcsvme007"
+alias ssh8="ssh $XY trigger@alidcsvme008"
+alias sshmi="ssh $XY trigger@alidcsvme017"
+alias ssh26="ssh $XY trigger@alidcscom026"
+alias ssh27="ssh $XY trigger@alidcscom027"
+alias ssh707="ssh $XY trigger@alidcscom707"
+alias ssh521="ssh $XY trigger@alidcscom521"
+alias cdctp="cd $CLRFS/alidcsvme001/home/alice/trigger/v/vme/WORK"
+fi
+alias vt100='export TERM=vt100'
+shopt -s expand_aliases
+# set common trigger software environment (/etc/bashrc on vme ~/.bashrc on com)
+# . $CCRFS/usr/local/trigger/bin/vmebse.bash
+

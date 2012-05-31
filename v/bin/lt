@@ -1,0 +1,13 @@
+#!/bin/bash
+if [ $# -gt 1 ] ;then
+  pat=$1
+  lns=$2
+elif [ $# -eq 1 ] ;then
+  pat=$1
+  lns=10
+elif [ $# -eq 0 ] ;then
+  pat='*'
+  lns=10
+fi
+#echo "$pat" $lns
+ls -lt $pat | head -$lns

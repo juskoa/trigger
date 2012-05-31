@@ -1,0 +1,35 @@
+Problem:
+in offline, there are 2 equeal readings of ctp counters sometimes.
+
+Counters reading is initiated from 2 independent processes:
+1. ctp_proxy: at the SOR/EOR:
+SOR:
+ generateXOD
+readCounters(mem, CSTART_SPEC, 0);
+xcountersStart(part->run_number);   ->DIM request to dims
+EOR:
+ xcountersStop(run_number);         ->DIM request to dims
+ generateXOD
+
+2. dims: -from main and from thread
+- cthread()  - 1/min
+  readctpcounters(0);
+- getcnts()  -on request (SOR/EOR)
+  readctpcounters(cid);
+- startruncounter(), stopruncounter()
+  readctpcounters(0);
+
+dimservices.c:  2 threads:
+cthread() {
+  readctpcounters(0);
+  sleep(60)
+}
+void bstthread(void *tag) {
+  nextBSTdcs(vspbobr, bstmsg, 1);
+  sleep(BSTINTSECS) -10 secs
+}
+
+Solution:
+---------
+- critical section can be locked/unlocked by usage of 
+  shared memory + bakery (or semapphors)

@@ -1,0 +1,4 @@
+To compile:
+gcc -Wall ssmana.c -o ssmana.exe
+new (LTUvi) version -from 0xb0:
+gcc -Wall ssmanv.c -o ssmanv.exe

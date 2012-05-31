@@ -1,0 +1,38 @@
+Scheme 4x4_b, december 2009, 2 colliding pairs per IP, no bunch after 30000:
+
+***************************************************************
+*  NOTE: to get the same scheme without overinjection:        *
+*   - just add +1000 to all RF bucket numbers                 *
+*   - in addition there will be a pilot bunch (5e9 p/bch)     *
+*     in RF bucket 1 for each beam                            *
+***************************************************************
+
+                           RF bucket
+ inj 1      1     ring_1           1          25       1     
+ inj 1      2     ring_2           1          25       1     
+ inj 2      3     ring_1       17821          25       1     
+ inj 2      4     ring_2       12141          25       1     
+ inj 3      5     ring_1       21081          25       1     
+ inj 3      6     ring_2       17791          25       1     
+ inj 4      7     ring_1       26731          25       1     
+ inj 4      8     ring_2       26731          25       1     
+
+Bunch crossings:
+
+d = displacement relative to IP in meters
+    (negative is anticlockwise)
+
+                                 d           Beam1            Beam2
+
+ displaced collision in IR1: -11.25 m bucket 17821 and bucket 17791
+ Here good collision in IR1:    0 m   bucket 1     and bucket 1
+ Here good collision in IR1:    0 m   bucket 26731 and bucket 26731
+ Here good collision in IR2:    0 m   bucket 17821 and bucket 26731
+ Here good collision in IR2:    0 m   bucket 26731 and bucket 1
+ Here good collision in IR8:    0 m   bucket 21081 and bucket 12141
+ Here good collision in IR8:    0 m   bucket 26731 and bucket 17791
+ displaced collision in IR8: 11.25 m  bucket 1     and bucket 26731
+
+
+
+

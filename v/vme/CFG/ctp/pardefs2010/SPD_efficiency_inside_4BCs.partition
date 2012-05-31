@@ -1,0 +1,6 @@
+Version: 2
+BCM2 bcmB
+Clusters:
+ALL
+DINT1(cn=CINT1-B-NOPF-ALL,BCM2)
+SPD

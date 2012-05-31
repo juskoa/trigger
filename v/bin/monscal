@@ -1,0 +1,3 @@
+#!/bin/bash
+rm -f  ~trigger/v/vme/WORK/MONSCAL/.display.log.swp
+gview -R ~trigger/v/vme/WORK/MONSCAL/display.log

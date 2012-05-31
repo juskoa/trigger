@@ -1,0 +1,4 @@
+LDFLAGS+= -L/home/alice/aj/Linux/lib -lCAENVME 
+#CFLAGS=-D$(VMEDRIVER) -I/usr/local/linuxvme -I$(VMEBDIR)
+CFLAGS=-DLINUX $(COMMONCFLAGS) -I$(VMEBDIR) -I/home/alice/aj/Linux/include
+

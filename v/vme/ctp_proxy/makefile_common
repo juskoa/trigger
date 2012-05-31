@@ -1,0 +1,59 @@
+CC =$(VMEGCC)
+#CXX = g++
+
+#ifneq ($(VMESITE), ALICE)
+#TEST=yes
+#endif
+CPP = yes
+##CPP = no
+THREADS=yes
+SHAREABLE=
+##SHAREABLE=no
+ODIR = linux
+MAKE = gmake
+DAQLOGBOOK=/opt/libDAQlogbook
+INFOLOG := /opt/infoLogger
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+
+ifeq ($(VMEDRIVER),SIMVME)
+EXTRALIBS = -L$(DIMDIR)/linux -ldim \
+ -L../ctp/ctplib -lctp -L$(VMEBDIR)/vmeblib -lvmeb 
+else
+#EXTRALIBS = -L$(DIMDIR)/linux -ldim -L$(SMIDIR)/linux -lsmi 
+EXTRALIBS = -L$(SMIDIR)/linux -lsmi -L$(DIMDIR)/linux -ldim \
+ -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc \
+ -L../ctp/ctplib -lctp -L$(VMEBDIR)/vmeblib -lvmeb \
+ -L$(DAQLOGBOOK) -lDAQlogbook \
+ -L/opt/act -lACT -L$(INFOLOG) -lInfo \
+ $(MYSQLLIBS)
+EXTRALIBS_ACT = -L../ctp/ctplib -lctp -L$(VMEBDIR)/vmeblib -lvmeb \
+ -L$(DAQLOGBOOK) -lDAQlogbook \
+ -L/opt/act -lACT -L$(INFOLOG) -lInfo \
+ $(MYSQLLIBS)
+endif
+
+CFLAGS = -Wall -g -I$(DIMDIR)/dim -I$(SMIDIR)/smixx -I$(VMEBDIR)/vmeblib \
+ -I$(VMECFDIR)/ctp/ctplib -I$(DAQLOGBOOK) -I$(INFOLOG)
+LDFLAGS = -g -lpthread
+ifeq ($(VMEGCC),g++)
+CFLAGS +=-DCPLUSPLUS
+endif
+ifeq ($(VMESITE), ALTRI2)
+ CFLAGS += -DTEST
+endif
+ifeq ($(VMESITE), TEST)
+ CFLAGS += -DTEST
+endif
+
+ifeq ($(OS),Linux)
+	CFLAGS += -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux
+ifneq ($(SHAREABLE),no)
+	SHAREABLE = yes
+	LIBFLAGS += -shared
+endif
+endif
+
+ifneq ($(THREADS),yes)
+	CFLAGS += -DNOTHREADS
+endif
+

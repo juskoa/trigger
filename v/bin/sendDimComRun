@@ -1,0 +1,3 @@
+#to be started on alidcscom026
+# To send commands to dim server
+$VMECFDIR/dimcoff/linux/sendcomm

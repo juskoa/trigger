@@ -1,0 +1,18 @@
+Hi,
+i will think about it. Actually, validation script should be modified
+not to use T|kinter at all, but very likely it is simpler
+to add the dependency to .rpm. I will let you know
+On Mon, 21 Jun 2010, Vasco Barroso wrote:
+
+> Hi Anton,
+> 
+> Just another small detail.
+> 
+> The validate script needs the tkinter python package installed. But the RPM
+> doesn't have this dependency.
+> Could you add it to the spec file and create a new RPM ? This would help us
+> in having a clean installation procedure using kickstart.
+> 
+> Thanks,
+> Vasco  
+

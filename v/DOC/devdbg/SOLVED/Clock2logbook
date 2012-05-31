@@ -1,0 +1,11 @@
+Mail sent 11.8.2010:
+If nobody object, I will arrange comment in DAQlogbook by calling
+int DAQlogbook_add_comment(0,"CLOCK","xxx")
+in the time of the clock change.
+
+where xxx is:
+LOCAL or BEAM1
+(or BEAM2 or REF -these two are not used yet)
+Regards,
+
+26.8: done in lab (ctplib/ttcmisubs.c modified)

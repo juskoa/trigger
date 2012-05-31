@@ -1,0 +1,129 @@
+Contents
+1. Problem
+2. Todo:
+3. Done:
+4. Mails:
+
+1. Problem: automatic calibration in Global runs
+
+Todo:
+- special daemon (perhaps with thread(s)?) sending
+  calibration triggers 
+  - listening (DIM) to start (issued after successful SOD from ctpproxy):
+    -add detectors in this run to ACTIVEDETS
+    -if calthread not active
+      - start calthread
+    -finish DIMexit routine
+  -calthread:
+    forever
+      find DET in ACTIVEDETS for which caltime is minimal ->mintime
+      if DET (check in CTP shared memory) NOT in global:
+        remove it from ACTIVEDETS;
+          if ACTIVEDETS empty: stop thread
+          continue
+      read currenttime
+      if mintime is SET
+        plan next cal.trigger
+        delta= mintime-currenttime
+        if delta>100usecs
+          wait(delta)
+        gencal(DET)
+        read currenttime
+        wait(100)   #? allow the completion of the last cal. request?
+      caltime[DET]= currenttime + CALPERIOD[DET]  (plan next cal. trigger)
+
+2. Todo:
+--------
+- take parameters from DONE:19.5.
+  1.ltuttc.cfg file (roc, period) 
+  2. overwrite them, if present, from global cal. configuration
+     file $dbctp/gcalib.cfg. Format of the file:
+  ltuname period roc
+  #comment
+  ltuname: has to be present in VALID.LTUS
+  period:  in milsecs
+  roc:     dec number 0-7 
+
+- monitoring + improve 'calclient.py' -dynamic control of rates
+
+- PAUSE ECS command does not stop cal. triggers: DONE 
+
+3. Done:
+--------
+ctp_proxy/gcalib.c -daemon executing cal. requests, listening to CTPCALIB/DO
+calclient.py -client testing gcalib.c
+16.2.2010: copied to pit (26:aj/l2ptar.tgz)
+19.2.2010: started in the pit -see gcalib.sh (startClients gcalib).
+End of April:
+- PAUSE ECS command does not stop cal. triggers: done end of April, to be tested in lab
+19.5.
+$dbctp/gcalib.cfg is read now
+
+4. Mails:
+---------
+Here is the mail sent to alice-triggersupport:
+Hi all,
+there is new daemon on alidcsvme001: gcalib.exe, controlled
+by script: gcalib.sh start/stop/status
+(or startClients.bash gcalib start/stop/status).
+If daemon is down global cal. triggers are not generated.
+If it is up, and there are qualified detectors in global run(s),
+it generates cal. triggers.
+The 'Test class' interface in expert software can still be used,
+but its usage is discouraged.
+
+This daemon is kicked on when the global run is started by ctpproxy.
+It generates cal. triggers and checks:
+- at SOR if new detector is available for cal. triggers
+- with each trigger if calibrated detector is still
+  in global run
+
+The log file is: v/vme/WORK/gcalib.log
+The default rates (we cannot change them for now) are:
+SDD: 3 triggers 50ms apart every 15 minutes
+TOF: 5hz
+MTR: 1hz
+T00: 1hz
+ZDC: 0.1hz
+EMC: 0.5hz
+
+
+gcalib can be controlled by calclient.py
+started from alidcscom026:
+calclient
+
+---------------------------------------------
+
+mail from Chilo from 7.4.2010:
+Dear all,
+my plan with global calibration is:
+1. having a daemon generating cal. triggers with requested (default)
+    rate for calibrated detectors (done)
+2. having control/monitor tool, interacting with (1.), allowing:
+   a.) to disable/enable global calibration, set default rate for given
+       detectors
+   b.) the control of cal. triggers rate on the fly for active partitions 
+    (to be done)
+3. if necessary, having parameter, for each partition configuration, 
+   overwriting the default one before applying ACT value  (to be done
+   if needed)
+
+I agree, the point 2a. should be done through ACT. The best way seems
+to me is to put appropriate parameters to one of CTP configuration files
+(or create new one just for calibration) kept in ACT.
+
+For now, EMcal should not ask for global calibration with each global run.
+They can ask our shifter to start/stop it interactively with our expert sw.
+Anton
+
+On Wednesday 07 April 2010 01:43:05 pm Chilo Garabatos Cuadrado wrote:
+> Dear Franco, dear Anton,
+> In view of today's troubles to start a run (EMCAL calibration trigger
+> was supposed to be out but it was in), Ken and I suggest that:
+> 1. There is one independent CTP configuration for each partition
+> 2. The calibration triggers are configurable from ACT
+> 
+> I have no idea how this is technically achievable. Please comment if you
+> think this is not a reasonable proposal.
+> Best regards,
+> Chilo

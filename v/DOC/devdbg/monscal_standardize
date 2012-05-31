@@ -1,0 +1,3 @@
+Modify bin/monscal in order to :
+- respond to standard parameter (status/start/stop)
+- not to start if another monscal is already running

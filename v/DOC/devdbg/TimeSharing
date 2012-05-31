@@ -1,0 +1,64 @@
+Problem:
+-------
+The reading of counters:
+- per minute
+- SOD/EOD readings
+- timesharing group change reading
+
+is not synchronised (should be).
+It is not clear, what is the relation between TSGROUP (895 word in
+CTP counters) and timesharing conters reading. Request:
+Ma platit:
+'countre maju ten group , ktory bol
+aktivny ked countovali'
+R
+
+2 problems:
+A. TXGROUP counter not cleaned at the EOR
+B.
+TSGROUP counter == 'active group number' for reading which
+is FINISHING the active item of this group.
+
+Current status:
+active cl. group is passed throug shared memory
+see: Tctpshm.active_cg
+- 0 if no group is active
+>0  if TS group is active
+
+ctp_proxy/clgroups.c/cgInterrrupt()
+  clgroup= nextclassgroup(part);
+  ...
+  updateTotalTime(part);   // +force counters reading
+    xcountersStart(0);    // force xcounters read 
+  enableclassgroup(part, clgroup);  // also in shm
+    
+Modified:
+B.
+shm updated AFTER forced counters reading:
+- command sent over dim with new clgroup
+- counters are read
+- dims modifies shm active_cg after reading
+i.e. modified:
+clgroups.c:
+  enableclassgroup():
+  -ctpshmbase->active_cg= setclgroup; removed
+  cgInterrupt()
+  -updateTotalTime() +1 parameter (class group)
+
+ctp_proxy.c
+  xcountersStart() +1 parameter
+
+dimservices.c
+  readcounters() +1 parameter
+and more...
+Note:
+During paused state, shm.active_cg is 0.
+A.
+ctp_proxy, in stop_Partition:
+ctpshmbase->active_cg=0;
+in case no TS partition left after deleting stopped partition
+
+Todo:
+to be tested
+
+

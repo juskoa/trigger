@@ -1,0 +1,44 @@
+Pokus o instalaciu noveho dim + pydim na pcalicebhm05
+[pcalicebhm11] /afs/cern.ch/lhcb/project/web/online/online-rpm-repo/slc4X/i386/RPMS > tar -zcvf /tmp/pydim.tgz *v17r10* pydim-1.3.3-1.slc4.i386.rpm pydim-debuginfo-1.3.3-1.slc4.i386.rpm
+
+> scp /tmp/pydim.tgz root@pcalicebhm05:DISTRIB/
+
+[root@pcalicebhm05 DISTRIB]# tar -zxvf pydim.tgz 
+
+[root@pcalicebhm05 DISTRIB]# rpm -ivh dim-v17r10-1.RHEL4.i386.rpm
+Preparing...                ########################################### [100%]
+        package dim-16.6-1 (which is newer than dim-v17r10-1.RHEL4) is already installed
+        package dim-18.5-1 (which is newer than dim-v17r10-1.RHEL4) is already installed
+[root@pcalicebhm05 DISTRIB]# rpm -ivh pydim-1.3.3-1.slc4.i386.rpm
+Preparing...                ########################################### [100%]
+   1:pydim                  ########################################### [100%]
+[root@pcalicebhm05 DISTRIB]# rpm -ivh pydim-debuginfo-1.3.3-1.slc4.i386.rpm
+Preparing...                ########################################### [100%]
+   1:pydim-debuginfo        ########################################### [100%]
+
+Now client prepared in vd/vme/ttcmidaemons/ttcmic.py
+ok works
+whole pydim.tgz copied to ~trigger@26:/DISTRIB/
+Installed all packeges in this file.
+
+------------------------------ 7.9.
+on pcalicebhm11:
+[root@pcalicebhm11 ~]# mv dim-18.2-1.src.rpm DISTRIB/
+rpm -iv dim-18.2-1.src.rpm
+[root@pcalicebhm11 DISTRIB]# rpmbuild --rebuild dim-18.2-1.src.rpm 
+Installing dim-18.2-1.src.rpm
+warning: user chapelan does not exist - using root
+warning: user chapelan does not exist - using root
+error: Legacy syntax is unsupported: copyright
+error: line 9: Unknown tag: Copyright: CERN
+... I give up...
+-----------------
+[pcalicebhm05] /opt > tar -zcvf /tmp/dim18.tgz dim
+-bash-3.00$ scp dim18.tgz $tr26:DISTRIB/
+[root@alidcscom026 opt]# mv dim dim16
+[root@alidcscom026 opt]# tar -zxf ~trigger/DISTRIB/dim18.tgz 
+dim18 installed on alidcscom027 too:
+[root@alidcscom027 DISTRIB]# scp trigger@alidcscom026:DISTRIB/dim18.tgz .
+[root@alidcscom027 opt]# mv dim dim16 ; tar -zxf ~/DISTRIB/dim18.tgz 
+
+

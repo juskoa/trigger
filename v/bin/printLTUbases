@@ -1,0 +1,8 @@
+#!/bin/bash
+cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
+allbases=''
+for dtn1 in `awk '{if($2==host) {print $3}}' host=$1 $cfgfile` ;do
+  #echo $dtn1
+  allbases="$allbases $dtn1"
+done
+echo $allbases

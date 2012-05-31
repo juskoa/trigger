@@ -1,0 +1,16 @@
+# test makefile
+include makefile_common
+SDIR= .
+LIBS +=  -L$(DIMDIR)/linux -ldim -L$(VMEBDIR)/vmeblib/linux_c -lvmeb $(EXTRALIBS)
+
+all:	$(ODIR)/server $(ODIR)/client
+
+$(ODIR)/server:	$(SDIR)/server.c $(DIMDIR)/$(ODIR)/libdim.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/server.c \
+ -o $(ODIR)/server $(LIBS)
+	
+$(ODIR)/client:	$(SDIR)/client.c $(DIMDIR)/$(ODIR)/libdim.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/client.c \
+ -o $(ODIR)/client -L$(DIMDIR)/linux -ldim -L$(VMEBDIR)/vmeblib/linux_c -lvmeb
+clean:
+	-rm $(ODIR)/client $(ODIR)/server

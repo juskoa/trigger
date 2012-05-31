@@ -1,0 +1,9 @@
+#!/bin/bash
+EXCL='--exclude ''*.o'' --exclude ''*.exe'' --exclude ''*.pyc'' ' 
+cd $VMECFDIR
+cd ../..
+V='v/vme'
+tar $EXCL -zcf /tmp/trigger.tgz $V/CNTRRD $V/dimcdistrib \
+  $V/dimsc $V/pydim $V/TRG_DBED bin
+ls -l /tmp/trigger.tgz
+

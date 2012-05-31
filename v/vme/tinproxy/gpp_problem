@@ -1,0 +1,24 @@
+gcc -g -I/opt/dim/dim -I/opt/smi/smixx  -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux  ./server.c -L/opt/smi/linux -lsmi -L/opt/dim/linux -ldim -o linux/server  -lpthread
+-OK, but:
+[pcalicebhm05] /data/ClientCommonRootFs/usr/local/trigger/v/vme/tinproxy > make
+g++  -g -I/opt/dim/dim -I/opt/smi/smixx  -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux  ./server.c -L/opt/smi/linux -lsmi -L/opt/dim/linux -ldim -o linux/server  -lpthread
+/tmp/trigger/ccYGn8uI.o(.text+0xaa): In function `setsmi(char*)':
+./server.c:63: undefined reference to `smi_set_par(char*, void*, int)'
+/tmp/trigger/ccYGn8uI.o(.text+0xba):./server.c:64: undefined reference to `smi_set_state(char*)'
+/tmp/trigger/ccYGn8uI.o(.text+0x3fa): In function `main':
+./server.c:160: undefined reference to `dis_add_cmnd_(char*, char*, void (*)(void*, void*, int*), long)'
+/tmp/trigger/ccYGn8uI.o(.text+0x45a):./server.c:163: undefined reference to `dis_add_cmnd_(char*, char*, void (*)(void*, void*, int*), long)'
+/tmp/trigger/ccYGn8uI.o(.text+0x4c7):./server.c:167: undefined reference to `dis_add_service_(char*, char*, void*, int, void (*)(void*, void**, int*, int*), long)'
+/tmp/trigger/ccYGn8uI.o(.text+0x534):./server.c:170: undefined reference to `dis_add_service_(char*, char*, void*, int, void (*)(void*, void**, int*, int*), long)'
+/tmp/trigger/ccYGn8uI.o(.text+0x57a):./server.c:174: undefined reference to `smi_attach(char*, void (*)())'
+collect2: ld returned 1 exit status
+make: *** [linux/server] Error 1
+
+
+Perhaps libsmi.a can be linked only with cc -hre is excerpt from smi make :
+...
+cc  -g  -I./smixx -I/opt/dim/dim ./src/utilities/shellcmd.c -L/opt/smi/linux \
+        -lsmi -L/opt/dim/linux -ldim -lpthread -o linux/shellcmd 
+g++  -g  -I./smixx -I/opt/dim/dim ./src/utilities/getDimVersions.cxx -L/opt/smi/linux \
+        -lsmiui -L/opt/dim/linux -ldim -lpthread -o linux/getDimVersions 
+...

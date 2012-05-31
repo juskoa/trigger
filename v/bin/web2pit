@@ -1,0 +1,11 @@
+#!/bin/bash
+# start from trigger@pcalicebhm05
+mkdir -p /tmp/a
+cd /var/www/html
+tar -zcf /tmp/a/CNTWEB.tgz CNTWEB
+cd ~
+tar -zcf /tmp/a/CNTRRDhome.tgz CNTRRD/htmls 
+cd $VMECFDIR
+tar -zcf /tmp/a/CNTRRD.tgz CNTRRD
+tar -zcf /tmp/a/dimcdistrib.tgz dimcdistrib
+#mkdir -p ~/CNTRRD/logs ~/CNTRRD/rawcnts ~/CNTRRD/rrd

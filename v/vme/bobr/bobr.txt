@@ -1,0 +1,96 @@
+18.2. drytest, example logs:
+readall()
+BlockIdentificator:0xffff0135 BlockStatus:0xffff2f04 (bit 0x4 shoudl be 1)
+readBSTprint( 1)
+UTC: 817534us 1266502624s   BSTstatus:1   TurnCount:134586650 0x805a11a
+LHCFill:924   BeamMode:7   ParticleType1/2:0/0 
+Momentum:450   Intensity1/2:0/0 Byte54(LHCpp:0):0x2
+readBSTprint( 1)
+UTC: 578153us 1266502626s   BSTstatus:1   TurnCount:134606449 0x805ee71
+LHCFill:924   BeamMode:7   ParticleType1/2:0/0 
+Momentum:450   Intensity1/2:0/0 Byte54(LHCpp:0):0x2
+readBSTprint( 2)
+UTC: 137397us 1266502632s   BSTstatus:2   TurnCount:134668965 0x806e2a5
+LHCFill:924   BeamMode:7   ParticleType1/2:0/0 
+Momentum:450   Intensity1/2:0/0 Byte54(LHCpp:0):0x2
+readBSTprint( 2)
+UTC: 197070us 1266502634s   BSTstatus:2   TurnCount:134692127 0x8073d1f
+LHCFill:924   BeamMode:7   ParticleType1/2:0/0 
+Momentum:450   Intensity1/2:0/0 Byte54(LHCpp:0):0x2
+
+readBST1raw()
+ 0:0x   0:0xffffff4e
+ 1:0x   4:0xfffffff6
+ 2:0x   8:0xffffff05
+ 3:0x   c:0xffffff00
+ 4:0x  10:0xffffff82
+ 5:0x  14:0xffffff4c
+ 6:0x  18:0xffffff7d
+ 7:0x  1c:0xffffff4b
+ 8:0x  20:0xffffff00
+ 9:0x  24:0xffffff00
+10:0x  28:0xffffff00
+11:0x  2c:0xffffff00
+12:0x  30:0xffffff00
+13:0x  34:0xffffff00
+14:0x  38:0xffffff00
+15:0x  3c:0xffffff00
+16:0x  40:0xffffff00
+17:0x  44:0xffffff01
+18:0x  48:0xffffffa2
+19:0x  4c:0xffffff5a
+20:0x  50:0xffffff21
+21:0x  54:0xffffff08
+22:0x  58:0xffffff9c
+23:0x  5c:0xffffff03
+24:0x  60:0xffffff00
+25:0x  64:0xffffff00
+26:0x  68:0xffffff08
+27:0x  6c:0xffffff00
+28:0x  70:0xffffff00
+29:0x  74:0xffffff00
+30:0x  78:0xffffffc2
+31:0x  7c:0xffffff01
+32:0x  80:0xffffff00
+33:0x  84:0xffffff00
+34:0x  88:0xffffff00
+35:0x  8c:0xffffff00
+36:0x  90:0xffffff00
+37:0x  94:0xffffff00
+38:0x  98:0xffffff00
+39:0x  9c:0xffffff00
+40:0x  a0:0xffffff00
+41:0x  a4:0xffffff00
+42:0x  a8:0xffffff00
+43:0x  ac:0xffffff00
+44:0x  b0:0xffffff00
+45:0x  b4:0xffffff00
+46:0x  b8:0xffffff00
+47:0x  bc:0xffffff00
+48:0x  c0:0xffffff00
+49:0x  c4:0xffffff00
+50:0x  c8:0xffffff00
+51:0x  cc:0xffffff00
+52:0x  d0:0xffffff02
+53:0x  d4:0xffffff00
+54:0x  d8:0xffffff02
+55:0x  dc:0xffffff00
+56:0x  e0:0xffffff00
+57:0x  e4:0xffffff00
+58:0x  e8:0xffffff00
+59:0x  ec:0xffffff00
+
+readBSTutcturn( 'u')
+cpu1:1266502843 728769 utc1:-227 -43 turns:-245 2498011 ut:u
+cpu2:1266502843 728840 utc2:-226 -210 turn2:-245 2498012 ix:14
+readBSTutcturn( 'u')
+cpu1:1266502846 830164 utc1:-87 -84 turns:-244 2532888 ut:u
+cpu2:1266502846 830171 utc2:-86 -251 turn2:-244 2532888 ix:0
+
+readBSTutcturn( 't')
+cpu1:1266502867 971319 utc1:-47 -189 turns:-242 2770630 ut:t
+cpu2:1266502867 971377 utc2:-47 -189 turn2:-242 2770631 ix:11
+readBSTutcturn( 't')
+cpu1:1266502869 612916 utc1:-167 -240 turns:-247 2789090 ut:t
+cpu2:1266502869 612924 utc2:-167 -240 turn2:-247 2789091 ix:0
+

@@ -1,0 +1,2 @@
+LDFLAGS=-L/VME/lib  -lvme2utils
+CFLAGS=$(COMMONCFLAGS) 

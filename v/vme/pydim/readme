@@ -1,0 +1,73 @@
+Files in this directory
+-----------------------
+Server -popen to C:
+server.c       -DIM server, listening to:
+    CTPRCFG/RCFG commands
+               publishing:
+    CTPRCFG/INT1
+    CTPRCFG/INT2
+pydimserver.py -works with server.c (popen), waiting messages from ctpproxy
+                Services: see source
+
+Client -popen to C:
+client.c       - DIM client (in c)
+
+-------
+
+Client -python extension using dimclient:
+clientpy.c, clientpy.i - python extension (swig) for DIM client
+clientpy.py    -py extension (built by buildso.sh)
+buildso.sh     -builds: clientpy.py and _clientpy.so
+
+Clients using clientpy py-extension:
+testclientpy.py -example of python DIM client importing 
+                clientpy extension module
+
+More elaborated:
+pydim.py -dim package (used by phases.py, finddims.py)
+
+phases.py      -example using more DIM servers (phase measurement),
+                importing pydim package
+finddims.py    -check availability of ctpdims, ltudims
+   
+simple/clientpy.[ic] -simple version (only 1 DIM server)
+
+Usage:
+------
+Start server:
+linux/server
+Start c-client:
+linux/client CTPRCFG/RCFG
+
+build py extension:
+/data/ClientCommonRootFs/usr/local/trigger/v/vme/pydim > ./buildso.sh clientpy
+./clientpy
+
+Start py-client:
+[pcalicebhm05] /data/ClientCommonRootFs/usr/local/trigger/v/vme/pydim > python
+Python 2.3.4 (#1, Mar 12 2006, 16:30:52)
+[GCC 3.4.5 20051201 (Red Hat 3.4.5-2)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import clientpy
+>>> clientpy.dicxcmnd_callback("CTPRCFG/RCFG","pclieEJJJw\n")
+dicxcmnd_callback:CTPRCFG/RCFG pclieEJJJw
+
+1
+>>> Callback: OK
+Callback: OK+3secs
+
+
+--------------------------------------------------
+Notes:
+nm -D clientpy.so
+
+Cases
+--------------
+>>> import clientpy
+ImportError: ./_clientpy.so: undefined symbol: dic_cmnd_callback_
+>>> import clientpy
+>>> clientpy.dicxcmnd_callback("CTPRCFG/RCFG","pclie",2)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+AttributeError: 'module' object has no attribute 'dicxcmnd_callback'
+fixed: by adding /opt/dim/linux/libdim.so in ld command (see buildso.sh)

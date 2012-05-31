@@ -1,0 +1,54 @@
+CC= $(VMEGCC)
+#CC= g++
+CPP = yes
+##CPP = no
+THREADS=yes
+SHAREABLE=
+##SHAREABLE=no
+ODIR = linux
+MAKE = gmake
+ifdef DATE_INFOLOGGER_DIR
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+INFOLOGLIB=-L$(DATE_INFOLOGGER_DIR) -lInfo -L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook $(MYSQLLIBS)
+else
+INFOLOGLIB=
+endif
+# use .rpm dim installed together with pydim.rpm (not standard one in /opt/dim)
+#DIMDIR= /usr/local/lib
+#DIMDIRINC= /usr/local/include/dim
+DIMDIRINC= $(DIMDIR)/dim
+
+ifeq ($(VMEDRIVER),SIMVME)
+EXTRALIBS = -L$(DIMDIR)/linux -ldim \
+ -L../ctp/ctplib -lctp -L$(VMEBDIR)/vmeblib -lvmeb 
+else
+# ctplib has to be before vmeblib:
+EXTRALIBS = -L$(DIMDIR)/linux -ldim \
+ -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc \
+ -L$(VMECFDIR)/ctp/ctplib -lctp \
+ -L$(VMEBDIR)/vmeblib -lvmeb \
+ $(INFOLOGLIB)
+endif
+
+CFLAGS = -Wall -g -I$(DIMDIRINC) -I$(SMIDIR)/smixx -I$(VMEBDIR)/vmeblib \
+ -I$(VMECFDIR)/ctp/ctplib
+LDFLAGS = -lpthread
+ifeq ($(VMEGCC),g++)
+CFLAGS +=-DCPLUSPLUS
+endif
+ifeq ($(VMESITE), SERVER)
+ CFLAGS += -DNOVME
+endif
+
+ifeq ($(OS),Linux)
+	CFLAGS += -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux
+ifneq ($(SHAREABLE),no)
+	SHAREABLE = yes
+	LIBFLAGS += -shared
+endif
+endif
+
+ifneq ($(THREADS),yes)
+	CFLAGS += -DNOTHREADS
+endif
+

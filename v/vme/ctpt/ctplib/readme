@@ -1,0 +1,23 @@
+This is directory for CTP subroutines used in more packages. They
+are compiled separately (1 subroutine -> 1 .c file), and then
+linked into ctplib.a library.
+Steps to be done:
+1. move subroutine from ctp/ctp.c into separate file in ctplib
+   (i.e. it should be erased from ctp.c file)
+2. modify linking for ctp.exe (in vme/ctp directory) to link
+   ctplib.a
+3. ctplib.a can be used from other packages (e.g. ctp_proxy).
+   Step by step, it will grow by:
+   - moving subroutines from ctp/ctp.c
+   - writing new subroutines
+
+vmeb/vmeai.make modified: -Lctplib -lctp
+moved subroutines:
+readBICfile
+----------------------
+gcc -c -I../../../vmeb readBIC.c 
+[aj@localhost ctplib]$ ar r libctp.a readBIC.o
+ar: creating libctp.a
+[aj@localhost ctplib]$ ar t libctp.a
+readBIC.o
+

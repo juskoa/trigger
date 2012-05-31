@@ -1,0 +1,57 @@
+CC = $(VMEGCC)
+
+CPP = yes
+##CPP = no
+THREADS=yes
+SHAREABLE=
+##SHAREABLE=no
+##IDIR = ./dim
+IDIR = -I$(DIMDIR)/dim -I${VMEBDIR}/vmeblib
+ODIR = linux
+MAKE = gmake
+
+EXTRALIBS = 
+include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
+CFLAGS += -g $(IDIR) 
+ifeq ($(VMEGCC),g++)
+CFLAGS +=-DCPLUSPLUS
+endif
+
+LIBFLAGS =
+
+ifeq ($(OS),SunOS)
+	CFLAGS += -DMIPSEB -DPROTOCOL=1 -Dsunos
+endif
+ifeq ($(OS),Solaris)
+ifeq ($(THREADS),yes)
+	CFLAGS += -mt
+	EXTRALIBS += -lposix4
+endif
+	SHAREABLE = no
+	LIBFLAGS += -G 
+	EXTRALIBS += -lsocket -lnsl
+	CFLAGS += -DMIPSEB -DPROTOCOL=1 -Dsolaris 
+	RANLIB = echo
+endif
+ifeq ($(OS),AIX)
+	THREADS = no
+	CFLAGS += -DMIPSEB -DPROTOCOL=1 -Dunix -D_BSD -Daix
+endif
+ifeq ($(OS),Linux)
+	CFLAGS += -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux
+	LDFLAGS += -lpthread
+	
+ifneq ($(SHAREABLE),no)
+	SHAREABLE = yes
+	LIBFLAGS += -shared
+endif
+endif
+
+ifneq ($(THREADS),yes)
+	CFLAGS += -DNOTHREADS
+else
+ifneq ($(OS), LynxOS)
+	EXTRALIBS += -lpthread
+endif
+endif
+

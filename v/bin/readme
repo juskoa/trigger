@@ -1,0 +1,38 @@
+#!/bin/bash
+function gethn() {
+hname="alidcsvme00"$1
+}
+allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
+if [ -n "$1" ] ;then
+  grep $1 $CCRFS/usr/local/trigger/v/vme/CFG/ctp/DB/ttcparts.cfg
+  exit
+fi
+cat - <<-EOF
+$CCRFS/usr/local/trigger/bin:          scripts:
+script            Invoked from/comment
+------            --------------------
+findactive        show last activity for all LTUs (the mod. time 
+                  of .log files checked)
+ltushmrm.sh       remove shm for 1 or all ltus on given machine
+afterboot.bash    /home/.custom.rc
+  cdvme           afterboot.bash
+                  cd to v/vme or vnew/vme directory
+                  configFPGA.bash
+  fanin           user@alidcscom026
+loadCTPfpga.bash 
+loadLTUfpga
+ltuproxy.sh       alias ltuproxy
+parted            Edit partition, trigger@alidcscom026
+rcmd rcmdroot     trigger@alidcscom026  (executed as trigger or root)
+showall           Show all ltu_proxies, trigger@alidcscom026
+start_daemons     afterboot.bash
+v2new             trigger@alidcscom026
+                  Install new version of software 
+                  (prepared by aj@altri1:bin/dopitu)
+vmebse.bash       trigger@alidcsvme* or alidcscom026
+startClients.bash trigger@alidcscom026  -manually
+
+All vme computers:
+$allvmes
+EOF
+exit

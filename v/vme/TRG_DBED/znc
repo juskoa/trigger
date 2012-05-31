@@ -1,0 +1,20 @@
+                                                    <---- VALID.LTUS
+HMPID TPC TRD TOF SPixelD SStripsD SDriftD V0 T0
+                                                    <---- VALID.CTPINPUTS
+T0 T0
+V0 V0mb V0sc V0ce
+TRD TRDpre
+ZDC ZDC1_l1 ZDC2_l1
+                                                    <---- TRIGGER.DESCRIPTORS
+MB T0 V0mb TRDpre ZDC1_l1
+SC T0 V0sc TRDpre ZDC2_l1
+CE T0 V0ce -TRDpre ZDC3_l1
+                                                    <---- TRIGGER.PFS
+pf1 THa1 THa2 THb1 THb2 resolution interval
+pf2 th11 th22 TH21 TH22 resol int
+pf3 th1 th2 THh21 THh22 res i
+                                                    <---- p33.partition
+MB(L0pr=35600,pf2,bc1,bcm1,bcm2,bcm3,bcm4,rare)
+TPC HMPID
+MB(L0pr=100,pf1,bc2,rare) SC(L0pr=0,all) CE(L0pr=4000,pf2,pf1,rnd2,bcm3,bcm4,rare)
+TRD SPixelD SStripsD SDriftD

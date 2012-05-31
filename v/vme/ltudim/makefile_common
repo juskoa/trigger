@@ -1,0 +1,58 @@
+CC = $(VMEGCC)
+CXX = CC
+
+CPP = yes
+##CPP = no
+THREADS=yes
+SHAREABLE=
+##SHAREABLE=no
+##IDIR = ./dim
+IDIR = $(DIMDIR)/dim
+ODIR = linux
+MAKE = gmake
+
+EXTRALIBS = 
+FLAGS = 
+
+CFLAGS = $(FLAGS) -g -I$(IDIR) 
+LIBFLAGS =
+
+ifeq ($(VMEGCC),g++)
+CFLAGS +=-DCPLUSPLUS
+endif
+
+ifeq ($(OS),AIX)
+	THREADS = no
+	CFLAGS += -DMIPSEB -DPROTOCOL=1 -Dunix -D_BSD -Daix
+endif
+ifeq ($(OS),LynxOS)
+ifeq ($(ARCH),RAID)
+	CFLAGS += -I/usr/include/bsd -I/usr/include/posix -DMIPSEB -DPROTOCOL=1 -Dunix -DLYNXOS -DRAID
+	EXTRALIBS += -L/usr/posix/usr/lib -lbsd
+else
+ifeq ($(ARCH),INTEL)
+	CFLAGS += -DMIPSEL -DPROTOCOL=1 -Dunix -DLYNXOS
+	EXTRALIBS += -llynx -lbsd
+else
+	CFLAGS += -DMIPSEB -DPROTOCOL=1 -Dunix -DLYNXOS -mthreads
+	EXTRALIBS += -lbsd
+endif
+endif
+endif
+ifeq ($(OS),Linux)
+	CXX = g++
+	CFLAGS += -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux
+ifneq ($(SHAREABLE),no)
+	SHAREABLE = yes
+	LIBFLAGS += -shared
+endif
+endif
+
+ifneq ($(THREADS),yes)
+	CFLAGS += -DNOTHREADS
+else
+ifneq ($(OS), LynxOS)
+	EXTRALIBS += -lpthread
+endif
+endif
+

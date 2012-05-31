@@ -1,0 +1,77 @@
+    TOF GLOBAL
+    ----------
+
+  Addr     Ticks    A Channel     B Channel    TTC Rx - BCID - wrd
+-------------------------------------------------------------------
+ABCADDED  -000001    L0                                          
+000000E0  +000224    L1-                                         
+000000E1  +000225       -L1                          737         
+00000138  +000312                L1M Hdr  390                 
+00000168  +000360                L1M Dat  000                 
+00000198  +000408                L1M Dat  000                 
+000001C8  +000456                L1M Dat  000                 
+000001F8  +000504                L1M Dat  000                 
+00000FD0  +004048                L2a Hdr  6D6              6D6
+00001000  +004096                L2a Dat  040                 
+00001030  +004144                L2a Dat  2C7                 
+00001060  +004192                L2a Dat  100                 
+00001090  +004240                L2a Dat  000                 
+000010C0  +004288                L2a Dat  020                 
+000010F0  +004336                L2a Dat  000                 
+00001120  +004384                L2a Dat  000                 
+ --- 
+Read 16 events from the FIFO
+Seen  L0 signals 1
+Seen  L1 signals 1
+
+
+     TOF STANDALONE     test 2 (after shared memory reset)
+     -------------------------
+  Addr     Ticks    A Channel     B Channel    TTC Rx - BCID - wrd
+-------------------------------------------------------------------
+ABCADDED  -000001    L0                                          
+000000E0  +000224    L1-                                         
+000000E1  +000225       -L1                          7B0         
+00000138  +000312                L1M Hdr  390                 
+00000168  +000360                L1M Dat  000                 
+00000198  +000408                L1M Dat  000                 
+000001C8  +000456                L1M Dat  000                 
+000001F8  +000504                L1M Dat  000                 
+00000FC0  +004032                L2a Hdr  7AE              7AE
+00000FF0  +004080                L2a Dat  3C2                 
+00001020  +004128                L2a Dat  C35                 
+00001050  +004176                L2a Dat  100                 
+00001080  +004224                L2a Dat  15F                 
+000010B0  +004272                L2a Dat  FFF                 
+000010E0  +004320                L2a Dat  000                 
+00001110  +004368                L2a Dat  000                 
+ --- 
+Read 16 events from the FIFO
+Seen  L0 signals 1
+Seen  L1 signals 1
+
+      TOF GLOBAL (after shared memory reset)
+      --------------------------------------
+  Addr     Ticks    A Channel     B Channel    TTC Rx - BCID - wrd
+-------------------------------------------------------------------
+ABCADDED  -000001    L0                                          
+000000E0  +000224    L1-                                         
+000000E1  +000225       -L1                          737         
+00000136  +000310                L1M Hdr  390                 
+00000166  +000358                L1M Dat  000                 
+00000196  +000406                L1M Dat  000                 
+000001C6  +000454                L1M Dat  000                 
+000001F6  +000502                L1M Dat  000                 
+00000FCF  +004047                L2a Hdr  6D6              6D6
+00000FFF  +004095                L2a Dat  C03                 
+0000102F  +004143                L2a Dat  EAD                 
+0000105F  +004191                L2a Dat  100                 
+0000108F  +004239                L2a Dat  000                 
+000010BF  +004287                L2a Dat  020                 
+000010EF  +004335                L2a Dat  000                 
+0000111F  +004383                L2a Dat  000                 
+ --- 
+Read 16 events from the FIFO
+Seen  L0 signals 1
+Seen  L1 signals 1
+ 

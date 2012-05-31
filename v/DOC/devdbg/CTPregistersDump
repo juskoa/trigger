@@ -1,0 +1,4 @@
+1.) to ctp proxy call dumpCTP at start/stop of every run.
+    it should write file to eg WORK/dumps
+2.) to finish dumpCTP
+

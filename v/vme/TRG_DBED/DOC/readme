@@ -1,0 +1,42 @@
+Content
+-------
+1. Files in this directory
+2. Reminders
+9.Implemented recently
+
+1. Files in this directory
+--------------------------
+../readme.txt -basic info about parted
+bcmasks_pf: proposal how to integrate bcmasks/pf
+rundemo*.rcfg -example of .rcfg file
+Current version (13.11.2008) is 2 (i.e. rundemo3.rcfg is to be used next year)
+
+2. Reminders
+------------
+1.
+INT1/2 definitions:
+Interaction is defined as function of first 4 L0 inputs
+ored with signals RND1,RND2,BC1,BC2
+Operators for definition of function of 4 L0 inputs: & | ~ ^ ()
+INTERACTIONS:
+INT1  VZERO & SPD_GF0 | BC1 
+
+2.
+If CTP readout is active (i.e. CTP is sending data over DDL), all
+the clusters will include CTP
+CLUSTERS:
+ALL 1 SPD SDD SSD TPC TRD TOF PHOS CPV HMPID MUON_TRK MUON_TRG PMD TRG FMD T0 V0 ZDC ACORDE EMCAL CTP
+3.
+-prescaler (2 ways):
+ - 21 bits (random time veto)
+ - 25 bits + bit31=1 (class busy time, 10usecs steps)
+-class grouping in 'active time slots'
+
+9.Implemented recently
+----------------------
+BC masks: 3564 bit pattern is defined as pattern of H (masked, vetoed) 
+and L (active BC).
+BCMASKS: 
+BCM1 24L54(HL)3432L
+BCM2 1H3563L
+

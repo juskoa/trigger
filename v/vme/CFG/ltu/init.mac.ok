@@ -1,0 +1,5 @@
+setbcdelay(7)
+#setTTCint(4)
+#clear spurious L1 after the TTCint polarity change
+SLMclearcnts(0xfff)
+vmeopw32(BACKPLANE_EN,0xff)

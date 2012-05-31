@@ -1,0 +1,8 @@
+setenv CVSROOT :kserver:isscvs.cern.ch:/local/reps/rf2ttc
+
+
+
+WEB access:
+http://isscvs.cern.ch/cgi-bin/viewcvs-all.cgi/rf2ttc/?cvsroot=rf2ttc
+
+

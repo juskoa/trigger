@@ -1,0 +1,48 @@
+#!/bin/bash
+if [ $# -lt 1 ] ;then
+  cat - <<-EOF
+This script copies new .rbf file (full path given as 1st parameter)
+to appropriate place, from where it can be loaded into corresponding CTP board.
+
+Give 2 parameters:
+-name of the file ABSOLUTE PATH
+-name of the board (busy int l0 l1 l2 fo ltu)
+
+EOF
+  exit
+fi
+pjname=$1
+brd=$2
+cd $VMECFDIR/CFG/$brd
+echo "Files in $VMECFDIR/CFG/$brd:"
+ls -lt |head
+read -p "Enter the name of new .rbf file (e.g: busy_f2.rbf) in CFG/$brd directory:" fname
+read -p "Enter a short explanation (1 line):" explan
+echo copying: "$pjname" $fname
+cp "$pjname" $fname
+if [ $brd == "ltu" ] ;then
+  echo "cd ../../ ; ln -sf CFG/ltu/$fname FlashMem.cfg ; cd -"
+  cd ../../ ; ln -sf "CFG/ltu/$fname" FlashMem.cfg ; cd -
+else
+  echo ln -sf "$fname $brd".rbf
+  ln -sf "$fname" "$brd".rbf
+fi
+echo `date` >>readme
+echo "file: $fname"
+echo "$explan" >>readme
+cat - <<-EOF
+...                 readme file updated
+     UPDATE table ctpboards in file v/vme/ctp/ctp.h 
+     with current version of that board
+
+             To load CTP FPGA type:
+loadCTPfpga.bash load BRD      (BRD is busy l0 l1 l2 fo1 fo2 fo3 fo4 fo5 fo6 or int)
+
+             To load LTU FPGA type:
+loadLTUfpga.bash load 0x81X000
+
+EOF
+#loadCTPfpga load $brd
+
+
+

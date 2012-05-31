@@ -1,0 +1,104 @@
+LTU history (distributed with LTU sw) from March 2009
+6.3.
+ltu/ADCI.c moved to ADCI.cold
+12.3.
+VMESITE probably not necessary -makefiles in ltu_proxy/ and vmeblib/
+are testing now DATE_INFOLOGGER_DIR env. variable.
+12.3.
+ltuclient.spec is in ~triad/rpms/SPEC
+distrdimclient scripts is now trigger/bin
+line:
+%define _topdir /home/alice/triad/rpms
+added to ltuclient.spec
+12.3.-------------------------------------- web release ltu3.4 + ltuclient 2.4
+ltuclient v2.4 prepared and released
+13.3.
+getsgmode() added to ltudimservices (bug -we couldn't start ltu sw if run was
+active)
+6.5.2009
+DATE_INFOLOGGER_DIR=/opt/infoLogger
+DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
+introduced in vmebse.bash. If not defined, corresponding sw is not linked
+14.5.
+ltu/ltulib/ttcsubs.c: Now waiting 20ms after TTCrxreset (was 9ms). It gives
+better info about busy -how it follows NOT_READY signal from TTCrx.
+26.5.
+vmeb/counters.py
+-only 1 instance of counters widget available now!
+26.5.
+ltu/ltulib/ttcsubs.c
+- when reading counters during ttcInit, 'accrual' is not used
+  (cannot be used with server when in the same time counters.py
+  is using accruals! -even now it is probably wrong becasue
+  readCounters() always swaps between 2 buffers -i.e. if between 
+  2 'counters widget' readings there is at least 1 read from ttcInit(),
+  it rereads/swap buffers!
+2.6.2009
+ltu_proxy.c: now going to ERROR state in case of bad parameters (before only
+error message issued)
+19.7.2009
+bin/ltuproxy.sh det status added
+19.7.2009
+RATE_LIMIT now better user interface, + RATE_LIMIT parameter
+in ltuttc.cfg started to be used for TPC added
+20.7. lab <-> pit now agree
+#define LTU_SW_VER "3.5 20.07.2009"   // better RATE_LIMIT
+29.7.
+-LHCGAPVETO option added (ltu)
+21.8.
+vme/ltu/ltulib/ttcsubs.c now 2 secs between TTCrxreset and FEEreset
+(was 1 second). Seems better -for some QPLL >1 sec necessary
+8.9.2009
+bug in ltu/ltu.c RATE LIMIT interface fixed (minimum interval is 1640usecs),
+8.9.2009
+firmware 0xb4:
+0xb3 L2_delay is 12 bits -> max. 102,4 us
+0xb4 L2_delay 13 bits ->  max. 204,8 us
+
+8.9. -------------------------------------- web release ltu3.5 + ltuclient 2.5
+4.11.2009
+TTCRX_RESET INIT option added (only load + FEE, without TTCrxreset)
+19.11.
+Rate limit: bug fixed (Enabled/Disabled button now ok)
+19.1.2009
+ltu_utils.c Setstdalone() for HMPID now sends FEECMD 12
+28.1.2010
+vmebse.bash improved (removed the duplication of strings in $*PATH
+4.2.2010
+ltuclient-2.6-1.i386.rpm prepared
+10.2.2010
+New dim sevice in ltu_proxy: CMD, with message ttcrxreset or ttcrxregs:
+if(strcmp(msg,"ttcrxreset")==0) {
+  TTCrxreset(); usleep(10000); TTCrxregs();
+  dimlogprt("cmdCMD", "rxreset ok\n");
+} else if(strcmp(msg,"ttcrxregs")==0) {
+  TTCrxregs();
+  dimlogprt("cmdCMD", "rxregs ok\n");
+}
+11.2.
+SSM control for LTU: StartAfter+TTCrxreset button added (ltulib/ltussm.c
+and ltu/ltu_u.py modified)
+12.2.2010
+bug fixed in vmeblib/timeroutines.c (incorrect DiffSecUsec)
+
+2.3.2010
+bug fixed in ltu_proxy: /CMD command ttcrxreset was executed without
+opening VME !
+2.3.2010
+ltudim/cmd1.c -ltu client for ttcrxreset, ttcrxregs commands
+20.5.
+ltulib/ltuCounters.c
+- better measureBusy() now
+15.6. --------------------------------------- distrib to web, lnxpool31
+13.7.2010
+ltu_b5.rbf (rate limit update) loaded to cpv (0x811000 in altri1)
+19.7.2010
+ltu.h
+#define LTU_SW_VER "3.8 19.07.2010"   // 0xb5, RATE_LIMIT +3bits
+ltu.c RateLimit() modified
+20.10.2010
+lnxpool20:
+adduser -u 505 -g alice -d /home/alice/apixel apixel
+.bashrc and v copied to ~apixel/
+20.12.
+bug in ltulib/ltussm.c fixed

@@ -1,0 +1,130 @@
+CONTENT:
+1. CTP sw 
+  -accounts and machines
+  -updates -how to spread new version over other machines
+1a. CTP operation -trigger account
+1b. CTP operation -ref account
+2. CTPDIM server
+2.1. Testing new version of CTPDIM server:
+
+A. How to prepare list of CTP counter names: see counters file in this directory
+
+1. CTP sw 
+-------------------
+There is trigger account on each machine (altri1/2) with
+production software (i.e. should be stable, but not the newest one).
+On each machine, other user can use software installed in ~trigger
+by using script aj@altri1:v/scripts/usevmebsw -this makes links
+to ~trigger account on the same machine.
+
+trigger account is used for:
+- master copy of all .rbf files (see ~/bin/newfpga about adding new FPGA file)
+  on altri1 machine (loadCTPfpga on altri2 loads the latest .rbf file
+  from altri1)
+- starting daemons: 
+  - dim server see ~/bin/dimserver
+    (ctp_proxy is started from ~ref account)
+- ctp, ltu control/testing scripts:
+  sedev      - set environment
+  ctp        - start ctp software
+  ltu ltu=base   - base is 0x81X000 where X is LTU dial
+
+Sw update:
+---------
+1. master:  recompile all on aj@altri1 or rl@altri1
+sedev
+cd v/vmeb/vmeblib ; make
+cd v/vme/ltu/ltulib ; make
+cd v/vme/ctp/ctplib ; make
+vmecomp ltu
+vmecomp ttcvi
+vmecomp ctp
+cd ~/v/vme/MORELTUS ; make
+cd ~/v/vme/ltudim
+make linux/ltuserver
+make linux/ltuclient   # on other machines too
+
+cd ~/v/vme/ctp_proxy
+make linux/ctp_proxy
+make linux/test
+make linux/dims   # started by ~trigger/dimserver
+make linux/dimc   # client (can be started elsewhere)
+
+2. update 
+aj: 
+scripts/distrib       --> vmebltu.tar    LTUsw distribution
+trigger:
+~/bin/ajupdate ALL   # update ~trigger/v       
+        This makes update for all users using links to ~trigger/v
+updaltri2            # push to ~trigger@altri2
+3.
+trigger@altri2:
+change v/vme/ctp.c   NO DAQ present (see main)
+
+1a. CTP operation - trigger account
+-----------------------------------
+In ~trigger/bin directory:
+ajupdate ALL -updates all the software from aj account on the SAME machine
+              (should be used only on altri1)
+22.1.2007 to be done when altri2 switched on
+
+updaltri2    - upgrades ~trigger@altri2 software. 
+               Should be started on trigger@altri1.
+               Note: after running this script, ctp.c at altri2 
+               should be cahnged/compiled (no daq option in initmain()) 
+newfpga      - copy new CTP FPGA from ~pedja directory to 
+               ~trigger/v/vme/CFG/... leaving note in readme...
+loadCTPfpga  - load CTP fpga
+loadLTUfpga  - load LTU fpga
+setdsenv     - set DIM/SMI env (alias sedev calls this script)
+~aj/v/scripts/usevmebsw     - sets the user environment for
+               any user to work with software installed in ~trigger account
+
+From trigger account, following daemons are started:
+ctp_proxy/linux/dims    -counters reading (service CTPDIM/MONCOUNTERS)
+     See: 
+     -script ~trigger/bin/dimserver to start it
+     -v/vme/ctp_proxy/dims.c, dimccounters.c, readme,
+          aj@pcalicebhm05:dimcdistrib/ -for client example
+
+1b. CTP operation -ref account
+-------------------------------
+ref account:
+cd ctp_proxy
+getnew.sh           -take new version of ctp_proxy (backup made too) 
+                     from ~aj
+start_ctp_proxy.sh   -start ctp_proxy
+
+2. CTPDIM server
+----------------
+Status 28.1.2007:
+started from trigger account by script bin/dimserver.
+Sources are in ~aj/v/vme/ctp_proxy/dims.c and dimservices.c
+It reacts to following commands:
+1.
+CTPDIM/SWTRG Tswtrg_structure
+The string is returned through CTPDIM/RESULT service:
+SWTRG X:x         
+  X -detector name
+  x -number of successfull triggers
+ERROR: error message
+2.
+CTPDIM/STATUS anystring
+The string is returned through CTPDIM/RESULT service:
+STATUS: 
+name FB
+...
+3.
+CTPDIM/MONCOUNTERS service, which returns 4*NCOUNTERS 32bit words
+every minute
+
+Testing new version of CTPDIM server:
+-------------------------------------
+cd ~aj/v/vme/ctp_proxy
+modify Tpartition.h:   DEVELOP
+make linux/dims
+linux/dims
+In aj@pcalicebhm05:dimcdistrib:
+make linux/dimccounters
+linux/dimccounters
+

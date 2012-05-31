@@ -1,0 +1,34 @@
+-rw-r--r--  1 aj alice 219924 Feb 14 15:08 l0_a5.rbf
+Random generators with filtering, synchronisation
+
+Tue Mar 11 07:47:21 CET 2008  A6:
+CTP inputs readout
+Mon Jul 21 15:00:51 CEST 2008
+l0_a7.rbf
+recompiled with Normal PLLmode (till now was: no_compensation)
+Mon Aug  4 20:39:18 CEST 2008
+l0_l0gic_a7_1.rbf
+recompiled without CRC option, same fpga code
+Wed Aug 27 2008
+l0_logic_a8.rbf
+measurement of phase included
+Fri Oct 10 15:35:14 CEST 2008
+L0class busy time programmable (another way of downscaling)
+Fri Jul 10 14:15:13 CEST 2009
+l0_logic_verAA.rbf
+version with bc masks directly at trigger inputs
+l0_logic_verAB.rbf
+works also with inverting classes
+l0_logic_verAC.rbf
+- cal. improved (when phys. trigger together with cal. trigger,
+  physics one is supressed)
+- l0f3/4 added + corresponding counters + scope 
+NOTE 27.5.2011:
+ correct AC version has length 224731 and is from Dec 20th.
+There was other version, with more modifications (more inverted classes,
+more bc masks) which is not valid (is on 05 with length 236886).
+l0_logic_verAD.rbf
+New adresses for input polarity group are from H"201" to H"232".
+Wed Feb 15 11:35:28 CET 2012
+l0_logic_verAE.rbf
+spy memory increased 2times (addresses were: 0x1?? now is: 0x1?? or 0x2??)

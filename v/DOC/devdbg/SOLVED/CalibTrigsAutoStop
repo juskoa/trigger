@@ -1,0 +1,32 @@
+The goal: we start cal. triggers from ctp expert sw. The problem is
+--------
+their generation is not stopped before EOR automatically, (our
+shifter cannot keep it under control in ACR).
+Quick fix: arrange automatic stop of cal. triggers at the EOR using
+---------
+shared memory.
+
+
+Modify:
+1. 
+ctplib/ctpshm.c -add cshmGlobalDets() returning
+bit mask of all detectors in all global runs. 
+2. 
+check if all calibrating detectors are in global in
+swtrigger.c GenSwtrg() -it is ivoked from ctp/testclass.py. Return 12345678 (magic number) triggers
+generated, if at least 1 detector is NOT in global run.
+3. 
+ctp/testclass.py: modify gensw/gensw1 methods.
+if status[0]=='12345678'
+  stop cal. triggers
+4. 
+ctp_proxy: arrange the call of cshmDelPartition(part->name),
+as soon as possible, after partition was stopped
+
+Modifications in lab done 12.1.2010.
+Todo test:
+linux/ctpshm.exe
+ctpproxy starttest, load ALICE
+ctp  ->try cal. triggers
+Tested in lab 13.1.2010
+

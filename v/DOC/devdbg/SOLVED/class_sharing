@@ -1,0 +1,40 @@
+Problem: only 1 partition is allowed to use time sharing
+among its classes. Timing for each class group is hardcoded in 
+cfg2part.c clg_defaults variable.
+
+Goals: 
+------
+1. configurable time for all the classgroups. -preferrably
+   in ctp.cfg file
+2. add 1 comment line in CLASSES section of .rcfg file:
+
+CTRUE-ABCE-NOPF-CENT 1 EMPTY one {NONE} {BCM1} -2147483618 1
+#ClassName HW Descriptor Cluster PF      BCM  Prescaler  All(1) group time
+#CTRUE-ABCE-NOPF-CENT 1 EMPTY one {NONE} {BCM1} -2147483618 1 0 0
+
+3. make it clear what does it mean, if only 1 time sharing group present
+
+4. timed groups are allowed only for 1 partition.
+There is no check if another partition is using it. If
+time sharing used by 2 partitions, ctp_proxy crashes.
+
+5. show TIMESHARING line in parted's help
+
+Solutions:
+----------
+4.
+30.11.2009 fixed in lab -i.e. another partition with 'timed groups' not allowed
+Todo: allow it in more partitions -all partitions would share time slots
+      assigned to 'time class groups'
+1. 
+fixed 20.1.2010. see line TIMESHARING 1 2 3 4 5 6 7 8 9
+in ctp.cfg file
+2., 5.
+done 20.1.2010. (each class has now comment line with clgroup +time)
+3.
+If only 1 time sharing group present, it is activated with given time.
+After deactivation, counters are read and the same class group is
+activated again -i.e. it is running nearly all the time, with
+exception of reading counters, when global busy prevents all triggers
+in this partition.
+

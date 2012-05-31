@@ -1,0 +1,22 @@
+#!/bin/bash
+name=$1
+cp ~/$name alidcsvme002/home/alice/trigger/v/ssd/CFG/ltu/SLM/
+cp ~/$name alidcsvme002/home/alice/trigger/v/fmd/CFG/ltu/SLM/
+cp ~/$name alidcsvme002/home/alice/trigger/v/t0/CFG/ltu/SLM/
+cp ~/$name alidcsvme003/home/alice/trigger/v/hmpid/CFG/ltu/SLM/
+cp ~/$name alidcsvme003/home/alice/trigger/v/phos/CFG/ltu/SLM/
+cp ~/$name alidcsvme003/home/alice/trigger/v/cpv/CFG/ltu/SLM/
+cp ~/$name alidcsvme004/home/alice/trigger/v/trd/CFG/ltu/SLM/
+cp ~/$name alidcsvme004/home/alice/trigger/v/zdc/CFG/ltu/SLM/
+cp ~/$name alidcsvme004/home/alice/trigger/v/emc/CFG/ltu/SLM/
+cp ~/$name alidcsvme005/home/alice/trigger/v/tpc/CFG/ltu/SLM/
+cp ~/$name alidcsvme005/home/alice/trigger/v/pmd/CFG/ltu/SLM/
+cp ~/$name alidcsvme005/home/alice/trigger/v/acorde/CFG/ltu/SLM/
+cp ~/$name alidcsvme006/home/alice/trigger/v/sdd/CFG/ltu/SLM/
+cp ~/$name alidcsvme006/home/alice/trigger/v/muon_trk/CFG/ltu/SLM/
+cp ~/$name alidcsvme006/home/alice/trigger/v/muon_trg/CFG/ltu/SLM/
+cp ~/$name alidcsvme006/home/alice/trigger/v/daq/CFG/ltu/SLM/
+cp ~/$name alidcsvme007/home/alice/trigger/v/spd/CFG/ltu/SLM/
+cp ~/$name alidcsvme007/home/alice/trigger/v/tof/CFG/ltu/SLM/
+cp ~/$name alidcsvme007/home/alice/trigger/v/v0/CFG/ltu/SLM/
+

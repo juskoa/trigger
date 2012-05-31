@@ -1,0 +1,18 @@
+# RBIF (Random BC Interaction Functions)
+# rnd1:rnd2:bc1:bc2:l0fun1lut:l0fun2lut:int1lut:int2lut:inttlut
+RBIF 0xa7c:0x218:::::
+# intxlut : to be done
+#CLA.01 l0condition l0invert l0veto l0scaler l1definition  l1invert l2definition
+#l0condition  bit == 0 => condition selected
+#l0condition & 0x30000000 = rnd2 rnd1; 0x1 = rnd2, 0x2 = rnd1, 0x0 -rnd1&rnd2
+#l0condition & 0x0c000000 = bc2  bc1; 0x1 = bc2, 0x2 = bc1
+#l0condition & 0x03000000 = fun2 fun1; 0x1 = fun2, 0x2 = fun1
+CLA.01 0x3bffffff 0x0 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff
+CLA.02 0x37ffffff 0x0 0xfff1 0x0 0x1fffffff 0x0 0x1f000fff
+#FO.X 0xDDCCBBAA (a=0,b=1,c=2,d=3)
+# 0xAA -> cluster code for detector (X-1)+a
+FO.1 0x1010101
+FO.2 0x1010101
+FO.3 0x1010101
+FO.4 0x1010101
+FO.5 0x1010001

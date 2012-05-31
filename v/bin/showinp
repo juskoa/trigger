@@ -1,0 +1,33 @@
+#!/bin/bash
+td=$1
+echo 'L0.INPUTS:'
+tdef=`grep "$td" $dbctp/L0.INPUTS`
+echo $tdef
+#if [ -z "$tdef" ] ;then
+#  echo "The name of descriptor or L0 function expected"
+#  exit
+#fi
+echo 'VALID.CTPINPUTS:'
+tdef=`grep "^$td " $dbctp/VALID.CTPINPUTS`
+echo $tdef
+exit
+declare -a ardef=($tdef)
+echo 'VALID.CTPINPUTS:'
+for (( j = 1 ; j < ${#ardef[@]} ; j++ ))
+do
+  echo "Entry $j has the value ${ardef[$j]}"
+  lf=${ardef[$j]}
+  if [ `expr match $lf l0f` -eq 3 ] ;then  #check ONLY from START of the string!
+    #l0f:
+    grep $lf $dbctp/VALID.CTPINPUTS
+  else
+    if [ `expr match $lf \*` -ne 1 ] ;then
+      tdef=`grep -e "^#sin" $dbctp/L0.INPUTS`
+      echo $tdef
+      tdef=`grep -e "$lf " $dbctp/L0.INPUTS`
+      echo $tdef
+    fi
+  fi
+done
+#echo 'L0.INPUTS:'
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+EXCL='--exclude ''*.o'' --exclude ''*.exe'' --exclude ''*.pyc'' ' 
+cd $VMECFDIR
+tar $EXCL -zcf /tmp/triad_vme.tgz bobr ctp ctpcnts ctp_proxy dimcoff \
+ fanio inputs ltu ltudim ltu_proxy MORELTUS orbitsync SSMANA \
+ switch switchgui ttcit ttcmi VME2FPGA WORKIMAGE \
+ CFG/ctp
+cd ..
+tar $EXCL -zcf /tmp/triad_vmeb.tgz vmeb
+ls -l /tmp/triad*.tgz
+

@@ -1,0 +1,26 @@
+#!/bin/bash
+#This is to be started from trigger account on alidcsvme* machine.
+# VMEWORKDIR (i.e. v/$1) for given detector has to exists
+cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
+detname=$1
+export VMEWORKDIR=~/v/$1
+if [ ! -d $VMEWORKDIR ] ; then
+  echo "$VMEWORKDIR does not exist, exiting"
+  exit
+fi
+cd $VMEWORKDIR
+#finfdltubase($detname)
+ltubase=`awk '{if($1==detname) {print $3}}' detname=$1 $cfgfile`
+hn=`awk '{if($1==detname) {print $2}}' detname=$1 $cfgfile`
+if [ -z "$ltubase" ] ;then
+  echo "What is $detname ? Known detectors:"
+  cat $cfgfile
+elif [ `hostname` = $hn ] ;then
+  nohup $VMECFDIR/ltudim/linux/ltuserver $detname $ltubase >$detname.log &
+  echo "$detname server started"
+else
+  echo "$detname is on $hn, server not started"
+fi
+  echo ; echo "On this machine, `hostname`, these servers are running:"
+  ps -C ltuserver o user,pid,args
+

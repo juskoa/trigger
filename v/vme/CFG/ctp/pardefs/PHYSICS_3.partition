@@ -1,0 +1,6 @@
+Version: 4
+RND1 100hz
+Clusters:
+one
+DTRUE(cn=CTRUE-ABCE-NOPF-CENT,rnd1)
+MUON_TRK

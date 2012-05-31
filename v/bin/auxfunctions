@@ -1,0 +1,48 @@
+# auxiliary functions used from $CCRFS/usr/local/trigger/bin scipts
+function getpid() {
+#pidcmd1=`ps --columns 150 ax -o'%p %u %a' |grep $1`
+#pidcmd=`echo $pidcmd1 |grep -v '<defunct>' |grep -v grep`
+#echo $pidcmd1
+pnam=`basename $1`
+pid=`pgrep $pnam`
+#pidcmd=`ps -o'%p %u %a' $pid |tail -1`
+pidcmd=`ps -o'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
+#echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
+declare -a dl=($pidcmd)
+#echo dl:${dl}
+#echo "comparing:"
+#echo ${dl[2]}
+#echo $1
+#if [ "${dl[2]}" = "$1" ] ;then
+if [ `echo ${dl[2]} | awk '{ print index($0,dt) }' dt=$1` -gt 0 ] ;then
+  user=${dl[1]}
+  spid=${dl[0]}
+else
+  spid=''
+fi
+#echo getpid:$spid:${dl[0]}:$pidcmd
+}
+function savelog() {
+ds=`date +%y%m%d%H%M`   # %S -seconds
+if [ -e "$1.log" ] ;then
+  #echo "exists: $1"
+  mv "$1.log" "$1$ds.log"
+else
+  echo "$1.log does not exist"
+fi
+}
+function onlyhost() {
+# usage: onlyhost alidcsvme001 ; if if [ $? -ne 0 ] ;then...
+hname=`hostname`
+if [ "" == "$1" ] ;then
+  return 0   # do not check hostname
+fi
+if [ "$hname" != "$1" ] ;then
+  echo "This script can be started only on $1"
+  return 1
+else
+  return 0
+fi
+}
+# following used in bin/smaq script:
+export smaqhost=alidcscom707

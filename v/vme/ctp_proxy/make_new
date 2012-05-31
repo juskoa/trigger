@@ -1,0 +1,107 @@
+# test makefile: start: make linux/XXX   where XXX is:
+# ctp_proxy  -for ref's ctp_proxy
+# test    -testing ctp_proxy functions interactively  
+# dims    - dim server part testing (later dim server will be
+#           started from ctp_Initproxy)
+# dimc    -testing example of dim client using dims (CTPDIM/) sevices
+#include makefile_sc
+include $(VMEBDIR)/com_defs.make
+include $(VMEBDIR)/daq_defs.make
+LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS)
+LIBS += $(VMERCCLD)
+
+CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/.. -I$(DIMinc) -I$(SMIinc)
+
+include $(VMEBDIR)/sc.make
+ifdef SERVER_LINK
+allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm
+else
+allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
+ $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF
+endif
+
+#vonCTPLIBa= $(CTPLD) $(VMEBLD)
+LIBDEP = $(CTPLIB)/libctp.a $(VMEBLIB)/libvmeb.a
+
+proxyOBJS= ctp_proxy.o cfg2part.o clgroups.o \
+ dimservices.o fixedcnts.o
+main_TRBIFOBJS= cfg2part.o 
+
+all: $(allEXES)
+
+#------------------------------------------ ctp_proxy
+$(EXEDIR)/ctp_proxy: main_ctp.o $(proxyOBJS) $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(LIBS) $(SMILD) -o $@ 
+
+$(EXEDIR)/main_fixedcnts: main_fixedcnts.c fixedcnts.o
+	$(CC) $(LDFLAGS) $< fixedcnts.o $(DIMLD) $(VMEBLD) -o $@
+	
+main_ctp.o:main_ctp.c Tpartition.h ctp_proxy.h
+	$(CC) $(CFLAGS) $< -c -o $@ 
+ctp_proxy.o:ctp_proxy.c ctp_proxy.h Tpartition.h 
+	$(CC) $(CFLAGS) $< -c -o $@
+
+dimservices.o:dimservices.c Tpartition.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+cfg2part.o:cfg2part.c Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $@ $<
+clgroups.o:clgroups.c Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $@ $<
+fixedcnts.o:fixedcnts.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+#------------------------------------------ test
+test.o:test.c ctp_proxy.h Tpartition.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/test: test.o $(proxyOBJS) $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(LIBS) -o $@
+main_TRBIF.o:main_TRBIF.c ctp.h Tpartition.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/main_TRBIF: main_TRBIF.o $(main_TRBIFOBJS) $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(main_TRBIFOBJS) $(LIBS) -o $@
+
+#------------------------------------------- dims
+dims.o:dims.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/dims: dims.o dimservices.o $(LIBDEP)
+	$(CC) $(LDFLAGS) $< dimservices.o $(LIBS) -o $@ 
+
+#------------------------------------------- gcalib
+gcalib.o:gcalib.c 
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/gcalib.exe: gcalib.o $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) -o $@
+
+#------------------------------------------- ctpshm
+main_shm.o:main_shm.c Tpartition.h 
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/ctpshm.exe: main_shm.o cfg2part.o $(LIBDEP)
+	$(CC) $(LDFLAGS) $< cfg2part.o $(CTPLD) $(VMEBLD) $(infoLD) \
+ $(VMERCCLD) -o $@
+#------------------------------------------- act.exe
+main_act.o:main_act.c Tpartition.h 
+	$(CC) $(CFLAGS) $< -c -o $@
+$(EXEDIR)/act.exe: main_act.o cfg2part.o $(LIBDEP) /opt/act/libACT.a 
+	$(CC) $(LDFLAGS) $< $(VMEBLD) $(actLD) $(MYSQLLIBS) -o $@
+#-------------------------------------------- dimc
+dimc.o:dimc.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/dimc: dimc.o
+	$(CC) $(LDFLAGS) $< $(DIMLD) -o $@ 
+
+#-------------------------------------------- sendcomm
+sendcomm.o:sendcomm.c dimtypes.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/sendcomm: sendcomm.o
+	$(CC) $(LDFLAGS) $(DIMLD) -o $@ $<
+
+#-------------------------
+$(CTPLIB)/libctp.a:$(CTPLIB)/../*.c
+	cd $(CTPLIB) ; make -f ../make_new
+$(VMEBDIR)/vmeblib/libvmeb.a:$(VMEBDIR)/vmeblib/*.c
+	cd $(VMEBDIR)/vmeblib ; make
+clean:
+	echo "clean: EXEDIR:$(EXEDIR)"
+	-rm -f $(EXEDIR)/* *.o
+

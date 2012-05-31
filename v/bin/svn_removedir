@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "be careful..."
+exit
+dn=$1
+#cp -rp $dn $dn.bak
+cp -rp $dn /tmp/dir.bak
+svn --force rm $dn
+svn propset svn:ignore $dn .
+svn ci -m "$dn removed from version control."
+#mv $dn.bak $dn
+mv /tmp/dir.bak $dn

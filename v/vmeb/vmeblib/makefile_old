@@ -1,0 +1,48 @@
+#VMEB=../../../vmeb
+CC=$(VMEGCC)
+ifdef DATE_INFOLOGGER_DIR
+INCDIRS=-I$(DATE_INFOLOGGER_DIR)
+CCDEFS=
+else
+INCDIRS=
+CCDEFS=-DNOINFOLOGGER
+endif
+ifeq ($(VMEGCC),g++)
+CCDEFS +=-DCPLUSPLUS
+endif
+ifdef DATE_DAQLOGBOOK_DIR
+INCDIRS +=-I$(DATE_DAQLOGBOOK_DIR)
+CCDEFS +=-DDAQLOGBOOK
+endif
+ifdef ACT_DB
+INCDIRS +=-I/opt/act
+CCDEFS +=-DACT_DB
+endif
+
+COMMONCFLAGS= -Wall -g $(CCDEFS) $(INCDIRS)
+#COMMONCFLAGS= -Wall -g -DNOINFOLOGGER
+include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
+
+# client:
+#S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o loadFPGA.o dodif32.o \
+ prtError.o shmaccess.o infolog.o detectfile.o signature.o environment.o \
+ daqlogbook.o udplib.o dimwrap.o bakery.o
+#server:
+S_OBJS = ranlux.o lexan.o timeroutines.o dodif32.o \
+ prtError.o shmaccess.o infolog.o detectfile.o environment.o \
+ daqlogbook.o udplib.o actdb.o dimwrap.o bakery.o doItemName.o
+
+all: $(S_OBJS)
+	-rm libvmeb.a
+	ar rs libvmeb.a *.o
+vmewrap.o: vmewrap.c vmewrap.h vmewrapdefs.h
+	$(CC) -c $(CFLAGS) -D$(VMEDRIVER) $<
+udplib.o: udplib.c udplib.h 
+	$(CC) -c $(CFLAGS) $<
+dimwrap.o: dimwrap.c
+	$(CC) -c $(CFLAGS) -I$(DIMDIR)/dim $<
+bakery.o: bakery.c bakery.h
+	$(CC) -c $(CFLAGS) $<
+#.o: .c .h 
+clean: 
+	rm *.o

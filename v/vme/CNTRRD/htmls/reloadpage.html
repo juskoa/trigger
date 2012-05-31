@@ -1,0 +1,33 @@
+<html><head>
+<!-- meta HTTP-EQUIV="Refresh" CONTENT=5>
+-->
+<script type="text/javascript">
+function reloadfun1() {
+var waittime=5
+//alert("HELLO reloadfun1. Alert again in "+waittime+" secs");
+//setTimeout("reloadfun1()", waittime*1000);
+setTimeout("reloadfunction()", waittime*1000);
+}
+function reloadfunction()
+{
+//not ok
+window.location.href = window.location.href; // + "?" + new Date().getTime()
+//location.reload(true);
+}
+</script>
+</head>
+<body onload="reloadfun1()">
+
+This page reloads automatically every 5 seconds:
+<pre>
+meta HTTP-EQUIV="Refresh" CONTENT=5
+</pre>
+<a href="JavaScript:location.reload(true);"> Refresh-method1
+</a>
+
+<form method="POST" name="selectionForm">
+<input type="button" onclick="reloadfunction()" value="Refresh method2">
+</form>
+</body>
+</html>
+

@@ -1,0 +1,6 @@
+SLMload("CFG/ltu/SLM/runL0err.seq")
+ERsetselector(2)
+SLMsetstart(11)
+vmeopw32(COUNT_PERIOD, 4000)
+SLMstart()
+

@@ -1,0 +1,44 @@
+VERSION: 1
+PARTITION: ALICE
+###########################################################################
+INPUTS:
+#InName             Det    Level Signature  InpNum 
+BC1                 CTP      0   4799999    0
+RND1                CTP      0   52076      0
+VZERO                V0       0   42         2       
+SPD_GFO             SPD      0   20         4       
+# 2 functions can be defined, syntax l0fxxxx
+l0fmb2 VZERO | SPD_GFO 
+##########################################################################
+# Only inputs 1,2,3,4,RND1,RND2,BC1,BC2
+INTERACTIONS:
+INT1  SPD_GFO 
+INT2  VZERO 
+##########################################################################
+# Check compatibility with parted
+# It seems : rcfg descriptor = parted descriptors+rnd+bc
+DESCRIPTORS:
+# descriptor = list of inputs and functions, always AND between list items  
+MB1_RND1 VZERO SPD_GFO RND1
+MB2_BC1 l0fmb2 BC1 
+EMPTY_RND1 RND1
+##########################################################################
+# Maximum of 6
+CLUSTERS:
+ALL 1 SPD SDD SSD TPC TRD TOF PHOS CPV HMPID MUON_TRK MUON_TRG PMD TRG FMD T0 V0 ZDC ACORDE EMCal
+##########################################################################
+# Maximum of 4
+PFS:
+NONE
+##########################################################################
+# Maximum of 4
+BCMASKS: 
+NONE
+##########################################################################
+# HW number of cluster is in clusters
+CLASSES:
+# Name    HW  Descriptor Cluster   PF       BCM   Presacler  All(1)/Rare(0)
+ MB1     01  MB1_RND1    ALL     {NONE}   {NONE}        10       1
+ MB2     03  MB2_BC1     ALL     {NONE}   {NONE}         0       1
+ PULSER2 23  EMPTY_RND1  ALL     {NONE}    {NONE}        0       1
+

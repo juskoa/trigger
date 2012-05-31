@@ -1,0 +1,42 @@
+include $(VMEBDIR)/com_defs.make
+include $(VMEBDIR)/daq_defs.make
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS)
+LIBS += $(VMERCCLD)
+
+CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(DIMDIR)/dim -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(VMECFDIR)/ctp/ctplib
+LDFLAGS = -lpthread
+
+include $(VMEBDIR)/sc.make
+
+ifdef SERVER_LINK
+allEXES =
+else
+allEXES = $(EXEDIR)/ttcmidims $(EXEDIR)/exsctel
+endif
+all: $(allEXES)
+
+#------------------------------------------- ttcmidims
+ttcmidims.o:ttcmidims.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/ttcmidims: ttcmidims.o $(CTPLIB)/libctp.a
+	$(CC) $(LDFLAGS) $< $(LIBS) -o $@
+exsctel.o:exsctel.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/exsctel: exsctel.o
+	$(CC) $(LDFLAGS) $< $(LIBS) -o $@
+
+#-------------------------------------------- dimc
+#dimc.o:dimc.c
+#	$(CC) $(CFLAGS) -c -o $@ $<
+#$(EXEDIR)/dimc: dimc.o
+#	$(CC) $(LDFLAGS) $< -o $@ $(LIBS)
+#-------------------------
+../../ctp/ctplib/libctp.a:../../ctp/ctplib/*.c
+	cd ../../ctp/ctplib ; make
+$(VMEBDIR)/vmeblib/libvmeb.a:$(VMEBDIR)/vmeblib/*.c
+	cd $(VMEBDIR)/vmeblib ; make
+
+clean:
+	-rm $(allEXES) *.o
+

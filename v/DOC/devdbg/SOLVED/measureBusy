@@ -1,0 +1,13 @@
+In LTU:
+measureBusy()
+Interval:  1.80 secs     DeadTime Transitions: 726.836853 usecs
+                         DeadTime L2a: 726.836853 usecs
+                         Fraction: 0.087625 
+                         Rate Transitions: 0.120556 [kHz]
+                         Rate L2a        : 0.120556 [kHz]
+<0>
+Request (from TPC/Chilo):
+Now only subdetector busy (sbusy counter) is used for calculations.
+The total deadtimes/fraction (busy counter) should be shown too.
+
+Fixed: 20.5.2010

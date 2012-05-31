@@ -1,0 +1,32 @@
+Problem:
+htmlCtpBusys.py daemon (started through startClients.bash) has to be
+started in order to get correct WEB counters (i.e.
+it is not enough if 'startClients.bash status readctpc' is running).
+
+Reason:
+readctpc.c sends (per min) to htmlCtpBusys actual busys for each
+detector over 
+prw-r--r--  1 trigger alice 0 Jan 14 03:05 /tmp/htmlfifo
+
+Suggested fix:
+Send Error message when starting rrd 'producer' (startClients)
+daemon at least! 
+Even better: in readctpc.c: always when /tmp/htmlfifo has
+no 'consumer' at its other end at the start (it does not block,
+if htmlCtpBusy daemon is stopped after the readctpc start).
+
+Notes:
+after stop/start rrd (readctpc and readltuc),
+CTP counters do not work (neither htmlbusy). Actually, htmlbusy daemon
+crashed after 'rrd stop/start':
+htmlStart:t2: (2010, 6, 1, 16, 15, 20, 1, 152, 1) t1: 16:15:20
+htmlStart:t2: 20 t1: 20 refresh: 61
+stdin EOF, stopping...
+getRuns: [] in memory: []
+gone runs: []  deleting them in memory (self.parts)...
+updatePartitions recreate html(None if not needed): None
+Bad line length:0::
+-------------------------------makeHtml
+htmlStart:t2: (2010, 6, 1, 16, 15, 40, 1, 152, 1) t1: 16:15:20
+htmlStart:t2: 40 t1: 20 refresh: 81
+

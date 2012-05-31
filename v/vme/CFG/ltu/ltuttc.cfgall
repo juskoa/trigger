@@ -1,0 +1,28 @@
+L1_FORMAT	3	
+L0	TTC	# TTC CABLE
+mode	SW	#BC PULSER_EDGE PULSER_LEVEL RANDOM SW UNDEFINED
+bcrate	100.000000	# 0.5 1 triger per 2 seconds
+busy	1	# 1,2,3:enable both busys, 0:disable both inputs
+sodeod	YES	# YES NO
+TTCRX_RESET	YES	# YES NO or INIT
+l2aseq	"L2a.seq"	
+CALIBRATION_BC 3556
+PP_TIME 3399    # 2us: CALIBRATION_BC-77-80=3399   1us: 3479-40=3439
+RATE_LIMIT 0x10000034
+LHCGAPVETO YES
+# not visible:
+orbitbc	91	# int
+dim	YES	#YES NO
+ppdelay	3125	# int
+gppdelay	3387	# int
+sbgo0delay	3446	# int
+gbgo0delay	151 	# int
+BC_DELAY_ADD	0 #	0..31
+FineDelay1 20
+FineDelay2 20
+# not valid yet:
+GLOBAL_CALIBRATION	NO #YES NO
+GLOBAL_CALIBRATION_RATE	0.0 #	float 0.0 .. 100.0 (per sec)
+GLOBAL_CALIBRATION_ROC	0 #	0..7
+LOGTIMESTAMP	NO #	YES NO
+

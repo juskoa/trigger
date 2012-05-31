@@ -1,0 +1,14 @@
+vmeopw32(MASTER_MODE,0x1e)
+vmeopw32(BACKPLANE_EN,0xff)
+ERenadis(0)
+vmeopr32(L1_FORMAT)
+SLMload("/home/alice/trigger/v/vme/CFG/ltu/SLM/CL2a.seq")
+vmeopw32(COUNT_PERIOD, 4000)
+SLMsetstart(11)
+SLMstart()
+# ---------- press ENTER when finished with all the LTUs
+waitKB()
+vmeopw32(MASTER_MODE,0)
+SLMquit()
+q
+

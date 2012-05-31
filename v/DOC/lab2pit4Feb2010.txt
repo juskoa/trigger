@@ -1,0 +1,91 @@
+cdult ; tar -zxf ~/vdbin.tgz
+modified (v->vd):
+ /data/ClientCommonRootFs/bin/setenv
+ ~/.bashrc
+ vd/bin/vmebse.bash
+
+cdult ; rm bin ; ln -sf vd/bin bin
+edit makeall
+makeall
+
+corrections (in pit+lab):
+bin/makeall 
+ctp.c 
+
+to be compiled (does not compile with g++):
+inputs, ctpt
+monscal -not used more
+
+monscal++  -opravene:
+  -makefile
+  vmeblib/vmeblib.h daqlogbook.c
+
+i.e. to be copied to lab:
+bin/makeall
+monscal++/makefile
+vmeblib/vmeblib.h daqlogbook.c
+
+------------------------------
+/data/ClientCommonRootFs/usr/local/trigger/vd/vme > mv CFG CFGlab
+[alidcscom026] /data/ClientCommonRootFs/usr/local/trigger/vd/vme > 
+cp -a ../../v/vme/CFG .
+do not forget to check new parameters in ctp.cfg
+cp -a ../../v/vme/dimcdistrib/*.sorted2 dimcdistrib/
+
+edit bin/rcmd ; rcmd 'ltuproxy killall'
+rcmd 'ltushmrm.sh all'
+ssh8 -stop fanio server
+sshmi    ttcmidims.sh stop     diprfrx.bash stop
+
+mv v v2009
+mv vd v
+
+modified back (vd->v):
+ /data/ClientCommonRootFs/bin/setenv
+ ~/.bashrc
+ vd/bin/vmebse.bash
+cdult ; rm bin ; ln -sf v/bin bin
+
+close all windows
+
+startClients.bash pydim stop 
+startClients.bash pydim start
+startClients.bash ctpproxy start
+tartClients.bash ctpdim start
+startClients.bash ttcmidim start
+startClients.bash diprfrx start
+startClients.bash rrd stop 
+startClients.bash rrd start
+startClients.bash html start
+startClients.bash udpmon start
+startClients.bash xcounters stop
+startClients.bash xcounters start
+
+rcmd 7 'ltuproxy startall'
+CTRL C
+
+Still todo:
+----------
+1.
+ltuclient not working with SLC5
+2.
+alidcscom027 -IRdim,smaq
+3. ok
+check swtrigger.c - trigtype=='c' SOD was not sent!
+                    if there is necessity to include similar test elsewhere
+4. ok
+ctp.cfg:  new parameters:
+TIMESHARING
+INTERACT*
+5. ok
+trigdb.py
+365:    if len(self.ents[int(ixts)])<=1:
+6.
+ACTDB FATAL -change to INFO
+7.
+ctpproxy SHOULD STOP if pydim not ON
+ctpproxy: 2166 -bad sprintf ok
+8.
+fanin status :better message if det not given
+              monitor (include in startCients.bash)
+

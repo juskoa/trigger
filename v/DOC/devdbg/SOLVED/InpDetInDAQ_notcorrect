@@ -1,0 +1,70 @@
+Input detectors (detectors feeding CTP inputs) mask
+is not correctly written in DAQlogbook.
+
+1. checkpairRBIF() modified in ctp_proxy.c:
+    if(i1==ixl0fun1)
+      strcpy(&cumrbif->l0intfs[(i1-ixl0fun1)*L0INTFSMAX], 
+        &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX]);
+i.e. l0intfs part copied too (not only rbif[ix]) in case of 
+allocation of l0f*
+
+2. point 1. was not enough. Reason:
+the statement (in checkRBIF())
+//copyTRBIF(&HW.rbif,&myrbif);
+was commented, so  updateDAQClusters(part);
+did not have right information.
+Fix: the statement above uncommented.   NO HELP STILL NOT WORKING, 
+commented out again
+checkRBIF() called from:
+
+3. 3.6.2010: checkpairRBIF(): the copy of l0f  definition added also
+in part, where l0f is already allocated (i.e. when called from 
+addPartitions2HW second time)
+
+Notes:
+ctp_LoadPartition
+  preparepcfg
+  checkPCFG
+  copyHardware(&HWold,&HW);   // HWold <- HW
+  part=readDatabase2Tpartition(name); 
+    ParseFile(lines,newpart)
+      part->rbif=BCMASK2Partition(lines[i],part->rbif);
+        findBCMasks(rbif->BCMASK, rbif->BCMASKuse);
+  applyMask
+    checkRES(bit, part, cls, &rbifnew)
+  checkResources
+    checkTS()
+    checkDetectors
+    checkClusters
+    checkRBIF
+      cumRBIF(part1, &myrbif);   -382
+        checkpairRBIF(...
+        checkBCMASKS(
+    checkInputs
+  addPartitions(part)
+  addPartitions2HW(Tpartition *p)
+    cleanHardware(&HW, 1)
+    addRBIF2HW(p)
+      copyTRBIF(&rbifloc, HW.rbif); 
+      cumRBIF(p, &rbifloc) //for all p   -537 
+        copyTRBIF(&rbifloc, cumrbif);    -335
+        checkpairRBIF
+          -128
+          !!! following needs to be done (part.rbif updated -used
+          later in getInputDets()
+          strcpy(&prbif->l0intfs[(ix-ixl0fun1)*L0INTFSMAX], 
+        &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX]);
+
+        ...
+        copyTRBIF(cumrbif, &rbifloc);   -352
+      copyTRBIF(HW.rbif, &rbifloc); 
+    addFO2HW(p)
+    addClasses2HW(p)
+      printHardware(&HW)
+  prepareRunConfig(part,1)
+  updateDAQClusters(part);
+    getInputDets(TKlas *klpo, Tpartition *part, w32 *l0finputs)  -cfg2part.c
+  copyHardware(&HW,&HWold);   // HW <- HWold
+
+3.6.2010:
+fix -done in checkpairRBIF() (right update of part.rbif with l0f definition)

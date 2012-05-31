@@ -1,0 +1,47 @@
+VMEB=$(VMEBDIR)/vmeblib
+CC=$(VMEGCC)
+#MYSQLCFLAGS=`mysql_config --cflags`
+MYSQLCFLAGS=-I/usr/include/mysql
+#CFLAGS= -Wall -g -DCERNLAB_SETUP     or CAVERN_SETUP
+ifeq ($(VMESITE), ALICE)
+WHICHSETUP = CAVERN_SETUP
+else
+WHICHSETUP = CERNLAB_SETUP
+endif
+CFLAGS= -Wall -g -D$(WHICHSETUP) -D$(VMEDRIVER) \
+ -I$(VMEB) -I$(VMECFDIR)/ctp -I$(VMECFDIR)/ctp_proxy 
+
+#compiled/linked on server:
+S_OBJS = readBICfile.o readTables.o timingpars.o calcOverlap.o bcmask.o Tpartition.o fileManip.o shared.o Partition.o
+#compiled/linked on client:
+S_OBJS = readBICfile.o checkCTP.o notInCrate.o readCounters.o \
+ initCTP.o readTables.o swtrigger.o scope.o timingpars.o i2ctemp.o \
+ inputsTools.o busyTools.o calcOverlap.o dumpCTP.o phase.o pfp.o \
+ bcmask.o bobr.o intint.o ctpshm.o Tpartition.o fileManip.o \
+ ttcmisubs.o shared.o Partition.o 
+
+
+#mysqlwrap.o
+
+all: $(S_OBJS)
+
+	-rm libctp.a
+	ar rs libctp.a *.o
+
+.o: .c 
+bobr.o: bobr.c ctplib.h
+readCounters.o: readCounters.c ctplib.h
+readBICfile.o: readBICfile.c $(VMECFDIR)/ctp/ctp.h
+swtrigger.o: swtrigger.c $(VMECFDIR)/ctp_proxy/Tpartition.h
+ctpshm.o: ctpshm.c $(VMEB)/vmewrap.h $(VMECFDIR)/ctp/ctp.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+readTables.o: readTables.c $(VMEB)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+	$(CC) $< -c -o $@ $(CFLAGS) $(MYSQLCFLAGS)
+Tpartition.o: Tpartition.c $(VMEB)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+	$(CC) $< -c -o $@ $(CFLAGS)
+Partition.o: Partition.c $(VMEB)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+	$(CC) $< -c -o $@ $(CFLAGS)
+mysqlwrap.o: mysqlwrap.c
+	$(CC) $< -c -g -o $@ $(MYSQLCFLAGS)
+clean:
+	-rm *.o libctp.a
+

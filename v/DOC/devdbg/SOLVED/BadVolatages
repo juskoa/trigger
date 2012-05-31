@@ -1,0 +1,139 @@
+Problem:
+i2c channel 4 is broken already long time (from the last summer).
+The ctp expert software reports only channel 4, branches 0 1 2 broken
+(i.e. only 3 LTUs: TRD ZDC EMCAL)
+But more LTU voltages are not seen in WEB counters interface:
+trd zdc acorde (ok because of broken chan.4)
+
+hmpid phos pmd muon_trk muon_trg fmd 
+t0 v0 zdc acorde emcal daq
+
+Only these are seen: cpv tof tpc ssd sdd spd
+
+Done feb2010:
+i2c board in the pit was exchanged with the one from lab, but
+we see the same.
+Here is the ctp -> INT ->i2creadall:
+i2creadall()
+ CAVERN setup:
+    busy:      19 C. Voltages:5006 3322 1501 5006 [mV]
+      l0:      18 C. Voltages:5077 3369 1527 5077 [mV]
+      l1:      17 C. Voltages:5077 3345 1527 5077 [mV]
+      l2:      18 C. Voltages:5030 3322 1501 5030 [mV]
+     int:      16 C. Voltages:5101 3369 1540 5125 [mV]
+     fo1:      17 C. Voltages:5006 3322 1501 5030 [mV]
+     fo2:      17 C. Voltages:5006 3322 1501 5006 [mV]
+     fo3:      18 C. Voltages:4982 3298 1488 4982 [mV]
+     fo4:      19 C. Voltages:5030 3322 1527 5030 [mV]
+     fo5:      18 C. Voltages:5030 3322 1514 5030 [mV]
+     fo6:      18 C. Voltages:5006 3298 1501 5006 [mV]
+    ltu1: ------- C. Voltages:5006 3322 1501 1590 [mV]
+    ltu2: ------- C. Voltages:5006 3322 1501 1590 [mV]
+    ltu3: ------- C. Voltages:5053 3322 1514 1566 [mV]
+    ltu4: ------- C. Voltages:5030 3322 1514 1566 [mV]
+Error:Err bit on found in i2cwait(6)
+Error:i2cread:channel:4 branch:0  device not responding.
+    ltu5: ------- C. Voltages:  95    0    0    0 [mV]
+    ltu6: ------- C. Voltages:5006 3322 1501 1590 [mV]
+    ltu7: ------- C. Voltages:5030 3322 1514 1566 [mV]
+    ltu8: ------- C. Voltages:5006 3322 1501 1590 [mV]
+    ltu9: ------- C. Voltages:5030 3322 1514 1590 [mV]
+   ltu10: ------- C. Voltages:5030 3322 1514 1542 [mV]
+   ltu11: ------- C. Voltages:5006 3322 1501 1590 [mV]
+   ltu12: ------- C. Voltages:5030 3322 1501 1590 [mV]
+   ltu13: ------- C. Voltages:5030 3322 1514 1566 [mV]
+   ltu14: ------- C. Voltages:5006 3322 1501 1613 [mV]
+   ltu15: ------- C. Voltages:5030 3345 1527 1566 [mV]
+Error:Err bit on found in i2cwait(6)
+Error:i2cread:channel:4 branch:1  device not responding.
+   ltu16: ------- C. Voltages: 356    0    0    0 [mV]
+   ltu17: ------- C. Voltages:5030 3345 1514 1566 [mV]
+Error:Err bit on found in i2cwait(6)
+Error:i2cread:channel:4 branch:2  device not responding.
+   ltu19: ------- C. Voltages: 427    0    0    0 [mV]
+   ltu20: ------- C. Voltages:5006 3322 1514 1590 [mV]
+
+
+Todo:
+- first check with independent client (dimcdistrib/dimccounters.c)
+
+Temperatures on FO2,3,4,5,6 boards are bad also on WEB,
+but they are fine with ctp -> i2creadall() and with ReadTemperatures()
+
+status 6.11.2010:
+after marian's intervention (sooner sometimes in September) voltages are
+ok, bad FO2-6 temperatures on Web are still incorrect. Also in DCS
+Jozef reported problem with temperatures.
+
+dimcdistrib/linux/dimccounters CTPDIM
+...
+ 934 fo1temp                   11 0          0.0000
+ 935 fo1volts            43748cd3 0          0.0000
+ 936 fo2temp             43748cd3 0          0.0000
+ 937 fo2volts            42758cd5 0          0.0000
+ 502 fo2time             b51ced44 150941580         60.3766
+...
+dims.log:
+readTVcounters:
+924:0x13 925:0xd3748cd3 
+926:0x12 927:0xd6768ed6 
+928:0x11 929:0xd6768cd6 
+930:0xf 931:0xd4748cd3 
+932:0xf 933:0xd8778ed7  
+934:0x11 935:0x43748cd3 fo1temp
+936:0x43748cd3 937:0x42758cd5     fo2temp BAD
+938:0x42758cd4 939:0x43748cd3 
+
+i.e. read incorrectly!
+
+bug fixed in ctplib/readCounters.c (now temp. + volts for fo[2-6] boards ok
+what was wrong:
+epochsecs 921 ctp G ctp  CSTART_SPEC
+epochmics 922 ctp G ctp
+l2orbit 923 l2 G ctp
+busytemp 924 busy G ctp  CSTART_SPEC+3
+busyvolts 925 busy G ctp CSTART_SPEC+4
+l0temp 926 l0 G ctp
+l0volts 927 l0 G ctp
+l1temp 928 l1 G ctp
+l1volts 929 l1 G ctp
+l2temp 930 l2 G ctp
+l2volts 931 l2 G ctp
+inttemp 932 int G ctp
+intvolts 933 int G ctp
+fo1temp 934 fo1 G ctp
+1 fo1volts 935 fo1 G ctp from here 24 words (ltu counters) were written
+ fo2temp 936 fo2 G ctp
+ fo2volts 937 fo2 G ctp
+ fo3temp 938 fo3 G ctp
+5 fo3volts 939 fo3 G ctp
+ fo4temp 940 fo4 G ctp
+ fo4volts 941 fo4 G ctp
+ fo5temp 942 fo5 G ctp
+ fo5volts 943 fo5 G ctp
+10 fo6temp 944 fo6 G ctp
+ fo6volts 945 fo6 G ctp
+ ltuvolts1 946 ltu G SPD
+ ltuvolts2 947 ltu G SDD
+ ltuvolts3 948 ltu G SSD
+15 ltuvolts4 949 ltu G TPC
+ ltuvolts5 950 ltu G TRD
+ ltuvolts6 951 ltu G TOF
+ ltuvolts7 952 ltu G HMPID       was0 ?
+ ltuvolts8 953 ltu G PHOS
+20 ltuvolts9 954 ltu G CPV
+ ltuvolts10 955 ltu G PMD        was0 ok
+ ltuvolts11 956 ltu G MUON_TRK   was0 ok
+ ltuvolts12 957 ltu G MUON_TRG   was0 ok
+24 ltuvolts13 958 ltu G FMD      was0 ok
+ltuvolts14 959 ltu G T0          was0 ok
+ltuvolts15 960 ltu G V0          was0 ok
+ltuvolts16 961 ltu G ZDC         was0 ok
+ltuvolts17 962 ltu G ACORDE      was0 ok
+ltuvolts18 963 ltu G N
+ltuvolts19 964 ltu G EMCAL       was0 ok
+ltuvolts20 965 ltu G DAQ         was0 ok
+ltuvolts21 966 ltu G N
+ltuvolts22 967 ltu G N
+ltuvolts23 968 ltu G N
+ltuvolts24 969 ltu G N

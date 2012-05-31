@@ -1,0 +1,32 @@
+# test makefile: start: make linux/XXX   where XXX is:
+# ctp_proxy  -for ref's ctp_proxy
+# test    -testing ctp_proxy functions interactively  
+# dims    - dim server part testing (later dim server will be
+#           started from ctp_Initproxy)
+# dimc    -testing example of dim client using ctp sevices
+include makefile_common
+##CTPLIB=./ctp/ctplib/libctp.a $(VMEBDIR)/vmeblib/libvmeb.a
+SDIR= .
+
+##CTPOBJS=$(proxyOBJS) $(CTPLIB)
+all: $(ODIR)/ttcmidims
+#------------------------------------------- ttcmidims
+$(ODIR)/ttcmidims.o:$(SDIR)/ttcmidims.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/ttcmidims.o ttcmidims.c
+$(ODIR)/ttcmidims: $(ODIR)/ttcmidims.o 
+	$(CC) $(LDFLAGS) $(ODIR)/ttcmidims.o $(EXTRALIBS) -o $(ODIR)/ttcmidims
+
+#-------------------------------------------- dimc
+$(ODIR)/dimc.o:$(SDIR)/dimc.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/dimc.o dimc.c
+$(ODIR)/dimc: $(ODIR)/dimc.o
+	$(CC) $(LDFLAGS) $(ODIR)/dimc.o \
+ -o $(ODIR)/dimc $(EXTRALIBS)
+#-------------------------
+../ctp/ctplib/libctp.a:../ctp/ctplib/*.c
+	cd ../ctp/ctplib ; make
+$(VMEBDIR)/vmeblib/libvmeb.a:$(VMEBDIR)/vmeblib/*.c
+	cd $(VMEBDIR)/vmeblib ; make
+clean:
+	-rm $(ODIR)/*.o
+

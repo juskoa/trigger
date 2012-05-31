@@ -1,0 +1,42 @@
+0 Orbit
+1 l0clstt
+2 l0clst1
+3 l0clst2
+4 l0clst3
+5 l0clst4
+6 l0clst5
+7 l0clst6
+8 busy01
+9 busy02
+10 busy03
+11 busy04
+12 busy05
+13 busy06
+14 busy07
+15 busy08
+16 busy09
+17 busy10
+18 busy11
+19 busy12
+20 busy13
+21 busy14
+22 busy15
+23 busy16
+24 busy17
+25 busy18
+26 busy19
+27 busy20
+28 busy21
+29 busy22
+30 busy23
+31 busy24
+32 01010000
+33 mopicsoi
+34 0
+35  10
+36    1
+37     00
+38       00
+
+
+

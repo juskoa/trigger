@@ -1,0 +1,37 @@
+#!/bin/bash
+function gethn() {
+if [ "$1" == "17" ] ;then
+hname="alidcsvme017"
+else
+hname="alidcsvme00"$1
+fi
+}
+if [ $# -eq 0 ] ;then
+  cat - <<-EOF
+Usage:
+rcmdroot 3 uptime            -root execute uptime on alidcsvme003
+rcmdroot uptime              -root execute uptime on alidcsvme001-8
+EOF
+exit
+fi
+user='root'
+if [ $# -eq 2 ] ;then
+  gethn $1
+  remcmd=$2
+  #echo $hname
+  ssh -2 "$user@$hname" $remcmd 2>&1 |grep -v -e Scientific
+  exit
+else
+  remcmd=$1
+fi
+#allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
+allvmes='alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
+#allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 alidcsvme008'
+for hn in $allvmes ;do
+  prxs=`ssh -2 "$user@$hn" $remcmd 2>&1 |grep -v -e Scientific`
+  if [ -n "$prxs" ] ;then
+    echo "$hn:"
+    echo "$prxs"
+  fi
+done
+

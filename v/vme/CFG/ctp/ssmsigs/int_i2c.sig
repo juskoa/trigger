@@ -1,0 +1,24 @@
+0 scl1_out
+1 sda1_out
+2 sda1_in
+3 scl2_out
+4 sda2_out
+5 sda1_in
+6 mux_write
+7 mux_read
+8 adc_write
+9 adc_read
+10 i2c.busy
+11 i2c.error
+14 i2c.state[0]
+15 i2c.state[1]
+16 i2c.state[2]
+17 i2c.state[3]
+32 01001000
+33 mopicsoi
+34 0
+35  10
+36    1
+37     01
+38       00
+

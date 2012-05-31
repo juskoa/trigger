@@ -1,0 +1,19 @@
+From ctp_proxy1003101536.log
+we see it was sent, even from pydimserver.log (Wed Mar 10 16:32:41 CET 2010):
+line: PHYSICS_1 112728 0x5000e 1 0 2 0 0 0 1 2 45 46 3 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0x0 0x0 0x0 0x0
+
+But it is not seen in daqlogbook, neither in pydimserver.log:
+class 112728 1 CBEAMB-ABCE-NOPF-ALL 46 CINT1C-ABCE-NOPF-ALL 3 CINT1-E-NOPF-ALL 2 CINT1B-ABCE-NOPF-ALL 45 CINT1A-ABCE-NOPF-ALL
+
+Done:
+in lab (11.3.):
+line added in parted.py:
+          print "activeclasses:", str(self.activeclasses)
+
+solved: 9.4.:
+- logical class numbers were incorrectly generated in savercfg() -
+just 1,2,3... was used which led to incorrect number when
+looking fro physical class number.
+Now they are created after loading partition from file, and used
+in savercfg().
+

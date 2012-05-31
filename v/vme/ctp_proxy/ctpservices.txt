@@ -1,0 +1,66 @@
+Services provided by CTP:
+------------------------
+They are accessed through DIM servers running on CTP SBCs:
+-1 CTP DIM server
+-1 DIM server for each LTU
+
+1. The services setting the parameters in hardware:
+   A. stdalone mode: LTU/TTCvi are under the control 
+      of the detector group. There is GUI similar to the one delivered
+      with LTU board. 
+   B. global mode:   all parameters (CTP,LTU,TTCvi) are set by ECS.
+
+   Calibration services is special case (managing request queues)
+
+2. Getting information about CTP operation (global or detector 
+   dependent parameters, variables).
+   Types of information supplied:
+   - 'LIVE' data from CTP or shared memory: 
+      BCMx, RNDx, BCx settings ...
+      CTP/LTU counters
+   - 'CONFIGURATION' data on disk (ECS database): 
+      available trigger descriptors, PFs (used by config. editor)...
+
+1. CTP services
+---------------
+Enabled during run (in stdalone mode implemented by ltu ctp emulator).
+
+Command                  Parameters
+Generate_cal_trigger     detector      detector name
+                         roc
+                         N             number of triggers
+ -PP is always delivered
+ -it can happen that trigger itself is not delivered
+
+Generate_sw_synchronous  detector
+                         roc
+                         N
+                         bc            BC number
+
+Generate_sw_asynchronous detector
+                         roc
+                         N
+                         bcmask        1 - 4
+
+Get_status                             return number of generated triggers
+                                       after last Generate command
+
+Following services are implemented directly as SMI commands
+(they are activated by ECS only):
+
+Generate StartOfData     DAQpartition
+Generate EndOfData       DAQpartition
+
+Set DAQbusy              DAQpartition  set of(1 - 6) or all
+Clear DAQbusy            DAQpartition
+
+2. Getting information about CTP operation 
+----------------------------------------------------------------
+Command                  Parameters
+
+Services provided by triggering detectors:
+-----------------------------------------
+   - start/stop toggle N               N -input number
+   - start/stop signature N
+   - status
+

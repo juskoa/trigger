@@ -1,0 +1,89 @@
+#!/bin/bash
+cd $VMEWORKDIR
+if [ $# -eq 2 ] ;then
+  LTUBASE=$2
+elif [ $# -eq 1 ] ;then
+  LTUBASE='0x810000'
+elif [ $# -eq 3 ] ;then
+  LTUBASE=$2
+  if [ "$3" == "w" ] ;then
+    workdir=$VMEWORKDIR
+    cd $VMEWORKDIR
+  else
+    echo "Only w allowed as 3rd parameter"
+    return
+  fi
+fi
+if [ "$VMECFDIR" == "" ] ;then
+  echo "VMECFDIR not defined"
+  return
+fi
+if [ "$VMECFDIR" == "" ] ;then
+  echo "VMECFDIR not defined"
+  return
+fi
+if [ $# -eq 0 ] ;then
+  cat - <<-EOF
+
+Usage:
+loadLTUfpga configure BASE  -Flash memory -> LTU FPGA i.e.
+                             (Flash mem. not modified)
+loadLTUfpga name BASE       -ln -sf $VMECFDIR/CFG/ltu/name FlashMem.cfg and
+                            -load Flash memory and 
+                            -configure LTU FPGA
+loadLTUfpga load BASE       -only load and configure (without making link)
+
+   where BASE is LTU base address (0x810000 by default).
+
+Examples:
+loadLTUfpga ltu_f3.rbf      -loads new (L0 over fibre) FPGA code
+                             to LTU 0x810000 flash memory and configure 
+                             this LTU FPGA with this new code
+loadLTUfpga abc.rbf 0x810000 w
+                            - ln -sf $VMEWORKDIR/CFG/ltu/abc.rbf FlashMem.cfg 
+                            -load Flash memory
+                            -configure LTU FPGA
+Current link:
+EOF
+ls -ld FlashMem.cfg
+echo
+echo "      possible codes in $VMECFDIR/CFG directory:"
+ls $VMECFDIR/CFG/ltu/*.rbf
+exit
+elif [ "$1" = 'configure' ] ;then
+$VMECFDIR/VME2FPGA/VME2FPGA.exe $LTUBASE -noinitmac <<-EOF
+LoadFPGA()
+q
+EOF
+exit
+fi
+if [ "$1" != 'load' ] ;then
+  if [ -e "$VMECFDIR/CFG/ltu/$1" ] ;then
+    ln -sf $VMECFDIR/CFG/ltu/$1 FlashMem.cfg
+    rcln=$?
+    echo "ln -sf $VMECFDIR/CFG/ltu/$1 FlashMem.cfg         done. rc:$rcln"
+    if [ $rcln -ne 0 ] ;then
+      echo "rc from ls -s...: $rcln, exiting"
+      exit
+    fi
+  else
+    echo "$VMECFDIR/CFG/ltu/$1 -doesn't exist, not loaded"
+    echo " link not done, exiting..."
+    exit
+  fi
+fi
+if [ "$LTUBASE" == 'all' ] ;then
+  ltubases=`printLTUbases $HOSTNAME`
+else
+  ltubases="$LTUBASE"
+fi
+for LTUBASE in $ltubases ;do
+$VMECFDIR/VME2FPGA/VME2FPGA.exe $LTUBASE -noinitmac <<-EOF
+EraseFM()
+LoadFM()
+LoadFPGA()
+q
+EOF
+echo "LTU base address: $LTUBASE"
+done
+

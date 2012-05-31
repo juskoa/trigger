@@ -1,0 +1,4 @@
+VISADIR=C:/Vxipnp/WinNT
+LDFLAGS=-L$(VISADIR)/Lib/Msc -lvisa32
+CFLAGS=$(COMMONCFLAGS) -I$(VISADIR)/Include
+

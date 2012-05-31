@@ -1,0 +1,20 @@
+0 Orbit
+1 l1clstt
+2 l1clst1
+3 l1clst2
+4 l1clst3
+5 l1clst4
+6 l1clst5
+7 l1clst6
+8 l1strobe
+9 l1data
+10 l1[1]
+11 l1[2]
+12 l1[3]
+13 l1[4]
+14 l1data[1]
+15 l1data[2]
+16 l1data[3]
+17 l1data[4]
+32 01001000
+33 mopicsoi  ->

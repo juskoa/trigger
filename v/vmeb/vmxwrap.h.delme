@@ -1,0 +1,15 @@
+#ifndef w81632
+typedef unsigned long int w32;
+typedef unsigned short int w16;
+typedef unsigned char w8;
+#define w81632
+#endif
+
+w8  vmxr8(int vmesp, w32 offset);
+w16 vmxr16(int vmesp, w32 offset);
+w32 vmxr32(int vmesp, w32 offset);
+void vmxw8(int vmesp, w32 offset, w8 value);
+void vmxw16(int vmesp, w32 offset, w16 value);
+void vmxw32(int vmesp, w32 offset, w32 value);
+int vmxopen(int vmesp, char *base, char *length);
+int vmxclose(int vmesp);

@@ -1,0 +1,25 @@
+/etc/httpd/conf.d/python.conf:
+
+<Directory /var/www/html/CNTWEB>
+    SetHandler mod_python
+    PythonHandler mod_python.publisher
+    PythonDebug On
+</Directory>
+- index: cfg.  initialised    AND THE show -> the same!
+  sometimes it is initialised, sometimes not (with show)???
+
+Another approach:
+<Directory /python>
+	AddHandler mod_python .py
+	PythonHandler new
+	PythonDebug On
+  </Directory>
+
+------------------
+exs/       -examples 
+chlocpart.py -choosing partition from $dbctp/pardefs2010/
+cntcom.py  -common for cnt, ltus
+cnt.py     -ctp counters
+ltus.py    -ltu counters
+mons.py    -udp monitoring (mon.rrd)
+*refresh*.py -modified for automatic refresh (Renato B.)

@@ -1,0 +1,14 @@
+vmeopw32(MASTER_MODE,0x1f)
+setglobalmode()
+# Orbit, PP
+setAB(1,3)
+waitKB()
+# L1, L0
+setAB(3,4)
+waitKB()
+# L1, L1DATA
+setAB(3,6)
+waitKB()
+# L2S, L2DATA
+setAB(4,7)
+

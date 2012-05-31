@@ -1,0 +1,14 @@
+From counters readings it seems that first and last readings
+have extra dead time. 
+Possible reason can be non optimal reading of counters
+at start and stop of the run.
+Counters readings at the start of the run and at the stop of the run
+should be done as close as possinle to daq busy.
+To be checked if it can be improved.
+24.2.2010
+ctp_StartPartition(): 2secs between conters reading and physics
+ctp_StopPartition(): 1secs between setALLDAQBusy and conters reading.EOD sent
+                     after counters reading.
+Solution:
+2.2.2010
+2secs/1secs at SOD/EOD moved (SOD: read+unsetBUSY, EOD:setBUSY+read)

@@ -1,0 +1,22 @@
+With acorde:
+TCinit()
+BUSY is OFF before TTCrx init
+FineDelay1:3126ps (TTCrx:0x0) FineDelay2:2459ps (TTCrx:0x87) CoarseDelay:0x0
+Error: BUSY not raised during 'TTCrx READY' off
+Warning: BUSY not raised during 'QPLL LOCKED' off (if QPLL clock is used)
+ milsecs   action           BUSY
+       0   TTCrx_reset      0
+       1   TTCrx not ready  0  
+      22   TTCrx config     0
+    2166   FEE reset        0
+    2154                    0
+Busy_ts:1 ON: 5850.4 micsecs
+<0>
+
+With counters, it is seen that busy was raised precisely 5850.4 micses,
+busy_tc was 1.
+Problem:
+Why we do not see busy rasied during the TTCrx not ready?
+Solved:
+there was bug in vmeblib/timeroutines.c DiffSecUsec()
+Now it is ok

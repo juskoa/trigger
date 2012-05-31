@@ -1,0 +1,54 @@
+include $(VMEBDIR)/com_defs.make
+include $(VMEBDIR)/daq_defs.make
+#CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(VMEBLIB)/..
+LTUDIR := ${VMECFDIR}/ltu
+
+LTULIBS=${SMIDIR}/linux/libsmi.a ${SMIDIR}/linux/libsmiui.a \
+	${DIMDIR}/linux/libdim.a ${DAQLIB} \
+	${LTULIB}/libltu.a ${VMEBLIB}/libvmeb.a
+LTUOBJS=ltu_utils.o ltudimservices.o popen2.o
+
+#include $(VMEBDIR)/sc.make   
+#we stay with linux/ only
+VPATH := ../
+
+ifdef SERVER_LINK
+allEXES = notarget
+else
+#all: ${TRG_BIN}/ltudimserver ${TRG_BIN}/ltu_proxy 
+allEXES = ${EXEDIR}/ltu_proxy 
+endif
+all: $(allEXES)
+        
+$(EXEDIR)/ltu_proxy: ltu_proxy.o $(LTUOBJS) $(LTULIB)/libltu.a
+	$(CC) $(LDFLAGS) $< $(LTUOBJS) $(LTULD) $(VMEBLD) \
+ $(DIMLD) $(SMILD) -l smiui $(daqLD) $(VMERCCLD) $(MYSQLLIBS) -o $@
+
+popen2.o: popen2.c 
+	${CC} -c $(CFLAGS) $< -o $@
+ltudimservices.o: ltudimservices.c 
+	${CC} -c $(CFLAGS) -I${VMEBinc} -I$(LTUDIR) -I${DIMinc} $< -o $@
+ltu_utils.o: ltu_utils.c 
+	${CC} -c $(CFLAGS) -I${VMEBinc} -I${LTUDIR} $< -o $@
+ltu_proxy.o: ltu_proxy.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/vmeblib.h
+#	@echo $<
+	${CC} -c $(CFLAGS) -I${SMIinc} -I${DIMinc} -I$(VMEBinc) \
+ -I${LTUDIR} $< -o $@
+clean:
+	/bin/rm -f $(EXEDIR)/*.o
+notarget: ;
+	@echo targets not defined for server
+
+#${TRG_BIN}/ltudimserver: ${TRG_BIN}/ltudimserver.o \
+#	${TRG_BIN}/ltudimservices.o ${TRG_BIN}/popen2.o
+#	${CC} ${TRG_BIN}/ltudimserver.o \
+#	${TRG_BIN}/ltudimservices.o ${TRG_BIN}/popen2.o \
+#	${LTULD} ${DIMLIB} ${SMILIB} ${LIB_VMEDRIVER} -o $@
+#${TRG_BIN}/ltu_proxy_noctp: ${TRG_BIN}/ltu_proxy_noctp.o ${LTUOBJS} ${LTULIBS}
+#	${CC} ${TRG_BIN}/ltu_proxy_noctp.o ${LTUOBJS} \
+#	${DIMLIB} ${SMILIB} ${LTULD} ${LIB_VMEDRIVER} -o $@
+#${TRG_BIN}/ltudimserver.o: ltudimserver.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/lexan.h
+#	@echo $<
+#	${CC} -c -I${DIMDIR}/dim  -I${LTUDIR} $< -o $@
+#${TRG_BIN}/ltu_proxy_noctp.o: ltu_proxy_noctp.c 
+#	${CC} -c -I${SMIDIR}/smixx -I${DIMDIR}/dim -I${LTUDIR} $< -o $@

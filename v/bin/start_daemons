@@ -1,0 +1,10 @@
+#!/bin/bash
+export HOME=/home/alice/trigger
+. /usr/local/trigger/bin/vmebse.bash
+# -H: set HOME   (-i does not help when started from script)
+# with slc5 not working: sudo: sorry, you must have a tty to run sudo
+#sudo -H -u trigger /usr/local/trigger/bin/ltuproxy.sh startall  2>&1>/tmp/start_daemons.log
+# fix: 1. /etc/ld.so.conf.d/dimsmi.conf ; chroot /data/dl/root ldconfig
+# 2. [alidcscom188] /data/dl/root/usr/local/trigger/v/vme/ltu_proxy/linux > chmod ug+s ltu_proxy
+/usr/local/trigger/bin/ltuproxy.sh startall  2>&1>/tmp/start_daemons.log
+

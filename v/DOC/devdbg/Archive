@@ -1,0 +1,80 @@
+We should arrange an archivation of:
+1. cleaning: see deletelogs.sh
+[alidcscom026] /home/trigger/CNTRRD > 
+cp /dev/null ltu_rrdtool.log
+cp /dev/null nohup.out
+find logs/* -mtime +20 -type f |xargs -l10 rm
+
+2. software in:
+   lab
+   26
+   27
+2. data on 26/27
+   counters
+3  logs
+   config files
+   smaq data
+4. new disk on alidcscom027:
+/b1 2 3 5 6 7
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb1   *           1       29179   234380286   83  Linux
+/dev/sdb2           29180       77811   390636540   83  Linux
+/dev/sdb3           77812      126443   390636540   83  Linux
+/dev/sdb4          126444      243201   937858635    5  Extended
+/dev/sdb5          126444      156838   244147806   83  Linux
+/dev/sdb6          156839      187233   244147806   83  Linux
+/dev/sdb7          187234      243201   449562928+  83  Linux
+
+
+/b1 -copy of 26: (sda3==/data) + (sda1 == /root /home
+see: root@27:bin/cpfrom26
+/b2 -copy of 27: (sda3 == /data) + /home + /root
+[root@alidcscom027 b2]# time cp -a /home .         cca 1min/1Gbyte
+25.8.2010:
+cd /b2
+cp -a /home .
+cp -a /root .
+cp -a /data .
+
+/b3 /b5:
+18.11.2010: mkfs -t ext3 /dev/sdb5
+This filesystem will be automatically checked every 25 mounts or
+180 days, whichever comes first.  Use tune2fs -c or -i to override.
+
+1. sw lab+26: 
+------------
+sw lab:
+/CCT 
+/data/ClientCommonRootFs
+                        /usr/local/trigger/vd
+                                           bin
+                                           rf2ttc
+/data/ClientLocalRootFs ?
+
+sw on 27:
+bin
+SMAQProject/gui
+IRS
+   /LOG + /DATA = ~ 7GB
+busytool
+/data/software
+
+2.  data:
+--------
+alidcscom026 counters:
+CNTRRD/rawcnts
+
+alidcscom026 logs:
+alidcsvme001: v/vme/WORK/ctp_proxy*.log
+CNTRRD/logs
+/data/ClientLocalRootFs
+alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/LTU-*.log
+alidcsvme00[2-7]/home/alice/trigger/v/*/CFG/ltu/*
+alidcsvme008/home/alice/trigger/v/vme/WORK/server.log
+alidcsvme008/home/alice/trigger/v/vme/daq fmd hmpid ssd
+
+alidcscom026 configs:
+v/vme/WORK/PCFG v/vme/WORK/RCFG/delme*[h]
+
+
+alidcscom027

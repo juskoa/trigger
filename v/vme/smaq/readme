@@ -1,0 +1,46 @@
+20.12.08
+How to compare autocorrelation function filtered and notfiltered?
+1.) set the same rate in RND1 and RND2 in 'Shared resources'
+2.) vmecrate inputs (if not already running)
+3.) click 'INPUTS' (if not already running)
+4.) Choose  27 and 28 in inputs and do 'Auto'
+    RND1 (27) will show autocorrelation WITH filter
+    RND2 (28) will show autocorrelation WITHOUT filter.
+FILTER is only IN SOFTWARE. Hardware (both RND1 and RND2)
+generates sequence without filter.
+-----------------------------------------------------------------
+12.6
+- dimlibs added to v/vmeb/vmeai.make 
+   ifeq (BNAME,ADCI)
+    LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib -lctp -L$(DIMDIR)/linux -ldim
+    #CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
+  endif
+- gave up, did a patch for dim
+------------------------------------------------------------------
+2.8.07
+ADCI copied to inputs to have more reasonable name.
+Patch for DIMDIR needs to be done (isame as for ADCI)
+for inputs.exe and inputs.o
+-------------------------------------------------------------------
+11.6
+- patch removed, ctplib added in v/vmeb/vmeai.make
+--------------------------------------------------------------------
+7.6.
+- ADCI.make patched to include ctplib
+7.7.2009
+rm none.c inputspit.c
+mv make.inputs makefile + modified: (DIMDIR), ctplib added
+------------
+14.11.2011
+ln -s ../ctp/intint.h
+ln -s ../ctp/intint.c
+ln -s ../ctp/ctplib/ctplib.h
+
+modified: 
+smaq.c
+  - include intint.h
+makefile
+- to be compiled on altri1 (alidcsvme008)
+
+19.3.2012
+smaq.c  -now corect shm is used (before private one s used!)

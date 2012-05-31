@@ -1,0 +1,34 @@
+#!/bin/bash
+#. /data/ClientCommonRootFs/usr/local/trigger/bin/vmebse.bash vnew
+#cd /data/ClientCommonRootFs/usr/local/trigger/v/vme/fanio/dim
+cd $VMECFDIR ; cd fanio/dim
+if [ `hostname` = 'alidcscom707' ] ;then
+  client=~trigger/v/linux64/client
+else
+  client='linux/client'
+fi
+if [ $# -gt 0 ] ;then
+  $client $1 $2 $3
+else
+cat - <<-EOF
+Usage:
+1.
+fanin status 
+To get the current FANIN status in the format:
+...20....,...10....,...1
+EDE...                    Enabled/Disbaled channel
+100...                    current status of FANIN inputs (1 means BUSY ON)
+
+2.
+fanin enable 0xmask 
+To enable mask (will be set in FANIN)
+
+3.
+fanin save 0xmask 
+To save mask as default (will be loaded after the server restart/reboot)
+where:
+mask: hexadecimal number reppresenting channels 24..1.
+      bits corresponding to enabled channels are set to 1
+EOF
+fi
+

@@ -1,0 +1,55 @@
+#!/bin/bash
+function printTime() {
+#-rw-r--r--  1 trigger alice 2865 18.05.2010 19:30 delme/r120219.rcfg
+#ls -l  --time-style='+%d.%m.%y %H:%M' $1 | awk '{print "\n" $6 " " $7}' -
+ls -l  --time-style='+%d.%m.%Y %H:%M' $1 | awk '{print "\n" $7 " " $6}' -
+}
+cd ~trigger/v/vme/WORK/RCFG
+pn=$1
+if [ $# -eq 0 ] ;then
+  cd ~/v/vme/WORK/RCFG
+  ls -lt r*.rcfg  2>&1> /tmp/rrcfg
+  if [ $? -eq 0 ] ;then
+  cat - <<-EOF
+  Usage:
+  showRCFG               show this message + active runs (~/v/vme/WORK/RCFG)
+  showRCFG runnumber     (as used with parted, i.e. without suffix, e.g. 52333)
+                         works for runs from 2011 and 2012
+  showRCFG last [number_of_runs]
+  
+EOF
+  echo 'Currently these runs should be active:'
+  cat /tmp/rrcfg
+  else
+    echo 'NO GLOBAL RUN IS ACTIVE. Latest runs:'
+    cd delme
+    ls -lt | head -6
+  fi
+elif [ "$pn" = "last" ] ;then
+  lines=10 ; if [ -n "$2" ] ;then lines=$2 ;fi
+  cd delme
+  ls -lt | head -$lines
+  #ls -ld ALICE.partition ;ls -ld ALICE.pcfg
+  #echo
+  exit
+else
+  if [ $pn -le 170614 -a $pn -ge 140492 ] ;then
+    echo "------------------------ 2011 run..."
+    cd ~trigger/v/vme/WORK/RCFG2011
+  fi
+  fname="r$pn.rcfg"
+  if [ -e "$fname" ] ;then
+    echo "Active run $pn:"
+    echo
+    cat $fname
+    printTime $fname
+  elif [ -e "delme/$fname" ] ;then
+    echo "Stopped run $pn:"
+    echo
+    cat delme/$fname
+    printTime delme/$fname
+  else
+    echo "$fname not found (probably not started at all)"
+  fi
+fi
+

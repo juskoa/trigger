@@ -1,0 +1,70 @@
+#!/bin/bash
+if [[ $# -eq 0 ]] ;then
+cat - <<-EOF
+This script is to be started in home directory of user wishing
+to change ctp/ltu software. Operation:
+- install links to ~trigger/.
+It creates:
+1. private(r/w) directories: v/vme/WORK CFG/ltu/SLM/L2a.seq,all.slm
+2. linkis (ro): the rest
+
+On altri1, altri2 (machines where trigger account is 'production' one):
+  'cd HOME' will be executed before making v/ and corresponding links
+
+On diskless:
+  start it by: usevmebsw ult -> it will use /usr/local/trigger...
+  for destination when making links.
+  CURRENT directory will be used for v/
+
+EOF
+exit
+fi
+if [[ "$1" != "ult" ]] ;then
+  RTD=~trigger
+  echo
+  echo 'Changing to home directory before doing links...'
+  cd
+else
+  usrt=a=(`df -T /usr |tail -1 `)
+  if [[ ${usrt[0]} != "nfs" ]] ;then
+    echo
+    echo 'You are not on diskless machine'
+    echo
+    exit
+  fi
+  RTD=/usr/local/trigger
+  echo
+  echo 'diskless machine, using /usr/local/trigger...'
+  echo 'and current directory.'
+  echo
+fi
+mkdir -p v/vme/WORK
+mkdir -p v/vme/CFG/ltu/SLM
+cd v/vme/CFG/ltu/SLM
+cp $RTD/v/vme/CFG/ltu/SLM/L2a.seq .
+cp $RTD/v/vme/CFG/ltu/SLM/all.slm .
+cp $RTD/v/vme/CFG/ltu/SLM/run*err.slm .
+cd ~/v
+ln -s $RTD/v/vmeb vmeb
+ln -s $RTD/v/DOC DOC
+ln -s $RTD/v/scripts scripts
+cd vme
+ln -s $RTD/v/vme/ltu ltu
+ln -s $RTD/v/vme/ttcvi ttcvi
+ln -s $RTD/v/vme/CFG/ltu/ltu_f3.rbf FlashMem.cfg
+ln -s $RTD/v/vme/VME2FPGA VME2FPGA
+ln -s $RTD/v/vme/SSMANA SSMANA
+ln -s $RTD/v/vme/MORELTUS MORELTUS
+ln -s $RTD/v/vme/ctp ctp
+ln -s $RTD/v/vme/fanio fanio
+ln -s $RTD/v/vme/ltu_proxy ltu_proxy
+cat - <<-EOF
+Add following aliases to your .bashrc file:
+alias sedev='. ~/v/scripts/vmebse.bash; . ~/v/scripts/setdsenv'
+alias ctp='vmecrate nbi ctp'
+alias ltu="vmecrate nbi ltu="
+
+These aliases can be used for setting the environment and
+starting ctp/ltu software.
+EOF
+

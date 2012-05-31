@@ -1,0 +1,23 @@
+28.11.2009 11:23:19: timestamp:partition merged: TEST_1 102462
+28.11.2009 11:23:19: findHWCluster:partname:TEST_1 hwallocated:0x0 pcluster:1
+28.11.2009 11:23:19: *** Internal Error:
+addClasses2HW: free class not found (should not happen here)
+
+addStartedPartitions2HW
+  addClasses2HW
+problem1: addStartedPartitions2HW() not referenced!, thrown away
+fixed
+-------------------- problem2
+ctp_StartPartition
+  addPartitions2HW(StartedPartitions)
+    addClasses2HW
+
+ctp_LoadPartition
+  addPartitions2HW(AllPartitions)  //just check if enough resources
+    if(addFO2HW(parray)) return 1; // must be before addClasses2HW (to alloc clusters)
+    addClasses2HW
+problem2:  addClasses2HW does not return 1 in case of error (free class not found)
+fixed
+--------------------
+problem3: no need to go to RETdelcfg if error in addPartitions2HW (.rcfg was not created yet!)
+fixed

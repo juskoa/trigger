@@ -1,0 +1,22 @@
+Run 113532 crashed.
+To do:
+1. automatically remove .rcfg file in WORK/RCFG directory
+   (move to delmeh/)
+2. automatically repair 6 Xcounters in dims. Now it
+has to be repaired manually (watching i^?dims.log file):
+
+[alidcscom026] /data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcoff > linux/sendcomm 
+dim server with counters TESTER
+Commands: s(start) f(stop) p(print runs) q(quit) 
+p
+Commands: s(start) f(stop) p(print runs) q(quit) 
+f
+Enter run number:113532
+Stoping partition 113532 0x1bb7c
+Commands: s(start) f(stop) p(print runs) q(quit) 
+callback: 334 1 
+STOPRUNCOUNT succesful. 
+p
+Commands: s(start) f(stop) p(print runs) q(quit) 
+q
+

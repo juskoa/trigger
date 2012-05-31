@@ -1,0 +1,18 @@
+Usage of FeC2:
+[acorde@aldaqpc160 ACO_Scripts]$ /date/rorc/Linux/FeC2_0 -c0 -F Read_Mode_L0.src 
+Starting /date/rorc/Linux/FeC2_0 -c0 -F Read_Mode_L0.src 
+Read_Mode_L0.src 6: Command 0x4 to address 0x4 can not be sent. DDL return code: LINK_NOT_ON (-4)
+FeC2 ended. Processing time = 0.000087 seconds. Exit code = 1
+[acorde@aldaqpc160 ACO_Scripts]$ echo $?
+1
+---------
+> Normal Mode, Single muon Cosmic Trigger:     L0_MODE0
+> Toggling Mode, Single muon Cosmic Trigger:   L0_MODE1
+> Signature Mode, Single muon Cosmic Trigger:  L0_MODE2
+> Random Mode, Single muon Cosmic Trigger:    L0_MODE3
+>
+> Normal Mode, Multi muon Cosmic Trigger:     ML0_MODE0
+> Toggling Mode, Multi muon Cosmic Trigger:   ML0_MODE1
+> Signature Mode, Multi muon Cosmic Trigger:  ML0_MODE2
+> Random Mode, Multi muon Cosmic Trigger:    ML0_MODE3
+

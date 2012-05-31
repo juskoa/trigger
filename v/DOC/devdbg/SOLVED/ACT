@@ -1,0 +1,50 @@
+Problem:
+only .partition file is loaded, when seen in ACT in time of LOAD_PARTITION
+command.
+Goal:
+Together with .partition, active files should be loaded
+and corresponding actions done:
+1. check if global partition is running (must not)
+
+2. L0.INPUTDB,VALID.CTPINPUTS, VALID.BCMASKS,
+VALID.DESCRIPTORS, ctp.cfg 
+ltuttc.cfg files for participating detectors
+
+consider archive of rewritten files (now .partition file simply
+rewrites the one in pardefs directory)
+
+3. actions:
+ -reload CTP switch (if necessary?)
+ -restart ctpproxy
+5.2.2010 after discussion with Franco:
+- ctpproxy start should have 1 parameter more: actstart ->
+  before start:
+  - download files from ACT
+  - reload the CTP switch
+Files:
+ctp.cfg 
+L0.INPUTDB,VALID.CTPINPUTS, CTP.SWITCH
+VALID.BCMASKS,
+VALID.DESCRIPTORS, 
+See:
+switched.py actget
+ctpproxy/main_act.c
+4.2.2010
+Request from ECS: provide library/exe validating the
+.parition file with corresponding VALID.CTPINPUTS,DESCRIPTORS
+actually: L0.INPUTDB+CTP.SWITCH should be considered too  or
+CTP.SWITCH schould be created from L0.INPUTDB + VALID.CTPINPUTS
+and loaded to CTP switch.
+I.e.
+validate.exe inputs: .partition,VALID.CTPINPUTS(L1/L2),
+     DESCRIPTORS, L0.INPUTDB
+out: CTP.SWITCH, VALID.CTPINPUTS (ok)
+     none -not possible to program the CTP switch
+
+Done:
+- 2 phases (see twiki)
+  1. CTP conf download from ACT (seldomly)
+    and bin/ctpproxy.py (automatic start from ECS)
+  2. .partition download from ACT with each partition start
+- see vme/validate, TRG_DB/validate.py
+

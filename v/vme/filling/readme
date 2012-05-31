@@ -1,0 +1,181 @@
+[alidcscom188] /data/dl/root/usr/local/trigger/v/vme/filling > linux/fill2file 
+ERROR: /home/mdutour/CvsSnapshot/Projects/DIP/Implementation/CPP/Sources/DIP/DimImplementation/DipException.cpp 6 Exception No such field value
+Unexpected exception occured: No such field value
+  Beam1       1     346
+  Beam1    1001     446
+  Beam1    9941    1340
+  Beam1   18851    2231
+  Beam2       1    3019
+  Beam2    1001    3119
+  Beam2    9911     446
+  Beam2   18851    1340
+
+Received data from dip/acc/LHC/RunControl/RunConfiguration
+fs:75ns_64b+4small_66_52_56_8bpi12inj
+FILL_NO:1637
+bunches:68
+  Beam1       1     346
+  Beam1     371     383
+  Beam1     741     420
+  Beam1    1111     457
+  Beam1    2571     603
+  Beam1    2601     606
+  Beam1    2631     609
+  Beam1    2661     612
+  Beam1    2691     615
+  Beam1    2721     618
+  Beam1    2751     621
+  Beam1    2781     624
+  Beam1    4411     787
+  Beam1    4441     790
+  Beam1    4471     793
+  Beam1    4501     796
+  Beam1    4531     799
+  Beam1    4561     802
+  Beam1    4591     805
+  Beam1    4621     808
+  Beam1   11511    1497
+  Beam1   11541    1500
+  Beam1   11571    1503
+  Beam1   11601    1506
+  Beam1   11631    1509
+  Beam1   11661    1512
+  Beam1   11691    1515
+  Beam1   11721    1518
+  Beam1   13351    1681
+  Beam1   13381    1684
+  Beam1   13411    1687
+  Beam1   13441    1690
+  Beam1   13471    1693
+  Beam1   13501    1696
+  Beam1   13531    1699
+  Beam1   13561    1702
+  Beam1   20451    2391
+  Beam1   20481    2394
+  Beam1   20511    2397
+  Beam1   20541    2400
+  Beam1   20571    2403
+  Beam1   20601    2406
+  Beam1   20631    2409
+  Beam1   20661    2412
+  Beam1   22291    2575
+  Beam1   22321    2578
+  Beam1   22351    2581
+  Beam1   22381    2584
+  Beam1   22411    2587
+  Beam1   22441    2590
+  Beam1   22471    2593
+  Beam1   22501    2596
+  Beam1   29271    3273
+  Beam1   29301    3276
+  Beam1   29331    3279
+  Beam1   29361    3282
+  Beam1   29391    3285
+  Beam1   29421    3288
+  Beam1   29451    3291
+  Beam1   29481    3294
+  Beam1   31141    3460
+  Beam1   31171    3463
+  Beam1   31201    3466
+  Beam1   31231    3469
+  Beam1   31261    3472
+  Beam1   31291    3475
+  Beam1   31321    3478
+  Beam1   31351    3481
+  Beam2       1    3019
+  Beam2     371    3056
+  Beam2     741    3093
+  Beam2    1111    3130
+  Beam2    2571    3276
+  Beam2    2601    3279
+  Beam2    2631    3282
+  Beam2    2661    3285
+  Beam2    2691    3288
+  Beam2    2721    3291
+  Beam2    2751    3294
+  Beam2    2781    3297
+  Beam2    4441    3463
+  Beam2    4471    3466
+  Beam2    4501    3469
+  Beam2    4531    3472
+  Beam2    4561    3475
+  Beam2    4591    3478
+  Beam2    4621    3481
+  Beam2    4651    3484
+  Beam2   11511     606
+  Beam2   11541     609
+  Beam2   11571     612
+  Beam2   11601     615
+  Beam2   11631     618
+  Beam2   11661     621
+  Beam2   11691     624
+  Beam2   11721     627
+  Beam2   13351     790
+  Beam2   13381     793
+  Beam2   13411     796
+  Beam2   13441     799
+  Beam2   13471     802
+  Beam2   13501     805
+  Beam2   13531     808
+  Beam2   13561     811
+  Beam2   20451    1500
+  Beam2   20481    1503
+  Beam2   20511    1506
+  Beam2   20541    1509
+  Beam2   20571    1512
+  Beam2   20601    1515
+  Beam2   20631    1518
+  Beam2   20661    1521
+  Beam2   22291    1684
+  Beam2   22321    1687
+  Beam2   22351    1690
+  Beam2   22381    1693
+  Beam2   22411    1696
+  Beam2   22441    1699
+  Beam2   22471    1702
+  Beam2   22501    1705
+  Beam2   29271    2382
+  Beam2   29301    2385
+  Beam2   29331    2388
+  Beam2   29361    2391
+  Beam2   29391    2394
+  Beam2   29421    2397
+  Beam2   29451    2400
+  Beam2   29481    2403
+  Beam2   31111    2566
+  Beam2   31141    2569
+  Beam2   31171    2572
+  Beam2   31201    2575
+  Beam2   31231    2578
+  Beam2   31261    2581
+  Beam2   31291    2584
+  Beam2   31321    2587
+
+
+
+when machine not filled:
+Received data from dip/acc/LHC/RunControl/RunConfiguration
+fs:75ns_136b+4small_138_102_105_24bpi11inj
+FILL_NO:1644
+bunches:140
+
+7.4.2011:
+[alidcscom188] /data/dl/root/usr/local/trigger/v/vme/filling > linux/fill2file 
+-----------------------handleMessage
+fs 50ns_1056b_36bpi_31inj_scrub
+FILL_NO 1677
+bunches 1057
+-----------------------handleMessage
+opening 50ns_1056b_36bpi_31inj_scrub.dip:
+written:409 50ns_1056b_36bpi_31inj_scrub 1677 A 2808
+-----------------------handleMessage
+written:746 50ns_1056b_36bpi_31inj_scrub 1677 C 2808
+50ns_1056b_36bpi_31inj_scrub 1677 1057 746
+-------GeneralDataListener destructor
+closed
+----------------------------- 11.4.2011
+[alidcscom188] /data/dl/root/usr/local/trigger/v/vme/filling > linux/fill2file
+opening 50ns_48b+1small_36bpi_3inj_scrub.dip
+fs 50ns_48b+1small_36bpi_3inj_scrub 1701 49 98
+[alidcscom188] /data/dl/root/usr/local/trigger/v/vme/filling > ./lhc2ctp.py  50ns_48b+1small_36bpi_3inj_scrub.dip
+[alidcscom188] /data/dl/root/usr/local/trigger/v/vme/filling > diff  50ns_48b+1small_36bpi_3inj_scrub.alice $dbctp/fs/50ns_48b+1small_36bpi_3inj_scrub.alice

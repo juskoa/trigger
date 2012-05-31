@@ -1,0 +1,2 @@
+gcc -g -Wall -I../ctp -I$VMEBDIR/vmeblib orbitsyn.c -L$VMEBDIR/vmeblib -lvmeb -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -o orbitsyn.exe
+

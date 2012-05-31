@@ -1,0 +1,26 @@
+#!/bin/bash
+# run it as root
+BCKP='/data/von/von131108'
+mkdir $BCKP
+echo="copying to $BCKP..."
+#cd /data/ClientCommonRootFs/usr/local
+#tar -zcf $BCKP/ul_trigger.tgz trigger >~/VonZpituul_trigger.log
+cd ~trigger 
+tar -zcf $BCKP/home_trigger.tgz CNTRRD/htmls >~/VonZpituhome_trigger.log
+cd /var/www/html
+tar -zcf $BCKP/web_trigger.tgz CNTWEB >~/VonZpituweb_trigger.log
+#exit
+scp -r $BCKP jusko1@aldaqgw02:/tmp/
+exit
+# on root@pcalicebhm05:
+cd /tmp
+scp -r jusko1@aldaqgw02-gpn:/tmp/von131108 .
+cd ~trigger
+tar -zxf /tmp/von131108/home_trigger.tgz
+#chown -R trigger:alice CNTRRD
+cd /var/www/html
+tar -zxf /tmp/von131108/web_trigger.tgz
+cd CNTWEB
+ln -sf $CCRFS/usr/local/trigger/v/vme/dimcdistrib/cnames.sorted2
+ln -sf $CCRFS/usr/local/trigger/v/vme/dimcdistrib/ltunames.sorted2
+

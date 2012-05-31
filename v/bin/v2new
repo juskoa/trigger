@@ -1,0 +1,6 @@
+#!/bin/bash
+cdult
+mkdir vnew ; cd vnew
+tar -xf ~/vmebltu.tar
+cp ../v/vme/CFG/ctp/DB/ttcparts.cfg vme/CFG/ctp/DB/ttcparts.cfg
+

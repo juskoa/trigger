@@ -1,0 +1,20 @@
+include $(VMEBDIR)/com_defs.make
+
+include $(VMEBDIR)/sc.make
+
+CFLAGS += -I$(DIMinc) -I$(VMEBinc)
+LIBS = $(DIMLD) $(VMEBLD)
+
+ifdef SERVER_LINK
+allEXES=$(EXEDIR)/client
+else
+allEXES=$(EXEDIR)/server
+endif
+all: $(allEXES)
+$(EXEDIR)/server:server.c $(DIMDIR)/linux/libdim.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
+	
+$(EXEDIR)/client:client.c $(DIMDIR)/linux/libdim.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
+clean:
+	-rm $(allEXES)

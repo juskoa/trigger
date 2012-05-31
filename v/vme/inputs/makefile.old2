@@ -1,0 +1,78 @@
+# VMERCC command line interface compile&link
+# current dir: $(VMECFDIR)/inputs
+VMECC=$(VMEGCC)
+ifeq ($(VMESITE), ALICE)
+WHICHSETUP = CAVERN_SETUP
+else
+WHICHSETUP = CERNLAB_SETUP
+endif
+ifeq ($(VMECC),g++)
+COMDEFS=-D$(WHICHSETUP) -D$(VMEDRIVER) -DCPLUSPLUS
+else
+COMDEFS=-D$(WHICHSETUP) -D$(VMEDRIVER)
+endif
+COMMONCFLAGS=-Wall -g $(COMDEFS) -I$(VMEBDIR)/vmeblib
+#libobjs=$(VMECFDIR)/CTPcommon/snapshot.o $(VMECFDIR)/CTPcommon/vmefpga.o
+
+EXTRALIBS = -L$(DIMDIR)/linux -ldim 
+
+ifeq (inputs,VME2FPGA)
+  libobjs +=
+endif
+ifeq (inputs,ltu)
+  LDFLAGS +=-Lltulib -lltu
+  #CFLAGS +=-I$(VMECFDIR)/ltu/ltulib
+endif
+ifeq (inputs,cosmicfo)
+  LDFLAGS +=-L$(VMECFDIR)/ltu/ltulib -lltu
+endif
+ifeq (inputs,lvdst)
+  LDFLAGS +=-L$(VMECFDIR)/ltu/ltulib -lltu
+  #CFLAGS +=-I$(VMECFDIR)/ltu/ltulib
+endif
+ifeq (inputs,ctp)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/libctp.a
+  LDFLAGS +=-Lctplib -lctp
+#  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
+endif
+
+LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib -lctp
+
+ifeq (inputs,ctpt)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/libctp.a
+  LDFLAGS +=-Lctplib -lctp
+  CFLAGS +=-DSSMCONNECTIONS
+endif
+ifdef DATE_INFOLOGGER_DIR
+INCDIRS=-I$(DIMDIR)/dim -I$(DATE_INFOLOGGER_DIR) \
+ -I$(VMECFDIR)/ctp_proxy -I$(VMECFDIR)/ctp/ctplib
+LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb -L$(VMECFDIR)/ctp/ctplib -lctp -L$(DIMDIR)/linux -ldim -L$(DATE_INFOLOGGER_DIR) -lInfo -lpthread
+else
+LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb -lpthread
+endif
+include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
+#OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) inputs_cf.o ssm.o ssmbrowser.o alignment.o inputs.o signature.o 
+OBJFILES=$(VMEBDIR)/cmdbase.o inputs_cf.o ssm.o ssmbrowser.o \
+ sync.o alignment.o inputs.o signature.o
+inputs.exe: $(OBJFILES)
+	$(VMECC) $(OBJFILES) $(LDFLAGS) -lm -o inputs.exe
+inputs_cf.o: inputs_cf.c $(VMEBDIR)/vmeaistd.h
+	$(VMECC) -g -c $(CFLAGS) -I$(VMEBDIR) inputs_cf.c
+#inputs_sim.o: inputs_sim.c $(VMEBDIR)/vmesim.h
+#	$(VMECC) -g -c $(CFLAGS) -I$(VMEBDIR) inputs_sim.c
+$(VMEBDIR)/cmdbase.o: $(VMEBDIR)/cmdbase.c $(VMEBDIR)/vmeaistd.h
+	cd $(VMEBDIR); $(VMECC) -g -c $(CFLAGS) cmdbase.c -o $(VMEBDIR)/cmdbase.o
+clean:
+	rm *.o *.pyc *.exe
+ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssm.c
+ssmbrowser.o: ssmbrowser.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssmbrowser.c
+alignment.o: alignment.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) alignment.c
+sync.o: sync.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) sync.c
+signature.o: signature.c
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) signature.c
+inputs.o: inputs.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) inputs.c

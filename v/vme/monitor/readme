@@ -1,0 +1,52 @@
+state   check_rc  action    new state    note
+-----------------------------------------------
+down    off       start     restarted    init:down
+down    idle      -         ok           init:ok
+down    on,msg    -         ok,msg       init:ok
+        hung      restart   restarted    init:down
+rstrted off       -         -            try to restart/sms after 1hour?
+rstrted idle      -         ok
+rstrted on,msg    -         ok
+        hung      -         -            sms?
+ok      off       start     restarted
+ok      idle      -         -
+ok      on,msg    -         -
+        hung      restart   restarted
+
+-: no action, or do not change state
+
+check_rc:
+off  -daemon is not running (no pid)
+idle -is on (pid found), but it is not clear if it is hanged
+on   -is on and responding (i.e. fresh udp message)
+hung -not responding
+
+restart:
+ - check if on and kill if not, start daemon
+idle:
+ - status returned pid:, + readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
+
+start:
+./monitor.py &
+History:
+14.8.
+gcalib.sh, udpmon.sh refurbished:
+- kill introduced (the same as stop)
+- status: rc:0 from startClients.bash if ok (but not used )
+todo:
+- sms -done (22.8.)
+- add another state: idle -i.e. just process is found (by startClients.bash)
+
+27.2.2012 -html added (bin/html.bash modified to return pid:N)
+
+Problem:
+at SOR/EOR and if time sharing active, it can happen, we get some triggers 
+without cal. triggers -particularly for MUON_TRG (calib every 5secs (was 33!)).
+Solution: from 22.3.2012
+readctp.c should send udp message ONLY if interval is >59secs. 
+The interval shorter/equal than 59 secs is discarded and the last 
+reading is regarded as '1st reading'.
+Before: shorter interval was not considered for calib calculation, 
+but the time of previous reading
+was stored -i.e. the interval was than included in next interval.
+

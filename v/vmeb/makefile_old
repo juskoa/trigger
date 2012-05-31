@@ -1,0 +1,15 @@
+CC=$(VMEGCC)
+ifeq ($(VMESITE), ALICE)
+WHICHSETUP = CAVERN_SETUP
+else
+WHICHSETUP = CERNLAB_SETUP
+endif
+
+LDFLAGS +=-L$(VMEBDIR)/vmeblib -lvmeb -lpthread
+COMMONCFLAGS=-Wall -D$(WHICHSETUP) -D$(VMEDRIVER) -I$(VMEBDIR)/vmeblib
+include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
+
+cmdbase.o: cmdbase.c vmeaistd.h
+	$(CC) -g -c -Wall $(COMMONCFLAGS) cmdbase.c -o cmdbase.o
+clean:
+	-rm *.o

@@ -1,0 +1,43 @@
+20.1.08
+- TEST flag added to common_make for conditional compilation
+22.1.08
+- mod: readPartitionErrors: printf - > prtError
+- bug:  checkClustVl012Tpartition: return 0 -> return ret
+- mod: Tpartition:  TPastFut l0,l1,l2; -> TPastFut *l0,*l1,*l2; 
+- mod: applyMask: prtError -> prtLog
+- mod: TRBIF:  
+   w8 BCMASK[ORBITLENGTH];
+   w8 BCMASKuse;     
+   ->
+   w8 BCMASK[ORBITLENGTH][4];
+   w8 BCMASKuse[4]; 
+   w8 rare -> //w8 rare;
+-mod: copyTRBIF
+-mod: cleanTRBIF   
+23.1.08
+-mod: TRBIF: interpretation if rbifuse[] use changed
+      rbifuse[]=notused (>=ixrbifdim) - item not used in part
+      rbifuse[]=nothwal  (used but never allocated)
+      rbifuse[]!=notused !=nothwal
+                          - position of item in hw.rbif 
+-mod: coresponding changes in subroutines cfg2part
+8.5.08
+- RBIF allocation development:
+mod: copymodTKlas - to include update of class for clusters and RBIF
+mod:checkRES  - functionality the same
+new: l0condition2rbif() - get ixres from bit of resource in l0vetos
+new: modl0input() - modify pair of rbif (bc,rnd,l0fun) in l0vetos
+                 of the klas
+12.5.08
+bug: in applymask : the loop assumed that Klases are subsequent
+                     and break when first NULL.
+fix: all loops changed to assume that can be hole in Klasses
+new: file pcfg.txt in ctp_proxy directory 
+     help for direct editing of .pcfg file
+13.5.08
+fix: cleanTKLas and cleanTRBIF is added in readDatabase in cfg2part.c
+     becasue malloc does not set allocated memory to 0.
+14.5.08
+mod: loadHW() moved from ctp_proxy.c to Tpartition.c
+     loadHW() changed to loadHW(Hardware *hw)
+new: readHW(Hardware *hw) created in Tparticion.c     

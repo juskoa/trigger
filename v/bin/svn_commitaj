@@ -1,0 +1,13 @@
+#!/bin/bash
+cd $VMECFDIR/..
+#svn commit DOC vme/pydim vme/ltudim vme/dimsc vme/fanio vme/CNTRRD vme/dimcdistrib vme/CFG/ltu vme/switch vme/ltu vme/ltu_proxy vme/VME2FPGA vme/CNTWEB vme/TRG_DBED vme/ttcmi vme/ttcmidaemons vme/bobr vme/filling vme/ctp vme/ctp_proxy vme/corde vme/simple bin vmeb 
+#from 18.4.2011:
+# 19.9.2011: monitor added
+#a='DOC vme/pydim vme/ltudim vme/dimsc vme/fanio vme/CNTRRD vme/dimcdistrib vme/CFG/ltu vme/switch vme/ltu vme/ltu_proxy'
+#svn commit $a
+#b='vme/VME2FPGA vme/CNTWEB vme/TRG_DBED vme/ttcmi vme/ttcmidaemons vme/bobr vme/filling vme/ctp vme/ctp_proxy vme/corde vme/simple vme/smaq vme/rfrx'
+#svn commit $b
+#c='vme/PHPMON vme/inputs vme/tinproxy vme/ttcit vme/monitor bin vmeb'
+#svn commit $c
+#
+svn commit DOC vme/pydim vme/ltudim vme/dimsc vme/fanio vme/CNTRRD vme/dimcdistrib vme/CFG/ltu vme/switch vme/ltu vme/ltu_proxy vme/VME2FPGA vme/CNTWEB vme/TRG_DBED vme/ttcmi vme/ttcmidaemons vme/bobr vme/filling vme/ctp vme/ctp_proxy vme/corde vme/simple vme/smaq vme/rfrx vme/PHPMON vme/inputs vme/tinproxy vme/ttcit vme/monitor bin vmeb 

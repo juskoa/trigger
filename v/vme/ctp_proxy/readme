@@ -1,0 +1,243 @@
+Content:
+1.List of files
+1.1. executables
+2. proxy notes
+3.The description of .pcfg file
+  .rcfg file format: see TRG_DBED/DOC 
+  off-ECS debug
+  dims development
+4. DIM services notes
+
+1. List of files
+-----------------
+linux/ctp_proxy
+linux/test
+linux/dims
+linux/ctpshm.exe: main_shm.c
+linux/ssmpack.exe: ssmpack.c   (not finished yet)
+linux/gcalib
+
+main_ctp.c     -CTP proxy
+ctp_proxy.c
+cfg2part.c
+clgroups.c
+Tpartition.c    -moved to ctp/ctplib (end of 2009)
+
+gcalib.c        -server listening to DIM and sending cal. triggers
+calclient.py    -client for linux/gcalib server
+swtrcheck.py    -starting linux/test and processing its output programmably
+                 in batch (quite old...)
+
+dims.c,         -CTP DIM server (counters, cal. requests)
+                 development/debug: see dims development
+dimservices.c 
+              From 25.1.2007 used for debugging dimcswtrg.c (client
+              for calibration requests).
+
+dimc.c          -client for testing dims.c
+sendcomm.c      -client for testing part RUNXCOUNTERS of dims.c
+dimccounters.c  -an example of DIM client reading CTP counters
+                 (distributed to users). Obsolete. For last
+                 version look in aj@pcalicebhm05:dimcdistrib/
+dimcswtrg.c     -example of SWTRG requests client (obsolete -
+                 last version is in aj@pcalicebhm05:dimcdistrib/)
+
+1.1. executables
+----------------
+test
+ctp_proxy
+ctpshm.exe
+gcalib.exe
+dims
+
+act.exe
+dimc
+main_fixedcnts
+
+2. proxy notes
+--------------
+Start:
+sedev                  -to set VMECFDIR, VMEBDIR
+. ~/bin/setdsenv       -to set dim/smi environment
+make linux/ctp_proxy   -compile/link proxy
+On ref@altri1:
+cd ctp_proxy
+getnew.sh
+
+dummy_ctp.c                -main
+cfg2part.c
+Tpartition.h,Tpartition.c
+ctp_proxy.c                -ctp_ actions
+
+3.The description of .pcfg file
+-----------------------------
+.pcfg file is created by parted.py. It is more condensed form of
+.partition file. The main difference between them is, that
+in the later one the information from TRGDB is included also, which
+means, .pcfg should be recreated if there was change in TRGDB.
+The .pcfg file is text file consisting of the RBIF, BCMASK, CLA, FO lines:
+
+RBIF line:
+RBIF random1:random2:bcdown1:bcdown2:l0fun1:l0fun2
+
+BCMASK lines: 
+1 line defines 4/12 BCmasks (the usage of BCmasks by class is indicated
+by 4 bits in l0vetos word). 3564 hexadecimal characters (capital) follow
+BCMASK keyword. Length: 10692: 12 BCmasks (>firmAC version)
+
+BCMASK AF1...
+If mask is not used by this partition, the line BCMASK is missing.
+BC masks are laoded in ctp_proxy statically -i.e. if used, 4 BCmasks
+are reloaded according to BCMASK line, without considering, if
+other active partitions are using them!
+Actually, ctp_proxy should:
+- check if it is the same (reading it back before load)
+- just load if not yet used
+
+CLA lines:
+CLA.xx l0inputs l0inverted l0vetos l0scaler l1def l1inverted l2def
+CLA.xx 0xffffffff 0x0 0xfff1 0x0 0xCFiiiiii 0x0 0xCFIIIiii G
+    logical class number(1-50)
+       l0inputs
+                  l0inverted
+                      l0vetos
+                             l0scaler
+                                 l1def
+                                            l1inverted
+                                                l2def
+
+xx 
+logical class number (01-50). 
+
+l0inputs, l0inverted, l0vetos, l0scaler
+From ctp_classl0.doc, ctp_l0function.doc:
+0: signal active i.e. used
+1: signal masked out, not active, not used
+
+l0inputs: 0xBLiiiiii    corresponds to L0_CONDITION word
+             <AC             >=AC
+  B: 31..30: 00              bc2  bc1
+     29..28: bc2 bc1         rnd2 rnd1
+  L: 27..26: rnd2 rnd1       L0F4 L0F3
+     25..24: l0f2 l0f1       L0F2 L0F1
+             if l0f* is used, the value is defined in RBIF line
+  i: 23..0:  L0i24..1        L0i24..1
+
+l0inverted:  0x0 if there are not inverted inputs.
+0xiiiiii: 1: L0 input 24..1 is inverted
+If not 0x0, corresponding bit belongs to inverted input -i.e. this class
+has to be allocated in physical classes 45..50 (not valid for >AC)
+
+                                  >=AC
+l0vetos: 0xrAAAAFFFF.CCC          0xrAAAAAAAAAAAAFFFF.CCC
+           11   7   3               19           7   3
+r     All/rare flag (bit12)
+AAAA  BCmask4..1   (i.e. BCM1 veto active is coded as: 0xe, BCM2:0xd BCM3:0xb
+      BCmask12..1 for >AC
+FFFF  P/F potection circuits 4..1
+.CCC  Cluster code (3 bits)
+
+Class mask: <AC:
+bit17 (0x10000) is CLASSMASK. 
+      Asserting this bit on L0 board disables the corresponding class. 
+      It means such line shouldn't be present in .pcfg file.
+            >=AC:
+bit31 (0x80000000)
+
+l1def, 
+31:    C      RoI flag
+30..28 C      Cluster
+27..24 F      P/F
+23..0  iiiiii L1 inputs
+See: ctp_classl1.doc
+
+l1inverted (L1inverted: allowed only for classes 45-50 also in >AC!)
+23..0  L1 inputs: 0: normal  1:invert input before its use
+
+l2def
+30..28 C   Cluster
+27..24 F   P/F
+23..12 III inverted L2 inputs
+12..0  iii L2 inputs
+
+See: ctp_classl2.doc
+G
+class group.
+
+FO lines:
+FO.x 0xaabbccdd
+l0vetos, l1def, l2def words of CLA line contain 3bits 
+of 'Logical Cluster code' (1-6).
+These 3 bits must to be equal for 1 class.
+
+FO lines define the grouping of detectors into logical clusters.
+The detectors are identified by numbers 0-23 in VALID.LTUS file.
+Logical clusters (used in .partition and .pcfg file) are identified 
+by numbers: 1-6
+
+x in FO.x represents the LOGICAL FANOUT board (1-6) -i.e. it relies on
+sequential assignment of detectors according to following rule:
+FO.1: 3210     detectors 3-0
+FO.2: 7654     detectors 7-4
+FO.3: 11100908 detectors 11-8
+FO.4: 15141312 detectors 15-12
+FO.5: 19181716 detectors 19-16
+FO.6: 23222120 detectors 23-20
+
+0xaabbccdd word in FO line represents log. clusters of 4 detectors 
+-8 bits per detector as described in cluster.doc (Pedja) CLUSTER word
+on FO board, e.g.:
+
+Example of detectors to cluster association: 
+FO.1: 0x109 detectors 0 belongs to logical clusters 1,4
+            detector  1 belongs to logical clusters 1
+FO.2: 0x030000: detector 6 belong to logical clusters 1,2 
+
+This is done at the moment in Detector2Connector() routine in ctp_proxy.c.
+ 
+SHARED RESOURCES:
+Shared resources are described in .pcfg file in RBIF,INTSEL,BCMASK,PFL lines.
+The idea is that loop over classes gives you the allocated shared resources.
+You save them to partition structure- you need to ditinquish 0 from not allocated!
+
+Classes with bcmask==0 define partition classes.
+Let call this classes allocated classes.
+All other classes in .pcfg file are ignored. 
+
+off-ECS debug:
+-------------
+ref@altri1:
+ctp_proxy/start_ctp_proxy.sh
+
+ref@pcald30:        or            aj@altri1:
+csh                            . bin/setdsenv
+source /opt/dim/.setup         smiGUI TRIGGER &
+source /opt/smi/.setup
+smiGUI TRIGGER &
+
+partition: ALICE mask: 789
+
+cd ctp_proxy
+make linux/test
+cd .. ; ctp_proxy/linux/test
+In the pit:
+
+4. DIM services notes
+Notes about dims: -see v/DOC/CTPreadme
+----------------
+dims is started from trigger account:
+sedev
+cd v/vme/ctp_proxy
+nohup linux/dims >../WORK/dims.log &
+There is ctpdims.sh script for start/stop
+
+dims development
+----------------
+Normally, dims is started from trigger account (script bin/dimserver)
+When new version developed do the following:
+1. modify xxiTpartition.h.c: #define DEVELOP
+   modify client to use CTPDIMt server instead of CTPDIM)
+2. compile link in aj:v/vme/ctp_proxy: make linux/dims
+   and corresponding client
+
+AN example of log is in dims.log (from 15.6. -after unknown reason it crashed)

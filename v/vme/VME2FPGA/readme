@@ -1,0 +1,7 @@
+
+export OS=SIMVME simulacia
+            VMERCC naozaj VME
+
+---------------------------------------
+VME2FPFA.c.ver1  - communication of files throuhh parameters
+VME2FPGA.c.ver2  - static variables

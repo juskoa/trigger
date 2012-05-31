@@ -1,0 +1,97 @@
+sort -k 2 os2 >os2.sorted
+
+./os2histo.py >graph.in
+graph --output-format gif -X 'OrbitDif [usecs]' -Y N -L'histogram' graph.in >graph.gif
+
+
+history:
+16:14 5.5.2009:
+[alidcsvme017] /usr/local/trigger/v/vme/orbitsync > ./orbitsyn.exe i
+Compare local rf2ttc orbit counter with Orbit from BST
+rf2ttc:44570285 rf2ttc-bst orbit: -2064787975=84edd5f9
+rf2ttc:44581543 rf2ttc-bst orbit: -2064787975=84edd5f9
+Wed May  6 17:40:17 CEST 2009:
+rf2ttc:1074518398 rf2ttc-bst orbit: -2064787975=84edd5f9
+rf2ttc:1074529660 rf2ttc-bst orbit: -2064787975=84edd5f9
+- the same after ORB1_MAN_SELECT=ORB2_MAN_SELECT=0
+- the same after ORB1_MAN_SELECT=ORB2_MAN_SELECT=0 and BC1/ORB1
+  (i.e. not shift as expected!)
+- even for ORB1_MAN_SELECT=ORB2_MAN_SELECT=1 and BC1/ORB1
+  the shift is not seen -but before week or so, it was seen
+
+Thu May  7 17:13:49 CEST 2009
+rf2ttc:2028516075 rf2ttc-bst orbit: -1948694964=8bd9464c
+Thu May  7 19:40:55 CEST 2009
+rf2ttc:2127877212 rf2ttc-bst orbit: -1948694964=8bd9464c
+Fri May  8 09:45:31 CEST 2009  BC1/ORB1
+rf2ttc:550368525 rf2ttc-bst orbit: 198788685=bd9464d
+Fri May  8 14:44:47 CEST 2009
+[alidcsvme017] /usr/local/trigger/v/vme/orbitsync > ./orbitsyn.exe i
+Compare local rf2ttc orbit counter with Orbit from BST
+rf2ttc:752383169 rf2ttc-bst orbit: 198788685=bd9464d
+ May  8 17:24:44 CEST 2009
+rf2ttc:860191111 rf2ttc-bst orbit: 198788685=bd9464d
+un May 10 22:37:27 CEST 2009
+rf2ttc:866887204 rf2ttc-bst orbit: -1948694963=8bd9464d
+
+Fri May 15 14:30:47 CEST 2009
+rf2ttc:1101682090 rf2ttc-bst orbit: 816505546=30aae2ca
+
+Tue May 19 16:23:52 CEST 2009   bc1/orb1
+rf2ttc:767451010 rf2ttc-bst orbit: -517167833=e12ca527
+
+Wed May 20 17:02:24 CEST 2009
+rf2ttc:1767055895 rf2ttc-bst orbit: -1722908526=994e8092
+
+Fri May 22 12:56:06 CEST 2009
+rf2ttc:1396567694 rf2ttc-bst orbit: 424575122=194e8092
+
+Mon May 25 12:31:11 CEST 2009
+rf2ttc:2147215709 rf2ttc-bst orbit: -2145761939=801a456d
+
+Mon May 25 17:34:08 CEST 2009
+rf2ttc:204132487 rf2ttc-bst orbit: -189284259=f4b7c05d
+
+ORB1<->ORB2 changed 
+Tue May 26 09:44:36 CEST 2009
+rf2ttc:858714466 rf2ttc-bst orbit: -836383005=ce25cee3
+Wed May 27 09:14:05 CEST 2009
+disturbances expected on the global clock.
+ALICE clock changed to local at 10:15
+rf2ttc:1783673465 rf2ttc-bst orbit: -1178119982=b9c750d2
+Wed May 27 10:14:05 CEST 2009
+rf2ttc:1846226153 rf2ttc-bst orbit: -1174219181=ba02d653
+
+clock: BC1/ORB1 (was local)
+Thu Jun  4 13:46:07 CEST 2009
+rf2ttc:66917186 rf2ttc-bst orbit: 90196743=5604b07
+
+Fri Sep 25 21:05:13 CEST 2009
+[alidcsvme001] /usr/local/trigger/v/vme/orbitsync > ./orbitsyn.exe c1 
+Compare local ctp orbit counter with Orbit from BST1
+ctp:aa1b9b bst:74010 ctp-bst orbit: 10673035=a2db8b bst31..24:0
+ctp:aa479b bst:76c10 ctp-bst orbit: 10673035=a2db8b bst31..24:0
+ctp:aa739e bst:79813 ctp-bst orbit: 10673035=a2db8b bst31..24:0
+ctp:aa9fa0 bst:7c415 ctp-bst orbit: 10673035=a2db8b bst31..24:0
+ctp:aacba2 bst:7f017 ctp-bst orbit: 10673035=a2db8b bst31..24:0
+ctp:aaf7a5 bst:1449 ctp-bst orbit: 11199324=aae35c bst31..24:0
+ctp:ab23a7 bst:404b ctp-bst orbit: 11199324=aae35c bst31..24:0
+... -stays stable
+ctp:de3f7d bst:32d3e ctp-bst orbit: 14357055=db123f bst31..24:0
+ctp:de6b7f bst:35940 ctp-bst orbit: 14357055=db123f bst31..24:0
+ctp:ffffffff bst:38545 ctp-bst orbit: -230726=fffc7aba bst31..24:0
+ctp:dec384 bst:3b145 ctp-bst orbit: 14357055=db123f bst31..24:0
+ctp:deef86 bst:3dd47 ctp-bst orbit: 14357055=db123f bst31..24:0
+Compare local ctp orbit counter with Orbit from BST1
+ctp:e82ada bst:510cb ctp-bst orbit: 14883343=e31a0f bst31..24:0
+
+Thu Feb 18 15:41:51 CET 2010   dry test, clock:BEAM1
+[alidcsvme001] /usr/local/trigger/v/vme/orbitsync > ./orbitsyn.exe c1
+Compare local ctp orbit counter with Orbit from BST1
+ctp:2f4339 bst:8f6448a ctp-bst orbit: -13042001=ff38feaf bst31..24:8000000
+ctp:2f6f38 bst:8f67089 ctp-bst orbit: -13042001=ff38feaf bst31..24:8000000
+...
+ctp:424b74 bst:9094cc5 ctp-bst orbit: 3735215=38feaf bst31..24:9000000
+ctp:427776 bst:90978c7 ctp-bst orbit: 3735215=38feaf bst31..24:9000000
+
+quite stable several minutes
