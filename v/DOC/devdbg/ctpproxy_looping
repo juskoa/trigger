@@ -1,0 +1,79 @@
+ctp_proxy1204132000.log:
+TRIGGER::CTP Got action STOP_PARTITION with parameters  PHYSICS_1
+SMIRTL - Fri Apr 13 18:59:39 2012 - TRIGGER::CTP in state EXECUTING/ERROR_REASON(S)=not set/EXECUTING_FOR(S)=PHYSICS_1
+Send EOD and then unload the partition
+13.04.2012 18:59:39: Run 177750: stopping xcounters.
+EOD event ok at 0 attempt.
+Bakery ccread:5 customers locks:120229 unlocks:120226 Min:43us
+!!         Entering:false/true Number:
+customer0: 0 0
+customer1: 0 3               !! dims
+customer2: 0 0
+customer3: 0 1               !! smaq
+customer4: 0 0
+13.04.2012 19:28:17: got signal:3
+13.04.2012 19:28:17: Waiting for the stop off all partitions before exit
+13.04.2012 19:37:23: got signal:3
+13.04.2012 19:37:23: Waiting for the stop off all partitions before exit
+13.04.2012 19:40:04: got signal:3
+13.04.2012 19:40:04: Waiting for the stop off all partitions before exit
+13.04.2012 19:40:35: got signal:3
+13.04.2012 19:40:35: Waiting for the stop off all partitions before exit
+13.04.2012 19:53:44: got signal:3
+13.04.2012 19:53:44: Waiting for the stop off all partitions before exit
+13.04.2012 19:54:07: got signal:15
+Franco:
+   18:59:39 CTP in state EXECUTING
+
+No more state changes (it should go to RUNNING state within seconds) until
+19:54:18 (DEAD)
+---------------------
+[alidcscom188] /data/dl/snapshot/alidcsvme001/home/alice/trigger/v/vme/WORK > grep 'Bakery cc' ctp_proxy1204132000.log
+Bakery ccread:5 customers locks:5 unlocks:5 Min:60256479us
+Bakery ccread:5 customers locks:6 unlocks:6 Min:12897175us
+Bakery ccread:5 customers locks:7 unlocks:7 Min:3013583us
+Bakery ccread:5 customers locks:8 unlocks:8 Min:3013583us
+Bakery ccread:5 customers locks:120229 unlocks:120226 Min:43us
+
+------------ normal sequence, ctp_proxy1204131736.log
+EOD event ok at 0 attempt.
+Bakery ccread:5 customers locks:167 unlocks:167 Min:27281us
+customer0: 0 0
+customer1: 0 0
+customer2: 0 0
+customer3: 0 0
+customer4: 0 0
+bakery after readCounters:
+Bakery ccread:5 customers locks:168 unlocks:168 Min:27281us
+customer0: 0 0
+customer1: 0 0
+customer2: 0 0
+customer3: 0 0
+customer4: 0 0
+13.04.2012 13:12:02: timestamp:prepareRunConfig1: rcfgdel PHYSICS_1 177724
+
+13.04.2012 13:12:02: timestamp:prepareRunConfig2:rc 1
+loadHW:skipped:
+load2HW: FO1 addres:0x1240 data:0x0 
+load2HW: FO2 addres:0x2240 data:0x0 
+load2HW: FO3 addres:0x3240 data:0x0 
+load2HW: FO4 addres:0x4240 data:0x0 
+load2HW: FO5 addres:0x5240 data:0x0 
+load2HW: FO6 addres:0x6240 data:0x0 
+SMIRTL - Fri Apr 13 13:12:03 2012 - TRIGGER::CTP in state RUNNING/ERROR_REASON(S)=not set/EXECUTING_FOR(S)=PHYSICS_1
+13.04.2012 13:12:03: timestamp:callback:STOPRUNCOUNT successful.
+SMIRTL - Fri Apr 13 13:22:06 2012 - TRIGGER::CTP executing LOAD_PARTITION/PARTITION=PHYSICS_1/MASK=391935/RUN_NUMBER=177725/MODE=UNDEFINED/ACT_CONFIG=YES
+
+------------------------- Bakery investigation:
+[alidcsvme001] /home/alice/trigger/v/vme/WORK > findIndir 'customer3:' -60 |grep -v '3: 0 0'
+./ctp_proxy1204141833.log:customer3: 0 2
+./ctp_proxy1204141833.log:customer3: 0 1
+./ctp_proxy1204141833.log:customer3: 0 3
+./ctp_proxy1204132000.log:customer3: 0 1
+[alidcsvme001] /home/alice/trigger/v/vme/WORK > findIndir 'customer1:' -60 |grep -v '1: 0 0'
+./ctp_proxy1204132000.log:customer1: 0 3
+i.e. smaq customer difference is prevalent.
+customers 0,2,4 are always with  0 0.
+
+todo:
+- Bakery should never lock! (error message + timeout instead)

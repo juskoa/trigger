@@ -1,0 +1,37 @@
+Date: Fri, 29 Jul 2011 06:40:48 +0200 (CEST)
+
+Hi,
+I am going to prepare DIM service publishing CTP BC masks (now available in
+VALID.BCMASKS CTP config file).
+Currently these masks define ALICE BC numbers we trigger on in ALICE:
+B -colliding bunches
+A -A bunches C -C bunches
+E -empty bunches
+D -bunches where cosmic events are allowed
+
+I suggest for each of these separate DIM service.
+Each service will publish BC numbers (0..3563) as text string,e.g:
+301 303 305 307 309 311 313 315 317 319 321 323 325 327 329 331 333 335 337
+
+The same string is present in CTP VALID.BCMASKS file
+(as comment, i.e. starting with #B/A/C/E/D).
+
+CTPRCFG/CS service is published on aldaqecs server.
+Which server would you prefere to run wth this new server -aldaqecs or
+alidcsdimdns ?
+
+Todo:
+server: input: VALID.BCMASKS + kick on (like CTPRCFG/CS)
+services:
+.../B
+.../A
+.../C
+or .../AC ?
+.../E
+.../I
+.../S
+
+server in C:
+- 'L2(HL)' -> list of numbers in C (available only in txtpoc.py)
+
+or server in .py (use txtproc.py directly)

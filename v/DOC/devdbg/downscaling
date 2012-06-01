@@ -1,0 +1,45 @@
+1. .partition:  -Vrsion line has to contain word 'downscaling'
+Version: x downscaling   
+
+2. BC1 RND2 RND1 MSL values: 123456787 123456788 123456789 0.0%
+
+3. ACT: -see step5 probably better in ctp config
+PHYSICS_1/options
+ name   value
+ 0.5khz 0.5
+ 1.0khz 1.0
+ ...
+ - at least 1 option has to be active
+
+4. parted.py: 
+loadfile:
+if step1    (i.e. 'downscaling in Version line):
+  check ACT
+  if downscaling not defined:
+    ERROR: downscaling factor not defined in ACT
+  check "downscaling.rates"
+    ERROR: config file downscaling.rate missing
+
+  -.partition patern, strings needs to be replaced (in redline()) :
+             - see step2
+             - change downscaling word to ""
+  if ACT option not active:
+    ERROR: 
+  -replace downscaling according to $dbctp/downscaling.rates
+  -replace downscaling -> 1.0khz
+  -error in case:
+     - not 'at least 1 replacement' for each
+-process modified .partition
+SAVE: -write Versiion line without 'downscaling' (i.e. was applied)
+savercfg: Version line: write actual downscaling word retrieved form downscaling.rates file
+
+5. ACT notes:
+In CTP config:
+downscaling.rates  -EME or NOPF version
+v0rate_0.5khz 0.5
+v0rate_1.0khz 1.0
+
+todo:
+notebook:
+vmeb/downscaling.rates
+TRG_DBED/parted.py

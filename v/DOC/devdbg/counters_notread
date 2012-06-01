@@ -1,0 +1,57 @@
+On web, 2 holes (2:21 - 2:30 18.4.2012) in counters readings.
+Very high interaction rate (3M) observed.
+Summary:
+---------------readctpc.log:
+1334708301=18.04.2012 02:18:21: l2orbit:9657291 busytemp:20 busyvolts:d3748cd3 
+OK u:41.86 s:43.57 r:2283980.82
+1334708352.000000: 970 counters
+1334708361=18.04.2012 02:19:21: l2orbit:10335388 busytemp:20 busyvolts:d3748cd3 
+OK u:41.86 s:43.57 r:2284041.11
+1334708480.000000: 970 counters
+1334708421=18.04.2012 02:20:21: l2orbit:11013385 busytemp:20 busyvolts:d3748cd3 
+OK u:41.86 s:43.57 r:2284101.41
+1334708480.000000: 970 counters
+1334708482=18.04.2012 02:21:22: l2orbit:11691483 busytemp:20 busyvolts:d3748cd3 
+OK u:41.86 s:43.57 r:2284426.83
+1334708864.000000: 970 counters   1st hole
+1334708807=18.04.2012 02:26:47: l2orbit:15351038 busytemp:20 busyvolts:d3748cd3 
+OK u:41.86 s:43.57 r:2284487.13
+1334708864.000000: 970 counters
+1334708867=18.04.2012 02:27:47: l2orbit:16029046 busytemp:20 busyvolts:d3748cd3 
+OK u:41.87 s:43.57 r:2284667.38
+1334708992.000000: 970 counters   2nd hole
+1334709048=18.04.2012 02:30:48: l2orbit:1278837 busytemp:20 busyvolts:d3748cd3 
+OK u:41.87 s:43.57 r:2284727.66
+1334709120.000000: 970 counters
+1334709108=18.04.2012 02:31:48: l2orbit:1956789 busytemp:20 busyvolts:d3748cd3 
+OK u:41.87 s:43.57 r:2284787.92
+1334709120.000000: 970 counters
+1334709168=18.04.2012 02:32:48: l2orbit:2634403 busytemp:20 busyvolts:d3748cd3 
+OK u:41.87 s:43.58 r:2284848.22
+
+-------------------- dims.log
+18.04.2012 02:10:32: BEAMMODEcaba size:0 NBST:11 bm:7
+18.04.2012 02:10:32: BEAMMODEcaba size:0 NBST:11 bm:7
+18.04.2012 02:10:32: mon ds003:ds004:ds050 N:7:6284810:6284810
+18.04.2012 02:15:20: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+
+18.04.2012 02:20:32: mon ds003:ds004:ds050 N:7:308495:308495
+18.04.2012 02:20:32: bst013: 57192 4f8e08d0 4b50f a9d897
+
+2 BEAMMODE clients: 1.miclock 2.?
+18.04.2012 02:23:32: BEAMMODEcaba size:0 NBST:11 bm:8  FLAT TOP
+18.04.2012 02:23:32: BEAMMODEcaba size:0 NBST:11 bm:8
+18.04.2012 02:26:12: BEAMMODEcaba size:0 NBST:11 bm:9  SQUEEZE
+18.04.2012 02:26:12: BEAMMODEcaba size:0 NBST:11 bm:9
+18.04.2012 02:29:48: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+
+18.04.2012 02:30:32: mon ds003:ds004:ds050 N:9:615259:615259
+18.04.2012 02:38:50: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+------------ grep MONCOUNTERScaba dims.log
+
+18.04.2012 02:06:18: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+18.04.2012 02:15:20: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+18.04.2012 02:29:48: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+18.04.2012 02:38:50: MONCOUNTERScaba (1/hour) size:0 NCOUNTERS:970
+ -%60 in MONCOUNTERScaba -seems every <10s there is a request for
+CTPDIM/MONCOUNTERS service ! Why?

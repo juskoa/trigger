@@ -1,0 +1,72 @@
+Status before 24.6.2011:
+LOAD_PARTITION(name, mask, run, act_config):
+remove /tmp/.pcfg
+preparepcfg(name2, run_number, ACT_CONFIG)
+                              --------------> pydim message:
+                          |   'pcfg run partname' or (tryACT)
+                          |   'Ncfg run partname' (noACT)
+                          |
+                          | if Ncfg
+                          |   actdb_getPartition(pname,filter, instname, version);
+                          | daqlogbook_open();
+                          | daqlogbook_update_cs(rundec, CSString);
+                          | daqlogbook_update_ACTConfig(rundec, itemname,instname,version);
+                          | daqlogbook_close();
+                          | print("pcfg run name") -> parted.pcfg() preparing .pcfg
+                          | scp .pcfg -> ctp_proxy
+
+ret= detectfile(/tmp/.pcfg, 39);  // wait max. 39 (was 19) secs for file
+checkPCFG(name, msg, MAXMSG); -reads max. 800 chars from file -check if 'Errors:'
+readDatabase2Tpartition(name); -reads file again
+addPartitions2HW(AllPartitions)
+
+prepareRunConfig(part,1);     --------------> pydim message:
+                          |   rcfg partName runN clu1 clu2 ... clu6 cl1 ... cl50 NewLine
+                          | print("rcfg ...") -> parted.rcfg -preapare .rcfg,+
+                          | stdin: 1 line for each class:
+                          | class runN cl_N cl_group cl_time cl_name
+                          | ...
+                          | rcdaq= updateDAQDB(line) {
+                          | daqlogbook_open();
+                          | daqlogbook_update_triggerClassName(runN,classN-1,name,cg,cgtime);
+                          | daqlogbook_close();
+                          | }
+                          | scp .rcfg -> ctp_proxy
+
+                        
+usleep(2000000);        // 1sec is not enough, 2 seems enough before SOD
+
+updateDAQClusters(part) {
+  masks[0..5]     detectors NOTE: daqonoff consulted (bit17!)
+  classmaks[0..5] classes
+  inpmasks[0..5]  input detectors (by-product: l0inputs used later)
+  for(iclu=0;iclu<NCLUST;iclu++){
+    DAQlogbook_update_cluster(partit->run_number, iclu+1, 
+        masks[iclu], partit->name, inpmasks[iclu], classmasks[iclu]);
+
+  for(level=0..2) {
+    for(ix=0..23or12) {
+      daqlogbook_insert_triggerInput(partit->run_number,   
+        ix+1, validCTPINPUTs[ind].name, level);
+
+  len= detectfile(.rcfg, 25); 25secs
+  getctp_alignment(NULL, alignment, MAXALIGNMENTLEN, l0finputs); l0finputs not needed (ALL)
+  rc= DAQlogbook_update_triggerConfig(partit->run_number, .rcfg, alignment);
+
+  if PHYSICS_1: get_fixed(.rcfg, &fixpos); -DCS fixed counters service
+  remove /tmp/.rcfg
+}
+
+
+----------------------------------- 26.6.
+changed considerably. Main change:
+alignment+.rcfg update moved to pydimserver executed now earlier
+-before col. shcedule, instance/ver and class-names update.
+
+---------- 5.8.2011
+bug: 
+INFO 05.08.2011 18:12:25: PHYSICS_1 (run:158504) not searched in ACT (ECS:ACT_CONFIG=NO)
+Fri Aug  5 18:12:25 2011 received:
+ERROR run:158504, instance/ver not storedpcfg PHYSICS_1 158504
+todo: pydim/server.c: table to be cleared with instance/ver stored between .pcfg and .rcfg requests
+Done 17.8.2011 reset_insver() called with 'rcfgdel ALL 0'

@@ -1,0 +1,38 @@
+20.3.2012
+readall()
+PROGRAM_ID:25062009
+RFRX:0x300000 ch1/2/3_ref:0x5 0x5 0x70
+    frekvch1/2/3: 703=40.056900MHz 703=40.056900MHz 2504115=0.011245MHz 
+RFRX:0x400000 ch1/2/3_ref:0x5 0x5 0x70
+    frekvch1/2/3: 341540=0.082450MHz 703=40.056900MHz 2504117=0.011245MHz 
+polarity0: 0x7fae0:0x1   0x7fad8 0x26 delay:dec
+polarity1: 0x7fb20:0x1   0x7fb18 0x26 delay:0
+polarity2: 0x7fb60:0x1   0x7fb58 0x26 delay:dec
+WORKING_MODE (bits 0..6 (0:man,1:auto)for: BC1/2/r/main Orb1/2/m:0 
+BST_Machine_Mode:5
+   BC_DELAY25_BCMAIN/BC1 0x15d=29/0x15d=29 halfsns 
+
+ORBmain_COARSE_DELAY/ORB1_ 3564/3564 bcs 
+
+BC 1/2/ref selection (Int/Ext):EEE
+BC/ORB main_MAN_SELECT: 0 2
+BCmain_MAN_SELECT:
+0:40.078MHz int clock, 1: BCref, 2: BC2in, 3: BC1in
+ORBmain_MAN_SELECT:
+0:Orbit1, 1:Orbit2, 2:int BCmain sync. orbit generator
+CORDE reg7: 667(0x29b)
+
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:15d
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:154
+      ORBIN_DELAY25_ORB2 0x7d024:140
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+

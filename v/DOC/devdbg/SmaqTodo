@@ -1,0 +1,42 @@
+Status 20.4.2011
+The main goal of SMAQ is:
+1) check alignment and noise  of CTP inputs
+2) check if correct filling scheme is loaded
+It also checks the efficiency of 0BPA/C signals.
+
+SMAQ is running on alidcscom027, requesting SSM data from
+alidcsvme001 through ssh -usually 40 SSMs = 40x 4MBytes. 
+The data are processed by root macro on alidcscom027. 
+Root GUI is used for interface with operator to do measurement 
+at the begining of each fill. The results of measurement 
+(at least 2 .jpg files) are archived manually in DAQ logbook.
+
+Current version of DQM is checking the point 2) -it checks 
+whether events come in allowed BCs according to current 
+filling scheme.
+
+Known issues with SMAQ (in order of importance):
+- only L0 inputs are measured, we need also L1 inputs 
+- restart needed with each new filling scheme
+- tedious archive in DAQlogbook
+- cfg file needed (at least for list of shown channels)
+- dashed line should be autoamtically displayed with
+  each shown B-bunch
+- perhaps improved triggering on classes and/or combination
+  of inputs
+
+To profit from DQM bookkeepping and still allowing SMAQ to run
+at any time (DQM is active only during DAQ data taking) I suggest
+to run DIM service all the time. The service will publish on request
+the batch of L0+L1+L2 SSMs.
+Then we will have 2 DIM clients -current SMAQ (scp will be 
+replaced by DIM communication) and DQM. In DQM we can
+process raw SSMs provided by DIM, or just take histograms
+created in SMAQ and archive them -i.e. in this case DQM
+would be used just as archiving tool.
+
+Our DQM today is in hands of Evgeny, while SMAQ is maintained by David.
+Please give your comments, at least if you would be available for
+these improvements this year. I do not hink I can do something
+before June (even June is tight...).
+Best regards, Anton

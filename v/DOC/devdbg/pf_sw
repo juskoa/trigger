@@ -1,0 +1,336 @@
+Status 11.8.2011
+----------------
+parted:
+-------
+- at least it is seen as shared resource:
+> parted a r
+a total resources: Classes: 1 Negating classes: 0 PFs: 1 Clusters: 1
+
+- only adds the name of PF to class definition, e.g.:
+  D0SMB(cn=C0SMB-ABCE-NOPF-MUON,pfTPC)
+- .pcfg: nothing is written
+- .rcfg: 
+PF name written in class, but not in PFS: section in .rcfg:
+PFS:
+NONE
+C0SMB-ABCE-NOPF-MUON 1 D0SMB MUON {pfmb} {NONE} 0 1 0 0
+
+Todo:
+- .pcfg and .rcfg content written from parted (validate.py should be
+  automatically ok, but new version to be preapred for ECS)
+- ctpproxy processing
+
+----------------------4.9.2011
+idea: do the same as for BCM, i.e. modify (generic):
+- load_CFG
+- TdsLtus.findBCMname
+- class TrgSHR_BCM
+- TrgClass.__init__
+          .getTXTbcms
+          .getBCMASKs
+          .showClass
+- TrgPartition.savepcfg
+- TrgPartition.savercfg
+              .loadfile
+              .addpf ? (not used now)
+
+--------12.9.
+try to accomodate TrgSHR_BCM(TrgSHR) class for PF also
+--------19.9.
+- class TrgSHR_BCM modified:
+  TdsLtus.pfsnames -> TdsLtus.PF_DB
+
+-TdsLtus.findBCMname -> findBCMPFname
+-TdsLtus.load_CFG -> load_BCMs, load_PFs
+
+-in main added:
+for ix in range(PF_NUMBER): 
+
+-OK TrgCluster.doTDSbuttons
+   -> TrgCluster.doCLSbutton
+      -> cls.modButton   also: cls.modpfs() -> cls.modButton()
+
+   issue: multi-row classes frame of 1 cluster:
+   -using self.tdsfr: -should we create self.tdsfr[]  -each
+     one containing 5 classes???
+    TrgCluster.show():
+    # prepare allclassesN/5 Frames (each for 5 classes):
+    lets's have (for each cluster) list of rows (of 5 classes)
+    called self.clsRows. methods:
+    - make_tdsfrs  -make all
+    - alloc_tdsfr  -get (allocate if needed)
+    - free_tdsfr   - release (release row if needed)
+    doCLSbutton: self.find_tdsfr()
+    show: make_tdsfrs()  -according to number of classes in cluster
+    modtdsl: self.free_tdsr() -of class just deleted, also remove frame
+
+- Shared resources reservation
+  ->part.loadPartition -> just set callback getRR
+  ->part.loadfile -> getRR(None)[0]
+  ->part.loadfile -> getRR("print to stdout")[0]
+  ->part.loadfile -> getRR
+  ->TrgCluster.modtdsl -> getRR(None)[0]
+
+- TrgPartition.save():
+  -ok shrr->save(outfile)   -ok (just 1 line at the beg. of .partition)
+
+
+-ok Trgpartition.addpf -removed
+
+- TrgClass.showClass: 
+    getTXTbcms()   -invoked from: 
+       changeShown()
+       getTXTcls()
+    getBCMASKs() getPFs()  -for .rcfg
+
+  def showClass_BCMPF(self, bcmorpf):
+  ...
+    mask_pf_but= MywMenuList(cmd= modadi
+                  -ok def modadi():
+                       3 buttons: self.adibut/bcmbut/pfsbut
+    if bcmorpf=="BCM":
+      self.bcmbut= mask_pf_but
+    else:
+      self.pfsbut= mask_pf_but
+  ...
+
+- savepcfg() updated for PFS (was not at all) ok
+
+getTXTpfs
+
+--------------------------26.9., 12.10.2011 ctpproxy:
+
+modifications:
+Tpartition.h:
+  TPastFut, TpastFutCommon:
+    -per circuit (across l0/1/2)
+    -allocated inside TRBIF structure, like BCMASK
+
+BCMASK, BCMASKuse used in (similar actions for PF):
+  ctp_proxy.c:
+    ctp_LoadPartition
+      addPartitions2HW
+        addRBIF2HW   -merge shared resources (into global HW)
+          copyTRBIF
+          cumRBIF   -bc/rnd/l0f/intfun + checkBCMASKS todo: checkl0f34
+            checkBCMASKS
+              checkBCMaskBits
+              copyBCMaskBits
+            checkPFS                               added (check+copy)
+              copycheckPF
+        addFO2HW
+        addClasses2HW
+          copymodTKlas -cluster/rbif update. 
+                        BCmask,PF not needed -static allocation in parted!
+
+  cfg2part.c:
+    readDatabase2Tpartition
+      ParseFile
+        BCMASK2Partition(line, part->rbif);        PF2Partition()
+          findBCMasks
+
+  Tpartition.c:
+    cleanTRBIF                               PFuse[]= 0;
+    printTRBIF                               PFuse,PFCuse
+    copyTRBIF                                PFuse
+    applyMask
+      checkRES (only bc/rnd/l0f)
+      -register which BCmask is used 
+       in a partition (going through all classes)
+                                             copycheckPF() called
+    load2HW
+      loadBCmasks -load all masks (even if only 1 used)
+                                             WritePFuser (defined in pfp.c)
+12.10. todo
+pydimserver.py: miclock should not be called in lab
+ok 12.10.2011 19:49:25: ***  Error:
+Unknown line 1 in .pcfg file:L0F34 :: 
+13.10:
+ok returning NULL even if no error
+
+------------------- testing
+>>>>> -----------------Test pre +-180:
+>>>>> dTa 180*40= 7200
+>>>>> WritePFuser(3,1,7200)
+>>>>> L0:a:INTa/b/delayed 0x: a 0 0 delay:0
+>>>>> L1:10100a:INTa/b/delayed 0x: a 0 0 delay:257
+>>>>> L2:6d00a:INTa/b/delayed 0x: a 0 0 delay:109
+>>>>> - loadol pfaj.cfg v ctp, 
+INT1:BC1   BC1:menime   class1: trigger BC1
+a potom
+>>>>> - startol ->SimpleTests ->WritePFuser() a potom
+>>>>> - aktivoval postupne pre class1 iba jedno PFveto (L0/1/2), menil
+>>>>> som BC1 rate a sledoval som kedy su pustene/zabite vsetky triggre
+>>>>> pre vybrate veto. Cize dalej uvadzam BC hodnoty pri ktorej
+>>>>> presli vsetky triggre, a kedy boli celkom potlacene (v zatvorke
+>>>>> je aj poznamka pre fuzzy interval ked sa zabijaju ciastocne):
+>>>>>   all  all
+>>>>>   go   supp
+>>>>> L0:  7191 7163   on l0classA1 (7178 ~half go through)
+>>>>> L1:  7191 7151   on l1classA1 (7160: ~1/3 through, 7152: ~ 1/30 through)
+>>>>> L2: not checked (not to be used with L2)
+fuzzy interval: 7191-7163=28 bcs, 
+prot. interval: 29*247= 7163   =  (Plut.sd+1)*AdT
+
+see pfaj2.cfg: class1: triggered by RND1. If RND1 high rate, PF3 with INT1=BC1:7163 should
+downscale it to 0:
+RND1   BC1   l0classA1
+40mhz  7163  0
+40mhz  7164  210
+40m    7191  6023
+       7291  5940
+       7391  5860
+       7440  8224
+       7450  10212
+       7451  10405   +260 (L0-L1)
+       7561  11450
+
+WritePFuser( 3, 1, 7200)
+L0:a:INTa/b/delayed 0x: a 0 0 delay:0
+L1:10100a:INTa/b/delayed 0x: a 0 0 delay:257
+L2:6d00a:INTa/b/delayed 0x: a 0 0 delay:109
+icircuit=3 THa1=1 dTa=7200
+Note:Prot.int. dTa 7200 bigger than TL2:4208!
+0x0 
+L0.3:f7f80 3dfbe 1c02
+A:th1/2:0 62 dT:247 del/f:0/0 B:th1/2:62 62 dT:61 del/f:0/0 P:0x2 28 0 
+L1.3:800f7fc1 c57bfff 1d02
+A:th1/2:1 63 dT:247 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0x2 29 0 
+L2.3:800fcfc1 317bfff c02
+A:th1/2:1 63 dT:252 del/f:0/1 B:th1/2:63 63 dT:123 del/f:49/0 P:0x2 12 0 
+
+------------------------- test 5.12.2011:
+tpc pf:
+ReadPF()
+L0:c:INTa/b/delayed 0x: c 0 0 delay:0
+L1:10100c:INTa/b/delayed 0x: c 0 0 delay:257
+L2:6d00c:INTa/b/delayed 0x: c 0 0 delay:109
+L0.1:f7f80 3dfbe 1c02
+A:th1/2:0 62 dT:247 del/f:0/0 B:th1/2:62 62 dT:61 del/f:0/0 P:0x2 28 0 
+L1.1:800f7fc1 c57bfff 1d02
+A:th1/2:1 63 dT:247 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0x2 29 0 
+L2.1:5f9fc1 317bfff 1f02
+A:th1/2:1 63 dT:249 del/f:5/0 B:th1/2:63 63 dT:123 del/f:49/0 P:0x2 31 0 
+
+step1: 
+L1 dT=9 (not 247)
+L1.1:80009fc1 c57bfff 1d02
+A:th1/2:1 63 dT:9 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0x2 29 0 
+
+i.e.: 9*(29+1)=270
+bc1: 257 all suppressed
+     258 all L1 (half of l0) go through
+
+step2:
+L1 dT=8 scaled down factor 31+1 (was 29+1):
+ii.e. 8*(31+1)= 256
+BC1
+258: all (half of l0)  l1classA1: 83953
+257: 1/8th of L1 go through  l1classA1: 10494
+256: 1/16
+255: all suppresed  L0: ~169khz
+
+step3:
+BC1 -> rnd1 6.5us = 153846hz = 8259544 i.e. 0x807E07D8 for 'no trains'
+class 1,2: rnd1
+IR2: rnd1
+Only PF L1 active, sd 32*8 = (31+1)*8=256, 31*8=248
+sd     L0B1   L0A1=L1B1   L1A    L1A/L1B
+trains:
+32*9  167476    58064    18400    0.32
+32*8  166449    57642    19172    0.33
+31*8  166998    57849    26268    0.45
+notrains:
+32*9  83196     57773    36824    0.64
+32*8  83056     57569    37808    0.66
+31*8  83267     57767    42479    0.75
+
+notrains 300khz (0x80f5c28f)
+288:  162186    85273    32524   0.38 
+256:  162068    85249    35144   0.41
+248   162424    85287    43717   0.51
+240   162358    85197    53367   0.63   -saved in pfaj3.cfg in lab
+
+ReadPF()
+L0:c:INTa/b/delayed 0x: c 0 0 delay:0
+L1:10100c:INTa/b/delayed 0x: c 0 0 delay:257
+L2:6d00c:INTa/b/delayed 0x: c 0 0 delay:109
+L0.1:f7f80 3dfbe 1c02
+A:th1/2:0 62 dT:247 del/f:0/0 B:th1/2:62 62 dT:61 del/f:0/0 P:0x2 28 0 
+L1.1:80008fc1 c57bfff 1d02
+A:th1/2:1 63 dT:8 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0x2 29 0 
+L2.1:5f9fc1 317bfff 1f02
+A:th1/2:1 63 dT:249 del/f:5/0 B:th1/2:63 63 dT:123 del/f:49/0 P:0x2 31 0
+
+tpc4 diffrent from tpc:
+    tpc     tpc4
+L1: 247*30  8*(31+1)   (2 words in tpc4 definition)
+
+-----------------------
+pfaj3.cfg, L0-PF only:
+RND1: 0x80F5C28F -kills all on L0
+
+179us = 5586.59hz pftest1.bmp
+ RND1   l0B1  l0A1  l0pf1   l0A2   l0A1/aa
+180us   5930  1660  970351  2964   1810
+180/aa        1810
+10us    113983 46  2840616
+10us/aa 
+--------------- ir2: rnd1  PLUT:0xaa   l0trig: rnd2  L0 only: dT:247*(28+1)
+conv. table:
+200us: 0x41893
+100us: 0x80083126
+50us:  0x8010624d
+10us:  0x8051EB85
+-----
+
+100us: 0x80083126 rnd2
+10us:  0x8051EB85 rnd1 - l0A1 suppresed
+50us: 0x8010624d rnd1
+
+IR2      L0
+RND1     RND2      l0B1    l0A1  l0pf1  
+200us/nt 10us/nt   53967   27080 909039   L0pf not working ?
+200us    100us/nt  5330    3098  911847
+200us     50us/nt  10717   6114  910920
+200us/nt  50us/nt  10690   6087  919162
+
+L0+L1 PF1: 8*(29+1)=240us, scopeA:L1strobe
+L0:c:INTa/b/delayed 0x: c 0 0 delay:0
+L1:10100c:INTa/b/delayed 0x: c 0 0 delay:257
+L2:6d00c:INTa/b/delayed 0x: c 0 0 delay:109
+L0.1:f7f80 3dfbe 1c02
+A:th1/2:0 62 dT:247 del/f:0/0 B:th1/2:62 62 dT:61 del/f:0/0 P:0x2 28 0 
+L1.1:80008fc1 c57bfff 1d02
+A:th1/2:1 63 dT:8 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0x2 29 0 
+L2.1:5f9fc1 317bfff 1f02
+A:th1/2:1 63 dT:249 del/f:5/0 B:th1/2:63 63 dT:123 del/f:49/0 P:0x2 31 0 
+
+P: 0xaa for L0/1
+L1 DealyA 2048 ->0
+Classes: only 1 triggered by rnd2
+IR2      L0
+RND1     RND2      l0B1    l0A1  l1A1  l1pf1    note
+200us/nt  50us/nt                           pfaj4.cfg
+goal: +-3us around L0: dt: 1*130
+10us/nt  50us/nt  10754   10200  100   high     dT: 130 
+10us/nt  50us/nt  10754   10200  10100 low      dT: 60  
+
+
+conv. table:
+200us: 0x41893
+100us: 0x80083126
+50us:  0x8010624d
+10us:  0x8051EB85
+
+
+do pitu na tpc4:
+L0:c:INTa/b/delayed 0x: c 0 0 delay:0
+L1:10100c:INTa/b/delayed 0x: c 0 0 delay:257
+L2:6d00c:INTa/b/delayed 0x: c 0 0 delay:109
+L0.1:f7f80 3dfbe 1caa
+A:th1/2:0 62 dT:247 del/f:0/0 B:th1/2:62 62 dT:61 del/f:0/0 P:0xaa 28 0 
+L1.1:800fffc1 c57bfff aa
+A:th1/2:1 63 dT:255 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0xaa 0 0 
+L2.1:5f9fc1 317bfff faa
+A:th1/2:1 63 dT:249 del/f:5/0 B:th1/2:63 63 dT:123 del/f:49/0 P:0xaa 15 0 

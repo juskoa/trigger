@@ -1,0 +1,83 @@
+The process of starting partition:
+----------------------------------
+ctp_LoadPartition
+  preparepcfg
+  checkPCFG
+  copyHardware(&HWold,&HW);   // HWold <- HW
+  part=readDatabase2Tpartition(name); 
+    ParseFile(lines,newpart)
+      part->rbif=BCMASK2Partition(lines[i],part->rbif);
+        findBCMasks(rbif->BCMASK, rbif->BCMASKuse);
+      CLA:
+      part->klas[iklas]= CLA2Partition(lines[i],...
+      checkRBIFown(part->rbif, part->klas[iklas]);
+      
+  applyMask
+    checkRES(bit, part, cls, &rbifnew)
+      -prepares rbifnew (NO reallocation) which is copied if OK to part !
+      -similar actions in checkpairBIF
+   -copy BCmasks/PF (if at least 1 used)
+  checkResources(part) -with AllPartitions
+    checkDetectors
+    checkClusters
+    checkRBIF(part, AllPartitions)
+      !part: rbif is modified, possible reallocation !
+      cumRBIF(for AllPartitions, &myrbif) -myrbif: all allocated till now
+        checkpairRBIF(ix: rnd1/2 bc1/2 l0f1/2/3/4
+          -here, similar like checkRES, but:
+             - classses from all partitions considered
+             - reallocation (i.e. bc2->bc1), if value is equal
+          allocateInhw(cumrbif, ixhw, prbif, icheck);
+      cumRBIF(part, &myrbif) -myrbif: add RBIF in question
+
+  addPartitions(part) -add this partition to AllPArtitions
+  addPartitions2HW(AllPartitions)
+    addRBIF2HW(AllPartitions)
+      copyTRBIF
+      cumRBIF
+    addFO2HW(AllPartitions)
+    addClasses2HW(AllPartitions)
+      copymodTKlas(toklas,fromklas,part)   2x (old+new partitions)  
+        copyTKlas(to,from)
+        findHWCluster(
+        modL0input(
+          l0condition2rbif(from_bit,to_ix)
+  prepareRunConfig(part,1)
+  updateDAQClusters(part);
+  copyHardware(&HW,&HWold);   // HW <- HWold
+
+ctp_StartPartition
+  copyHardware(&HWold,&HW);
+  addStartedPartitions(part);
+  addPartitions2HW(StartedPartitions);
+    addRBIF2HW(StartedPartitions)
+      copyTRBIF
+      cumRBIF
+  setALLDAQBusy(); 
+  generateXOD(part,'S')
+  load2HW(&HW)
+    loadBCmasks(rbif->BCMASK)
+  cshmAddPartition(part);
+  xcountersStart(part->run_number);
+  unsetALLDAQBusy();
+  
+-------------------- bcmasks focus:
+ctp_LoadPartition
+  checkResources
+    checkRBIF
+      cumRBIF(part1, &myrbif);
+        checkpairRBIF(...
+        checkBCMASKS(
+          checkBCMaskBits
+          copyBCMaskBits
+or
+ctp_LoadPartition and ctp_StartPartition
+  addPartitions2HW
+    addRBIF2HW
+      cumRBIF
+        checkpairRBIF(...
+        checkBCMASKS(
+
+fixed 15.12.2009: if masks used, they have to be used at the same place
+for different partitions. TESTED 15.12.2009 in lab.
+

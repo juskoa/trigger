@@ -1,0 +1,140 @@
+23.5.2011
+Problem: server (pcalicebhm10) is X64 architecture while VME processors
+are 32bits linuxes
+
+Goal:
+- libs:
+  2 separate directories for libs (vmeb,ctp perhaps ltu also)
+- applications i.e. v/vme/...
+  keep the original linux/ executable directory for both server+client
+  - additional linux_c and linux_s directories for .o files where 
+    needed: ctp_proxy,pydim
+
+linux_c/ -compiled on alitri1/alidcsvme008
+linux_s/ -         on pcalicebhm10/alidcscom188
+linux_s64 -        on alidcscom707
+
+1.
+vmeblib/linux_c,s
+vmeblib/make_new
+also: ctplib/
+*lib/makefile -> makefile_old
+using:
+$VMECFDIR/sc.make, com_defs.make, daq_defs.make
+
+2.
+vmeb/vmeai.make: vmeblib/linux_c ctplib/linux_c added for LDFLAGS
+
+3.
+ctp_proxy
+makefile,makefile_common -old makefile
+new way:
+makefile_sc -common makefile
+make_new    -started on server and client
+
+pcalicebhm10:ctp_proxy> make -f makefile_s      -ok
+altri1:ctp_proxy> make -f makefile_s linux/test -todo
+
+i.e.:
+old way:
+cd vme/ctp_proxy ; make
+new way:
+On server:
+cd vme/ctp_proxy ; make -f make_new
+On client:
+cd vme/ctp_proxy ; make -f make_new
+
+4. other directories:
+pydim ok -todo: check vmeblib+ctplib
+
+check act_main with lab!
+
+27.5.
+ttcmidaemons
+-------------------------- 27.5.2010 Summary
+In each directory:
+mv makefile makefile_old
+ln -s ../../vmeb/vmeblib/Makefile Makefile
+make_new
+
+If started on server, execute also make on client if these 2 cases:
+1. make (i.e. make all on server+client)
+2. make clean (i.e. make clean on server + client)
+
+---------------------------------------
+28.5.
+done for ctp_proxy to be checked for all the others (pydim, ctplib/vmeblib,ttcmidaemons)
+20.5.
+startClients.bash html
+- ok now (modified /var/www/html/index.html + CNTRRD/htmlCtpBusysClock.py)
+Still to do:
+----- gcalib status:
+gcalib server is not running
+gmonscal available only in the pit
+----- monscal status:
+trigger@pcalicebhm10's password: 
+bash: monscal.sh: command not found
+expr remlogin NONE -bad in startClients.bash
+22.6. 
+monscal, udpmon OK now
+problems:
+1.
+ctpproxy.sh starttest
+[New Thread 0xb75ddb90 (LWP 3315)]
+warning: .dynamic section for "/lib/libresolv.so.2" is not at the expected address
+warning: difference appears to be caused by prelink, adjusting expectations
+
+Seems ctp_proxy, pydim ok -update for inst. name+ver + col. shedule (tested
+with starttest only)
+
+28.6   moved to the pit
+
+--------------------------- 27.2.2012 Summary
+- taking into account 707 64bits machine ragarded as CLIENT
+  for faniio/dim package:
+  -com_defs: EXEDIR set to linux64
+
+vme/package/Makefile
+vmeb/com_defs.make
+vmeb/sc.make
+vme/package/make_new    package e.g.: fanio/dim
+
+vme/package/Makefile
+--------------------
+include $(VMEBDIR)/com_defs.make
+include $(VMEBDIR)/lib_stuff.make      -> make_new
+
+vmeb/com_defs.make
+------------------
+SERVER_LINK yes       for bhm10,com188, com707 + these variables set:
+CLIENT_HOST := altri1, alidcsvme008
+SERVER_PREF := /home | /data /dl/root
+SERVER_BASEDIR := vd | ""
+odl64 := /opt/dip/lib64 | /opt/dip/lib
+
+ODIR
+CTPLIB
+LTULIB
+VMEBLIB
+
+*inc *: SMI DIM VMEB CTP
+
+*LD *: VMEB CTP LTU DIM SMI
+LDFLAGS
+EXEDIR= ../linux
+
+
+vmeb/sc.make
+------------
+check if linux_* directory
+VPATH := ../
+
+vme/package/make_new
+--------------------
+include $(VMEBDIR)/com_defs.make
+include $(VMEBDIR)/sc.make
+...
+
+
+
+

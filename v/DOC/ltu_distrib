@@ -1,0 +1,103 @@
+--------------------------------------2.12.2011:
+LTU distribution (taken from readme):
+------------------------------------
+In trigger@pcalicebhm05:...vd
+0. Prepare indexnew.html (according to DOC/history.txt)
+   aj@eprexa.ph.bham.ac.uk:public_web/ltu
+   scp index.html ixobsolete.html jusko1@lxplus.cern.ch:
+   aj@eprexa.ph.bham.ac.uk
+   mkdir public_web/ltu/19022012
+1. Modify: version in vd/vme/ltu/ltu.h
+           vd/DOC/history.txt
+2. 
+  make sure VMECFDIR, VMEBDIR are set and:
+  vd/bin/distrib ALL
+  scp ~/vmebltu.tar testu@altri1:
+3.
+  testu@altri1:
+  rm -r vold; mv v vold
+  mkdir v ; cd v ; tar -xvf ~/vmebltu.tar ; cd
+  See v/DOC/Installation
+   or:
+   gvimdiff v/scripts/vmebse.bash vold/bin/vmebse.bash
+   gvimdiff v/vmeb/vmeai.make.VMERCC vold/vmeb/vmeai.make.VMERCC
+   gvimdiff v/vme/CFG/ctp/DB/ttcparts.cfg vold/vme/CFG/ctp/DB/ttcparts.cfg
+   
+  v/scripts/distrib make   (to get back all .o, executables in ~triad:/usr/lcoal/trigger/...)
+  scp ~/vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/19022012/
+Notes for new machines:
+yum install vim-X11
+yum install tkinter
+dim, smi:/home/dl/root/usr/local/trigger/root/Addons_32 
+
+4. aj@eprexa
+   modify web:
+   cd public_web
+   gvim indexnew.html ixobsolete.html   modify
+   scp index.html ixobsolete.html aj@eprexa.ph.bham.ac.uk:public_web/ltu/
+   scp vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
+mail to detectors:   pine alias: detectors
+Dear users of LTUs,
+new distribution of LTU software, supporting LTUvi (TTCvi not required more)
+was released. It can be downloaded from:
+http://epweb2.ph.bham.ac.uk/user/jusko/ltu/index.html
+
+
+Client for LTU expert software:
+------------------------------
+- LTU_CLIENT_VERSION string constant in ltudim/ltuclient.c
+  - left 2.8
+         2.9    22.5.2012     -getCounters uses bakery
+- preparing rpm distribution:
+  trigger@pcalicebhm10: (x86_64):
+  - match: 
+    LTU_SW_VERSION in v/vme/ltu/ltu.h     4.1 04.05.2012   -not needed
+    VERSION        in rpms/SPECS/ltuclient.spec
+      (Release: 1   +1 for next rpm releases)
+    VERSION        in v/bin/distrdimclient distrib
+    Start vd/bin/distrdimclient distrib on pcalicebhm10 (x86_64 version)
+       or                                  altri1       (i386)
+   ->prepares ltuclient-VERSION.src.tar.gz in ~rpms/SOURCES
+  cd rpms/SPECS ; rpmbuild -ba ltuclient.spec
+   -> prepares ltuclient-VERSION.x86_64.rpm in ~rpms/RPMS
+                                .i386
+
+- installation:
+  move: ~aj/rpms/RPMS/ltuclient-1.0-1.i386.rpm
+  as root:
+  rpm -e ltuclient ; rpm -q ltuclient
+  rpm -ivh ltuclient-2.9-1.x86_64.rpm
+  rpm -ivh ltuclient-1.0-2.i386.rpm
+  as user:
+  . /opt/ltuclient/scripts/setup.sh
+       !!! instead vmecrate alias use ltuclient alias !!!
+  ltuclient daq or
+  $VMEBDIR/cratedim.sh daq
+  $? is: 0:ok  4:parameter/environment error   8:server cannot be contacted
+
+--------------------- old:
+Client for LTU expert software:
+- LTU_CLIENT_VERSION string constant in ltuclient.c
+- preapring rpm distribution:
+  aj@altri1:
+  - match: 
+    LTU_SW_VERSION in v/vme/ltu/ltu.h
+    VERSION        in rpms/SPECS/ltuclient.spec
+      (release++ -for next rpm releases)
+    VERSION        in v/scripts/distrdimclient distrib
+    Start v/scripts/distrdimclient distrib
+   ->prepares ltuclient-VERSION.src.tar.gz in ~rpms/SOURCES
+  cd rpms/SPECS ; rpmbuild -ba ltuclient.spec
+   -> prepares ltuclient-VERSION.i386.rpm in ~rpms/RPMS
+
+- installation:
+  move: ~aj/rpms/RPMS/ltuclient-1.0-1.i386.rpm
+  as root:
+  rpm -ivh ltuclient-1.0-2.i386.rpm
+  as user:
+  . /opt/ltuclient/scripts/setup.sh
+       !!! instead vmecrate alias use ltuclient alias !!!
+  ltuclient daq or
+  $VMEBDIR/cratedim.sh daq
+  $? is: 0:ok  4:parameter/environment error   8:server cannot be contacted
+

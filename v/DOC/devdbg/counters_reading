@@ -10,11 +10,12 @@ xcountersStart(part->run_number);   ->DIM request to dims
 EOR:
  xcountersStop(run_number);         ->DIM request to dims
  generateXOD
+Pause:
 
 2. dims: -from main and from thread
 - cthread()  - 1/min
   readctpcounters(0);
-- getcnts()  -on request (SOR/EOR)
+- getcnts()  -on request (SOR/EOR Pause/Resume)
   readctpcounters(cid);
 - startruncounter(), stopruncounter()
   readctpcounters(0);
@@ -33,3 +34,22 @@ Solution:
 ---------
 - critical section can be locked/unlocked by usage of 
   shared memory + bakery (or semapphors)
+23.11.2011
+Tbakery ccread; introduced in ctp shared memory:
+Tpartition.h, ctp_proxy.c -initBakery
+readCounters
+
+getCounter
+getCountersBoard
+clearCounters
+
+still todo: check if all customers (5) are sahring ctp shared memory
+
+Problem2:
+during Pause, CSTART_TSGROUP counter is set to 0.
+27.1.2012 agreed with Roman: should be set to 255, so DAQlogbook
+counters for paused classes can be updated the same way as non-active
+classes (time sharing).
+Modifications:
+ctp_proxy.c: ctp_PausePartition  stopTimer(255 instead of 0 
+

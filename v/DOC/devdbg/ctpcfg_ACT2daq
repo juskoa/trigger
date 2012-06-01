@@ -1,0 +1,37 @@
+Goal: save ACT instance name/ver for each CTP config file
+Current status:
+--------------
+act_name/ver updated in DAQlogbook for .partition config only using:
+DAQlogbook_insert_ACTConfig() from wrapper daqlogbook_update_ACTConfig()
+in vmeblib/daqlogbook.c
+
+Usage/examples:
+--------------
+1.
+bin/getact.bash -> ctp_proxy/main_act.c  (linux/act.exe)
+-> actdb_getdbfiles() in vmeblib/actdb.c
+
+err=ACT_getActiveItem(handle,partitionCtpConfigItem, &instance);
+
+2. pydim/act_main.c -print all instances using ACT_getItem()
+
+Modifications needed:
+---------------------
+1.
+vmeblib/actdb.c
+actdb_getdbfile() -returns now also ACT name,version DONE
+
+2. pydim/act_main.c -print all instances using ACT_getItem()
+   - modify for /part PHYSICS_1/CTP filter/SPD
+
+3.
+actdb_getdbfiles() will create list of ACT name/ver like:
+ctp.cfg pp11 v2
+L0.INPUTS ppPbPb11 7
+...
+-this list can be used for DAQ update by pydim when partition loaded
+ when calling daqlogbook_update_ACTConfig() from pydim/server.
+Note: probably better: 
+- 1 file .actinst, with the same date when file downloaded, or
+- consult ACT directly in time of SOR (problem: how to detect file change after
+its downlaod from ACT)?.

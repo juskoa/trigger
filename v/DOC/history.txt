@@ -60,7 +60,7 @@ firmware 0xb4:
 TTCRX_RESET INIT option added (only load + FEE, without TTCrxreset)
 19.11.
 Rate limit: bug fixed (Enabled/Disabled button now ok)
-19.1.2009
+19.11.2009
 ltu_utils.c Setstdalone() for HMPID now sends FEECMD 12
 28.1.2010
 vmebse.bash improved (removed the duplication of strings in $*PATH
@@ -89,7 +89,7 @@ ltudim/cmd1.c -ltu client for ttcrxreset, ttcrxregs commands
 20.5.
 ltulib/ltuCounters.c
 - better measureBusy() now
-15.6. --------------------------------------- distrib to web, lnxpool31
+15.6. --------------------------------------- -> lnxpool31
 13.7.2010
 ltu_b5.rbf (rate limit update) loaded to cpv (0x811000 in altri1)
 19.7.2010
@@ -102,3 +102,25 @@ adduser -u 505 -g alice -d /home/alice/apixel apixel
 .bashrc and v copied to ~apixel/
 20.12.
 bug in ltulib/ltussm.c fixed
+16.5.2011
+loadLTUfpga -bug fixed. If .rbf file does not exist, nothing done. Before
+fix: old $VMEWORK/FlashMem.cfg link were used.
+------------------- 2.12.2011
+trigger@pcalicebhm10:vmebltu.tar created
+12.1.2012
+ltu.c: test of TEMP_STATUS.CRCerror bit when LTU software starts now
+arranged for new LTUs (serial number >=64).
+Warning suggesting the LTU reconfiguration issued if bit is ON.
+
+3.2.2012
+FLGextorbit introduced. setstdalone.c + others modified.
+
+19.2.2012---------------------- distrib to web ver. 4.0
+12.3.2012
+ltu/ltu_u.py modified: setstdalonemode(1) (was ...()).
+15.5.2012
+SYNC added (smi command executing sync )
+23.5.2012
+ltuclient-2.9-1.x86_64.rpm prepared (see DOC/ltu_distrib) -older version
+does not communicate correctly with server (Counters read)
+

@@ -1,0 +1,112 @@
+Content
+Status 18.4.2011:
+How to set CORDE shift manually
+Problems
+
+Status 18.4.2011:
+-----------------
+1. --------------------------- ttcmi/
+- init Corde+rf2ttc+rfrx when crate switched ON
+  from $dbctp/clockshift file:
+  - setbcOrbitMain(4) local clock
+    - read hw,file
+    - if != -> set hw + update DAQlogbook
+    - set required clock
+ok
+2. --------------------------- ttcmidaemons/ttcmidims.c
+services:
+TTCMI/MICLOCK
+     /MICLOCK_TRANSITION
+     /SHIFT -publishing 2 values in RF2TTC BC_DELAY25_BCMAIN reg
+             and Corde CORDE_DELREG (7)
+ok
+
+cmds:
+TTCMI/MICLOCK_SET
+  - authenticate
+  - thread -> setbcOrbitMain()
+TTCMI/CORDE_SET:
+- authenticate
+- corde_shift(char *shift)  shift: -70..70
+  - update Corde (fine shift) 
+  - TODO: update DAQlogbook: Title, msg the same as from setbcOrbitmain()
+    DONE
+- dis_update_service(SHIFTid=TTCMI/SHIFT)
+
+3. ------------------------- ttcmidaemons/miclock.py
+upon CLOCK CHANGE (LOCAL/BEAM1/LOCAL):
+- cmd TTCMI/MICLOCK_SET
+
+when FLAT TOP (or BEAM DUMP ?)
+- check  -250..250ps
+  if > 250ps:
+    - change $dbctp/clockshift
+    - cmd CORDE_SET   (fine shift)
+
+How to set CORDE shift manually (see also readme in vme/ttcmidaemons):
+-------------------------------
+Shift on CORDE (manual):
+- change file $dbctp/clockshift
+  (ok -DIM publishing CORDE shift is taking value from CORDE board directly!)
+- sshmi , vmecrate nbi corde ; readall ; set gelay 7: ps: 6050
+- startClients.bash ttcmidim stop/start 
+- update daq logbook manually, or:  
+  20830= 29*500+6330
+  'Clock shift' in daq logbook is MADE AUTOMATICALLY (writeall does it)
+  Title: Clock shift
+  Text: changed from 29 713(21630ps) to 29 633(20830ps)
+
+Problems
+--------
+22.4.2011 -clock shift was not updated automatically. From miclock.log:
+22.04. 10:50 BEAM MODE:FLAT TOP clock BEAM1 OK shift:0.3157
+22.04. 10:57 callback_bm: SQUEEZE
+--------- why msg not seen?
+22.04. 11:10 callback_bm: ADJUST
+22.04. 11:10 BEAM MODE:ADJUST clock BEAM1 OK shift:0.3605
+22.04. 11:20 web.save:clock: <big><FONT COLOR="blue">BEAM1</FONT><br></big>
+
+Strange: also for other BEAM modes:
+22.04. 06:58 callback_bm: BEAM DUMP
+22.04. 07:04 callback_bm: RAMP DOWN
+22.04. 07:10 callback_bm: SETUP
+22.04. 07:54 callback_bm: INJECTION PROBE BEAM
+22.04. 09:37 callback_bm: INJECTION PHYSICS BEAM
+
+- iop0,1].close in getShift() added -shoudl be watched next time
+
+-------------------------------- 25.5.2011
+logic changed:
+1.
+SQUEEZE: fineshift: $dbctp/clockshift modified
+if out of limit
+  if not_applied_yet (from BPTX the same value in 0.1ps)
+    update $dbctp/clockshift
+    UPDATE CORDE
+2.
+LOCAL->BEAM1 (any miclock mode, any beam mode):
+if out of limit
+  if not_applied_yet (from BPTX the same value in 0.1ps)
+    update $dbctp/clockshift
+    CORDE NOT UPDATED
+
+3. CORDE update at LOCAL->BEAM1:
+setbcorbitMain() is invoked from:
+- ttcmi.c (after crate reboot or 'vmecrate ttcmi' or writeall button in ttcmi)
+- ttcmidims.c from newclock() thread when clocktransition becomes 0
+  (newclock thread is staretd ONLY when clock CHANGED)
+
+setbcorbitMain():
+read $dbctp/clockshift, read RF2TTC+CORDE
+if hw != clockshift
+  update hw with values from clockshift file
+
+-------------------------------- 25.5.2011
+seems auto shifting works. $dbctp/clockshift: 3 numbers
+-the last one is checked for 'the same update applied' -it relies
+on DCS dim service sending always the same value -valid from last
+measurement, when update of clockshift file is done, this value
+is stored as 3rd number -next update won't be done, if the value
+is the same.
+
+

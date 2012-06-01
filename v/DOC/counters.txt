@@ -6,6 +6,7 @@ History
 How to prepare list of CTP counter names (modified 25.10., 5.7.2010):
 ----------------------------------------------------------
 1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
+   copy first VALID.LTUS ttcpaerts.cfg from th pit to $dbctp
    cd $VMEBDIR ; ./counters.py printnames >~/cnames
    remove Error: lines from ~/cnames
    check number of counters (should be 970):
@@ -23,7 +24,7 @@ sort file by 2nd item (rel. address)
 cd ; sort -n -k 2 -t ' ' cnames >cnames.sorted2
 
 3. copy cnames.sorted2:
-[pcalicebhm05] /home/trigger > cp cnames.sorted2 /data/ClientCommonRootFs/usr/local/trigger/vd/vme/dimcdistrib/cnames.sorted2.pit
+[pcalicebhm05] /home/trigger > cp cnames.sorted2 $VMECFDIR/dimcdistrib/cnames.sorted2.pit
 
 4.
 -repeat the same for .lab version (with lab version of VALID.LTUS 
@@ -79,3 +80,5 @@ i.e. now:970 before:886 counters
 
 12.6.2010
 TSGROUP counter -replacing BUSY spare just before RUNX counters
+8.2.2012
+l0ifun3 and l0ifun4 added (instead of l0int_d and spare99)

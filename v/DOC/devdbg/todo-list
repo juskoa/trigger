@@ -1,0 +1,234 @@
+Contents:
+1. 22.3.2012 4 new FO counters (fi: fo_ae.rbf): TO BE TESTED!
+  44..47:   L2a+L2r strobes    -last counters in 0xad version
+  48..51:   L2a flag (message) -4 new counters in 0xea version
+
+2. 10.2.2012 alidcsvme008 crash (see below)
+3. 2011: from Franco (see below)
+
+4. 21.11.2011 ctpcfg_ACT2daq  + new filter. see ctpcfg_ACT2daq
+5. 22.11.2011 BCmasks see below
+6. modify roman table l1r/l2r from TM and put to daqlogbook entry (55us for trd)
+   done 27.3.2012
+7. diffrent calculation of average busy time (using l1r table)
+   - make better comment in ltu ->Simple tests-> measure busy +
+     preapre option using L0 or L2 for busy calculations or global
+    l1r table
+8. DIM services for Giacinto
+8A. DIM services publishing VALID.BCMASKS
+9: migration 027->707+521
+10. ttcmidaemons
+   moreless done in April 2012
+11. dims stopping
+11A. Why MONCOUNTERS service is contacted every <10 secs?
+   done 18.4. (see note further)
+12. gcalib: should not start without shared memory being initialised
+12A. gcalib froze when start thred: see  gcalib1205071211.log
+    done: dbg prints, entry in DAQlogbook, seems it is in dim_start_thread()
+12B. do not send calib. triggers when T0 in global with STABLE BEAM
+    done: 30.5.2012 
+13. web-counters: signal names + any time (i.e. create .rrd from archive files)
+14. CPU+IO+Ethernet monitoring for all machines
+15. busy problems when starting global partition
+16. sync management in global runs-see email from end of April 26th 2012
+16A. sync in STDALONE see mails from 3.5.2012
+17. infoLogger changed
+    done (end of march 2012) -still needs to be checked if ok
+18. parted: modifications required:
+    - check descriptor name against class name (also
+      cluster name part in class name can be missed out?)
+    - check if all classes with 0HWU if TRD in readout
+19. test l0 synchronous downscaling  l0_logic_verAF.rbf
+    see CFG/l0/readme +mail from Marian 16.2.2012)
+20. fo firmware AE (see CFG/fo/readme +mail from Marian 22.3.2012) 
+    -pouziva sa, avsak countre nie su dostupne
+--------------------------------
+
+2. 10.2.2012 alidcsvme008 crash (see below)
+-------------------------------------------
+alidcsvme008 crashed (ping ok, but ssh not possible):
+/data/dl/snapshot/alidcsvme008/var/log
+[root@alidcscom188 log]# lth
+total 1028
+-rw------- 1 root root  24065 Feb  8 13:01 messages
+-rw-r--r-- 1 root root  16368 Feb  8 12:26 ccm-fetch.log
+-rw-r--r-- 1 root root  34736 Feb  8 04:12 rpmpkgs
+-rw-r--r-- 1 root root    362 Feb  8 04:12 lpadmincern.log
+drwxr-xr-x 2 lp   sys    4096 Feb  5 04:02 cups
+[root@alidcscom188 log]# tail -20 messages
+Feb  8 04:12:20 alidcsvme008 sendmail[26384]: q18323Qt026384: from=root, size=989, class=0, nrcpts=1, msgid=<201202080302.q18323Qt026384@alidcsvme008.cern.ch>, relay=root@localhost
+Feb  8 04:12:20 alidcsvme008 sendmail[26384]: q18323Qt026384: to=root, ctladdr=root (0/0), delay=00:10:17, xdelay=00:00:00, mailer=relay, pri=30989, relay=[127.0.0.1] [127.0.0.1], dsn=4.0.0, stat=Deferred: Connection refused by [127.0.0.1]
+Feb  8 05:00:01 alidcsvme008 crond[28483]: (root) CMD ((perl -e 'sleep rand 3600'; /usr/sbin/ccm-fetch) >>/var/log/ccm-fetch.log 2>&1)
+Feb  8 05:01:01 alidcsvme008 crond[28487]: (root) CMD (run-parts /etc/cron.hourly)
+[root@alidcscom188 log]# tail -f ccm-fetch.log
+2012/02/08-03:04:03 [ERROR] can't open lock file: /var/lib/ccm/fetch.lock: Permission denied
+
+i.e. todo:
+switch off: sendamil, cron, rpmpkgs ccm-fetch?
+
+crashed again 22.5.2012 (note left in daqlogbook)
+
+3. 2011: from Franco (see below)
+--------------------------------
+1) obviously now we do not change things ....
+2) if the LTU goes to ERROR, the ECS must send a command to set it back to
+STANDALONE_STOPPED:
+
+We can implement this after the Ions run
+Hi,
+perhaps, if detector is not ready in time when its LTU is switched
+to GLOBAL, ltuproxy should go to ERROR state. Now it
+sets LTU to GLOBAL regardless of the busy state, so the busy
+problem with this detector is discovered later -when SOD is
+sent from ctpproxy.
+Bye, Anton
+
+5. BCmasks:
+-----------
+- check run 165413 -why only one E is seen in CS?
+  50ns_1380b_1331_0_1320_144bpi12injAC.alice
+- check where E can be put (2 LHC gaps? or max. hole before B bunches?)
+
+lhc2alice.py should create following lines in VALID.BCMASKS:
+B
+A
+C
+E
+D -cosmic
+I -isolated
+AC
+ACE
+S
+SA
+SC
+Note:
+.ACAC. -> translates to:
+.acac.   where: c=SC and a=SA  resulting S-mask = SC + SA masks, i.e. also:
+.SSSS.
+
+Questions:
+1. in main-sat. mode of running, what is -A- mask?
+   - only first A in he comb ACAC
+   - or any A (as in main-main mode of running)
+Answer:
+.A. -> A (similarly C)
+.ACAC. -> .B
+2.5.2012:
+main-sat 
+bcmEMPTY
+bcmB
+bcmA
+bcmC
+bcmAC
+bcmACE
+
+8. DIM services for Giacinto
+----------------------------
+see: SOLVED/FixedCounters4dcs -notes about dynamic way
+
+8A. DIM services publishing VALID.BCMASKS
+-----------------------------------------
+seems direct string from VALDI.BCMASKS can be published with its name.
+- better logs fron getdip.py
+Started: pydim server in vme/simpleServer.py
+         masksServer...
+
+9: migration 027->707+521
+-------------------------
+707:
+smaq: infoLogger to be installed (64bit)
+      -needs mysql (like Addons_32/MySQL but 64bits)
+
+521:
+2012 samba mounted directory is sufficient (i.e. unmount 2011)
+
+10. ttcmidaemons
+----------------
+Ombretta: alarm is set for 250ps clock shift
+If this happens during run, operator will be required to stop the run,
+adjust the shift and start run again.
+- preapre interface for operator 'set clock shift'
+  see: ttcmidaemons/apply_any_shift
+- there is 10ps in daqlogbook from last year always even if shift <250ps
+  why?
+- set minimal allowed shift (probably 20ps?, although 0 required)
+Moreless done:
+- shift now when >10ps, 'reset' command (undocumented) in miclock script
+  makes adjustment according to the current shift (measurement have to be fresh!)
+
+11. dims stopping
+-----------------
+Stop dims by mal byt
+stale sprevadzany stopom vsetkych aktivnych runov (cize  
+ked to nedostal od ctpproxy, tak ked ho stopneme, mal by
+to urobit sam). 
+Takisto pozri: ctpproxy-looping v tomto adresari
+
+11A. Why MONCOUNTERS service is contacted every <10 secs?
+---------------------------------------------------------
+One of following clients:
+Starting the counters reading thread...
+Starting the BST messages reading thread...
+16.04.2012 18:40:56: BEAMMODEcaba size:9805208 NBST:11 bm:11
+16.04.2012 18:40:56: updateNMCclients:27509@alidcscom707.cern.ch newCOUNTERS.
+16.04.2012 18:40:56: updateNMCclients:3272@alidcscom188.cern.ch newCOUNTERS.
+16.04.2012 18:40:56: updateNMCclients:7688@alidcscom188.cern.ch newCOUNTERS.
+16.04.2012 18:40:56: updateNMCclients:7773@alidcscom188.cern.ch newCOUNTERS.
+16.04.2012 18:40:56: BEAMMODEcaba size:0 NBST:11 bm:11
+16.04.2012 18:40:56: updateNMCclients:3932@alidcscom711.cern.ch newLUMCNTS.
+16.04.2012 18:40:56: updateNMCclients:4032@alidcscom717.cern.ch newCOUNTERS.
+16.04.2012 18:40:56: updateNMCclients:9829@10.161.43.123 newCOUNTERS.
+16.04.2012 18:40:56: updateNMCclients:5179@10.161.43.123 newCOUNTERS.
+16.04.2012 18:40:56: updateNMCclients:1776@alidcscom055.cern.ch newLUMCNTS.
+16.04.2012 18:40:58:  13: 5179@10.161.43.123
+
+Also see devdbg counters_notread
+- dimservices.c updated Nupdated counter holding the number of requests 
+  from each client
+Soleved: <10secs -becasue 1/min reading update distributed over 7 clients
+results in average update <10secs
+
+11B. dims looping
+-----------------
+23.5.2012 morning: seems because bakery got stucked! Right restart:
+Start daemons in this order:
+1. stop monitor 
+2. stop/start proxy (to get bakery cleaned ?)
+3. start: dims rrd html ctpproxy
+
+30.5. again: load on alidcsvme001: 3
+Cure: enough to KILL ctpproxy and start again
+see: savanah/bugs + 188:aj/problems/ctpproxy_looping
+
+15. busy problems when starting global partition
+------------------------------------------------
+A: when only PHOS started in PHYSICS_2, EMCAL goes busy in active
+PHYSICS_1  -see run 177927 + aj/emcal mail folder from 30.4.2012
+
+B: Roberto reported this dependance (2.5.2012):
+- first start partition with all detectors
+- bring ZDC to busy and stop partition -> EOD is not sent (ZDC busy)
+- when next run is tarted, TPC and/or MUON_TRK cannot start properly, why?
+  It is known, only TRD is performing special action in time of EOD
+
+17. infoLogger changed
+----------------------
+mail from Sylvain from 26th March:
+Hello Anton,
+
+setStream() was removed, please now use instead:
+- infoLogger_setParam(INFOLOG_PARAM_FIELD_DETECTOR,"MCH");
+to set the detector (3 letter code, not full name)
+- infoLogger_setParam(INFOLOG_PARAM_FIELD_PARTITION,"PHYSICS_1");
+to set the partition
+
+you can also use, instead of the corresponding environment variables:
+- infoLogger_setParam(INFOLOG_PARAM_FIELD_SYSTEM,"TRG");
+to set the system name
+- infoLogger_setParam_int(INFOLOG_PARAM_FIELD_RUN_NUMBER,12345)
+to set the run number
+
+cheers,
+sylvain
+
+

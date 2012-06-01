@@ -1,0 +1,473 @@
+AC version is (see https://savannah.cern.ch/support/?118815):
+Version AC, 21.2.2011
+pcalicebhm10: 224731 Dec 20  2010 l0_logic_verAC.rbf
+pcalicebhm05: 236886 Dec 20  2010 l0_logic_verAC.rbf
+
+1. Added protection for situation when phys. trigger and SW trigger in the same time.
+----------------------------------------------------------------------------
+
+The priority is SW trigger. Added signal l0clstt_fast.
+
+2. Added 2 new L0 functions i.e.[3] and [4].
+-------------------------------------------
+Each L0func has 2 LUTs (each 12-inputs) and results are OR-ed.
+Address of L0_FUNCTION34 = H"1FB" 
+Writing to L0function:
+LUT1+LUT2+LUT3+LUT4_address = vme_data[11..0];
+L0_FUNCTION34:
+LUT1_data = vme_data[12]; //4096 bits
+LUT2_data = vme_data[13];
+LUT3_data = vme_data[14];
+LUT4_data = vme_data[15];
+Notes:
+- l0f3= LUT1 | LUT2,   l0f4= LUT3 | LUT4
+- the programming of original l0f1, l0f2 is the same as before (16bits LUT each)
+  -the same registers are still valid
+- each lut is reversed when compared with short luts (old l0f12) -
+  see vmeb/txtproc.py
+- new LUTs CANNOT BE READ
+- all 4 LUTs are modified with each write (i.e. we need to mirror their
+  content in CPU memory when we want to modify only subset of LUTs)
+- an example how to write 101010.. to all 4 LUTs:
+  vmew32(0x1fb, 0xf000)  bit0 (least sign. bit) of LUT[1-4] is 1
+  vmew32(0x1fb, 0x0001)  bit1 of LUT[1-4] is 0
+  vmew32(0x1fb, 0xf002)  bit2 of LUT[1-4] is 1
+  ...
+  vmew32(0x1fb, 0xcxxx)  bitx of LUT[4-1] are 1100
+  ...
+  vmew32(0x1fb, 0x0fff)  bit4095 of LUT[1-4] is 0
+
+For class configuration:
+Trigger condition add. = (from H"101") i.e. (add[9..6] == 4) & (class_num = (add[5..0])
+Trigger condition data = trg[32..31] = scaled_bc[2..1],
+trg[30..29] = random_trg[2..1]
+trg[28..25] = l0_function[4..1]
+trg[24..1] = l0[24..1];
+
+i.e. when compared with earlier fiver. < 0xAC, 
+and using 31..0 bit numbering in L0_CONDITION register:
+
+bits    newMeaning                   meaning before   
+----    ----------                   --------------
+31..30  Select Scaled-down BC2..1    not used
+29..28  Select Random RND2..1        Select Scaled-down BC2..1
+27..24  Select L0F4..1               Select Rnd2..1 + L0f2..1
+23..0   Select L0 input 24..1        Select L0 input 24..1
+
+modifications:
+ctp (expert sw):
+- for tests if we have new version of L0 board:
+ctplib/notInCrate.c: l0AB() -return 0 if fi>0xAB
+ctpcfg.py: Ctpconfig.l0AB: None if fi>0xAB
+let's use firmAC keyword where modifications done for AC version
+
+GUI1:
+->Classes: add l0f3,4
+  - Ctpconfig.doCanvas ->Klass.doClass()
+  class Klass:
+    l0allinputs -changed to 32 
+    doInputs() -help texts
+
+GUI2:
+->Shared resources: add L0fun3,4
+  -ctpcfg:Ctpconfig.__init__(): 4 instances of AttrLUT added (l0fun3/4)
+  - MywLUT.expnames[] extended (from 4 to 12)
+  - L0fun3/4 reading: see Ctpconfig.readShared ->ctplib/shared.c
+    -prepared: getSharedL0f34() todo: usage of shared memory 
+       (because l0f34 are write-only) -also for symbolic definition,
+       which can be used in ctp-expert sw
+ 
+   vmeb/txtproc.py: started work on new (up to 12 inputs) log2tab()
+   -ok done
+8.8.2011
+  ctpcfg.py class MywLUT.updateHelp() added and used in
+  AttrLUT.updatevals() -i.e. after update with logical function, 
+  help shows the function and its translation
+
+ok -save into file: new line LUT34 +4096 chars) -preferable (like BCMASKS)? 
+9.8.
+Done: ctpcfg.py-> save2file() ctpcfg.writeShared(FILE cf)
+Intermediate storage: in python code, i.e.:
+readhw:       CTP -> shared(+compare to catch bugs) -> python
+writehw(ALL)  CTP <- shared                         <- python
+writehw(1LUT) CTP <- shared     <-   (1LUT only)    <- python
+AttrLUT-> txt: ctpcfg.writeShared()
+AttrLUT<- txt: ctpcfg.loadfile -> str2L0f34
+Done:10.8. 
+- see shared.c setSharedL034() and loadL0f34()
+- line 422 in ctpcfg.py (loadfile)
+Now read/write hw load/save file ok 
+-ok: modify shared.c to address real L0 (now debug with shorter,
+       with 5 instead of 12 variables for l0f34 -search below:
+       Debugging:
+
+3. Added 2 new fast counters for L0 function [3] and [4].
+--------------------------------------------------------
+They are fast counters 82 and 84.
+Fast_counter[82] = int_d was replaced by L0function[3].
+These are counters:
+l0intD at 97: l0ifun3
+and spare99 at 99: l0ifun4
+- changed in cnames.sorted2 and in 
+ok 8.2.2012: change .py according to DOC/counters.txt
+
+4. Added L0 function[3] to scope output A (bit 31).
+---------------------------------------------------
+ctp/scopeab.py modified: scopeA for L0 board:
+["GND","31"] -> ["L0f3","31"]
+
+5. All classes changed to iclass type
+------------------------------------
+Adress for input polarity group chaged from (H"16D" to H"172") to (H"141" to H"172")
+not valid -SEE HISTORY below...
+Modifications:
+1.
+ctp.h L0_INVERT   0x9500 
+      L0_INVERTac 0x9800
+checked/modified for L0_INVERT in *.ch: ctplib, ctp, ctp_proxy
+
+2. L2/L1_INVERT: is the same, i.e. available only for classes 45-50
+
+6. Added 8 BC_mask.
+------------------
+MASK_DATA (= H"79";) is changed from D[3..0](BC_MASK[4..1]) to D[11..0](BC_MASK[12..1])
+L0_VETO_n word(H”180” + n) changed to:
+D[20] Select All/Rare input
+D[19..8] Select BC Mask [12..1]
+D[7..4] Select P-F Protection [4..1]
+D[2..0] Cluster Code [2..0]
+-see L0_VETO in ctp.h
+
+
+#define MASK_DATA      0x91e4 was: 4Kwordx4, now is: 4Kwordx12
+see ctp.h
+modified:
+ctpcfg.py:
+    l0allvetos=18
+    AR_cabi,...
+
+C:
+getpClass():
+  if(l0AB()==0) {   //firmAC
+    mskbit2= (vmer32(L0_VETO+bb)&0x1fffff) | (mskbit1<<31);
+  } else {
+    mskbit2= (vmer32(L0_VETO+bb)&0xffff) | (mskbit1<<16);
+  };
+also: setClass, ctplib/ctp_proxy checked for L0_MASK, L0_VETO
+
+-------------------------------------------------------history:
+30.6.2011 (savannah -marian)
+I have fixed a bug with adresses.
+New adresses for input polarity group are from H"201" to H"232".
+The new version is "l0_logic_AD" and it is stored on pcalicebhm10.
+ctp.h: L0_INVERTac
+
+4.8.
+bug in ctp -> Classes for AB version: BC scaled-down 3x (should be only once)
+ok, fixed (ctpcfg.l0AB introduced)
+10.8.
+l0f34, All inverted classes, 12 bcmasks modifications for expert (ctp) sw done
+12.8.
+ctp seems ok with version AB
+- AD version loaded
+tests:
+
+
+ok:
+----
+- enable 12 masks in Shared resources panel
+  ok 11.8.2011
+- wider Class widget (right side)
+  ok 12.8.
+- inverted classes in ctp GUI, check load/save in .cfg file for all inverted
+  ok 12.8.
+- load/save in .cfg file for 12 masks
+  -instead of 1 hexa, print 3hexa digits in BCMASk line
+  ok 11.8.
+- hw read/write for 12masks, inverted (for L0F is done icheck if not dbg 
+  with 64 bits only!)
+  done 11.8
+- scope and counters
+  scope: done 22.8, still counters ok: to be changed: (97 + 99 see above)
+
+-------------------------------------------
+
+  Done: 22.8.:
+   l0.rbf -> l0_logic_verAB.rbf changed:
+[pcalicebhm10] /home/dl/root/usr/local/trigger/vd/vme/CFG/l0 > ln -sf l0_logic_verAD.rbf  l0.rbf
+[altri1] loadCTPfpga.bash load l0
+
+- parted (vme/TRG_DBED)   look for firmAC
+  - inverted, 
+    l0vetos modified (savepcfg), check for inverted classes: is not here anyhow
+    ok
+  - bcmasks, 
+    modif:
+    - SHRRSRCS[]
+    - l0f34
+    - TrgClass.__init__()
+              .getTXTbcms(),getBCMASKs(),showClass(),savepcfg() allrare,
+              .savercfg(),
+    - seems ok (23.8)             
+  - l0f4..1
+    - l0f3= LUT1 | LUT2,   l0f4= LUT3 | LUT4
+    - l0f1/2 = LUT1/2  (similar as before)
+    i.e. new l0f34 functionality means 2 new pairs of functions:
+      l0f3= l0f31 | l0f32
+      l0f4= l0f41 | l0f42
+      - the naming above started to be used in expert sw already 
+        (shared resources)
+      - ??? flexible or static?
+        -flexible: i.e. it is not known in advance where l0f1/2/3/4 will 
+         be loaded. Considerations:
+1. reserved names in VALID.CTPINPUTS: 
+  l0f*   for l0f1/2
+  l0[AB]* for l0f34. If simple,can be loaded to l0f12,
+         but this case is not taken into account -see below.
+  l0A -made from l0-inputs 1..12    -i.e. loaded to l0f31 or l0f41
+  l0B -made from l0-inputs 13..24   -i.e. loaded to l0f32 or l0f42
+  An example of definition in VALID.CTPINPUTS:
+  l0Afast 0VBA & 0SMB
+  l0Bfast 0MSL | 0PH0
+
+2. if l0fAxxx defined, l0fBxxx has to be defined also
+   or at least warning 'made 0' if one of them not defined.
+
+2A. Usage in VALID.DESCRIPTORS:
+   DFAST l0ffast 0TVX 0TCE
+
+2B. CTP .rcfg file (processed in offline sw):
+   l0fxxx  (l0Axxx) | (l0Bxxx)    or in case l0Bxxx is not defined:
+   l0fxxx l0Axxx
+   i.e. this appears in .rcfg for l0ffast defined above in VALID.CTPINPUTS:
+   l0ffast  (0VBA & 0SMB) | (0MSL | 0PH0)
+
+3. automatic transition of l0f -> l0AB (if later one available)
+
+4. automatic transition of l0f <- l0AB not considered -l0AB
+   is usually too complex and cannot be loaded to l0f12
+
+    Notes:
+    - modify VALID.CTPINPUTS: probably not necessary -any function allowed?
+      
+    - savepcfg
+    - TrgDescriptor.__init__()
+      
+
+  - load .pcfg ?: should use similar(the same?) routines ctp_proxy is using
+    
+- ctp_proxy
+  - .pcfg ok  
+       processed in in:
+         cfg2part.c: ParseFile())
+       loaded:
+  - loadHW: todo: (not loaded ! -needs to be done together with shared mem)
+    now: in ctp-expert l0f34 loaded this way:
+         -prepare lut34  (combine in python code)
+         -
+         -setSharedL0f34() -take 4096 chars from stdin 
+           setL0f34c(0,m4)
+    todo: similar in C:   todo: consult with marian if all words
+           have to be rewritten
+
+  - .rcfg ok: check for bcm12.l0f34
+     -check l0f3 used with more classes   ok
+     -check l0f3 in 2 diffrent partitions ok: see r7.rcfg ann r8.rcfg in 
+                   devdbg/SOLVED/ac_test
+    ok:      - BCM in .rcfg in case when class masked out
+    todo:      - also DESCRIPTORS,PF?
+    ok  : - max 5 classes in 1 row (class list in 5 columns)
+            see in parted: 1747 and 1859: del self.cls[indclsbut].clsbut
+            ok: not very nice (holes when deleting classes)
+------------------------------30.8.
+parted:
+input.l0ABdefinition introduced for l0f34 functions...
+4.9.2011
+seems parted is ok with l0f34 (including .pcfg and .rcfg): 
+- only 2 are allowed, automatic transition l0fsimple-> l0f34 not done yet
+- BCMASK12 ok
+- 50xl0 inverted ok
+12.9.
+started PF in parted -the same class to be used as with BCMASKS
+- see devdbg/pf_sw
+----------------------------------------------------------- 2012
+11.1.2012
+parted2011.py: -last parted used in 2011
+parted.py:     -downscaling (from Pb) in (not tested) todo
+                BCM_NUMBER=12 -let's use this one from now for AC tests
+11.1. goal: add L0F34 + 12 BCmasks functionality in ctp_proxy
+
+grepc L0_FUNCTION34:
+ctplib/shared.c:
+  void  setL0FUN34(w32* lut) -set LUTs in hw
+  int setL0f34c(char *m4) -set LUTs in hw (or set 0 or 1 in all bits)
+    -uses l0f34stat for storage
+  void getSharedL0f34(int lutout) 
+
+Debugging:
+---------
+- shared.c modified (only 5 variables instead of 12): 
+  Tpartition.h: LEN_l0f34=64
+- ctpcfg.py: class MywLUT:
+  expnames=["a","b","c","d","e","f"]
+  Ctpconfig.dbgbits=6 (12 for real version)
+-   L0F_NUMBER=6 in parted.py (normally it is 12)
+
+- VALID.CTPINPUTS, DESCRIPTORS:
+l0Atrd = 0SMB & 0BPC     a & e (inp1 & inp5)
+                  dbg(12->6): 0xaaaa0000aaaa0000
+l0Btrd = 0TVX            b     (inp14)
+                  dbg(12->6): 0xcccccccccccccccc
+l0Asimple = 0SMB         a
+l0Bsimple = 0SH2         a     inp13
+                  dbg(12->6): 0xaaaaaaaaaaaaaaaa
+
+these four l0f34 luts give:
+writeSharedishr:12 ['0xaaaa0000aaaa0000', 6, 12297641735351828480L]
+writeSharedishr:13 ['0xcccccccccccccccc', 6, 14757395258967641292L]
+writeSharedishr:14 ['0xaaaaaaaaaaaaaaaa', 6, 12297829382473034410L]
+writeSharedishr:15 ['0xaaaaaaaaaaaaaaaa', 6, 12297829382473034410L]
+writeShared:calut: f2d0f2d0f2d0f2d0e2c0e2c0e2c0e2c0f2d0f2d0f2d0f2d0e2c0e2c0e2c0e2c0
+i.e. in aj34.cfg:
+LUT34 f2d0f2d0f2d0f2d0e2c0e2c0e2c0e2c0f2d0f2d0f2d0f2d0e2c0e2c0e2c0e2c0
+combine34 result:
+      f2d0f2d0f2d0f2d0e2c0e2c0e2c0e2c0f2d0f2d0f2d0f2d0e2c0e2c0e2c0e2c0
+Dtrd l0ftrd 0VBC         (( 0SMB & 0BPC ) | ( 0TVX ) ) & 0VBC
+Dsimple l0fsimple
+
+i.e.:
+[pcalicebhm10] /home/dl/root/usr/local/trigger/vd/vmeb > ./txtproc.py 
+a&e ['a', 'b', 'c', 'd', 'e', 'f'] 0xaaaa0000aaaa0000
+b ['a', 'b', 'c', 'd', 'e', 'f'] 0xcccccccccccccccc
+
+.pcfg line L0F34:
+L0F34 0xaaa...0xccc  ( 0SMB & 0BPC) | ( 0TVX):0x......0x...:
+0     6       A    A                          A       A    A
+              |    |                          |       |    |
+              1032 |                          x       |    x+1026+1026
+                   2058                               x+1026
+
+--------------------------- end of Debugging: chapter
+in ctpcfg.py:
+getSharedL0f34(4) -> 4 LUTs as 4 lines to stdout
+setSharedL0f34()     set all 4 LUTs from 2+4096 chars string in stdin
+  ->setL0f34c()
+
+in ctp_proxy we need:
+- read 2+1024 chars string (from .pcfg) into Tpartition structure.
+  ok, see L0342Partition()
+
+- update one LUT in hw (i.e. using CPU memory where last writing was stored):
+  operation:
+  - update l0f34stat
+  - if(modified) update hw
+  todo: notyet done
+  
+TRBIF mallocated only in cfg2part.c:
+  BCMASK2Partition()
+  INTSEL2Partition() -probably never called? -removed
+  RBIF2Partition()
+  L0F342Partition() ok: adds L034 line (2x2 luts) to partition
+
+TRBIF structure changed:
+ixrbifdim +2
+ unsigned char *lut34;        // pointer to 2x2x1024 unsigned chars (lut[34]1+lut[34]2)
+
+------------------------------------------------------16.1.2011:
+.pcfg line L034 read in L0342Partition()
+ok:
+malloc(TRBIF -common routine. lut34 -allocated only in L0342Partition???
+Allocation of TRBIF. Strategy:
+  - allocTRBIF() (in Tpartition.c) to be used    
+  - TRBIF MUST be allocated in RBIF2Partition !
+
+- correct shared.c combine34...
+  ok. -at least the result is the same as from cptcfg
+
+
+actions with TRBIF should also process lut34use+lut34:
+  cleanTRBIF(grbif,0); ok for lut34 and BCM12
+  printTRBIF(grbif); ok for lut34 and BCM12
+
+check:
+int checkRBIFown(TRBIF *rbif, TKlas *klas) {    
+- called form ParseFile only: if resource used by class is also defined
+   ok: modified for AC
+  - modify l0condition2rbif() for AB/AC fi   ok
+
+applyMask: ok for L0F34 and BCM12 (16 bits in TRBIF.BCMASK now)
+checkRES() in Tpartition.c: -ok for L0F34, 
+  called only from applyMask to update shared resources for one partition
+  after throwing out detectors. 
+  ok:
+  -check if resources released correctly ( at least: l0f1..4,bcm1..12)
+   acm.partition, throw out SSD (mask 0x820 (all dets: 0x82))
+   -> releases 2 classes, Dtrd, bcm5
+  - see file acm.typescript (2 problems) 
+    l0f34 release ok
+    still problem with BCM8: ok fixed in applyMask
+   todo: 
+  -consider similar operations here and in checkpairRBIF
+ 
+void copyTRBIF(TRBIF *dst, TRBIF *src)    ok for BCM12 lut34
+
+grepc BCMASK c
+cfg2part.c: BCMASKN=12 introduced in Tpartition.h
+findBCMasks ok
+BCMASK2Partition ok
+cfg2part.c: BCM12 + l0f34 seems ok
+ctp_proxy.c:
+  checkBCMaskBits ok
+  copyBCMaskBits ok
+  checkBCMASKS ok
+ctp_proxy.c: BCM12 seems ok
+l034: grep RBIF
+  checkpairRBIF        
+   finditem2checkRBIF
+ok: -checkpairRBIF seems ok for l0f12, also l0f34 
+    see new func: allocateInhw in ctp_proxy.c
+    todo: implement PF and masks  in this function too (now treated separately)
+    ok: test l034 allocation for more partitions
+    acm with 0x4 (no daq) -both l034 used Dsimple + Dtrd
+    ac  with mask 0x80000 (no ssd) -i.e. Dsimple
+    ok  : the same as above, in acm Dsimple <->Dtrd reversed (i.e. reallocation
+          should happen):
+    Error: when acm loaded, l0f4 (Dsimple) was not reallocated (was
+           allocated in l0f3 in ac's partition class4)
+    Bug fixed in compRESVal (ctp_proxy.c): test now:
+    see devdbg/SOLVED/ac_test
+
+cumRBIF -just calls checkpairRBIF for each shared resource,
+called from:
+  checkRBIF
+  addRBIF2HW
+
+----------24.2. OK:a.partition
+Hardware name: CTP -----------
+OK bcmask9 don't care for all classes?
+  - should be don't care (red) for all but green for active class
+OK clas mask green for all?
+  - should be green only for active class
+
+An example checked with l0AB: 
+  - only 1 active class (with green mask bit)
+  - all the other classes green but mask bit is red (1)
+
+------ 25.2. ac.partition:
+DVBANOTC: 
+- class 45 allocated (should be any -inversion possible for all)
+OK fixed in addClasses2HW
+- input not inverted
+OK -seems L0_INVERTac is write-only (i.e. ctp cannot read back,
+    so bit is always green (should be light-green if inverted)
+    ok: in version AE
+BCM8: 
+- class bit set, but mask not loaded correctly
+OK -fixed (also in ctpcfg.py Ctpconfig.str2mask)
+
+------- 30.1.
+allocateInhw -dst2 variable added (??? lines for l0f12 vs. l0f34)
+              todo: what is this copy ment for?
+
+28.3.2012
+bug fixed (l0vetos 16th vs. 31st bit) fixed in clgroups.c
