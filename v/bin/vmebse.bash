@@ -8,7 +8,7 @@
 # 3. /usr/local/trigger/v    absolute (rdir= vdir )
 # Usefull for trigger@altri1:   production (/mnt) -> development (/usr):
 # . vmebse.bash swonly /usr/local/trigger/v 
-vdir='v'
+vdir=`pwd`     # before git: vdir='v'
 hname=`hostname -s`
 if [ -n "$1" ] ;then
   if [ "$1" = 'swonly' ] ;then
@@ -34,6 +34,7 @@ first=`echo $vdir |cut -b 1`
 #cannot be here if .bashrc invokes this! echo "hname:$hname vdir:$vdir"
 if [ "$first" = '/' ] ;then
   rdir=$vdir
+  ult=$vdir
 else 
   rdir=$ult/$vdir
 fi

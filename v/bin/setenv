@@ -1,11 +1,15 @@
 #!/bin/bash
+# this script has to be started from git top directory, i.e.:
+# cd trigger/devel ; . bin/setenv
+# cd trigger/stable ; . bin/setenv
 HN=`hostname -s`
 XY='-Y'
+ULT=`pwd`
 if [ $HN = 'alidcscom026' -o $HN = 'alidcscom027' -o $HN = 'pcalicebhm05' ] ;then
   export CCRFS=/data/ClientCommonRootFs
   export CLRFS=/data/ClientLocalRootFs
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
-  export ULT=$CCRFS/usr/local/trigger
+  #export ULT=$CCRFS/usr/local/trigger
   export tr26='trigger@alidcscom026'
   export tr188='trigger@alidcscom188'
   export tr521='trigger@alidcscom521'
@@ -13,7 +17,7 @@ elif [ $HN = 'pcalicebhm10' ] ;then
   export CCRFS=/home/dl/root
   export CLRFS=/home/dl/snapshot
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
-  export ULT=$CCRFS/usr/local/trigger
+  #export ULT=$CCRFS/usr/local/trigger
   export tr1='trigger@altri1'
   export tr2='trigger@altri2'
   export trp2='trigger@altri2'
@@ -21,7 +25,7 @@ elif [ $HN = 'alidcscom188' ] ;then
   export CCRFS=/data/dl/root
   export CLRFS=/data/dl/snapshot
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
-  export ULT=$CCRFS/usr/local/trigger
+  #export ULT=$CCRFS/usr/local/trigger
   export tr26='trigger@alidcscom026'
   export tr27='trigger@alidcscom027'
   export tr521='trigger@alidcscom521'
@@ -30,13 +34,13 @@ elif [ $HN = 'alidcscom188' ] ;then
   alias fanin=$ult/bin/fanin
   alias dcson='rdesktop -g1280x1024 alitrion001'
 elif [ $HN = 'tp' ] ;then
-  export ULT=/home/aj/triad
+  #export ULT=/home/aj/triad
 elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
   export CCRFS=''
   export CLRFS=''
-  export ULT=/usr/local/trigger
+  #export ULT=/usr/local/trigger
 else
-  export ULT=/usr/local/trigger
+  #export ULT=/usr/local/trigger
   export CCRFS=''
   export CLRFS=''
   cd ~/v/vme/WORK
