@@ -143,7 +143,7 @@ for pn in $names ;do
   elif [ $pn == 'ltu_proxy' ] ;then
     cd $cfdir ; ltp='vme/ltu_proxy'
     tar $RVF $distrfile $ltp/*.[ch] \
-      $ltp/Makefile* $ltp/make_new $ltp/linux/
+      $ltp/Makefile* $ltp/make_new $ltp/linux/ $ltp/noclasses/*
   elif [ $pn == 'ltudim' ] ;then
     cd $cfdir ; ltp='vme/ltudim'
     tar $RVF $distrfile $ltp/*.c $ltp/makefile* $ltp/linux/
