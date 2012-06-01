@@ -43,7 +43,7 @@ bits31..28: w/r counting type:
 /* Channel 42:
 >>> hex(0x20000+(4*(42-25)))
 '0x20044'
-/* Channel 22:
+   Channel 22:
 >>> hex(0x10000+(4*(22-0)))
 '0x10058'
 Reads RXCNTSTART content for given channel.

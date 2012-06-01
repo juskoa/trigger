@@ -33,8 +33,6 @@ elif [ $HN = 'alidcscom188' ] ;then
   alias miclock="$VMECFDIR/ttcmidaemons/miclock.py"
   alias fanin=$ult/bin/fanin
   alias dcson='rdesktop -g1280x1024 alitrion001'
-elif [ $HN = 'tp' ] ;then
-  #export ULT=/home/aj/triad
 elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
   export CCRFS=''
   export CLRFS=''

@@ -74,7 +74,7 @@ ssmbrowser.o: ssmbrowser.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssmbrowser.c
 ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssm.c
-ctp.o: ctp.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h $(VMEBDIR)/vmeblib/vmeblib.h shmaccess.h ssmctp.h ../ctp_proxy/Tpartition.h
+ctp.o: ctp.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctpcounters.h ctplib.h $(VMEBDIR)/vmeblib/vmeblib.h shmaccess.h ssmctp.h ../ctp_proxy/Tpartition.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ctp.c
 toobusy.o: toobusy.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h $(VMEBDIR)/vmeblib/vmeblib.h ssmctp.h ../ctp_proxy/Tpartition.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) toobusy.c

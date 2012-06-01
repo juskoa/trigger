@@ -9,11 +9,11 @@ endif
 
 all: $(S_OBJS)
 ifdef S_OBJS
-	-rm libltu.a
+	-rm -f libltu.a
 	ar r libltu.a *.o
 endif
 .o: .c 
 *.o: $(VMECFDIR)/ltu/ltu.h
 clean:
-	-rm *.o
+	-rm -f *.o
 

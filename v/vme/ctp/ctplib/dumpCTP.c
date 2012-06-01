@@ -14,11 +14,11 @@ MOst of the words but not all.
 */
 #define NCLASSES 50
 void dumpL0(FILE *f){
- w32 i;
+ //w32 i;
  w32 word,offset=0x9000;
  w32 word1,word2,word3;
  w32 rates[NCLASSES];
-w32 l0invAC; int minAC;
+w32 l0invAC; int i, minAC;
 if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44; };
 /* rates: */
 vmew32(RATE_MODE,1);   /* vme mode */
@@ -66,7 +66,7 @@ vmew32(RATE_MODE,0);   /* normal mode */
  // pf TO BE ADDED
 }
 void dumpL1(FILE *f){
- w32 i;
+ int i;
  w32 word,offset=0xa000;
  fprintf(f,"L1 BOARD====================================================\n");
  word=vmer32(offset+ADC_SELECT);
@@ -103,7 +103,7 @@ void dumpL1(FILE *f){
  // pf TO BE ADDED
 }
 void dumpL2(FILE *f){
- w32 i;
+ int i;
  w32 word,offset=0xb000;
  fprintf(f,"L2 BOARD====================================================\n");
  word=vmer32(offset+ADC_SELECT);

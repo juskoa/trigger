@@ -25,7 +25,7 @@ S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o \
 endif
 
 all: $(vmewro) $(S_OBJS)
-	-rm libvmeb.a
+	-rm -f libvmeb.a
 	ar rs libvmeb.a *.o
 #ifeq ($(notdir $(CURDIR)), linux_s)
 #	echo "dir1:" $(notdir $(CURDIR)) $(HOSTNAME)
@@ -42,4 +42,4 @@ bakery.o: bakery.c bakery.h
 .o: .c .h
 	$(CC) $(CFLAGS) -o $@ $<
 clean: 
-	rm *.o
+	rm -f *.o
