@@ -60,7 +60,7 @@ part.activeclasses dictionary for DAQdb update
 Version: 3   L0 firmware AC  (12 BCmasks, 50 inverted L0 inputs, complex l0f)
 23.2.2012
 VERSION: 4 (.rcfg)
-Version: 3 (.partition) just to be the same with .rcfg
+Version: 4 (.partition) just to be the same with .rcfg
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -1187,6 +1187,7 @@ class TrgClass:
     else:
       cluspart= mycluster.name
     self.updateClassName(cluspart,composeName=None) # self.clsnamepart[] only
+    cn_name=None   #self.clsname= None
     self.clanumlog= 0   # 1..50 assigned in TrgPartition.loadfile()
     #print "TrgClass:",self.clsname,pars
     #print "TrgClass:", self.clsname," trde:" ; if self.trde: self.trde.prt()
@@ -1204,7 +1205,8 @@ class TrgClass:
     for k in pars.keys():
       vv=pars[k]
       if k=='cn':
-        self.clsname= pars['cn']
+        cn_name= pars['cn']
+        #self.clsname= pars['cn']
         continue
       if k=='cg':
         self.classgroup= int(pars['cg'])
@@ -1265,8 +1267,12 @@ class TrgClass:
       #  continue
       self.trde= None
       PrintError("Bad TD:"+clstring); break
-    if self.clsname==None:
-       self.updateClassName(cluspart)
+    # leave None if not defined in .partition (from 3.6.2012):
+    if (cn_name!=None) and (cn_name!=self.getclsname()):
+      print "TrgClass:", cn_name, self.getclsname()
+      self.clsname=cn_name
+    #if self.clsname==None:
+    #   self.updateClassName(cluspart)
   def get_clsnamepart1(self, k):
     bcm= findSHR(k)
     if bcm.value==None: return None
@@ -1416,6 +1422,7 @@ class TrgClass:
              L0pr='0'         -> '' to output
              cn=tdsname       -> ''
     """
+    CLSNAME="skip"   # or oldway
     # prepare pfs, bcm*, allrare (3x empty or finished with ',')
     pfs= self.getTXTpfs()                     # pfs
     bcrnd= self.getTXTbcrnd(text='saving')
@@ -1437,10 +1444,13 @@ class TrgClass:
       trdename="None"
     else:
       trdename= self.trde.name
-    if trdename == self.clsname:
-      cn=''
-    else:
-      cn="cn=%s,"%self.clsname
+    if CLSNAME=="oldway":   # was till 3.6.2012:
+      cn="cn=%s,"%self.getclsname()
+    elif CLSNAME=="skip": # from 3.6.2012:
+      if self.clsname==None:
+        cn=''
+      else:
+        cn="cn=%s,"%self.clsname
     rctxt=trdename+"(%s%s%s%s%s%s%s"%(cn,l0pr,pfs,bcrnd,bcms,allrare,cg)
     if rctxt[-1]==',':
       rctxt=rctxt[:-1]+')'
@@ -1632,8 +1642,9 @@ Currently, these times [in seconds] are defined for groups 1..9:
     new (from 11.5.2012:
     return name built from clsnamepart[]
     """
-    if self.clsname==None: 
-      return self.trde.name   # DESCRIPTOR name if not exists
+    if self.clsname!=None: 
+      return self.clsname
+      #return self.trde.name   # DESCRIPTOR name if not exists
     #r= str(self.clsname)
     r= self.buildname()
     #print "getclsname:", clustpart
@@ -1812,6 +1823,7 @@ TopMenu->Show->classes'
     # myw.curry(self.delcls, self.cls[ixcls]))
     self.cls[ixcls].modButton()
   def refreshClassNames(self):
+    # cluster was renamed:
     for clsactive in self.cls:
       clsactive.updateClassName(self.name)
       if clsactive.clsbut:
@@ -3181,8 +3193,10 @@ Cluster -add new/delete active cluster
   def quitPart(self, minst, ix):
     sys.exit(0)
   def savePart(self, minst, ix):
+    #print "ix:",ix
     self.part.save(self.part.name)
   def savePartAs(self, minst, ix):
+    #print "ix:",ix
     self.satlw=Toplevel()
     self.satlw.title("Old part. name: "+self.part.name)
     self.saentry= myw.MywEntry(self.satlw, label="New name:",side=TOP,
