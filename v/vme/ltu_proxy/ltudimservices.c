@@ -699,7 +699,12 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength) ) {
 if(strcmp(msg,"ttcrxreset")==0) {
   TTCrxreset(); usleep(10000); TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxreset ok\n");
-  printf("rxreset ok\n"); fflush(stdout);
+  printf("ttcrxreset ok\n");
+} else if(strcmp(msg,"ttcrxreset fee")==0) {
+  int rc;
+  rc= TTCinit();
+  printf("ttcrxreset fee rc:%d\n", rc);
+  fflush(stdout);
 } else if(strcmp(msg,"ttcrxregs")==0) {
   TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxregs ok\n");

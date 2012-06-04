@@ -47,7 +47,8 @@ if(argc!=2) {
 };
 strcpy(DETNAME,argv[1]);
 strcpy(DNCMD,DETNAME); strcat(DNCMD, "/CMD");
-rc=execute(DNCMD, "ttcrxreset");
+rc=execute(DNCMD, "ttcrxreset");   // TTCrx reset + TTCrx regs init
+//rc=execute(DNCMD, "ttcrxreset fee");   // ttcrxreset + FEE reset
 if(rc==1) { 
   sleep(2);   // at least 1secs, if not, server does not see the request!
 } else {
