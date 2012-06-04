@@ -9,6 +9,8 @@ export dbctp=$TRIGGER_DIR/v/vme/CFG/ctp/DB
 export PYTHONPATH="$VMEBDIR"
 
 PARTITION_FILE="example"
-test -n "$1" && PARTITION_FILE="$1"
+R=""
+test -n "$1" && PARTITION_FILE="$1" 
+test -n "$2" && R="$2" 
 
-$VMECFDIR/TRG_DBED/parted.py $PARTITION_FILE
+$VMECFDIR/TRG_DBED/parted.py $PARTITION_FILE $R
