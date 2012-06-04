@@ -504,8 +504,7 @@ if(intboard == 2){   // trigger on int1
       };
     } else {         // we trigger on CTP inputs counter change
       getCountersBoard(trigboard,countermax,last,3); 
-      time=last[timeadr];
-      trig=last[counteroffset+inpnum];
+      time=last[timeadr]; trig=last[counteroffset+inpnum];
       trigcond= (trig != trigold);
     };
     //printf("inpnum bobr: %i %x\n",inpnum,(lhcpp.Byte54));
@@ -514,6 +513,8 @@ if(intboard == 2){   // trigger on int1
     if(trigcond){
       //beepni(); cicolino not used recently
       getSSMs(trigboard, inpnum,intboard,f);   // to be checked: what happens if inpnum=0?
+      getCountersBoard(trigboard,countermax,last,3); 
+      time=last[timeadr]; trig=last[counteroffset+inpnum];
       trigold=trig;
       //countersRead();
       //break;
