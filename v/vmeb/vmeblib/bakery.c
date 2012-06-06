@@ -1,11 +1,18 @@
 /* Leslie Lamport's bakery locking algorithm 
-if used in more processes, bakery should point to the memory 
-shared by them */
+If used in more processes, bakery object should point to the memory 
+shared by them.
+Testing: uncomment dic.hxx include and main() at the end.
+g++ -I/opt/dim/dim -lpthread -L/opt/dim/linux -ldim bakery.c linux_c/timeroutines.o -o /tmp/bakerytest.exe 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/dim/linux
+
+*/
 #include <stdio.h>
 #include <string.h>
 //#include <unistd.h>
 #include "vmeblib.h"
 #include "bakery.h"
+
+//#include <dic.hxx>
 
 #define true 1    
 #define false 0
@@ -82,4 +89,43 @@ for(i=0;i< bp->Maxn;i++){
   printf("customer%d: %d %d\n", i, bp->Entering[i], bp->Number[i]);
 };
 }
+/*
+#define Ncustomers 5
+Tbakery ccread[Ncustomers];
 
+void printText(char *text) {
+int it=0;
+while(text[it]!='\0') {
+  printf("%c", text[it]); usleep(100);
+  it++;
+}; //printf("\n");
+};
+void Thread(void *tag) {
+int ii,cycles=0;
+ii= *(int *)tag;
+while (true) {
+  char message[100];
+  //sprintf(message,"h%de%dr%de thread%d",cycles,cycles,ii,ii);
+  sprintf(message,"-%d:%d-", ii, cycles);
+  lockBakery(ccread,ii); // The critical section goes here...
+  printf("L%d",ii);
+  printText(message); usleep(1000000);
+  printf("U%d\n",ii);
+  unlockBakery(ccread, ii); // non-critical section...
+  //usleep(100);
+  cycles++; if(cycles>=20) break;
+};
+}
+
+int main() {
+int Thread1=0;
+int Thread2=1;
+
+// see ctp_proxy/ctp_main.c -for all bakeries allocation
+initBakery(ccread, "counters",Ncustomers);
+dim_start_thread(Thread, (void *)&Thread1);
+dim_start_thread(Thread, (void *)&Thread2);
+printf("stopping...\n");
+sleep(15);
+}
+*/
