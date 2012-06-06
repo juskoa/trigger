@@ -32,6 +32,11 @@ ifeq (ctp,ctp)
   LDFLAGS +=-Lctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
+ifeq (ctp,inputs)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-Lctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
+#  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
+endif
 ifeq (ctp,ADCI)
   LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
@@ -58,8 +63,8 @@ LDFLAGS +=-L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook $(MYSQLLIBS)
 endif
 LDFLAGS +=-lpthread
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
-#OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) ctp_cf.o ssmbrowser.o intint.o ctp.o ssm.o toobusy.o 
-OBJFILES=$(VMEBDIR)/cmdbase.o ctp_cf.o ssmbrowser.o intint.o ctp.o ssm.o toobusy.o 
+#OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) ctp_cf.o toobusy.o ctp.o ssm.o intint.o ssmbrowser.o 
+OBJFILES=$(VMEBDIR)/cmdbase.o ctp_cf.o toobusy.o ctp.o ssm.o intint.o ssmbrowser.o 
 ctp.exe: $(OBJFILES)
 	$(VMECC) $(OBJFILES) $(LDFLAGS) -lm -o ctp.exe
 ctp_cf.o: ctp_cf.c $(VMEBDIR)/vmeaistd.h
@@ -72,11 +77,11 @@ clean:
 	rm ctp_cf; rm ctp_cf.c; rm ctp_cf.py; rm ctp.make; rm *.o *.pyc *.exe
 ssmbrowser.o: ssmbrowser.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssmbrowser.c
-ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h
-	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssm.c
-ctp.o: ctp.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctpcounters.h ctplib.h $(VMEBDIR)/vmeblib/vmeblib.h shmaccess.h ssmctp.h ../ctp_proxy/Tpartition.h
-	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ctp.c
 toobusy.o: toobusy.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h $(VMEBDIR)/vmeblib/vmeblib.h ssmctp.h ../ctp_proxy/Tpartition.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) toobusy.c
+ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssm.c
 intint.o: intint.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h intint.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) intint.c
+ctp.o: ctp.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctpcounters.h ctplib.h $(VMEBDIR)/vmeblib/vmeblib.h shmaccess.h ssmctp.h ../ctp_proxy/Tpartition.h
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ctp.c

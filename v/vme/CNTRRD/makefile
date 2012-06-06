@@ -34,6 +34,7 @@ $(ODIR)/udpclient: $(ODIR)/udpclient.o
  -L$(VMEBDIR)/vmeblib/linux_s -lvmeb
 
 $(ODIR)/readctpc.o:$(SDIR)/readctpc.c $(SDIR)/common.h
+	-mkdir $(ODIR)
 	$(CC) $(CFLAGS) -o $@ $(INCS) $<
 $(ODIR)/readltuc.o:$(SDIR)/readltuc.c $(SDIR)/common.h
 	$(CC) $(CFLAGS) -o $@ $(INCS) $<

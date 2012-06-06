@@ -8,87 +8,85 @@ char BoardName[]="ctp";
 char BoardBaseAddress[11]="0x820000";
 char BoardSpaceLength[11]="0xd000";
 char BoardSpaceAddmod[11]="A24";
-char gettableSSM_usagehelp[]="return the names+modes of SSMs for present boards:\n\
-stdout:\n\
-name1 mode1 \n\
-name2 mode2 \n\
-...\n\
-mode -mode of the ssm or:\n\
-      _nomode if sms[ix].mode is epmty string\n\
-      notin  board is not in the crate\n\
-      nossm  if board or sms[ix].sm==NULL\n\
+char readMINIMAXSel_usagehelp[]="Reading the detector or cluster currently selected\n\
 ";
 
-Tpardesc getsfSSM_parameters[1]={
+Tpardesc writeMINIMAXSel_parameters[1]={
+{"word", 2}};
+char writeMINIMAXSel_usagehelp[]="Write the detector or cluster number to select\n\
+";
+
+char writeMINIMAXClear_usagehelp[]="Clear the readMINMAX\n\
+";
+
+char readMINMAX_usagehelp[]="Read the min and max busies since the last clear\n\
+";
+
+char readMINIMAXLimit_usagehelp[]="The current maximum busy in microseconds for busylong counter\n\
+";
+
+Tpardesc writeMINIMAXLimit_parameters[1]={
+{"word", 2}};
+char writeMINIMAXLimit_usagehelp[]="Set the maximum busy in microseconds for busylong counter\n\
+";
+
+Tpardesc readBUSYlong_parameters[1]={
+{"delay", 2}};
+char readBUSYlong_usagehelp[]="Enter the time you wish to wait between busylong reads in seconds and the counter\n\
+ will display how many times the detector selected has exceeded the limit written in that time.\n\
+";
+
+Tpardesc busytool_parameters[5]={
+{"rangemax", 1},
+{"rangemin", 1},
+{"stepsize", 1},
+{"sweeptime", 1},
+{"detector", 2}};
+char busytool_usagehelp[]="Sweep of busylong.\n\
+Rangemax is the maximum minimax_limit of the sweep in microseconds.\n\
+  -maximum average busy\n\
+Rangemin (try zero to start) is the first minimax_limit set.\n\
+Stepsize is size of the increase in MINIMAX_limit steps ie the bin size in microseconds.\n\
+The sweep time is the time in seconds spent waiting on each datapoint.\n\
+Detector is the bit number in MINIMAX_SELECT word:\n\
+0       CTP BUSY\n\
+1-24    Sub-detector 1 to 24 BUSY (Note 2)\n\
+(this is the 4th row in VALID.LTUs)\n\
+25-30   Cluster 1 to 6 BUSY (Note 3)\n\
+31       Test cluster BUSY\n\
+";
+
+char startRead3SSM_usagehelp[]="Do the following for l1, l2, int boards:\n\
+Start After 27ms, Read into ssm[] \n\
+Out: message issued if time between 1st board start and last board start\n\
+too high (>80us).\n\
+rc: 0: ok\n\
+   >0: error (printed to stdout)\n\
+";
+
+Tpardesc L2a2Interface_parameters[3]={
+{"boardl1", 1},
+{"boardl2", 1},
+{"boardint", 1}};
+char L2a2Interface_usagehelp[]=" *  analyze interface board data\n\
+ *  L2alist - list of CTP readout from L2 board\n\
+ *  INTlist - list of CTP readout and IR data from Interface board\n\
+-dump to $VMEWORKDIR/IntList.txt\n\
+in: 2 3 4  (l1 l2 int board index in ssm[])\n\
+Note: start startRead3SSM() before\n\
+";
+
+Tpardesc dumpIntSsm_parameters[1]={
 {"board", 1}};
-char getsfSSM_usagehelp[]="return line:\n\
-highest_syncflag n1 n2...\n\
-n1,n2 -numbers of items (indexes into sms[])\n\
+char dumpIntSsm_usagehelp[]=" * Dumps Interface board ssm. Word is in output if any bit nonzero.\n\
+ * SSM should be read before\n\
 ";
 
-char getsyncedSSM_usagehelp[]="return line:\n\
-highest_syncflag n1 n2...\n\
-n1,n2 -numbers of items (indexes into sms[])\n\
-";
-
-Tpardesc getsigSSM_parameters[4]={
-{"board", 1},
-{"bit", 1},
-{"frombc", 1},
-{"bits", 1}};
-char getsigSSM_usagehelp[]="Extract 1 signal to stdout:\n\
-Input:\n\
-board:   (0...) according to sms global array\n\
-bit:     SSM bit (0-31)\n\
-frombc: bc number. \n\
-         0 corresponds to word with address sms[board].offset\n\
-bits:    number of bits to be examined (but don't print more then\n\
-         102 lines)\n\
-Output:\n\
-value_of_the_1st_bit      or <0 if error\n\
-bit_number_for_which_value_changed\n\
-bit_number_for_which_value_changed\n\
-...\n\
-Errors:\n\
--1 -> required SSM not read\n\
-";
-
-Tpardesc finddifSSM_parameters[3]={
-{"board", 1},
-{"bit", 1},
-{"frombc", 1}};
-char finddifSSM_usagehelp[]="Find signal change.\n\
-Input:\n\
-board,bit,frombc: as in getsigSSM()\n\
-Output (on stdout):\n\
--1 -signal does not change (or memory not accessible)\n\
-n  - pointing to the last bit with the same value, next bit\n\
-     is different\n\
-";
-
-Tpardesc getoffsetSSM_parameters[1]={
+Tpardesc dumpL2amesage_parameters[1]={
 {"board", 1}};
-char getoffsetSSM_usagehelp[]="print sms[board].offset\n\
-";
-
-Tpardesc setoffsetSSM_parameters[2]={
-{"board", 1},
-{"newoffset", 1}};
-char setoffsetSSM_usagehelp[]="set sms[board].offset\n\
-";
-
-Tpardesc setmodeSSM_parameters[3]={
-{"board", 1},
-{"newmode", 3| 0x80000000},
-{"ltubase", 3| 0x80000000}};
-char setmodeSSM_usagehelp[]="set sms[board].mode, ltubase\n\
-board: 0..  index into sms[]\n\
-newmode: file name in CFG/ctp/ssmsigs without .sig suffix\n\
-ltubase: valid only for ltu (board>10)\n\
-";
-
-char printsms_usagehelp[]="set sms[board].offset\n\
-";
+char dumpL2amesage_usagehelp[]=" * get L2 message from L2 board\n\
+- dump something to file $VMEWORKDIR/L2amessageList.txt\n\
+ ";
 
 char dumpCTP_usagehelp[]="Dump CTP configuration.\n\
 L0 BOARD CLASSES section:\n\
@@ -660,6 +658,52 @@ char initmain_usagehelp[]="   rc: 0 -board ix is in the crate \n\
        1 -board ix is not in the crate\n\
 ";
 
+char readstatus_usagehelp[]="read QPLL* and TTCrx status bits.\n\
+RC: 0xTAB\n\
+T: bit 8. 1: TTCrx ok\n\
+A: [7..6] BC1 error,locked (i.e. 01 correct)\n\
+   [5..4] BC2\n\
+B: [3..2] BCref\n\
+   [1..0] BCmain\n\
+I.e. 0x155 is correct status of all 9 bits\n\
+     0x1aa error in both BC, was not locked. NEXT READING is 0x155 !\n\
+";
+
+Tpardesc getCounter_parameters[3]={
+{"board", 1},
+{"reladr", 1},
+{"customer", 1}};
+Tpardesc getCounters_parameters[3]={
+{"N", 1},
+{"accrual", 1},
+{"customer", 1}};
+Tpardesc clearCounters_parameters[1]={
+{"customer", 1}};
+char l0AB_usagehelp[]="rc: 0: if L0 borad firmware >0xAB\n\
+    boardversion if firmware <=0xAB \n\
+";
+
+Tpardesc DAQonoff_parameters[1]={
+{"daqon", 1}};
+char DAQonoff_usagehelp[]="daqon:0       ->daq active\n\
+daqon:0xb     ->daq off (i.e. produce triggers in spite of DDL red diode \n\
+                on INT board is on \n\
+daqon: other  -> show current status.\n\
+NOTE about LEDs on INT board:\n\
+DDL interface: \n\
+  green:DDL line ready, data not read out \n\
+  flashing green: DDL line ready, data are read out\n\
+  flashing orange: data are read out, backpressure is sometimes active\n\
+                   (DAQ is not able to read everything)\n\
+upper DDL LED on INT board fron panel:\n\
+  red: INT is raising CTPBUSY on backlplane, because of full DDL buffers\n\
+INT_DDL_EMU word in normal mode (i.e. DAQ active):\n\
+     DDLfiLF  DDLfiBEN  DDLfiDIR\n\
+0x20:      0         1         0  data can't be sent (DDL not enabled from DIU)\n\
+0x30:      0         1         1  data sent\n\
+0x70:      1         1         1  data not sent (backpressure)\n\
+";
+
 Tpardesc getswSSM_parameters[1]={
 {"board", 1}};
 char getswSSM_usagehelp[]="-------------------------------------------------------------- getswSSM() \n\
@@ -827,141 +871,100 @@ filename: 'WORK/name.dmp'\n\
 compress: 0: old way 1; new way i.e. compressed\n\
 ";
 
-char readMINIMAXSel_usagehelp[]="Reading the detector or cluster currently selected\n\
+char gettableSSM_usagehelp[]="return the names+modes of SSMs for present boards:\n\
+stdout:\n\
+name1 mode1 \n\
+name2 mode2 \n\
+...\n\
+mode -mode of the ssm or:\n\
+      _nomode if sms[ix].mode is epmty string\n\
+      notin  board is not in the crate\n\
+      nossm  if board or sms[ix].sm==NULL\n\
 ";
 
-Tpardesc writeMINIMAXSel_parameters[1]={
-{"word", 2}};
-char writeMINIMAXSel_usagehelp[]="Write the detector or cluster number to select\n\
+Tpardesc getsfSSM_parameters[1]={
+{"board", 1}};
+char getsfSSM_usagehelp[]="return line:\n\
+highest_syncflag n1 n2...\n\
+n1,n2 -numbers of items (indexes into sms[])\n\
 ";
 
-char writeMINIMAXClear_usagehelp[]="Clear the readMINMAX\n\
+char getsyncedSSM_usagehelp[]="return line:\n\
+highest_syncflag n1 n2...\n\
+n1,n2 -numbers of items (indexes into sms[])\n\
 ";
 
-char readMINMAX_usagehelp[]="Read the min and max busies since the last clear\n\
-";
-
-char readMINIMAXLimit_usagehelp[]="The current maximum busy in microseconds for busylong counter\n\
-";
-
-Tpardesc writeMINIMAXLimit_parameters[1]={
-{"word", 2}};
-char writeMINIMAXLimit_usagehelp[]="Set the maximum busy in microseconds for busylong counter\n\
-";
-
-Tpardesc readBUSYlong_parameters[1]={
-{"delay", 2}};
-char readBUSYlong_usagehelp[]="Enter the time you wish to wait between busylong reads in seconds and the counter\n\
- will display how many times the detector selected has exceeded the limit written in that time.\n\
-";
-
-Tpardesc busytool_parameters[5]={
-{"rangemax", 1},
-{"rangemin", 1},
-{"stepsize", 1},
-{"sweeptime", 1},
-{"detector", 2}};
-char busytool_usagehelp[]="Sweep of busylong.\n\
-Rangemax is the maximum minimax_limit of the sweep in microseconds.\n\
-  -maximum average busy\n\
-Rangemin (try zero to start) is the first minimax_limit set.\n\
-Stepsize is size of the increase in MINIMAX_limit steps ie the bin size in microseconds.\n\
-The sweep time is the time in seconds spent waiting on each datapoint.\n\
-Detector is the bit number in MINIMAX_SELECT word:\n\
-0       CTP BUSY\n\
-1-24    Sub-detector 1 to 24 BUSY (Note 2)\n\
-(this is the 4th row in VALID.LTUs)\n\
-25-30   Cluster 1 to 6 BUSY (Note 3)\n\
-31       Test cluster BUSY\n\
-";
-
-char readstatus_usagehelp[]="read QPLL* and TTCrx status bits.\n\
-RC: 0xTAB\n\
-T: bit 8. 1: TTCrx ok\n\
-A: [7..6] BC1 error,locked (i.e. 01 correct)\n\
-   [5..4] BC2\n\
-B: [3..2] BCref\n\
-   [1..0] BCmain\n\
-I.e. 0x155 is correct status of all 9 bits\n\
-     0x1aa error in both BC, was not locked. NEXT READING is 0x155 !\n\
-";
-
-Tpardesc getCounter_parameters[3]={
+Tpardesc getsigSSM_parameters[4]={
 {"board", 1},
-{"reladr", 1},
-{"customer", 1}};
-Tpardesc getCounters_parameters[3]={
-{"N", 1},
-{"accrual", 1},
-{"customer", 1}};
-Tpardesc clearCounters_parameters[1]={
-{"customer", 1}};
-char l0AB_usagehelp[]="rc: 0: if L0 borad firmware >0xAB\n\
-    boardversion if firmware <=0xAB \n\
+{"bit", 1},
+{"frombc", 1},
+{"bits", 1}};
+char getsigSSM_usagehelp[]="Extract 1 signal to stdout:\n\
+Input:\n\
+board:   (0...) according to sms global array\n\
+bit:     SSM bit (0-31)\n\
+frombc: bc number. \n\
+         0 corresponds to word with address sms[board].offset\n\
+bits:    number of bits to be examined (but don't print more then\n\
+         102 lines)\n\
+Output:\n\
+value_of_the_1st_bit      or <0 if error\n\
+bit_number_for_which_value_changed\n\
+bit_number_for_which_value_changed\n\
+...\n\
+Errors:\n\
+-1 -> required SSM not read\n\
 ";
 
-Tpardesc DAQonoff_parameters[1]={
-{"daqon", 1}};
-char DAQonoff_usagehelp[]="daqon:0       ->daq active\n\
-daqon:0xb     ->daq off (i.e. produce triggers in spite of DDL red diode \n\
-                on INT board is on \n\
-daqon: other  -> show current status.\n\
-NOTE about LEDs on INT board:\n\
-DDL interface: \n\
-  green:DDL line ready, data not read out \n\
-  flashing green: DDL line ready, data are read out\n\
-  flashing orange: data are read out, backpressure is sometimes active\n\
-                   (DAQ is not able to read everything)\n\
-upper DDL LED on INT board fron panel:\n\
-  red: INT is raising CTPBUSY on backlplane, because of full DDL buffers\n\
-INT_DDL_EMU word in normal mode (i.e. DAQ active):\n\
-     DDLfiLF  DDLfiBEN  DDLfiDIR\n\
-0x20:      0         1         0  data can't be sent (DDL not enabled from DIU)\n\
-0x30:      0         1         1  data sent\n\
-0x70:      1         1         1  data not sent (backpressure)\n\
+Tpardesc finddifSSM_parameters[3]={
+{"board", 1},
+{"bit", 1},
+{"frombc", 1}};
+char finddifSSM_usagehelp[]="Find signal change.\n\
+Input:\n\
+board,bit,frombc: as in getsigSSM()\n\
+Output (on stdout):\n\
+-1 -signal does not change (or memory not accessible)\n\
+n  - pointing to the last bit with the same value, next bit\n\
+     is different\n\
 ";
 
-char startRead3SSM_usagehelp[]="Do the following for l1, l2, int boards:\n\
-Start After 27ms, Read into ssm[] \n\
-Out: message issued if time between 1st board start and last board start\n\
-too high (>80us).\n\
-rc: 0: ok\n\
-   >0: error (printed to stdout)\n\
-";
-
-Tpardesc L2a2Interface_parameters[3]={
-{"boardl1", 1},
-{"boardl2", 1},
-{"boardint", 1}};
-char L2a2Interface_usagehelp[]=" *  analyze interface board data\n\
- *  L2alist - list of CTP readout from L2 board\n\
- *  INTlist - list of CTP readout and IR data from Interface board\n\
--dump to $VMEWORKDIR/IntList.txt\n\
-in: 2 3 4  (l1 l2 int board index in ssm[])\n\
-Note: start startRead3SSM() before\n\
-";
-
-Tpardesc dumpIntSsm_parameters[1]={
+Tpardesc getoffsetSSM_parameters[1]={
 {"board", 1}};
-char dumpIntSsm_usagehelp[]=" * Dumps Interface board ssm. Word is in output if any bit nonzero.\n\
- * SSM should be read before\n\
+char getoffsetSSM_usagehelp[]="print sms[board].offset\n\
 ";
 
-Tpardesc dumpL2amesage_parameters[1]={
-{"board", 1}};
-char dumpL2amesage_usagehelp[]=" * get L2 message from L2 board\n\
-- dump something to file $VMEWORKDIR/L2amessageList.txt\n\
- ";
+Tpardesc setoffsetSSM_parameters[2]={
+{"board", 1},
+{"newoffset", 1}};
+char setoffsetSSM_usagehelp[]="set sms[board].offset\n\
+";
 
-void gettableSSM();
-void getsfSSM(int board);
-void getsyncedSSM();
-void getsigSSM(int board, int bit, int frombc, int bits);
-void finddifSSM(int board, int bit, int frombc);
-void getoffsetSSM(int board);
-void setoffsetSSM(int board, int newoffset);
-void setmodeSSM(int board, char *newmode, char *ltubase);
-void printsms();
+Tpardesc setmodeSSM_parameters[3]={
+{"board", 1},
+{"newmode", 3| 0x80000000},
+{"ltubase", 3| 0x80000000}};
+char setmodeSSM_usagehelp[]="set sms[board].mode, ltubase\n\
+board: 0..  index into sms[]\n\
+newmode: file name in CFG/ctp/ssmsigs without .sig suffix\n\
+ltubase: valid only for ltu (board>10)\n\
+";
+
+char printsms_usagehelp[]="set sms[board].offset\n\
+";
+
+void readMINIMAXSel();
+void writeMINIMAXSel(w32 word);
+void writeMINIMAXClear();
+void readMINMAX();
+void readMINIMAXLimit();
+void writeMINIMAXLimit(w32 word);
+void readBUSYlong(w32 delay);
+int busytool(int rangemax, int rangemin, int stepsize, int sweeptime, w32 detector);
+int startRead3SSM();
+int L2a2Interface(int boardl1, int boardl2, int boardint);
+int dumpIntSsm(int board);
+int dumpL2amesage(int board);
 void dumpCTP();
 void getPF(int ix);
 void getPFc(int ix, int circ);
@@ -1043,6 +1046,12 @@ void micsleep(int mics);
 void RNDsync(int mask);
 void changeTL2(int tl2);
 void initmain();
+w32 readstatus();
+w32 getCounter(int board, int reladr, int customer);
+void getCounters(int N, int accrual, int customer);
+void clearCounters(int customer);
+int l0AB();
+void DAQonoff(int daqon);
 w32 getswSSM(int board);
 void setsmssw(int ix, char *newmode);
 int setomSSM(int board, w32 opmo);
@@ -1055,24 +1064,15 @@ int dumpSSM(int board, char *fname);
 int dumpssm_compress(int board, char *fname, int compress);
 void printSSM(int board, int fromadr);
 int readSSMDump_compress(int board, char *filename, int compress);
-void readMINIMAXSel();
-void writeMINIMAXSel(w32 word);
-void writeMINIMAXClear();
-void readMINMAX();
-void readMINIMAXLimit();
-void writeMINIMAXLimit(w32 word);
-void readBUSYlong(w32 delay);
-int busytool(int rangemax, int rangemin, int stepsize, int sweeptime, w32 detector);
-w32 readstatus();
-w32 getCounter(int board, int reladr, int customer);
-void getCounters(int N, int accrual, int customer);
-void clearCounters(int customer);
-int l0AB();
-void DAQonoff(int daqon);
-int startRead3SSM();
-int L2a2Interface(int boardl1, int boardl2, int boardint);
-int dumpIntSsm(int board);
-int dumpL2amesage(int board);
+void gettableSSM();
+void getsfSSM(int board);
+void getsyncedSSM();
+void getsigSSM(int board, int bit, int frombc, int bits);
+void finddifSSM(int board, int bit, int frombc);
+void getoffsetSSM(int board);
+void setoffsetSSM(int board, int newoffset);
+void setmodeSSM(int board, char *newmode, char *ltubase);
+void printsms();
 
 int nnames=247;
 Tname allnames[MAXNAMES]={
@@ -1191,15 +1191,18 @@ Tname allnames[MAXNAMES]={
 {"INT_TCSET", tVMEADR, NULL, 0, 0.0, NULL, 0xc400, NULL},
 {"INT_TEST_COUNT", tVMEADR, NULL, 0, 0.0, NULL, 0xc404, NULL},
 {"INT_BCOFFSET", tVMEADR, NULL, 0, 0.0, NULL, 0xc5a8, NULL},
-{"gettableSSM", tFUN+0x400, (funcall)gettableSSM, 0xdead, 0.0, NULL, 0, gettableSSM_usagehelp},
-{"getsfSSM", tFUN+0x400, (funcall)getsfSSM, 0xdead, 0.0, getsfSSM_parameters, 1, getsfSSM_usagehelp},
-{"getsyncedSSM", tFUN+0x400, (funcall)getsyncedSSM, 0xdead, 0.0, NULL, 0, getsyncedSSM_usagehelp},
-{"getsigSSM", tFUN+0x400, (funcall)getsigSSM, 0xdead, 0.0, getsigSSM_parameters, 4, getsigSSM_usagehelp},
-{"finddifSSM", tFUN+0x400, (funcall)finddifSSM, 0xdead, 0.0, finddifSSM_parameters, 3, finddifSSM_usagehelp},
-{"getoffsetSSM", tFUN+0x400, (funcall)getoffsetSSM, 0xdead, 0.0, getoffsetSSM_parameters, 1, getoffsetSSM_usagehelp},
-{"setoffsetSSM", tFUN+0x400, (funcall)setoffsetSSM, 0xdead, 0.0, setoffsetSSM_parameters, 2, setoffsetSSM_usagehelp},
-{"setmodeSSM", tFUN+0x400, (funcall)setmodeSSM, 0xdead, 0.0, setmodeSSM_parameters, 3, setmodeSSM_usagehelp},
-{"printsms", tFUN+0x400, (funcall)printsms, 0xdead, 0.0, NULL, 0, printsms_usagehelp},
+{"readMINIMAXSel", tFUN+0x400, (funcall)readMINIMAXSel, 0xdead, 0.0, NULL, 0, readMINIMAXSel_usagehelp},
+{"writeMINIMAXSel", tFUN+0x400, (funcall)writeMINIMAXSel, 0xdead, 0.0, writeMINIMAXSel_parameters, 1, writeMINIMAXSel_usagehelp},
+{"writeMINIMAXClear", tFUN+0x400, (funcall)writeMINIMAXClear, 0xdead, 0.0, NULL, 0, writeMINIMAXClear_usagehelp},
+{"readMINMAX", tFUN+0x400, (funcall)readMINMAX, 0xdead, 0.0, NULL, 0, readMINMAX_usagehelp},
+{"readMINIMAXLimit", tFUN+0x400, (funcall)readMINIMAXLimit, 0xdead, 0.0, NULL, 0, readMINIMAXLimit_usagehelp},
+{"writeMINIMAXLimit", tFUN+0x400, (funcall)writeMINIMAXLimit, 0xdead, 0.0, writeMINIMAXLimit_parameters, 1, writeMINIMAXLimit_usagehelp},
+{"readBUSYlong", tFUN+0x400, (funcall)readBUSYlong, 0xdead, 0.0, readBUSYlong_parameters, 1, readBUSYlong_usagehelp},
+{"busytool", tFUN+0x200, (funcall)busytool, 0xdead, 0.0, busytool_parameters, 5, busytool_usagehelp},
+{"startRead3SSM", tFUN+0x200, (funcall)startRead3SSM, 0xdead, 0.0, NULL, 0, startRead3SSM_usagehelp},
+{"L2a2Interface", tFUN+0x200, (funcall)L2a2Interface, 0xdead, 0.0, L2a2Interface_parameters, 3, L2a2Interface_usagehelp},
+{"dumpIntSsm", tFUN+0x200, (funcall)dumpIntSsm, 0xdead, 0.0, dumpIntSsm_parameters, 1, dumpIntSsm_usagehelp},
+{"dumpL2amesage", tFUN+0x200, (funcall)dumpL2amesage, 0xdead, 0.0, dumpL2amesage_parameters, 1, dumpL2amesage_usagehelp},
 {"dumpCTP", tFUN+0x400, (funcall)dumpCTP, 0xdead, 0.0, NULL, 0, dumpCTP_usagehelp},
 {"getPF", tFUN+0x400, (funcall)getPF, 0xdead, 0.0, getPF_parameters, 1, getPF_usagehelp},
 {"getPFc", tFUN+0x400, (funcall)getPFc, 0xdead, 0.0, getPFc_parameters, 2, getPFc_usagehelp},
@@ -1293,6 +1296,12 @@ Tname allnames[MAXNAMES]={
 {"RNDsync", tFUN+0x400, (funcall)RNDsync, 0xdead, 0.0, RNDsync_parameters, 1, RNDsync_usagehelp},
 {"changeTL2", tFUN+0x400, (funcall)changeTL2, 0xdead, 0.0, changeTL2_parameters, 1, changeTL2_usagehelp},
 {"initmain", tFUN+0x400, (funcall)initmain, 0xdead, 0.0, NULL, 0, initmain_usagehelp},
+{"readstatus", tFUN+0x100, (funcall)readstatus, 0xdead, 0.0, NULL, 0, readstatus_usagehelp},
+{"getCounter", tFUN+0x100, (funcall)getCounter, 0xdead, 0.0, getCounter_parameters, 3, NULL},
+{"getCounters", tFUN+0x400, (funcall)getCounters, 0xdead, 0.0, getCounters_parameters, 3, NULL},
+{"clearCounters", tFUN+0x400, (funcall)clearCounters, 0xdead, 0.0, clearCounters_parameters, 1, NULL},
+{"l0AB", tFUN+0x200, (funcall)l0AB, 0xdead, 0.0, NULL, 0, l0AB_usagehelp},
+{"DAQonoff", tFUN+0x400, (funcall)DAQonoff, 0xdead, 0.0, DAQonoff_parameters, 1, DAQonoff_usagehelp},
 {"getswSSM", tFUN+0x100, (funcall)getswSSM, 0xdead, 0.0, getswSSM_parameters, 1, getswSSM_usagehelp},
 {"setsmssw", tFUN+0x400, (funcall)setsmssw, 0xdead, 0.0, setsmssw_parameters, 2, setsmssw_usagehelp},
 {"setomSSM", tFUN+0x200, (funcall)setomSSM, 0xdead, 0.0, setomSSM_parameters, 2, setomSSM_usagehelp},
@@ -1305,21 +1314,12 @@ Tname allnames[MAXNAMES]={
 {"dumpssm_compress", tFUN+0x200, (funcall)dumpssm_compress, 0xdead, 0.0, dumpssm_compress_parameters, 3, dumpssm_compress_usagehelp},
 {"printSSM", tFUN+0x400, (funcall)printSSM, 0xdead, 0.0, printSSM_parameters, 2, printSSM_usagehelp},
 {"readSSMDump_compress", tFUN+0x200, (funcall)readSSMDump_compress, 0xdead, 0.0, readSSMDump_compress_parameters, 3, readSSMDump_compress_usagehelp},
-{"readMINIMAXSel", tFUN+0x400, (funcall)readMINIMAXSel, 0xdead, 0.0, NULL, 0, readMINIMAXSel_usagehelp},
-{"writeMINIMAXSel", tFUN+0x400, (funcall)writeMINIMAXSel, 0xdead, 0.0, writeMINIMAXSel_parameters, 1, writeMINIMAXSel_usagehelp},
-{"writeMINIMAXClear", tFUN+0x400, (funcall)writeMINIMAXClear, 0xdead, 0.0, NULL, 0, writeMINIMAXClear_usagehelp},
-{"readMINMAX", tFUN+0x400, (funcall)readMINMAX, 0xdead, 0.0, NULL, 0, readMINMAX_usagehelp},
-{"readMINIMAXLimit", tFUN+0x400, (funcall)readMINIMAXLimit, 0xdead, 0.0, NULL, 0, readMINIMAXLimit_usagehelp},
-{"writeMINIMAXLimit", tFUN+0x400, (funcall)writeMINIMAXLimit, 0xdead, 0.0, writeMINIMAXLimit_parameters, 1, writeMINIMAXLimit_usagehelp},
-{"readBUSYlong", tFUN+0x400, (funcall)readBUSYlong, 0xdead, 0.0, readBUSYlong_parameters, 1, readBUSYlong_usagehelp},
-{"busytool", tFUN+0x200, (funcall)busytool, 0xdead, 0.0, busytool_parameters, 5, busytool_usagehelp},
-{"readstatus", tFUN+0x100, (funcall)readstatus, 0xdead, 0.0, NULL, 0, readstatus_usagehelp},
-{"getCounter", tFUN+0x100, (funcall)getCounter, 0xdead, 0.0, getCounter_parameters, 3, NULL},
-{"getCounters", tFUN+0x400, (funcall)getCounters, 0xdead, 0.0, getCounters_parameters, 3, NULL},
-{"clearCounters", tFUN+0x400, (funcall)clearCounters, 0xdead, 0.0, clearCounters_parameters, 1, NULL},
-{"l0AB", tFUN+0x200, (funcall)l0AB, 0xdead, 0.0, NULL, 0, l0AB_usagehelp},
-{"DAQonoff", tFUN+0x400, (funcall)DAQonoff, 0xdead, 0.0, DAQonoff_parameters, 1, DAQonoff_usagehelp},
-{"startRead3SSM", tFUN+0x200, (funcall)startRead3SSM, 0xdead, 0.0, NULL, 0, startRead3SSM_usagehelp},
-{"L2a2Interface", tFUN+0x200, (funcall)L2a2Interface, 0xdead, 0.0, L2a2Interface_parameters, 3, L2a2Interface_usagehelp},
-{"dumpIntSsm", tFUN+0x200, (funcall)dumpIntSsm, 0xdead, 0.0, dumpIntSsm_parameters, 1, dumpIntSsm_usagehelp},
-{"dumpL2amesage", tFUN+0x200, (funcall)dumpL2amesage, 0xdead, 0.0, dumpL2amesage_parameters, 1, dumpL2amesage_usagehelp}};
+{"gettableSSM", tFUN+0x400, (funcall)gettableSSM, 0xdead, 0.0, NULL, 0, gettableSSM_usagehelp},
+{"getsfSSM", tFUN+0x400, (funcall)getsfSSM, 0xdead, 0.0, getsfSSM_parameters, 1, getsfSSM_usagehelp},
+{"getsyncedSSM", tFUN+0x400, (funcall)getsyncedSSM, 0xdead, 0.0, NULL, 0, getsyncedSSM_usagehelp},
+{"getsigSSM", tFUN+0x400, (funcall)getsigSSM, 0xdead, 0.0, getsigSSM_parameters, 4, getsigSSM_usagehelp},
+{"finddifSSM", tFUN+0x400, (funcall)finddifSSM, 0xdead, 0.0, finddifSSM_parameters, 3, finddifSSM_usagehelp},
+{"getoffsetSSM", tFUN+0x400, (funcall)getoffsetSSM, 0xdead, 0.0, getoffsetSSM_parameters, 1, getoffsetSSM_usagehelp},
+{"setoffsetSSM", tFUN+0x400, (funcall)setoffsetSSM, 0xdead, 0.0, setoffsetSSM_parameters, 2, setoffsetSSM_usagehelp},
+{"setmodeSSM", tFUN+0x400, (funcall)setmodeSSM, 0xdead, 0.0, setmodeSSM_parameters, 3, setmodeSSM_usagehelp},
+{"printsms", tFUN+0x400, (funcall)printsms, 0xdead, 0.0, NULL, 0, printsms_usagehelp}};

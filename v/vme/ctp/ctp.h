@@ -323,6 +323,59 @@ Tctpboards ctpboards[NCTPBOARDS]={
 #else
 extern Tctpboards ctpboards[NCTPBOARDS];
 #endif
+/* all FGROUP declarations are in ctp_expert.h from 5.6.2012 */
+
+/*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
+int setL0f34c(int lutn, char *m4);
+void combine34(w8 *lut34, char *m4);
+Tklas *getpClass(int klas);
+
+int getTL1();
+int getTL2();
+int calcPFablut(int deltathalf, w32* ablut);
+
+void setTimeParsDB(int TL1, int TL2, int TBCL0, int CALIBRATION_BC, int orbl);
+w32 calcFO_DELAY_L1CLST();
+w32 calcFO_FILTER_L1();
+w32 calcBUSY_L0L1DEADTIME();
+w32 calcPFisd(int level);
+w32 calcL1_DELAY_L0();
+w32 calcL2_DELAY_L1();
+w32 calcL0_BCOFFSET();
+w32 calcL2_BCOFFSET();
+w32 calcINT_BCOFFSET();
+
+void readBICfile();
+void checkCTP();   // configure
+void initCTP();    // initialise system parameters
+int softLEDimplemented(int board);
+w32 dodif32(w32 before, w32 now);    // substract 2 counters
+
+//FILE *openFile(char *fname); is in ctplib.h
+int getINT12fromcfg(char *int1, char *int2, int max12);
+void readTables();
+int loadcheckctpcfg();
+int Detector2Connector(int idet,int *ifoM1,int *iconnectorM1);
+
+void printLTUname(int fo, int foc);
+w32 calcOverlap(w32 *bsyclusts);
+
+int ReadTemp(int ix);
+void vme2volt(w32 vme );
+w32 i2cread(int channel, int branch);
+int i2cgetaddr(int board0_34, int *channel, int *branch);
+
+int getEdgeDelayDB(int level, int input, int *edge, int *delay);
+void setEdge(int board,w32 input,w32 edge);
+int getedge(int board,w32 input,w32 *del);
+
+void loadBCmasks(w16 *bcmasks);
+
+// Phase measurement tools 
+int readadc(int board);
+int readadc_s(int board);
+void checkPhases(char *line);
+
 /*FGROUP SimpleTests
 Dump CTP configuration.
 L0 BOARD CLASSES section:
@@ -378,11 +431,9 @@ void getShared();
 get 4096 hexa chars each containing i-bit of LUT4-1. i:0..4095
 */
 void getSharedL0f34(int lutout);
-int setL0f34c(int lutn, char *m4);
 /*FGROUP L0
 4096 hexa chars from stdin will be loaded to LUT31 32 41 42*/
 void setSharedL0f34();
-void combine34(w8 *lut34, char *m4);
 
 /*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
@@ -406,43 +457,12 @@ void unloadRun(w32 runnumber);
 /*FGROUP DbgNewFW */
 void printL0FUN34();
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
-/*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
 /*FGROUP Common */
 int notInCrate(int ix);
-Tklas *getpClass(int klas);
-
-int getTL1();
-int getTL2();
-int calcPFablut(int deltathalf, w32* ablut);
-
-void setTimeParsDB(int TL1, int TL2, int TBCL0, int CALIBRATION_BC, int orbl);
-w32 calcFO_DELAY_L1CLST();
-w32 calcFO_FILTER_L1();
-w32 calcBUSY_L0L1DEADTIME();
-w32 calcPFisd(int level);
-w32 calcL1_DELAY_L0();
-w32 calcL2_DELAY_L1();
-w32 calcL0_BCOFFSET();
-w32 calcL2_BCOFFSET();
-w32 calcINT_BCOFFSET();
-
-void readBICfile();
-void checkCTP();   // configure
-void initCTP();    // initialise system parameters
-int softLEDimplemented(int board);
-w32 dodif32(w32 before, w32 now);    // substract 2 counters
-
-//FILE *openFile(char *fname); is in ctplib.h
-int getINT12fromcfg(char *int1, char *int2, int max12);
-void readTables();
-int loadcheckctpcfg();
-int Detector2Connector(int idet,int *ifoM1,int *iconnectorM1);
 
 /*FGROUP Common */
 int findBUSYINP(int fo, int foc);
-void printLTUname(int fo, int foc);
 
-w32 calcOverlap(w32 *bsyclusts);
 /*FGROUP busy
  Input: time in milisecs
  For detectors in clusters as defined on busy board 
@@ -478,11 +498,6 @@ Operation:
 rc: busy pattern: [0..23] bits set to 1 correspond to Dead busy inputs
 */
 w32 findDeadBusys(w32 dets);
-
-int ReadTemp(int ix);
-void vme2volt(w32 vme );
-w32 i2cread(int channel, int branch);
-int i2cgetaddr(int board0_34, int *channel, int *branch);
 
 /*FGROUP DebCon */
 int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer);
@@ -537,9 +552,6 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
 
 */
 void printEdgeDelay(int board);
-int getEdgeDelayDB(int level, int input, int *edge, int *delay);
-
-int getedge(int board,w32 input,w32 *del);
 
 // bcmask.c
 /*FGROUP L0
@@ -555,12 +567,6 @@ set/read/check ntimes
 words: if 0 than check whole BCmask memory (3564)
 */
 void checkBCmasks(int ntimes, int words);
-void loadBCmasks(w16 *bcmasks);
-
-// Phase measurement tools 
-int readadc(int board);
-int readadc_s(int board);
-void checkPhases(char *line);
 /*FGROUP SimpleTests
 return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT
 */
@@ -610,4 +616,3 @@ void WritePFuser(w32 icircuit, w32 threshold, w32 bcs);
 /*FGROUP SimpleTests
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 icircuit,w32 plut);
-

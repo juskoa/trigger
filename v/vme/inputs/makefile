@@ -55,6 +55,8 @@ LDFLAGS +=-lpthread
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 #OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) inputs_cf.o signature.o ssmbrowser.o inputs.o ssm.o alignment.o sync.o 
 OBJFILES=$(VMEBDIR)/cmdbase.o inputs_cf.o signature.o ssmbrowser.o inputs.o ssm.o alignment.o sync.o 
+CFLAGS +=-I$(DIMDIR)/dim
+LDFLAGS +=-L$(DIMDIR)/linux -ldim
 inputs.exe: $(OBJFILES)
 	$(VMECC) $(OBJFILES) $(LDFLAGS) -lm -o inputs.exe
 inputs_cf.o: inputs_cf.c $(VMEBDIR)/vmeaistd.h

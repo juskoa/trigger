@@ -44,7 +44,14 @@ LDFLAGS +=-L$(DIMDIR)/linux -ldim
 and repaeat vmecomp inputs
 
 23.11.:
-
 [altri1] /usr/local/trigger/vd/vme/inputs > make
 g++ /usr/local/trigger/vd/vmeb/cmdbase.o inputs_cf.o signature.o ssmbrowser.o inputs.o ssm.o alignment.o sync.o  -L/usr/local/trigger/vd/vme/ctp/ctplib/linux_c -lctp -L/opt/dim/linux -ldim -L/usr/local/trigger/vd/vmeb/vmeblib/linux_c -lvmeb -L/opt/infoLogger -lInfo -L/opt/libDAQlogbook -lDAQlogbook `/usr/bin/mysql_config --libs` -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lm -o inputs.exe
 [altri1] /usr/local/trigger/vd/vme/inputs > 
+
+5.6.2012:
+nebavi:
+[altri1] /usr/local/trigger/vd/vme/inputs > g++ /usr/local/trigger/devel/v/vmeb/cmdbase.o inputs_cf.o sync.o inputs.o signature.o alignment.o ssm.o ssmbrowser.o  -L/usr/local/trigger/devel/v/vmeb/vmeblib/linux_c -lvmeb -L/opt/infoLogger -lInfo -L/opt/libDAQlogbook -lDAQlogbook `/usr/bin/mysql_config --libs` -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -L/opt/dim/linux -ldim -lm -o inputs.exe
+g++: inputs.o: No such file or directory
+g++: alignment.o: No such file or directory
+g++: ssm.o: No such file or directory
+

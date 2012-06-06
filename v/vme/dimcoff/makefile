@@ -17,7 +17,9 @@ endif
 
 LDFLAGS = -lpthread
 
-all: $(ODIR)/dimccounters $(ODIR)/sendcomm
+all: $(ODIR) $(ODIR)/dimccounters $(ODIR)/sendcomm
+$(ODIR):
+	mkdir -p $(ODIR)
 $(ODIR)/dimccounters: $(ODIR)/dimccounters.o
 	$(CC) $(LDFLAGS) $(ODIR)/dimccounters.o \
  -o $(ODIR)/dimccounters $(EXTRALIBS)

@@ -20,7 +20,7 @@ ifdef SERVER_LINK
 ifneq ($(HOSTNAME), alidcscom707)
 MAKE_CLIENT_DIR := $(subst $(SERVER_PREF),,$(shell pwd))
 #MAKE_CLIENT_CMD := '(. /usr/local/trigger/bin/vmebse.bash $(SERVER_BASEDIR) ; cd $(MAKE_CLIENT_DIR) ; make)' 
-MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; make)' 
+MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux; make)' 
 endif
 endif
 endif

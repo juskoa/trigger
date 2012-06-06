@@ -15,8 +15,8 @@ ALL: $(ODIR)/ltuclient $(ODIR)/ltucmd $(ODIR)/cmd1
 #	$(CC) $(CFLAGS) -c -o $(ODIR)/popen2.o popen2.c
 #$(ODIR)/ltudimservices.o:$(SDIR)/ltudimservices.c
 #	$(CC) $(CFLAGS) -c -o $(ODIR)/ltudimservices.o ltudimservices.c
-$(ODIR)/ltuclient:      $(SDIR)/ltuclient.c \
-	$(DIMDIR)/$(ODIR)/libdim.a
+$(ODIR)/ltuclient:      $(SDIR)/ltuclient.c $(DIMDIR)/$(ODIR)/libdim.a
+	mkdir -p linux
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/ltuclient.c -L$(DIMDIR)/linux -ldim -o $(ODIR)/ltuclient $(LIBS)
 
 $(ODIR)/ltucmd: $(SDIR)/ltucmd.c $(DIMDIR)/$(ODIR)/libdim.a

@@ -165,4 +165,16 @@ bug fixed in ctpproxy/dimservices: size of BEAMMODE service is 4 (was 16) !
 30.5.
 gcalib.c: T0 only gets triggers in tehcnical runs (during STABLE BEAM
 no calib. triggers are sent).
+1.6.2012
+git:
+/home/dl/root/usr/local/trigger/devel
+/home/dl/root/usr/local/trigger/vd    -still used by diskless
+todo:
+/home/dl/root/usr/local/trigger/stable  -sync with pit
 
+4.6.
+pit + devel/git:
+- smaq bug fixed
+- ltudimservices: "ttcrxrest fee" added
+5.6.
+tr10:/usr/local/trigger/devel  -development version, git. COmpile all: bin/makeall

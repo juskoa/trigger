@@ -373,7 +373,7 @@ Routine:
     E = error
 */
 void getDetInputStatus(char *Detector,int numofinputs){
- int ret,retcode=0,service_id;
+ int ret,service_id;
  char node_name[256];
  strcpy(DETSET_COM,Detector);
  strcat(DETSET_COM,"/SET_OPTIONCODE");

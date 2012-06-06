@@ -8,366 +8,6 @@ char BoardName[]="inputs";
 char BoardBaseAddress[11]="0x820000";
 char BoardSpaceLength[11]="0xd000";
 char BoardSpaceAddmod[11]="A24";
-char gettableSSM_usagehelp[]="return the names+modes of SSMs for present boards:\n\
-stdout:\n\
-name1 mode1 \n\
-name2 mode2 \n\
-...\n\
-mode -mode of the ssm or:\n\
-      _nomode if sms[ix].mode is epmty string\n\
-      notin  board is not in the crate\n\
-      nossm  if board or sms[ix].sm==NULL\n\
-";
-
-Tpardesc getsfSSM_parameters[1]={
-{"board", 1}};
-char getsfSSM_usagehelp[]="return line:\n\
-highest_syncflag n1 n2...\n\
-n1,n2 -numbers of items (indexes into sms[])\n\
-";
-
-char getsyncedSSM_usagehelp[]="return line:\n\
-highest_syncflag n1 n2...\n\
-n1,n2 -numbers of items (indexes into sms[])\n\
-";
-
-Tpardesc getsigSSM_parameters[4]={
-{"board", 1},
-{"bit", 1},
-{"frombc", 1},
-{"bits", 1}};
-char getsigSSM_usagehelp[]="Extract 1 signal to stdout:\n\
-Input:\n\
-board:   (0...) according to sms global array\n\
-bit:     SSM bit (0-31)\n\
-frombc: bc number. \n\
-         0 corresponds to word with address sms[board].offset\n\
-bits:    number of bits to be examined (but don't print more then\n\
-         102 lines)\n\
-Output:\n\
-value_of_the_1st_bit      or <0 if error\n\
-bit_number_for_which_value_changed\n\
-bit_number_for_which_value_changed\n\
-...\n\
-Errors:\n\
--1 -> required SSM not read\n\
-";
-
-Tpardesc finddifSSM_parameters[3]={
-{"board", 1},
-{"bit", 1},
-{"frombc", 1}};
-char finddifSSM_usagehelp[]="Find signal change.\n\
-Input:\n\
-board,bit,frombc: as in getsigSSM()\n\
-Output (on stdout):\n\
--1 -signal does not change (or memory not accessible)\n\
-n  - pointing to the last bit with the same value, next bit\n\
-     is different\n\
-";
-
-Tpardesc getoffsetSSM_parameters[1]={
-{"board", 1}};
-char getoffsetSSM_usagehelp[]="print sms[board].offset\n\
-";
-
-Tpardesc setoffsetSSM_parameters[2]={
-{"board", 1},
-{"newoffset", 1}};
-char setoffsetSSM_usagehelp[]="set sms[board].offset\n\
-";
-
-Tpardesc setmodeSSM_parameters[3]={
-{"board", 1},
-{"newmode", 3| 0x80000000},
-{"ltubase", 3| 0x80000000}};
-char setmodeSSM_usagehelp[]="set sms[board].mode, ltubase\n\
-board: 0..  index into sms[]\n\
-newmode: file name in CFG/ctp/ssmsigs without .sig suffix\n\
-ltubase: valid only for ltu (board>10)\n\
-";
-
-char printsms_usagehelp[]="set sms[board].offset\n\
-";
-
-char dumpCTP_usagehelp[]="Dump CTP configuration.\n\
-L0 BOARD CLASSES section:\n\
-class: L0_CONDITION L0_VETO L0_RATE L0_MASK [L0_INVERT for classes45-50 or all]\n\
-";
-
-Tpardesc getPF_parameters[1]={
-{"ix", 1}};
-char getPF_usagehelp[]="get PF parameters for 1 board (L0, L1, or L2 -> ix= 1, 2 or 3)\n\
-";
-
-Tpardesc getPFc_parameters[2]={
-{"ix", 1},
-{"circ", 1}};
-char getPFc_usagehelp[]="get PF parameters for 1 circuit \n\
-I:\n\
-L0, L1, or L2 -> ix= 1, 2 or 3\n\
-circ -> 1..5\n\
-O: on stdout: 3 hexadecimal numbers: PFBLOCK_A, PFBLOCK_B, PFLUT\n\
-";
-
-Tpardesc getprtPF_parameters[1]={
-{"ix", 1}};
-char getprtPF_usagehelp[]="like getPF\n\
-";
-
-Tpardesc getprtPFc_parameters[2]={
-{"ix", 1},
-{"circ", 1}};
-char getprtPFc_usagehelp[]="like getPFc\n\
-";
-
-Tpardesc setPF_parameters[2]={
-{"ix", 1},
-{"pfc", 2}};
-char setPF_usagehelp[]="set PF parameters for 1 board (L0, L1, or L2 -> ix= 1, 2 or 3)\n\
-pfc: PF_COMMON word\n\
-";
-
-Tpardesc setPFc_parameters[5]={
-{"ix", 1},
-{"circ", 1},
-{"A", 2},
-{"B", 2},
-{"LUT", 2}};
-char setPFc_usagehelp[]="set PF parameters for 1 circuit \n\
-I:\n\
-L0, L1, or L2 -> ix= 1, 2 or 3\n\
-circ -> 1..5\n\
-A, B, LUT -3 words to be written\n\
-";
-
-Tpardesc printPFwc_parameters[1]={
-{"deltat", 1}};
-char printPFwc_usagehelp[]="Print setings (12 hexa numbers) of PFcircuit for deltat in BCs\n\
-First hexa number is 0xffffffff if error\n\
-";
-
-char getShared_usagehelp[]="get rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2 INTSEL1 INTSEL2 allrare\n\
-";
-
-Tpardesc getSharedL0f34_parameters[1]={
-{"lutout", 1}};
-char getSharedL0f34_usagehelp[]="get 4096 hexa chars each containing i-bit of LUT4-1. i:0..4095\n\
-";
-
-Tpardesc setL0f34c_parameters[1]={
-{"m4", 3| 0x80000000}};
-char setSharedL0f34_usagehelp[]="4096 hexa chars from stdin will be loaded to LUT31 32 41 42";
-
-Tpardesc setShared_parameters[9]={
-{"r1", 2},
-{"r2", 2},
-{"bs1", 2},
-{"bs2", 2},
-{"int1", 2},
-{"int2", 2},
-{"intt", 2},
-{"l0fun1", 2},
-{"l0fun2", 2}};
-char setShared_usagehelp[]="set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2\n\
-";
-
-Tpardesc setShared2_parameters[2]={
-{"intsel", 2},
-{"allrare", 2}};
-char setShared2_usagehelp[]="set INTERACTSEL ALL_RARE_FLAG\n\
-";
-
-Tpardesc loadRun_parameters[1]={
-{"runnumber", 2}};
-char loadRun_usagehelp[]="Load run reading RCFG file in WORK directory \n\
-";
-
-char printHW_usagehelp[]="Prints static class CTPHardware.\n\
-";
-
-Tpardesc unloadRun_parameters[1]={
-{"runnumber", 2}};
-Tpardesc setL0FUN34_parameters[1]={
-{"lut", 2| 0x80000000}};
-Tpardesc notInCrate_parameters[1]={
-{"ix", 1}};
-Tpardesc findBUSYINP_parameters[2]={
-{"fo", 1},
-{"foc", 1}};
-Tpardesc getCounter_parameters[2]={
-{"board", 1},
-{"reladr", 1}};
-Tpardesc getCounters_parameters[2]={
-{"N", 1},
-{"accrual", 1}};
-Tpardesc findDeadBusysRuns_parameters[1]={
-{"time", 1}};
-char findDeadBusysRuns_usagehelp[]=" Input: time in milisecs\n\
- For detectors in clusters as defined on busy board \n\
- it calculates and prints average: \n\
-  -fraction of the time detectors is busy \n\
-  -average deadtime\n\
-";
-
-Tpardesc printLastDetectors_parameters[1]={
-{"cluster", 2}};
-char printLastDetectors_usagehelp[]=" For detectors in clusters as defined on busy board\n\
- it reads LasBusy counter.\n\
- Last busy counts number of cases when detector is releasing busy LAST\n\
- in given cluster.\n\
-";
-
-Tpardesc busyprobe_parameters[1]={
-{"det", 3| 0x80000000}};
-char busyprobe_usagehelp[]="Busy probe option - minimax select word\n\
-Select the object you want to study:\n\
-0- CTP BUSY\n\
-1-24 : detectors\n\
-25-30 : clusters\n\
-31 test cluster\n\
-";
-
-Tpardesc findDeadBusys_parameters[1]={
-{"dets", 2}};
-char findDeadBusys_usagehelp[]="Input: dets is pattern of detectors to be checked.  0xffffff: all dets\n\
-Operation:\n\
-- read busy timers\n\
-- sleep 100ms\n\
-- read busy timers \n\
-- calculate difference between 2 measurements and compare \n\
-  with busy_timer\n\
-rc: busy pattern: [0..23] bits set to 1 correspond to Dead busy inputs\n\
-";
-
-Tpardesc GenSwtrg_parameters[6]={
-{"n", 1},
-{"trigtype", 3},
-{"roc", 1},
-{"BC", 2},
-{"detectors", 2},
-{"customer", 1}};
-Tpardesc getCALIBBC2_parameters[1]={
-{"ctprodets", 2}};
-Tpardesc checkScopeBoard_parameters[1]={
-{"ab", 3}};
-Tpardesc setScopeBoard_parameters[2]={
-{"ab", 3},
-{"board", 1}};
-Tpardesc getScopeSignal_parameters[2]={
-{"board", 1},
-{"ab", 3}};
-Tpardesc setScopeSignal_parameters[3]={
-{"board", 1},
-{"ab", 3},
-{"signal", 1}};
-Tpardesc setVMERWScope_parameters[2]={
-{"newv", 2},
-{"oldv", 2}};
-Tpardesc getSWLEDS_parameters[1]={
-{"ixboard", 1}};
-char getSWLEDS_usagehelp[]="Print 1 line string xxxx\n\
-where x is the status (0/1) of software LED word\n\
-";
-
-Tpardesc setEdge_parameters[3]={
-{"board", 1},
-{"input", 2},
-{"edge", 2}};
-char setEdge_usagehelp[]="board:0:busy (the CLK edge for input ORBIT signal) \n\
-      1..3:L0/1/2  \n\
-input: no sense for busy board.For L0/1/2 boards: L0,L1:1..24   L2:1..12\n\
-edge: 0:Positive 1:Negative\n\
-\n\
-Edge: choose negative (for delay:0) if unstability is found around delay 0.\n\
-";
-
-Tpardesc setEdgeDelay_parameters[4]={
-{"board", 1},
-{"input", 1},
-{"edge", 1},
-{"delay", 1}};
-char setEdgeDelay_usagehelp[]="set Edge/Delay \n\
-Inputs:\n\
-board: 1:L0 2:L1 3:L2\n\
-input: 1..24 (1..12 for L2)\n\
-edge:  0:positive 1:negative\n\
-delay: 0..15";
-
-Tpardesc printEdgeDelay_parameters[1]={
-{"board", 1}};
-char printEdgeDelay_usagehelp[]="Read edge/delay info from hw for all the inputs (clk edge for ORbit\n\
-in case of busy board).\n\
-Inputs:\n\
-  board: 0:busy (the CLK edge for INPUT ORBIT signal)\n\
-         1..3: L0/1/2\n\
-  input: 1..24 (for L0/1 boards) 1..12 for L2 board\n\
-\n\
-Edge: choose negative (for delay:0) if unstability is found around delay 0.\n\
-\n\
-";
-
-char getBCmasks_usagehelp[]="read BC masks from HW and print out 3564 4bits words\n\
-";
-
-char setBCmasks_usagehelp[]="set BC masks in HW from input line containing 3564 hexa-chars.\n\
-";
-
-Tpardesc checkBCmasks_parameters[2]={
-{"ntimes", 1},
-{"words", 1}};
-char checkBCmasks_usagehelp[]="set/read/check ntimes\n\
-words: if 0 than check whole BCmask memory (3564)\n\
-";
-
-char checkPhasesPrint_usagehelp[]="return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT\n\
-";
-
-Tpardesc Toggle_parameters[2]={
-{"det", 3| 0x80000000},
-{"onoff", 1}};
-char resetPLLS_usagehelp[]="Resets PLL clock on all boards\n\
-";
-
-Tpardesc WritePFcommon_parameters[3]={
-{"INTa", 2},
-{"INTb", 2},
-{"Delayed_INT", 2}};
-Tpardesc WritePF_parameters[8]={
-{"icircuit", 2},
-{"THa1", 2},
-{"THa2", 2},
-{"THb1", 2},
-{"THb2", 2},
-{"dTa", 1},
-{"dTb", 1},
-{"P_signal", 2}};
-Tpardesc WritePFuser_parameters[3]={
-{"icircuit", 2},
-{"threshold", 2},
-{"bcs", 2}};
-char WritePFuser_usagehelp[]="Set PF circuit for INT1 only (for INT1/2 combinations, another\n\
-function should be prepared). Note that INT1 should be defined in Shared Resources!\n\
-Examples of INT1 definition: it can be BC1,BC2,RND1,RND2 or any logical combination of \n\
-first 4 L0 inputs (INTfun1). For example if we want to define INT1 as L01 input then INTfun1 \n\
-will be 0xaaaa, L02 only -> INTfun1=0xcccc, L03 only -> INTfun1=0xf0f0, L04 only -> INTfun1=0xff00,\n\
-L01.or.L02.or.L03.or.L04 -> INTfun1=0xfffe, L01.and.L02.and.L03.and.L04 -> INTfun1=0x8000\n\
-\n\
-icircuit: 1..4 - circuit number - there can be 4 PF protections in parallel\n\
-\n\
-bcs: 1..4096 - protected interval in BCs. \n\
-For example: 10mus = 400 BC.\n\
-\n\
-threshold: 0..63 - number of allowed interactions in protected interval \n\
-For example: 0: kill this event  1: only this event   2: max. 1 additional event\n\
-";
-
-Tpardesc WritePFuserII_parameters[5]={
-{"Ncoll", 2},
-{"dT1", 2},
-{"dT2", 2},
-{"icircuit", 2},
-{"plut", 2}};
 char SSMbrowser_usagehelp[]="Browse CTP snapshot memories \n\
 ";
 
@@ -545,6 +185,386 @@ Tpardesc FindSignatures_parameters[2]={
 char FindSignatures_usagehelp[]="  Check all inputs\n\
 ";
 
+char dumpCTP_usagehelp[]="Dump CTP configuration.\n\
+L0 BOARD CLASSES section:\n\
+class: L0_CONDITION L0_VETO L0_RATE L0_MASK [L0_INVERT for classes45-50 or all]\n\
+";
+
+Tpardesc getPF_parameters[1]={
+{"ix", 1}};
+char getPF_usagehelp[]="get PF parameters for 1 board (L0, L1, or L2 -> ix= 1, 2 or 3)\n\
+";
+
+Tpardesc getPFc_parameters[2]={
+{"ix", 1},
+{"circ", 1}};
+char getPFc_usagehelp[]="get PF parameters for 1 circuit \n\
+I:\n\
+L0, L1, or L2 -> ix= 1, 2 or 3\n\
+circ -> 1..5\n\
+O: on stdout: 3 hexadecimal numbers: PFBLOCK_A, PFBLOCK_B, PFLUT\n\
+";
+
+Tpardesc getprtPF_parameters[1]={
+{"ix", 1}};
+char getprtPF_usagehelp[]="like getPF\n\
+";
+
+Tpardesc getprtPFc_parameters[2]={
+{"ix", 1},
+{"circ", 1}};
+char getprtPFc_usagehelp[]="like getPFc\n\
+";
+
+Tpardesc setPF_parameters[2]={
+{"ix", 1},
+{"pfc", 2}};
+char setPF_usagehelp[]="set PF parameters for 1 board (L0, L1, or L2 -> ix= 1, 2 or 3)\n\
+pfc: PF_COMMON word\n\
+";
+
+Tpardesc setPFc_parameters[5]={
+{"ix", 1},
+{"circ", 1},
+{"A", 2},
+{"B", 2},
+{"LUT", 2}};
+char setPFc_usagehelp[]="set PF parameters for 1 circuit \n\
+I:\n\
+L0, L1, or L2 -> ix= 1, 2 or 3\n\
+circ -> 1..5\n\
+A, B, LUT -3 words to be written\n\
+";
+
+Tpardesc printPFwc_parameters[1]={
+{"deltat", 1}};
+char printPFwc_usagehelp[]="Print setings (12 hexa numbers) of PFcircuit for deltat in BCs\n\
+First hexa number is 0xffffffff if error\n\
+";
+
+char getShared_usagehelp[]="get rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2 INTSEL1 INTSEL2 allrare\n\
+";
+
+Tpardesc getSharedL0f34_parameters[1]={
+{"lutout", 1}};
+char getSharedL0f34_usagehelp[]="get 4096 hexa chars each containing i-bit of LUT4-1. i:0..4095\n\
+";
+
+char setSharedL0f34_usagehelp[]="4096 hexa chars from stdin will be loaded to LUT31 32 41 42";
+
+Tpardesc setShared_parameters[9]={
+{"r1", 2},
+{"r2", 2},
+{"bs1", 2},
+{"bs2", 2},
+{"int1", 2},
+{"int2", 2},
+{"intt", 2},
+{"l0fun1", 2},
+{"l0fun2", 2}};
+char setShared_usagehelp[]="set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2\n\
+";
+
+Tpardesc setShared2_parameters[2]={
+{"intsel", 2},
+{"allrare", 2}};
+char setShared2_usagehelp[]="set INTERACTSEL ALL_RARE_FLAG\n\
+";
+
+Tpardesc loadRun_parameters[1]={
+{"runnumber", 2}};
+char loadRun_usagehelp[]="Load run reading RCFG file in WORK directory \n\
+";
+
+char printHW_usagehelp[]="Prints static class CTPHardware.\n\
+";
+
+Tpardesc unloadRun_parameters[1]={
+{"runnumber", 2}};
+Tpardesc notInCrate_parameters[1]={
+{"ix", 1}};
+Tpardesc findBUSYINP_parameters[2]={
+{"fo", 1},
+{"foc", 1}};
+Tpardesc findDeadBusysRuns_parameters[1]={
+{"time", 1}};
+char findDeadBusysRuns_usagehelp[]=" Input: time in milisecs\n\
+ For detectors in clusters as defined on busy board \n\
+ it calculates and prints average: \n\
+  -fraction of the time detectors is busy \n\
+  -average deadtime\n\
+";
+
+Tpardesc printLastDetectors_parameters[1]={
+{"cluster", 2}};
+char printLastDetectors_usagehelp[]=" For detectors in clusters as defined on busy board\n\
+ it reads LasBusy counter.\n\
+ Last busy counts number of cases when detector is releasing busy LAST\n\
+ in given cluster.\n\
+";
+
+Tpardesc busyprobe_parameters[1]={
+{"det", 3| 0x80000000}};
+char busyprobe_usagehelp[]="Busy probe option - minimax select word\n\
+Select the object you want to study:\n\
+0- CTP BUSY\n\
+1-24 : detectors\n\
+25-30 : clusters\n\
+31 test cluster\n\
+";
+
+Tpardesc findDeadBusys_parameters[1]={
+{"dets", 2}};
+char findDeadBusys_usagehelp[]="Input: dets is pattern of detectors to be checked.  0xffffff: all dets\n\
+Operation:\n\
+- read busy timers\n\
+- sleep 100ms\n\
+- read busy timers \n\
+- calculate difference between 2 measurements and compare \n\
+  with busy_timer\n\
+rc: busy pattern: [0..23] bits set to 1 correspond to Dead busy inputs\n\
+";
+
+Tpardesc GenSwtrg_parameters[6]={
+{"n", 1},
+{"trigtype", 3},
+{"roc", 1},
+{"BC", 2},
+{"detectors", 2},
+{"customer", 1}};
+Tpardesc getCALIBBC2_parameters[1]={
+{"ctprodets", 2}};
+Tpardesc checkScopeBoard_parameters[1]={
+{"ab", 3}};
+Tpardesc setScopeBoard_parameters[2]={
+{"ab", 3},
+{"board", 1}};
+Tpardesc getScopeSignal_parameters[2]={
+{"board", 1},
+{"ab", 3}};
+Tpardesc setScopeSignal_parameters[3]={
+{"board", 1},
+{"ab", 3},
+{"signal", 1}};
+Tpardesc setVMERWScope_parameters[2]={
+{"newv", 2},
+{"oldv", 2}};
+Tpardesc getSWLEDS_parameters[1]={
+{"ixboard", 1}};
+char getSWLEDS_usagehelp[]="Print 1 line string xxxx\n\
+where x is the status (0/1) of software LED word\n\
+";
+
+Tpardesc setEdge_parameters[3]={
+{"board", 1},
+{"input", 2},
+{"edge", 2}};
+char setEdge_usagehelp[]="board:0:busy (the CLK edge for input ORBIT signal) \n\
+      1..3:L0/1/2  \n\
+input: no sense for busy board.For L0/1/2 boards: L0,L1:1..24   L2:1..12\n\
+edge: 0:Positive 1:Negative\n\
+\n\
+Edge: choose negative (for delay:0) if unstability is found around delay 0.\n\
+";
+
+Tpardesc setEdgeDelay_parameters[4]={
+{"board", 1},
+{"input", 1},
+{"edge", 1},
+{"delay", 1}};
+char setEdgeDelay_usagehelp[]="set Edge/Delay \n\
+Inputs:\n\
+board: 1:L0 2:L1 3:L2\n\
+input: 1..24 (1..12 for L2)\n\
+edge:  0:positive 1:negative\n\
+delay: 0..15";
+
+Tpardesc printEdgeDelay_parameters[1]={
+{"board", 1}};
+char printEdgeDelay_usagehelp[]="Read edge/delay info from hw for all the inputs (clk edge for ORbit\n\
+in case of busy board).\n\
+Inputs:\n\
+  board: 0:busy (the CLK edge for INPUT ORBIT signal)\n\
+         1..3: L0/1/2\n\
+  input: 1..24 (for L0/1 boards) 1..12 for L2 board\n\
+\n\
+Edge: choose negative (for delay:0) if unstability is found around delay 0.\n\
+\n\
+";
+
+char getBCmasks_usagehelp[]="read BC masks from HW and print out 3564 4bits words\n\
+";
+
+char setBCmasks_usagehelp[]="set BC masks in HW from input line containing 3564 hexa-chars.\n\
+";
+
+Tpardesc checkBCmasks_parameters[2]={
+{"ntimes", 1},
+{"words", 1}};
+char checkBCmasks_usagehelp[]="set/read/check ntimes\n\
+words: if 0 than check whole BCmask memory (3564)\n\
+";
+
+char checkPhasesPrint_usagehelp[]="return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT\n\
+";
+
+Tpardesc Toggle_parameters[2]={
+{"det", 3| 0x80000000},
+{"onoff", 1}};
+char resetPLLS_usagehelp[]="Resets PLL clock on all boards\n\
+";
+
+Tpardesc WritePFcommon_parameters[3]={
+{"INTa", 2},
+{"INTb", 2},
+{"Delayed_INT", 2}};
+Tpardesc WritePF_parameters[8]={
+{"icircuit", 2},
+{"THa1", 2},
+{"THa2", 2},
+{"THb1", 2},
+{"THb2", 2},
+{"dTa", 1},
+{"dTb", 1},
+{"P_signal", 2}};
+Tpardesc WritePFuser_parameters[3]={
+{"icircuit", 2},
+{"threshold", 2},
+{"bcs", 2}};
+char WritePFuser_usagehelp[]="Set PF circuit for INT1 only (for INT1/2 combinations, another\n\
+function should be prepared). Note that INT1 should be defined in Shared Resources!\n\
+Examples of INT1 definition: it can be BC1,BC2,RND1,RND2 or any logical combination of \n\
+first 4 L0 inputs (INTfun1). For example if we want to define INT1 as L01 input then INTfun1 \n\
+will be 0xaaaa, L02 only -> INTfun1=0xcccc, L03 only -> INTfun1=0xf0f0, L04 only -> INTfun1=0xff00,\n\
+L01.or.L02.or.L03.or.L04 -> INTfun1=0xfffe, L01.and.L02.and.L03.and.L04 -> INTfun1=0x8000\n\
+\n\
+icircuit: 1..4 - circuit number - there can be 4 PF protections in parallel\n\
+\n\
+bcs: 1..4096 - protected interval in BCs. \n\
+For example: 10mus = 400 BC.\n\
+\n\
+threshold: 0..63 - number of allowed interactions in protected interval \n\
+For example: 0: kill this event  1: only this event   2: max. 1 additional event\n\
+";
+
+Tpardesc WritePFuserII_parameters[5]={
+{"Ncoll", 2},
+{"dT1", 2},
+{"dT2", 2},
+{"icircuit", 2},
+{"plut", 2}};
+char readstatus_usagehelp[]="read QPLL* and TTCrx status bits.\n\
+RC: 0xTAB\n\
+T: bit 8. 1: TTCrx ok\n\
+A: [7..6] BC1 error,locked (i.e. 01 correct)\n\
+   [5..4] BC2\n\
+B: [3..2] BCref\n\
+   [1..0] BCmain\n\
+I.e. 0x155 is correct status of all 9 bits\n\
+     0x1aa error in both BC, was not locked. NEXT READING is 0x155 !\n\
+";
+
+Tpardesc getCounter_parameters[3]={
+{"board", 1},
+{"reladr", 1},
+{"customer", 1}};
+Tpardesc getCounters_parameters[3]={
+{"N", 1},
+{"accrual", 1},
+{"customer", 1}};
+Tpardesc clearCounters_parameters[1]={
+{"customer", 1}};
+char l0AB_usagehelp[]="rc: 0: if L0 borad firmware >0xAB\n\
+    boardversion if firmware <=0xAB \n\
+";
+
+Tpardesc DAQonoff_parameters[1]={
+{"daqon", 1}};
+char DAQonoff_usagehelp[]="daqon:0       ->daq active\n\
+daqon:0xb     ->daq off (i.e. produce triggers in spite of DDL red diode \n\
+                on INT board is on \n\
+daqon: other  -> show current status.\n\
+NOTE about LEDs on INT board:\n\
+DDL interface: \n\
+  green:DDL line ready, data not read out \n\
+  flashing green: DDL line ready, data are read out\n\
+  flashing orange: data are read out, backpressure is sometimes active\n\
+                   (DAQ is not able to read everything)\n\
+upper DDL LED on INT board fron panel:\n\
+  red: INT is raising CTPBUSY on backlplane, because of full DDL buffers\n\
+INT_DDL_EMU word in normal mode (i.e. DAQ active):\n\
+     DDLfiLF  DDLfiBEN  DDLfiDIR\n\
+0x20:      0         1         0  data can't be sent (DDL not enabled from DIU)\n\
+0x30:      0         1         1  data sent\n\
+0x70:      1         1         1  data not sent (backpressure)\n\
+";
+
+Tpardesc setRareFlag_parameters[3]={
+{"board", 1},
+{"input", 1},
+{"mode", 1}};
+Tpardesc take1SSM_parameters[2]={
+{"board", 1},
+{"ntimes", 1}};
+char take1SSM_usagehelp[]="------------------------------------------------------------------------------\n\
+Record and read 1SSM\n\
+";
+
+Tpardesc filter_parameters[2]={
+{"sm", 2| 0x80000000},
+{"chan", 1}};
+Tpardesc takerbSSM_parameters[1]={
+{"ntimes", 1}};
+char takerbSSM_usagehelp[]="----------------------------------------------------------------------------\n\
+Record and read 1SSM\n\
+";
+
+Tpardesc take2SSM_parameters[3]={
+{"board1", 1},
+{"board2", 1},
+{"ntimes", 1}};
+char take2SSM_usagehelp[]="---------------------------------------------------------------------------------------\n\
+Record and read and synchronise 2 SSMs\n\
+";
+
+Tpardesc take3SSM_parameters[1]={
+{"ntimes", 1}};
+char take3SSM_usagehelp[]="To be written. We do not need it untill any L2 inputs exits\n\
+";
+
+Tpardesc croscor1_parameters[5]={
+{"input1", 1},
+{"input2", 1},
+{"cordist", 1},
+{"delta", 1},
+{"dir", 1}};
+char croscor1_usagehelp[]="  delta=0 -> autocor fun\n\
+  delta=1 -> -1,0,1\n\
+";
+
+Tpardesc autocor_parameters[3]={
+{"input", 1},
+{"cordist", 1},
+{"delta", 2}};
+char autocor_usagehelp[]="Autocorel one input\n\
+cordist>0\n\
+";
+
+Tpardesc Correl_parameters[8]={
+{"type", 1},
+{"l0inputs", 1},
+{"l1inputs", 1},
+{"l2inputs", 1},
+{"h0chans", 1},
+{"cordist", 1},
+{"delta", 1},
+{"dir", 1}};
+char Correl_usagehelp[]="Steering routone for correlation:\n\
+ type =0 : autocorrelation = noise, bckg\n\
+ type =1 : crosscorrelation = alignment\n\
+ h0chans = channels in ssm in l0 output mode\n\
+";
+
 Tpardesc getswSSM_parameters[1]={
 {"board", 1}};
 char getswSSM_usagehelp[]="-------------------------------------------------------------- getswSSM() \n\
@@ -627,20 +647,25 @@ rc: == 0 OK\n\
        2 problem with openvme for LTU\n\
 ";
 
-Tpardesc condstopSSM_parameters[4]={
+Tpardesc condstopSSM_parameters[5]={
 {"board", 1},
 {"cntpos", 1},
 {"maxloops", 1},
-{"sleepafter", 1}};
+{"sleepafter", 1},
+{"customer", 1}};
 char condstopSSM_usagehelp[]="Opearation:\n\
 - read counter cntpos\n\
 - check 'the change of this counter' + check maxloops\n\
 - sleep 'sleepafter' micsecs (should be 0 or at least 100)\n\
 - stop (recording or generation) -> call stopSSM()\n\
 Inputs:\n\
+board: 0:busy, 1:L0,..., 10:INT\n\
+      21: L0+L1 -> i.e. stop 2 SSM for L0/1 board\n\
 cntpos: position of the counter (starting from 0) for this board\n\
         see 2. column in dimcdistrib/cnames.sorted2 file\n\
 maxloops: max. number of loops (1 loop == cca 2 ms)\n\
+          0: loop forever\n\
+customer: bakery customer (see ctplib/readCounters.c)\n\
 rc: == 0 OK\n\
    1 board not busy, no action (i.e. SSM was not started before in\n\
      'BEFORE/continuous' mode)\n\
@@ -681,13 +706,14 @@ write whole sms[].sm into hardware\n\
 Input:\n\
 board: board according to sms global array\n\
 rc:    0: no errors found during writing\n\
-continues mode should be treated same as in readSSM\n\
 ";
 
-Tpardesc dumpssm_parameters[2]={
+Tpardesc dumpssm_compress_parameters[3]={
 {"board", 1},
-{"fname", 3| 0x80000000}};
-char dumpssm_usagehelp[]="Dump computer ssm (not hw ssm)\n\
+{"fname", 3| 0x80000000},
+{"compress", 1}};
+char dumpssm_compress_usagehelp[]="Dump computer ssm (not hw ssm)\n\
+compress: 0: old way 1; new way i.e. compressed\n\
 ";
 
 Tpardesc printSSM_parameters[2]={
@@ -696,87 +722,117 @@ Tpardesc printSSM_parameters[2]={
 char printSSM_usagehelp[]="print to stdout SSM board from word 'fromadr'\n\
 ";
 
-Tpardesc readSSMDump_parameters[2]={
+Tpardesc readSSMDump_compress_parameters[3]={
 {"board", 1},
-{"filename", 3| 0x80000000}};
-char readSSMDump_usagehelp[]=" Read binary dump written by dumpSSM() to the sms[board].sm\n\
+{"filename", 3| 0x80000000},
+{"compress", 1}};
+char readSSMDump_compress_usagehelp[]=" Read binary dump written before by dumpSSM() to the sms[board].sm\n\
+board: 0,1,2,... ->   BUSY, L0, L1,...\n\
+filename: 'WORK/name.dmp'\n\
+compress: 0: old way 1; new way i.e. compressed\n\
 ";
 
-Tpardesc setRareFlag_parameters[3]={
+char gettableSSM_usagehelp[]="return the names+modes of SSMs for present boards:\n\
+stdout:\n\
+name1 mode1 \n\
+name2 mode2 \n\
+...\n\
+mode -mode of the ssm or:\n\
+      _nomode if sms[ix].mode is epmty string\n\
+      notin  board is not in the crate\n\
+      nossm  if board or sms[ix].sm==NULL\n\
+";
+
+Tpardesc getsfSSM_parameters[1]={
+{"board", 1}};
+char getsfSSM_usagehelp[]="return line:\n\
+highest_syncflag n1 n2...\n\
+n1,n2 -numbers of items (indexes into sms[])\n\
+";
+
+char getsyncedSSM_usagehelp[]="return line:\n\
+highest_syncflag n1 n2...\n\
+n1,n2 -numbers of items (indexes into sms[])\n\
+";
+
+Tpardesc getsigSSM_parameters[4]={
 {"board", 1},
-{"input", 1},
-{"mode", 1}};
-Tpardesc take1SSM_parameters[2]={
+{"bit", 1},
+{"frombc", 1},
+{"bits", 1}};
+char getsigSSM_usagehelp[]="Extract 1 signal to stdout:\n\
+Input:\n\
+board:   (0...) according to sms global array\n\
+bit:     SSM bit (0-31)\n\
+frombc: bc number. \n\
+         0 corresponds to word with address sms[board].offset\n\
+bits:    number of bits to be examined (but don't print more then\n\
+         102 lines)\n\
+Output:\n\
+value_of_the_1st_bit      or <0 if error\n\
+bit_number_for_which_value_changed\n\
+bit_number_for_which_value_changed\n\
+...\n\
+Errors:\n\
+-1 -> required SSM not read\n\
+";
+
+Tpardesc finddifSSM_parameters[3]={
 {"board", 1},
-{"ntimes", 1}};
-char take1SSM_usagehelp[]="------------------------------------------------------------------------------\n\
-Record and read 1SSM\n\
+{"bit", 1},
+{"frombc", 1}};
+char finddifSSM_usagehelp[]="Find signal change.\n\
+Input:\n\
+board,bit,frombc: as in getsigSSM()\n\
+Output (on stdout):\n\
+-1 -signal does not change (or memory not accessible)\n\
+n  - pointing to the last bit with the same value, next bit\n\
+     is different\n\
 ";
 
-Tpardesc filter_parameters[2]={
-{"sm", 2| 0x80000000},
-{"chan", 1}};
-Tpardesc takerbSSM_parameters[1]={
-{"ntimes", 1}};
-char takerbSSM_usagehelp[]="----------------------------------------------------------------------------\n\
-Record and read 1SSM\n\
+Tpardesc getoffsetSSM_parameters[1]={
+{"board", 1}};
+char getoffsetSSM_usagehelp[]="print sms[board].offset\n\
 ";
 
-Tpardesc take2SSM_parameters[3]={
-{"board1", 1},
-{"board2", 1},
-{"ntimes", 1}};
-char take2SSM_usagehelp[]="---------------------------------------------------------------------------------------\n\
-Record and read and synchronise 2 SSMs\n\
+Tpardesc setoffsetSSM_parameters[2]={
+{"board", 1},
+{"newoffset", 1}};
+char setoffsetSSM_usagehelp[]="set sms[board].offset\n\
 ";
 
-Tpardesc take3SSM_parameters[1]={
-{"ntimes", 1}};
-char take3SSM_usagehelp[]="To be written. We do not need it untill any L2 inputs exits\n\
+Tpardesc setmodeSSM_parameters[3]={
+{"board", 1},
+{"newmode", 3| 0x80000000},
+{"ltubase", 3| 0x80000000}};
+char setmodeSSM_usagehelp[]="set sms[board].mode, ltubase\n\
+board: 0..  index into sms[]\n\
+newmode: file name in CFG/ctp/ssmsigs without .sig suffix\n\
+ltubase: valid only for ltu (board>10)\n\
 ";
 
-Tpardesc croscor1_parameters[5]={
-{"input1", 1},
-{"input2", 1},
-{"cordist", 1},
-{"delta", 1},
-{"dir", 1}};
-char croscor1_usagehelp[]="  delta=0 -> autocor fun\n\
-  delta=1 -> -1,0,1\n\
+char printsms_usagehelp[]="set sms[board].offset\n\
 ";
 
-Tpardesc autocor_parameters[3]={
-{"input", 1},
-{"cordist", 1},
-{"delta", 1}};
-char autocor_usagehelp[]="Autocorel one input\n\
-cordist>0\n\
-";
-
-Tpardesc Correl_parameters[8]={
-{"type", 1},
-{"l0inputs", 1},
-{"l1inputs", 1},
-{"l2inputs", 1},
-{"h0chans", 1},
-{"cordist", 1},
-{"delta", 1},
-{"dir", 1}};
-char Correl_usagehelp[]="Steering routone for correlation:\n\
- type =0 : autocorrelation = noise, bckg\n\
- type =1 : crosscorrelation = alignment\n\
- h0chans = channels in ssm in l0 output mode\n\
-";
-
-void gettableSSM();
-void getsfSSM(int board);
-void getsyncedSSM();
-void getsigSSM(int board, int bit, int frombc, int bits);
-void finddifSSM(int board, int bit, int frombc);
-void getoffsetSSM(int board);
-void setoffsetSSM(int board, int newoffset);
-void setmodeSSM(int board, char *newmode, char *ltubase);
-void printsms();
+void adcitest(int board);
+void scanDel(int micseconds, int board);
+void adctimeconst(w32 delay0, w32 delay1, int board);
+void rndtest(int board);
+void setbcdelay(w32 delay);
+w32 getbcstatus(int board);
+int setinput(int board, w32 input);
+void measureedge();
+void setDelay(int board, w32 input, w32 delay);
+void getEdge(int board, w32 input);
+int measurephase(int board, int input);
+void getDetInputStatus(char *Detector, int numofinputs);
+void setStatus(char *Detector, int input, char stat);
+void checkInputsActivity(int board);
+void checkInputsActivityRB();
+int SigNum2LVDSTNum(int SigNum);
+void CheckSignature(int board, int signature, int input);
+void FindSignatures(int board, char *inputs);
+void getorbitstatus();
 void dumpCTP();
 void getPF(int ix);
 void getPFc(int ix, int circ);
@@ -787,7 +843,6 @@ void setPFc(int ix, int circ, w32 A, w32 B, w32 LUT);
 void printPFwc(int deltat);
 void getShared();
 void getSharedL0f34(int lutout);
-int setL0f34c(char *m4);
 void setSharedL0f34();
 void setShared(w32 r1, w32 r2, w32 bs1, w32 bs2, w32 int1, w32 int2, w32 intt, w32 l0fun1, w32 l0fun2);
 void setShared2(w32 intsel, w32 allrare);
@@ -795,12 +850,8 @@ void loadRun(w32 runnumber);
 void printHW();
 void unloadRun(w32 runnumber);
 void printL0FUN34();
-void setL0FUN34(w32 *lut);
 int notInCrate(int ix);
 int findBUSYINP(int fo, int foc);
-w32 getCounter(int board, int reladr);
-void getCounters(int N, int accrual);
-void clearCounters();
 w32 findDeadBusysRuns(int time);
 void printLastDetectors(w32 cluster);
 void busyprobe(char *det);
@@ -829,37 +880,12 @@ void WritePFcommon(w32 INTa, w32 INTb, w32 Delayed_INT);
 void WritePF(w32 icircuit, w32 THa1, w32 THa2, w32 THb1, w32 THb2, int dTa, int dTb, w32 P_signal);
 void WritePFuser(w32 icircuit, w32 threshold, w32 bcs);
 int WritePFuserII(w32 Ncoll, w32 dT1, w32 dT2, w32 icircuit, w32 plut);
-void adcitest(int board);
-void scanDel(int micseconds, int board);
-void adctimeconst(w32 delay0, w32 delay1, int board);
-void rndtest(int board);
-void setbcdelay(w32 delay);
-w32 getbcstatus(int board);
-int setinput(int board, w32 input);
-void measureedge();
-void setDelay(int board, w32 input, w32 delay);
-void getEdge(int board, w32 input);
-int measurephase(int board, int input);
-void getDetInputStatus(char *Detector, int numofinputs);
-void setStatus(char *Detector, int input, char stat);
-void checkInputsActivity(int board);
-void checkInputsActivityRB();
-int SigNum2LVDSTNum(int SigNum);
-void CheckSignature(int board, int signature, int input);
-void FindSignatures(int board, char *inputs);
-void getorbitstatus();
-w32 getswSSM(int board);
-void setsmssw(int ix, char *newmode);
-int setomSSM(int board, w32 opmo);
-int startSSM1(int board);
-int stopSSM(int board);
-int condstopSSM(int board, int cntpos, int maxloops, int sleepafter);
-int readSSM(int board);
-int writeSSM(int board);
-int dumpSSM(int board, char *fname);
-int dumpssm(int board, char *fname);
-void printSSM(int board, int fromadr);
-int readSSMDump(int board, char *filename);
+w32 readstatus();
+w32 getCounter(int board, int reladr, int customer);
+void getCounters(int N, int accrual, int customer);
+void clearCounters(int customer);
+int l0AB();
+void DAQonoff(int daqon);
 void setRareFlag(int board, int input, int mode);
 void initAignment();
 void printINPUTS();
@@ -870,10 +896,31 @@ void takerbSSM(int ntimes);
 int take2SSM(int board1, int board2, int ntimes);
 int take3SSM(int ntimes);
 void croscor1(int input1, int input2, int cordist, int delta, int dir);
-void autocor(int input, int cordist, int delta);
+void autocor(int input, int cordist, w32 delta);
 void Correl(int type, int l0inputs, int l1inputs, int l2inputs, int h0chans, int cordist, int delta, int dir);
+w32 getswSSM(int board);
+void setsmssw(int ix, char *newmode);
+int setomSSM(int board, w32 opmo);
+int startSSM1(int board);
+int stopSSM(int board);
+int condstopSSM(int board, int cntpos, int maxloops, int sleepafter, int customer);
+int readSSM(int board);
+int writeSSM(int board);
+int dumpSSM(int board, char *fname);
+int dumpssm_compress(int board, char *fname, int compress);
+void printSSM(int board, int fromadr);
+int readSSMDump_compress(int board, char *filename, int compress);
+void gettableSSM();
+void getsfSSM(int board);
+void getsyncedSSM();
+void getsigSSM(int board, int bit, int frombc, int bits);
+void finddifSSM(int board, int bit, int frombc);
+void getoffsetSSM(int board);
+void setoffsetSSM(int board, int newoffset);
+void setmodeSSM(int board, char *newmode, char *ltubase);
+void printsms();
 
-int nnames=221;
+int nnames=222;
 Tname allnames[MAXNAMES]={
 {"SYNCctp", tSYMNAME, NULL, (w32)BoardSpaceLength, 0.0, NULL, (w32)BoardBaseAddress, NULL},
 {"CODE_ADD", tVMEADR, NULL, 0, 0.0, NULL, 0x4, NULL},
@@ -990,15 +1037,27 @@ Tname allnames[MAXNAMES]={
 {"INT_TCSET", tVMEADR, NULL, 0, 0.0, NULL, 0xc400, NULL},
 {"INT_TEST_COUNT", tVMEADR, NULL, 0, 0.0, NULL, 0xc404, NULL},
 {"INT_BCOFFSET", tVMEADR, NULL, 0, 0.0, NULL, 0xc5a8, NULL},
-{"gettableSSM", tFUN+0x400, (funcall)gettableSSM, 0xdead, 0.0, NULL, 0, gettableSSM_usagehelp},
-{"getsfSSM", tFUN+0x400, (funcall)getsfSSM, 0xdead, 0.0, getsfSSM_parameters, 1, getsfSSM_usagehelp},
-{"getsyncedSSM", tFUN+0x400, (funcall)getsyncedSSM, 0xdead, 0.0, NULL, 0, getsyncedSSM_usagehelp},
-{"getsigSSM", tFUN+0x400, (funcall)getsigSSM, 0xdead, 0.0, getsigSSM_parameters, 4, getsigSSM_usagehelp},
-{"finddifSSM", tFUN+0x400, (funcall)finddifSSM, 0xdead, 0.0, finddifSSM_parameters, 3, finddifSSM_usagehelp},
-{"getoffsetSSM", tFUN+0x400, (funcall)getoffsetSSM, 0xdead, 0.0, getoffsetSSM_parameters, 1, getoffsetSSM_usagehelp},
-{"setoffsetSSM", tFUN+0x400, (funcall)setoffsetSSM, 0xdead, 0.0, setoffsetSSM_parameters, 2, setoffsetSSM_usagehelp},
-{"setmodeSSM", tFUN+0x400, (funcall)setmodeSSM, 0xdead, 0.0, setmodeSSM_parameters, 3, setmodeSSM_usagehelp},
-{"printsms", tFUN+0x400, (funcall)printsms, 0xdead, 0.0, NULL, 0, printsms_usagehelp},
+{"SSMbrowser", tFUN, NULL, 0xdead, 0.0, NULL, 0, SSMbrowser_usagehelp},
+{"INPUTS", tFUN, NULL, 0xdead, 0.0, NULL, 0, INPUTS_usagehelp},
+{"adcitest", tFUN+0x400, (funcall)adcitest, 0xdead, 0.0, adcitest_parameters, 1, adcitest_usagehelp},
+{"scanDel", tFUN+0x400, (funcall)scanDel, 0xdead, 0.0, scanDel_parameters, 2, scanDel_usagehelp},
+{"adctimeconst", tFUN+0x400, (funcall)adctimeconst, 0xdead, 0.0, adctimeconst_parameters, 3, adctimeconst_usagehelp},
+{"rndtest", tFUN+0x400, (funcall)rndtest, 0xdead, 0.0, rndtest_parameters, 1, rndtest_usagehelp},
+{"setbcdelay", tFUN+0x400, (funcall)setbcdelay, 0xdead, 0.0, setbcdelay_parameters, 1, NULL},
+{"getbcstatus", tFUN+0x100, (funcall)getbcstatus, 0xdead, 0.0, getbcstatus_parameters, 1, getbcstatus_usagehelp},
+{"setinput", tFUN+0x200, (funcall)setinput, 0xdead, 0.0, setinput_parameters, 2, setinput_usagehelp},
+{"measureedge", tFUN+0x400, (funcall)measureedge, 0xdead, 0.0, NULL, 0, measureedge_usagehelp},
+{"setDelay", tFUN+0x400, (funcall)setDelay, 0xdead, 0.0, setDelay_parameters, 3, NULL},
+{"getEdge", tFUN+0x400, (funcall)getEdge, 0xdead, 0.0, getEdge_parameters, 2, NULL},
+{"measurephase", tFUN+0x200, (funcall)measurephase, 0xdead, 0.0, measurephase_parameters, 2, measurephase_usagehelp},
+{"getDetInputStatus", tFUN+0x400, (funcall)getDetInputStatus, 0xdead, 0.0, getDetInputStatus_parameters, 2, getDetInputStatus_usagehelp},
+{"setStatus", tFUN+0x400, (funcall)setStatus, 0xdead, 0.0, setStatus_parameters, 3, setStatus_usagehelp},
+{"checkInputsActivity", tFUN+0x400, (funcall)checkInputsActivity, 0xdead, 0.0, checkInputsActivity_parameters, 1, checkInputsActivity_usagehelp},
+{"checkInputsActivityRB", tFUN+0x400, (funcall)checkInputsActivityRB, 0xdead, 0.0, NULL, 0, checkInputsActivityRB_usagehelp},
+{"SigNum2LVDSTNum", tFUN+0x200, (funcall)SigNum2LVDSTNum, 0xdead, 0.0, SigNum2LVDSTNum_parameters, 1, SigNum2LVDSTNum_usagehelp},
+{"CheckSignature", tFUN+0x400, (funcall)CheckSignature, 0xdead, 0.0, CheckSignature_parameters, 3, CheckSignature_usagehelp},
+{"FindSignatures", tFUN+0x400, (funcall)FindSignatures, 0xdead, 0.0, FindSignatures_parameters, 2, FindSignatures_usagehelp},
+{"getorbitstatus", tFUN+0x400, (funcall)getorbitstatus, 0xdead, 0.0, NULL, 0, NULL},
 {"dumpCTP", tFUN+0x400, (funcall)dumpCTP, 0xdead, 0.0, NULL, 0, dumpCTP_usagehelp},
 {"getPF", tFUN+0x400, (funcall)getPF, 0xdead, 0.0, getPF_parameters, 1, getPF_usagehelp},
 {"getPFc", tFUN+0x400, (funcall)getPFc, 0xdead, 0.0, getPFc_parameters, 2, getPFc_usagehelp},
@@ -1009,7 +1068,6 @@ Tname allnames[MAXNAMES]={
 {"printPFwc", tFUN+0x400, (funcall)printPFwc, 0xdead, 0.0, printPFwc_parameters, 1, printPFwc_usagehelp},
 {"getShared", tFUN+0x400, (funcall)getShared, 0xdead, 0.0, NULL, 0, getShared_usagehelp},
 {"getSharedL0f34", tFUN+0x400, (funcall)getSharedL0f34, 0xdead, 0.0, getSharedL0f34_parameters, 1, getSharedL0f34_usagehelp},
-{"setL0f34c", tFUN+0x200, (funcall)setL0f34c, 0xdead, 0.0, setL0f34c_parameters, 1, NULL},
 {"setSharedL0f34", tFUN+0x400, (funcall)setSharedL0f34, 0xdead, 0.0, NULL, 0, setSharedL0f34_usagehelp},
 {"setShared", tFUN+0x400, (funcall)setShared, 0xdead, 0.0, setShared_parameters, 9, setShared_usagehelp},
 {"setShared2", tFUN+0x400, (funcall)setShared2, 0xdead, 0.0, setShared2_parameters, 2, setShared2_usagehelp},
@@ -1017,12 +1075,8 @@ Tname allnames[MAXNAMES]={
 {"printHW", tFUN+0x400, (funcall)printHW, 0xdead, 0.0, NULL, 0, printHW_usagehelp},
 {"unloadRun", tFUN+0x400, (funcall)unloadRun, 0xdead, 0.0, unloadRun_parameters, 1, NULL},
 {"printL0FUN34", tFUN+0x400, (funcall)printL0FUN34, 0xdead, 0.0, NULL, 0, NULL},
-{"setL0FUN34", tFUN+0x400, (funcall)setL0FUN34, 0xdead, 0.0, setL0FUN34_parameters, 1, NULL},
 {"notInCrate", tFUN+0x200, (funcall)notInCrate, 0xdead, 0.0, notInCrate_parameters, 1, NULL},
 {"findBUSYINP", tFUN+0x200, (funcall)findBUSYINP, 0xdead, 0.0, findBUSYINP_parameters, 2, NULL},
-{"getCounter", tFUN+0x100, (funcall)getCounter, 0xdead, 0.0, getCounter_parameters, 2, NULL},
-{"getCounters", tFUN+0x400, (funcall)getCounters, 0xdead, 0.0, getCounters_parameters, 2, NULL},
-{"clearCounters", tFUN+0x400, (funcall)clearCounters, 0xdead, 0.0, NULL, 0, NULL},
 {"findDeadBusysRuns", tFUN+0x100, (funcall)findDeadBusysRuns, 0xdead, 0.0, findDeadBusysRuns_parameters, 1, findDeadBusysRuns_usagehelp},
 {"printLastDetectors", tFUN+0x400, (funcall)printLastDetectors, 0xdead, 0.0, printLastDetectors_parameters, 1, printLastDetectors_usagehelp},
 {"busyprobe", tFUN+0x400, (funcall)busyprobe, 0xdead, 0.0, busyprobe_parameters, 1, busyprobe_usagehelp},
@@ -1051,39 +1105,12 @@ Tname allnames[MAXNAMES]={
 {"WritePF", tFUN+0x400, (funcall)WritePF, 0xdead, 0.0, WritePF_parameters, 8, NULL},
 {"WritePFuser", tFUN+0x400, (funcall)WritePFuser, 0xdead, 0.0, WritePFuser_parameters, 3, WritePFuser_usagehelp},
 {"WritePFuserII", tFUN+0x200, (funcall)WritePFuserII, 0xdead, 0.0, WritePFuserII_parameters, 5, NULL},
-{"SSMbrowser", tFUN, NULL, 0xdead, 0.0, NULL, 0, SSMbrowser_usagehelp},
-{"INPUTS", tFUN, NULL, 0xdead, 0.0, NULL, 0, INPUTS_usagehelp},
-{"adcitest", tFUN+0x400, (funcall)adcitest, 0xdead, 0.0, adcitest_parameters, 1, adcitest_usagehelp},
-{"scanDel", tFUN+0x400, (funcall)scanDel, 0xdead, 0.0, scanDel_parameters, 2, scanDel_usagehelp},
-{"adctimeconst", tFUN+0x400, (funcall)adctimeconst, 0xdead, 0.0, adctimeconst_parameters, 3, adctimeconst_usagehelp},
-{"rndtest", tFUN+0x400, (funcall)rndtest, 0xdead, 0.0, rndtest_parameters, 1, rndtest_usagehelp},
-{"setbcdelay", tFUN+0x400, (funcall)setbcdelay, 0xdead, 0.0, setbcdelay_parameters, 1, NULL},
-{"getbcstatus", tFUN+0x100, (funcall)getbcstatus, 0xdead, 0.0, getbcstatus_parameters, 1, getbcstatus_usagehelp},
-{"setinput", tFUN+0x200, (funcall)setinput, 0xdead, 0.0, setinput_parameters, 2, setinput_usagehelp},
-{"measureedge", tFUN+0x400, (funcall)measureedge, 0xdead, 0.0, NULL, 0, measureedge_usagehelp},
-{"setDelay", tFUN+0x400, (funcall)setDelay, 0xdead, 0.0, setDelay_parameters, 3, NULL},
-{"getEdge", tFUN+0x400, (funcall)getEdge, 0xdead, 0.0, getEdge_parameters, 2, NULL},
-{"measurephase", tFUN+0x200, (funcall)measurephase, 0xdead, 0.0, measurephase_parameters, 2, measurephase_usagehelp},
-{"getDetInputStatus", tFUN+0x400, (funcall)getDetInputStatus, 0xdead, 0.0, getDetInputStatus_parameters, 2, getDetInputStatus_usagehelp},
-{"setStatus", tFUN+0x400, (funcall)setStatus, 0xdead, 0.0, setStatus_parameters, 3, setStatus_usagehelp},
-{"checkInputsActivity", tFUN+0x400, (funcall)checkInputsActivity, 0xdead, 0.0, checkInputsActivity_parameters, 1, checkInputsActivity_usagehelp},
-{"checkInputsActivityRB", tFUN+0x400, (funcall)checkInputsActivityRB, 0xdead, 0.0, NULL, 0, checkInputsActivityRB_usagehelp},
-{"SigNum2LVDSTNum", tFUN+0x200, (funcall)SigNum2LVDSTNum, 0xdead, 0.0, SigNum2LVDSTNum_parameters, 1, SigNum2LVDSTNum_usagehelp},
-{"CheckSignature", tFUN+0x400, (funcall)CheckSignature, 0xdead, 0.0, CheckSignature_parameters, 3, CheckSignature_usagehelp},
-{"FindSignatures", tFUN+0x400, (funcall)FindSignatures, 0xdead, 0.0, FindSignatures_parameters, 2, FindSignatures_usagehelp},
-{"getorbitstatus", tFUN+0x400, (funcall)getorbitstatus, 0xdead, 0.0, NULL, 0, NULL},
-{"getswSSM", tFUN+0x100, (funcall)getswSSM, 0xdead, 0.0, getswSSM_parameters, 1, getswSSM_usagehelp},
-{"setsmssw", tFUN+0x400, (funcall)setsmssw, 0xdead, 0.0, setsmssw_parameters, 2, setsmssw_usagehelp},
-{"setomSSM", tFUN+0x200, (funcall)setomSSM, 0xdead, 0.0, setomSSM_parameters, 2, setomSSM_usagehelp},
-{"startSSM1", tFUN+0x200, (funcall)startSSM1, 0xdead, 0.0, startSSM1_parameters, 1, NULL},
-{"stopSSM", tFUN+0x200, (funcall)stopSSM, 0xdead, 0.0, stopSSM_parameters, 1, stopSSM_usagehelp},
-{"condstopSSM", tFUN+0x200, (funcall)condstopSSM, 0xdead, 0.0, condstopSSM_parameters, 4, condstopSSM_usagehelp},
-{"readSSM", tFUN+0x200, (funcall)readSSM, 0xdead, 0.0, readSSM_parameters, 1, readSSM_usagehelp},
-{"writeSSM", tFUN+0x200, (funcall)writeSSM, 0xdead, 0.0, writeSSM_parameters, 1, writeSSM_usagehelp},
-{"dumpSSM", tFUN+0x200, (funcall)dumpSSM, 0xdead, 0.0, dumpSSM_parameters, 2, dumpSSM_usagehelp},
-{"dumpssm", tFUN+0x200, (funcall)dumpssm, 0xdead, 0.0, dumpssm_parameters, 2, dumpssm_usagehelp},
-{"printSSM", tFUN+0x400, (funcall)printSSM, 0xdead, 0.0, printSSM_parameters, 2, printSSM_usagehelp},
-{"readSSMDump", tFUN+0x200, (funcall)readSSMDump, 0xdead, 0.0, readSSMDump_parameters, 2, readSSMDump_usagehelp},
+{"readstatus", tFUN+0x100, (funcall)readstatus, 0xdead, 0.0, NULL, 0, readstatus_usagehelp},
+{"getCounter", tFUN+0x100, (funcall)getCounter, 0xdead, 0.0, getCounter_parameters, 3, NULL},
+{"getCounters", tFUN+0x400, (funcall)getCounters, 0xdead, 0.0, getCounters_parameters, 3, NULL},
+{"clearCounters", tFUN+0x400, (funcall)clearCounters, 0xdead, 0.0, clearCounters_parameters, 1, NULL},
+{"l0AB", tFUN+0x200, (funcall)l0AB, 0xdead, 0.0, NULL, 0, l0AB_usagehelp},
+{"DAQonoff", tFUN+0x400, (funcall)DAQonoff, 0xdead, 0.0, DAQonoff_parameters, 1, DAQonoff_usagehelp},
 {"setRareFlag", tFUN+0x400, (funcall)setRareFlag, 0xdead, 0.0, setRareFlag_parameters, 3, NULL},
 {"initAignment", tFUN+0x400, (funcall)initAignment, 0xdead, 0.0, NULL, 0, NULL},
 {"printINPUTS", tFUN+0x400, (funcall)printINPUTS, 0xdead, 0.0, NULL, 0, NULL},
@@ -1095,4 +1122,25 @@ Tname allnames[MAXNAMES]={
 {"take3SSM", tFUN+0x200, (funcall)take3SSM, 0xdead, 0.0, take3SSM_parameters, 1, take3SSM_usagehelp},
 {"croscor1", tFUN+0x400, (funcall)croscor1, 0xdead, 0.0, croscor1_parameters, 5, croscor1_usagehelp},
 {"autocor", tFUN+0x400, (funcall)autocor, 0xdead, 0.0, autocor_parameters, 3, autocor_usagehelp},
-{"Correl", tFUN+0x400, (funcall)Correl, 0xdead, 0.0, Correl_parameters, 8, Correl_usagehelp}};
+{"Correl", tFUN+0x400, (funcall)Correl, 0xdead, 0.0, Correl_parameters, 8, Correl_usagehelp},
+{"getswSSM", tFUN+0x100, (funcall)getswSSM, 0xdead, 0.0, getswSSM_parameters, 1, getswSSM_usagehelp},
+{"setsmssw", tFUN+0x400, (funcall)setsmssw, 0xdead, 0.0, setsmssw_parameters, 2, setsmssw_usagehelp},
+{"setomSSM", tFUN+0x200, (funcall)setomSSM, 0xdead, 0.0, setomSSM_parameters, 2, setomSSM_usagehelp},
+{"startSSM1", tFUN+0x200, (funcall)startSSM1, 0xdead, 0.0, startSSM1_parameters, 1, NULL},
+{"stopSSM", tFUN+0x200, (funcall)stopSSM, 0xdead, 0.0, stopSSM_parameters, 1, stopSSM_usagehelp},
+{"condstopSSM", tFUN+0x200, (funcall)condstopSSM, 0xdead, 0.0, condstopSSM_parameters, 5, condstopSSM_usagehelp},
+{"readSSM", tFUN+0x200, (funcall)readSSM, 0xdead, 0.0, readSSM_parameters, 1, readSSM_usagehelp},
+{"writeSSM", tFUN+0x200, (funcall)writeSSM, 0xdead, 0.0, writeSSM_parameters, 1, writeSSM_usagehelp},
+{"dumpSSM", tFUN+0x200, (funcall)dumpSSM, 0xdead, 0.0, dumpSSM_parameters, 2, dumpSSM_usagehelp},
+{"dumpssm_compress", tFUN+0x200, (funcall)dumpssm_compress, 0xdead, 0.0, dumpssm_compress_parameters, 3, dumpssm_compress_usagehelp},
+{"printSSM", tFUN+0x400, (funcall)printSSM, 0xdead, 0.0, printSSM_parameters, 2, printSSM_usagehelp},
+{"readSSMDump_compress", tFUN+0x200, (funcall)readSSMDump_compress, 0xdead, 0.0, readSSMDump_compress_parameters, 3, readSSMDump_compress_usagehelp},
+{"gettableSSM", tFUN+0x400, (funcall)gettableSSM, 0xdead, 0.0, NULL, 0, gettableSSM_usagehelp},
+{"getsfSSM", tFUN+0x400, (funcall)getsfSSM, 0xdead, 0.0, getsfSSM_parameters, 1, getsfSSM_usagehelp},
+{"getsyncedSSM", tFUN+0x400, (funcall)getsyncedSSM, 0xdead, 0.0, NULL, 0, getsyncedSSM_usagehelp},
+{"getsigSSM", tFUN+0x400, (funcall)getsigSSM, 0xdead, 0.0, getsigSSM_parameters, 4, getsigSSM_usagehelp},
+{"finddifSSM", tFUN+0x400, (funcall)finddifSSM, 0xdead, 0.0, finddifSSM_parameters, 3, finddifSSM_usagehelp},
+{"getoffsetSSM", tFUN+0x400, (funcall)getoffsetSSM, 0xdead, 0.0, getoffsetSSM_parameters, 1, getoffsetSSM_usagehelp},
+{"setoffsetSSM", tFUN+0x400, (funcall)setoffsetSSM, 0xdead, 0.0, setoffsetSSM_parameters, 2, setoffsetSSM_usagehelp},
+{"setmodeSSM", tFUN+0x400, (funcall)setmodeSSM, 0xdead, 0.0, setmodeSSM_parameters, 3, setmodeSSM_usagehelp},
+{"printsms", tFUN+0x400, (funcall)printsms, 0xdead, 0.0, NULL, 0, printsms_usagehelp}};

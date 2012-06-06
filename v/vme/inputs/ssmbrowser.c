@@ -97,7 +97,7 @@ Errors:
 -1 -> required SSM not read
 */
 void getsigSSM(int board, int bit, int frombc, int bits) {
-int adr,adr1,adr2,adrprint,curvalbin,rc=0;
+int adr,adr1,adr2,adrprint,rc=0; w32 curvalbin;
 w32 *ssmbase;
 char curval;
 adr1=frombc+sms[board].offset; 
@@ -140,7 +140,7 @@ n  - pointing to the last bit with the same value, next bit
      is different
 */
 void finddifSSM(int board, int bit, int frombc) {
-int adr,adr1,adr2,adrprint,curvalbin;
+int adr,adr1,adr2,adrprint; w32 curvalbin;
 w32 *ssmbase;
 char rctxt[12]="-1";
 ssmbase= sms[board].sm;

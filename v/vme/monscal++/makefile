@@ -10,7 +10,9 @@ CFLAGS = -Wall -g3 -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib  -I$(VMECFDIR)/ctp
 LDFLAGS = -lpthread
 CFLAGS +=-DCPLUSPLUS
 
-
+all: $(ODIR) $(ODIR)/MonScal
+$(ODIR):
+	mkdir -p $(ODIR)
 $(ODIR)/MonScal: $(ODIR)/MonScal.o $(ODIR)/Dim.o $(ODIR)/TrigConf.o \
 	$(ODIR)/ActiveRun.o $(ODIR)/Counter.o $(ODIR)/Output.o $(ODIR)/Log.o \
 	$(ODIR)/main.o

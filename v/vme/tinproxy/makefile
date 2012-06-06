@@ -8,8 +8,10 @@ all:	$(ODIR)/server $(ODIR)/client
 else
 all:	$(ODIR)/server $(ODIR)/client
 endif
-
 $(ODIR)/server:	$(SDIR)/server.c $(DIMDIR)/$(ODIR)/libdim.a
+ifeq (,$(findstring $(ODIR),$(wildcard $(ODIR) )))
+	-mkdir $(ODIR)
+endif
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/server.c -L$(DIMDIR)/linux -ldim -o $(ODIR)/server $(LIBS)
 	
 $(ODIR)/client:	$(SDIR)/client.c $(DIMDIR)/$(ODIR)/libdim.a

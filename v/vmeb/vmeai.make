@@ -32,6 +32,11 @@ ifeq (BNAME,ctp)
   LDFLAGS +=-Lctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
+ifeq (BNAME,inputs)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
+  COMMONCFLAGS +=-I$(DIMDIR)/dim
+endif
 ifeq (BNAME,ADCI)
   LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib

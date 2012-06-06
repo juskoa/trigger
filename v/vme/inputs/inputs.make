@@ -32,6 +32,11 @@ ifeq (inputs,ctp)
   LDFLAGS +=-Lctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
+ifeq (inputs,inputs)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
+  COMMONCFLAGS +=-I$(DIMDIR)/dim
+endif
 ifeq (inputs,ADCI)
   LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
@@ -58,8 +63,8 @@ LDFLAGS +=-L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook $(MYSQLLIBS)
 endif
 LDFLAGS +=-lpthread
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
-#OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) inputs_cf.o signature.o ssmbrowser.o inputs.o ssm.o alignment.o sync.o 
-OBJFILES=$(VMEBDIR)/cmdbase.o inputs_cf.o signature.o ssmbrowser.o inputs.o ssm.o alignment.o sync.o 
+#OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) inputs_cf.o sync.o inputs.o signature.o alignment.o ssm.o ssmbrowser.o 
+OBJFILES=$(VMEBDIR)/cmdbase.o inputs_cf.o sync.o inputs.o signature.o alignment.o ssm.o ssmbrowser.o 
 inputs.exe: $(OBJFILES)
 	$(VMECC) $(OBJFILES) $(LDFLAGS) -lm -o inputs.exe
 inputs_cf.o: inputs_cf.c $(VMEBDIR)/vmeaistd.h
@@ -70,7 +75,7 @@ $(VMEBDIR)/cmdbase.o: $(VMEBDIR)/cmdbase.c $(VMEBDIR)/vmeaistd.h
 	cd $(VMEBDIR); $(VMECC) -g -c $(CFLAGS) cmdbase.c -o $(VMEBDIR)/cmdbase.o
 clean:
 	rm inputs_cf; rm inputs_cf.c; rm inputs_cf.py; rm inputs.make; rm *.o *.pyc *.exe
-ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
+ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssm.c
 ssmbrowser.o: ssmbrowser.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssmbrowser.c
@@ -78,7 +83,7 @@ alignment.o: alignment.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) alignment.c
 signature.o: signature.c
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) signature.c
-inputs.o: inputs.c $(VMEBDIR)/vmeblib/vmewrap.h ../ctp/ctplib/ctplib.h ../ctp/ctp.h shmaccess.h ../ctp_proxy/Tpartition.h ssmctp.h
-	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) inputs.c
 sync.o: sync.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) sync.c
+inputs.o: inputs.c $(VMEBDIR)/vmeblib/vmewrap.h ../ctp/ctplib/ctplib.h ../ctp/ctp.h shmaccess.h ../ctp_proxy/Tpartition.h ssmctp.h
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) inputs.c

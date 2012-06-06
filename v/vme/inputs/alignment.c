@@ -111,7 +111,7 @@ Adds chan0 to chanM to INPUTS
 - offset: for synchronisation of signals from different boards
 */
 int add2SSM0(w32 *sm,int chan0,int chanM,int level,w32 offset){
- int i,j,input;
+ int i,input, j;
  w32 buffer[32][BUFSIZE];
  w32 size[32],last[32];  
  for(i=0;i<32;i++){
@@ -145,7 +145,7 @@ int add2SSM0(w32 *sm,int chan0,int chanM,int level,w32 offset){
     if(input0 == NULL) goto RET1;
     bctime = (w32 *)malloc(size[i-chan0]*sizeof(w32));
     if(bctime == NULL) goto RET2;
-    for(j=0;j<size[i-chan0];j++)bctime[j]=buffer[i-chan0][j]+offset; // +OR-!!!
+    for(j=0;(w32)j<size[i-chan0];j++)bctime[j]=buffer[i-chan0][j]+offset; // +OR-!!!
     input=i-chan0+level;
     input0->size=size[i-chan0];
     input0->last=last[i-chan0];
@@ -394,7 +394,7 @@ int take3SSM(int ntimes){
 /*
 */
 void correl(w32 *b1,w32 *b2,w32 size1,w32 size2,int cordist,int delta,w32 *corfun){
- int i,j;
+ w32 i,j;
  for(i=0;i<size1;i++){
    for(j=0;j<size2;j++){
      if(abs(b2[j]-b1[i]-cordist) < delta) corfun[b2[j]-b1[i]-cordist+delta]++;
@@ -431,10 +431,10 @@ void croscor1(int input1,int input2,int cordist,int delta,int dir){
 Autocorel one input
 cordist>0
 */ 
-void autocor(int input,int cordist,int delta){
+void autocor(int input,int cordist,w32 delta){
  SSM0CHAN *inp;
  int autofun[delta];
- int i,j,size,last;
+ w32 last,size,i,j;
  w32 *bc;
  for(i=0;i<delta;i++)autofun[i]=0;
  inp=INPUTS[input];
@@ -445,7 +445,7 @@ void autocor(int input,int cordist,int delta){
   for(i=0;i<(size);i++){
    j=i;
    if((last-bc[i])<delta) continue;
-   while(((bc[j]-bc[i])<cordist) && (j<size))j++; 
+   while(((bc[j]-bc[i])<(w32)cordist) && (j<size))j++; 
    if(j==size) continue;   
    while(((bc[j]-bc[i]-cordist)<delta) && (j<size)){
      autofun[bc[j]-bc[i]-cordist]++;

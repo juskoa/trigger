@@ -89,30 +89,39 @@ cleanmake s ctp/ctplib $CLEAN
 #complink ctp/ctplib $CLEAN
 cleancmp ctp $CLEAN
 #complinktoobusy
-cleanmake c toobusy
 cleanmake s ctp_proxy $CLEAN
+cleanmake c toobusy
 #complink smaq
 cleanmake c smaq $CLEAN
 elif [ "$1" = "allltu" ] ;then
 cleanmake s ltu/ltulib $CLEAN
-cleancmp ltu $CLEAN
-cleanmake c SSMANA $CLEAN
-cleancmp VME2FPGA $CLEAN
-cleanmake c ltu_proxy $CLEAN
 cleanmake s ltudim  $CLEAN
+cleanmake c SSMANA $CLEAN
+cleanmake c ltu_proxy $CLEAN
+cleancmp ltu $CLEAN
+cleancmp VME2FPGA $CLEAN
+elif [ "$1" = "tinproxy" -o "$1" = "dimcdistrib" -o "$1" = "pydim" -o \
+"$1" = "CNTRRD" -o "$1" = "ttcmidaemons" -o "$1" = "filling" -o \
+"$1" = "dimcoff" -o "$1" = "monscal++" -o "$1" = "fanio/dim" ] ;then
+cleanmake s $1 $CLEAN
+elif [ "$1" = "orbitsync" -o "$1" = "MORELTUS" ] ;then
+cleanmake c $1 $CLEAN
+elif [ "$1" = "fanio" -o "$1" = "ttcmi" -o "$1" = "bobr" -o \
+"$1" = "switch" -o "$1" = "ttcit" ] ;then
+cleancmp $1 $CLEAN
 elif [ "$1" = "others" ] ;then
 cleanmake s tinproxy  $CLEAN
-cleanmake c orbitsync $CLEAN
 cleanmake s dimcdistrib $CLEAN
-#cleanmake dimsc     # only examples
-cleanmake c MORELTUS $CLEAN
 cleanmake s pydim $CLEAN
 cleanmake s CNTRRD $CLEAN
 cleanmake s ttcmidaemons $CLEAN
 cleanmake s filling $CLEAN
 cleanmake s dimcoff $CLEAN
 cleanmake s monscal++ $CLEAN
-cleanmake sc fanio/dim $CLEAN
+cleanmake s fanio/dim $CLEAN
+#cleanmake dimsc     # only examples
+cleanmake c orbitsync $CLEAN
+cleanmake c MORELTUS $CLEAN
 # 
 cleancmp fanio $CLEAN
 cleancmp ttcmi $CLEAN
