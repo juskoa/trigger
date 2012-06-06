@@ -19,6 +19,7 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 #include <sys/time.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #ifdef CPLUSPLUS
 #include <dic.hxx>
@@ -35,6 +36,7 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 #include "ssmctp.h"
 #include "intint.h"
 
+int quit=0;
 char dirname[40]="last";
 int siteflag=0;
 void getdatetime(char *);
@@ -49,20 +51,16 @@ char DETSTAT_COM[256]="NONE";
 #define MAXCTPINPUTS 24 
 char StatusString[MAXCTPINPUTS+1];
 
-/*
-void callback(int *tag, int*rc) { 
-//printf("callback tag:%d rc:%d\n", *tag, *rc);
-int i;
-if(*rc == 1) {
-  //printf("%s %s OK\n",cmd,message);
-  //printf("Callback: OK\n");
-  i=1;
-} else {
-  //printf("%s %s not executed by server\n",cmd,message);
-  printf("DIM Callback: command not sent (no beep...)\n");
+/*---------------------------------------------*/ void gotsignal(int signum) {
+char msg[100];
+// SIGUSR1:  // kill -s USR1 pid
+signal(signum, gotsignal); siginterrupt(signum, 0);
+sprintf(msg, "got signal:%d", signum); prtLog(msg);
+if((signum==SIGUSR1) || (signum==SIGKILL) ) {
+  quit=1;
 };
-} 
-*/
+}
+
 void callback(void *tag, int *retcode){
  char command[100];
  printf("callback: %li %i ",*(long *)tag,*retcode);
@@ -519,6 +517,10 @@ if(intboard == 2){   // trigger on int1
       //countersRead();
       //break;
     };
+    if(quit!=0) {
+      // the request 'stop smaqing' registered (signal -s SIGUSR1 pid), let's stop
+      break;
+    };
     usleep(1000); // was 200 at the start of Aug (can be much more for 1bobr/48 secs)
     timediff=getTime(timeold,time);
     //printf("time: old %u new %u diff %f\n",timeold,time,timediff); 
@@ -568,6 +570,7 @@ int main(int argc, char **argv) {
   printf("Expected: 0 < input number <49 \n");
   return 2;
  }
+signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
  initSMAQ();
  datadir= getenv("SMAQDATA");
  if(datadir !=NULL) {
