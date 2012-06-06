@@ -62,7 +62,9 @@ export VMEWORKDIR=~/v/vme
 export dbctp=$VMECFDIR/CFG/ctp/DB
 export DIMDIR=/opt/dim
 export SMIDIR=/opt/smi
-export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
+if [ -z "$DATE_DAQLOGBOOK_DIR" -a -d /opt/libDAQlogbook ] ;then
+  export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
+fi
 if [[ $PATH != *$ult/bin* ]] ;then
   export PATH="$PATH:$ult/bin"
 fi
