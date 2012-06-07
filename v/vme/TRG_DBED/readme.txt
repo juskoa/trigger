@@ -140,8 +140,21 @@ Goal: lean git. Modifications in git version (not in vd on pcalicebhm10):
 see git log
 started work on: simpler class def. syntax:
 1. reading .partition
-
+OK
 2. writing .partition .pcfg .rcfg
+seems OK:
+7.6.2012:
+a -ok
+a1 a saved as. ok
+a2 a1 saved as. ok (i.e. a1=a2 .partition and .pcfg)
 
 3. editing class in parted
+goals:
+class name:
+- if empty:
+   -show built-name class name in class button  OK
+   -show empty class field in 'Class' widget    OK
+  else:
+   -show class name in class button  OK
+   -show class name field in 'Class' widget    OK
 

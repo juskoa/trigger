@@ -182,4 +182,5 @@ tr10:/usr/local/trigger/devel  -development version, git. COmpile all: bin/makea
 smaq.c (pit +devel): now kill i(i.e. -9) operation should let
 bakery lock/unlock finish properly -signal used to catch the interrupt
 in smaq.c
-
+7.6.
+parted.py: cn=name skipped if name is standard name

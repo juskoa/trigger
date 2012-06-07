@@ -1187,7 +1187,7 @@ class TrgClass:
     else:
       cluspart= mycluster.name
     self.updateClassName(cluspart,composeName=None) # self.clsnamepart[] only
-    cn_name=None   #self.clsname= None
+    cn_name=None
     self.clanumlog= 0   # 1..50 assigned in TrgPartition.loadfile()
     #print "TrgClass:",self.clsname,pars
     #print "TrgClass:", self.clsname," trde:" ; if self.trde: self.trde.prt()
@@ -1271,8 +1271,6 @@ class TrgClass:
     if (cn_name!=None) and (cn_name!=self.getclsname()):
       print "TrgClass:", cn_name, self.getclsname()
       self.clsname=cn_name
-    #if self.clsname==None:
-    #   self.updateClassName(cluspart)
   def get_clsnamepart1(self, k):
     bcm= findSHR(k)
     if bcm.value==None: return None
@@ -1305,7 +1303,7 @@ class TrgClass:
   def updateClassName(self, cluspart,composeName="yes"):
     #needed for new classes (after click on cluster button)
     if composeName==None:
-      self.clsname=None; 
+      self.clsname=''; 
       p0= self.trde.name.replace('D','C',1)   #default class name
       if p0=='CEMPTY': p0='CTRUE'
       #if cluspart!='CENT ALL MUON TPC FAST':
@@ -1410,7 +1408,7 @@ class TrgClass:
       if self.bcms[ibcm]!=0:
         if SHRRSRCS[ibcm+BCMASKS_START].getDefinition()==None:
           PrintError("Undefined %s referenced by class %s, reference discarded(in .rcfg)"%\
-            (SHRRSRCS[ibcm+BCMASKS_START].name, self.clsname))
+            (SHRRSRCS[ibcm+BCMASKS_START].name, self.getclsname()))
           continue   
         bcms=bcms+"BCM%d,"%(ibcm+1)   #firmAC
     if len(bcms)==1: bcms=bcms+','
@@ -1422,7 +1420,7 @@ class TrgClass:
              L0pr='0'         -> '' to output
              cn=tdsname       -> ''
     """
-    CLSNAME="skip"   # or oldway
+    CLSNAME="skip"   # skip or oldway
     # prepare pfs, bcm*, allrare (3x empty or finished with ',')
     pfs= self.getTXTpfs()                     # pfs
     bcrnd= self.getTXTbcrnd(text='saving')
@@ -1447,7 +1445,7 @@ class TrgClass:
     if CLSNAME=="oldway":   # was till 3.6.2012:
       cn="cn=%s,"%self.getclsname()
     elif CLSNAME=="skip": # from 3.6.2012:
-      if self.clsname==None:
+      if self.clsname=='':
         cn=''
       else:
         cn="cn=%s,"%self.clsname
@@ -1640,15 +1638,15 @@ Currently, these times [in seconds] are defined for groups 1..9:
     """
     cluspart: None -trailing cluster part not given in returned name
     new (from 11.5.2012:
-    return name built from clsnamepart[]
+    return: buit-name i.e. built from clsnamepart[]
     """
-    if self.clsname!=None: 
+    if self.clsname!='': 
       return self.clsname
       #return self.trde.name   # DESCRIPTOR name if not exists
     #r= str(self.clsname)
     r= self.buildname()
     #print "getclsname:", clustpart
-    if clustpart==None: # cut off '-clusterName'
+    if clustpart==None: # cut off '-clusterName' if present
       for i in range(len(r),0,-1):
         if r[i-1]=='-': 
           r= r[:i-1] ; break
@@ -1857,6 +1855,7 @@ TopMenu->Show->classes'
     for clsactive in self.cls:   # then add classes
       self.tdsonoffs.append(1)
       #self.tdsnames.append(clsactive.trde.name)  better class names
+      print "adding 1 ", clsactive.getclsname()
       self.tdsnames.append(clsactive.getclsname())
   def show(self,master):
     self.clfr= myw.MywFrame(master,side=BOTTOM, bg=COLOR_CLUSTER)
@@ -1895,7 +1894,7 @@ See VALID.LTUS file for available LTUs.""",
   #def delcls(self, cls):
   #  cls.prtClass()
   def modtdsl(self, mwl, modix):
-    #print "modtdsl:",modix,self.maxTD, mwl.items
+    #print "modtdsl:",modix,self.maxTD #, mwl.items
     if mwl.getEntry(modix)==1:   # adding TDS 
       if modix>self.maxTD:
         IntErr("modtdsl error:%s,%s,%s"%(modix,self.maxTD, mwl.items))
@@ -1912,7 +1911,7 @@ See VALID.LTUS file for available LTUs.""",
       self.tdsonoffs.append(1)
       #self.tdsnames.append(newcls.trde.name)  
       #use className (not tdsName)
-      self.tdsnames.append(newcls.clsname)
+      self.tdsnames.append(newcls.getclsname())
       self.doTDShead()
     else:                        # removing TDS from this cluster
       found=None
@@ -2264,7 +2263,7 @@ class TrgPartition:
             if SHRRSRCS[ix4+BCMASKS_START].getDefinition()==None:
               errormsg= errormsg+\
                 "Undefined %s referenced by class %s, reference discarded in .pcfg file\n"%\
-                (SHRRSRCS[ix4+BCMASKS_START].name, cls.clsname)
+                (SHRRSRCS[ix4+BCMASKS_START].name, cls.getclsname())
               continue   
             l0vetos= l0vetos & ~r12b12
             SHRRSRCS[ix4+BCMASKS_START].used= SHRRSRCS[ix4+BCMASKS_START].used+1
@@ -2278,7 +2277,7 @@ class TrgPartition:
             if SHRRSRCS[ix4+PFS_START].getDefinition()==None:
               errormsg= errormsg+\
                 "Undefined %s referenced by class %s, reference discarded in .pcfg file\n"%\
-                (SHRRSRCS[ix4+PFS_START].name, cls.clsname)
+                (SHRRSRCS[ix4+PFS_START].name, cls.getclsname())
               continue   
             #print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
             # check if common definition agrees:
