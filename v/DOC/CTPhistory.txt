@@ -178,3 +178,8 @@ pit + devel/git:
 - ltudimservices: "ttcrxrest fee" added
 5.6.
 tr10:/usr/local/trigger/devel  -development version, git. COmpile all: bin/makeall
+6.6.
+smaq.c (pit +devel): now kill i(i.e. -9) operation should let
+bakery lock/unlock finish properly -signal used to catch the interrupt
+in smaq.c
+

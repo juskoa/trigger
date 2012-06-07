@@ -48,5 +48,6 @@ build
 *.swp
 *.out
 v/vme/monscall*/cnt
-*/linux
+v/*/*/linux*/
+v/*/*/*/linux*/
 v/vme/CFG/ctp/DB
