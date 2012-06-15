@@ -1,0 +1,501 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <list>
+#include <vector>
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TFile.h"
+#include "TList.h"
+#include "TObjArray.h"
+#include "TCanvas.h"
+#define Mega 1024*1024
+typedef unsigned int w32;
+
+using namespace std;
+class Hists
+{
+ private:
+         TObjArray hists;  // correlations
+         TObjArray hists2; // length and orbit
+ public:
+         Hists();
+	 ~Hists();
+         int addHist(string const &name,int delta,int cordist);
+         int addHist(string const &name,int nbins,float x0, float xmax);
+         int fillHist(int i,int bin,float x);
+         int writeHists();
+         void printAllHists();
+};
+Hists::Hists(){
+}
+Hists::~Hists(){
+}
+int Hists::addHist(string const &name,int delta,int cordist){
+ int nbins=2*delta+1;
+ float x0=cordist-delta;
+ float xm=cordist+delta;
+ TH1F *h = new TH1F(name.c_str(),name.c_str(),nbins,x0,xm);
+ hists.Add(h);
+ return 0;
+}
+int Hists::addHist(string const &name,int nbins,float x0,float xmax){
+ TH1F *h = new TH1F(name.c_str(),name.c_str(),nbins,x0,xmax);
+ hists.Add(h);
+ return 0;
+}
+int Hists::fillHist(int i,int bin,float x){
+ TH1F *h = (TH1F*) hists[i];
+ //cout << "i= "<< i << ":" << h->GetName() << endl;
+ h->SetBinContent(bin,x);
+ return 0;
+}
+int Hists::writeHists(){
+  TFile *file;
+  file = new TFile("pdf/Histos.root","RECREATE","FILE");
+  hists.Write();
+  file->Close();
+ return 0;
+}
+void Hists::printAllHists(){
+ int n=hists.GetEntriesFast();
+ TCanvas c1("c1","c1",900,20,540,550);
+ for(int i=0;i<n;i++){
+   hists[i]->Draw(); 
+   cout << (hists[i])->GetName() << " saved" << endl;
+   string ext(".pdf");
+   string pdf("pdf/");
+   string file(pdf+hists[i]->GetName()+ext);
+   c1.SaveAs(file.c_str());
+ }
+}
+//---------------------------------
+class ssmpoint
+{
+ public:
+ int issm,chanabs,chanrel,position;
+ ssmpoint(int is,int ch,int chr,int pos){
+  issm=is;chanabs=ch;chanrel=chr;position=pos;
+ };
+ void Print(){
+  cout << "ssm="<< issm << " ch=" << chanrel << " pos=" << position << endl;
+ }
+};
+//---------------------------------------------------
+class extractData : public Hists
+{
+ private:
+        int checkInputs(int issm);
+        void check1SSM(int issm);
+        int extract1SSM(int issm);
+        int extract1SSMfilt1(int issm);
+        int checkSSMforData(int issm);
+        int fill(int chan1,int chan2,int dist);
+        vector<string> filelist;
+        vector<string> ssmdumps;
+        vector<ssmpoint> data;
+        vector<string> inputNames;
+        string FileList_d;
+        string DataDir_d;
+        int cordist_d,delta_d;
+        int nfiles;    // if < nlines only nfiles are read
+        int nlines;    // # of lines in file list = # files (filelist)
+        int nssms;     // # of non empty ssms= at least 2 signals (ssmsumps)
+        int ninputs,ncorrelations;
+        int *(*correlations);
+        int *(*length);
+        int *(*orbit);
+        TFile *outFile;
+        int const Nchans;
+        int *chosenInputs;
+        int *chan2inp;
+        int *chans;     // number of signal
+        int *chansd;     // number of signals closer than xxx
+        int SkipNext;   // number of BCs to skip after first detected
+ public:
+        extractData(string const &FileList,string const &DataDir);
+        void chooseInputs();
+        int readFileList();
+        int removeEmptySSMs();
+        void checkAllSSM();
+        void extractAllSSM();
+        void checkAllSSM1by1();
+        int correlateAllSSM(int cordist,int delta);
+        void printFileList();
+        void printData();
+        void printCorrelations();
+        void SetSkipNext(int skip){SkipNext=skip;}
+        void SetNfiles(int n){nfiles=n;};
+};
+extractData::extractData(string const &FileList,string const
+&DataDir):
+Nchans(32)
+{
+ FileList_d=FileList;
+ DataDir_d=DataDir;
+ cordist_d=0;delta_d=0;
+ nfiles=0;
+ chosenInputs = new int[Nchans];
+ chan2inp = new int[Nchans];
+ chans = new int[Nchans];
+ chansd = new int[Nchans];
+ nssms=0;
+}
+//------------------------------------------------------
+void extractData::chooseInputs(){
+ for(int i=0;i<Nchans;i++){
+    chosenInputs[i]=0;
+    chan2inp[i] = -1;
+ }
+ //chosenInputs[0]=1; 
+ //inputNames.push_back("OSMB");
+ //chosenInputs[0]=2;
+ //inputNames.push_back("LocM");
+ //hosenInputs[2]=3;
+ //inputNames.push_back("TOFT");
+ chosenInputs[0]=7;
+ inputNames.push_back("OASL");
+ chosenInputs[1]=8;
+ inputNames.push_back("OAMU");
+ chosenInputs[2]=14;
+ inputNames.push_back("0OB3");
+ chosenInputs[3]=17;
+ inputNames.push_back("0HPT");
+ chosenInputs[4]=18;
+ inputNames.push_back("0OCP");
+ chosenInputs[5]=20;
+ inputNames.push_back("0SCO");
+ //chosenInputs[5]=21;
+ //inputNames.push_back("0ASC");
+ ninputs=0;
+ for(int i=0;i<Nchans;i++){
+   if(chosenInputs[i]){
+     chan2inp[chosenInputs[i]+7]=1;
+     cout << ninputs<< " "<<chosenInputs[i]+7<<" " << chan2inp[chosenInputs[i]+7] << endl;
+     ninputs++;
+
+     }
+ }  
+ cout << "ninputs=" << ninputs << endl;
+ ncorrelations=ninputs*(ninputs+1)/2;
+ correlations = new int*[ncorrelations];
+ int j=0;
+ for(int i=0;i<Nchans;i++){
+  if(chan2inp[i] != -1){
+    chan2inp[i]=j;
+    j++;
+    }
+ }
+ cout << "j=" << j << endl;
+for(int i=0;i<Nchans;i++){
+ if(chan2inp[i] != -1){
+    cout << i-7 << " " << chan2inp[i]<< " " << inputNames[chan2inp[i]] << endl;
+    //addHist(inputNames[chan2inp[i]],20,-0.5,19.5);
+   }
+}
+}
+//------------------------------------------------------------
+int extractData::extract1SSMfilt1(int issm){
+// del : correlation only to the edge del[i]>0
+//       del[i]=0 no limit
+ ifstream in;
+ string file(DataDir_d+ssmdumps[issm]);
+ in.open(file.c_str(),ios::in | ios::binary);
+ if(!in.is_open()){
+    cout << "extract1SSMfile1: File not found: "<<  ssmdumps[issm]  << endl;
+    return 1;
+ }
+ cout << file << " OK" << endl;
+ int del[Nchans];
+ for(int i=0;i<Nchans;i++)del[i]=0;
+ w32 ssm[Mega];
+ in.read((char*)ssm,sizeof(ssm));
+ in.close();
+ for (int i=0;i<Mega;i++){
+  if(!ssm[i]) continue;
+  for(int j=0;j<Nchans;j++){
+   if(chan2inp[j] != -1){
+    if((del[j]--)<=0 && (ssm[i] & (1<<j))){
+      ssmpoint p(issm,j,chan2inp[j],i);
+      //p.Print();
+      data.push_back(p);
+      //del[j]=100;
+      del[j]=SkipNext;
+    }
+   }
+  }
+ }
+ return 0;
+}
+//------------------------------------------------------------
+int extractData::extract1SSM(int issm){
+ ifstream in;
+ string file(DataDir_d+ssmdumps[issm]);
+ in.open(file.c_str(),ios::in | ios::binary);
+ if(!in.is_open()){
+    cout << "extract1SSM: File not found: "<<  ssmdumps[issm]  << endl;
+    return 1;
+ }
+ cout << file << " OK" << endl;
+ w32 ssm[Mega];
+ in.read((char*)ssm,sizeof(ssm));
+ in.close();
+ for (int i=0;i<Mega;i++){
+  if(!ssm[i]) continue;
+  for(int j=0;j<Nchans;j++){
+   if(chan2inp[j] != -1){
+    if(ssm[i] & (1<<j)){
+      ssmpoint p(issm,j,chan2inp[j],i);
+      //p.Print();
+      data.push_back(p);
+    }
+   }
+  }
+ }
+ return 0;
+}
+//-----------------------------------------------------------
+int extractData::readFileList(){
+// Read the list of ssm files
+  ifstream in;
+  in.open(FileList_d.c_str());
+  if(!in.is_open()){
+   cout << "readDileList: File not found: "<<  FileList_d  << endl;
+   return 1;
+  }
+  nlines=0;
+  while (1) {
+      string line;
+      in >> line;
+      if (!in.good()) break;
+      //cout << line << endl;
+      if(line[0]=='#') continue;
+      filelist.push_back(line); 
+      nlines++;
+      if(nfiles && nlines>=nfiles)break;
+   }
+   in.close();
+   cout << " # found  lines " << nlines << endl;
+   printFileList();
+   cout << " # found  lines " << nlines << endl;
+   return 0;
+}
+//--------------------------------------------------------------
+void extractData::extractAllSSM(){
+ //for(int i=0;i<nssms;i++)extract1SSM(i);
+ for(int i=0;i<nssms;i++)extract1SSMfilt1(i);
+}
+//---------------------------------------------------------------
+void extractData::checkAllSSM(){
+ cout << "CheckALL SSM starts:" << endl;
+ for(int j=0;j<Nchans;j++)chans[j]=0;
+ for(int j=0;j<nlines;j++)checkInputs(j);
+ for(int j=0;j<Nchans;j++){
+  if(chans[j])
+  {
+    if(chan2inp[j] != -1){
+     cout << "Channel: "<< j << " " <<inputNames[chan2inp[j]] << " "<< chans[j] << endl;
+    }
+    else cout << "Channel: "<< j << "    " << chans[j] << endl;
+  }
+ }
+ cout << "CheckALL SSM finished." << endl;
+}
+//---------------------------------------------------------------
+void extractData::check1SSM(int issm){
+ for(int j=0;j<Nchans;j++)chans[j]=0;
+ checkInputs(issm);
+ for(int j=0;j<Nchans;j++){
+  if((chan2inp[j] != -1) && chans[j]>0){
+    cout << j-7 << " " << chans[j] << " " << chansd[0]<<endl;
+  }
+ }
+}
+//-------------------------------------------------------------------
+void extractData::checkAllSSM1by1(){
+ for(int i=0;i<nlines;i++)check1SSM(i);
+}
+//-------------------------------------------------------------------
+int extractData::removeEmptySSMs(){
+ int ret;
+ nssms=0;
+ for(int i=0;i<nlines;i++){
+    if(!(ret=checkSSMforData(i))){
+      ssmdumps.push_back(filelist[i]); 
+      nssms++; 
+    }else{
+     if(ret==2) return 1;
+    }
+ }
+ cout << "# of dumps after removing empty: " << nssms << endl;
+ return 0;
+}
+//-------------------------------------------------------------------
+int extractData::checkSSMforData(int issm){
+ ifstream in;
+ string file(DataDir_d+filelist[issm]);
+ in.open(file.c_str(),ios::in | ios::binary);
+ if(!in.is_open()){
+    cout << "checkSSMforData: File not found: "<<  filelist[issm]  << endl;
+    return 2;
+ }
+ cout << file << " OK" << endl;
+ w32 ssm[Mega];
+ in.read((char*)ssm,sizeof(ssm));
+ in.close();
+ for(int i=0;i<Mega;i++){
+  int nsig=0;
+  for(int j=0;j<Nchans;j++){
+   if(chan2inp[j] != -1){
+     if(ssm[i]&(1<<j)){
+       nsig++;
+       if(nsig>0){
+         cout << file << " first non zero at " << i << " " << j << endl;
+         return 0;
+       }
+     }
+   }
+  }
+ }
+ cout << file << " removed" << endl;
+ return 1; 
+}
+//-------------------------------------------------------------------
+int extractData::checkInputs(int issm){
+ ifstream in;
+ string file(DataDir_d+filelist[issm]);
+ in.open(file.c_str(),ios::in | ios::binary);
+ if(!in.is_open()){
+    cout << "checkInputs: File not found: "<<  ssmdumps[issm]  << endl;
+    return 1;
+ }
+ int last[Nchans];
+ for(int i=0;i<Nchans;i++){last[i]=0;chansd[i]=0;} // set variable later
+ last[24]=Mega;
+ cout << file << " ----------------------------------OK" << endl;
+ w32 ssm[Mega];
+ in.read((char*)ssm,sizeof(ssm));
+ in.close();
+ for (int i=0;i<Mega;i++){
+  if(!ssm[i]) continue;
+  for(int j=8;j<Nchans;j++){
+   if(ssm[i] & (1<<j)){
+     chans[j]++;
+     last[j]=i;
+   }
+  }
+  if(abs(last[21]-last[24])<10)chansd[0]++;
+ }
+ return 0;
+}
+//-----------------------------------------------------------
+int extractData::fill(int chan1,int chan2,int dist){
+ if(chan1>chan2){
+  return 0; // double counting
+  dist=delta_d-dist;
+  int ch=chan1; chan1=chan2;chan2=ch;
+ } else dist=delta_d+dist;
+ int i=(2*ninputs-chan1-1)*chan1/2+chan2;
+ correlations[i][dist]++;
+ return 0;
+}
+//-----------------------------------------------------------
+int extractData::correlateAllSSM(int cordist,int delta){
+ for (int i=0;i<ncorrelations;i++){
+   correlations[i]=new int[2*delta+1];
+   for(int j=0;j<2*delta+1;j++)correlations[i][j]=0;
+ }
+ delta_d=delta;
+ cordist_d=cordist;
+ int ndata=data.size();
+ cout << "# of data points= " << ndata << endl;
+ for(int i=0;i < ndata; i++){
+   ssmpoint *a = &data[i];
+   int issm=a->issm;
+   int pos=a->position;
+   int chan=a->chanrel;
+   int j=i;
+   while((j<ndata) &&
+         (issm == data[j].issm) && 
+         (chan <= data[j].chanrel) &&
+         (abs(pos - data[j].position - cordist) <= delta)
+   ){
+    fill(chan,data[j].chanrel,pos-data[j].position);
+    j++;
+   }
+   j=i-1;
+   while((j>=0) &&
+         (issm == data[j].issm) && 
+         (chan <= data[j].chanrel) &&
+         (abs(pos - data[j].position - cordist) <= delta)
+   ){
+    fill(chan,data[j].chanrel,pos-data[j].position);
+    j--;
+   }
+ }
+ return 0;
+}
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+void extractData::printFileList(){
+ for(int i=0;i<nlines;i++) cout << filelist[i] << endl;
+ //for(
+ //    vector<string>::iterator i=ssmdumps.begin();
+ //    i != ssmdumps.end();
+ //    ++i) cout << ssmdumps[j] << endl;
+}
+//------------------------------------------------------------------
+void extractData::printData(){
+ for(
+     vector<ssmpoint>::iterator i=data.begin();i !=
+     data.end();++i){
+     i->Print();
+     }
+}
+//-------------------------------------------------------------------
+void extractData::printCorrelations(){
+ for(int i=0;i<ninputs;i++){
+  for(int j=i;j<ninputs;j++){
+    std::stringstream ss;
+    ss << i << "x" << j;
+    //addHist(ss.str(),delta_d,cordist_d);
+    string name("");
+    name=inputNames[i]+"x"+inputNames[j];
+    addHist(name,delta_d,cordist_d);
+    int k=(2*ninputs-i-1)*i/2+j;
+    cout << name << ":";
+    cout << i << "x" << j << ": ";
+    int peak=0,offpeak=0;
+    for(int l=0;l<2*delta_d+1;l++){
+     //cout << correlations[k][l] << " ";
+     fillHist(k,l+1,correlations[k][l]);
+     if(l==delta_d)peak = correlations[k][l];
+     else offpeak=offpeak+correlations[k][l];
+    }
+    cout << peak << " off: "<< offpeak << endl;
+  }
+ }
+}
+//-------------------------------------------------------------------
+int main(){
+ //string file("/data/SMAQ/Sept10_01/");
+ //extractData a("fileaug31_0SCO.txt","/data/SMAQ/aug31_0SCO/");
+ extractData a("filessep2_2.txt","/data/SMAQ/sep2_2/");
+ //extractData a("filessep3.txt","/data/SMAQ/sep3/");
+ a.SetSkipNext(4);  // 0 for autocorrelations
+ a.SetNfiles(0);
+ if(a.readFileList()) return 1;
+ a.chooseInputs();
+ //a.checkAllSSM();
+ //a.checkAllSSM1by1();
+ //return 1;
+ //
+ a.removeEmptySSMs();
+ a.extractAllSSM();
+ //a.printData();
+ a.correlateAllSSM(0,800);
+ a.printCorrelations();
+ a.printAllHists();
+ a.writeHists();
+}
