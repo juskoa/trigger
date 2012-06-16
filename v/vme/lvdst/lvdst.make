@@ -17,37 +17,51 @@ COMMONCFLAGS=-Wall $(COMDEFS) -I$(VMEBDIR)/vmeblib
 ifeq (lvdst,VME2FPGA)
   libobjs +=
 endif
-ifeq (lvdst,ltu)
-  LDFLAGS +=-Lltulib -lltu
+ifeq ($(findstring lvdst,ltu cosmicfo lvdst),lvdst)
+  LDFLAGS +=-L$(VMECFDIR)/ltu/ltulib/linux_c -lltu
   #CFLAGS +=-I$(VMECFDIR)/ltu/ltulib
 endif
-ifeq (lvdst,cosmicfo)
-  LDFLAGS +=-L$(VMECFDIR)/ltu/ltulib -lltu
-endif
-ifeq (lvdst,lvdst)
-  LDFLAGS +=-L$(VMECFDIR)/ltu/ltulib -lltu
-  #CFLAGS +=-I$(VMECFDIR)/ltu/ltulib
-endif
+#ifeq (lvdst,cosmicfo)
+#endif
+#ifeq (lvdst,lvdst)
+#  LDFLAGS +=-L$(VMECFDIR)/ltu/ltulib -lltu
+#  #CFLAGS +=-I$(VMECFDIR)/ltu/ltulib
+#endif
 ifeq (lvdst,ctp)
-  #libobjs +=$(VMECFDIR)/ctp/ctplib/libctp.a
-  LDFLAGS +=-Lctplib -lctp
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-Lctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
+ifeq (lvdst,inputs)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
+  COMMONCFLAGS +=-I$(DIMDIR)/dim
+endif
 ifeq (lvdst,ADCI)
-  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib -lctp
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
+#  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
+endif
+ifeq (lvdst,ttcmi)
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
 ifeq (lvdst,ctpt)
-  #libobjs +=$(VMECFDIR)/ctp/ctplib/libctp.a
-  LDFLAGS +=-Lctplib -lctp
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-Lctplib/linux_c -lctp
   CFLAGS +=-DSSMCONNECTIONS
 endif
 ifdef DATE_INFOLOGGER_DIR
 INCDIRS=-I$(DATE_INFOLOGGER_DIR)
-LDFLAGS +=-L$(VMEBDIR)/vmeblib -lvmeb -L$(DATE_INFOLOGGER_DIR) -lInfo -lpthread
+LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb -L$(DATE_INFOLOGGER_DIR) -lInfo
 else
-LDFLAGS +=-L$(VMEBDIR)/vmeblib -lvmeb -lpthread
+LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb
 endif
+ifdef DATE_DAQLOGBOOK_DIR
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
+INCDIRS=-I$(DATE_DAQLOGBOOK_DIR)
+LDFLAGS +=-L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook $(MYSQLLIBS)
+endif
+LDFLAGS +=-lpthread
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 #OBJFILES=$(VMEBDIR)/cmdbase.o $(libobjs) lvdst_cf.o lvdst.o 
 OBJFILES=$(VMEBDIR)/cmdbase.o lvdst_cf.o lvdst.o 

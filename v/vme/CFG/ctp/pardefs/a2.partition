@@ -1,0 +1,8 @@
+Version: 4
+BCM1 bcmEMPTY
+BCM2 bcmB
+BCM3 bcmAC
+Clusters:
+NOTRD
+DMUL7(L0pr=50%,BCM2,rare) DMUL7(L0pr=50%,BCM3,rare) DMUL7(cn=mulcla,L0pr=50%,BCM1,rare)
+SPD MUON_TRK MUON_TRG FMD T0 V0 ZDC

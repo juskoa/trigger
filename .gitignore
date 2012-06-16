@@ -50,4 +50,7 @@ build
 v/vme/monscall*/cnt
 v/*/*/linux*/
 v/*/*/*/linux*/
+v/vme/*/*_cf
+v/vme/*/*_cf.c
+v/vme/*/*_cf.py
 v/vme/CFG/ctp/DB

@@ -187,7 +187,8 @@ int k;
 float i, number, arrayCableErrors[33],arraySequenceStrobes[33];
 float arrayRatio[33];
 kTp = Tp_transition(1);
-kTs = Ts_transition(1);
+//kTs = Ts_transition(1);
+kTs = Ts_transition();
 kSignOfZone = Edge_selection(1,kTs,kTp);
 //Select the SEQUENCE pattern
 vmew32(PATTERN_SEL,0x1);
@@ -715,7 +716,8 @@ Gltuver= 0xff&vmer32(LTUVERSION_ADD);
 if(code==0x56) {
   if(Gltuver==0xff) {
     /* LTU FPGA configuration, if not configured: */
-    loadFPGA(0);
+    //loadFPGA(0);
+    loadFPGA();
     Gltuver= 0xff&vmer32(LTUVERSION_ADD);
   };
 } else {
