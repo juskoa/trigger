@@ -32,12 +32,17 @@ Contents:
 15. busy problems when starting global partition
 16. sync management in global runs-see email from end of April 26th 2012
 16A. sync in STDALONE see mails from 3.5.2012
+    done
 17. infoLogger changed
     done (end of march 2012) -still needs to be checked if ok
 18. parted: modifications required:
     - check descriptor name against class name (also
       cluster name part in class name can be missed out?)
+      done: cn= should not be given in partition definition. If yes, taken
+            as it is
     - check if all classes with 0HWU if TRD in readout
+    - check ) (not checked now in validate)
+      16.6.2012 ok (new validate to be distributed)
 19. test l0 synchronous downscaling  l0_logic_verAF.rbf
     see CFG/l0/readme +mail from Marian 16.2.2012)
 20. fo firmware AE (see CFG/fo/readme +mail from Marian 22.3.2012) 

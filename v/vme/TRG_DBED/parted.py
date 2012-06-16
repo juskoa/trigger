@@ -29,7 +29,7 @@ history:
 27.5. bug bcms fixed, 
  - cluster names added 
  - TrgClass.mycluster points now to cluster wherre class is assigned to
- - top level window for calss properties disables Class button
+ - top level window for class properties disables Class button
    (see TrgClass.hideclass)
 28.5. l0prescaler settinag (int) now checked for syntax, better help texts
 11.5. bug 'save partition' fixed (before rnd1,2 was saved as rnd3,4)
@@ -129,6 +129,8 @@ def Parse1(clstring):
   clstring: DescriptorName(a=b,c,d=e,f)           -used in 'Clusters:'
     section of .partition file to define 1 class
   rc: name,{'a':'b','c':'ON','d':'e','f':'ON'}
+      name,{}     -also valid
+  rc: None in case of error
   Reserved names (keys in rc[1]):
   cn -class name
   L0pr  -L0prescaler
@@ -141,6 +143,7 @@ def Parse1(clstring):
   if len(nameits)>1:
     if nameits[1][-1]!=')':
       PrintError(") expected at the end of line:"+clstring)
+      rc=None
     else:
       nameits[1]= nameits[1][:-1]  # strip ')'
       for par in string.split(nameits[1],','):
@@ -155,6 +158,8 @@ def Parse1(clstring):
           rc[valpar[0]]="ON"
         else:
           PrintError("bad class definition:"+clstring)
+          rc=None
+          break
   #print "Parse1:", name,rc
   return name,rc         
 
@@ -1178,9 +1183,12 @@ class TrgClass:
     self.clsbut=None  #i.e. button not created (in Cluster window)=
                       # class not assigned to any cluster
     tdsname,pars=Parse1(clstring)
+    if pars==None:
+      self.trde= None
+      return
     self.trde= TDLTUS.findTD(tdsname) # pointer to trigger descriptor or None
     if not self.trde:
-      print "Unknown Trigger descriptor:",tdsname
+      PrintError("Unknown Trigger descriptor:"+tdsname)
       return
     if mycluster==None:
       cluspart= clusname4clsname
@@ -1276,7 +1284,7 @@ class TrgClass:
     if bcm.value==None: return None
     # bcmEMPTY -> E, bcmS -> S...
     x= bcm.value[3:]
-    print "get_clsnamepart1:", x
+    #print "get_clsnamepart1:", x
     if x=="EMPTY": x="E"
     return x
   def get_clsnamepart2(self, k):
@@ -1284,7 +1292,7 @@ class TrgClass:
     if bcm.value==None: return None
     # bcmEMPTY -> E, bcmS -> S...
     x= bcm.value
-    print "get_clsnamepart2:", x
+    #print "get_clsnamepart2:", x
     return x
   def prtClass(self):
     lfs=''
@@ -1855,7 +1863,7 @@ TopMenu->Show->classes'
     for clsactive in self.cls:   # then add classes
       self.tdsonoffs.append(1)
       #self.tdsnames.append(clsactive.trde.name)  better class names
-      print "adding 1 ", clsactive.getclsname()
+      #print "doTDSheadLists: adding 1 ", clsactive.getclsname()
       self.tdsnames.append(clsactive.getclsname())
   def show(self,master):
     self.clfr= myw.MywFrame(master,side=BOTTOM, bg=COLOR_CLUSTER)
