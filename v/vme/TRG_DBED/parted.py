@@ -2226,6 +2226,11 @@ class TrgPartition:
       if len(cluster.cls)==0:
         errormsg=errormsg+"Cluster "+cluster.name+" without classes, not written to .pcfg\n"
         continue
+      print "savepcfg:%s"%(cluster.name)," :",cluster.getltunames()
+      if string.find(cluster.getltunames(), "TRD")== -1:
+        check0HWU= False
+      else:
+        check0HWU= True
       for cls in cluster.cls:
         if cls.trde.connected[1]>0:   # at least 1 unconnected input
           unconnectedNames= cls.trde.unconnectedNames
@@ -2236,6 +2241,13 @@ class TrgPartition:
           errormsg=errormsg+"Some of %s inputs are not valid in cluster %s\n"%\
             (cls.trde.name, cluster.name)
           continue
+        if check0HWU:
+          # check if 0HWU in all classes
+          print "savepcfg:   ", cls.trde.getInputs()
+          if string.find(cls.trde.getInputs(), "0HWU")== -1:
+            errormsg= errormsg+"Cluster: %s triggered by non-0HWU class %s\n"%\
+              (cluster.name, cls.trde.name)
+            continue
         l0inv=0
         if BCM_NUMBER==4:
           l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
