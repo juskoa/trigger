@@ -39,7 +39,7 @@ def main(action):
     bcwritten= int(dipout[4])
     mylog.infolog("DIP: %s %d/%d bunches"%(dipout[1], bcdip, bcwritten))
     if bcwritten<1:
-       mylog.infolog("no BCs published", level='e')
+       mylog.infolog("Trying to get filling scheme from DIP: no BCs published", level='i')
        rc=2
   if rc==0:
     schname= dipout[1]

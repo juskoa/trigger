@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "vmewrap.h"
 #include "vmeblib.h"
 #include "ctp.h"

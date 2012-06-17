@@ -139,5 +139,8 @@ p->cshmpart->paused=1;
 /*------------------------------*/ void cshmResumePartition(Tpartition *p) {
 p->cshmpart->paused=0;
 }
+/*------------------------------*/ w32 cshmQueryPartition(Tpartition *p) {
+return(p->cshmpart->paused);
+}
 
 

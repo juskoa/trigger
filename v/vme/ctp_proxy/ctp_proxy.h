@@ -59,14 +59,10 @@ int generateXOD(Tpartition *part,char x);
 ------------------------------------------------------------------*/
 int ctp_Initproxy();
 int ctp_Endproxy();
-// pause
 int ctp_PausePartition(char *name);
-// resume
+int ctp_SyncPartition(char *name);
 int ctp_ResumePartition(char *name);
-// Load partition
 int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
-// Start partition
 int ctp_StartPartition(char *name, char *errorReason);
-// Stop Partition
 int ctp_StopPartition(char *name);
 

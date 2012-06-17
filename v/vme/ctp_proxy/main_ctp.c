@@ -149,6 +149,12 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }else{
       sleep (1); smi_setState("RUNNING");
     }
+  } else if (strcmp(action,"SYNC") == 0) {
+    if(ctp_SyncPartition(pname)){
+      sleep (1); smi_setState("ERROR");
+    }else{
+      sleep (1); smi_setState("RUNNING");
+    }
   } else if (strcmp(action,"RESUME_PARTITION") == 0) {
     if(ctp_ResumePartition(pname)){
       sleep (1); smi_setState("ERROR");

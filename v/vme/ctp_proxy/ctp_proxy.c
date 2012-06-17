@@ -1617,8 +1617,8 @@ if(xse2=='P') {
 /*------------------------------------------------ generateXOD()
   Purpose: to generate SOD/EOD
   Parameters: input: part
-                     x = 'S' for SOD
-                       = 'E' for EOD
+                     x = 'S' for SOD, 'E' for EOD
+                         'Y' for SYNC
   Globals: VME
   Return: 0 if succes
           1 if fails
@@ -1627,22 +1627,24 @@ if(xse2=='P') {
     -set the list of detectors for software trigger: L2_TCSET
     -send the software trigger
   Calls: GenSwtrg()
-  Called by: ctp_StartPartition();
+  Called by: ctp_Start/Stop/Sync Partition();
 */
 int generateXOD(Tpartition *part,char x, char *errorReason){
 int i,ifo, idet, iattempt, iconnector, ret=0;
 w32 xod,detectors=0;
 w32 busyclusterT;
 w32 testclust[NFO],roc[NFO];   // 20112006 von
+char SEY[8];
 char emsg[ERRMSGL];
  if(part == NULL){
   sprintf(emsg,"generateXOD error: part=NULL"); intError(emsg);
   strncpy(errorReason, emsg,ERRMSGL);
   return 1;
  }
- if(x == 'S') {xod=0xe;
+ if(x == 'S') {xod=0xe; strcpy(SEY,"SOD");
   readALLcnts(part, 'S');
- } else if(x == 'E') xod =0xf;
+ } else if(x == 'E') {xod =0xf; strcpy(SEY,"EOD");}
+ } else if(x == 'Y') {xod =0xd; strcpy(SEY,"SYNC");}
  else{
   sprintf(emsg,"generateXOD error: wrong x: %c \n",x);
   strncpy(errorReason, emsg,ERRMSGL);
@@ -1681,14 +1683,14 @@ char emsg[ERRMSGL];
      testclust[ifo]=testclust[ifo] +(1<<(16+iconnector));
      roc[ifo]=roc[ifo]+(xod<<(4*iconnector));  
      if(DBGswtrg) printf(
-       "genXOD:%c: ifo=%i icon=%i testcl=0x%x roc=0x%x dets:0x%x\n",
-         x,ifo,iconnector,testclust[ifo],roc[ifo], detectors);
+       "genXOD:%s: ifo=%i icon=%i testcl=0x%x roc=0x%x dets:0x%x\n",
+         SEY,ifo,iconnector,testclust[ifo],roc[ifo], detectors);
     }
  }
  for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
    //if((notInCrate(ifo+FO1BOARD)==0)) {
-     if(DBGswtrg) printf("genXOD:%c: FO:%d Waddr: 0x%x data: 0x%x\n",
-       x,ifo,FO_TESTCLUSTER+BSP*(ifo+1),roc[ifo] | testclust[ifo]);
+     if(DBGswtrg) printf("genXOD:%s: FO:%d Waddr: 0x%x data: 0x%x\n",
+       SEY,ifo,FO_TESTCLUSTER+BSP*(ifo+1),roc[ifo] | testclust[ifo]);
      //20112006 von vmew32(FO_TESTCLUSTER+BSP*ifo,roc[ifo] | testclust[ifo]);
    //}
  }
@@ -1723,17 +1725,17 @@ if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
    findLTUNAMESby(deadbusys, detectors, ltunames);
    deadbusys= vmer32(INT_DISB_CTP_BUSY)&3;
    if(deadbusys !=0) { strcat(ltunames," CTP"); };
-   sprintf(emsg, "%cOD cannot be sent because of dead detectors (run:%d):%s", 
-     x, part->run_number, ltunames);
+   sprintf(emsg, "%s cannot be sent because of dead detectors (run:%d):%s", 
+     SEY, part->run_number, ltunames);
    infolog_trgboth(LOG_FATAL, emsg);
-   // following emsg must start with 'detectorBusy' floowed by
+   // following emsg must start with 'detectorBusy' followed by
    // list of detectors separated by spaces, last detector
    // is followed by comma. Reason: errorReason is specially processed in ECS
-   sprintf(emsg, "detectorBusy %s, %cOD cannot be sent", ltunames, x);
+   sprintf(emsg, "detectorBusy %s, %s cannot be sent", ltunames, SEY);
    strncpy(errorReason, emsg,ERRMSGL);
    ret=1;
  }else {
-  printf("%cOD event ok at %d attempt.\n", x, iattempt);
+  printf("%s event ok at %d attempt.\n", SEY, iattempt);
   /*
   if(DBGswtrg) {
     for(ifo=0;ifo<NFO;ifo++){
@@ -2132,6 +2134,33 @@ int ctp_PausePartition(char *name,char *mask){
  return 0;
 }
 */
+/*---------------------------------------------ctp_SyncPartition()
+ * sync
+*/
+int ctp_SyncPartition(char *name) {
+Tpartition *part; int rc;
+char emsg[300];
+infolog_SetStream(name,-1);
+part=getPartitions(name, StartedPartitions);   //only Started can be paused
+if(part == NULL) return 1;
+infolog_SetStream(name, part->run_number);
+if(cshmQueryPartition(part)!=1) {
+  sprintf(emsg,"SYNC not sent (partition is not PAUSED)");
+  infolog_trgboth(LOG_ERROR, emsg);
+  rc=2;
+} else {
+  if(generateXOD(part,'Y', emsg )==0) {
+    sprintf(emsg,"SYNC sent"); 
+    infolog_trgboth(LOG_INFO, emsg);
+  } else {
+    infolog_trgboth(LOG_ERROR, emsg);
+  };
+};
+//usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');
+//printf("\n ctp_PausePartition: SUCCES \n");
+infolog_SetStream("", 0);
+return(rc);
+}
 /*---------------------------------------------ctp_ResumePartition()
  * Standard resume
 */

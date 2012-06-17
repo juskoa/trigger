@@ -464,6 +464,7 @@ void cshmPrint();
 void cshmAddPartition(Tpartition *part);
 void cshmDelPartition(char *part);
 void cshmPausePartition(Tpartition *part);
+w32 cshmQueryPartition(Tpartition *part);
 void cshmResumePartition(Tpartition *part);
 int cshmGlobalDets();
 

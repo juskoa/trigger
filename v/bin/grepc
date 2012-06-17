@@ -6,5 +6,4 @@ if [[ "$2" != "" ]] ;then
 else
   suf='c'
 fi
-#grep "$1" ../vmeb/vmeblib/*.$suf ctp_proxy/*.$suf ctp/ctplib/*.$suf ctp/*.$suf |grep -v ctp_cf
-grep "$1" ../vmeb/vmeblib/*.$suf ltu_proxy/*.$suf ltu/ltulib/*.$suf ltu/*.$suf |grep -v ctp_cf
+grep "$1" ../vmeb/vmeblib/*.$suf ctp_proxy/*.$suf ctp/ctplib/*.$suf ctp/*.$suf |grep -v ctp_cf

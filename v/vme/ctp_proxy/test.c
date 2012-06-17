@@ -60,7 +60,7 @@ int run=6;
 void printHelp() {
 printf(
 "next runN:%d\n\
-Commands: l(load) s(start) f(stop) p(pause) r(resume) N:runN++\n\
+Commands: l(load) s(start) f(stop) p(pause) r(resume) y(sync) N:runN++\n\
           M(load+start MUON_TRK) S(stop MUON_TRK) R(restart PHYSICS_1)\n\
           H(load+start HMPID) F(stop HMPID)\n\
           h(HW print) t(print partition)\n\
@@ -154,9 +154,15 @@ if((rc=ctp_Initproxy())!=0) exit(8);
         ctp_StopPartition(pname);
         break;
    case 'p':
+   case 'y':
         entername("Partition name:", pname);
-        ctp_PausePartition(pname);
-        printf("Pausing partition %s\n",pname);
+        if(c=='p') {
+          ctp_PausePartition(pname);
+          printf("Pausing partition %s\n",pname);
+        } else {
+          ctp_SyncPartition(pname);
+          printf("Pausing partition %s\n",pname);
+        };
         break;
    case 'r':
         entername("Partition name:", pname);
