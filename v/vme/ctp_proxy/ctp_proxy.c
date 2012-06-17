@@ -1643,14 +1643,14 @@ char emsg[ERRMSGL];
  }
  if(x == 'S') {xod=0xe; strcpy(SEY,"SOD");
   readALLcnts(part, 'S');
- } else if(x == 'E') {xod =0xf; strcpy(SEY,"EOD");}
- } else if(x == 'Y') {xod =0xd; strcpy(SEY,"SYNC");}
- else{
+ } else if(x == 'E') {xod =0xf; strcpy(SEY,"EOD");
+ } else if(x == 'Y') {xod =0xd; strcpy(SEY,"SYNC");
+ } else{
   sprintf(emsg,"generateXOD error: wrong x: %c \n",x);
   strncpy(errorReason, emsg,ERRMSGL);
   intError(emsg);
   return 1;
- }
+ };
  /* Find out partition detectors, and program BUSY inputs:
     20112006: it is enough to set detectors variable which is
     than used to program BUSY board in GenSwtrg.

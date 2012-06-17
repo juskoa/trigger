@@ -69,4 +69,5 @@ v/vme/switch/switch.make
 v/vme/ctpt/ctpt.make
 v/vme/lvdst/lvdst.make
 v/vme/ttcit/ttcit.make
-v/vme/CFG/ctp/DB
+v/vme/CFG/ctp/DB/*
+v/vme/CFG/ctp/pardefs/*
