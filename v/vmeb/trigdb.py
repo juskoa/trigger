@@ -35,9 +35,9 @@ else:
   if HOST=='pcalicebhm05':
     os.environ['VMECFDIR']= "/data/ClientCommonRootFs/usr/local/trigger/vd/vme/"
   elif HOST=='pcalicebhm10':
-    os.environ['VMECFDIR']= "/home/dl/root/usr/local/trigger/vd/vme/"
+    os.environ['VMECFDIR']= "/home/dl/root/usr/local/trigger/devel/v/vme/"
   elif HOST=='alidcscom188':
-    os.environ['VMECFDIR']= "/data/dl/root/usr/local/trigger/v/vme/"
+    os.environ['VMECFDIR']= "/data/dl/root/usr/local/trigger/stable/v/vme/"
   elif HOST=='alidcscom026':
     os.environ['VMECFDIR']= "/data/ClientCommonRootFs/usr/local/trigger/v/vme/"
   else:
