@@ -93,7 +93,7 @@ elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then
 else
   # ltu vme cpu
   #alias ltuserver=/usr/local/trigger/bin/ltuserver.bash
-  alias ltuproxy=/usr/local/trigger/bin/ltuproxy.sh
+  alias ltuproxy=$VMECFDIR/../bin/ltuproxy.sh
  fi
 #
 #alias slmshow=$VMECFDIR/ltu/slmcomp.py

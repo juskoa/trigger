@@ -17,6 +17,10 @@ history
 2.0  2.3.2012 vmeb/donscaling.py added
 2.1  bug removed: when cn= missing, it is detected now
      more than 6 inverted classes allowed for L0 fi > AC
+2.2  19.6.2012
+- 'cn=' parameter not needed in class definitions.
+- 0HWU check (if TRD in readout)
+- bug fixed (missing ')' in class definition )
 
 Problem with SLC5:
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot

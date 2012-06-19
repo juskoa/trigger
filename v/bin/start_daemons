@@ -1,6 +1,7 @@
 #!/bin/bash
 export HOME=/home/alice/trigger
-. /usr/local/trigger/bin/vmebse.bash
+#old (pre-git version: . /usr/local/trigger/bin/vmebse.bash
+cd /usr/local/trigger/stable ; . bin/vmebse.bash
 # -H: set HOME   (-i does not help when started from script)
 # with slc5 not working: sudo: sorry, you must have a tty to run sudo
 #sudo -H -u trigger /usr/local/trigger/bin/ltuproxy.sh startall  2>&1>/tmp/start_daemons.log

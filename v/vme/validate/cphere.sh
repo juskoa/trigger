@@ -21,7 +21,7 @@ read -p "pwd:`pwd` continue? (y/n):" yn
 python setup.py bdist_rpm 
 echo "pwd:`pwd` Do:"
 #echo 'scp dist/validate-1.0.tar.gz $aj11:'
-echo 'scp ~/validate/dist/validate-2.1-1.noarch.rpm $lxp:t/'
+echo 'scp ~/validate/dist/validate-2.2-1.noarch.rpm $lxp:t/'
 read -p "remove $pyfiles in pwd:`pwd` ? (y/n):" yn
 if [ $yn = 'y' ] ;then
   rm $pyfiles

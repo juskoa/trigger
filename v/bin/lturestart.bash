@@ -17,13 +17,16 @@ if [ "$detname" == 'all' ] ;then
   echo 'killing all...'
   for hn in $allhns ;do
     rcmd $hn 'ltuproxy killall'
+  done
   for hn in $allhns ;do
     rcmd $hn 'ltuproxy active'
     echo 'starting all at $hn...'
     rcmd $hn 'ltuproxy startall' &
+  done
   echo 'status of all ltuproxies:'
   for hn in $allhns ;do
     rcmd $hn 'ltuproxy active'
+  done
 else
 declare -a arna=($(readme $detname))
 hostn=${arna[1]}

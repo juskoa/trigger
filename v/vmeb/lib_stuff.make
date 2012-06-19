@@ -25,7 +25,7 @@ endif
 endif
 endif
 $(GOALS):
-#	@echo t: $@
+#	@echo t: $@ making:$(ODIR) pwd:`pwd`
 	mkdir -p $(ODIR)
 	- cd $(ODIR) && $(MAKE) -f ../make_new $@
 ifdef MAKE_CLIENT_DIR

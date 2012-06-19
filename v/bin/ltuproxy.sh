@@ -1,6 +1,6 @@
 #!/bin/bash
 # this script can be started after environment is set i.e.:
-# . /usr/local/trigger/bin/vmebse.bash
+# cd /usr/local/trigger/stable ; . bin/vmebse.bash
 function ipcremove() {
 dtn=$1
 ltubase=`awk '{if($1==detname) {print $3}}' detname=$dtn $cfgfile`
@@ -133,8 +133,9 @@ if [ $# -eq 2 ] ;then
   fi
 else
   if [ "$1" = "startall" ] ;then
+    #echo "dbg: $HOSTNAME $cfgfile"
     for dtn1 in `awk '{if($2==host) {print $1}}' host=$HOSTNAME $cfgfile` ;do
-      #echo "starting $dtn1"
+      #echo "----------------------starting $dtn1"
       StartProxy $dtn1
     done
     exit
@@ -155,7 +156,7 @@ else
     echo
   fi
   echo "On this machine, `hostname`, these servers are running:"
-  ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 50
+  ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 72
   exit
   else
   action="error"

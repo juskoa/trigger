@@ -2204,7 +2204,7 @@ class TrgPartition:
                           preceded with line "Errors:"
     """
     if name==None: name=self.name
-    print "\n---------------- savepcfg: ",name
+    #print "\n---------------- savepcfg: ",name
     errormsg='Errors:\n'   # has to be (checked later and in ctp-proxy!)
     outfilename= os.path.join(wdir, name)+".pcfg"
     clanum=clunum=1
@@ -2226,7 +2226,7 @@ class TrgPartition:
       if len(cluster.cls)==0:
         errormsg=errormsg+"Cluster "+cluster.name+" without classes, not written to .pcfg\n"
         continue
-      print "savepcfg:%s"%(cluster.name)," :",cluster.getltunames()
+      #print "savepcfg:%s"%(cluster.name)," :",cluster.getltunames()
       if string.find(cluster.getltunames(), "TRD")== -1:
         check0HWU= False
       else:
@@ -2243,7 +2243,7 @@ class TrgPartition:
           continue
         if check0HWU:
           # check if 0HWU in all classes
-          print "savepcfg:   ", cls.trde.getInputs()
+          #print "savepcfg:   ", cls.trde.getInputs()
           if string.find(cls.trde.getInputs(), "0HWU")== -1:
             errormsg= errormsg+"Cluster: %s triggered by non-0HWU class %s\n"%\
               (cluster.name, cls.trde.name)

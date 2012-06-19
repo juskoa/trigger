@@ -10,7 +10,9 @@ allEXES=$(EXEDIR)/client
 else
 allEXES=$(EXEDIR)/server
 endif
-all: $(allEXES)
+all: $(EXEDIR) $(allEXES)
+$(EXEDIR):
+	mkdir $(EXEDIR)
 $(EXEDIR)/server:server.c $(DIMDIR)/linux/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
 	

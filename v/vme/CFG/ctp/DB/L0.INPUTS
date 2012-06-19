@@ -17,7 +17,7 @@
  15   SPD       spdl0_5                  0SM5               0          25       6       0       1           1     1000     1000 #N_outer=5
  16   SPD       spdl0_3                  0SM2               0          23       4       0       1           1     1000     1000 #OLD:SPD3 - high mult 3
  17   SPD       spdl0_1                  0SH1               0          21       2       0       1           1     1000     1000 #OLD:SPD1 - high mult 1
- 18   TOF       tofl0_6                  0OB0               0          65       2       0       0           1     1000     1000 #was VerticalMuon
+ 18   TOF       tofl0_6                  0OB0               0          66       6       1       3           1     1000     1000 #was VerticalMuon
  19   TOF       tofl0_4                  0OB3               0          63       4       1       4           1       -1        1 #TOF cosmic back-back
  20   TOF       tofl0_2                  0O2?               0           0       0       0       0           0     1000     1000 #
  21   DAQ       DAQ7922                  0RG4               1           0       0       0       0           1     1000     1000 #(2,0)
@@ -34,7 +34,7 @@
  32   MUON_TRG  L0_TriggerMuon3153       0MUL               0         111       2       1       0           1        0        0 #OLD:USMULPT - dimuon unlike low
  33   MUON_TRG  L0_TriggerMuon3152       0MUH               0         110       1       1       0           1     1000     1000 #OLD:USMUHPT - dimuon unlike high
  34   EMCAL     emc_L0                   0EMC               0          10       0       1       0           1     1000     1000 #
- 35   ACORDE    AcordeCosmicL0           0ASL               1           2       2       0       6           1        0        0 #OLD:ML0 - multi
+ 35   ACORDE    AcordeCosmicL0           0ASL               1           2       2       0      10           1        0        0 #OLD:ML0 - multi
  36   TPC       TPCLaserL0               0LSR               1         122       1       0       0           1     1000     1000 #
  37   DAQ       DAQ7921                  0RG6               1           0       0       0       2           1     1000     1000 #(0,1)
  38   T0        T0_5                     0TCE               0          74       5       0       0           1     1000     1000 #OLD:T0Central
@@ -46,7 +46,7 @@
  44   MUON_TRG  L0_TriggerMuon3154       0MSH               0         114       5       1       0           1        0        0 #DIM was 3 before feb28
  45   PHOS      phosL0                   0PH0               0           4       0       1       1           1     1000     1000 #OLD:phosL0 - PHOS level 0
  46   ACORDE    AcordeCable18787         0ASC               1           0       3       0       0           1     1000     1000 #OLD:Small - small scintillator
- 47   ACORDE    AcordeSuperRare18790     0AMU               1           1       1       1      12           1        0        0 #OLD:L0 - single
+ 47   ACORDE    AcordeSuperRare18790     0AMU               1           1       1       1       3           1        0        0 #OLD:L0 - single
  48   ZDC       ZDCSingleSideL0          0ZSS               1         100       0       0       0           1     1000     1000 #OLD:ZDCSingleSideL0 - single side L0
  49   DAQ       BPTXC                    0BPC               0           0       0       1      10           1     1000     1000 #OLD:BPTXC - bptx C
  50   DAQ       BPTXA                    0BPA               0           0       0       0       5           1        0        0 #

@@ -10,6 +10,11 @@ if [ $# -eq 0 ] ;then
   cp $dbctp/TRIGGER.PFS .
   cp $dbctp/VALID.BCMASKS .
   cp $dbctp/LTU.SWITCH .
+  cp $dbctp/VALID.LTUS .
+  cp $dbctp/ttcparts.cfg .
+  cp $dbctp/gcalib.cfg .
+  cp $dbctp/filter .
+  cp $dbctp/clockshift .
 else
   cp $dbctp/$1 .
 fi

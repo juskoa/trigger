@@ -27,8 +27,9 @@ proxyOBJS= ctp_proxy.o cfg2part.o clgroups.o \
  dimservices.o fixedcnts.o
 main_TRBIFOBJS= cfg2part.o 
 
-all: $(allEXES)
-
+all: $(EXEDIR) $(allEXES)
+$(EXEDIR):
+	mkdir $(EXEDIR)
 #------------------------------------------ ctp_proxy
 $(EXEDIR)/ctp_proxy: main_ctp.o $(proxyOBJS) $(LIBDEP)
 	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(LIBS) $(SMILD) -o $@ 

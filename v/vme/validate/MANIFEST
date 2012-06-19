@@ -1,0 +1,7 @@
+setup.py
+./downscaling.py
+./myw.py
+./parted.py
+./trigdb.py
+./txtproc.py
+./validate.py
