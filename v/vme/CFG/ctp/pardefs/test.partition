@@ -1,6 +1,0 @@
-Version: 3
-RND1 100hz
-Clusters:
-one
-DEMPTY(cn=CTRUE-ABCE-NOPF-CENT,rnd1) D0SH1(cn=C0SH1-ABCE-NOPF-CENT,rnd1)
-TPC
