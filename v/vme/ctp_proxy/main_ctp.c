@@ -149,7 +149,8 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }else{
       sleep (1); smi_setState("RUNNING");
     }
-  } else if (strcmp(action,"SYNC") == 0) {
+  } else if (strcmp(action,"SYNCH") == 0) {
+    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
     if(ctp_SyncPartition(pname)){
       sleep (1); smi_setState("ERROR");
     }else{
@@ -162,22 +163,29 @@ if (strcmp(state,"RUNNING") == 0 ) {
       sleep (1); smi_setState("RUNNING");
     }
   } else {
-    printf("Illegal action %s in state RUNNING\n",action);
+    char msg[200];
+    sprintf(msg, "Illegal action %s in state RUNNING ignored.\n",action);
+    infolog_trgboth(LOG_ERROR, msg);
+    smi_setState("RUNNING");
   }
 } else if (strcmp(state,"EXECUTING") == 0 ) {
-  printf("Illegal action %s in state EXECUTING\n",action);
+  char msg[200];
+  sprintf(msg, "Illegal action %s in state EXECUTING ignored.\n",action);
+  smi_setState("EXECUTING");
 } else if (strcmp(state,"LOAD_FAILURE") == 0 ) {
     if(strcmp(action,"ACKNOWLEDGE") == 0 ) {
       strcpy(errorReason,"not set"); smi_set_parER();
       smi_setState("RUNNING");
     } else {
       printf("Illegal action %s in state LOAD_FAILURE\n",action);
+      smi_setState("LOAD_FAILURE");
     }   
 } else if (strcmp(state,"ERROR") == 0 ) {
     if (strcmp(action,"RESET") == 0 ) {
       smi_setState("RUNNING");
     } else {
       printf("Illegal action %s in state ERROR\n",action);
+      smi_setState("ERROR");
     }   
 };      
 RETSMI:

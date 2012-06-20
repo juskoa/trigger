@@ -1620,8 +1620,8 @@ if(xse2=='P') {
                      x = 'S' for SOD, 'E' for EOD
                          'Y' for SYNC
   Globals: VME
-  Return: 0 if succes
-          1 if fails
+  Return: 0 if succes, errorReason not touched
+          1 if fails, errorReason filled
   Comment: 
     -set the ROC on all the FOs feeding detectors in partition
     -set the list of detectors for software trigger: L2_TCSET
@@ -1751,7 +1751,9 @@ if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
 } else {
   char emsg[ERRMSGL];
   sprintf(emsg, "%cOD generation suppressed (part. name: ..._U).\n", x);
+  strncpy(errorReason, emsg,ERRMSGL);
   infolog_trgboth(LOG_FATAL, emsg);
+  ret=2;
 };
 if(x == 'E') {
   readALLcnts(part, 'P');
@@ -2138,7 +2140,7 @@ int ctp_PausePartition(char *name,char *mask){
  * sync
 */
 int ctp_SyncPartition(char *name) {
-Tpartition *part; int rc;
+Tpartition *part; int rc=0;
 char emsg[300];
 infolog_SetStream(name,-1);
 part=getPartitions(name, StartedPartitions);   //only Started can be paused
@@ -2150,10 +2152,11 @@ if(cshmQueryPartition(part)!=1) {
   rc=2;
 } else {
   if(generateXOD(part,'Y', emsg )==0) {
-    sprintf(emsg,"SYNC sent"); 
+    sprintf(emsg,"SYNC sent."); 
     infolog_trgboth(LOG_INFO, emsg);
   } else {
     infolog_trgboth(LOG_ERROR, emsg);
+    rc=3;
   };
 };
 //usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');

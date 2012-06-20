@@ -3,7 +3,7 @@ ODIR= linux
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
 INFOLOG=/opt/infoLogger
 DAQLOGBOOK=/opt/libDAQlogbook
-EXTRALIBS = -L$(DIMDIR)/linux -ldim -L$(VMEBDIR)/vmeblib -lvmeb \
+EXTRALIBS = -L$(DIMDIR)/linux -ldim -L$(VMEBDIR)/vmeblib/linux_c -lvmeb \
  -L$(DAQLOGBOOK) -lDAQlogbook -L$(INFOLOG) -lInfo $(MYSQLLIBS) 
 CC=$(VMEGCC)
 SFX=c
@@ -19,8 +19,8 @@ LDFLAGS = -lpthread
 
 all: $(ODIR)/monscal $(ODIR)/sendcomm
 $(ODIR)/monscal: $(ODIR)/monscal.o
-	$(CC) $(LDFLAGS) $(ODIR)/monscal.o \
- -o $(ODIR)/monscal $(EXTRALIBS)
+	$(CC) $(LDFLAGS) $(EXTRALIBS) $(ODIR)/monscal.o \
+ -o $(ODIR)/monscal
 $(ODIR)/monscal2: $(ODIR)/monscal2.o
 	$(CC) $(LDFLAGS) $(ODIR)/monscal2.o \
  -o $(ODIR)/monscal2 $(EXTRALIBS)

@@ -184,3 +184,11 @@ bakery lock/unlock finish properly -signal used to catch the interrupt
 in smaq.c
 7.6.
 parted.py: cn=name skipped if name is standard name
+20.6. ================================ lab->pit
+see git commit messages...
+- new validate.rpm deployed also
+trigger/devel in lab  -git repository juskoa/trigger
+trigger/stable in pit -accessible through git (ssh tunneled)
+also see git repository lietava/triggerapp -for applications
+running on 707 (smaq,correlations,gmonscal,...)
+T0 calib: only in technical runs (outside of STABLE BEAMS)
