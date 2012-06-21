@@ -27,6 +27,10 @@ gshift=1000.0
 def getShift():
   global gshift
   gshift=1000.0
+  if os.getenv("HOSTNAME")[:6] != "alidcs":
+    import random
+    ips= random.randint(-200,250)
+    return str(ips/1000.)
   pydim.dic_set_dns_node("alidcsdimdns.cern.ch")
   #sid= pydim.dic_info_service("PHASE_SHIFT_BPTX1", "F:1", callback1, service_type=pydim.ONCE_ONLY)
   #time.sleep(1); pydim.dic_release_service(sid)
@@ -51,6 +55,9 @@ def main():
     if a=='q': break
     if a=='g' or a=='get':
       sid=8
+      if os.getenv("HOSTNAME")[:6] != "alidcs":
+        print "not in the pit"
+        continue
       pydim.dic_set_dns_node("alidcsdimdns.cern.ch")
       #os.environ['DIM_DNS_NODE']="alidcsdimdns"
       print "dns: alidcsdimdns"
