@@ -67,8 +67,8 @@ def main():
     try:
       a= raw_input('enter 1 2 or q:\n')
     except:
-      #a='q'
-      mylog.logm("exception:"+str(sys.exc_info()[0]))
+      mylog.logm("raw_input exception:"+str(sys.exc_info()[0]))
+      a='q'
     if a=='q': break
     elif a=='1':   # case1
       tist= epochtime()
@@ -76,10 +76,13 @@ def main():
       pydim.dis_update_service(scopes)
     elif a=='2':   # case2
       tist= epochtime()
+      tistmsg="epochtime:%s of type:%s"%(tist, str(type(tist)))
       mylog.logm("time:%s = %s"%(loctime(tist), str(tist)))
-      pydim.dis_update_service(scopes,("%s"%(tist+"\0"),))
+      # "\0" for C-clients ? (not needed for py-clients)
+      pydim.dis_update_service(scopes,("%s"%(tistmsg+"\0"),))
     else:
       mylog.logm('bad input:%s...'%a) ; continue
+  dis_stop_serving()
   sys.stdout.flush()
   mylog.close()
         

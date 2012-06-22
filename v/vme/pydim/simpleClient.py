@@ -21,10 +21,18 @@ def main():
     print "No Dim DNS node found. Please set the environment variable DIM_DNS_NODE"
     sys.exit(1)
   print "dns:",pydim.dis_get_dns_node()
-  miclock = pydim.dic_info_service("simpleServer", "C", miclock_cb)
-  if not miclock:
-    print "Error registering simpleServer"
-    sys.exit(1)
+  if len(sys.argv)>1:
+    servicename= sys.argv[1]
+  else:
+    servicename= "simpleServer"
+  print "connecting to %s service"%(servicename)
+  try:
+    miclock = pydim.dic_info_service(servicename, "C", miclock_cb)
+    # seems always int returned (regardless of servicename status?)
+  except:
+    print "Error registering %s"%servicename
+    #sys.exit(1)
+  print "miclock:", type(miclock), miclock
   while True:
     a= raw_input('enter any text or q:\n')
     print a
