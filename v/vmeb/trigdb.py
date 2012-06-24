@@ -541,7 +541,7 @@ class TrgMasks(Table):
     for ix in range(len(self.ents)):
       if self.ents[ix][0][0]=='#': continue
       if self.ents[ix][0]==name:
-        print "getmask:",name,self.ents[ix][1]
+        #print "getmask:",name,self.ents[ix][1]
         return self.ents[ix][1]
     return ""
     

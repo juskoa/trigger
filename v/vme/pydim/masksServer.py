@@ -20,18 +20,17 @@ def loctime(epoch_str):
   return rc   # dd.mm hh:mm
 
 services=[]
+quit=None
 
 def signal_handler(signal, stack):
   global quit
-  mylog.logm("signal:%d received (1:SIGHUP, 10:SIGUSR1)."%signal)
-  if signal==1:
+  if (signal==15) or (signal==2):
+    mylog.logm("Stopping, signal:%d"%signal)
     quit= 'q'
+  else:
+    mylog.logm("signal:%d received (10:SIGUSR1 = update)."%signal)
   if signal==10:
-    bcmasks= trigdb.TrgMasks()
-    for serv in services:
-      value= bcmasks.getmask(serv.bcmname())
-      print "msk:",serv.bcmname(), value,":"
-      serv.update(value)
+    updateAll()
 
 class service:
   def __init__(self, name, tag):
@@ -68,36 +67,53 @@ def scope_cb(tag):
     # Remember, the callback function must return a tuple
     return ("%s. %s"%(now,"blabla"),)
     #return ("",)
-#def updateAll():
-#  for line in 
-
+def updateAll():
+  bcmasks= trigdb.TrgMasks() ; bcms=""
+  for serv in services:
+    bcmname= serv.bcmname() ; bcms= bcms + serv.name +' '
+    value= bcmasks.getmask(bcmname)
+    #print "msk:",bcmname, value,":"
+    serv.update(value)
+  mylog.logm("updateAll: "+bcms)
 def main():
   global mylog, services
   sids= {}
-  mylog= pylog.Pylog(None,"ttyYES")   # only tty (no file log)
+  mylogfn= os.path.join(os.environ["VMEWORKDIR"], "WORK/masksServer")
+  #mylog= pylog.Pylog(None,"ttyYES")   # only tty (no file log)
+  mylog= pylog.Pylog(mylogfn)
   dnsnode= pydim.dis_get_dns_node()
   if not dnsnode:
     mylog("No Dim DNS node found. Please set the environment variable DIM_DNS_NODE")
     sys.exit(1)
   mypid= str(os.getpid())
   mylog.logm("dns:"+dnsnode+ " mypid:"+mypid)
+  mypidfn= os.path.join(os.environ["VMEWORKDIR"], "WORK/masksServer.pid")
+  f= open(mypidfn,"w")
+  f.write(mypid) ; f.close()
   signal.signal(signal.SIGUSR1, signal_handler)  # 10         SIGUSR1
   signal.signal(signal.SIGHUP, signal_handler)   # 1  kill -s SIGHUP mypid
+  #signal.signal(signal.SIGKILL, signal_handler)   # ?
+  signal.signal(signal.SIGQUIT, signal_handler)   # 3
+  signal.signal(signal.SIGTERM, signal_handler)   # 15 -default
+  signal.signal(signal.SIGINT, signal_handler)   # 2 CTRL C
   mtall= ['B','A','C','S','SA','SC','D','E']
   for mtag in range(len(mtall)):
     services.append(service(mtall[mtag], mtag))
+  updateAll()
   pydim.dis_start_serving("example of simple server")
   mylog.logm("Starting the server ...")
   while True:
+    a=""
     try:
-      a= raw_input('enter 1 2 3: update from VALID.BCMASKS or q:\n')
+      #a= raw_input('enter 1 2 3: update from VALID.BCMASKS or q:\n')
+      time.sleep(100)
     except:
       mylog.logm("exception:"+str(sys.exc_info()[0]))
       if quit=='q':
         a='q'
       else:
         continue
-    if a=='q': break
+    if a=='q' or quit=='q': break
     elif a=='1':   # case1
       tist= epochtime()
       mylog.logm("updating at time:%s = %s"%(loctime(tist), str(tist)))
@@ -110,16 +126,13 @@ def main():
       #pydim.dis_update_service(sids[mt],("%s"%(tist+"\0"),))
       services[0].update(msg)
     elif a=='3':   # read VALID.BCMASKS and update all service
-      bcmasks= trigdb.TrgMasks()
-      for serv in services:
-        value= bcmasks.getmask(serv.bcmname())
-        print "msk:",serv.bcmname(), value,":"
-        serv.update(value)
+      updateAll()
     else:
       mylog.logm('bad input:%s...'%a) ; continue
   pydim.dis_stop_serving()
   #sys.stdout.flush()
   mylog.close()
+  os.remove(mypidfn)
         
 if __name__ == "__main__":
     main()
