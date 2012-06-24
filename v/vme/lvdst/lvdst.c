@@ -9,13 +9,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "vmewrap.h"
+
+#define LTUMAIN
+
 #include "lvdst.h"
 extern int quit;
 
-void loadFPGA(int ix0);
-void rndtestA(int *values);
+//void loadFPGA();
+void rndtestA(int *values)
+{
+ // do what nenecessary
+ printf("fix me \n");
+}
 
-w32 Gltuver;   // should be 0xe?
+//w32 Gltuver;   // should be 0xe?
+w32 getbcstatus();
 
 /*FGROUP TOP GUI ScopeAB "Scope Signals"
 Signal selection for front panel 
@@ -33,7 +41,7 @@ vmew32(SCOPE_SELECT, (B<<5) | A);
 */
 /*FGROUP FrontPanel 
 */
-void getCounters(int N, int increments, int customer2);
+void getCounters(int N, int increments,int baker);
 /*FGROUP FrontPanel 
 */
 void clearCounters();
@@ -70,7 +78,7 @@ vmew32(SYN_EDGE,0);
 //ADC_pattern signal as the ADC input
 vmew32(ADC_SELECT,0x0);
 //ADC_SCAN
-// 3&vmer32(BC_STATUS);
+getbcstatus();
 rndtestA(array);
 //Find the transition
 for (i=1; i<32; i++) {
@@ -111,7 +119,7 @@ vmew32(PATTERN_SEL,0x3);
 vmew32(ADC_SELECT,1);
 //ADC_SCAN - the phase shift of the toggling cable 1(2) input 
 //in respect to the BC clock
-//getbcstatus(); 3&vmer32(BC_STATUS);
+getbcstatus();
 rndtestA(array);
 //Find a transition
 for (i=1; i<32; i++) {
@@ -715,9 +723,10 @@ Gltuver= 0xff&vmer32(LTUVERSION_ADD);
 if(code==0x56) {
   if(Gltuver==0xff) {
     /* LTU FPGA configuration, if not configured: */
-    loadFPGA(0);
-    //loadFPGA();
-    Gltuver= 0xff&vmer32(LTUVERSION_ADD);
+    //loadFPGA(0);
+    //Gltuver= 0xff&vmer32(LTUVERSION_ADD);
+    printf("LTU not configured, exiting \n");
+    exit(1);
   };
 } else {
   printf("Incorrect base address or board. Board:0x%x expected:0x56 ver:0x%x\n",    code, Gltuver);
