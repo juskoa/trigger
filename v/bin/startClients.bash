@@ -83,7 +83,7 @@ fi
 }
 #--------------------------------------------------
 hname=`hostname`
-if [ "$hname" != 'alidcscom026' -a "$hname" != 'pcalicebhm05' \
+if [ "$hname" != 'tp' -a "$hname" != 'pcalicebhm05' \
      -a "$hname" != 'alidcscom188' -a "$hname" != 'pcalicebhm10' ] ;then
 echo 'This script can be started only on trigger@alidcscom026/188 or trigger@pcalicebhm05/10'
 exit 8
@@ -113,6 +113,7 @@ startClients pydim stop | start | status
              ctpdim 
              gcalib
              monscal
+             masksServer
 
 Available only in P2:
              ttcmidim 
@@ -145,6 +146,7 @@ gmonscal   running on alitrir. Creating:
 monscal    running on alitri. Creating:
            $server:v/vme/WORK/MONSCAL/monscal.log
            $server:v/vme/WORK/MONSCAL/display.log
+masksServer publication of CTPBCM/A,C,S,SA,...
 
 Problems: see corresponding files in:
    ~/CNTRRD/logs                     -pydim html rrd
@@ -154,7 +156,7 @@ Problems: see corresponding files in:
    trigger@alitrir:rl/monscal_root        -gmonscal sources
    trigger@alitrir:rl/monscal_root/WORK   -gmonscal log
    trigger@alitrir:IRS/LUMI_FILES/MASSI  IRS/LOG/LOG   -irdim
-
+   $VMEWORKDIR/vme/masksServer.log/pid    -masksServer
 EOF
 exit
 fi
@@ -171,12 +173,34 @@ else
   dmn=$1
   sss=$2
 fi
-echo "pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal all " | grep "$dmn " >/dev/null
+echo "pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer all " | grep "$dmn " >/dev/null
 if [ $? -eq 1 ] ;then
   echo "unknown daemon: $dmn"
   exit 8
 fi
 #echo "$dmn $sss..."
+if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
+  if [ "$sss" = "stop" ] ;then
+    if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
+      kill `cat $VMEWORKDIR/WORK/masksServer.pid`
+    else
+      echo " not started"
+    fi
+  elif [ "$sss" = "start" ] ;then
+    if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
+      echo " already started"
+    else
+      nohup python $VMECFDIR/pydim/masksServer.py >/dev/null &
+    fi
+  elif [ "$sss" = "status" ] ;then
+    if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
+      echo '----- masksServer status (1 process):'
+      echo "pid: `cat $VMEWORKDIR/WORK/masksServer.pid`"
+    else
+      echo " not started"
+    fi
+  fi
+fi
 if [ $dmn = "pydim" -o "$dmn" = "all" ] ;then
 #--------------------------------------- pydimserver
   if [ "$sss" = "stop" ] ;then

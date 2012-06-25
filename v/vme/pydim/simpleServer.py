@@ -82,7 +82,7 @@ def main():
       pydim.dis_update_service(scopes,("%s"%(tistmsg+"\0"),))
     else:
       mylog.logm('bad input:%s...'%a) ; continue
-  dis_stop_serving()
+  pydim.dis_stop_serving()
   sys.stdout.flush()
   mylog.close()
         

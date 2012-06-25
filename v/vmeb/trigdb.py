@@ -533,6 +533,18 @@ class TrgSwitchLTU(Table):
       else:
         print "Error: bad line in LTU.SWITCH file:",en
 
+class TrgMasks(Table):
+  def __init__(self):
+    fp= os.path.join(TRGDBDIR, "VALID.BCMASKS")
+    self.readtable(fp)   # cable name equaliser swin ltun 
+  def getmask(self, name):   # name: 'bcmA', 'bcmEMPTY',...
+    for ix in range(len(self.ents)):
+      if self.ents[ix][0][0]=='#': continue
+      if self.ents[ix][0]==name:
+        #print "getmask:",name,self.ents[ix][1]
+        return self.ents[ix][1]
+    return ""
+    
 #------------------ following classes used from TRG_DBED/scanrcfg.py
 class TrgRcfgVals:
   def __init__(self):
