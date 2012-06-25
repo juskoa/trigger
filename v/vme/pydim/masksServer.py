@@ -34,19 +34,19 @@ def signal_handler(signal, stack):
 
 class service:
   def __init__(self, name, tag):
-    self.name= name
+    self.name= name   # "A", "E",...
     servicename= "CTPBCM/" + self.name
     self.tag= tag
     mylog.logm("Adding service "+self.name)
     self.sid = pydim.dis_add_service(servicename, "C", scope_cb, tag)
     # A service must be updated before using it.
-    pydim.dis_update_service(self.sid,(" "),)
+    pydim.dis_update_service(self.sid,(" ",))
     pass
   def update(self, value=None):
-    if value==None:
+    if value==None or value=="":
       pydim.dis_update_service(self.sid)
     else:
-      pydim.dis_update_service(self.sid,("%s"%(value),))
+      pydim.dis_update_service(self.sid,(str(value),))
   def bcmname(self):
     if self.name=='E':
       return "bcmEMPTY"
@@ -65,8 +65,8 @@ def scope_cb(tag):
     # This example returns a string with the current time
     now = time.strftime("%X")
     # Remember, the callback function must return a tuple
-    return ("%s. %s"%(now,"blabla"),)
-    #return ("",)
+    #return ("%s. %s"%(now,"blabla"),)
+    return (" ",)
 def updateAll():
   bcmasks= trigdb.TrgMasks() ; bcms=""
   for serv in services:
@@ -75,6 +75,7 @@ def updateAll():
     #print "msk:",bcmname, value,":"
     serv.update(value)
   mylog.logm("updateAll: "+bcms)
+  mylog.flush()
 def main():
   global mylog, services
   sids= {}

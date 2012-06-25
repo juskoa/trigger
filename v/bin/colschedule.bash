@@ -1,5 +1,12 @@
 #!/bin/bash
 # 
+mpid=$VMEWORKDIR/WORK/masksServer.pid
+if [ -f $mpid ] ;then
+  echo updating CTPBCM/ services...
+  kill -s SIGUSR1 `cat $mpid`
+else
+  echo Warning: masksServer not running! 
+fi
 if [ "$1" = "update" ] ;then
   csname=`head -1 $dbctp/VALID.BCMASKS |awk '{print $2}'`
   #csn="$dbctp/fs/$csname.alice"

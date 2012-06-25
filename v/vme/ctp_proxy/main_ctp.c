@@ -149,7 +149,8 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }else{
       sleep (1); smi_setState("RUNNING");
     }
-  } else if (strcmp(action,"SYNCH") == 0) {
+  //} else if (strcmp(action,"SYNCH") == 0) {
+  } else if (strncmp(action,"SYNC",4) == 0) {   // correct: strcmp("SYNC")
     smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
     if(ctp_SyncPartition(pname)){
       sleep (1); smi_setState("ERROR");
