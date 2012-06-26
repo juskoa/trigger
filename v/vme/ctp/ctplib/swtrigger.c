@@ -426,9 +426,9 @@ Operation:
 
 Parameters: see setswtrig()
 customer: number 0..1
-0: SODEOD generation initiated from ctp_proxy
+0: SOD/EOD/SYNC generation initiated from ctp_proxy
 1: calibration triggers from gcalib task
-2: dimservices.c (not to be used) + ctp.exe (expert sw) + ctpt.exe
+2: dimservices.c (usually not used) + ctp.exe (expert sw) + ctpt.exe
 
 RC: number of L2a successfully generated, or
     12345678: cal. triggers stopped becasue det. is not in global run

@@ -202,7 +202,7 @@ while(clocktran>=0) {
   };
 };
 }
-int authenticate() {
+int authenticate(char *subdir) {   // "" or "oerjan/"
 /* Only client which wrote its pid to server's 
 VMEWORKDIR/WORK/miclockid file is allowed to change the clock
 rc: 0:ok  !=0 -client is not allowed to change the clock
@@ -211,7 +211,7 @@ int ix,rc;
 FILE *con;
 char *envwd;
 char procid[80]; char fname[80]; char line[80]=""; char hname[31]="";
-envwd= getenv("VMEWORKDIR"); sprintf(fname, "%s/WORK/miclockid",envwd);
+envwd= getenv("VMEWORKDIR"); sprintf(fname, "%s/WORK/%smiclockid",envwd,subdir);
 rc= dis_get_client(procid);
 for(ix=0; ix<80; ix++) {
   if(procid[ix]=='@') {
@@ -251,7 +251,7 @@ strncpy(sshift,msg,rc); sshift[rc]='\0';
 shift= strtol(sshift, (char **)NULL, 10);
 sprintf(errmsg, "CORDE_SETcmd: size:%d msg:%5.5s :%s:%d\n", 
   *size, msg, sshift, shift); prtLog(errmsg); 
-rc= authenticate();
+//rc= authenticate();
 rc=0; prtLog("CORDE_SET not authenticated!\n");
 if(rc!=0) {
   sprintf(errmsg, "Only miclock can change the CORDE shift\n"); prtLog(errmsg); 
@@ -295,7 +295,7 @@ char errmsg[200];
 char *msg= (char *)msgv; int rc; 
 sprintf(errmsg, "DLL_RESYNCcmd: tag:%d size:%d msg:%5.5s\n", 
   *(int *)tag, *size, msg); prtLog(errmsg); 
-rc= authenticate();
+rc=0; //rc= authenticate();
 if(rc!=0) {
   sprintf(errmsg, "DLL_RESYNC not authenticated, but executed");prtLog(errmsg); 
 };
@@ -320,8 +320,8 @@ msg[*size]='\0';   // with python client ok
 //if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
 };
 */
-rc= authenticate();
-if(rc!=0) {
+rc= authenticate(""); rc2= authenticate("oerjan/");
+if((rc!=0) and (rc2!=0) ) {
   sprintf(errmsg, "Only trigger user can change the clock"); prtLog(errmsg); 
   return;  
 };

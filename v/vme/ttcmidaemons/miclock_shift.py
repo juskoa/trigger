@@ -22,7 +22,10 @@ if os.environ['VMESITE']=='ALICE':
   MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
 else:
   #print "VMESITE:", os.environ['VMESITE']
-  MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
+  if os.environ["USER"]=="oerjan":
+    MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/oerjan/miclockid"
+  else:
+    MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
 
 def signal_handler(signal, stack):
   global MICLOCKID
@@ -286,7 +289,7 @@ def main():
   #signal.signal(signal.SIGUSR1, signal_handler)
   # authenticate:
   ##if os.environ['USER']=="##trigger":
-  if os.environ['USER']=="trigger":
+  if os.environ['USER']=="trigger" or os.environ['USER']=="oerjan":
     if os.path.exists(MICLOCKID):
       lsf= open(MICLOCKID,"r"); pid=lsf.read(); lsf.close; 
       pid= string.strip(pid,"\n")
