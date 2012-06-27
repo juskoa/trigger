@@ -23,11 +23,12 @@ cat - <<-EOF
 EOF
   exit
 fi
-if [ "$hname" = 'pcalicebhm10' -o "$hname" = 'pcalicebhm05' ] ;then
-  vdv='vd'
-else
-  vdv='v'
-fi
+#if [ "$hname" = 'pcalicebhm10' -o "$hname" = 'pcalicebhm05' ] ;then
+#  vdv='vd'
+#else
+#  vdv='v'
+#fi
+vdv='v'
 if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
  "$hname" = 'pcalicebhm10' -o "$hname" = 'alidcscom188' ] ;then
   if [ "$hname" = 'alidcscom188' ] ;then
@@ -38,10 +39,9 @@ if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
   #echo "Server: $hname"
   if [ "$vdir" = 'ctp' ] ;then
     dhost='alidcsvme001'
-    #not necessary -ctp and ttcmi only in the pit
-    #if [ "$hname" = 'pcalicebhm05' ] ;then
-    #  dhost='altri1'
-    #fi
+    if [ "$hname" = 'pcalicebhm10' ] ;then
+      dhost='altri1'
+    fi
     rdir=$CLRFS/$dhost/home/alice/trigger/v/vme/WORK
   elif [ "$vdir" = 'ttcmi' ] ;then
     dhost='alidcsvme017'

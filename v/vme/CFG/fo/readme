@@ -16,3 +16,5 @@ filter to suppress spurios included, CRC on
 Fri Aug 15 14:08:58 CEST 2008
 fo_logic_02_l1error.rbf
 as 01 + glitches detection
+22.3.2012
+fo_ae.rbf -added 4 counters 48..51 counting L2a only

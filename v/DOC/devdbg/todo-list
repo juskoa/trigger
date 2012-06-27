@@ -1,7 +1,7 @@
 Contents:
 1. 22.3.2012 4 new FO counters (fi: fo_ae.rbf): TO BE TESTED!
   44..47:   L2a+L2r strobes    -last counters in 0xad version
-  48..51:   L2a flag (message) -4 new counters in 0xea version
+  48..51:   L2a flag (message) -4 new counters in 0xae version
 
 2. 10.2.2012 alidcsvme008 crash (see below)
 3. 2011: from Franco (see below)
@@ -31,6 +31,7 @@ Contents:
 14. CPU+IO+Ethernet monitoring for all machines
 15. busy problems when starting global partition
 16. sync management in global runs-see email from end of April 26th 2012
+    done during TS2 in June
 16A. sync in STDALONE see mails from 3.5.2012
     done
 17. infoLogger changed
@@ -43,7 +44,7 @@ Contents:
     - check if all classes with 0HWU if TRD in readout
       done
     - check ) (not checked now in validate)
-      16.6.2012 done (new validate to be distributed)
+      16.6.2012 done (new validate distributed)
 19. test l0 synchronous downscaling  l0_logic_verAF.rbf
     see CFG/l0/readme +mail from Marian 16.2.2012)
 20. fo firmware AE (see CFG/fo/readme +mail from Marian 22.3.2012) 
@@ -191,7 +192,7 @@ Starting the BST messages reading thread...
 Also see devdbg counters_notread
 - dimservices.c updated Nupdated counter holding the number of requests 
   from each client
-Soleved: <10secs -becasue 1/min reading update distributed over 7 clients
+Soleved: <10secs -because 1/min reading update distributed over 7 clients
 results in average update <10secs
 
 11B. dims looping
