@@ -4,8 +4,8 @@
 #rc: 8: smaq is already running
 # smaq kill
 . $CCRFS/usr/local/trigger/bin/auxfunctions
-getpid '/usr/local/trigger/v/vme/smaq/smaq.exe'
-#echo "$spid user:$user"
+getpid "$VMECFDIR/smaq/smaq.exe"
+echo ":$spid user:$user"
 if [ $# -eq 0 ] ;then
   echo "Usage:"
   echo "smaq ctp_input DIRNAME"
@@ -14,6 +14,7 @@ if [ $# -eq 0 ] ;then
   echo "smaq kill -kill active smaq"
   exit
 fi
+#if [ -n $spid ] ;then ! not working (USE  " " around $par in such test
 if [ -n "$spid" ] ;then
   if [ $1 = 'kill' ] ;then
     kill -9 "$spid"
@@ -21,6 +22,11 @@ if [ -n "$spid" ] ;then
     exit 0
   else
     echo "smaq already running: pid:$spid user:$user"
+    exit 8
+  fi
+else
+  if [ $1 = 'kill' ] ;then
+    echo "smaq not running, i.e. not killed"
     exit 8
   fi
 fi

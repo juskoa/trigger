@@ -19,10 +19,13 @@ if [ -n "$1" ] ;then
     vdir=$1
   fi
 fi
+# let's abandon ult,rdir (not use below!) . vdir: stable/v or dvlp/v (in lab)
 if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' ] ;then
   ult=/data/ClientCommonRootFs/usr/local/trigger
 elif [ "$hname" = 'pcalicebhm10' ] ;then
   ult=/home/dl/root/usr/local/trigger
+elif [ "$hname" = 'alidcscom188' ] ;then
+  ult=/data/dl/root/usr/local/trigger
 elif [ "$hname" = 'alidcscom188' ] ;then
   ult=/data/dl/root/usr/local/trigger
 #elif [ "$hname" = 'altri1' ] ;then
@@ -30,14 +33,14 @@ elif [ "$hname" = 'alidcscom188' ] ;then
 else
   ult=/usr/local/trigger
 fi
-first=`echo $vdir |cut -b 1`
+#first=`echo $vdir |cut -b 1`
 #cannot be here if .bashrc invokes this! echo "hname:$hname vdir:$vdir"
-if [ "$first" = '/' ] ;then
-  rdir=$vdir
-  ult=$vdir
-else 
-  rdir=$ult/$vdir
-fi
+#if [ "$first" = '/' ] ;then
+#  rdir=$vdir
+#  ult=$vdir
+#else 
+#  rdir=$ult/$vdir
+#fi
 # pit or lab:
 export VMEDRIVER=VMERCC     # VMERCC, SIMVME
 ix=`expr match "$hname" 'alidcs'`
@@ -56,8 +59,8 @@ else
   export DIM_DNS_NODE=pcald30
   export ACT_DB=daq:daq@pcald30/ACT
 fi
-export VMEBDIR=$rdir/vmeb
-export VMECFDIR=$rdir/vme
+export VMEBDIR=$vdir/vmeb
+export VMECFDIR=$vdir/vme
 export VMEWORKDIR=~/v/vme
 export dbctp=$VMECFDIR/CFG/ctp/DB
 export DIMDIR=/opt/dim
@@ -65,8 +68,8 @@ export SMIDIR=/opt/smi
 if [ -z "$DATE_DAQLOGBOOK_DIR" -a -d /opt/libDAQlogbook ] ;then
   export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
 fi
-if [[ $PATH != *$ult/bin* ]] ;then
-  export PATH="$PATH:$ult/bin"
+if [[ $PATH != *$vdir/bin* ]] ;then
+  export PATH="$PATH:$vdir/bin"
 fi
 export PYTHONPATH=$VMEBDIR
 if [[ $LD_LIBRARY_PATH != *:/lib/modules/daq:* ]] ;then
@@ -89,7 +92,7 @@ if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' ] ;then
 elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then
   #ctp vme cpu:
   alias "ctp=vmecrate nbi ctp"
-  alias ctpdims=$ult/bin/ctpdims.sh
+  alias ctpdims=$vdir/bin/ctpdims.sh
 else
   # ltu vme cpu
   #alias ltuserver=/usr/local/trigger/bin/ltuserver.bash

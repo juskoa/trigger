@@ -9,9 +9,9 @@ if HOST=='pcalicebhm05':
   VMEBDIR="/data/ClientCommonRootFs/usr/local/trigger/vd/vmeb/"
   #WORKDIR="/home/trigger/v/vme/"
 elif HOST=='pcalicebhm10':
-  VMEBDIR="/home/dl/root/usr/local/trigger/vd/vmeb/"
+  VMEBDIR="/home/dl/root/usr/local/trigger/devel/v/vmeb/"
 else:
-  VMEBDIR="/data/dl/root/usr/local/trigger/v/vmeb/"
+  VMEBDIR="/data/dl/root/usr/local/trigger/stable/v/vmeb/"
   #WORKDIR="/home/trigger/v/vme/"
 
 BASEHELPS="../../../htmls/"

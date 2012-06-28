@@ -5,20 +5,24 @@ function getpid() {
 #echo $pidcmd1
 pnam=`basename $1`
 pid=`pgrep $pnam`
+if [ -z "$pid" ] ;then
+  spid=''
+else
 #pidcmd=`ps -o'%p %u %a' $pid |tail -1`
-pidcmd=`ps -o'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
+  pidcmd=`ps -o'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
 #echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
-declare -a dl=($pidcmd)
+  declare -a dl=($pidcmd)
 #echo dl:${dl}
 #echo "comparing:"
 #echo ${dl[2]}
 #echo $1
 #if [ "${dl[2]}" = "$1" ] ;then
-if [ `echo ${dl[2]} | awk '{ print index($0,dt) }' dt=$1` -gt 0 ] ;then
-  user=${dl[1]}
-  spid=${dl[0]}
-else
-  spid=''
+  if [ `echo ${dl[2]} | awk '{ print index($0,dt) }' dt=$1` -gt 0 ] ;then
+    user=${dl[1]}
+    spid=${dl[0]}
+  else
+    spid=''
+  fi
 fi
 #echo getpid:$spid:${dl[0]}:$pidcmd
 }

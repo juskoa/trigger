@@ -102,7 +102,7 @@ rc:
     #  vmeswitch="trigger@alidcsvme004"
     #  os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
     elif hostname=="alidcscom188":
-      os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/v/vme"
+      os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
       vmectp="alidcsvme001"
       vmeswitch="trigger@alidcsvme004"
       #os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
