@@ -4,7 +4,7 @@ hname="alidcsvme00"$1
 }
 allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
 if [ -n "$1" ] ;then
-  grep $1 $CCRFS/usr/local/trigger/v/vme/CFG/ctp/DB/ttcparts.cfg
+  grep $1 $dbctp/ttcparts.cfg
   exit
 fi
 cat - <<-EOF

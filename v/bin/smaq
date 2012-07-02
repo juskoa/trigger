@@ -17,8 +17,8 @@ fi
 #if [ -n $spid ] ;then ! not working (USE  " " around $par in such test
 if [ -n "$spid" ] ;then
   if [ $1 = 'kill' ] ;then
-    kill -9 "$spid"
-    echo "$spid killed"
+    kill -s USR1 "$spid"
+    echo "$spid USR1 signal sent"
     exit 0
   else
     echo "smaq already running: pid:$spid user:$user"

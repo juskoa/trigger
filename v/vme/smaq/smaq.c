@@ -58,7 +58,7 @@ signal(signum, gotsignal); siginterrupt(signum, 0);
 sprintf(msg, "got signal:%d", signum); prtLog(msg);
 if((signum==SIGUSR1) || (signum==SIGKILL) ) {
   quit=1;
-};
+};quit=signum;  // for ANY signal
 }
 
 void callback(void *tag, int *retcode){
@@ -519,6 +519,7 @@ if(intboard == 2){   // trigger on int1
     };
     if(quit!=0) {
       // the request 'stop smaqing' registered (signal -s SIGUSR1 pid), let's stop
+      fprintf(f, "quitting on signal:%d\n", quit);
       break;
     };
     usleep(1000); // was 200 at the start of Aug (can be much more for 1bobr/48 secs)
@@ -534,6 +535,7 @@ if(intboard == 2){   // trigger on int1
     }    
  }
  if(inpnum==0) bobrClose(vspbobr);
+ fclose(f);
  return 0;
 }
 /*-----------------------------------------------------------
