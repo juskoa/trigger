@@ -146,7 +146,10 @@ gmonscal   running on alitrir. Creating:
 monscal    running on alitri. Creating:
            $server:v/vme/WORK/MONSCAL/monscal.log
            $server:v/vme/WORK/MONSCAL/display.log
-masksServer publication of CTPBCM/A,C,S,SA,...
+masksServer running on alitri. Commands: start/stop/status/update
+           See v/vme/WORK/masksServer.log,.pid 
+           DIM publications of CTPBCM/A,C,S,SA,... -masks available 
+           in VALID.CTPINPUTS).
 
 Problems: see corresponding files in:
    ~/CNTRRD/logs                     -pydim html rrd
@@ -183,6 +186,12 @@ if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
   if [ "$sss" = "stop" ] ;then
     if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
       kill `cat $VMEWORKDIR/WORK/masksServer.pid`
+    else
+      echo " not started"
+    fi
+  if [ "$sss" = "update" ] ;then
+    if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
+      kill -s SIGUSR1 `cat $VMEWORKDIR/WORK/masksServer.pid`
     else
       echo " not started"
     fi

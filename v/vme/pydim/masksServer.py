@@ -24,7 +24,7 @@ quit=None
 
 def signal_handler(signal, stack):
   global quit
-  if (signal==15) or (signal==2):
+  if (signal==15) or (signal==2):   # 15:SIGTERM (default), 2: CTRL-C
     mylog.logm("Stopping, signal:%d"%signal)
     quit= 'q'
   else:
@@ -107,7 +107,7 @@ def main():
     a=""
     try:
       #a= raw_input('enter 1 2 3: update from VALID.BCMASKS or q:\n')
-      time.sleep(100)
+      time.sleep(600)
     except:
       mylog.logm("exception:"+str(sys.exc_info()[0]))
       if quit=='q':
@@ -129,7 +129,8 @@ def main():
     elif a=='3':   # read VALID.BCMASKS and update all service
       updateAll()
     else:
-      mylog.logm('bad input:%s...'%a) ; continue
+      #mylog.logm('bad input:%s'%a) ; continue
+      pass
   pydim.dis_stop_serving()
   #sys.stdout.flush()
   mylog.close()
