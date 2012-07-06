@@ -67,15 +67,40 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
         dif= (0xffffffff - prev) + cur +1;
       };
       mem[cix]= dif;
-      countsread++; if(countsread>NCNTStbr) break;
+      //countsread++; if(countsread>NCNTStbr) break;
+    };
+    if(b123>=5) {   // +read 4 L2r counters (49..51):
+      int startix;
+      startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
+      for(cix= startix; cix< startix+4; cix++) {
+        w32 cur,prev,dif;
+        curprev[1][cix]= vmer32(copyread);
+        cur= curprev[1][cix]; prev= curprev[0][cix];
+        if(cur >= prev) {
+          dif= cur-prev;
+        } else {
+          dif= (0xffffffff - prev) + cur +1;
+        };
+        mem[cix]= dif;
+        //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
+      };
     };
   } else {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       mem[cix]= vmer32(copyread);
-      countsread++; if(countsread>NCNTStbr) break;
+      //countsread++; if(countsread>NCNTStbr) break;
+    };
+    if(b123>=5) {   // +read 4 L2r counters (49..51):
+      int startix;
+      startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
+      for(cix= startix; cix< startix+4; cix++) {
+        mem[cix]= vmer32(copyread);
+        //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
+      };
     };
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
+  countsread= countsread+ NCNTS;
   if(countsread>NCNTStbr) break;
 };
 unlockBakery(&ctpshmbase->ccread, customer);
@@ -101,7 +126,7 @@ unlockBakery(&ctpshmbase->ccread, customer);
 return(mem[reladr]);
 }
 /* FGROUP L012
-I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...
+I: board: 0(busy),1(L0),2(L1), 3(L2), 4(INT), 5(FO1), 6(FO2),...
    reladr: Max. rel address to be read. from 0...
    mem: memory[MAXCOUNTERS]
 */

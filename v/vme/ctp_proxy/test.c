@@ -39,14 +39,18 @@ rc= ctp_Endproxy();
 exit(8);
 }
 
+char line[100];
 char mygetchar(){
- char c;
- char line[100];
- fgets(line, 80, stdin); c=line[0];
- /*c=getchar();    -BUS ERROR */
- //while((d=getchar()) != '\n');
- //printf("myget %c %i \n",d,d);
- return c;
+char c; int i;
+fgets(line, 99, stdin); c=line[0];
+/*c=getchar();    -BUS ERROR */
+//while((d=getchar()) != '\n');
+//printf("myget %c %i \n",d,d);
+for(i=0; i<=99; i++) {
+  if(line[i]=='\n') line[i]='\0';
+};
+line[99]='\0';
+return c;
 }
 void getmask(char *mask) {
 fgets(mask, 64, stdin); mask[strlen(mask)-1]='\0';  // get rid of NL
@@ -160,8 +164,16 @@ if((rc=ctp_Initproxy())!=0) exit(8);
           ctp_PausePartition(pname);
           printf("Pausing partition %s\n",pname);
         } else {
-          ctp_SyncPartition(pname);
-          printf("Pausing partition %s\n",pname);
+          int i,reps=1;
+          if(strlen(line)>=3) {
+            reps= atoi(&line[2]);
+          };
+          printf("Going to send SYNC %d times\n", reps);
+          for(i=0; i<reps; i++) {
+            ctp_SyncPartition(pname);
+            usleep(1000000);
+          };
+          //printf("Sending sync for partition %s\n",pname);
         };
         break;
    case 'r':

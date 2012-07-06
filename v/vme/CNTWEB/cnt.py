@@ -29,6 +29,18 @@ class Counter:
     else:
       self.displayname=displayname+'-'+name
     self.selected=""   # 'y': selected
+  def co2rrdname(self, nm):
+    if nm[:2]=='fo' and nm[3:9]=='l2rout':
+      fon= int(nm[2])
+      con= int(nm[9])
+      ix= 870 + (fon-1)*4 + con
+      return "spare%d"%ix
+    elif nm=="spare895TSGROUP":
+      return "spare895"
+    elif nm[:5]=="spare" and nm[8:12]=="runx":
+      return nm[:8]
+    else:
+      return nm
   def makeImage(self):
     color="660000"
     finame= cntcom.BASEDIR+"imgs/"+self.displayname+'.png'
@@ -44,7 +56,9 @@ class Counter:
     #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
     ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
     cn= self.displayname
-    ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDB, self.coname))
+    dbconame= self.co2rrdname(self.coname)
+    #cfg.log("rrdname:%s name:%s"%(dbconame,self.coname))
+    ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDB, dbconame))
     ri.write("LINE2:%s#%s:%s "%(cn,color,cn))
     ri.close()
     # following allowed only without SElinux:
@@ -122,9 +136,10 @@ class Board:
 class Config:
   def __init__(self):
     self.period= "default"
+    self.dbgmsg= ""
     self.customperiod= ""; self.startgraph= ""
     self.errs=""
-    self.cfginit="just initialised"
+    self.log("just initialised")
     self.allboards= {
       "busy":Board("busy","#ccff00"),
       "l0":Board("l0","#cc9933"),
@@ -155,6 +170,8 @@ class Config:
         self.allboards[lines[2]].addCounter(lines)
     #self.allboards['l0'].counters[0].selected='y'    #for testing
     # cookies
+  def log(self, msg):
+     self.dbgmsg= self.dbgmsg + msg +"<br>"
 
 def deselectAll():
   global cfg
@@ -170,7 +187,7 @@ def index():
     cfg= Config()
   else:
     deselectAll()
-    cfg.cfginit="index, alredy initialised"
+    cfg.log("index, alredy initialised")
   s= cfg.errs
   if s=="": s= _makehtml()
   return s
@@ -181,7 +198,7 @@ def show(req):
    if cfg==None:
      cfg= Config()
    else:
-     cfg.cfginit="show, alredy initialised"
+     cfg.log("show, alredy initialised")
    s= cfg.errs
    if s!="": return s
    # The getfirst() method returns the value of the first field with the
@@ -315,7 +332,7 @@ function testButton (what){
   #html= html +"<img src=graf.png>\n"
   #pf= os.popen("ls"); cmdout=pf.read(); pf.close()
   #html= html +cmdout +"<BR>\n"
-  html= html +"<HR> dbg:" + cfg.cfginit
+  #html= html +"<HR> dbglog:" + cfg.dbgmsg
   #html= html + str(os.environ)
   html= html + """</BODY>
 </HTML>

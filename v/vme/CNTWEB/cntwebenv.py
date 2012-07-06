@@ -9,7 +9,7 @@ if HOST=='pcalicebhm05':
   _pref="/data/ClientCommonRootFs/usr/local/trigger/vd/"
   #WORKDIR="/home/trigger/v/vme/"
 elif HOST=='pcalicebhm10':
-  _pref="/home/dl/root/usr/local/trigger/dvlp/v/"
+  _pref="/home/dl/root/usr/local/trigger/devel/v/"
 else:
   _pref="/data/dl/root/usr/local/trigger/stable/v/"
 VMEBDIR= _pref+"vmeb/"

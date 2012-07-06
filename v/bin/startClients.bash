@@ -189,7 +189,7 @@ if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
     else
       echo " not started"
     fi
-  if [ "$sss" = "update" ] ;then
+  elif [ "$sss" = "update" ] ;then
     if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
       kill -s SIGUSR1 `cat $VMEWORKDIR/WORK/masksServer.pid`
     else

@@ -829,6 +829,11 @@ int defcounts[]={NCOUNTERS_BUSY, NCOUNTERS_L0, NCOUNTERS_L1, NCOUNTERS_L2,
   NCOUNTERS_FO, NCOUNTERS_FO, NCOUNTERS_FO};
 
 /*FGROUP SimpleTests 
+*/
+void clearAllCounters() {
+clearCounters(2);
+}
+/*FGROUP SimpleTests 
 read+print N counters of the board 
 board (0:busy, 1:L0 2:L1, 3:L2, 4:INT, 5:FO1...)
 N==0: read+print all counters (according to ctpcounters.h) of the board

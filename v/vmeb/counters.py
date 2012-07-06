@@ -19,8 +19,10 @@ L2SH=NCOUNTERS_L0+NCOUNTERS_L1
 NCOUNTERS_L2=134
 NCOUNTERS_L2_SP1=25
 NCOUNTERS_FO=48           # was 34 till 11.11.2008
+NCOUNTERS_FOae=52         # from 5.7.2012
 NCOUNTERS_BUSY=160
 NCOUNTERS_BUSY_SP1=105
+NCOUNTERS_BUSY_L2RS=129   # from 5.7.2012
 NCOUNTERS_BUSY_TSGROUP=153
 NCOUNTERS_BUSY_RUNX1=154
 NCOUNTERS_INT=19
@@ -505,9 +507,17 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
       print "spare%d %d l2 S N"%(irp, irp)
     #for irp in range(763, 812):
     lix= BYSH+NCOUNTERS_BUSY_SP1
-    hix= BYSH+NCOUNTERS_BUSY_TSGROUP
+    hix= BYSH+NCOUNTERS_BUSY_L2RS
     for irp in range(lix, hix):
       print "spare%d %d busy S N"%(irp, irp)
+    # 6x4 FO counters:
+    #irp= BYSH+NCOUNTERS_BUSY_L2RS
+    #for fon in range(1, 7):
+    #  for conn in range(1, 5):
+    #    print "fo%dl2rout%d %d fo%d C N"%(fon, conn, irp, fon)
+    #    irp= irp + 1
+    #
+    hix= BYSH+NCOUNTERS_BUSY_TSGROUP
     print "spare%dTSGROUP %d busy G N"%(hix, hix)
     # 6 counters reserved for 'RUNX COUNTERS' (see:
     # ctp_proxy/dimservices.c:#define RUNXCOUNTERSSTART 812
@@ -625,6 +635,7 @@ fol1clstt	-L1 test cluster trigger""")
       self.makeit1(fona,fona+"l0out", CTPcnts.i14, "L0 output 1-4")
       self.makeit1(fona,fona+"l1out", CTPcnts.i14, "L1 output 1-4")
       self.makeit1(fona,fona+"l2stro", CTPcnts.i14, "L2 strobe output 1-4")
+      self.makeit1(fona,fona+"l2rout", CTPcnts.i14, "L2r output 1-4")
     #------------------------------------------------------ BUSY
     self.busyframe= myw.MywFrame(self.addw,side=TOP); 
     self.boardfs["busy"]=self.busyframe
@@ -943,6 +954,12 @@ orc_error  -Orbit record with error
       board="fo"; c= cntlabel[9]
       n= 29+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
       if col5: det5c= self.findLTUfo(foix, int(c)) 
+    elif self.findFO(cntlabel,"l2rout"):
+      foix=self.findFO(cntlabel,"l2rout")
+      board="fo"; c= cntlabel[9]
+      #n= 29+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= BYSH + NCOUNTERS_BUSY_L2RS -1 + int(c) + (foix-1)*4
+      if col5: det5c= self.findLTUfo(foix, int(c)) 
     #------------------------------------------------------ INT
     elif string.find(cntlabel,"intCTPbusy")==0:
       board="int"; n= 0+ INTSH; CGT='T';
@@ -1254,7 +1271,7 @@ class VMEcnts(CTPcnts):
       cntnum= self.regs[i].cntaddr
       newval= self.allregs[cntnum]
       #print "allread:",prevval,type(prevval),vlist[i],cntnum
-      #print "allread:",prevval,type(prevval), newval, type(newval)
+      #print "allread:%d"%i,prevval,type(prevval), newval, type(newval), cntnum
       if prevval != newval:
         self.regs[i].cntentry.setColor(myw.COLOR_VALCHANGED)
         self.regs[i].cntentry.setEntry(newval)

@@ -217,9 +217,11 @@ for(ix=0; ix<80; ix++) {
   if(procid[ix]=='@') {
     procid[ix]='\0';
     strncpy(hname, &procid[ix+1],30); hname[30]='\0';
+    break;
   };
 };
-if( strncmp(hname,"alidcscom188",12)==0) {
+if(( strncmp(hname,"alidcscom188",12)==0) 
+   || ( strncmp(hname,"pcalicebhm10",12)==0)) {
   rc=0; goto OK;    // clock shift also from pydimserver!
 };
 if((con=fopen(fname,"r")) == NULL){
@@ -310,7 +312,7 @@ dim_start_thread(newclock, (void *)&newclocktag);
 }
 /*-----------------*/ void MICLOCK_SETcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];
-char *msg= (char *)msgv; int rc; 
+char *msg= (char *)msgv; int rc,rc2; 
 sprintf(errmsg, "MICLOCK_SETcmd: tag:%d size:%d msg:%5.5s\n", 
   *(int *)tag, *size, msg); prtLog(errmsg); 
 /* pydim client: msg not finished by 0x0 ! -that's why strncmp() used below...
@@ -322,7 +324,7 @@ msg[*size]='\0';   // with python client ok
 */
 rc= authenticate(""); rc2= authenticate("oerjan/");
 if((rc!=0) and (rc2!=0) ) {
-  sprintf(errmsg, "Only trigger user can change the clock"); prtLog(errmsg); 
+  sprintf(errmsg, "Only trigger/oerjan user can change the clock"); prtLog(errmsg); 
   return;  
 };
 if(strncmp(msg,"qq", 2)==0) ds_stop();
@@ -401,10 +403,10 @@ while(1) {   //run forever
     //printf("QPLL update rc:%d qpllnow:%s\n",rc,qpllnow);
     mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
     bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;
-    /*sprintf(buffer, "mon ds006:ds007:ds008:ds009 N:%d:%d:%d:%d", 
-      mainerr, mainlck, bc1err, bc1lck);*/
+    sprintf(buffer, "mon ds006:ds007:ds008:ds009 N:%d:%d:%d:%d", 
+      mainerr, mainlck, bc1err, bc1lck);
     rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
-    prtLog(buffer);
+    //prtLog(buffer);
   };
   nlogqpll++;
   if((nlogqpll % 600)==0) {    // 60/600:log 1/hour

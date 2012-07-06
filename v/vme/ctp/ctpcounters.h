@@ -10,8 +10,10 @@
 #define NCOUNTERS_L2 134    //  1 spare
 #define NCOUNTERS_L2_SP1 25
 #define NCOUNTERS_FO  48    // there are 6 FO boards (FO1-FO6) (was 34 till 11.11)
+#define NCOUNTERS_FOae  52  // + L2r counter for each connector -stored in spare871..894
 #define NCOUNTERS_BUSY 160  // 105 +49spares + 6runx
 #define NCOUNTERS_BUSY_SP1 105
+#define NCOUNTERS_BUSY_L2RS 129  // 6*4 L2r FO counters (FO1, FO2,...)
 #define NCOUNTERS_BUSY_TSGROUP 153  // active Time sharing class group
 #define NCOUNTERS_BUSY_RUNX1 154  // 6 RUNX counters from here (see dimcoff,dims)
 #define NCOUNTERS_INT 19 

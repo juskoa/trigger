@@ -2152,7 +2152,9 @@ if(cshmQueryPartition(part)!=1) {
   rc=2;
 } else {
   if(generateXOD(part,'Y', emsg )==0) {
-    sprintf(emsg,"SYNC sent."); 
+    int src;
+    src= generateXOD(part,'S', emsg );
+    sprintf(emsg,"SYNC sent. src:%d",src); 
     infolog_trgboth(LOG_INFO, emsg);
   } else {
     infolog_trgboth(LOG_ERROR, emsg);

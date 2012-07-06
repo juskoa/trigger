@@ -227,7 +227,9 @@ for(ix=0; ix<=(NCOUNTERS-1); ix++) {
     };
   } else {
     fprintf(rrdpipe, "%u:", bufw32[ix]);
-    //fprintf(dbgout, "%u:", bufw32[ix]);
+    /*if((ix>869) && (ix<890)) {
+      fprintf(dbgout, "%d=%u:", ix, bufw32[ix]); fflush(dbgout);
+    };fprintf(dbgout,"\n");*/
   };
 }; 
 //fprintf(rrdpipe, "%u \n", bufw32[NCOUNTERS-1]); fflush(rrdpipe); see above
@@ -390,7 +392,7 @@ setlinebuf(htmlpipe);
 sock= udpopens("localhost", 9931);
 if(sock==-1) {printf("udpopens error\n");  /*exit(8);*/ };
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
-//dbgout= fopen("dbgout", "w");
+//dbgout= fopen("logs/dbgout.log", "w");
 inforc= dic_info_service("CTPDIM/MONCOUNTERS", MONITORED, 0, 
   cnts,4*(NCOUNTERS), gotcnts, 137, &cntsFailed, 4); 
 //printf("CTPDIM/MONCOUNTERS service id:%d\n", inforc);

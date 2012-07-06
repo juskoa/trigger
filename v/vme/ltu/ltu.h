@@ -567,6 +567,7 @@ Do not change TTC_INTERFACE word during scan !
 This subroutine is used with BC phase measurements i.e.
 1st line of stdout is relevant.
 */
+void scan(int micseconds,int * &buf);
 void scan(int micseconds);
 /*FGROUP ADC
 Measure BC phase of this FO (ltufo=0) or this LTU (ltufo=1)
