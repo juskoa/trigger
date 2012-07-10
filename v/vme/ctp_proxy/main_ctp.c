@@ -144,6 +144,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
       sleep (1); smi_setState("RUNNING");
     }
   } else if (strcmp(action,"PAUSE_PARTITION") == 0) {
+    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
     if(ctp_PausePartition(pname)){
       sleep (1); smi_setState("ERROR");
     }else{
@@ -158,6 +159,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
       sleep (1); smi_setState("RUNNING");
     }
   } else if (strcmp(action,"RESUME_PARTITION") == 0) {
+    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
     if(ctp_ResumePartition(pname)){
       sleep (1); smi_setState("ERROR");
     } else {
