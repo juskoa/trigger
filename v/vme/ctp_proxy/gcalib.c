@@ -86,12 +86,11 @@ default:
 }
 
 /* Operation:
-- 
+- read gcalib.cfg
 gcalib.cfg:
 #ltuname period[ms] roc
 HMPID 2000
 DAQ 3000 6
-
 ----------------------------------------*/ void read_gcalibcfg() {
 FILE* gcalcfg;
 enum Ttokentype token;
@@ -420,6 +419,14 @@ if(DBGCMDS) {
   prtLog("calthread stop.");
 };
 }
+void startThread() {
+dim_start_thread(calthread, (void *)&TAGcalthread);
+usleep(100000);
+if(threadactive==0) {
+  char msg[200];
+  sprintf(msg,"thread not started!"); prtLog(msg);
+};
+}
 
 /*--------------------*/ void DOcmd(void *tag, void *msgv, int *size)  {
 /* msg: if string finished by "\n\0" remove \n */
@@ -455,7 +462,7 @@ if(token==tSYMNAME) {
         ads, threadactive);
       fflush(stdout);
       if(threadactive==0) {
-        dim_start_thread(calthread, (void *)&TAGcalthread);
+        startThread();
       } else { // 1: 2nd global run (ok) or what?
         // perhaps, here we should stop/start active thread.
         sprintf(em1,"u:ads:%d, threadactive is 1, i.e. 2nd global?", ads); 
@@ -477,7 +484,7 @@ if(token==tSYMNAME) {
         };
         if(rc!=0) { sprintf(em1,"addel:%c rc:%d", adddel, rc); goto ERR; };
         if(threadactive==0) {
-          dim_start_thread(calthread, (void *)&TAGcalthread);
+          startThread();
         } else {
           sprintf(em1,"a:det:%d but threadactive is 1", det); goto ERR;
         };
@@ -550,7 +557,7 @@ beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
 ads= shmupdateDETs();  // added from 18.11.2010
 if(ads>0){
   if(threadactive==0) {
-    dim_start_thread(calthread, (void *)&TAGcalthread);
+    startThread();
   } else {
     printf("ads:%d but threadactive is 1 at the start", ads);   //cannot happen
   };
