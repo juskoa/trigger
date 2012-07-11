@@ -2153,7 +2153,7 @@ if(cshmQueryPartition(part)!=1) {
 } else {
   if(generateXOD(part,'Y', emsg )==0) {
     int src;
-    src= generateXOD(part,'S', emsg );
+    //src= generateXOD(part,'S', emsg ); bug -was here till 11.7.2012 !!!
     sprintf(emsg,"SYNC sent. src:%d",src); 
     infolog_trgboth(LOG_INFO, emsg);
   } else {
