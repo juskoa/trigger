@@ -14,3 +14,10 @@ phase measurement included
 30.6.2011
 int_logic_a9.rbf 
 IR are pushed ot from buffer every 2 seconds (before: 20s)
+2.9.2011
+int_logic_aa.rbf 
+Synchronisation of Orbit counters on INT board cahnged to fit
+longer L2a time (TL2 = 4208).
+5.9.2011
+int_logic_aa.rbf. Now only 1024-2047 BCids are used for INT/L2 sync.
+

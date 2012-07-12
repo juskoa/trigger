@@ -32,3 +32,11 @@ New adresses for input polarity group are from H"201" to H"232".
 Wed Feb 15 11:35:28 CET 2012
 l0_logic_verAE.rbf
 spy memory increased 2times (addresses were: 0x1?? now is: 0x1?? or 0x2??)
+16.2.2012
+l0_logic_verAF.rbf -synchronous class downscaling:
+Added DSCG (Down scaling class group) option to RATE module.
+50 registers (dscg 1-50 -> H"233"-H"264") added for setting DSCG values via
+VME.
+Default values for these registers: 1,2,3,...,50.
+Setting 0x233:2 leads to synchronous downscaling of first 2 classes.
+

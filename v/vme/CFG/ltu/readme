@@ -34,3 +34,30 @@ max. L2delay 204.8 usecs now (was max 102.4 with ltu_b3.rbf)
 13.7.2010
 ltu_b5.rbf
 RATE_PERIOD 18..8 (was 15..8), step 0.1ms (was 0.82ms),max.period=2048*0.1=204.8ms
+16.5.2011 ------------------------------------------------
+ltu_b6.rbf  -Antonello's request
+Before this: SPARE is output connector with BC, LED signaling global/stdalone mode
+From version b6:
+Added input "in_spare" from pin L3 as ext_orb (external ORBIT) signal.
+The usage of ext_orb signal in stand-alone mode is enabled by writing 1 to
+bit 1 in register MODE(H"14D") -0x2  (bit0 is stdalone=1/global=0 bit).
+STDALONE_MODE bit 1: 1 - external ORBIT; 0 - internal ORBIT
+In Global mode, ORBIT is taken always from ctp_orbit.
+Changed "led_drive.signal[7]" from "!ltu_select.stand_alone" to "in_spare"
+Added "in_spare" to scope_a.in[15].
+
+ATTENTION:
+Old PCBs (LTUs <54) must be modified in order to see ORBIT input (by default SPARE LEMO is output) !
+LK1 -> cut, LK21 -> make connection (change output to input)
+LK6 -> cut, LK4 -> make connection (change NECL to NIM, if necessary)
+Signal from TTCmi is ECL, but AC coupled, so the NIM treshold (-0.47V) is choosen.
+New PCBs include these changes.
+12.1.2012 ---------------------------------New vs. old LTUs (see ltu.h):
+ltu_*.rbf  -old LTU firmware today last one is ltu_b6.rbf
+ltu2_*.rbf -new LTU firmware (starting from ltu2_b6.rbf)
+Differencies:
+- different pinout of FPGA
+- CRC error (SEU) bit in 0x5c TEMP_STATUS bit 0x2: 
+  1:CRCerror (FPGA have to be reconfigured), 0:ok
+- SERIAL_NUMBER is 7 bits (was 6bits), and LTUs serial numbers are 64,65,...
+
