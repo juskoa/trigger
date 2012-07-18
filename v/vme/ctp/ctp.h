@@ -210,7 +210,6 @@ bit23..0: 1: invert L0 input   0: use original polarity
 firmAC:
 all classes can use inverted inputs, use L0_INVERTac symbol.
 */
-#define L0_INVERTac    0x9800    /* +4*n n=1,....,50 */ 
 #define L0_INTERACT1   0x94cc    /* 16 bits thruth table */
 #define L0_INTERACT2   0x94d0
 #define L0_INTERACTT   0x94d4
@@ -232,6 +231,8 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 #define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
 //#define L0_FUNCTION3  0x97ec
 //#define L0_FUNCTION4  0x97f0
+#define L0_INVERTac    0x9800    /* +4*n n=1,....,50, 0x9804..0x98c8 */ 
+#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
 
 /* L1 board */
 #define L1_TCSTATUS    0xa1c0   /*R/O*/

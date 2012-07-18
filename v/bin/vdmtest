@@ -1,3 +1,14 @@
 #!/bin/bash
+if [ `hostname` != "alidcscom188" ] ;then
+  cat - <<-EOF
+
+Can be started only on alidcscom188...
+On alidcscom707, start counters
+counters is alias defined:
+alias counters='~trigger/v/vme/dimcdistrib/linux/dimccounters CTPDIM'
+
+EOF
+else
 cd $VMECFDIR
 dimcdistrib/linux/dimccounters CTPDIM
+fi

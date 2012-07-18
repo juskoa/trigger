@@ -192,3 +192,8 @@ trigger/stable in pit -accessible through git (ssh tunneled)
 also see git repository lietava/triggerapp -for applications
 running on 707 (smaq,correlations,gmonscal,...)
 T0 calib: only in technical runs (outside of STABLE BEAMS)
+...
+see also git log
+13.7
+l0 fy AF can be used: initCTP.c now initialises L0_SDSCG words
+to 1,2,...,50. To be tested

@@ -663,6 +663,53 @@ for(sync=0; sync<=15; sync++) {
 };
 }
 
+/*FGROUP SimpleTests
+clas:
+0: print L0_SDSCG+4,8,...
+1,2,3,...: class number
+51: set all classes to 'group'
+52: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,49
+group: Set class' group to group
+       Should be : 1,2,3,...,50
+*/
+void printsetSDSCG(int clas, int group) {
+if(clas==0) {
+  int ixc;
+  for(ixc=1; ixc<=50; ixc++) {
+    w32 adr,val;
+    adr= L0_SDSCG + ixc*4;
+    val= vmer32(adr);
+    printf("%2d:%2d ", ixc, val);
+    if((ixc%10)==0) printf("\n");
+  };
+} else if(clas==51) {
+  printf("setting SDSCG for all classes to %d...\n",group);
+  int ixc;
+  for(ixc=1; ixc<=50; ixc++) {
+    w32 adr;
+    adr= L0_SDSCG + ixc*4;
+    vmew32(adr, group);
+  };
+} else if(clas==52) {
+  printf("setting SDSCG for all classes to default: 0,1,...,49\n");
+  int ixc;
+  for(ixc=1; ixc<=50; ixc++) {
+    w32 adr;
+    adr= L0_SDSCG + ixc*4;
+    vmew32(adr, ixc-1);
+  };
+} else if(clas>50) {
+  printf("clas: 0..50 allowed\n");
+} else {
+  if((group<0) && (group>49)) {
+    printf("group: 0..50 allowed (0: allowed but should not be used)\n");
+  } else {
+    w32 adr;
+    adr= L0_SDSCG + clas*4;
+    vmew32(adr, group);
+  };
+};
+}
 /*---------------------------------------------------------------- busy-tests */
 /*FGROUP busy
 Set BC_DELAY from 0..31 with step 1, wait 1 sec between

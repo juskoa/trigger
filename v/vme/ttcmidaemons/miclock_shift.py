@@ -114,8 +114,6 @@ def callback1(now):
   ##mylog.logm("TTCMI/MICLOCK: %s. -WEB NOT UPDATED ##"%(now))
 
 def getShift():
-  if os.environ['VMESITE']!='ALICE':
-    return "0.05"
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
   iop= popen2.popen2(mcmd+" s", 1) #0- unbuffered, 1-line buffered
   line= iop[0].readline()
@@ -165,12 +163,12 @@ def checkandsave(csf_string, fineshift="None", force=None):
             (ttcmi_hns, corde_10ps, last_applied))
         else:
           newcorde= corde_10ps - csps/10
-          f= open(fn,"w")
-          line= "%s %d %s"%(ttcmi_hns,newcorde, csps_applied_new); f.write(line)
-          f.close()
-          mylog.logm("Clock shift in db: %s %d %s -> %s %d %s"%\
-            (ttcmi_hns, corde_10ps, last_applied, ttcmi_hns, newcorde, csps_applied_new))
+          #f= open(fn,"w")   -written in .c (CORDE_SET)
+          #line= "%s %d %s"%(ttcmi_hns,newcorde, csps_applied_new); f.write(line)
+          #f.close()
           if fineshift != "None":
+            f= open(fn,"r"); line= f.readline(); f.close()
+            mylog.logm("Clock shift in db before SET: %s"%line)
             corde_shift= "%d"%(-csps/10)
             arg= (corde_shift,)
             res= pydim.dic_cmnd_service("TTCMI/CORDE_SET", arg, "C")
@@ -226,6 +224,7 @@ def callback_bm(bm):
       else:
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+        mylog.logm("DLL_RESYNC started...")
         #CJI mylog.logm("DLL_RESYNC NOT started...")
     mylog.logm("BEAM MODE:%s clock %s OK shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":

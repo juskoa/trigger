@@ -26,12 +26,22 @@ char corde_base[]="0x7000000";
 char corde_len[]="0x7fc00";
 char corde_A32[]="A32";
 
+w32 halfnsvme=0x140+29, cordevalvme=512;
+int havemicrate=1;
+
 w32 corde_get(int del) {  // 1..7. VME is opened/closed with each call!
 int rc,vsp=-1; w32 adr, val;
-rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+if(micratepresent()) {
+  rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+} else rc=0;
 if(rc==0) {
-  adr= (del-1)*4 + ORBMAIN; val= vmxr32(vsp, adr);
-  rc= vmxclose(vsp);
+  adr= (del-1)*4 + ORBMAIN; 
+  if(micratepresent()) {
+    val= vmxr32(vsp, adr);
+    rc= vmxclose(vsp);
+  } else {
+    val= cordevalvme;
+  };
 } else {
   val=0xffffffff;
 };
@@ -39,13 +49,19 @@ return(val);
 }
 void corde_set(int del, w32 val) {
 int vsp=-1,rc; w32 adr;
-rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+if(micratepresent()) {
+  rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+} else rc=0;
 if(rc==0) {
   adr= (del-1)*4 + ORBMAIN; // 7: BC1
-  vmxw32(vsp, adr, val);
+  if(micratepresent()) {
+    vmxw32(vsp, adr, val);
+  } else {cordevalvme= val; };
   //adr= (4-1)*4 + ORBMAIN; // BC_MAIN (not needed -only BC1 delayd in CORDE)
   //vmxw32(vsp, adr, val);
-  rc= vmxclose(vsp);
+  if(micratepresent()) {
+    rc= vmxclose(vsp);
+  };
 } else {
   printf("ERROR corde_set: can't open vme\n");
 };
@@ -60,11 +76,18 @@ return;
 #define corde_ministep 5
 w32 corde_shift(int del, int shift, int *origval) {  
 int vsp=-1, rc,rcv; 
-rcv= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+if(micratepresent()) {
+  rcv= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+} else rcv=0;
 if(rcv==0) {
   int sig; w32 base,adr,lastval;
   adr= (del-1)*4 + ORBMAIN; 
-  base= vmxr32(vsp, adr); *origval= base;
+  if(micratepresent()) {
+    base= vmxr32(vsp, adr); 
+  } else {
+    base= cordevalvme;
+  };
+  *origval= base;
   if((shift <-150) || shift>150) {
       sig=0; rc=0xfffffffe;
   } else if(shift<0) {
@@ -85,15 +108,24 @@ if(rcv==0) {
       val= val+sig*corde_ministep;
       if(((sig==1) && (val>lastval)) ||
          ((sig==-1) && (val<lastval))) val=lastval;
-      vmxw32(vsp, adr, val);
+      if(val>1023) {
+        printf("Error:corde_shift: cannot write %d>1023 into CORDE\n",val);
+        break;
+      };
+      printf("corde_shift: writing %d\n",val);
+      if(micratepresent()) {
+        vmxw32(vsp, adr, val);
+      } else cordevalvme= val;
       if(corde_sleep_us>0) usleep(corde_sleep_us);
       if((val==lastval)) break;
     };
     rc=lastval;
   };
-  rcv= vmxclose(vsp);
+  if(micratepresent()) {
+    rcv= vmxclose(vsp);
+  };
 } else {
-  printf("ERROR corde_shift: can't open vme\n"); rc=0xffffffff;
+  printf("Error: corde_shift: can't open vme\n"); rc=0xffffffff;
 };
 return(rc);
 }
@@ -101,15 +133,23 @@ return(rc);
 //---------------------------------------- end of corde code
 w32 i2cread_delay(w32 delayadd) {
 w32 data;
-data= vmer32(delayadd);
-usleep(2000); /// at least 2ms
-data= vmer32(DELAY25_REG);
+if(micratepresent()) {
+  data= vmer32(delayadd);
+  usleep(2000); /// at least 2ms
+  data= vmer32(DELAY25_REG);
+} else {
+  data= halfnsvme;
+};
 return(data);
 }
 void i2cset_delay(w32 delayadd, int halfns) {
-halfns= halfns | 0x40;            // enable
-vmew32(delayadd, halfns);
-//vmew32(BC_DELAY25_GCR, 0x40);   // and resynchronise DLL (wait 1s if used)
+if(micratepresent()) {
+  halfns= halfns | 0x40;            // enable
+  vmew32(delayadd, halfns);
+  //vmew32(BC_DELAY25_GCR, 0x40);   // and resynchronise DLL (wait 1s if used)
+} else {
+  halfnsvme= halfns;
+};
 }
 /* add Comment in daq for:
 Input: hw and db values for RF2TTC/Corde dealay registers
@@ -144,7 +184,7 @@ char dbhns[MAXdbhns]; int ldbhns;
     int its;
     //dbhalfns= atoi(dbhns);
     its= sscanf(dbhns, "%d %d %d\n", &dbhalfns, &dbcordeval, &dblast_applied);
-    printf("setbcorbitMain: clockshift db:%d %d %d hw:%d %d\n", dbhalfns, dbcordeval, dblast_applied, halfns, cordeval);
+    printf("setCordeshift: clockshift db:%d %d %d hw:%d %d\n", dbhalfns, dbcordeval, dblast_applied, halfns, cordeval);
     if( (its<2) || (dbhalfns>63) || (dbcordeval>1023) ) {
       infolog_trg(LOG_ERROR, "Bad value in dbctp/clockshift file");
     } else {
@@ -221,6 +261,10 @@ rc= ((s5&0x1)<<8) | ((s1&0x3)<<6) | ((s2&0x3)<<4) | ((s3&0x3)<<2) | (s4&0x3);
 return(rc);
 }
 void DLL_RESYNC(int msg) {
+if(micratepresent()==0) {
+  printf("DLL_RESYNC, novme, 0x40 -> BC_DELAY25_GCR done\n");
+  return;
+};
 vmew32(BC_DELAY25_GCR, 0x40);
 if(msg==DLL_stdout) {
 printf("0x40 -> BC_DELAY25_GCR done\n");
@@ -237,4 +281,9 @@ printf("0x40 -> BC_DELAY25_GCR done\n");
   infolog_trg(LOG_INFO, "CLOCK DLL_RESYNC done");
 };
 }
-
+void micrate(int present) {
+havemicrate= present;
+}
+int micratepresent() {
+return(havemicrate);
+}

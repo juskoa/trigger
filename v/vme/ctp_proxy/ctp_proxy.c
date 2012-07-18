@@ -2151,12 +2151,13 @@ if(cshmQueryPartition(part)!=1) {
   infolog_trgboth(LOG_ERROR, emsg);
   rc=2;
 } else {
-  if(generateXOD(part,'Y', emsg )==0) {
-    int src;
+  int src;
+  if((src=generateXOD(part,'Y', emsg ))==0) {
     //src= generateXOD(part,'S', emsg ); bug -was here till 11.7.2012 !!!
-    sprintf(emsg,"SYNC sent. src:%d",src); 
+    sprintf(emsg,"SYNC sent."); 
     infolog_trgboth(LOG_INFO, emsg);
   } else {
+    sprintf(emsg,"SYNC not sent. generateXOD() rc:%d", src); 
     infolog_trgboth(LOG_ERROR, emsg);
     rc=3;
   };

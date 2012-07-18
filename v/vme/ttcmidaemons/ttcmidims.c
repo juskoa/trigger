@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
+#include <errno.h>
 
 #ifdef CPLUSPLUS
 #include <dis.hxx>
@@ -14,9 +16,6 @@
 #include "vmeblib.h"
 #include "../ctp/ctplib/ctplib.h"
 #include "../ttcmi/ttcmi.h"
-
-// see makefile, or uncomment for debugging (i.e. no VME access)
-//#define NOVME
 
 #define MAXCMDL 200
 #define MAXLILE 20
@@ -83,9 +82,7 @@ if(EXITSERVER==1) {
   dis_remove_service(QPLLid);
   dis_remove_service(MICLOCK_TRANSITIONid);
   dis_stop_serving();
-#ifndef NOVME
-  vmeclose();
-#endif
+  if(micratepresent()) vmeclose();
   exit(0);
 };
 }
@@ -117,17 +114,18 @@ default:
 };
 }
 
-#ifdef NOVME
-w32 bcmvme=0, omvme=2; w32 halfnsvme=0, cordevalvme=5120;
-#endif
+w32 bcmvme=0, omvme=2;
+extern w32 cordevalvme;
+extern w32 halfnsvme;
+
 /*-------------------------------------------------------*/ void getclocknow() {
 w32 bcm,om;
-#ifndef NOVME
-bcm= vmer32(BCmain_MAN_SELECT); om= vmer32(ORBmain_MAN_SELECT);
-#else
-bcm=bcmvme; om=omvme;
-printf("novme vmer: bcm:%x om:%x\n", bcm, om);
-#endif
+if(micratepresent()) {
+  bcm= vmer32(BCmain_MAN_SELECT); om= vmer32(ORBmain_MAN_SELECT);
+} else {
+  bcm=bcmvme; om=omvme;
+  //printf("novme vmer: bcm:%x om:%x\n", bcm, om);
+}
 if((bcm==3) && (om==0)) { strcpy(clocknow,"BEAM1"); clocktag=1;
 } else if((bcm==2) && (om==1)) { strcpy(clocknow,"BEAM2"); clocktag=2;
 } else if((bcm==1) && (om==2)) {strcpy(clocknow,"REF"); clocktag=3;
@@ -137,15 +135,15 @@ if((bcm==3) && (om==0)) { strcpy(clocknow,"BEAM1"); clocktag=1;
 }
 /*-------------------------------------------------------*/ void getshiftnow() {
 w32 halfns,cordeval;
-#ifndef NOVME
-halfns= i2cread_delay(BC_DELAY25_BCMAIN)-0x140;
-cordeval= corde_get(CORDE_DELREG);
-sprintf(shiftnow,"%d %d", halfns, cordeval);
-#else
-halfns= halfnsvme; cordeval= cordevalvme;
-sprintf(shiftnow,"%d %d", halfns, cordeval);
-printf("novme shiftnow:%s\n", shiftnow);
-#endif
+//if(micratepresent()) {
+  halfns= i2cread_delay(BC_DELAY25_BCMAIN)-0x140;
+  cordeval= corde_get(CORDE_DELREG);
+  sprintf(shiftnow,"%d %d", halfns, cordeval);
+//} else {
+//  halfns= halfnsvme; cordeval= cordevalvme;
+//  sprintf(shiftnow,"%d %d", halfns, cordeval);
+//  printf("novme shiftnow:%s\n", shiftnow);
+//};
 }
 /*Input: tag: 1:BEAM1 2:BEAM2 3:REF 4:LOCAL
 rc: clock set (i.e. tag, or 0: error). if rc!=tag required clock
@@ -154,18 +152,18 @@ rc: clock set (i.e. tag, or 0: error). if rc!=tag required clock
 int rc;
 char buffer[50];
 printf("setting ttcmi clock:%d\n", tag);
-#ifdef NOVME
-if(tag==1) {bcmvme=3; omvme=0; 
-} else if(tag==2) {bcmvme=2; omvme=1; 
-} else if(tag==3) {bcmvme=1; omvme=2; 
-} else if(tag==4) {bcmvme=0; omvme=2; 
+if(micratepresent()==0) {
+  if(tag==1) {bcmvme=3; omvme=0; 
+  } else if(tag==2) {bcmvme=2; omvme=1; 
+  } else if(tag==3) {bcmvme=1; omvme=2; 
+  } else if(tag==4) {bcmvme=0; omvme=2; 
+  } else {
+    printf("novme setbcorbit: bad tag:%d bcmvme:%x omvme:%x\n", tag, bcmvme, omvme);
+  return(0);
+  };
 } else {
-  printf("novme setbcorbit: bad tag:%d bcmvme:%x omvme:%x\n", tag, bcmvme, omvme);
-return(0);
+ setbcorbitMain(tag);
 };
-#else
-setbcorbitMain(tag);
-#endif
 rc= dis_update_service(SHIFTid);
 printf("TTCMI/SHIFT update for %d clients\n", rc);  
 sprintf(buffer, "mon ds005 N:%d", tag); 
@@ -178,21 +176,25 @@ return(tag);
 - clock change
 - DLL_RESYNC
 */
-printf("newclock thread started. clocktran:%d quit:%d\n", clocktran, quit);
+printf("newclock thread started. clocktran:%d tag:%d quit:%d\n", 
+  clocktran, *(int *)tag, quit);
 while(clocktran>=0) {
   int nclients;
   nclients= dis_update_service(MICLOCK_TRANSITIONid);
-  printf("updated MICLOCK_TRANSITION clients:%d tag:%d\n", nclients, *(int *)tag);
+  //printf("updated MICLOCK_TRANSITION clients:%d clocktran:%d\n", nclients, clocktran);
   if(clocktran==0) break;
-  if(quit==1) break;
-  dtq_sleep(30);   // was 60 before 10.11.2011
+  if(micratepresent()) {
+    dtq_sleep(30);   // was 60 before 10.11.2011
+  } else {
+    dtq_sleep(5);   // in lab just 5secs
+  };
   clocktran--; sprintf(clocktransition,"%d", clocktran);
   if(clocktran==0) {
     if(*(int *)tag==0) {
       int rc;
       char cmd[]="$VMECFDIR/ttcmidaemons/sctel.py MININF";
       DLL_RESYNC(DLL_info);
-      printf("DLL_RESYNC + clearing the scope persistance\n");
+      //printf("DLL_RESYNC + clearing the scope persistance\n");
       rc= system(cmd);
     } else {
       setbcorbit(*(int *)tag); 
@@ -200,6 +202,7 @@ while(clocktran>=0) {
       printf("updated MICLOCK clients:%d\n", nclients);
     };
   };
+  if(quit==1) clocktran=0;
 };
 }
 int authenticate(char *subdir) {   // "" or "oerjan/"
@@ -239,40 +242,46 @@ if(strcmp(procid,line)==0) {
   rc=3;
 };
 OK:
-printf("procid:%s wd:%s line:%s< hname:%s rc:%d\n", procid, envwd,line, hname, rc);
+//printf("procid:%s wd:%s line:%s< hname:%s rc:%d\n", procid, envwd,line, hname, rc);
 fflush(stdout);
 return(rc);
 }
 /*-----------------*/ void CORDE_SETcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];
 char *msg= (char *)msgv; int rc; w32 cosh;
-char sshift[20]; int shift, origshift; 
+char sshift[20]; int shift=0, origshift; 
 if(*size>19) {rc=19;}
 else {rc=*size; };
 strncpy(sshift,msg,rc); sshift[rc]='\0';
+errno= 0;
 shift= strtol(sshift, (char **)NULL, 10);
+if ((errno == ERANGE && (shift == LONG_MAX || shift == LONG_MIN))
+     || (errno != 0 && shift == 0)) {
+  sprintf(errmsg, "Error: incorrect shift:%s, not set", sshift); prtLog(errmsg); 
+  return;  
+};
 sprintf(errmsg, "CORDE_SETcmd: size:%d msg:%5.5s :%s:%d\n", 
   *size, msg, sshift, shift); prtLog(errmsg); 
 //rc= authenticate();
-rc=0; prtLog("CORDE_SET not authenticated!\n");
+rc=0; //prtLog("CORDE_SET not authenticated!\n");
 if(rc!=0) {
   sprintf(errmsg, "Only miclock can change the CORDE shift\n"); prtLog(errmsg); 
   return;  
 };
 if(shift==0) {
-  sprintf(errmsg, "Bad shift:%s", sshift); prtLog(errmsg); 
+  sprintf(errmsg, "Error: Bad shift:%s, not set", sshift); prtLog(errmsg); 
   return;  
 };
 cosh= corde_shift(CORDE_DELREG, shift, &origshift);
-sprintf(errmsg, "corde_shift(,%d %d)\n", shift, origshift); prtLog(errmsg); 
+//sprintf(errmsg, "corde_shift(,%d, %d)", shift, origshift); prtLog(errmsg); 
 if(cosh>1023) {
-  sprintf(errmsg, "Corde reg. not set:%x\n", cosh); prtLog(errmsg); 
+  sprintf(errmsg, "Error: Corde reg. not set, corde_shift rc:0x%x\n", cosh); prtLog(errmsg); 
 } else {
-  w32 pol,halfns; int rcdl;
+  w32 pol,halfns; int rcdl; char line[80];
   // always, after shift resynchronize DLL on RF2TTC:
   // not here (called from miclock):
   //DLL_RESYNC(0);
-  sprintf(errmsg, "corde_shift(%x, %d, ) orig:%d set to:%d.\n",
+  sprintf(errmsg, "corde_shift(%x, %d, ) orig:%d set to:%d.",
     CORDE_DELREG, shift, origshift, cosh); 
   prtLog(errmsg); 
   sprintf(errmsg,"CORDE shift: %d -> %d ps",origshift*10, cosh*10);
@@ -284,6 +293,10 @@ if(cosh>1023) {
   rc= dis_update_service(SHIFTid);
   sprintf(errmsg,"TTCMI/SHIFT updated for %d clients\n", rc); prtLog(errmsg); 
   pol= i2cread_delay(BC_DELAY25_BCMAIN); halfns= pol-0x140;
+  // update $dbctp/clockshift
+  sprintf(line, "%d %d %d", halfns, cosh, origshift);
+  writedbfile("/home/alice/trigger/v/vme/CFG/clockshift", line);
+  //
   rcdl=daqlogbook_open();   //rcdl must be 0 if opened
   rcdl= shiftCommentInDAQ((int)halfns, origshift, (int)halfns, (int)cosh,"fine");
   sprintf(errmsg,"DAQlogbook updated (rc:%d).Corde: %d -> %d\n", rcdl,origshift, cosh);prtLog(errmsg); 
@@ -329,7 +342,7 @@ if((rc!=0) and (rc2!=0) ) {
 };
 if(strncmp(msg,"qq", 2)==0) ds_stop();
 if(clocktran!=0)  {
-  sprintf(errmsg, "newclock thread already started!"); prtLog(errmsg); 
+  sprintf(errmsg, "MICLOCK_SET: newclock thread already started!"); prtLog(errmsg); 
   return;  
 };
 if(strncmp(msg,"BEAM1", 5)==0) { newclocktag=1;
@@ -419,18 +432,16 @@ while(1) {   //run forever
 /*--------------------------------------------------------------- ds_register
 */
 void ds_register() {
-#ifndef NOVME
-int rc, vspRF2TTC=0;
-#endif
+int rc=0, vspRF2TTC=0;
 char command[MAXCMDL];
 
 setlinebuf(stdout);
-#ifndef NOVME
-rc= vmxopenam(&vspRF2TTC, "0xf00000", "0x100000", "A32");
-if(rc!=0) {
-  printf("vmxopen TTCMI vme:%d\n", rc); exit(8);
+if(micratepresent()) {
+  rc= vmxopenam(&vspRF2TTC, "0xf00000", "0x100000", "A32");
+  if(rc!=0) {
+    printf("vmxopen TTCMI vme:%d\n", rc); exit(8);
+  };
 };
-#endif
 
 printf("DIM server:%s\n",MYNAME);
 dis_add_error_handler(error_handler);
@@ -473,8 +484,10 @@ signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 if(envcmp("VMESITE", "ALICE")==0) {
   udpsock= udpopens("alidcscom188", send2PORT);
+  micrate(1);
 } else {
-  udpsock= udpopens("pcalicebhm05", send2PORT);
+  udpsock= udpopens("pcalicebhm11", send2PORT);
+  micrate(0);
 };
 
 ds_register();

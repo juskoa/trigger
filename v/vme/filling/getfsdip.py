@@ -27,9 +27,14 @@ def main(action):
       if line[1]=='bcmasks': action='bcmasks'
       elif line[1]=='auto': action='auto'
       else: action='test'
-  cmd= os.path.join(os.environ["VMECFDIR"], "filling/linux/fill2file")
-  #mylog.infolog("reading filling scheme from DIP...")
-  dipout= string.split(pylog.iopipe(cmd, "fs "))
+  if os.environ['VMESITE'] == 'ALICE':
+    cmd= os.path.join(os.environ["VMECFDIR"], "filling/linux/fill2file")
+    #mylog.infolog("reading filling scheme from DIP...")
+    dipout= string.split(pylog.iopipe(cmd, "fs "))
+  else:
+    # 50ns_1374_1368_0_1262_144bpi12inj 1374/2748
+    #dipout=string.split("fs 50ns_1374_1368_0_1262_144bpi12inj 1374 2748")
+    dipout= string.split("fs fs_name")
   #print dipout
   if len(dipout) != 5:  # "fs fs_name FillNumber N_fromdip N_written
    mylog.infolog("DIP service not ready", level='w')

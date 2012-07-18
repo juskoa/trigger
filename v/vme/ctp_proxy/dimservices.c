@@ -441,7 +441,8 @@ if(clientid==0) {
 running as thread (started once, with dim server)
 */
 #define BSTINTSECS 10
-int seqn=0, nlogbst=0; w32 newbeammode;
+#define MINBEAMMODE 2
+int seqn=0, bmchange=1, nlogbst=0; w32 newbeammode;
 void bstthread(void *tag) {
 w32 l2orbit;
 while(1) {   //run forever
@@ -451,13 +452,34 @@ while(1) {   //run forever
     for(ix=0; ix<NBSTdcsmsg; ix++) {bstmsg[ix]= seqn;}; seqn++;
     bstmsg[iBeamMode]= beammode;
     l2orbit= vmer32(L2_ORBIT_READ);
+    /*
     if((nlogbst % (5*60/BSTINTSECS))==0) {    // 1/5min
       if(bstmsg[iBeamMode]==21) { // alternate between
         bstmsg[iBeamMode]= 11;    // STABLE BEAMS
       } else {
         bstmsg[iBeamMode]= 21;    // NO BEAM
       };
-    }
+    }*/
+    // alternate among: 2:SETUP -> 14:RAMP DOWN
+    if(nlogbst >= bmchange) {
+      int bm,nxttimeslot;
+      bm= bstmsg[iBeamMode]; 
+      if(bm==14) {
+        bm= MINBEAMMODE;    // SETUP
+      } else {
+        bm= bm+1;
+      }; 
+      bstmsg[iBeamMode]= bm;    // NO BEAM
+      if(bm==7) {   // RAMP
+        nxttimeslot= 2;
+      } else if(bm==9) {   // SQUEEZE
+        nxttimeslot= 4;  // next change in 4*BSTINTSECS secs
+      } else {
+      nxttimeslot= 1; //next change in 10secs
+      };
+      bstmsg[iBeamMode]= bm;
+      bmchange= bmchange + nxttimeslot;
+    };
   } else {
     //real bst msg:
     l2orbit= vmer32(L2_ORBIT_READ);

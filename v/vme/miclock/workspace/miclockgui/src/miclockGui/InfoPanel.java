@@ -24,8 +24,6 @@ import javax.swing.text.DefaultCaret;
 public class InfoPanel extends JPanel implements PropertyChangeListener 
 {
 	
-	private final static int logLength = 100;
-	
 	private JLabel beammodeLabel;
 	private JLabel currentClockLabel;
 	private JLabel logLabel;
@@ -67,7 +65,7 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		
 		this.beammodeLabel = new JLabel("Beammode:");
 		this.currentClockLabel = new JLabel("Current clock:");
-		this.shiftLabel = new JLabel("Shift:");
+		this.shiftLabel = new JLabel("Latest Shift:");
 		this.logLabel = new JLabel("Log:");
 		
 		this.beammodeField = new JTextField();
@@ -83,10 +81,12 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		this.logArea.setText("");
 		this.logArea.setWrapStyleWord(true);
 		this.logArea.setLineWrap(true);
+		this.logArea.setFocusable(false);
 		this.logArea.setFont(new Font("monospaced", Font.PLAIN, 13));
 		this.scrollPane = new JScrollPane(this.logArea);
 		this.scrollPane.setVerticalScrollBarPolicy(
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		this.scrollPane.setFocusable(false);
 		
 		this.add(this.beammodeLabel,this.constraints);
 		this.constraints.gridy = 1;
@@ -109,14 +109,11 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		this.constraints.fill = GridBagConstraints.BOTH;
 		this.add(this.scrollPane, this.constraints);
 		
-		//To get the scrollPane to autoscroll
-		DefaultCaret caret = (DefaultCaret)this.logArea.getCaret();
-		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 	}
 	
 	/** 
-	 * check the length of the log and removes lines longer then
-	 * InfoPanel.logLength.
+	 * Checks the length of the log and removes lines longer then
+	 * Main.LOG_LENGTH.
 	 */
 	private void checkLogLength()
 	{
@@ -124,7 +121,7 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		{
 			String[] log = this.logArea.getText().split("\r\n|\r|\n");
 			
-			if(log.length >= InfoPanel.logLength)
+			if(log.length >= Main.LOG_LENGTH)
 			{
 				String temp = "";
 				for(int i = 1; i < log.length; i++)
@@ -192,15 +189,15 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		}
 		else if(evt.getPropertyName().equals("sendClock"))
 		{
-			logEntry = ": Sent command "+evt.getNewValue()+" to MICLOCK_SET\n";
+			logEntry = ": Sent command "+evt.getNewValue()+" to Set Miclock\n"; // MICLOCK_SET
 			write = true;
 		}
 		else if(evt.getPropertyName().equals("sendShift"))
 		{
-			logEntry = ": Sent command "+evt.getNewValue()+" to CORDE_SET\n";
+			logEntry = ": Sent command "+evt.getNewValue()+" to Set Shift\n"; // CORDE_SET
 			write = true;
 		}
-		else if(evt.getPropertyName().equals("sendMode"))
+		else if(evt.getPropertyName().equals("sendOper"))
 		{
 			logEntry = ": Mode changed to " + evt.getNewValue() + "\n";
 			write = true;
@@ -208,8 +205,39 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		else if(evt.getPropertyName().equals("getShift"))
 		{
 			String shift = (String) evt.getNewValue();
-			this.shiftField.setText(shift + " ns");
-			logEntry = ": Current shift is " + shift+" ns\n";
+			logEntry = ": Current shift is " + shift;
+			if(!shift.equals("old"))
+			{
+				logEntry += " ns\n";
+				this.shiftField.setText(shift + " ns");
+			}
+			else
+			{
+				logEntry += "\n";
+				this.shiftField.setText(shift);
+			}
+			write = true;
+		}
+		else if(evt.getPropertyName().equals("getfsdip"))
+		{
+			logEntry = ": New filling scheme created\n";
+			write = true;
+		}
+		else if(evt.getPropertyName().equals("sendDLLResync"))
+		{
+			logEntry = ": Sent command to DLL_RESYNC\n";
+			write = true;
+		}
+		else if(evt.getPropertyName().equals("sctel"))
+		{
+			logEntry = ": Executed SCTEL with command " + 
+				(String)evt.getNewValue() + "\n";
+			write = true;
+		}
+		else if(evt.getPropertyName().equals("shiftTooBigSmall"))
+		{
+			logEntry = ": Clock shift not adjusted (too " + evt.getNewValue() +
+				")\n";
 			write = true;
 		}
 		
@@ -218,6 +246,6 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 			this.logWriter.write(logFileTS + logEntry);
 			this.logArea.append(logAreaTS+logEntry);
 		}
-		
+		logArea.setCaretPosition(logArea.getDocument().getLength());
 	}
 }

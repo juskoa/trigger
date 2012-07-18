@@ -28,39 +28,35 @@ public class MiClockClient
 	 */
 	public MiClockClient()
 	{
-		if (!Main.GUI_SHELL_MODE) {
-			
-			this.miclock = new DimInfo("TTCMI/MICLOCK", -1)
+		this.miclock = new DimInfo("TTCMI/MICLOCK", -1)
+		{
+			public void infoHandler()
 			{
-				public void infoHandler()
-				{
-					MiClockClient.this.pcs.firePropertyChange(
-							new PropertyChangeEvent(
-									this, "miclock",-1, this.getString()));
-				}
-			};
-			
-			this.beammode = new DimInfo("CTPDIM/BEAMMODE", -1)
+				MiClockClient.this.pcs.firePropertyChange(
+						new PropertyChangeEvent(
+								this, "miclock",-1, this.getString()));
+			}
+		};
+		
+		this.beammode = new DimInfo("CTPDIM/BEAMMODE", -1)
+		{
+			public void infoHandler()
 			{
-				public void infoHandler()
-				{
-					MiClockClient.this.pcs.firePropertyChange(
-							new PropertyChangeEvent(
-									this, "beammode", -1, this.getInt()));
-				}
-			};
-			
-			this.clocktrans = new DimInfo("TTCMI/MICLOCK_TRANSITION", -1)
+				MiClockClient.this.pcs.firePropertyChange(
+						new PropertyChangeEvent(
+								this, "beammode", -1, this.getInt()));
+			}
+		};
+		
+		this.clocktrans = new DimInfo("TTCMI/MICLOCK_TRANSITION", -1)
+		{
+			public void infoHandler()
 			{
-				public void infoHandler()
-				{
-					MiClockClient.this.pcs.firePropertyChange(
-							new PropertyChangeEvent(
-									this, "clocktrans", -1, this.getString()));
-				}
-			};
-			
-		}
+				MiClockClient.this.pcs.firePropertyChange(
+						new PropertyChangeEvent(
+								this, "clocktrans", -1, this.getString()));
+			}
+		};
 	}
 	
 	/**
@@ -100,7 +96,7 @@ public class MiClockClient
 		case 9: return "SQUEEZE";					//1 - BeamClock - CLOCKSHIFT VALID
 		case 10: return "ADJUST";					//1 - BeamClock - CLOCKSHIFT VALID
 		case 11: return "STABLE BEAMS";				//1 - BeamClock - CLOCKSHIFT VALID
-		case 12: return "UNSTABLE BEAMS";			//0 - Local
+		case 12: return "UNSTABLE BEAMS";			//1 - BeamClock
 		case 13: return "BEAM DUMP";				//0 - Local
 		case 14: return "RAMP DOWN";				//0 - Local
 		case 15: return "RECOVERY";					//0 - Local
@@ -132,8 +128,7 @@ public class MiClockClient
 		Runtime rt = Runtime.getRuntime();
 		String shiftValue = "";
 		try {
-			//TODO : Find the correct placemtn of monshiftclock2.py
-			Process pro = rt.exec("python /home/oerjan/ttcmidaemons/" +
+			Process pro = rt.exec("python "+ Main.VMECF_DIR +"/ttcmidaemons/" +
 					"monshiftclock2.py 1");
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(pro.getInputStream()));
@@ -190,11 +185,19 @@ public class MiClockClient
 	 */
 	public void sendShiftCommand(int value)
 	{
-		int i = DimClient.sendCommandNB("TTCMI/CORDE_SET", value);
+		DimClient.sendCommandNB("TTCMI/CORDE_SET", ""+value);
 		this.pcs.firePropertyChange(
 				new PropertyChangeEvent(this, "sendShift", -1, value));
-		System.out.println(i);
 	}
+	
+	
+	public void sendDLLResyncCommand()
+	{
+		DimClient.sendCommandNB("TTDMI/DLL_RESYNC", "none");
+		this.pcs.firePropertyChange(
+				new PropertyChangeEvent(this, "sendDLLResync", -1, "dll_resync"));
+	}
+	
 	
 	/**
 	 * A method for the ButtonPanel to communicate mode changes (AUTO/MANUAL)
@@ -208,12 +211,30 @@ public class MiClockClient
 	
 	/**
 	 * A method for the ButtonPanel to communicate to the InfoPanel to get the
-	 * shift.
+	 * shift. 
 	 */
 	public void sendGetShift()
 	{
 		this.pcs.firePropertyChange(
 				new PropertyChangeEvent(this, "getShift", -1, this.getShift()));
+	}
+	
+	public void sendExecGetfsdip()
+	{
+		this.pcs.firePropertyChange(
+				new PropertyChangeEvent(this, "getfsdip", -1, "getfsdip"));
+	}
+	
+	public void sendExecSctel(String cmd) 
+	{
+		this.pcs.firePropertyChange(
+				new PropertyChangeEvent(this, "sctel", -1, cmd));
+	}
+	
+	public void sendShiftTooBigSmall(String cmd)
+	{
+		this.pcs.firePropertyChange(
+				new PropertyChangeEvent(this, "shiftTooBigSmall", -1, cmd));
 	}
 	
 	/**
@@ -233,5 +254,7 @@ public class MiClockClient
 	{
 		this.pcs.removePropertyChangeListener(listener);
 	}
+
+
 	
 }

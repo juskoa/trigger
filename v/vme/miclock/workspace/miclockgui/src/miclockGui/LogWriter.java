@@ -23,26 +23,22 @@ public class LogWriter {
 	 */
 	public LogWriter() {
 		
-		if(!Main.GUI_SHELL_MODE)
+		this.logFile = new File(Main.VMEWORK_DIR+"/WORK/miclock.log");
+		if(this.logFile.exists())
 		{
-			this.logFile = new File(Main.VMEWORK_DIR+"/WORK/miclock.log");
-			if(this.logFile.exists())
-			{
-				Timestamp temp = new Timestamp(new Date().getTime());
-				String ts = temp.toString().substring(2,4);
-				ts += temp.toString().substring(5,7);
-				ts += temp.toString().substring(8,10);
-				ts += temp.toString().substring(11,13);
-				ts += temp.toString().substring(14,16);
-				this.logFile.renameTo(
-						new File(Main.VMEWORK_DIR+"/WORK/miclock"+ts+".log"));
-			}
-			try {
-				this.writer = new BufferedWriter(new FileWriter(this.logFile));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
+			Timestamp temp = new Timestamp(new Date().getTime());
+			String ts = temp.toString().substring(2,4);
+			ts += temp.toString().substring(5,7);
+			ts += temp.toString().substring(8,10);
+			ts += temp.toString().substring(11,13);
+			ts += temp.toString().substring(14,16);
+			this.logFile.renameTo(
+					new File(Main.VMEWORK_DIR+"/WORK/miclock"+ts+".log"));
+		}
+		try {
+			this.writer = new BufferedWriter(new FileWriter(this.logFile));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

@@ -7,7 +7,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
@@ -27,6 +29,7 @@ public class ButtonPanel extends JPanel
 {
 	private JLabel operLabel;
 	private JLabel clockLable;
+	private JLabel shiftLabel;
 	
 	private JToggleButton autoButton;
 	private JToggleButton manuButton;
@@ -43,7 +46,6 @@ public class ButtonPanel extends JPanel
 	private ButtonGroup bbrlGroup;
 	
 	private MiClockClient client;
-//	private ClockShiftPanel csPanel;
 	
 	private GridBagConstraints constraints;
 	
@@ -55,7 +57,7 @@ public class ButtonPanel extends JPanel
 	private boolean intrans;
 	
 	// used to store the state which is being transitioned to
-	private String transTo;
+	private String transTo = "";
 	
 	// used to store the shift. Needed for the shift dialog.
 	private String shift;
@@ -77,13 +79,13 @@ public class ButtonPanel extends JPanel
 		this.constraints.gridheight = 1;
 		this.constraints.gridwidth = 1;
 		this.constraints.fill = GridBagConstraints.BOTH;
-		this.constraints.weightx = 0.5;
+		this.constraints.weightx = 1.0;
 		this.constraints.weighty = 0.5;
 		
 		this.operLabel = new JLabel("Operation:");
 		
 		this.add(this.operLabel, this.constraints);
-		
+		this.constraints.weightx = 8.5;
 		
 		this.autoButton = new JToggleButton("Auto");
 		this.manuButton = new JToggleButton("Manual");
@@ -126,7 +128,9 @@ public class ButtonPanel extends JPanel
 		this.constraints.gridy = 1;
 		this.constraints.gridwidth = 1;
 		
+		this.constraints.weightx = 1.0;
 		this.add(this.clockLable, this.constraints);
+		this.constraints.weightx = 8.5;
 		
 		this.constraints.gridx = 1;
 		this.add(this.beam1Button, this.constraints);
@@ -159,6 +163,8 @@ public class ButtonPanel extends JPanel
 			this.refButton.setMnemonic(KeyEvent.VK_R);
 		}
 		
+		this.shiftLabel = new JLabel("Shift:");
+		
 		this.resetShiftButton = new JButton("Reset Shift");
 		this.getShiftButton = new JButton("Get Shift");
 		
@@ -169,22 +175,27 @@ public class ButtonPanel extends JPanel
 		this.getShiftButton.addActionListener(this);
 		
 		this.resetShiftButton.setMnemonic(KeyEvent.VK_S);
-		this.resetShiftButton.setMnemonic(KeyEvent.VK_G);
+		this.getShiftButton.setMnemonic(KeyEvent.VK_G);
+		
+		this.constraints.gridx = 0;
+		this.constraints.gridy = 3;
+		this.constraints.weightx = 1.0;
+		this.add(this.shiftLabel, this.constraints);
+		this.constraints.weightx = 8.5;
 		
 		this.constraints.gridx = 1;
-		this.constraints.gridy = 3;
 		
 		this.add(this.resetShiftButton, this.constraints);
-		this.constraints.gridx = 2;
+		if(Main.ENABLE_EXTRA_BUTTONS)
+		{
+			this.constraints.gridx = 2;	
+		}
+		else
+		{
+			this.constraints.gridx = 4;
+		}
 		this.add(this.getShiftButton, this.constraints);
 		
-		/*
-		csPanel = new ClockShiftPanel(client);
-		constraints.gridy = 2;
-		constraints.gridx = 0;
-		constraints.gridwidth = 0;
-		this.add(csPanel, constraints);
-		*/
 		this.manuButton.doClick();
 	}
 	
@@ -192,7 +203,7 @@ public class ButtonPanel extends JPanel
 	 * Enables/Disables the BEAM1, BEAM2, REF and LOCAL buttons.
 	 * @param b Boolean to enable/disable the buttons
 	 */
-	private void setEnableClockSelect(boolean b)
+	private void setEnableButtons(boolean b)
 	{
 		this.beam1Button.setEnabled(b);
 		this.localButton.setEnabled(b);
@@ -224,67 +235,69 @@ public class ButtonPanel extends JPanel
 		}
 	}
 	
-	// TODO: Better method name
+	
 	/**
 	 * Method for determening the clock state to be in when in Auto mode.
 	 * The value for this is set in Main.AUTO_BEAM_MIN and Main.AUTO_BEAM_MAX.
-	 * 4-11 -> BEAM1 (10.07.12)
-	 * 1-3,12-21 -> LOCAL (10.07.12)
+	 * 4-11 -> BEAM1 
+	 * 1-3,12-21 -> LOCAL 
+	 * Performs automatic clock shift in SQUEEZ.
 	 * @param state Integer of which mode the beam is in.
 	 */
 	private void autoMode(int state)
 	{
-		// TODO : Shift to be done automatic in SQUEEZE
-		if((state >= Main.AUTO_BEAM_MIN && state <= Main.AUTO_BEAM_MAX) 
+		if((state >= Main.AUTO_BEAM_MIN && state < Main.AUTO_BEAM_MAX) 
 				&& this.client.getMiclock().equals("LOCAL") )
 		{
 			this.client.sendMiClockSetCommand("BEAM1");
 		}
-		else if((state < Main.AUTO_BEAM_MIN || state > Main.AUTO_BEAM_MIN
+		else if((state < Main.AUTO_BEAM_MIN || state > Main.AUTO_BEAM_MAX
 				) 
 				&& this.client.getMiclock().equals("BEAM1"))
 		{
 			this.client.sendMiClockSetCommand("LOCAL");
 		}
 		
+		
 		if(state == 9 && !this.client.getMiclock().equals("LOCAL"))
 		{
 			this.client.sendGetShift();
-			if(!shift.equals("old"))
+			if(!this.shift.equals("old"))
 			{
-				Float floatShift = Float.parseFloat(shift);
-				System.out.println(floatShift);
-				int value = (int) Math.round((floatShift*100*(-1)));
+				Float floatShift = Float.parseFloat(this.shift);
+				int value = Math.round((floatShift*100*(-1)));
 				
 				// TODO: Test this
-				/*
-				if(value >= 1500)
+				if(Math.abs(value) >= Main.SHIFT_UPPER_LIMIT)
 				{
 					Runtime rt = Runtime.getRuntime();
 					try {
-						Process pro = rt.exec("cat /dev/null | /opt/infoLogger/log -l OPS -s f Clockshift too big");
+						Process pro = rt.exec("/opt/infoLogger"+
+								"/log -l OPS -s f Clockshift_too_big");
+						this.client.sendShiftTooBigSmall("big");
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 				
+				else if(Math.abs(value) >= Main.SHIFT_LOWER_LIMIT)
+				{
+					this.client.sendShiftCommand(value);
+				}
 				else
 				{
-				*/
-					System.out.println(value);
-					client.sendShiftCommand(value);
-//				}
+					this.client.sendShiftTooBigSmall("small");
+				}
 			}
 		}
 	}
 	
-	// TODO: Better method name
 	/**
-	 * Enables/Disables the right buttons when switching from auto to manual
+	 * Enables/Disables the correct buttons when switching from auto to manual
 	 * mode and is in a clock transition.
 	 */
-	private void manuMode()
+	private void transButtonCtrl()
 	{
 		if(!this.auto && this.intrans)
 		{
@@ -305,28 +318,28 @@ public class ButtonPanel extends JPanel
 			{
 				bm = this.localButton.getModel();
 			}
-			this.setEnableClockSelect(false);
+			this.setEnableButtons(false);
 			bm.setEnabled(true);
 			this.bbrlGroup.setSelected(bm, true);
 		}
 		else if(!this.auto && !this.intrans)
 		{
-			this.setEnableClockSelect(true);
+			this.setEnableButtons(true);
 		}
+		
 		
 	}
 
 	/**
-	 * Enables/Disables the shift button in the right states.
+	 * Enables/Disables the shift button in the correct states.
 	 * The value of when to enable/disable is set in Main.SHIFT_VALID_MIN and
 	 * Main.SHIFT_VALID_MAX.
-	 * 8-11 -> Enable (10.07.12)
-	 * 1-7,12-21 -> Disable (10.07.12)
+	 * 8-11 -> Enable 
+	 * 1-7,12-21 -> Disable 
 	 * @param state Beam mode state
 	 */
 	private void setEnableShift(int state)
 	{
-		// TODO: Remove Magic numbers
 		if(state >= Main.SHIFT_VALID_MIN && state <= Main.SHIFT_VALID_MAX)
 		{
 			this.resetShiftButton.setEnabled(true);
@@ -338,7 +351,84 @@ public class ButtonPanel extends JPanel
 	}
 	
 	/**
-	 * Handles what to do when a Property Change Event is fired.
+	 * Exectutes the getfsdip.py script.
+	 *
+	 */
+	private void execGetfsdip()
+	{
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process pro = rt.exec("python " + Main.VMECF_DIR + 
+					"/filling/getfsdip.py act");
+			pro.waitFor();
+			this.client.sendExecGetfsdip();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Executes the sctel.py script with the given command
+	 * @param cmd String to be passed to the python script (MIN/INF)
+	 */
+	private void execSctel(String cmd)
+	{
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process pro = rt.exec("python " + Main.VMECF_DIR +
+					"/ttcmidaemons/sctel.py " + cmd);
+			pro.waitFor();
+			this.client.sendExecSctel(cmd);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Method for reseting the shift manualy. Gets the shift, creates a dialog
+	 * where the operator can confirm the shifting of the clock. If shift is
+	 * old/too small message dialog is given.
+	 */
+	private void resetShift()
+	{
+		this.client.sendGetShift();
+		if(!this.shift.equals("old"))
+		{
+			Float temp = Float.parseFloat(this.shift);
+			int value = Math.round((temp*100*(-1)));
+			if(Math.abs(value) < Main.SHIFT_LOWER_LIMIT)
+			{
+				JOptionPane.showMessageDialog(this, "Shift too small to" +
+						" reset");
+			}
+			else
+			{
+				int res = JOptionPane.showConfirmDialog(this, "Current " +
+						"clock shift is: "+this.shift+ "\nReset the clock?"
+						, "Clock Shift", JOptionPane.OK_CANCEL_OPTION);
+				if(res == JOptionPane.OK_OPTION)
+				{
+					this.client.sendShiftCommand(value);
+				}
+			}
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(this, "Shift too old to" +
+			" reset");
+		}
+	}
+	
+	/**
+	 * Handels what to do when a Property Change Event is fired.
 	 * Part of the PropertyChangeListener interface.
 	 * @param evt 
 	 */
@@ -349,20 +439,21 @@ public class ButtonPanel extends JPanel
 			{
 				this.autoMode(this.client.getBeammodeInt());
 			}
-			
-			//TODO: Find getfsdip.py
-			/*
+			if(this.client.getBeammodeInt() == 9 && 
+					!this.client.getMiclock().equals("LOCAL"))
+			{
+				this.client.sendDLLResyncCommand();
+			}
 			if(this.client.getBeammodeInt() == 6)
 			{
-				Runtime rt = Runtime.getRuntime();
-				try {
-					Process pro = rt.exec("");
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				this.execGetfsdip();
 			}
-			*/
+			if(this.client.getBeammodeInt() == 7 && 
+					this.client.getMiclock().equals("BEAM1"))
+			{
+				this.execSctel("INF");
+			}
+			
 			this.setEnableShift(this.client.getBeammodeInt());
 			
 		}
@@ -377,7 +468,7 @@ public class ButtonPanel extends JPanel
 			{
 				this.intrans = true;
 			}
-			this.manuMode();
+			this.transButtonCtrl();
 		}
 		else if(evt.getPropertyName().equals("sendClock"))
 		{
@@ -388,69 +479,66 @@ public class ButtonPanel extends JPanel
 		{
 			this.shift = (String) evt.getNewValue();
 		}
+		else if(evt.getPropertyName().equals("miclock"))
+		{
+			if(evt.getNewValue().equals("LOCAL"))
+			{
+				this.execSctel("MIN");
+			}
+		}
 	}		
 	
 	/**
-	 * Handles what do to when a ActionEvent is fired.
+	 * Handels what do to when a ActionEvent is fired.
 	 * Part of the ActionListener interface.
 	 * @param evt
 	 */
-	public void actionPerformed(ActionEvent evt) {
-		if(!Main.GUI_SHELL_MODE)
+	public void actionPerformed(ActionEvent evt) 
+	{
+		if(evt.getSource() == this.autoButton)
 		{
-			if(evt.getSource() == this.autoButton)
+			if(!auto)
 			{
-				this.setEnableClockSelect(false);
+				this.setEnableButtons(false);
 				this.auto = true;
 				this.client.sendOperChange("AUTO");
 				this.autoMode(this.client.getBeammodeInt());
+				
 			}
-			else if (evt.getSource() == this.manuButton)
-			{
-				this.setEnableClockSelect(true);
+		}
+		else if (evt.getSource() == this.manuButton)
+		{
+			if(auto)
+			{				
+				this.setEnableButtons(true);
 				this.auto = false;
+				this.transButtonCtrl();
 				this.client.sendOperChange("MANUAL");
-				this.manuMode();
 			}
-			else if (evt.getSource() == this.beam1Button)
-			{
-				this.client.sendMiClockSetCommand("BEAM1");
-			}
-			else if(evt.getSource() == this.beam2Button)
-			{
-				this.client.sendMiClockSetCommand("BEAM2");
-			}
-			else if(evt.getSource() == this.refButton)
-			{
-				this.client.sendMiClockSetCommand("REF");
-			}
-			else if(evt.getSource() == this.localButton)
-			{
-				this.client.sendMiClockSetCommand("LOCAL");
-			}
-			else if(evt.getSource() == this.resetShiftButton)
-			{
-				this.client.sendGetShift();
-				int res = JOptionPane.showConfirmDialog(this, "Current clock" +
-						" shift is: "+this.shift+
-						"\nReset the clock?"
-						, "Clock Shift", JOptionPane.OK_CANCEL_OPTION);
-				if(res == JOptionPane.OK_OPTION)
-				{
-					if(!this.shift.equals("old"))
-					{
-						Float temp = Float.parseFloat(shift);
-						System.out.println(temp);
-						int value = (int) Math.round((temp*100*(-1)));
-						System.out.println(value);
-						client.sendShiftCommand(value);
-					}
-				}
-			}
-			else if(evt.getSource() == this.getShiftButton)
-			{
-				this.client.sendGetShift();
-			}
+		}
+		else if (evt.getSource() == this.beam1Button)
+		{
+			this.client.sendMiClockSetCommand("BEAM1");
+		}
+		else if(evt.getSource() == this.beam2Button)
+		{
+			this.client.sendMiClockSetCommand("BEAM2");
+		}
+		else if(evt.getSource() == this.refButton)
+		{
+			this.client.sendMiClockSetCommand("REF");
+		}
+		else if(evt.getSource() == this.localButton)
+		{
+			this.client.sendMiClockSetCommand("LOCAL");
+		}
+		else if(evt.getSource() == this.resetShiftButton)
+		{
+			this.resetShift();
+		}
+		else if(evt.getSource() == this.getShiftButton)
+		{
+			this.client.sendGetShift();
 		}
 	}
 }

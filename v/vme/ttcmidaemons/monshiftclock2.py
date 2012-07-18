@@ -29,7 +29,8 @@ def getShift():
   gshift=1000.0
   if os.getenv("HOSTNAME")[:6] != "alidcs":
     import random
-    ips= random.randint(-200,250)
+    ips= random.randint(-6400,6400)
+    if abs(ips) >6360.0: return "old"
     return str(ips/1000.)
   pydim.dic_set_dns_node("alidcsdimdns.cern.ch")
   #sid= pydim.dic_info_service("PHASE_SHIFT_BPTX1", "F:1", callback1, service_type=pydim.ONCE_ONLY)

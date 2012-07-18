@@ -90,6 +90,9 @@ def main():
   #FOUT= open(tfile,"a")
   #rep= tn.cmdS(":SYSTEM:TIME?\n")
   #print "file:", tfile   #,"rep1:",rep
+  if os.environ['VMESITE']!='ALICE':
+    print "sctel.py: not ALICE environment. argv:", sys.argv
+    return
   tn=None
   if (len(sys.argv)>1) and \
     ((sys.argv[1]=="M") or (sys.argv[1]=="INF") or (sys.argv[1]=="MIN")\

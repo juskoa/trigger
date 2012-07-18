@@ -37,6 +37,6 @@ l0_logic_verAF.rbf -synchronous class downscaling:
 Added DSCG (Down scaling class group) option to RATE module.
 50 registers (dscg 1-50 -> H"233"-H"264") added for setting DSCG values via
 VME.
-Default values for these registers: 1,2,3,...,50.
-Setting 0x233:2 leads to synchronous downscaling of first 2 classes.
+Default values for these registers: 0,1,2,3,...,49.
+Setting 0x233:1 leads to synchronous downscaling of first 2 classes.
 

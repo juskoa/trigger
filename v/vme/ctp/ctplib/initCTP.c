@@ -17,8 +17,8 @@ vmew32(L0_ENA_CRND, mask);
 vmew32(L0_CLEAR_RND, DUMMYVAL);
 }
 /*
-set L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
-    L1_DEFINITION L1_INVERT L2_DEFINITION
+set L0_CONDITION L0_INVERT L0_VETO (scaler-not used here) 
+    L1_DEFINITION L1_INVERT L2_DEFINITION 
 words for klas (1..50)
 ATTENTION: 
 1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
@@ -48,6 +48,11 @@ if(notInCrate(1)==0) {   // L0 board
     mskbit= (veto&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
   };
   /*Klas[klasix].regs[3]= scaler;  update is done in 1 pass in rates2hwInit */
+  printf("boardver:%x klas:%d\n", ctpboards[1].boardver, klas);
+  if(ctpboards[1].boardver>=0xaf) {  // sync. downscaling
+    vmew32(L0_SDSCG+bb, klas-1); 
+    //printf("initCTP%x+ %d <- %d\n", L0_SDSCG, bb, klas-1);
+  };
 };
 if(notInCrate(2)==0) {   // L1 board
   //Klas[klasix].regs[4]= l1def; 
