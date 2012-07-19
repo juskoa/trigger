@@ -1,7 +1,7 @@
 ************************
 *** About	     ***
 ************************
-A application to replace the existing ttmidaemons implementation. Same 
+A application to replace the existing ttmidaemons/miclock.py implementation. Same 
 functionality but with a user interface. Written in Java with some of the helper
 scripts from the old implementation kept. 
 
@@ -41,6 +41,7 @@ Environment variables that need to be set before running the program.
 	5) USER
 	6) HOME
 	
+Log file: $VMEWORKDIR/WORK/miclock.log
 	
 ************************
 *** Changelog	     ***
@@ -48,3 +49,14 @@ Environment variables that need to be set before running the program.
 
 ==Version 1.0==
 	- Initial release
+
+19.7.2012: installed in ~/jmiclock at trigger@alidcscom188, i.e.:
+mkdir -p ~/jmiclock/miclockGui
+cd ~/jmiclock
+ln -s /opt/dip/lib/libjdim.so libjdim.so
+ln -s /opt/dim/linux/dim.jar dim.jar   ???
+
+cd $VMECFDIR/miclock/workspace/miclockgui/src/miclockGui
+cp *.java ~/jmiclock/miclockGui/
+cd ~/jmiclock ; python make.py
+
