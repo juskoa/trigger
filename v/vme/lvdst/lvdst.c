@@ -24,13 +24,13 @@ extern int quit;
 #include <sys/time.h>
 #include "../ltu/ltu.h"
 
-void myscan(int micseconds, int* & buf)
+void myscan(int micseconds, int* & buf,int print)
 {
  int i;
  if(!buf) buf = new int(32);
  int imax=0,imin=0;
  int val;
- printf("************** ADC scan *****************\n");
+ if(print==0) printf("************** ADC scan *****************\n");
  for(i=0;i<32;i++){
   setbcdelay(i, 1); //Do not change TTC_INTERFACE word during scan !
   vmew32(PLL_RESET, DUMMYVAL);
@@ -40,17 +40,20 @@ void myscan(int micseconds, int* & buf)
     w32 bcs;
     bcs= vmer32(BC_STATUS);
     if(bcs & BC_STATUSpll) break;
-  };
+   };
    val=readadc_s();
    buf[i]=val;
    if(val>buf[imax]) imax=i;
    if(val<buf[imin]) imin=i;
    //printf("i=%i, val=%i \n",i,buf[i]);
+  if(print==0){
+	printf("%d", buf[i]);
+	if(i<31) printf(", ");
+	else printf("\n");
+  }
  }; 
- for(i=0;i<32;i++) printf("%d ", buf[i]);
- printf("\n");
  //printf("max=%i %i    min=%i %i \n",imax,buf[imax],imin,buf[imin]);
- printf("*****************************************\n");
+ if(print==0) printf("*****************************************\n");
 }
 //----------------------------------------------------------//
 
@@ -107,6 +110,11 @@ print option
 
  */
 int Tp_transition(int print) {
+if (print == 0 ) {
+	printf("*****************************************\n");
+	printf("****  STEP 1: Finding the exclusion zone - For PATTERN Syn. \n");
+	printf("****\n");
+}
 int i, j, number=100,w;
 int * array = new int(32);
 //For scope
@@ -119,25 +127,22 @@ vmew32(SYN_EDGE,0);
 vmew32(ADC_SELECT,0x0);
 //ADC_SCAN
 getbcstatus();
-myscan(1,array);
+myscan(1,array,print);
 
 //Find the transition
 for (i=1; i<32; i++) {
         w = array[i];
-        if((w<array[i-1]) && (w<number)) {
+        if(0<= w && w<array[i-1] && w<number) {
                 number = w;
                 j  = i;
         }
 }
 if (j != 17) printf("Warning: Tp is not 17 !!! \n");
 if (print == 0 ) {
-	printf("*****************************************\n");
-	printf("****  STEP 1: Finding the exclusion zone - For PATTERN Syn. \n");
-	printf("****\n");
 	if (j != 0) printf("A transition has been observed in %d ns \n",j);
 	printf("This suggest that the exclusion zone of the BC_DELAY_ADD register should be +- 4 ns that value.\n");
 	printf("This exclusion zone is a hardware dependence constant.\n");
-	printf("It is recommend it to confirm this result making NOW a ADC_SCAN.\n");
+//	printf("It is recommend it to confirm this result making NOW a ADC_SCAN.\n");
 }
 delete [] array;
 return(j);
@@ -148,9 +153,16 @@ From here you will be able to do a ADC scan for the cable_1 signal.
 The pattern is setted to be TOGGLE. This result is a cable dependence. 
 For a different cable, you might find a different number.
  */
-void Tc_transition(int *values1) {
+void Tc_transition(int cable, int *values1, int print) {
 int kTransitionValue;
-kTransitionValue=Tp_transition(0);
+kTransitionValue=Tp_transition(print);
+
+if (print == 0) {
+	printf("*****************************************\n");
+	printf("**** STEP 2: Find the best setting for the BC_DELAY_ADD register.\n");
+	printf("****\n");
+}
+
 int i, j, w=-1, number=100, count=0;
 int * array = new int(32);
 //scope
@@ -158,17 +170,23 @@ int * array = new int(32);
 //Select the toggling pattern, PATTERN_SEL
 vmew32(PATTERN_SEL,0x3);
 //Note: the BC edge is irrelevant for this measurement.
+if (print==0) {
+	cout << "///////////////////////////////////////////" << endl;
+	cout << "// \t Analysing cable #" << cable << "...    \t //" << endl;
+	cout << "///////////////////////////////////////////" << endl;
+}
 //Select the ADC_CABLE signal as the ADC input. Select 1(2) for cable 1(2).
-//vmew32(ADC_SELECT,1);//for cable 1
-vmew32(ADC_SELECT,2);//for cable 2
+//vmew32(ADC_SELECT,1);//for cable#1 
+//vmew32(ADC_SELECT,2);//for cable#2
+vmew32(ADC_SELECT,cable);
 //ADC_SCAN - the phase shift of the toggling cable 1(2) input 
 //in respect to the BC clock
 getbcstatus();
-myscan(1,array);
+myscan(1,array,print);
 //Find a transition
 for (i=1; i<32; i++) {
         w = array[i];
-        if((w<array[i-1]) && (w<number)) {
+        if(0<=w && w<array[i-1] && w<number) {
                 number = w;
                 j  = i;
         }
@@ -184,13 +202,10 @@ for (i=1; i<32; i++) {
 		  }
 	}
 }
-//if (print == 0) {
-	printf("*****************************************\n");
-	printf("**** STEP 2: Find the best setting for the BC_DELAY_ADD register.\n");
-	printf("****\n");
+if (print == 0) {
 	if (j != 0)  printf("A transition has been observed in %d ns \n",j); 
-	printf("It is recommend it to confirm this result making NOW a ADC_SCAN.\n\n");
-//}
+//	printf("It is recommend it to confirm this result making NOW a ADC_SCAN.\n\n");
+}
 //return(j);
  delete [] array;
  return;
@@ -198,9 +213,9 @@ for (i=1; i<32; i++) {
 /*FGROUP LVDST tests
 Ts - The best setting for the BC_DELAY_ADD register
  */
-int Ts_transition() {
+int Ts_transition(int cable, int print) {
 int Tc=0, kTs=0, values1[2];
-Tc_transition(values1);
+Tc_transition(cable,values1,print);
 Tc = values1[1];
 if (Tc >=12) { kTs = Tc - 12;
 } else kTs = Tc + 12;
@@ -222,7 +237,7 @@ if (Setting >= 0 && Setting <=32) {
 		if (kSignOfZone == 1) printf("The edge is negative \n");
 		else printf("The edge is positive\n"); 
 	}
-} else printf("WARNING: Incorrect setting value \n");
+} else printf("WARNING: Incorrect setting value (=%i)\n",Setting);
 return(kSignOfZone);
 }
 /*FGROUP LVDST tests
@@ -230,22 +245,32 @@ For Pattern delay measurement.
 The aim of this function is to find the correct settings for the
 DELAY_1 register. This function uses the results from previous Syn functions.
 */
-int D_pattern_delay(int print) {
-int kTp = -1, kTs =-1, kDelay1=0, kSignOfZone=-1;
+int D_pattern_delay(int cable, int print) {
+
+int kTp = -1, kTs =-1, kDelay=0, kSignOfZone=-1;
 w32 mystatus[12], mystatus1[12];
 //w32, kCableErrors, kSequenceStrobes;
 int k;
-float i, number, arrayCableErrors[33],arraySequenceStrobes[33];
+float number, arrayCableErrors[33],arraySequenceStrobes[33];
 float arrayRatio[33];
-kTs = Ts_transition();
+kTs = Ts_transition(cable,print);
 kTp = Tp_transition(1);
+
+if (print == 0) {
+	printf("*****************************************\n");
+	printf("**** STEP 3: Pattern Delay Measurement. \n");
+	printf("****\n");
+	printf("The aim of this program is to find the correct settings for the DELAY_%i register.\n",cable);
+}
+
 kSignOfZone = Edge_selection(1,kTs,kTp);
 //Select the SEQUENCE pattern
 vmew32(PATTERN_SEL,0x1);
 //Select the ADC_cable signal as the ADC input. Note: 1 for cable 1
-vmew32(ADC_SELECT,0x1);
+vmew32(ADC_SELECT,cable);
 //Select the Sequence with all 24 bits asserted
-vmew32(SEQ_DATA,0xffffff);
+//vmew32(SEQ_DATA,0xffffff);
+vmew32(SEQ_DATA,0xaaaaaa);//karim
 //Select the sequence period - about 1.5 microSeconds (60 BC intervals)
 //The period =60 is long enough to avoid the sequence overlapping for cable length
 //of up to 160m
@@ -258,18 +283,22 @@ vmew32(BC_DELAY_ADD,kTs);
 vmew32(SYN_EDGE,kSignOfZone);
 //Delay is done in BC units
 for (k=0; k<32; k++) {
-	vmew32(DELAY_1,k);
+	if(cable==1) vmew32(DELAY_1,k);
+	else if(cable==2) vmew32(DELAY_2,k);
+	else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
 	//wait for 100 ms
         usleep(100000);
 	//clearCounters();
 	readCounters(mystatus1,12,0);
 	//Sleep a bit - get more statistics
-	usleep(200000);
+	usleep(100000);
 	readCounters(mystatus,12,0);
-	// Cable1-errors
-        arrayCableErrors[k]=mystatus[8] - mystatus1[8];
+	if(cable==1) arrayCableErrors[k]=mystatus[8] - mystatus1[8]; // Cable1-errors
+	else if(cable==2) arrayCableErrors[k]=mystatus[9] - mystatus1[9]; // Cable2-errors
+	else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
 	//Number of sequence strobes - number of patterns generated
         arraySequenceStrobes[k]=mystatus[11] - mystatus1[11];
+	//cout << "arraySequenceStrobes " << arraySequenceStrobes[k] << endl;
 	arrayRatio[k] = (1.0*arrayCableErrors[k])/arraySequenceStrobes[k];
 	if (print == 0) {
 		/*
@@ -279,34 +308,38 @@ for (k=0; k<32; k++) {
 		printf("ratio is %f\n ",arrayRatio[k]);
 		printf("\n");
 		*/
-		printf("<%i> <%f> \n",k,arrayRatio[k]);
+		//printf("<%i> <%f> \n",k,arrayRatio[k]);
+		printf("%f", arrayRatio[k]);
+		if(k<31) printf(", ");
+		else printf("\n");
 	}
 }
 number=10000.0;
 for (k=0; k<32; k++) {
         if(arrayRatio[k]<=number) {
 		number = arrayRatio[k];
-                kDelay1  = k;
+                kDelay  = k;
         }
 }
-//Set the correct value for DELAY_1 register
-vmew32(DELAY_1,kDelay1);
+//Set the correct value for DELAY_1/2 register
+if(cable==1) vmew32(DELAY_1,kDelay);
+else if(cable==2) vmew32(DELAY_2,kDelay);
+else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
+
 if (print == 0) {
-	printf("*****************************************\n");
-	printf("**** STEP 3: Pattern Delay Measurement. \n");
-	printf("****\n");
-	printf("The aim of this program is to find the correct settings for the DELAY_1 register.\n");
-	printf("DELAY_1 should be %d\n",kDelay1);
-	printf("Number of errors %d\n",number);
+	printf("DELAY_%i should be %i\n",cable, kDelay);
+	printf("Number of errors %f\n",number);
 }
-return(kDelay1);
+return(kDelay);
 }
 //}
-void selection (int setting, int delay, int Tp){
+void selection (int setting, int delay, int Tp, int cable){
  int kEdge; 
  kEdge = Edge_selection(1,setting,Tp);
  vmew32(SYN_EDGE,kEdge);
- vmew32(DELAY_1,delay);
+ if(cable==1) vmew32(DELAY_1,delay);
+ else if(cable==2) vmew32(DELAY_2,delay);
+ else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
  vmew32(BC_DELAY_ADD,setting);
  printf("Setting for %d\n",setting);
  printf("Edge %d\n",kEdge);
@@ -338,7 +371,7 @@ e.g. runType=0, time=1 and timeUnits='s' correspond to 1 sec run for each measur
 
 NOTE: To stop this program, please press CONTROL + X
 */
-void Find_Window(int fromSetting, int toSetting, int seqType, int runType, int time, char timeUnits, char * outfile) {
+void Find_Window(int cable, int fromSetting, int toSetting, int seqType, int runType, int time, char timeUnits, char * outfile) {
 if (runType == 3) {
         time  = 0;
         timeUnits = 'n';
@@ -349,7 +382,7 @@ ofstream fw(outfile_const,ios::out);
 int kTp, 
     kTc,
     kTs,
-    kDelay1, 
+    kDelay, 
     count=0,
     sleep, 
     k, 
@@ -362,20 +395,20 @@ float arrayRatio2[32],
 int val1[2], kTch;
 w32 mystatus1[12], mystatus2[12], mystatus3[12];
 //Call Syn functions
-Tc_transition(val1);
+Tc_transition(cable,val1,1);
 kTp = Tp_transition(1);
 if (kTp != 17 ) printf("W: Tp != 17 - Please check this value !!! \n");
 kTc = val1[1];
 if (val1[0] == 2)  {kTch = val1[2]; } else kTch = 0;
 if (kTc >= 12) { kTs = kTc -12; }
 else kTs = kTc + 12;  
-kDelay1 = D_pattern_delay(1);
-//printf("The delay should be in %d\n ",kDelay1);
+//printf("The delay should be in %d\n ",kDelay);
 //vmew32(PATTERN_SEL,0x1);
-vmew32(ADC_SELECT,0x1);
+vmew32(ADC_SELECT,cable);
 //Sequence - It should be a RANDOM pattern for the final test
 // H'AAAAAA'
 //vmew32(SEQ_DATA,11184810);
+kDelay = D_pattern_delay(cable,0);
 if (seqType == 1) { 
 vmew32(PATTERN_SEL,0x1);
 vmew32(SEQ_DATA,0x800000);
@@ -390,6 +423,12 @@ if (seqType == 3) {
 		vmew32(PATTERN_SEL,0x2);
 		vmew32(RANDOM_RATE,0x3fffffff);
 }
+
+printf("*****************************************\n");
+printf("**** STEP 4: Bit Error Rate Measurement. \n");
+printf("****\n");
+printf("The aim of this program is to measure the BER for the DELAY_%i register values from %i to %i.\n",cable,fromSetting,toSetting);
+
 //Scope signal. A=Sequence strobe and B=delayed_pattern1
 //setAB(18,4);
 //printf("CHECK THIS: %d  %d  % d\n",kDelay1,kTc,kTch);
@@ -397,35 +436,35 @@ if (seqType == 3) {
 for (k=fromSetting; k<=toSetting; k++) {
 //Two transitions
 if (val1[0] == 2) {
-	                if (k>=0 && k<=kTc-1)        selection(k,kDelay1+1,kTp);
-                        if (k>=kTc && k<=kTp+3)      selection(k,kDelay1,kTp);
-                        if (k>=kTp+4 && k<=kTch-1)   selection(k,kDelay1+1,kTp);    
-			if (k>=kTch && k<=31)       selection(k,kDelay1,kTp);
+	                if (k>=0 && k<=kTc-1)        selection(k,kDelay+1,kTp,cable);
+                        if (k>=kTc && k<=kTp+3)      selection(k,kDelay,kTp,cable);
+                        if (k>=kTp+4 && k<=kTch-1)   selection(k,kDelay+1,kTp,cable);
+			if (k>=kTch && k<=31)       selection(k,kDelay,kTp,cable);
 }
 if (val1[0] == 1) {
 		
      if (kTc < 12 ) {  
   	 	if (kTs <= kTp + 3) {
-			if (k>=0 && k<=kTc-1)   selection(k,kDelay1+1,kTp);
-			if (k>=kTc && k<=kTp+3) selection(k,kDelay1,kTp);
-			if (k>=kTp+4 && k<=31)  selection(k,kDelay1+1,kTp);
+			if (k>=0 && k<=kTc-1)   selection(k,kDelay+1,kTp,cable);
+			if (k>=kTc && k<=kTp+3) selection(k,kDelay,kTp,cable);
+			if (k>=kTp+4 && k<=31)  selection(k,kDelay+1,kTp,cable);
 		 }
 		 if (kTs > kTp + 3) {
-			if (k>=0 && k<=kTc-1)   selection(k,kDelay1,kTp);
-	                if (k>=kTc && k<=kTp+3) selection(k,kDelay1-1,kTp);
-        	        if (k>=kTp+4 && k<=31)  selection(k,kDelay1,kTp);
+			if (k>=0 && k<=kTc-1)   selection(k,kDelay,kTp,cable);
+	                if (k>=kTc && k<=kTp+3) selection(k,kDelay-1,kTp,cable);
+        	        if (k>=kTp+4 && k<=31)  selection(k,kDelay,kTp,cable);
 		 }
      }
      else {
 		if (kTc <= kTp + 3) {
-			if (k>=0 && k<=(kTc-1))    selection(k,kDelay1,kTp);
-			if (k>=kTc &&  k<=(kTp+3)) selection(k,kDelay1-1,kTp);
-                	if (k>=(kTp+4) &&  k<=31)  selection(k,kDelay1,kTp);
+			if (k>=0 && k<=(kTc-1))    selection(k,kDelay,kTp,cable);
+			if (k>=kTc &&  k<=(kTp+3)) selection(k,kDelay-1,kTp,cable);
+                	if (k>=(kTp+4) &&  k<=31)  selection(k,kDelay,kTp,cable);
 	        }
 		if (kTc > kTp +3 ) {              
-		  	if (k>=0 && k<=kTp+3)          selection(k,kDelay1,kTp);
-                	if (k>=(kTp+4) && k <(kTc-1))  selection(k,kDelay1+1,kTp);
-	        	if (k>=kTc && k <=31)          selection(k,kDelay1,kTp);
+		  	if (k>=0 && k<=kTp+3)          selection(k,kDelay,kTp,cable);
+                	if (k>=(kTp+4) && k <(kTc-1))  selection(k,kDelay+1,kTp,cable);
+	        	if (k>=kTc && k <=31)          selection(k,kDelay,kTp,cable);
         	}
      }//tc selection
 }//one transition
@@ -458,9 +497,14 @@ if (val1[0] == 1) {
 	readCounters(mystatus2,12,0);
 	//Check number of errors
 	mystatus3[8]  = mystatus2[8]  - mystatus1[8];
+	mystatus3[9]  = mystatus2[9]  - mystatus1[9];
+	mystatus3[10]  = mystatus2[10]  - mystatus1[10];
 	mystatus3[11] = mystatus2[11] - mystatus1[11];
 	mystatus3[0]  = mystatus2[0]  - mystatus1[0];
-	arrayCableErrors2[k]=mystatus3[8];
+	if(cable==1) arrayCableErrors2[k]=mystatus3[8]; // Cable1-errors
+	else if(cable==2) arrayCableErrors2[k]=mystatus3[9]; // Cable2-errors
+	else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
+
 	if (seqType == 1 || seqType == 2 ) {
 		arraySequenceStrobes2[k]=mystatus3[11];
 		arrayRatio2[k] = (1.0*arrayCableErrors2[k])/arraySequenceStrobes2[k];
@@ -519,9 +563,9 @@ No input is needed. It automatically starts a test ~ 53sec long and creates the 
 
 NOTE: To stop this program, please press CONTROL + X
 */
-void Find_Sampling_Window() {
+void Find_Sampling_Window(int cable) {
 char * myoutfile = "/usr/local/trigger/devel/v/vme/lvdst/windowData_53s_karim.txt";
-Find_Window(0, 31, 3, 1, 0, 'n', myoutfile);
+Find_Window(cable, 0, 31, 3, 1, 0, 'n', myoutfile);
 return;
 }
 //}
@@ -535,10 +579,11 @@ e.g. time=1 and timeUnits='s' correspond to 1 sec run for each measure
 
 NOTE: To stop this program, please press CONTROL + X
 */
-void BER_Measurement(int time, char timeUnits) {
+void BER_Measurement(int cable, int time, char timeUnits) {
 char * myoutfile = "/usr/local/trigger/devel/v/vme/lvdst/BERmeasurement_karim.txt";
-const int kTs = Ts_transition();
-Find_Window(kTs, kTs, 3, 0, time, timeUnits, myoutfile);
+const int kTs = Ts_transition(cable, 1);
+//Find_Window(cable, kTs, kTs, 3, 0, time, timeUnits, myoutfile);
+Find_Window(cable, 0, 31, 3, 0, time, timeUnits, myoutfile);
 return;
 }
 //}
@@ -562,7 +607,7 @@ the measurement will last for 3 minutes.
 
 NOTE: To stop this program, please press CONTROL + X
 */
-void Find_History(int fromSetting, int toSetting, int seqType, int timeSteps) {
+void Find_History(int cable, int fromSetting, int toSetting, int seqType, int timeSteps) {
 //if (runType == 3) {
 //        time  = 0;
 //        timeUnits = 'n';
@@ -576,7 +621,7 @@ int hk;
 int kTp, 
     kTc,
     kTs,
-    kDelay1, 
+    kDelay, 
     count=0,
     sleep, 
     k, 
@@ -591,15 +636,15 @@ w32 mystatus1[12], mystatus2[12], mystatus3[12];
 //Call Syn functions
 kTp = Tp_transition(1);
 if (kTp != 17 ) printf("W: Tp != 17 - Please check this value !!! \n");
-Tc_transition(values1);
+Tc_transition(cable,values1,1);
 kTc = values1[1];
 if (values1[0] == 2)  {kTch = values1[2]; } else kTch = 0;
 if (kTc >= 12) { kTs = kTc -12; }
 else kTs = kTc + 12;  
-kDelay1 = D_pattern_delay(1);
+kDelay = D_pattern_delay(cable,1);
 //printf("The delay should be in %d\n ",kDelay1);
 //vmew32(PATTERN_SEL,0x1);
-vmew32(ADC_SELECT,0x1);
+vmew32(ADC_SELECT,cable);
 //Sequence - It should be a RANDOM pattern for the final test
 // H'AAAAAA'
 //vmew32(SEQ_DATA,11184810);
@@ -625,35 +670,35 @@ for (k=fromSetting; k<=toSetting; k++) {
 
 //Two transitions
 if (values1[0] == 2) {
-	                if (k>=0 && k<=kTc-1)        selection(k,kDelay1+1,kTp);
-                        if (k>=kTc && k<=kTp+3)      selection(k,kDelay1,kTp);
-                        if (k>=kTp+4 && k<=kTch-1)   selection(k,kDelay1+1,kTp);    
-			if (k>=kTch && k<=31)       selection(k,kDelay1,kTp);
+	                if (k>=0 && k<=kTc-1)        selection(k,kDelay+1,kTp,cable);
+                        if (k>=kTc && k<=kTp+3)      selection(k,kDelay,kTp,cable);
+                        if (k>=kTp+4 && k<=kTch-1)   selection(k,kDelay+1,kTp,cable);
+			if (k>=kTch && k<=31)       selection(k,kDelay,kTp,cable);
 }
 if (values1[0] == 1) {
 		
      if (kTc < 12 ) {  
   	 	if (kTs <= kTp + 3) {
-			if (k>=0 && k<=kTc-1)   selection(k,kDelay1+1,kTp);
-			if (k>=kTc && k<=kTp+3) selection(k,kDelay1,kTp);
-			if (k>=kTp+4 && k<=31)  selection(k,kDelay1+1,kTp);
+			if (k>=0 && k<=kTc-1)   selection(k,kDelay+1,kTp,cable);
+			if (k>=kTc && k<=kTp+3) selection(k,kDelay,kTp,cable);
+			if (k>=kTp+4 && k<=31)  selection(k,kDelay+1,kTp,cable);
 		 }
 		 if (kTs > kTp + 3) {
-			if (k>=0 && k<=kTc-1)   selection(k,kDelay1,kTp);
-	                if (k>=kTc && k<=kTp+3) selection(k,kDelay1-1,kTp);
-        	        if (k>=kTp+4 && k<=31)  selection(k,kDelay1,kTp);
+			if (k>=0 && k<=kTc-1)   selection(k,kDelay,kTp,cable);
+	                if (k>=kTc && k<=kTp+3) selection(k,kDelay-1,kTp,cable);
+        	        if (k>=kTp+4 && k<=31)  selection(k,kDelay,kTp,cable);
 		 }
      }
      else {
 		if (kTc <= kTp + 3) {
-			if (k>=0 && k<=(kTc-1))    selection(k,kDelay1,kTp);
-			if (k>=kTc &&  k<=(kTp+3)) selection(k,kDelay1-1,kTp);
-                	if (k>=(kTp+4) &&  k<=31)  selection(k,kDelay1,kTp);
+			if (k>=0 && k<=(kTc-1))    selection(k,kDelay,kTp,cable);
+			if (k>=kTc &&  k<=(kTp+3)) selection(k,kDelay-1,kTp,cable);
+                	if (k>=(kTp+4) &&  k<=31)  selection(k,kDelay,kTp,cable);
 	        }
 		if (kTc > kTp +3 ) {              
-		  	if (k>=0 && k<=kTp+3)          selection(k,kDelay1,kTp);
-                	if (k>=(kTp+4) && k <(kTc-1))  selection(k,kDelay1+1,kTp);
-	        	if (k>=kTc && k <=31)          selection(k,kDelay1,kTp);
+		  	if (k>=0 && k<=kTp+3)          selection(k,kDelay,kTp,cable);
+                	if (k>=(kTp+4) && k <(kTc-1))  selection(k,kDelay+1,kTp,cable);
+	        	if (k>=kTc && k <=31)          selection(k,kDelay,kTp,cable);
         	}
      }//tc selection
 }//one transition
@@ -680,9 +725,12 @@ for (hk=1; hk<=timeSteps; hk++) {
 
 	//Check number of errors
 	mystatus3[8]  = mystatus2[8]  - mystatus1[8];
+	mystatus3[9]  = mystatus2[9]  - mystatus1[9];
 	mystatus3[11] = mystatus2[11] - mystatus1[11];
 	mystatus3[0]  = mystatus2[0]  - mystatus1[0];
-	arrayCableErrors2[k]=mystatus3[8];
+	if(cable==1) arrayCableErrors2[k]=mystatus3[8]; // Cable1-errors
+	else if(cable==2) arrayCableErrors2[k]=mystatus3[9]; // Cable2-errors
+	else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
 
 	if (seqType == 1 || seqType == 2 ) {
 		arraySequenceStrobes2[k]=mystatus3[11];
@@ -724,6 +772,7 @@ for (hk=1; hk<=timeSteps; hk++) {
 
 	//Find Window
 	mystatus1[8]  = mystatus3[8];
+	mystatus1[9]  = mystatus3[9];
         mystatus1[11] = mystatus3[11];
         mystatus1[0]  = mystatus3[0];
 

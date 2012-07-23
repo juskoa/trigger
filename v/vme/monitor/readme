@@ -15,19 +15,29 @@ ok      on,msg    -         -
 
 -: no action, or do not change state
 
-check_rc:
+check_rc: -ret. code from the check of the status of a daemon
+--------
 off  -daemon is not running (no pid)
 idle -is on (pid found), but it is not clear if it is hanged
 on   -is on and responding (i.e. fresh udp message)
 hung -not responding
 
+Actions:
+-------
 restart:
- - check if on and kill if not, start daemon
+ - check if on + kill if not on, start daemon
 idle:
- - status returned pid:, + readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
+ - status returned pid: 
+   + SPECIAL for readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
+
+Config:
+------
+see allds= in monitor.py main()
 
 start:
+------
 ./monitor.py &
+
 History:
 14.8.
 gcalib.sh, udpmon.sh refurbished:
@@ -37,7 +47,7 @@ todo:
 - sms -done (22.8.)
 - add another state: idle -i.e. just process is found (by startClients.bash)
 
-27.2.2012 -html added (bin/html.bash modified to return pid:N)
+27.2.2012 -html added (bin/startClients.bash modified to return pid:N)
 
 Problem:
 at SOR/EOR and if time sharing active, it can happen, we get some triggers 
@@ -50,3 +60,6 @@ Before: shorter interval was not considered for calib calculation,
 but the time of previous reading
 was stored -i.e. the interval was than included in next interval.
 
+20.7. 2012
+pydim added (i.e. startClients.bash returns "pid: ..." if on
+i.e. monitor-able daemons now: udpmon pydim html gcalib

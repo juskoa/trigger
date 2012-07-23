@@ -44,6 +44,7 @@ Contents:
     l1r table
 8. DIM services for Giacinto
 8A. DIM services publishing VALID.BCMASKS
+    done: see startClients.bash masksServer
 9: migration 027->707+521
 10. ttcmidaemons
    moreless done in April 2012
@@ -57,6 +58,7 @@ Contents:
     done: 30.5.2012 
 13. web-counters: signal names + any time (i.e. create .rrd from archive files)
 14. CPU+IO+Ethernet monitoring for all machines
+14A. monitor daemons (startClients.bash, vme/monitor)
 15. busy problems when starting global partition
 16. sync management in global runs-see email from end of April 26th 2012
     done during TS2 in June
@@ -218,7 +220,7 @@ Starting the BST messages reading thread...
 Also see devdbg counters_notread
 - dimservices.c updated Nupdated counter holding the number of requests 
   from each client
-Soleved: <10secs -because 1/min reading update distributed over 7 clients
+Solved: <10secs -because 1/min reading update distributed over 7 clients
 results in average update <10secs
 
 11B. dims looping
