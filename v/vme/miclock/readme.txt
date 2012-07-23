@@ -50,13 +50,23 @@ Log file: $VMEWORKDIR/WORK/miclock.log
 ==Version 1.0==
 	- Initial release
 
-19.7.2012: installed in ~/jmiclock at trigger@alidcscom188, i.e.:
+19.7.2012: installed in ~/jmiclock at trigger@alidcscom188
+and also in trigger@pcalicebhm10:
 mkdir -p ~/jmiclock/miclockGui
 cd ~/jmiclock
-ln -s /opt/dip/lib/libjdim.so libjdim.so
-ln -s /opt/dim/linux/dim.jar dim.jar   ???
+ln -s /opt/dip/lib64/libjdim.so libjdim.so
+  ln -s /opt/dip/lib/libjdim.so libjdim.so
+ln -s /opt/dim/linux/dim.jar dim.jar
 
 cd $VMECFDIR/miclock/workspace/miclockgui/src/miclockGui
-cp *.java ~/jmiclock/miclockGui/
-cd ~/jmiclock ; python make.py
+cp *.java ../make.py ~/jmiclock/miclockGui/
+cd ~/jmiclock ; python miclockGui/make.py
+
+Start: an alis is defined in bin/setenv:
+alias miclock="java -jar ~/jmiclock/MiClockGui.jar"
+
+23.7.2012
+- master copy in $VMECFDIR/miclok, .../workspace/miclockgui/src/ removed, i.e.
+  miclock/readme.txt,...
+-tooltips added (ButtonPanel.java modified)
 

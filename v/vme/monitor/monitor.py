@@ -11,20 +11,20 @@ def signal_handler(signal, stack):
   log.logm("signal:%d received, quitting monitor.py..."%signal)
   quit="quit"
 
-def mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
+def send_mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
   """
   Usage:
-  mail('This is a test', 'subj')
+  send_mail('This is a test', 'subj')
   """
   sender="Anton.Jusko@cern.ch"
   headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (sender, to, subject)
   message = headers + text
-  mailServer = smtplib.SMTP("cernmx.cern.ch")
-  mailServer.sendmail(sender, to, message)
-  mailServer.quit()
+  #mailServer = smtplib.SMTP("cernmx.cern.ch")
+  #mailServer.sendmail(sender, to, message)
+  #mailServer.quit()
 
 def gcalib_onfunc(inm):
-  """ inm: gcalib 18.08.2011 09:57:50 TOF 92.917  4.903  MUON_TRG 88.031  0.017  
+  """ inm: gcalib 18.08.2011 09:57:50  TOF 92.917 4.903  MUON_TRG 88.031 0.017  
   T0 0.000  0.000  ZDC 0.000  0.000  EMCAL 0.000  0.000
   rc:
   [None] -cannot decide
@@ -102,8 +102,8 @@ class Daemon:
     self.scb= scb
     self.onfunc= onfunc 
     self.state= None   # ok, restarted, down
-    self.d1= self.d2= None    # dates of last 2 actions (d2: older)
-    self.a1= self.a2= None    # last 2 actions done
+    self.d1= self.d2= None    # 'dates' of last 2 actions (d2: older)
+    self.a1= self.a2= None    # last 2 'actions' done
     self.last_state= None
     self.udplast= None        # or [time,data]
     self.sms_sent= 0
@@ -180,7 +180,7 @@ class Daemon:
   def logm_mail(self, msg):
     if self.sms_sent<2:   # send max. 2 messages
       self.logm(msg)
-      mail(msg)
+      send_mail(msg)
       self.sms_sent= self.sms_sent+1
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
@@ -237,7 +237,7 @@ def main():
   signal.signal(signal.SIGINT, signal_handler)   # 2  CTRL-C
   allds={"udpmon":Daemon("udpmon"), 
     "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
-    "html":Daemon("html")}
+    "pydim":Daemon("pydim"), "html":Daemon("html")}
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "

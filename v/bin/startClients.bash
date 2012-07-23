@@ -18,6 +18,10 @@ ps -C readctpc -C readltuc -o"%p %a"
 function status_pydim() {
 echo '----- pydim status (2 processes):'
 ps -C pydimserver.py -C server -o"%p %a"
+pids=`ps -C pydimserver.py -C server -o"%p %a" --no-headers |colrm 6`
+if [ "$pids" != "" ] ;then
+  echo "pid: $pids"
+fi
 }
 function status_html() {
 echo '----- html status (1 process):'
@@ -315,8 +319,13 @@ fi
 if [ $dmn = "ttcmidim" -o "$dmn" = 'all' ] ;then #-------------------- ttcmidim
   st3 ttcmidim ttcmidims.sh trigger@$ttcmivme $sss
 fi
+# group of daemons available only in the pit:
 if [ $dmn = "irdim" -o "$dmn" = 'all' ] ;then #-------------------- irdim
-  st3 irdim irdims.py trigger@alidcscom521 $sss
+  if [ "$VMESITE" != "ALICE" ] ;then
+    echo "irdim available only in the pit"
+  else
+    st3 irdim irdims.py trigger@alidcscom521 $sss
+  fi
 fi
 if [ $dmn = "xcounters" -o "$dmn" = 'all' ] ;then #------------------- xcounters
   if [ "$VMESITE" != "ALICE" ] ;then
@@ -332,15 +341,16 @@ if [ $dmn = "diprfrx" -o "$dmn" = 'all' ] ;then #------------------- diprfrx
     st3 diprfrx diprfrx.bash trigger@$ttcmivme $sss
   fi
 fi
-if [ $dmn = "gcalib" -o "$dmn" = 'all' ] ;then #------------------- gcalib
-  st3 gcalib gcalib.sh trigger@$ctpvme $sss
-  retc=$?
-  [ $dmn = "gcalib" ] && exit $retc
+if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
+  st3 monscal monscal.sh trigger@$server $sss
 fi
 if [ $dmn = "gmonscal" -o "$dmn" = 'all' ] ;then #-------------------- gmonscal
   st3 gmonscal gmonscal.sh trigger@$server27 $sss
 fi
-if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
-  st3 monscal monscal.sh trigger@$server $sss
+#---------------
+if [ $dmn = "gcalib" -o "$dmn" = 'all' ] ;then #------------------- gcalib
+  st3 gcalib gcalib.sh trigger@$ctpvme $sss
+  retc=$?
+  [ $dmn = "gcalib" ] && exit $retc
 fi
 

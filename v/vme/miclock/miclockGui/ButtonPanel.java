@@ -93,6 +93,11 @@ public class ButtonPanel extends JPanel
 		this.autoButton.setName("auto");
 		this.manuButton.setName("manu");
 		
+		this.autoButton.setToolTipText("Sets the program in Automatic mode "
+			+ "where clock transitions are automatic");
+		this.manuButton.setToolTipText("Sets the program in Manual mode where "
+			+ "the user controls the clock transitions");
+		
 		this.autoButton.addActionListener(this);
 		this.manuButton.addActionListener(this);
 		
@@ -116,6 +121,9 @@ public class ButtonPanel extends JPanel
 		
 		this.beam1Button.setName("beam1");
 		this.localButton.setName("local");
+		
+		this.beam1Button.setToolTipText("Transitions the clock to BEAM1");
+		this.localButton.setToolTipText("Transitions the clock to LOCAL");
 		
 		this.beam1Button.addActionListener(this);
 		this.localButton.addActionListener(this);
@@ -148,6 +156,9 @@ public class ButtonPanel extends JPanel
 			this.beam2Button.setName("beam2");
 			this.refButton.setName("ref");
 			
+			this.beam2Button.setToolTipText("Transitions the clock to BEAM2");
+			this.refButton.setToolTipText("Transitions the clock to REF");
+			
 			this.beam2Button.addActionListener(this);
 			this.refButton.addActionListener(this);
 			
@@ -170,6 +181,10 @@ public class ButtonPanel extends JPanel
 		
 		this.resetShiftButton.setName("shift");
 		this.getShiftButton.setName("getShift");
+		
+		this.resetShiftButton.setToolTipText("Gets the newest shift value and "
+			+ "opens a dialog to confirm the resetting of the shift");
+		this.getShiftButton.setToolTipText("Gets the newest shift value");
 		
 		this.resetShiftButton.addActionListener(this);
 		this.getShiftButton.addActionListener(this);
