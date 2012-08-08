@@ -300,9 +300,10 @@ class ActivePartitions:
     f.write(ratios_html)
     f.close()
   def get_clockinfo(self):
-    #fn= os.path.join(os.environ['HOME'],"CNTRRD/htmls/clockinfo")
+    fn= os.path.join(os.environ['HOME'],"CNTRRD/htmls/clockinfo")
     try:
-      f= open("/home/alice/trigger/CNTRRD/htmls/clockinfo", 'r')
+      #f= open("/home/alice/trigger/CNTRRD/htmls/clockinfo", 'r')
+      f= open(fn, 'r')
     except:
       f=None
     if f:
