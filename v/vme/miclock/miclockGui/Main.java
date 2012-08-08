@@ -69,6 +69,9 @@ public class Main {
 	public static String VMEWORK_DIR;
 	public static String MICLOCK_ID;
 	public static String PROCESS_ID;
+	/**
+	 * The location of the "html" file to be written. 
+	 */
 	public static String HTML_LOCATION;
 	
 	/**

@@ -219,16 +219,61 @@ public class MiClockClient
 				new PropertyChangeEvent(this, "getShift", -1, this.getShift()));
 	}
 	
-	public void sendExecGetfsdip()
+	/**
+	 * Exectutes the getfsdip.py script and then fires a property change event.
+	 */
+	public void execGetfsdip()
 	{
-		this.pcs.firePropertyChange(
-				new PropertyChangeEvent(this, "getfsdip", -1, "getfsdip"));
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process pro = rt.exec("python " + Main.VMECF_DIR + 
+					"/filling/getfsdip.py act");
+			pro.waitFor();
+			this.pcs.firePropertyChange(
+					new PropertyChangeEvent(this, "getfsdip", -1, "getfsdip"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	public void sendExecSctel(String cmd) 
+	/**
+	 * Executes the sctel.py script with the given command and fires a property
+	 * change event.
+	 * @param cmd String to be passed to the python script (MIN/INF)
+	 */
+	public void execSctel(String cmd) 
 	{
-		this.pcs.firePropertyChange(
-				new PropertyChangeEvent(this, "sctel", -1, cmd));
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process pro = rt.exec("python " + Main.VMECF_DIR +
+					"/ttcmidaemons/sctel.py " + cmd);
+			pro.waitFor();
+			this.pcs.firePropertyChange(
+					new PropertyChangeEvent(this, "sctel", -1, cmd));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void execOptInfoLogger()
+	{
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process pro = rt.exec("/opt/infoLogger"+
+					"/log -l OPS -s f Clockshift_too_big");
+			this.sendShiftTooBigSmall("big");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void sendShiftTooBigSmall(String cmd)

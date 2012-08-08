@@ -8,7 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Class for writing out Beammode, Miclock and Operation mode to a HTML file.
+ * Class for writing out Beammode, Miclock and Operation mode to a file. This
+ * file is then read somewhere and put into a html file.
  * @author oerjan
  *
  */
@@ -77,22 +78,41 @@ public class HTMLWriter implements PropertyChangeListener{
 				}
 				if(miclock.equals("LOCAL"))
 				{
-					output = "clock: <big><FONT COLOR=\"green\">" + beammode 
+					/*
+					 * changed 25.07s.12 from
+					 output = "clock: <big><FONT COLOR=\"green\">" + beammode 
 						+ "</FONT>" + ccm + "<br>";
+					*/
+					output = "clock: <big><FONT COLOR=\"green\">" + miclock 
+						+ "</FONT>" + ccm + "<br>"; 
 				}
 				else if(miclock.equals("BEAM1"))
 				{
-					output = "clock: <big><FONT COLOR=\"blue\">" + beammode 
+					/*
+					 * changed 25.07.12 from
+					 * output = "clock: <big><FONT COLOR=\"blue\">" + beammode 
+						+ "</FONT>" + ccm + "<br>";
+					 */
+					output = "clock: <big><FONT COLOR=\"blue\">" + miclock 
 						+ "</FONT>" + ccm + "<br>";
 				}
 				else if(miclock.equals("BEAM2"))
 				{
-					output = "clock: <big><FONT COLOR=\"red\">" + beammode 
+					/*
+					 * changed 25.07.12 from
+					 * output = "clock: <big><FONT COLOR=\"red\">" + beammode 
+						+ "</FONT>" + ccm + "<br>";
+					 */
+					output = "clock: <big><FONT COLOR=\"red\">" + miclock 
 						+ "</FONT>" + ccm + "<br>";
 				}
 				else
 				{
-					output = "clock: <big>" + beammode + "<br>";
+					/*
+					 * changed 25.07.12 from
+					 * output = "clock: <big>" + beammode + "<br>";
+					 */
+					output = "clock: <big>" + miclock + "<br>";
 				}
 				
 				if(this.intrans != 0)

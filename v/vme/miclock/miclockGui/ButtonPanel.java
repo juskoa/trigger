@@ -7,9 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
@@ -94,9 +92,9 @@ public class ButtonPanel extends JPanel
 		this.manuButton.setName("manu");
 		
 		this.autoButton.setToolTipText("Sets the program in Automatic mode "
-			+ "where clock transitions are automatic");
+				+ "where clock transitions are automatic");
 		this.manuButton.setToolTipText("Sets the program in Manual mode where "
-			+ "the user controls the clock transitions");
+				+ "the user controls the clock transitions");
 		
 		this.autoButton.addActionListener(this);
 		this.manuButton.addActionListener(this);
@@ -183,7 +181,7 @@ public class ButtonPanel extends JPanel
 		this.getShiftButton.setName("getShift");
 		
 		this.resetShiftButton.setToolTipText("Gets the newest shift value and "
-			+ "opens a dialog to confirm the resetting of the shift");
+				+ "opens a dialog to confirm the resetting of the shift");
 		this.getShiftButton.setToolTipText("Gets the newest shift value");
 		
 		this.resetShiftButton.addActionListener(this);
@@ -285,15 +283,7 @@ public class ButtonPanel extends JPanel
 				// TODO: Test this
 				if(Math.abs(value) >= Main.SHIFT_UPPER_LIMIT)
 				{
-					Runtime rt = Runtime.getRuntime();
-					try {
-						Process pro = rt.exec("/opt/infoLogger"+
-								"/log -l OPS -s f Clockshift_too_big");
-						this.client.sendShiftTooBigSmall("big");
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					this.client.execOptInfoLogger();
 				}
 				
 				else if(Math.abs(value) >= Main.SHIFT_LOWER_LIMIT)
@@ -366,48 +356,6 @@ public class ButtonPanel extends JPanel
 	}
 	
 	/**
-	 * Exectutes the getfsdip.py script.
-	 *
-	 */
-	private void execGetfsdip()
-	{
-		Runtime rt = Runtime.getRuntime();
-		try {
-			Process pro = rt.exec("python " + Main.VMECF_DIR + 
-					"/filling/getfsdip.py act");
-			pro.waitFor();
-			this.client.sendExecGetfsdip();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Executes the sctel.py script with the given command
-	 * @param cmd String to be passed to the python script (MIN/INF)
-	 */
-	private void execSctel(String cmd)
-	{
-		Runtime rt = Runtime.getRuntime();
-		try {
-			Process pro = rt.exec("python " + Main.VMECF_DIR +
-					"/ttcmidaemons/sctel.py " + cmd);
-			pro.waitFor();
-			this.client.sendExecSctel(cmd);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	/**
 	 * Method for reseting the shift manualy. Gets the shift, creates a dialog
 	 * where the operator can confirm the shifting of the clock. If shift is
 	 * old/too small message dialog is given.
@@ -461,12 +409,12 @@ public class ButtonPanel extends JPanel
 			}
 			if(this.client.getBeammodeInt() == 6)
 			{
-				this.execGetfsdip();
+				this.client.execGetfsdip();
 			}
 			if(this.client.getBeammodeInt() == 7 && 
 					this.client.getMiclock().equals("BEAM1"))
 			{
-				this.execSctel("INF");
+				this.client.execSctel("INF");
 			}
 			
 			this.setEnableShift(this.client.getBeammodeInt());
@@ -498,7 +446,7 @@ public class ButtonPanel extends JPanel
 		{
 			if(evt.getNewValue().equals("LOCAL"))
 			{
-				this.execSctel("MIN");
+				this.client.execSctel("MIN");
 			}
 		}
 	}		
