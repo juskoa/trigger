@@ -89,10 +89,10 @@ class Detector{
 class DetectorwCount : public Detector
 {
  private:
-          Counter l2a,pp;
+          Counter l2s,l2r,pp;
  public:
         DetectorwCount(const Detector &dec);   
-        w64 GetL2aCount(){return l2a.GetCountTot();};
+        w64 GetL2aCount(){return (l2s.GetCountTot()-l2r.GetCountTot());};
         w64 GetPPCount(){return pp.GetCountTot();};
         void Update(w32* buffer);
 };

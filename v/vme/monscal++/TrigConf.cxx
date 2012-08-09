@@ -172,14 +172,17 @@ DetectorwCount::DetectorwCount(const Detector& det)
 :
 Detector(det)
 {
- l2a.SetName("FOL2a");
- l2a.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+44+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ l2s.SetName("FOL2s");
+ l2s.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+44+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ l2r.SetName("FOL2r");
+ l2r.SetIXs(CSTART_BUSY+NCOUNTERS_BUSY_L2RS+4*(fo-1)+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
  pp.SetName("FOPP"); 
  pp.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+32+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
 }
 void DetectorwCount::Update(w32* buffer)
 {
- l2a.Update(buffer);
+ l2s.Update(buffer);
+ l2r.Update(buffer);
  pp.Update(buffer);
 }
 ////////////////////////////////////////////////////////////////////
