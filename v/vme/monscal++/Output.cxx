@@ -275,7 +275,7 @@ void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
    }
    if(log){
      char text[255];
-     sprintf(text,"%i %i %s %lli \n",count , runnum ,tclust[i]->GetName().c_str(), tclust[i]->GetL2aCount());
+     sprintf(text,"Clusters: %i %i %s %lli \n",count , runnum ,tclust[i]->GetName().c_str(), tclust[i]->GetL2aCount());
      file << text;
      file.flush();
    }
@@ -316,7 +316,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
    if(log){
      char text[255];
      //sprintf(text,"%i %i %i %i \n",count++, runnum ,tclass[i]->GetIndex0(), (w32)tclass[i]->GetL2aCount());
-     sprintf(text,"%i %i %i %i %lli %lli %i %i %i %i %f\n",count++, runnum,tclass[i]->GetGroup() ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+     sprintf(text,"Classes: %i %i %i %i %lli %lli %i %i %i %i %f\n",count++, runnum,tclass[i]->GetGroup() ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
      file << text;
      file.flush();
    }
@@ -337,7 +337,7 @@ void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
    }
    if(log){
      char text[255];
-     sprintf(text,"%i %i %s %lli \n",count , runnum ,dets[i]->GetName().c_str(), dets[i]->GetL2aCount());
+     sprintf(text,"Detectors: %i %i %s %lli \n",count , runnum ,dets[i]->GetName().c_str(), dets[i]->GetL2aCount());
      file << text;
      file.flush();
    }
@@ -356,7 +356,7 @@ void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
    }
    if(log){
      char text[255];
-     sprintf(text,"%i %i %s %i %i %lli\n",count , runnum ,inps[i]->GetName().c_str(), inps[i]->GetPosition(),inps[i]->GetLevel(), inps[i]->GetCounter()->GetCountTot());
+     sprintf(text,"Inputs: %i %i %s %i %i %lli\n",count , runnum ,inps[i]->GetName().c_str(), inps[i]->GetPosition(),inps[i]->GetLevel(), inps[i]->GetCounter()->GetCountTot());
      file << text;
      file.flush();
    }
