@@ -1,0 +1,80 @@
+Start:
+root
+.x busyplot.C 
+or
+busytool
+700 100 50 1 11
+The time for this sweep will be 12 s.
+diff: 968 Max: 273
+diff: 969 Max: 682
+diff: 968 Max: 273
+diff: 968 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+
+700 100 100 2 11
+The time for this sweep will be 12 s.
+diff: 1933 Max: 682
+diff: 1933 Max: 682
+diff: 1 Max: 682
+diff: 1 Max: 682
+diff: 1 Max: 682
+diff: 1 Max: 682
+
+700 100 25 1 11
+The time for this sweep will be 24 s.
+diff: 968 Max: 273
+diff: 969 Max: 682
+diff: 968 Max: 273
+diff: 969 Max: 682
+diff: 969 Max: 273
+diff: 968 Max: 682
+diff: 968 Max: 273
+diff: 0 Max: 273
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+diff: 0 Max: 273
+diff: 1 Max: 682
+
+-------- acorde (fixed 117us dedatime):
+200 80 20 1 15
+The time for this sweep will be 6 s.
+   us    diff    Max
+   80    968     117
+  100    968     117
+  120    0       117
+  140    0       117
+  160    0       117
+  180    0       117
+graphs:
+Diffrential distribution: shows 968x events at 90us (middle 80..100)
+Anti-cumulative distr.: shows 968x events at 90, 0 at 110us
+
+150 80 10 1 15
+Diff:
+85,95: 0
+105: 968
+115: 0
+Anti:
+till 105: 968
+from 115: 0
+
+i.e. both histos values should be shifted to the right by 1 bin
