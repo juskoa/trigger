@@ -39,4 +39,5 @@ Added DSCG (Down scaling class group) option to RATE module.
 VME.
 Default values for these registers: 0,1,2,3,...,49.
 Setting 0x233:1 leads to synchronous downscaling of first 2 classes.
+see DOC/devdbg/syncdownscaling
 

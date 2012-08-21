@@ -1,3 +1,4 @@
+#include intint.h
 typedef unsigned long long int lint;
 int bit(w32 num,int channel){
  return ((num &(1<<channel))==(1<<channel));
@@ -586,7 +587,7 @@ int bcoffset(int boardl2,int boardint){
  }
  return 0;
 }
-/*FGROUP Generate
+/*FFGROUP Generate
 */
 void BCoffset2(int bc0,int ntimes){
  // clear  ssm
@@ -611,7 +612,7 @@ void BCoffset2(int bc0,int ntimes){
   printf("bcin= %i \n",i);
  }
 }
-/*FGROUP Generate
+/*FFGROUP Generate
    Generate software triggers
 */
 void genSW(){

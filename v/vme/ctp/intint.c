@@ -162,7 +162,7 @@ void printlistN(CTPRIRDList *list,FILE *file){
   while(list){
    if(list->ctpr){
       //fprintf(file, "#CTP %i \n",ictpr);
-      //printCTPR(list->ctpr,file);
+      printCTPR(list->ctpr,file);
       ictpr++;
    }
    if(list->irda){ 

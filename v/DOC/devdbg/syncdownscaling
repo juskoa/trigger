@@ -1,0 +1,10 @@
+Notes about syncdownscaling: L0 fi >= 0xAF
+New .rcfg syntax:
++1 column for each class sdg:
+0     -BUSY downscaling (implies no sync downscaling)
+1..50 -sync. downcaling group (cn-1 into DSCG register...)
+       default: class number
+i.e. sdg column for class3:
+  3 or missing     -> 'no downscaling'
+  0                -> busy downscaling
+  1<=n<=50 (n!=3)  -> sync. downscaling with class n 

@@ -221,6 +221,8 @@ if((err=actdb_open())!=0) {
 };
 if((err= actdb_getdbfile("ctp.cfg",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s ctp.cfg %s %s\n", cfglist, actname, actversion);
+if((err= actdb_getdbfile("aliases.txt",actname,actversion)) !=0) {rc= err; goto STP;};
+sprintf(cfglist, "%s aliases.txt %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("L0.INPUTS",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s L0.INPUTS %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("CTP.SWITCH",actname,actversion)) !=0) {rc= err; goto STP;};

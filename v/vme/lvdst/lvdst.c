@@ -203,7 +203,7 @@ for (i=1; i<32; i++) {
 	}
 }
 if (print == 0) {
-	if (j != 0)  printf("A transition has been observed in %d ns \n",j); 
+	if (j != 0)  printf("A transition has been observed in %d ns\n",values1[1]); 
 //	printf("It is recommend it to confirm this result making NOW a ADC_SCAN.\n\n");
 }
 //return(j);
@@ -269,12 +269,13 @@ vmew32(PATTERN_SEL,0x1);
 //Select the ADC_cable signal as the ADC input. Note: 1 for cable 1
 vmew32(ADC_SELECT,cable);
 //Select the Sequence with all 24 bits asserted
-//vmew32(SEQ_DATA,0xffffff);
-vmew32(SEQ_DATA,0xaaaaaa);//karim
+vmew32(SEQ_DATA,0xffffff);
 //Select the sequence period - about 1.5 microSeconds (60 BC intervals)
 //The period =60 is long enough to avoid the sequence overlapping for cable length
 //of up to 160m
-vmew32(SEQ_PERIOD,60);
+//vmew32(SEQ_PERIOD,60);
+vmew32(SEQ_PERIOD,31); //karim
+//vmew32(SEQ_PERIOD,23); //karim
 //Scope signal. A=Sequence strobe and B=delayed_pattern1
 //setAB(18,4);
 //Set BC_DELAY_ADD - Value found previously on Ts_transition
@@ -298,7 +299,7 @@ for (k=0; k<32; k++) {
 	else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
 	//Number of sequence strobes - number of patterns generated
         arraySequenceStrobes[k]=mystatus[11] - mystatus1[11];
-	//cout << "arraySequenceStrobes " << arraySequenceStrobes[k] << endl;
+	//cout << arrayCableErrors[k]<< " " << " " << arraySequenceStrobes[k] << endl;
 	arrayRatio[k] = (1.0*arrayCableErrors[k])/arraySequenceStrobes[k];
 	if (print == 0) {
 		/*
@@ -316,20 +317,27 @@ for (k=0; k<32; k++) {
 }
 number=10000.0;
 for (k=0; k<32; k++) {
-        if(arrayRatio[k]<=number) {
+        if(arrayRatio[k]<number) {
 		number = arrayRatio[k];
                 kDelay  = k;
         }
 }
+if (print == 0) {
+	printf("DELAY_%i should be %i\n",cable, kDelay);
+	printf("Number of errors %f\n",number);
+}
+
+const int real_delay = 28;
+if(cable==1 && kDelay!=real_delay) {
+	cout << "WARNING: delay is not "<< real_delay <<"! forcing it to "<< real_delay << endl;
+	kDelay=real_delay;
+}
+
 //Set the correct value for DELAY_1/2 register
 if(cable==1) vmew32(DELAY_1,kDelay);
 else if(cable==2) vmew32(DELAY_2,kDelay);
 else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
 
-if (print == 0) {
-	printf("DELAY_%i should be %i\n",cable, kDelay);
-	printf("Number of errors %f\n",number);
-}
 return(kDelay);
 }
 //}
@@ -414,14 +422,19 @@ vmew32(PATTERN_SEL,0x1);
 vmew32(SEQ_DATA,0x800000);
 vmew32(SEQ_PERIOD,240);
 }
-if (seqType == 2) {
+else if (seqType == 2) {
   vmew32(PATTERN_SEL,0x1);
         vmew32(SEQ_DATA,0xaaaaaa);
         vmew32(SEQ_PERIOD,240);
 }
-if (seqType == 3) {
+else if (seqType == 3) {
 		vmew32(PATTERN_SEL,0x2);
 		vmew32(RANDOM_RATE,0x3fffffff);
+}
+else if (seqType == 4) {
+  vmew32(PATTERN_SEL,0x1);
+        vmew32(SEQ_DATA,0x888888);
+        vmew32(SEQ_PERIOD,24);
 }
 
 printf("*****************************************\n");
@@ -431,7 +444,7 @@ printf("The aim of this program is to measure the BER for the DELAY_%i register 
 
 //Scope signal. A=Sequence strobe and B=delayed_pattern1
 //setAB(18,4);
-//printf("CHECK THIS: %d  %d  % d\n",kDelay1,kTc,kTch);
+//printf("CHECK THIS: %d  %d  % d\n",kDelay,kTc,kTch);
 //for (w=0; w<5; w++){
 for (k=fromSetting; k<=toSetting; k++) {
 //Two transitions
@@ -505,7 +518,7 @@ if (val1[0] == 1) {
 	else if(cable==2) arrayCableErrors2[k]=mystatus3[9]; // Cable2-errors
 	else cout << "WARNING: wrong cable number (=" << cable << ")" << endl;
 
-	if (seqType == 1 || seqType == 2 ) {
+	if (seqType == 1 || seqType == 2 || seqType == 4) {
 		arraySequenceStrobes2[k]=mystatus3[11];
 		arrayRatio2[k] = (1.0*arrayCableErrors2[k])/arraySequenceStrobes2[k];
 		/*
@@ -515,10 +528,10 @@ if (val1[0] == 1) {
 		printf("ratio is %f\n ",arrayRatio2[k]);
 		printf("\n");
 		*/
-		//printf("<%i> <%f> \n",k,arrayRatio2[k]);
-		printf("<%i> <%i>\n",k,arrayCableErrors2[k]);
+		printf("<%i> <%f> \n",k,arrayRatio2[k]);
+		//printf("<%i> <%i>\n",k,arrayCableErrors2[k]);
 		if (fw.is_open()) {
-			fw << k << " " << arrayCableErrors2[k] << endl;
+			fw << k << " " << arrayRatio2[k] << endl;
 			fw.flush();
 		}
 	} 
@@ -533,9 +546,10 @@ if (val1[0] == 1) {
 		printf("ratio is %f\n ",arrayRatio2[k]);
 		printf("\n");
 		*/
-		printf("<%i> <%i> \n",k,arrayCableErrors2[k]);
+		printf("<%i> <%f> \n",k,arrayRatio2[k]);
+		//printf("<%i> <%i>\n",k,arrayCableErrors2[k]);
 		if (fw.is_open()) {
-			fw << k << " " << arrayCableErrors2[k] << endl;
+			fw << k << " " << arrayRatio2[k] << endl;
 			fw.flush();
 		}
 	}
@@ -582,11 +596,29 @@ NOTE: To stop this program, please press CONTROL + X
 void BER_Measurement(int cable, int time, char timeUnits) {
 char * myoutfile = "/usr/local/trigger/devel/v/vme/lvdst/BERmeasurement_karim.txt";
 const int kTs = Ts_transition(cable, 1);
-//Find_Window(cable, kTs, kTs, 3, 0, time, timeUnits, myoutfile);
-Find_Window(cable, 0, 31, 3, 0, time, timeUnits, myoutfile);
+Find_Window(cable, kTs, kTs, 4, 0, time, timeUnits, myoutfile);
 return;
 }
 //}
+
+/*FGROUP LVDST
+check the pattern with the scope
+*/
+void check_pattern(int cable, long pattern){
+//Select the SEQUENCE pattern
+vmew32(PATTERN_SEL,0x1);
+//Select the ADC_cable signal as the ADC input. Note: 1 for cable 1
+vmew32(ADC_SELECT,cable);
+//Select the Sequence with all 24 bits asserted
+vmew32(SEQ_DATA,pattern);
+//Select the sequence period - about 1.5 microSeconds (60 BC intervals)
+//The period =60 is long enough to avoid the sequence overlapping for cable length
+//of up to 160m
+//vmew32(SEQ_PERIOD,60);
+vmew32(SEQ_PERIOD,64); //karim
+//vmew32(SEQ_PERIOD,23); //karim
+return;
+}
 
 /*FGROUP LVDST
 findHistory function.

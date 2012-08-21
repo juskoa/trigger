@@ -77,6 +77,15 @@ Contents:
       16.6.2012 done (new validate distributed)
 19. test l0 synchronous downscaling  l0_logic_verAF.rbf
     see CFG/l0/readme +mail from Marian 16.2.2012)
+    DESC(cn=CESC-ABCE-NOPF-ALL, L0pr=, cg=0..9, sdg=
+20. 21.08.2012 trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
+21. 21.08.2012 INIT_PARTITION command to ctpproxy. 
+22. 21.08.2012 ~tri sw (dcsFES_putData.sh,.. should be kept in VMECFDIR dimcoff?
+23. 21.08.2012 miclock java:
+- tooltips missing
+- bug (on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
+  not updated
+
 --------------------------------
 
 2. 10.2.2012 alidcsvme008 crash (see below)
@@ -267,4 +276,26 @@ to set the run number
 cheers,
 sylvain
 
+
+20. trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
+DAQlogbook_update_triggerClassName() -one more parameter:
+   const char **alias);  =>  NEW
+The last parameter "alias" should be an array of strings containing the
+names of the trigger alias of the given trigger class.
+The last element of the array must be NULL.
+example:
+char *triggerAlias2[3]={"kSPI7-B","kCalibBarrel",NULL};
+an example of line in aliases.txt file:
+CMLL8-S-NOPF-MUON kMLL8-B,kCalibMuon,kCalibOuter
+
+Todo:
+- aliases.txt act->local when ctp configured (done in lab: 21.08)
+- parse file aliases.txt in: vmeblib/daqlogbook.c 
+  daqlogbook_update_triggerClassName() -called from pydim/server.c
+
+21. INIT_PARTITION command to ctpproxy. 
+- update info about triggering detectors in daqlogbook
+- the same set of parameters
+- can be invoked more times (before LOAD_PARTITION is received)
+- goes to ERROR if syntax error found (like LAOD_PARTITION)
 

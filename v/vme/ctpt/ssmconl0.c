@@ -110,7 +110,7 @@ void printHWrate(int boards){
  }
  printf("\n");
 }
-/*FGROUP DebCon------------------------------------------setRate()
+/*FFGROUP DebCon------------------------------------------setRate()
  *  Set rate for class i. 1st class: i=0; 
  *  Writes to cpu memory.
  */
