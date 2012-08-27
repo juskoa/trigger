@@ -83,10 +83,11 @@ Contents:
 22. 21.08.2012 ~tri sw (dcsFES_putData.sh,.. should be kept in VMECFDIR dimcoff?
 23. 21.08.2012 miclock java:
 - tooltips missing
-- bug (on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
-  not updated
+- bug: on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
+  not updated. Cure; quit+start miclock
+24. 23.08.2012 vmeblib/infolog.c new level not set by default
 
---------------------------------
+====================================
 
 2. 10.2.2012 alidcsvme008 crash (see below)
 -------------------------------------------
@@ -276,8 +277,8 @@ to set the run number
 cheers,
 sylvain
 
-
 20. trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
+-------------------------------------------------------------------
 DAQlogbook_update_triggerClassName() -one more parameter:
    const char **alias);  =>  NEW
 The last parameter "alias" should be an array of strings containing the
@@ -289,13 +290,45 @@ an example of line in aliases.txt file:
 CMLL8-S-NOPF-MUON kMLL8-B,kCalibMuon,kCalibOuter
 
 Todo:
-- aliases.txt act->local when ctp configured (done in lab: 21.08)
+- aliases.txt act->local when ctp configured 
+  Done in lab: 21.08
 - parse file aliases.txt in: vmeblib/daqlogbook.c 
   daqlogbook_update_triggerClassName() -called from pydim/server.c
+  I.e. search in aliases.txt should be implemented this way:
+  pydim/server.c:
+  -add aliasesupdate cmd in DOcmd() (like csupdate), updating
+   aliases[] array from aliases.txt, and also when server.c started.
+   Done: 24.8.2012
+  -aliasesupdate is issued from bin/ctpproxy.py (i.e. CTP reconfigured)
+   An example of DIM cmd sent is in colschedule.bash. 
+   Done: 24.8.
+  -this array is searched in daqlogbook_update_triggerClassName(),
+   to prepare alias parameter for daqlogbook. NULL to be passed
+   if alias[es] not found for given class
+   Done: 24.8.
+- modify vmeblib/daqlogbook.c (adding char **aliases parameter to 
+  wrapping function)
+- test in lab with new daq logbook interface
 
 21. INIT_PARTITION command to ctpproxy. 
-- update info about triggering detectors in daqlogbook
-- the same set of parameters
+--------------------------------------
+- Goal: update info about triggering detectors in daqlogbook
+- the same set of parameters as LOAD_PARTITION
 - can be invoked more times (before LOAD_PARTITION is received)
-- goes to ERROR if syntax error found (like LAOD_PARTITION)
+- goes to ERROR if syntax error found (like LOAD_PARTITION)
 
+Notes: 2nd update in daqlogbook may finish with error (i.e. to be ignored)
+Modifications:
+- modify main_ctp.c (Done:24.8), ctp_proxy.c:
+- icfg: modified 'pcfg' DIM cmd to be issued- cannot be the same way as later 
+  in LOAD_PARITION: we do not know yet allocation of classes.
+  Format:
+  "icfg pname runnumber act_config"
+
+- leave it propageted by stdout to .py phase, where validation is
+  done like in validate.py. Results can be passed back to .c
+  through stdin (like 'class ' command) where they can be used for DAQ update
+
+- very likely, the update of triggering inputs should be then removed from
+  LOAD_PARTITION phase.
+  

@@ -1,4 +1,9 @@
 Notes about syncdownscaling: L0 fi >= 0xAF
+New .partition syntax:
+adding one new parameter in class definition: sdg=id. 
+Classes defined with the same sdg parameter will be downscaled synchronously,
+ONE of them has to define required random downscaling (L0pr=10%).
+
 New .rcfg syntax:
 +1 column for each class sdg:
 0     -BUSY downscaling (implies no sync downscaling)

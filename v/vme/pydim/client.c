@@ -79,7 +79,8 @@ if(argc==3) {
     rc= dic_cmnd_callback(cmd, message, strlen(message)+1, callback, 33);
     printf("rc:%d\n", rc);
     usleep(1000000);
-  } else if((strcmp(argv[2],"csupdate")==0)||(strcmp(argv[2],"intupdate")==0)){
+  //} else if((strcmp(argv[2],"csupdate")==0)||(strcmp(argv[2],"intupdate")==0)){
+  } else {
     strcpy(message,argv[2]); strcat(message,"\n");
     rc= dic_cmnd_callback(cmd, message, strlen(message)+1, callback, 33);
     printf("argv2:%s rc:%d\n", argv[2], rc);

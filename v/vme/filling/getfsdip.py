@@ -48,7 +48,7 @@ def main(action):
        rc=2
     else:
       if bcwritten != 2*bcdip:
-        mylog.infolog("Incomplete data from DIP:exp:%d got:%d"%(2*bcdip, bcwritten), level='f')
+        mylog.infolog("Incomplete data from DIP:exp:%d got:%d"%(2*bcdip, bcwritten), level='e')
         rc=2
   if rc==0:
     schname= dipout[1]

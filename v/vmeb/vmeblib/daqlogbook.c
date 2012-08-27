@@ -78,12 +78,12 @@ return(rc);
 
 /* called from pydim/server.c */
 //int daqlogbook_update_triggerClassName(unsigned int runN, unsigned char classN, char *value) {
-int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime)
+int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime, char **aliases)
 {
 int rc;
 #ifdef DAQLOGBOOK
   //rc= DAQlogbook_update_triggerClassName(runN, classN, value);
-  rc= DAQlogbook_update_triggerClassName(run, classId, className, classGroupId, classGroupTime);
+  rc= DAQlogbook_update_triggerClassName(run, classId, className, classGroupId, classGroupTime,aliases);
 #else
   printf("INFO DAQlogbook_update_triggerClassName() not called");
   rc=0;

@@ -83,6 +83,7 @@ rc:
  9: CTP switch not loaded, ctpproxy left off
 10: can't update CTPRCFG/CS service
 11: can't update CTPRCFG/INT1,2 services
+12: can't update aliases.txt in pydimserver
 """
     rc=8
   else:
@@ -91,8 +92,8 @@ rc:
     hostname= iop.outlines[0]
     print "HOSTNAME:",os.environ.get('HOSTNAME'),"-%s-"%hostname
     #if os.environ.get('VMESITE')=="SERVER" or os.environ.get('VMESITE')==None:
-    if hostname=="pcalicebhm05":
-      os.environ["VMECFDIR"]="/data/ClientCommonRootFs/usr/local/trigger/vd/vme"
+    if hostname=="pcalicebhm10":
+      os.environ["VMECFDIR"]="/home/dl/root/usr/local/trigger/devel/v/vme"
       vmectp="altri1"
       vmeswitch="trigger@altri2"
       #os.environ["ACT_DB"]= "daq:daq@pcald30/ACT"
@@ -143,34 +144,39 @@ rc:
             print iop.outlines[ixl]
             iop= iopipe("cd $VMECFDIR/pydim ; linux/client CTPRCFG/RCFG intupdate")
             if iop.check("Callback: OK")>=0:
-              iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
-              time.sleep(2)
-              iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
-              if iop.check("TRIGGER::CTP running.")>=0:
-                f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
-                lin1= f.readline() ; f.close()
-                if lin1[:7]=="bcmasks":
-                  iop= iopipe("colschedule.bash update")
-                  if iop.check("Callback: OK")>=0:
+              iop= iopipe("cd $VMECFDIR/pydim ; linux/client CTPRCFG/RCFG aliasesupdate")
+              if iop.check("Callback: OK")>=0:
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
+                time.sleep(2)
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
+                if iop.check("TRIGGER::CTP running.")>=0:
+                  f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
+                  lin1= f.readline() ; f.close()
+                  if lin1[:7]=="bcmasks":
+                    iop= iopipe("colschedule.bash update")
+                    if iop.check("Callback: OK")>=0:
+                      rc=0
+                    else:
+                      print iop.outlines
+                      rc=10   # can't update CTPRCFG/CS service
+                  else:
+                    #print "FillingScheme != BCMASK. -> CTPRCFG/CS not updated"
+                    print "FillingScheme == auto, reading DIP service..."
+                    sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
+                    import getfsdip
+                    rc=getfsdip.main("act")
+                    if rc==0:
+                      print "New masks prepared and CTPRCFG/CS DIM service updated"
+                    else:
+                      print "CTP masks not updated, filling scheme not ready through DIP"
+                    # if DIP not available, nothing should happen, that's why we force rc to 0
                     rc=0
-                  else:
-                    print iop.outlines
-                    rc=10   # can't update CTPRCFG/CS service
                 else:
-                  #print "FillingScheme != BCMASK. -> CTPRCFG/CS not updated"
-                  print "FillingScheme == auto, reading DIP service..."
-                  sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
-                  import getfsdip
-                  rc=getfsdip.main("act")
-                  if rc==0:
-                    print "New masks prepared and CTPRCFG/CS DIM service updated"
-                  else:
-                    print "CTP masks not updated, filling scheme not ready through DIP"
-                  # if DIP not available, nothing should happen, that's why we force rc to 0
-                  rc=0
+                  print iop.outlines
+                  rc=7   # can't start ctpproxy
               else:
                 print iop.outlines
-                rc=7   # can't start ctpproxy
+                rc=12   # can't update aliases.txt in pydimserver
             else:
               print iop.outlines
               rc=11   # can't update CTPRCFG/INT1,2 services

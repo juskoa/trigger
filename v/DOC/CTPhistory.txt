@@ -197,3 +197,8 @@ see also git log
 13.7
 l0 fy AF can be used: initCTP.c now initialises L0_SDSCG words
 to 1,2,...,50. To be tested
+24.8.
+getfsdip.py: FATAL -> ERROR when DIP service incomplete
+24.8.
+aliases.txt implemented (see devdbg/todo-list)
+

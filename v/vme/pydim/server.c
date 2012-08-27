@@ -41,6 +41,11 @@ extern "C" {
 #include <dis.h>
 #endif
 
+// aliases.c subroutines:
+#define MAXALIASES 300
+int readAliases();
+void getClassAliases(char *cname, char **daqlist);
+
 typedef struct Tinstver {
   int runn;
   char parname[20];
@@ -291,6 +296,15 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   csclients= dis_update_service(CSid);
   printf("INFO CS update for %d clients\n", csclients);
   stdoutyes=0;
+} else if((strncmp(mymsg,"aliasesupdate",13)==0)) {
+  int rc;
+  rc= readAliases(); 
+  if(rc==-1) {
+    char emsg[200];
+    strcpy(emsg,"aliasesupdate: info from aliases.txt not updated correctly");
+    infolog_trg(LOG_INFO, emsg); printf("ERROR %s\n",emsg);
+  };
+  stdoutyes=0;
 } else if((strncmp(mymsg,"intupdate",9)==0)) {
   int rc1, rc2;
   rc1= getINT12fromcfg(INT1String, INT2String, MAXINT12LINE);
@@ -374,7 +388,7 @@ char cfgname[200], aliname[200], itemname[200];
 char emsg[1000];
 
 #define MAXALIGNMENTLEN 4000
-#define MAXRCFGLEN 20000
+#define MAXRCFGLEN 30000
 char alignment[MAXALIGNMENTLEN];
 environ= getenv("VMESITE");
 if(strcmp(environ,"ALICE")==0) {
@@ -450,6 +464,7 @@ del_insver(runN);
 for(ixc=0; ixc<50; ixc++) {
   unsigned int classN, cg, cgtim; int rcdaq;
   float cgtime;
+  char *daqlist[MAXALIASES]; char **daqlistp;
   char msg[300];
   t1= nxtoken(line, value, &ixl);   // class number
   if(t1==tEOCMD) break;   
@@ -482,8 +497,15 @@ for(ixc=0; ixc<50; ixc++) {
   if(t2!=tSYMNAME) {rc=2; break;};
   cgtime= cgtim;
   rcdaq= daqlogbook_update_triggerClassName(runN, classN-1, value, cg, cgtime);
+  getClassAliases(value, daqlist); 
+  if(daqlist[0]==NULL) {
+    daqlistp=NULL;
+  } else {
+    daqlistp=daqlist;
+  };
   sprintf(msg,"DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f) rc:%d",
     runN, classN-1, value, cg, cgtime, rcdaq);
+  //  runN, classN-1, value, cg, cgtime, rcdaq, daqlistp);
   if(rcdaq!=0) {
     infolog_trg(LOG_ERROR, msg);
     printf("ERROR %s\n", msg);
@@ -517,7 +539,12 @@ printf("DIM server:%s cmd:%s\n", servername, command); // should be 1st line
 
 reset_insver();
 cs= readCS();
-
+rc= readAliases(); 
+if(rc==-1) {
+  char emsg[200];
+  strcpy(emsg,"aliases info from aliases.txt not updated correctly");
+  infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
+};
 rc= getINT12fromcfg(INT1String, INT2String, MAXINT12LINE);
 printf("INFO rc:%d INT1:%s INT2:%s\n", rc, INT1String, INT2String);
 
@@ -540,7 +567,7 @@ dis_start_serving(servername);
 while(1) {
   char *frc;
 #define MAXLINECS 4000
-  char line[MAXLINECS];   //80 chars per 50 classes
+  char line[MAXLINECS];   //80 chars per class for 50 classes
   //sleep(10);
   frc= fgets(line, MAXLINECS, stdin);
   if(frc==NULL) break;

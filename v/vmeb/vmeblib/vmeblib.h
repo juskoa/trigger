@@ -44,7 +44,7 @@ void do_partitionCtpConfigItem(char *pname, char *partitionCtpConfigItem);
 int daqlogbook_open();
 //int daqlogbook_update_triggerClassName(unsigned int runN, unsigned char classN, char *value);
 //int daqlogbook_update_triggerClassCounter(unsigned int runN, unsigned char classN, unsigned int L2count);
-int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime);
+int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime, char **aliases);
 int daqlogbook_update_triggerClassCounter(unsigned int run, unsigned char classId, unsigned long long L0bCount, unsigned long long L0aCount, unsigned long L1bCount, unsigned long L1aCount, unsigned long L2bCount, unsigned long L2aCount, float ctpDuration);
 int daqlogbook_update_triggerGlobalCounter(unsigned int run, unsigned long L2aCount, float ctpDuration);
 int daqlogbook_update_triggerDetectorCounter(unsigned int run, const char *detector, unsigned long L2aCount);
