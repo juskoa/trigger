@@ -177,11 +177,11 @@ return(tag);
 - DLL_RESYNC
 */
 printf("newclock thread started. clocktran:%d tag:%d quit:%d\n", 
-  clocktran, *(int *)tag, quit);
+  clocktran, *(int *)tag, quit); fflush(stdout);
 while(clocktran>=0) {
   int nclients;
   nclients= dis_update_service(MICLOCK_TRANSITIONid);
-  //printf("updated MICLOCK_TRANSITION clients:%d clocktran:%d\n", nclients, clocktran);
+  printf("updated MICLOCK_TRANSITION clients:%d clocktran:%d\n", nclients, clocktran);
   if(clocktran==0) break;
   if(micratepresent()) {
     dtq_sleep(30);   // was 60 before 10.11.2011
