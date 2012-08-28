@@ -324,12 +324,20 @@ Than start miclock again.
   while True:
     #time.sleep(10)
     try:
-      a= raw_input('enter BEAM1 BEAM2 REF LOCAL man auto (now:%s) or q:\n'%\
+      #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
+      a= raw_input("""
+   enter:
+   BEAM1 LOCAL       	-to change the ALICE clock
+   man auto (now:%s) 	-to change operation mode (manual or automatic)
+   getshift reset    	-to print current clock shift or reset it to 0
+   or q:             	-to quit this script
+"""%\
         WEB.clockchangemode)
     except:
       a='q'
       mylog.logm("exception:"+str(sys.exc_info()[0]))
     if (a!='q') and (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
+      (a!='getshift') and (a!='reset') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
       mylog.logm('bad input:%s...'%a) ; continue
     if a=='q': break
@@ -341,6 +349,12 @@ Than start miclock again.
       WEB.save()
     elif a=='show':
       WEB.show()
+    elif a=='getshift':
+      cshift= getShift()
+      if cshift != "old":
+        mylog.logm("Clock shift: %s ns.", cshift)
+      else:
+        mylog.logm("Clock shift not measured (too old).")
     elif a=='reset':
       cshift= getShift()
       if cshift != "old":
