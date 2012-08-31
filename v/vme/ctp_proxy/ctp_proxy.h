@@ -63,6 +63,7 @@ int ctp_PausePartition(char *name);
 int ctp_SyncPartition(char *name);
 int ctp_ResumePartition(char *name);
 int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
+int ctp_InitPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
 int ctp_StartPartition(char *name, char *errorReason);
 int ctp_StopPartition(char *name);
 

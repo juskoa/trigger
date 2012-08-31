@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+//#define mainp
+#ifndef mainp
 #include "vmewrap.h"
 #include "ctplib.h"
+#endif
 
 #define MAXNAMELEN 32
 #define MAXITEMS 500
@@ -42,8 +45,10 @@ for(i=0;i<aliasNamesN;i++) {
   };
 };
 if(aliasNamesN < MAXALIASES) {
-  aliasNamesN++; strcpy(aliasNames[aliasNamesN], alname);
-  return(aliasNamesN);
+  i=aliasNamesN;
+  aliasNamesN++; 
+  strcpy(aliasNames[i], alname);
+  return(i);
 };
 printf("ERROR: findAddAlias() too many aliases. MAXALIASES:%d\n",MAXALIASES);
 return(-1);
@@ -57,7 +62,7 @@ for(i=n-2;i>=0;i--) {
     if(strcmp(a[j].name, a[j+1].name)>0) {  
       Titem t;
       strcpy(t.name, a[j].name); t.value= a[j].value; 
-      strcpy(a[j].name, a[j+1].name);  
+      strcpy(a[j].name, a[j+1].name); a[j].value= a[j+1].value;
       strcpy(a[j+1].name, t.name);  a[j+1].value= t.value;  
       nexch++;
     };
@@ -70,9 +75,12 @@ for(i=n-2;i>=0;i--) {
 int readAliases() {
 FILE *alfi;
 char line[MAXLINELENGTH];
-alfi= openFile("aliases.txt","r");
+#ifdef mainp
 //alfi= fopen("testa.txt","r");
-//alfi= fopen("aliases.txt","r");
+alfi= fopen("aliases.txt","r");
+#else
+alfi= openFile("aliases.txt","r");
+#endif
 while(fgets(line, MAXLINELENGTH, alfi)){
   int rc,ix;
   int aliasn,aliasix;
@@ -137,7 +145,7 @@ for(ix=0; ix<arrayN; ix++) {
     sprintf(aliases,"%s%s", aliases, aliasNames[ix3]);
     ix2++; ix3= cls2aliases[ix2];
   };
-  printf("%s %s\n", array[ix].name, aliases);
+  printf("INFO %s %s\n", array[ix].name, aliases);
 };
 }
 /* Prepare alist for new parameter specifying aliases
@@ -151,7 +159,7 @@ int ix,ix2,ix3,ixalist,ixl=0,ixh=arrayN;
 while(1) {
   int cmprc;
   ix = (ixl+ixh)/2;
-  printf("ixlh:%d %d -> %d\n", ixl, ixh, ix);
+  //printf("INFO ixlh:%d %d -> %d\n", ixl, ixh, ix);
   if((ix==ixl) || (ix==ixh)) {ix=-1; break; }; 
   cmprc= strcmp(array[ix].name, name);
   if(cmprc == 0) {break; 
@@ -166,30 +174,37 @@ if(ix== -1) {
   return;
 };
 ix2= array[ix].value; ix3= cls2aliases[ix2]; ixalist=0;
+//printf("gca cn:%s", array[ix].name);
 while( ix3!= -1) {
-  alist[ixalist]= aliasNames[ix3]; ixalist++;
+  alist[ixalist]= aliasNames[ix3]; 
+  //printf(" an:%d:%d=%s", ixalist, ix3, alist[ixalist]);
+  ixalist++;
   ix2++; ix3= cls2aliases[ix2];
   if(ixalist>MAXALIASES) {
     printf("ERROR: getClassAliases internal error for class %s\n",
       array[ix].name); break;
   };
-};
+}; //printf("\n");
 alist[ixalist]= NULL; ixalist++;
 }
 void printalist(char **alist) {
-char *ap=alist[0];int ix=0;
+char *ap=alist[0];int ix=0; char names[300]="";
+if(alist==NULL) return;
 while(ap != NULL) {
-  printf("%s ", ap); ix++; ap= alist[ix];
+  sprintf(names, "%s%s ", names, ap); ix++; ap= alist[ix];
 };
+printf("INFO aliases:%s\n", names);
 }
-/* g++ -g aliases.c 
+/* g++ -g aliases.c */
+#ifdef mainp
 int main() {
 int rc;
-char *daqlist[MAXALIASES];
+char *daqlist[MAXALIASES]; char cn[30];
 rc= readAliases(); if(rc==-1) return(8);
 //printAliases();
-getClassAliases("CMLL8-S-NOPF-MUOo", daqlist);
-printalist(daqlist);
-getClassAliases("CMLL8-S-NOPF-MUON", daqlist);
-printalist(daqlist);
-} */
+strcpy(cn, "CMLL8-S-NOPF-MUOo"); printf("cn:%s:\n", cn);
+getClassAliases(cn, daqlist); printalist(daqlist);
+strcpy(cn, "CMSL7-B-NOPF-MUON"); printf("cn:%s:\n", cn);
+getClassAliases(cn, daqlist); printalist(daqlist);
+} 
+#endif

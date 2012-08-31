@@ -41,7 +41,7 @@ if(vmesite !=NULL) {
     //strcpy(DAQlogbookDB, "daq:daq@aldaqdb/LOGBOOK");   // was till 12.9.2010
     strcpy(DAQlogbookDB, "trigger:trigger123@10.161.36.8/LOGBOOK");
   } else if(strcmp(vmesite,"SERVER")==0) {
-    strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK");
+    strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_CTP");
   } else {
     strcpy(DAQlogbookDB, "");
   };
@@ -78,7 +78,7 @@ return(rc);
 
 /* called from pydim/server.c */
 //int daqlogbook_update_triggerClassName(unsigned int runN, unsigned char classN, char *value) {
-int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime, char **aliases)
+int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime, const char **aliases)
 {
 int rc;
 #ifdef DAQLOGBOOK

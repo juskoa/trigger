@@ -14,7 +14,7 @@ extern "C" {
 #endif
 #endif
 /*------------------------------------------------------------- infolog()
-level: LOG_INFO, LOG_ERROR, LOG_FATAL  from 22.3.2012: LOG_WARNING, LOG_DEBUG
+severity: LOG_INFO, LOG_ERROR, LOG_FATAL  from 22.3.2012: LOG_WARNING, LOG_DEBUG
 msg: message (no \n at the end!)
 Note:
 SYSTEM: see infoLoggerStandalone.sh: DATE_INFOLOGGER_SYSTEM=TRG
@@ -27,27 +27,33 @@ STREAM: set in ltu_utils Setglobalmode/Setstdalonemode
 In CERNLAB the following should be started to setup environment:
 . /opt/infoLogger/infoLoggerStandalone.sh
 */
-void ctplog(char level, char *msg) {
-if((level==LOG_ERROR) || (level==LOG_FATAL)) {
+void ctplog(char severity, char *msg) {
+if((severity==LOG_ERROR) || (severity==LOG_FATAL)) {
   prtError(msg);
-} else if(level==LOG_INFO) {
+} else if(severity==LOG_INFO) {
   prtLog(msg);
 } else {
   prtLog(msg);
 };
 }
-void infolog_trg(char level, char *msg) {
+
+void my_infoLogS_f(char severity, char *msg) {
+int rc;
+rc= infoLogger_msg_xt(UNDEFINED_STRING,UNDEFINED_INT,UNDEFINED_INT,UNDEFINED_STRING,severity,INFOLOGLEVEL_OPS,msg);
+}
+
+void infolog_trg(char severity, char *msg) {
 #ifndef NOINFOLOGGER
-  infoLogS_f(level, msg);
+  my_infoLogS_f(severity, msg);
 #else
-  ctplog(level, msg);
+  ctplog(severity, msg);
 #endif
 }
-void infolog_trgboth(char level, char *msg) {
+void infolog_trgboth(char severity, char *msg) {
 #ifndef NOINFOLOGGER
-  infoLogS_f(level, msg);
+  my_infoLogS_f(severity, msg);
 #endif
-ctplog(level, msg);
+ctplog(severity, msg);
 }
 void ecs2dcs(char *ecs, char *dcs) {
 if(strcmp(ecs, "SPD")==0) { strcpy(dcs,"SPD");

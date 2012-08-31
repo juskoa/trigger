@@ -9,12 +9,13 @@ Operation:
 - if empty message received ("\n"), quit server
 - process stdin lines:
   quit
-  class runN class1 classname1 ...
+  class runN class1 clg1 clgtime1 classname1 ...
   cmd cmd_system
   where:
   class -keyword
   runN  -run number
   class* -class number ('1' to '50')
+  clg*, clgtime* -timesharing info for this group
   classname* - class name
   cmd   -keyword
   cmd_system -command to be executed through system()
@@ -45,6 +46,7 @@ extern "C" {
 #define MAXALIASES 300
 int readAliases();
 void getClassAliases(char *cname, char **daqlist);
+void printalist(char **daqlist);
 
 typedef struct Tinstver {
   int runn;
@@ -446,6 +448,7 @@ unsigned int runN;
 int ixc;
 char value[256];
 enum Ttokentype t1,t2;
+printf("INFO updateDAQDB...\n");
 ixl=6; t1= nxtoken(line, value, &ixl);   // "class runNumber n1 name n2 name2
 if(t1==tINTNUM) {
   runN= str2int(value);
@@ -462,7 +465,7 @@ infolog_SetStream(insver[ixiv].parname, runN);
 updateConfig(runN, insver[ixiv].parname, insver[ixiv].insname, insver[ixiv].insver);
 del_insver(runN);
 for(ixc=0; ixc<50; ixc++) {
-  unsigned int classN, cg, cgtim; int rcdaq;
+  unsigned int classN, cg, cgtim; int rcdaq,daqlistpn;
   float cgtime;
   char *daqlist[MAXALIASES]; char **daqlistp;
   char msg[300];
@@ -496,23 +499,33 @@ for(ixc=0; ixc<50; ixc++) {
   t2= nxtoken1(line, value, &ixl);   // classname
   if(t2!=tSYMNAME) {rc=2; break;};
   cgtime= cgtim;
-  rcdaq= daqlogbook_update_triggerClassName(runN, classN-1, value, cg, cgtime);
   getClassAliases(value, daqlist); 
+  daqlistpn=0;
   if(daqlist[0]==NULL) {
-    daqlistp=NULL;
+    daqlistp=NULL; 
   } else {
-    daqlistp=daqlist;
+    char *dp;
+    daqlistp=daqlist; dp= daqlist[0];
+    while(dp!=NULL) {
+      daqlistpn++; dp=daqlist[daqlistpn];
+    };
   };
-  sprintf(msg,"DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f) rc:%d",
-    runN, classN-1, value, cg, cgtime, rcdaq);
-  //  runN, classN-1, value, cg, cgtime, rcdaq, daqlistp);
+  rcdaq= daqlogbook_update_triggerClassName(runN, 
+    //classN-1, value, cg, cgtime);
+    classN-1, value, cg, cgtime, (const char **)daqlistp);
+  sprintf(msg,"DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f %d) rc:%d",
+    runN, classN-1, value, cg, cgtime, daqlistpn, rcdaq);
   if(rcdaq!=0) {
     infolog_trg(LOG_ERROR, msg);
     printf("ERROR %s\n", msg);
     rc=4; break;
   } else {
     printf("INFO %s\n", msg);
+    // without the test below, server crashes (or \n received indicating STOP)
+    // ??? Possible reason: cannot print 2 consequtive INFO lines?
+    if(daqlistpn>0) printalist(daqlistp);
   };
+  fflush(stdout);
 };
 infolog_SetStream("",0);
 return(rc);
@@ -575,6 +588,7 @@ while(1) {
     break;
   } else if(strncmp(line,"class ",6)==0) {
     int rcdaq;
+    printf("INFO igDAQLOGBOOK:%d line:%s",ignoreDAQLOGBOOK, line);
     rcdaq= daqlogbook_open();
     if(rcdaq==-1) {
       printf("ERROR DAQlogbook_open failed\n");

@@ -69,4 +69,25 @@ alias miclock="java -jar ~/jmiclock/MiClockGui.jar"
 - master copy in $VMECFDIR/miclok, .../workspace/miclockgui/src/ removed, i.e.
   miclock/readme.txt,...
 -tooltips added (ButtonPanel.java modified)
+28.8.
+HTMLWriter.java modified. Now ~/CNTRRD/htmls/clockinfo changed
+correctly according to operational mode.
+28.8.
+alias miclock (in bin/setenv) now it changes working 
+directory to ~/miclock directory before starting miclock
+31.8.2012
+Installation:
+mkdir -p ~/jmiclock/miclockGui
+cd ~/jmiclock
+ln -s /opt/dip/lib64/libjdim.so libjdim.so
+  ln -s /opt/dip/lib/libjdim.so libjdim.so
+ln -s /opt/dim/linux/dim.jar dim.jar
+
+cd $VMECFDIR/miclock/miclockGui
+cp *.java ~/jmiclock/miclockGui/
+cp ../make.bash ~/jmiclock/
+cd ~/jmiclock ; ./make.bash
+
+Start: an alias is defined in bin/setenv:
+alias miclock='echo -e '\''miclockold  -old, command line version\n'\''; cd ~/jmiclock; java -jar MiClockGui.jar'
 

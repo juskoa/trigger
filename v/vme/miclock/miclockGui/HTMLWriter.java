@@ -60,7 +60,18 @@ public class HTMLWriter implements PropertyChangeListener{
 	 */
 	public void propertyChange(PropertyChangeEvent evt) {
 		// TODO Auto-generated method stub
-		if(evt.getPropertyName().equals("beammode"))
+		//System.out.println("propertyChange:"+evt.getPropertyName()+" "+this.oper);
+		if(evt.getPropertyName().equals("sendOper")) {
+			this.oper = (String) evt.getNewValue();
+		} else if(evt.getPropertyName().equals("clocktrans")) {
+			this.intrans = Integer.parseInt(this.client.getClocktrans());			
+		} else if(evt.getPropertyName().equals("sendClock")) {
+			this.transTo = (String)evt.getNewValue();
+		}
+		if(evt.getPropertyName().equals("beammode") ||
+		  evt.getPropertyName().equals("sendOper") ||
+		  evt.getPropertyName().equals("clocktrans"))
+		//if(true)
 		{
 			if(this.oper != null)
 			{
@@ -68,61 +79,29 @@ public class HTMLWriter implements PropertyChangeListener{
 				String beammode = this.client.getBeammodeString();
 				String miclock = this.client.getMiclock();
 				String ccm;
-				if(this.oper.equals("MANUAL"))
-				{
+				if(this.oper.equals("MANUAL")) {
 					ccm = "<FONT COLOR=\"red\">/man</FONT>";
-				}
-				else
-				{
+				} else {
 					ccm = "";
 				}
-				if(miclock.equals("LOCAL"))
-				{
-					/*
-					 * changed 25.07s.12 from
-					 output = "clock: <big><FONT COLOR=\"green\">" + beammode 
-						+ "</FONT>" + ccm + "<br>";
-					*/
+				if(miclock.equals("LOCAL")) {
 					output = "clock: <big><FONT COLOR=\"green\">" + miclock 
 						+ "</FONT>" + ccm + "<br>"; 
-				}
-				else if(miclock.equals("BEAM1"))
-				{
-					/*
-					 * changed 25.07.12 from
-					 * output = "clock: <big><FONT COLOR=\"blue\">" + beammode 
-						+ "</FONT>" + ccm + "<br>";
-					 */
+				} else if(miclock.equals("BEAM1")) {
 					output = "clock: <big><FONT COLOR=\"blue\">" + miclock 
 						+ "</FONT>" + ccm + "<br>";
-				}
-				else if(miclock.equals("BEAM2"))
-				{
-					/*
-					 * changed 25.07.12 from
-					 * output = "clock: <big><FONT COLOR=\"red\">" + beammode 
-						+ "</FONT>" + ccm + "<br>";
-					 */
+				} else if(miclock.equals("BEAM2")) {
 					output = "clock: <big><FONT COLOR=\"red\">" + miclock 
 						+ "</FONT>" + ccm + "<br>";
-				}
-				else
-				{
-					/*
-					 * changed 25.07.12 from
-					 * output = "clock: <big>" + beammode + "<br>";
-					 */
+				} else {
 					output = "clock: <big>" + miclock + "<br>";
 				}
-				
-				if(this.intrans != 0)
-				{
-					
+				if(this.intrans != 0) {
 					String sec = "" + this.intrans * this.timeslotLength; 
 					output += "(" + this.transTo + " in " + sec + "s)";
 				}
-				
 				output += "</big>";
+		//System.out.println("clockinfo:"+output);
 				try {
 					this.writer = new BufferedWriter(new FileWriter(this.htmlFile));
 					this.writer.write(output);
@@ -134,18 +113,6 @@ public class HTMLWriter implements PropertyChangeListener{
 				}
 				
 			}
-		}
-		else if(evt.getPropertyName().equals("sendOper"))
-		{
-			this.oper = (String) evt.getNewValue();
-		}
-		else if(evt.getPropertyName().equals("clocktrans"))
-		{
-			this.intrans = Integer.parseInt(this.client.getClocktrans());			
-		}
-		else if(evt.getPropertyName().equals("sendClock"))
-		{
-			this.transTo = (String)evt.getNewValue();
 		}
 	}
 

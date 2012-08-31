@@ -201,4 +201,13 @@ to 1,2,...,50. To be tested
 getfsdip.py: FATAL -> ERROR when DIP service incomplete
 24.8.
 aliases.txt implemented (see devdbg/todo-list)
+28.8.
+ctp_proxy/linux/dimc 'sbm req_beammode' comd added -for testing
+in lab. Allows to set required beam mode at any time.
+28.8.
+ctp_InitPartition replaces ctp_LoadPartition (ctp_LoadPartition is doing
+nothing)
+28.8.
+ctp_InitPartition replaces ctp_LoadPartition (ctp_LoadPartition is doing
+nothing)
 

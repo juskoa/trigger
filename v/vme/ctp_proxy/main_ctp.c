@@ -106,17 +106,26 @@ for (i=1;i<=n_params;i++) {
 printf("%s Got action %s with parameters %s\n",obj,action,msg);
    
 if (strcmp(state,"RUNNING") == 0 ) {
-  if (strcmp(action,"LOAD_PARTITION") == 0) {
-    int rc;
+  if((strcmp(action,"LOAD_PARTITION") == 0) || (strcmp(action,"INIT_PARTITION") == 0)) {
+    int rc; char INITLOAD[8];
+    if(strcmp(action,"LOAD_PARTITION") == 0) {
+      strcpy(INITLOAD,"LOAD");
+    } else {
+      strcpy(INITLOAD,"INIT");
+    };
     if(quit>0) {
-      sprintf(msg,"LOAD_PARTITION ignored. ctp_roxy stopping, waiting for the stop of all partitions");
+      sprintf(msg,"%s_PARTITION ignored. ctp_proxy stopping, waiting for the stop of all partitions",INITLOAD);
       infolog_trgboth(LOG_FATAL, msg);
     } else {
       smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-      printf("Loading partition: %s mask: %s run:%d\n", pname,mask,run_number);
-      rc= ctp_LoadPartition(pname,mask,run_number,ACT_CONFIG, errorReason);
+      printf("%s partition: %s mask: %s run:%d\n", INITLOAD,pname,mask,run_number);
+      if(strcmp(INITLOAD,"LOAD")==0) {
+        rc= ctp_LoadPartition(pname,mask,run_number,ACT_CONFIG, errorReason);
+      } else {
+        rc= ctp_InitPartition(pname,mask,run_number,ACT_CONFIG, errorReason);
+      };
       if(rc){
-        printf("ctp_LoadPartition() rc:%d %s\n", rc, errorReason);
+        printf("ctp_%sPartition() rc:%d %s\n", INITLOAD, rc, errorReason);
         smi_set_parER();
         sleep(1); smi_setState("LOAD_FAILURE");
       }else{

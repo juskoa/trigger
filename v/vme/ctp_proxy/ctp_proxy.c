@@ -2282,7 +2282,33 @@ if(quit==1) {
 infolog_SetStream("",0);
 return rc;
 }
+#define MAXMSG 1000
 /*---------------------------------------------ctp_LoadPartition()
+*/
+int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason) {
+int rc=0;
+Tpartition *part;
+char msg[MAXMSG];
+errorReason[0]='\0';
+part=getPartitions(name, AllPartitions); 
+if(part==NULL) { 
+  rc= ctp_InitPartition(name,mask,run_number,ACT_CONFIG, errorReason);
+} else {
+  infolog_SetStream(name,0);
+  part=getPartitions(name, StartedPartitions); 
+  if(part==NULL) { 
+    sprintf(msg, "%s already loaded (earlier by INIT_PARTITION)",name);
+    infolog_trgboth(LOG_INFO, msg); 
+  } else {
+    sprintf(msg, "Attempt to load %s, which is already started",name);
+    infolog_trgboth(LOG_ERROR, msg); 
+    strncpy(errorReason, msg,ERRMSGL); rc=5;
+  };
+  infolog_SetStream("",0);
+};
+return rc;
+}
+/*---------------------------------------------ctp_InitPartition()
 Timeout when loading partition is 20 seconds (including
 the switch of all LTUs global->stdalone).
 
@@ -2325,10 +2351,9 @@ rc: if !=0, errorReason set
 3: applyMask problem 
 4: addPartitions() problem
 */
-int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason) {
+int ctp_InitPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason) {
 int ret=0, rc=0;
 char name2[80];
-#define MAXMSG 1000
 char msg[MAXMSG];
 Tpartition *part;
 /* 
@@ -2339,7 +2364,7 @@ errorReason[0]='\0';
 infolog_SetStream(name,0);
 part=getPartitions(name, AllPartitions); 
 if(part!=NULL) { 
-  sprintf(msg, "Attempt to load %s, which is already loaded or started",name);
+  sprintf(msg, "Attempt to Init %s, which is already loaded or started",name);
   infolog_trgboth(LOG_ERROR, msg); 
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RET2;
 };
@@ -2424,11 +2449,11 @@ if(rc!=0) {
  prepareRunConfig(part,0);
  ret=deletePartitions(part); 
 };
-//printHardware(&HW,"ctp_LoadPartition");
+//printHardware(&HW,"ctp_InitPartition");
 copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
 RET2:
 infolog_SetStream("",0);
-sprintf(msg, "timestamp:ctp_LoadPartition finished %s %d", name, run_number);
+sprintf(msg, "timestamp:ctp_InitPartition finished %s %d", name, run_number);
 prtLog(msg);
 return rc;
 }

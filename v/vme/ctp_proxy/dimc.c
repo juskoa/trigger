@@ -97,6 +97,9 @@ if(inpline[0]=='S') {
 } else if(inpline[0]=='D') {
   rc= dic_cmnd_callback("CTPDIM/DO", &inpline[2], 
     strlen(&inpline[2])+1, callback, 34);
+} else if(strncmp(inpline, "sbm",3)==0) {
+  rc= dic_cmnd_callback("CTPDIM/SETBEAMMODE", &inpline[4], 
+    strlen(&inpline[4])+1, callback, 35);
 } else if(strncmp(inpline, "sm",2)==0) {
   bstinfo= dic_info_service("CTPDIM/MONBST", MONITORED, 0, 
   bstmsg,4*NBST, gotbst, 138, &cntsFailed, 4); 
@@ -151,6 +154,7 @@ S kw           -send 'CTPDIM/STATUS' kw: ALLRARE LTUS CLIENTS LHCSHIFT\n\
 T detname      -send 'CTPDIM/SWTRG' command (HMPID is default detname)\n\
 D other          -send 'CTPDIM/DO other' command\n\
 sm             - subscribe to BST messages  (so: ONCE_ONLY   u: unsubscribe)\n\
+sbm            -send SETBEAMMODE int command\n\
 qq             -quit server, client          q     -quit client\n:");
   fgets(inpline, MAXLILE, stdin);
   if(strcmp(inpline,"q\n")==0) break;

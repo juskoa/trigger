@@ -149,8 +149,9 @@ def main():
           #lout="%s %s %s"%(lout, clsn, part.activeclasses[clsn])
           lout="%s %s %s %s %s"%(lout, clsn, clg,clgtim,clname)
         lout=lout+'\n'
+        print "class RUN# CLS# clg clgtim CLSNAME CLS# clg ..."
         print lout[:-1]
-        io[1].write(lout);
+        io[1].write(lout); #io[1].write("blabla\n");
       if copyit:
         #import shutil
         if cmd[0]=='pcfg':

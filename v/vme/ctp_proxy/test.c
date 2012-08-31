@@ -60,13 +60,13 @@ void entername(char *prompt, char *pname){
   fgets(pname,80,stdin); pname[strlen(pname)-1]='\0';  // get rid of NL
   //strcpy(pname,"database/"); strcat(pname, name);
 }
-int run=6;
+int run=1;
 void printHelp() {
 printf(
 "next runN:%d\n\
-Commands: l(load) s(start) f(stop) p(pause) r(resume) y(sync) N:runN++\n\
-          M(load+start MUON_TRK) S(stop MUON_TRK) R(restart PHYSICS_1)\n\
-          H(load+start HMPID) F(stop HMPID)\n\
+Commands: l(init) s(start) f(stop) p(pause) r(resume) y(sync) N:runN++\n\
+          M(init+start MUON_TRK) S(stop MUON_TRK) R(restart PHYSICS_1)\n\
+          H(init+start HMPID) F(stop HMPID)\n\
           h(HW print) t(print partition)\n\
           A(print All partitions) T(print Started partitions) q(quit)\n\
 :\n", run);
@@ -102,7 +102,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
    case 'M':
         strcpy(pname, "MUON_TRK");
         printf("Loading partition %s mask:\"\" run:9999\n",pname);
-        if(ctp_LoadPartition(pname,"", run, ACT_CONFIG, errorReason) ){
+        if(ctp_InitPartition(pname,"", run, ACT_CONFIG, errorReason) ){
          run++;
          printf("MUON_TRK load partition error:%s. \n", errorReason);
          break;
@@ -120,7 +120,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
         printf("Stoping partition %s\n",pname);
         ctp_StopPartition(pname);
         printf("Loading partition %s mask:\"\" run:%d\n",pname,run);
-        if(ctp_LoadPartition(pname,"", run, ACT_CONFIG, errorReason) ){
+        if(ctp_InitPartition(pname,"", run, ACT_CONFIG, errorReason) ){
          run++;
          printf("%s load partition error:%s. \n", pname, errorReason);
          break;
@@ -131,7 +131,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
    case 'H':
         strcpy(pname, "HMPID");
         printf("Loading partition %s mask:\"\" run:8888\n",pname);
-        ctp_LoadPartition(pname,"",run,ACT_CONFIG, errorReason); run++;
+        ctp_InitPartition(pname,"",run,ACT_CONFIG, errorReason); run++;
         printf("Starting partition %s\n",pname);
         ctp_StartPartition(pname, errorReason);
         break;
@@ -140,7 +140,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
         entername("MODE:", partmode);
         printf("Loading partition %s  enter mask (integer or 0xHHH..):",pname);
         getmask(mask);
-        ctp_LoadPartition(pname,mask,run,ACT_CONFIG, errorReason); run++ ;//return 1;
+        ctp_InitPartition(pname,mask,run,ACT_CONFIG, errorReason); run++ ;//return 1;
         break;
    case 's':
         entername("Partition name:", pname);

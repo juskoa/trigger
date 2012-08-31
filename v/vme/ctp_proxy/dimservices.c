@@ -44,6 +44,7 @@ int TAGcthread=21;
 #define TAGMONCOUNTERS 22
 #define TAGMONBST 23
 int TAGbstthread=24;
+#define TAGsbm 25
 
 #define MAXFNL 44
 #define MAXCIDAT 80
@@ -103,6 +104,7 @@ w32 *CTPCNTS;
 w32 *LUMCNTS; w32 *prevLUMCNTS; float *LUMCNTSrates;
 w32 *buf1;
 int vspbobr=-1;
+int dimsuggestion=0;     // 1..21 to be taken into account
 w32 beammode=0xffffffff;
 w32 bstmsg[NBSTdcsmsg];
 //-----------------------------------end of MONCOUNTERS info data
@@ -452,33 +454,40 @@ while(1) {   //run forever
     for(ix=0; ix<NBSTdcsmsg; ix++) {bstmsg[ix]= seqn;}; seqn++;
     bstmsg[iBeamMode]= beammode;
     l2orbit= vmer32(L2_ORBIT_READ);
-    /*
-    if((nlogbst % (5*60/BSTINTSECS))==0) {    // 1/5min
-      if(bstmsg[iBeamMode]==21) { // alternate between
-        bstmsg[iBeamMode]= 11;    // STABLE BEAMS
-      } else {
-        bstmsg[iBeamMode]= 21;    // NO BEAM
+    if((dimsuggestion>=1) && (dimsuggestion<=21)) {
+      // use suggested CTPDIM/SETBEAMMODE beammode
+      if((w32)dimsuggestion != beammode) {
+        bstmsg[iBeamMode]= dimsuggestion;
       };
-    }*/
-    // alternate among: 2:SETUP -> 14:RAMP DOWN
-    if(nlogbst >= bmchange) {
-      int bm,nxttimeslot;
-      bm= bstmsg[iBeamMode]; 
-      if(bm==14) {
-        bm= MINBEAMMODE;    // SETUP
-      } else {
-        bm= bm+1;
-      }; 
-      bstmsg[iBeamMode]= bm;    // NO BEAM
-      if(bm==7) {   // RAMP
-        nxttimeslot= 2;
-      } else if(bm==9) {   // SQUEEZE
-        nxttimeslot= 4;  // next change in 4*BSTINTSECS secs
-      } else {
-      nxttimeslot= 1; //next change in 10secs
+    } else {
+      /*
+      if((nlogbst % (5*60/BSTINTSECS))==0) {    // 1/5min
+        if(bstmsg[iBeamMode]==21) { // alternate between
+          bstmsg[iBeamMode]= 11;    // STABLE BEAMS
+        } else {
+          bstmsg[iBeamMode]= 21;    // NO BEAM
+        };
+      }*/
+      // alternate among: 2:SETUP -> 14:RAMP DOWN
+      if(nlogbst >= bmchange) {
+        int bm,nxttimeslot;
+        bm= bstmsg[iBeamMode]; 
+        if(bm==14) {
+          bm= MINBEAMMODE;    // SETUP
+        } else {
+          bm= bm+1;
+        }; 
+        bstmsg[iBeamMode]= bm;    // NO BEAM
+        if(bm==7) {   // RAMP
+          nxttimeslot= 2;
+        } else if(bm==9) {   // SQUEEZE
+          nxttimeslot= 4;  // next change in 4*BSTINTSECS secs
+        } else {
+        nxttimeslot= 1; //next change in 10secs
+        };
+        bstmsg[iBeamMode]= bm;
+        bmchange= bmchange + nxttimeslot;
       };
-      bstmsg[iBeamMode]= bm;
-      bmchange= bmchange + nxttimeslot;
     };
   } else {
     //real bst msg:
@@ -949,6 +958,24 @@ if(DBGCMDS) {
 };
 readctpcounters(cid,0xffffffff);
 }
+/*--------------------*/ void SBMcmd(void *tag, void *msgv, int *size)  {  
+/* DIM cmd to forece BEAM MODE (available in pit also, but taken
+into account only without BOBR card!) */
+int rc;
+char *msg= (char *)msgv;
+if(*size>=2) {
+  if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
+} else {
+  printf("SBMcmd: bad cmd length: %d\n", *size); return;
+};
+rc= checkcid();
+if(DBGCMDS) {
+ printf("SBMcmd:tag:%d size:%d msg:%s cid:%d cidat:%s\n", 
+   *(int *)tag, *size, msg, cid, cidat);
+};
+dimsuggestion= atoi(msg);
+printf("SBMcmd: required BEAM MODE:%d\n", dimsuggestion);
+}
 /*--------------------------------------------------------- startruncounter */ 
 //void startruncounter(int *tag, char *msg, int *size)  {  
 void startruncounter(void *tag, void *msgv, int *size)  {  
@@ -1179,6 +1206,8 @@ strcpy(command, MYNAME); strcat(command, "/SWTRG");
 dis_add_cmnd(command,NULL, SWTRGcmd, TAGswtrgcmd);  printf("%s\n", command);
 strcpy(command, MYNAME); strcat(command, "/GETCOUNTERS");
 dis_add_cmnd(command,NULL, getcnts, TAGcthread);  printf("%s\n", command);
+strcpy(command, MYNAME); strcat(command, "/SETBEAMMODE");
+dis_add_cmnd(command,NULL, SBMcmd, TAGsbm);  printf("%s\n", command);
 
 /* RUNXCOUNTERS commands:
 */

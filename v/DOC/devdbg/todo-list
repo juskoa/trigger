@@ -66,6 +66,7 @@ Contents:
     done
 17. infoLogger changed
     done (end of march 2012) -still needs to be checked if ok
+    Todo: see below
 18. parted: modifications required:
     - check descriptor name against class name (also
       cluster name part in class name can be missed out?)
@@ -79,15 +80,15 @@ Contents:
     see CFG/l0/readme +mail from Marian 16.2.2012)
     DESC(cn=CESC-ABCE-NOPF-ALL, L0pr=, cg=0..9, sdg=
 20. 21.08.2012 trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
+    Done: 30.8.2012 peapred for update in the pit
 21. 21.08.2012 INIT_PARTITION command to ctpproxy. 
 22. 21.08.2012 ~tri sw (dcsFES_putData.sh,.. should be kept in VMECFDIR dimcoff?
 23. 21.08.2012 miclock java:
 - tooltips missing
 - bug: on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
   not updated. Cure; quit+start miclock
-24. 23.08.2012 vmeblib/infolog.c new level not set by default
 
-====================================
+==========================================================================
 
 2. 10.2.2012 alidcsvme008 crash (see below)
 -------------------------------------------
@@ -274,8 +275,70 @@ to set the system name
 - infoLogger_setParam_int(INFOLOG_PARAM_FIELD_RUN_NUMBER,12345)
 to set the run number
 
+Another mail from 24.8.2012:
+There is no way to specify a default level.
+The level should be assigned for each message
+by using the function infoLogger_msg_xt().
+
+Messages for the shifter should have level: INFOLOGLEVEL_OPS
+Messages which may help oncalls should have level: INFOLOGLEVEL_DAQ
+Messages intended only for experts should have level: INFOLOGLEVEL_DEV
+You are free to decide in which category they belong (and it's fine
+with me if you want to all put them in OPS as a first quick fix).
+Ideally, one should just try to be clear an not too verbose in the OPS level
+so that shifters are not confused.
+i.e:
+  infoLogS_f(severity, msg);
+//infoLogger_msg_xt(__FILE__,__LINE__,UNDEFINED_INT,UNDEFINED_STRING,severity,INFOLOGLEVEL_OPS,msg);
+-done 31.8.2012, still error reporting needs to be revisited 
+ -see mail from 31.8. + infolog_trg2(...
+
+From: Sylvain Chapeland <sylvain.chapeland@cern.ch>
+To: Anton.Jusko@cern.ch
+Subject: Re: infoLogger problem
+
+Hello Anton,
+
+Indeed, if calling a wrapper function, errsource and errline should be left
+UNDEFINED_STRING and UNDEFINED_INT.
+
+It would be very useful to assign error codes, e.g. to get statistics on
+number of errors or document
+what to do about some errors (e.g. wiki). I have just added the code range
+32000-32999 to use by trigger system,
+so you are free to assign codes as you wish in this range. Actually, this is
+not limited to errors only,
+you can also assign codes to non-error messages, e.g. to spot/count some
+specific situations without having to parse the messages).
+The 'severity' field says if it is an error or not.
+When you have done, could you please provide an array with a short
+description of each error code, so that I can
+add it to infoLogger_errCodes.h ?
+with the format as:
+
+  {1000,"an error occurred in a logbook API call",NULL},
+  {1900,"Not enough memory",NULL},
+  {1901,"Error processing a DIM callback or command",NULL},
+  {1902,"Internal inconsistency",NULL},
+
+(last parameter can be a link to a web page with doc about the error code -
+those of DAQ is always null because there
+is a direct hook in our wiki)
+
+While you are reviewing log messages, I have also the following suggestion:
+'facility' field is currently different for each LTU (LTU_HMPID, LTU_SPD,
+...)
+but it could be the same everywhere (LTU), because there is already the
+'detector' field which is set correctly for each of them (HMP, SPD, ...).
+The facility is usually the same when the source code does not change. (but
+you may keep the existing LTU_SPD... facilities if you prefer,
+this remark was just for consistency with the other packages)
+
+Let me know if you have any question about the log api, or if you need other
+functions/interface for your purpose.
+
 cheers,
-sylvain
+Sylvain
 
 20. trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
 -------------------------------------------------------------------
@@ -307,8 +370,15 @@ Todo:
    if alias[es] not found for given class
    Done: 24.8.
 - modify vmeblib/daqlogbook.c (adding char **aliases parameter to 
-  wrapping function)
-- test in lab with new daq logbook interface
+  wrapping function) Done.
+- test in lab with new daq logbook interface:
+  10:vmeblib> make
+     vme/pydim> make
+     startClients.bash ctpproxy stop
+     startClients.bash pydim stop/start
+     startClients.bash ctpproxy start
+  altri1: ctpproxy.sh starttest
+  Done: 30.8.2012, prepared for update in the pit
 
 21. INIT_PARTITION command to ctpproxy. 
 --------------------------------------
@@ -319,16 +389,30 @@ Todo:
 
 Notes: 2nd update in daqlogbook may finish with error (i.e. to be ignored)
 Modifications:
-- modify main_ctp.c (Done:24.8), ctp_proxy.c:
-- icfg: modified 'pcfg' DIM cmd to be issued- cannot be the same way as later 
+- modify main_ctp.c for "INIT_PARTI..." cmd  (Done:24.8)
+- modify ctp_proxy.c:
+  finding triggerring detectors list in ctp_proxy.c: should be abandoned?
+  - updateDAQClusters() called only from: ctp_LoadPArtition
+    (see mail to Franco from 27.8.2012)...
+!!! They prefer WAY1 _> i.e. just do the same actions in time of INIT
+    and do nothing in time of LOAD.
+    ctp_proxy.c: modified according to this suggestion 28.8.2012
+    30.8.2012: main_ctp.c + ctp_proxy.c:
+    - execute INIT_PARTITION in one case (INIT or LOAD) only, never
+      in both.
+
+Following (WAY2) abandoned 29.8.2012:
+  icfg: modified 'pcfg' DIM cmd to be issued- cannot be the same way as later 
   in LOAD_PARITION: we do not know yet allocation of classes.
   Format:
   "icfg pname runnumber act_config"
-
-- leave it propageted by stdout to .py phase, where validation is
+- modify pydim/server.c
+  leave it propageted by stdout to .py phase, where validation is
   done like in validate.py. Results can be passed back to .c
   through stdin (like 'class ' command) where they can be used for DAQ update
-
 - very likely, the update of triggering inputs should be then removed from
   LOAD_PARTITION phase.
   
+24. 23.08.2012 vmeblib/infolog.c new level not set by default
+-------------------------------------------------------------
+31.8.2012: 
