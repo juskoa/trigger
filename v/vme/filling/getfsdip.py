@@ -37,8 +37,12 @@ def main(action):
     dipout= string.split("fs fs_name")
   #print dipout
   if len(dipout) != 5:  # "fs fs_name FillNumber N_fromdip N_written
-   mylog.infolog("DIP service not ready", level='w')
-   rc=1 
+    if len(dipout) == 2:  # "fs badtime"
+      if dipout[0]=="fs" and dipout[1]=="badtime":  # "fs badtime"
+        rc=3
+    else:
+      mylog.infolog("DIP service not ready", level='w')
+      rc=1 
   else:
     bcdip= int(dipout[3])
     bcwritten= int(dipout[4])
@@ -48,8 +52,12 @@ def main(action):
        rc=2
     else:
       if bcwritten != 2*bcdip:
-        mylog.infolog("Incomplete data from DIP:exp:%d got:%d"%(2*bcdip, bcwritten), level='e')
+        mylog.infolog("Automatic BCmasks not correct, incorrect data will be taken in PHYSICS runs (Incomplete data from DIP:exp:%d got:%d)"%(2*bcdip, bcwritten), level='e')
         rc=2
+  # rc:0 ok (DIP info in file to be processed)
+  #    1 DIP info not available
+  #    2 incomplete data from DIP
+  #    3 attempt to get DIP data in bad time (valid only from PREAPRE RAMP!)
   if rc==0:
     schname= dipout[1]
     #cmd= os.path.join(os.environ["VMECFDIR"], "filling/lhc2ctp.py")
@@ -124,6 +132,7 @@ getfsdip.py auto
 rc:
  1: cannot get DIP data
  2: Incomplete data published over DIP
+ 3: DIP not available because beam mode < PREPARE RAMP
 10: test i.e. CS and masks not changed.
 99: bad action, this message
 """

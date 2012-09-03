@@ -240,8 +240,13 @@ if(slen > 0) {
     //printf("INFO line:%s slen:%d\n",&cs_string[ix], slen);
     if(rc==0) break;   // EOF reached
     strncpy(line, &cs_string[ix], slen); line[slen]='\0'; ix= ix+rc;
+    if(line[0]=='\n') continue;
+    if(line[0]=='#') continue;
     abce= strpbrk(line, "ABCE");
-    if(abce==NULL) { rc=-2; break; };   // bad format
+    if(abce==NULL) { 
+      printf("ERROR bad line in cs:len:%d:%s\n", slen, line);
+      continue;
+    };
     rc= sscanf(line,"%d", &bc);
     if(rc<1) { rc=-3; break; };   // bad format
     if(*abce == 'A') {storebcbit(bc, beamA); ACBEI[0]++;};

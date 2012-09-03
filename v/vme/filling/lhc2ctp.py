@@ -953,6 +953,9 @@ class FilScheme:
     self.arch['B']= self.bx['B']
     om= om+"\n" + self.print1('B')
     om= om+"\n" + "bcmB" +" "+ self.eN(self.bx['B'])
+    om= om+"""
+bcmGA 224H121L3219H
+bcmGC 2897H121L546H"""
     if self.mainsat=="never this part of the code":
       self.arch['A']= self.bx['A']
       om= om+"\n" + self.print1('A')

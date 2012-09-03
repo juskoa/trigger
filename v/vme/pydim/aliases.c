@@ -71,6 +71,19 @@ for(i=n-2;i>=0;i--) {
   if(nexch==0) break;
 }
 }
+void remspaces(char *ch) {
+char *p1 = ch;
+char *p2 = ch;
+p1 = ch;
+while(*p1 != 0) {
+  //if(ispunct(*p1) || isspace(*p1)) {
+  if(*p1==' ') {
+    ++p1;
+  }
+  else *p2++ = *p1++; 
+};
+*p2 = 0; 
+};
 
 int readAliases() {
 FILE *alfi;
@@ -81,12 +94,19 @@ alfi= fopen("aliases.txt","r");
 #else
 alfi= openFile("aliases.txt","r");
 #endif
+arrayN=0;
 while(fgets(line, MAXLINELENGTH, alfi)){
   int rc,ix;
   int aliasn,aliasix;
   char clsname[MAXNAMELEN];
   char apart[MAXLINELENGTH];
   char aliases[MAXALIASES][MAXNAMELEN];
+  for(ix=0; ix<int(strlen(line)); ix++) {
+    if(line[ix]==' ') {
+     remspaces(&line[ix+1]);
+     break;
+    };
+  };
   rc= sscanf(line, "%s %s", clsname, apart);
   //printf("%d:%s:%s:\n", rc,clsname, apart);
   if(rc!=2) {
