@@ -2225,8 +2225,8 @@ int ctp_StopPartition(char *name){
  };
  // started partition: delete in All/Started + reload HW
  run_number= part->run_number;
- setALLDAQBusy();
- usleep(100);   /* to be sure CTP is quiet when reading counters at the EOR */
+ setALLDAQBusy();  /* 100-> 150 4.9.2012  L2time is 105.2us */
+ usleep(150);   /* to be sure CTP is quiet when reading counters at the EOR */
  xcountersStop(run_number);
  if(part->nclassgroups  > 0 ) {
    ret= stopTimer(part,0xfffffffe);  // do not read counters
