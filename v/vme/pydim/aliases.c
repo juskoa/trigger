@@ -13,14 +13,14 @@
 #define AVAPC 5
 #define MAXLINELENGTH 200
 
-int aliasNamesN=0;   // number of items in aliasNames
+int aliasNamesN;   // number of items in aliasNames
 char aliasNames[MAXALIASES][MAXNAMELEN];
 // aliases lists, each list finished by -1. Start of the list
 // is pointed by array[].value
-int cls2aliasesN=0;   // number of items in cls2aliases
+int cls2aliasesN;   // number of items in cls2aliases
 int cls2aliases[MAXITEMS*(AVAPC+1)];   
 
-int arrayN=0;   // number of items in array
+int arrayN;   // number of items in array
 typedef struct item {
   char name[MAXNAMELEN];
   int value;   // 0.. points to cls2aliases
@@ -94,7 +94,7 @@ alfi= fopen("aliases.txt","r");
 #else
 alfi= openFile("aliases.txt","r");
 #endif
-arrayN=0;
+arrayN=0; aliasNamesN=0; cls2aliasesN=0;
 while(fgets(line, MAXLINELENGTH, alfi)){
   int rc,ix;
   int aliasn,aliasix;
