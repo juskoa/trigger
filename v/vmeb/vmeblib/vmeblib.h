@@ -1,6 +1,7 @@
 #include "vmewrapdefs.h"
 //prtError.c
 void prtError(char *msg);
+void prtWarning(char *msg);
 void prtLog(char *msg);
 void intError(char *msg);
 void printenvironment();

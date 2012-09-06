@@ -1390,7 +1390,7 @@ void setALLDAQBusy(){
  } else {
    cshmSetGlobFlag(FLGignoreGCALIB);
    DAQBUSY.activebusys=vmer32(BUSY_DAQBUSY)&0x3f;
-   vmew32(BUSY_DAQBUSY,0x3f); usleep(100);  //the must (L2 pipeline flush)
+   vmew32(BUSY_DAQBUSY,0x3f); usleep(110);  //the must (L2 pipeline flush)
    DAQBUSY.global=1;
    if(DBGbusy) printf("setALLDAQBusy: old BUSY_DAQBUSY:0x%x \n",DAQBUSY.activebusys);
  };
@@ -1415,7 +1415,7 @@ clustbusy=getBusyMaskPartition(part);
    intError("setPartDAQBusy: called when GLOBAL busy ON. No acion taken");
  } else {
    newbusy=clustbusy+DAQBUSY.activebusys;
-   vmew32(BUSY_DAQBUSY,newbusy);
+   vmew32(BUSY_DAQBUSY,newbusy); usleep(110);  //the must (L2 pipeline flush)
    DAQBUSY.activebusys=newbusy;
    if(DBGbusy) printf("setPartDAQBusy: BUSY_DAQBUSY=0x%x \n",newbusy); 
  };

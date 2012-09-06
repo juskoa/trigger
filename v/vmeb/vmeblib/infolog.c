@@ -33,7 +33,7 @@ if((severity==LOG_ERROR) || (severity==LOG_FATAL)) {
 } else if(severity==LOG_INFO) {
   prtLog(msg);
 } else {
-  prtLog(msg);
+  prtWarning(msg);
 };
 }
 
