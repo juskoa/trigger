@@ -210,4 +210,7 @@ nothing)
 28.8.
 ctp_InitPartition replaces ctp_LoadPartition (ctp_LoadPartition is doing
 nothing)
+6.9.
+\ in .partition file means: continue with next line (no space added just
+next line is added to the current line)
 

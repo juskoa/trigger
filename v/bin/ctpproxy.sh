@@ -37,9 +37,9 @@ if [ -z $pid ] ;then
     startproxy
   elif [ "$1" = "starttest" ] ;then
     cd $VMEWORKDIR
-#set args NODAQLOGBOOK NODAQRO
+#set args DAQLOGBOOK NODAQRO
     cat - <<-EOF >.gdbinit
-set args DAQLOGBOOK NODAQRO
+set args NODAQLOGBOOK NODAQRO
 EOF
     gdb $VMECFDIR/ctp_proxy/linux/test
   elif [ $# -gt 0 ] ;then

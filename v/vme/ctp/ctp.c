@@ -705,6 +705,8 @@ if(clas==0) {
     printf("group: 0..50 allowed (0: allowed but should not be used)\n");
   } else {
     w32 adr;
+    if(group==0) {
+      printf("Warning: group 0 allowed but should not be used!\n");
     adr= L0_SDSCG + clas*4;
     vmew32(adr, group);
   };

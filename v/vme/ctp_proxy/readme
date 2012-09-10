@@ -80,7 +80,7 @@ The .pcfg file is text file consisting of the RBIF, BCMASK, CLA, FO lines:
 RBIF line:
 RBIF random1:random2:bcdown1:bcdown2:l0fun1:l0fun2
 
-BCMASK lines: 
+BCMASK line: 
 1 line defines 4/12 BCmasks (the usage of BCmasks by class is indicated
 by 4 bits in l0vetos word). 3564 hexadecimal characters (capital) follow
 BCMASK keyword. Length: 10692: 12 BCmasks (>firmAC version)
@@ -91,8 +91,14 @@ BC masks are laoded in ctp_proxy statically -i.e. if used, 4 BCmasks
 are reloaded according to BCMASK line, without considering, if
 other active partitions are using them!
 Actually, ctp_proxy should:
-- check if it is the same (reading it back before load)
+- check if it is the same (reading it back before load), issue error
+  when attempt to used different content
 - just load if not yet used
+
+sdg lines:
+synchronous downscaling groups definitions. Format:
+SDG identifier1 0xhex1   -random downscaling
+SDG identifier2 0xhex2   -random downscaling
 
 CLA lines:
 CLA.xx l0inputs l0inverted l0vetos l0scaler l1def l1inverted l2def
@@ -144,6 +150,11 @@ bit17 (0x10000) is CLASSMASK.
             >=AC:
 bit31 (0x80000000)
 
+l0scaler:
+0xhexa  -in case of busy or rnd downscaling, starting with 0x 
+         (0x0 no downscaling)
+ident   -in case of synchronous downscaling (not starting with 0x)
+-------------------------
 l1def, 
 31:    C      RoI flag
 30..28 C      Cluster

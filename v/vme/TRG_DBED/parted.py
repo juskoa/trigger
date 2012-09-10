@@ -119,10 +119,19 @@ def PrintWarning(fstr):
 def PrintInfo(fstr):
   print "Info:",fstr
 def redline(inf):                 # ignore empty lines
+  cltds=""
   while(1):
-    cltds= inf.readline()
+    cl= inf.readline()
+    print "redline:",cl
+    if cl=='\n': continue    
     if len(cltds)>0 and cltds[0]=='#':continue
-    if cltds!='\n': break    
+    if cl[-2:]=='\\\n': 
+      cltds= cltds + cl[:-2]
+      continue
+    else:
+      cltds= cltds + cl
+      break
+  print "redline rc:",cltds
   return cltds
 def Parse1(clstring):
   """ 
