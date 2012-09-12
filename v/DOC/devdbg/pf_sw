@@ -334,3 +334,27 @@ L1.1:800fffc1 c57bfff aa
 A:th1/2:1 63 dT:255 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0xaa 0 0 
 L2.1:5f9fc1 317bfff faa
 A:th1/2:1 63 dT:249 del/f:5/0 B:th1/2:63 63 dT:123 del/f:49/0 P:0xaa 15 0 
+-> line in TRIGGER.PFS:
+       L0.1                   L1.1                        L2.1                      L0  L1       L2
+tpc    0xf7f80 0x3dfbe 0x1caa 0x800f7fc1 0xc57bfff 0x1daa 0x5f9fc1 0x317bfff 0x1faa 0xc 0x10100c 0x6d00c
+tpc4   0xf7f80 0x3dfbe 0x1caa 0x800fffc1 0xc57bfff 0xaa   0x5f9fc1 0x317bfff 0xfaa  0xc 0x10100c 0x6d00c
+tpcIR1 0xf7f80 0x3dfbe 0x1c02 0x800f7fc1 0xc57bfff 0x1d02 0x5f9fc1 0x317bfff 0x1f02 0xa 0x10100a 0x6d00a
+Notes:
+1. last 4 bits of last 3 words:INTa LUT 0xa=IR1  0xc=IR2
+   i.e. tpcIR1 is initiated by IR1 (others by IR2)
+
+mess: (reverse decoding should be done by some sw, like ReadPF() ):
+2.        tpc vs    tpc4
+L1_PFBLOCK_A
+          800f7fc1  800fffc1
+L1_PFLUT  0x1daa    0xaa
+          1d aa     0 aa  sdA:29 vs 0, i.e. tpc: 30bcs tpc4: 1bcs (no downscale)
+          (f7+1)*1d=    ff*0=
+          7192      ?
+L2_PFLUT  0x1faa    0xfaa
+          1f aa     f aa  sdA:31 vs 15
+          (f7+1)*1f (ff+1)*f
+          =         =
+          7688      3840
+
+

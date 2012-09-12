@@ -28,8 +28,8 @@ elif [ "$1" == 'start' ] ;then    #----------------------- start
   logdir=$VMEWORKDIR/WORK
   cd $logdir
   savelog ttcmidims
-  cd $VMECFDIR/ttcmidaemons
-  nohup linux/ttcmidims >$logdir/ttcmidims.log &
+  cd $VMEWORKDIR
+  nohup $VMECFDIR/ttcmidaemons/linux/ttcmidims >$logdir/ttcmidims.log &
   #nohup linux/ttcmidims $no1min >$logdir/ttcmidims.log &
   cat - <<-EOF 
   ttcmidim server ($VMECFDIR/ttcmidaemons/linux/ttcmidims) started. 
