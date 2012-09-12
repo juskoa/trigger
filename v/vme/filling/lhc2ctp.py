@@ -227,7 +227,7 @@ class LHCinfo:
     """ rc: err message or ""
 lines in fn:
 Old scheme (.sch), before 19.9.2010: ring_1/2 in ll[3]
- inj  3  2  ring_1     2001     1250   4
+ inj  3  2  ring_1     2001     1250   4             [0]     [1]
             Y          Y         Y     Y             Y       Y
             beam       bucFirst buc    repetitions SPSspace PStrains
   0   1  2   3         4         5     6            7        8
@@ -263,8 +263,11 @@ Goal: prepare:
       if line[0] == "#": continue
       ll= string.split(line)
       if len(ll)<7: continue
-      if ll[3][:5]=='ring_':   
+      if ll[3][:5]=='ring_':    #old way
         ixring=3; ixbeam=3; ixbucFirst=4; ixbuc=5; ixrepetitions=6 
+        if len(ll)==7:          # SPS spacing + trains/SPS batch not given
+           ll.append("0")       # any?
+           ll.append("1")       # just 1 single bunch in 1 train
         ixSPSspace= 7; ixPStrains=8
       elif ll[2][:5]=='ring_':  #new
         ixring=2; ixbeam=2; ixbucFirst=3; ixbuc=4; ixrepetitions=5 
