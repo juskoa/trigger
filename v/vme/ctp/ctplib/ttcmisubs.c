@@ -168,6 +168,23 @@ int ps,dbps,rcdl; char daqlog[200];
 return(rcdl);
 }
 
+/*------------------------------------------------------------readclockshift()
+*/
+int readclockshift(char *mem, int maxlen) {
+FILE *cf; int sp;
+char fname[200]; char *environ;
+environ= getenv("VMEWORKDIR");
+sprintf(fname,"%s/CFG/clockshift", environ);
+cf= openFile(fname,"r");
+if(cf != NULL) {
+  sp=fread((void *)mem, 1, maxlen-1, cf); 
+  mem[sp]='\0';
+  fclose(cf); 
+} else {
+  sp=0;
+};
+return(sp);
+}
 void setCordeshift(int rcdl) {
 /* rcdl: 0: daq logbook opened
 */
@@ -179,7 +196,8 @@ char dbhns[MAXdbhns]; int ldbhns;
   pol= i2cread_delay(BC_DELAY25_BCMAIN); halfns= pol-0x140;
   //printf("%24s 0x%x:0x%x=%d halfsns \n\n", "BC_DELAY25_BCMAIN", BC_DELAY25_BCMAIN, pol, halfns);
   cordeval= corde_get(CORDE_DELREG);
-  ldbhns= readdbfile("clockshift", dbhns, MAXdbhns);
+  //ldbhns= readdbfile("clockshift", dbhns, MAXdbhns);
+  ldbhns= readclockshift(dbhns, MAXdbhns);
   if(ldbhns>2) {   // shortest: '0 0'
     int its;
     //dbhalfns= atoi(dbhns);
@@ -198,7 +216,9 @@ char dbhns[MAXdbhns]; int ldbhns;
       };
     };
   } else {
-    infolog_trg(LOG_ERROR, "Bad value in $dbctp/clockshift file");
+    char emsg[300];
+    sprintf(emsg, "Bad value in $dbctp/clockshift file:%s:", dbhns);
+    infolog_trgboth(LOG_ERROR, emsg);
   };
 }
 

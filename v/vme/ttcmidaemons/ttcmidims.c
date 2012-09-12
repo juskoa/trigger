@@ -28,6 +28,7 @@
 #define CORDE_SETtag 5 
 #define QPLLtag 6 
 #define DLL_RESYNCtag 7 
+int readclockshift(char *mem, int maxlen);
 int MICLOCKid;
 int SHIFTid,QPLLid;
 int MICLOCK_TRANSITIONid;
@@ -153,6 +154,10 @@ int rc;
 char buffer[50];
 printf("setting ttcmi clock:%d\n", tag);
 if(micratepresent()==0) {
+#define MAXdbhns 40
+  char dbhns[MAXdbhns]; int ldbhns;
+  ldbhns= readclockshift(dbhns, MAXdbhns);
+  printf("mi crate not present. readclockshift:%d:%s:\n", ldbhns,dbhns);
   if(tag==1) {bcmvme=3; omvme=0; 
   } else if(tag==2) {bcmvme=2; omvme=1; 
   } else if(tag==3) {bcmvme=1; omvme=2; 
@@ -442,7 +447,7 @@ if(micratepresent()) {
     printf("vmxopen TTCMI vme:%d\n", rc); exit(8);
   };
 };
-
+printenvironment();
 printf("DIM server:%s\n",MYNAME);
 dis_add_error_handler(error_handler);
 dis_add_exit_handler(exit_handler);
