@@ -711,7 +711,9 @@ if(clas==0) {
     vmew32(adr, group);
   };
 };
+};
 }
+
 /*---------------------------------------------------------------- busy-tests */
 /*FGROUP busy
 Set BC_DELAY from 0..31 with step 1, wait 1 sec between
