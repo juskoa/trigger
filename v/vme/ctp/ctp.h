@@ -588,16 +588,56 @@ Resets PLL clock on all boards
 void resetPLLS();
 
 /* PF in pfp.c: */
-/*FGROUP SimpleTests 
+/*FGROUP PF 
+Read the recent PF setting
+circuit: 1..5. 0: read all 5 circuits
 */
-void ReadPF();
-/*FGROUP SimpleTests 
+void ReadPF(int circuit);
+/*FGROUP PF 
+Read the recent PF setting from hw and print string appropriate
+for TRIGGER.PFS file.
+circuit: 1..5
+*/
+void ReadPF2str(int circuit);
+/*FGROUP PF 
+Decode the string defining PF in TRIGGER.PFS 
+pfstr: PF definition in format given in TRIGGER.PFS, i.e. 12 0xN in one line:
+     L0_PFBLOCK_A L0_PFBLOCK_B L0_PFLUT
+     L1_PFBLOCK_A L1_PFBLOCK_B L1_PFLUT
+     L2_PFBLOCK_A L2_PFBLOCK_B L2_PFLUT
+     L0_PF_COMMON L1_PF_COMMON L2_PF_COMMON
+or 1-character string 1..4 (enclosed in double quotation marks):
+1 -PF definition taken from PF1 circuit from CTP L0/1/2 boards
+
+Output:
+PF_COMMON
+intA/B    IR1 (0xa) or IR2(0xc)
+                             L0       L1           L2
+delLT     Delayed INT LUT  ignored
+delSD     signal delay     ignored    max.512    4095
+
+PF_BLOCK+PFLUT
+th1/2     0..63
+dT        0->257BCs, n->n+1 BCs. Protection interval width
+del       On L0: del and f ALWAYS IGNORED
+          f=0: Protection end: (del+ PFinterval) before T0
+          f=1: del ignored. 
+               Protection end: PFinterval before T0
+f         Delay flag, see above
+dsf       Downscale factor 0..31 in hw shown, corresponding to 1..32 BCs
+PLUT      ?
+*/
+void DecodePF(char *pfstr);
+/*FGROUP PF 
+Set the PFCOMMON word
 */
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT);
-/*FGROUP SimpleTests 
+/*FGROUP PF 
+Set the PFBLOCK A and B and PFLUT
+dTa and dTb should be in BC
 */
 void WritePF(w32 icircuit,w32 THa1,w32 THa2,w32 THb1,w32 THb2,int dTa,int dTb,w32 P_signal);
-/*FGROUP SimpleTests 
+/*FGROUP PF 
 Set PF circuit for INT1 only (for INT1/2 combinations, another
 function should be prepared). Note that INT1 should be defined in Shared Resources!
 Examples of INT1 definition: it can be BC1,BC2,RND1,RND2 or any logical combination of 
@@ -611,9 +651,16 @@ bcs: 1..4096 - protected interval in BCs.
 For example: 10mus = 400 BC.
 
 threshold: 0..63 - number of allowed interactions in protected interval 
+For PF protection activation N(dT) > Threshold (interaction in question included in N)
+
 For example: 0: kill this event  1: only this event   2: max. 1 additional event
 */
 void WritePFuser(w32 icircuit, w32 threshold, w32 bcs);
-/*FGROUP SimpleTests
+/*FGROUP PF
+Setting for PF on all trigger levels. 
+Ncoll - number of collisions
+dT1 - protection time interval before interaction
+dT2 - protection time interval after interactions
+ipf - index to pf {1,2,3,4} for all boards where pf is set
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 icircuit,w32 plut);
