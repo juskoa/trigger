@@ -158,7 +158,7 @@ ident   -in case of synchronous downscaling (not starting with 0x)
 l1def, 
 31:    C      RoI flag
 30..28 C      Cluster
-27..24 F      P/F
+27..24 F      P/F PF4..1
 23..0  iiiiii L1 inputs
 See: ctp_classl1.doc
 
@@ -167,7 +167,7 @@ l1inverted (L1inverted: allowed only for classes 45-50 also in >AC!)
 
 l2def
 30..28 C   Cluster
-27..24 F   P/F
+27..24 F   P/F PF4..1
 23..12 III inverted L2 inputs
 12..0  iii L2 inputs
 

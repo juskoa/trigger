@@ -215,3 +215,9 @@ nothing)
 next line is added to the current line)
 13.9.2012
 ctp.[ch] ctplib/pfp.c -pfp improvements. See DOC/devdbg/pf_sw for more
+18.9.
+ctp/pfsimL0.py 
+Simulation of PF (using BC1/2)  on L0 board in vme/ctp/pfsimL0.py
+19.9.
+parted.py -bug fixed for -PF_name- in class names.
+

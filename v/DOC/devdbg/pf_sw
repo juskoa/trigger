@@ -140,7 +140,7 @@ BCMASK, BCMASKuse used in (similar actions for PF):
                                              copycheckPF() called
     load2HW
       loadBCmasks -load all masks (even if only 1 used)
-                                             WritePFuser (defined in pfp.c)
+                                      setPF[c]      (defined in pfp.c)
 12.10. todo
 pydimserver.py: miclock should not be called in lab
 ok 12.10.2011 19:49:25: ***  Error:
@@ -360,6 +360,10 @@ PFLUT
 P     7.. 0
 sdA  12.. 8   scale down factor 0-31
 sdB  17..13   N+1, i.e period= (sdA+1)*widthA
+
+Note:
+If Lx_PFBLOCK_A/B = Lx_PFLUT = 0 (i.e. 0 0 0), PF veto
+is not activated for classes using this PF.
 
 PF_COMMON
 intA   3.. 0

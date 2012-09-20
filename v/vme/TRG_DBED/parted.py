@@ -122,7 +122,7 @@ def redline(inf):                 # ignore empty lines
   cltds=""
   while(1):
     cl= inf.readline()
-    print "redline:",cl
+    #print "redline:",cl[:-1]
     if cl=='\n': continue    
     if len(cltds)>0 and cltds[0]=='#':continue
     if cl[-2:]=='\\\n': 
@@ -131,7 +131,7 @@ def redline(inf):                 # ignore empty lines
     else:
       cltds= cltds + cl
       break
-  print "redline rc:",cltds
+  #print "redline rc:",cltds[:-1]
   return cltds
 def Parse1(clstring):
   """ 
@@ -813,6 +813,9 @@ class TrgSHR_BCM(TrgSHR):
     inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     return self.BCMPFitems[inx][1]
   def isPFDefined(self,level):
+    """ "0 0 0" ->
+    PF on given level not defined (i.e. not to be used as veto in class def)
+    """
     pfd= string.split(self.getDefinition())
     if len(pfd)!=12:
       IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
@@ -1266,10 +1269,10 @@ class TrgClass:
             PrintError("Undefined PF%s in:"%bcmix,clstring)
             self.trde= None
             break
-          self.clsnamepart[1]= x
+          self.clsnamepart[2]= x
           continue
         else:
-          PrintError("Bad PF%s in:"%bcmix,clstring)
+          PrintError("Bad PF%s (PF1..4 expected) in:"%bcmix,clstring)
           self.trde= None
           break
       if k=='all':
@@ -1330,6 +1333,7 @@ class TrgClass:
       self.clsnamepart=[p0, "ABCE", "NOPF", cluspart]
     else:
       self.clsname= self.buildname()
+    print("updateClassName:", self.clsname, self.clsnamepart)
   def buildname(self):
       return "%s-%s-%s-%s"%(self.clsnamepart[0], self.clsnamepart[1],\
         self.clsnamepart[2], self.clsnamepart[3])
@@ -2308,8 +2312,8 @@ class TrgPartition:
                 "Undefined %s referenced by class %s, reference discarded in .pcfg file\n"%\
                 (SHRRSRCS[ix4+PFS_START].name, cls.getclsname())
               continue   
-            #print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
-            # check if common definition agrees:
+            print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
+            # check if common definition agrees (should be improved, can happen not all PFs used):
             comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
             if pf_comdef==None:
               pf_comdef= comdef
@@ -2902,7 +2906,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
         sr= findSHR(string.split(cltds)[0])
-        if sr!=None: sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
+        if sr!=None: 
+          sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
         else:
           PrintError("bad shared resource line:"+cltds, self)
           #print "selfloaderrors:",self.loaderrors
@@ -2914,7 +2919,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           PrintWarning("Empty line  in Clusters: section ignored")
           continue
           #clusname=str(len(self.clusters))   # "0, 1... ", read from file
-        cltds= redline(inf)
+        cltds= redline(inf)                   # classes line
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
       else:                 # Version 0: 2 lines per cluster (no name stored)
@@ -2964,7 +2969,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         else:
           # test for L0pr,BCM1/2/3/4, all, rare:
           PrintError(clstring+" -unknown Trigger descriptor", self)
-      clltus= redline(inf)
+      clltus= redline(inf)         # LTUs line
       for name in string.split(clltus):   #-------------LTUS
         ltu= TDLTUS.findLTU(name)
         #print "loadfile:",name, ltu.name
