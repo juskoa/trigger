@@ -83,8 +83,15 @@ in earlier lines of VALID.CTPINPUTS file.
 TRIGGER.PFS   
 The symbolic names for possible settings of P/F protection circuits:
 
-pf1 tha1 tha2 thb1 thb2 resolution interval
-pf2 ...
+pfname1 L0_PFBLOCK_A L0_PFBLOCK_B L0_PFLUT
+     L1_PFBLOCK_A L1_PFBLOCK_B L1_PFLUT
+     L2_PFBLOCK_A L2_PFBLOCK_B L2_PFLUT
+     L0_PF_COMMON L1_PF_COMMON L2_PF_COMMON
+pfname2 ...
+
+1 line: 12 numbers (0x...) 
+If Lx_PFBLOCK_A/B = Lx_PFLUT = 0 (i.e. 0 0 0), PF veto
+is not activated for classes using this PF.
 
 TRIGGER.DESCRIPTORS defines all the  default trigger descriptors 
 available for Trigger classes definition.

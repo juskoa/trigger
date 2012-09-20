@@ -1,25 +1,44 @@
-Notes about syncdownscaling: L0 fi >= 0xAF
+Notes about syncdownscalinog: L0 fi >= 0xAF
+#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
+Default values for these registers: 0,1,2,3,...,49.
+i.e. downscaling group for class1 is 0, ..., class50 is 49.
+Goals:
+- 0..49 are replaced by symb. names in .partition definitions
+- if SDG rpesent, the first (lowest class number) class keeps random downscaing factor,
+  the remaining classes of the group points to this one.
+
 New .partition syntax:
 - adding one new parameter in class definition: sdg=id. 
 Classes defined with the same sdg parameter will be downscaled synchronously,
-ONLY ONE of them has to define required random downscaling (L0pr=10%).
-I.e. parted:
+
+ctp:
+---
+
+Downscaling field now given with each class in Classes window.
+It would be natural to add another column: sdg (L0_SDSCG registers content, 
+i.e. 0..49 by default. If different, sync. downscaling is active). This
+is not urgent, the SDSCG content can be examined/modified by
+SimpleTests->printsetSDSCG
+
+parted todo:
 -----------
 a 0.1%         #line defining sync. downscaling group
 a -any identifier (starting with letter) different from BC1/2 RND1/2 BCM*
 ...
 DINT1(sdg=a)   #present with each class synchronously downscaled
 Errors:
-L0pr present together with sdg in class definition
+L0pr present together with sdg in class definition (L0pr and sdg are mutually exclusive)
 Double definition of a sdg name 
+Synchronously downscaled classes not in the same TS group (Warning?)
 
 .pcfg   (see ctp_proxy/readme):
-SDG a 0x1fae13
+SDG agrup 0x1fae13
 SDG c 0x1fae13
 ...
 CLA.01 0xbfffffff 0x0 0x7ffffff1 0x1fae13 0x1fffffff 0x0 0x1f000fff
+CLA.01 0xbfffffff 0x0 0x7ffffff1 agrup 0x1fffffff 0x0 0x1f000fff
 
-Assignment to physical class will be done in ctp_proxy (when
+Assignment to the physical class will be done in ctp_proxy (when
 real class numbers are known)
 
 New .rcfg syntax:
