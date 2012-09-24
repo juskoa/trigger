@@ -159,6 +159,12 @@ Examples:
 1%         -> Rate reduction by 100 times
 40ms       -> Class will be busy 40 miliseconds after each trigger
 1khz       -> Class busy is set to 1 milisecond
+
+Synchronous downscaling:
+-----------------------
+This option is valid, if L0pr id f=defined by symbolic name.
+Symbolic name has to define n% value (0<n<100) -see Show ->
+Synchronous downscaling groups
 """
 def frommsL0pr(oldval, newval):
   """return: None if syntax error
@@ -850,14 +856,14 @@ class MywEntry(Frame,MywHelp):
     #print "MywEntry:",self.getEntry(),event
     ne= self.entry.get()
     if self.nointcheck:
-      self.cmdlabel(ne)
+      if self.cmdlabel: self.cmdlabel(ne)
       return
     try:
       ne_b= eval(ne)
     except:
       MywError("bad value (int or hex expected):"+ne, fw=self.entry)
     else:
-      self.cmdlabel(ne)
+      if self.cmdlabel: self.cmdlabel(ne)
   def setEntry(self, text):
     self.entry.delete(0, 'end')
     if self.conv2dec==1:
