@@ -61,6 +61,8 @@ Version: 3   L0 firmware AC  (12 BCmasks, 50 inverted L0 inputs, complex l0f)
 23.2.2012
 VERSION: 4 (.rcfg)
 Version: 4 (.partition) just to be the same with .rcfg
+23.9.2012
+VERSION: 5 (both .rcfg .partition): sync downscaling
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -73,8 +75,9 @@ if hasattr(sys,'version_info'):
     import warnings
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
-import myw, txtproc, trigdb
+import myw, txtproc, trigdb, syncdg
 
+VERSION="5"            # from 23.9.: sync downscaling
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
 COLOR_NORMAL="#d9d9d9"
@@ -1213,7 +1216,7 @@ class TrgClass:
     #print "TrgClass:", self.clsname," trde:" ; if self.trde: self.trde.prt()
     #VON self.clsl0funs=[None,None]
     self.setCluster(mycluster)   #
-    self.L0pr='0'; 
+    self.L0pr='0';   # n, 0xhexa, n%, or syncdg symb. name
     self.bcms=[0,0,0,0,0,0,0,0,0,0,0,0]
     self.optinps=[0,0,0,0]   # rnd1, rnd2, bc1, bc2
     self.pfs=[0,0,0,0]   # [0,1,0,0]: TrgSHR[PFS_START+1].getDefinition()
@@ -1640,7 +1643,10 @@ Currently, these times [in seconds] are defined for groups 1..9:
     #  print k,":",event[k]
     #print "l0prcmd.event:",dir(event),event.keycode,event.keysym
     l0txt= self.l0prbut.getEntry()
-    strorNone= myw.frommsL0pr('', l0txt)
+    # check if syncdg:
+    strorNone= self.mycluster.partition.sdgs.find(l0txt)
+    if strorNone==None:   # is it syncdg name?
+      strorNone= myw.frommsL0pr('', l0txt)
     if strorNone:
       self.L0pr=l0txt
     else:
@@ -2052,6 +2058,7 @@ class TrgPartition:
     self.pclfr=None    # partition 'not shown'
     self.shmaster=None # shared rsrcs not shown
     self.activeclasses= {}  # filled in self.savercfg (for DAQ sqldb)
+    self.sdgs= syncdg.TrgSDG()
     fname=self.name+".partition" ; fname=os.path.join(CFGDIR,self.relpath,fname)
     #if self.name=="empty_partition" or (not os.path.exists(fname)):
     if self.name=="empty_partition":
@@ -2178,9 +2185,10 @@ class TrgPartition:
       fnw=os.path.join(CFGDIR, fnw)
     self.savepcfg(name=partname) # has to be called prior .partition creation!
     outfile= open(os.path.join(fnw+".partition"),"w") # (not used resources)
-    outfile.write("Version: 4\n")
+    outfile.write("Version: %s\n"%(VERSION))
     for shrr in SHRRSRCS:
       shrr.save(outfile)
+    self.sdgs.save(outfile)
     outfile.write("Clusters:\n")
     for cluster in self.clusters:
       cluster.save(outfile)
@@ -2272,7 +2280,10 @@ class TrgPartition:
             l0vetos= l0vetos & 0xffffefff
           else:
             l0vetos= l0vetos & 0xffefffff
-        l0scaler= int(myw.frommsL0pr('', cls.L0pr))
+        l0scaler= cls.L0pr
+        l0pr= self.sdgs.find(l0scaler)
+        if l0pr==None:
+          l0scaler= "0x%x"%(int(myw.frommsL0pr('', l0scaler)))
         l1def= 0x0fffffff | (clunum<<28)
         l1inv= 0
         l2def= 0x0fffffff | (clunum<<28)
@@ -2348,7 +2359,7 @@ class TrgPartition:
         if cls.clanumlog != clanum:
           # see comment in self.loadfile.
           PrintWarning("Class %s CLA%2.2d != %d (clanumlog)"%(cls.getclsname(), clanum, cls.clanumlog))
-        line="CLA.%2.2d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x%s\n"%\
+        line="CLA.%2.2d 0x%x 0x%x 0x%x %s 0x%x 0x%x 0x%x%s\n"%\
           (clanum, l0inps, l0inv, l0vetos, l0scaler, l1def, l1inv, 
           l2def, clgrouptx)
         CLAlines.append(line)
@@ -2437,6 +2448,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line='PF.%d %s'% (i+1, pfdef)
       outfile.write(line+"\n")
     #
+    self.sdgs.save(outfile, "SDG ")
     # now we can write 'CLA' lines:
     for ix in range(len(CLAlines)): 
       outfile.write(CLAlines[ix])   
@@ -2543,9 +2555,11 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     outfilename= dorcfgname(runnumber,rcfg)
     of= open(outfilename,"w")
     if self.downscaling!=None:
-      line='VERSION: 4 %s\n'%self.downscaling.v0and
+      #line='VERSION: 4 %s\n'%self.downscaling.v0and
+      line='VERSION: %s %s\n'%(VERSION,self.downscaling.v0and)
     else:
-      line='VERSION: 4\n'
+      #line='VERSION: 4\n'
+      line='VERSION: %s\n'%VERSION
     of.write(line)
     line='PARTITION: %s\n'%(self.name); of.write(line)
     line='INPUTS:\n' ; of.write(line)
@@ -2556,6 +2570,19 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     atleast1pfnone=0
     l0defs=[]
     trgctpcfg= trigdb.Trgctpcfg(); clgtimes= trgctpcfg.getTIMESHARING()
+    # find sync downscaling class
+    for sdgn in self.sdgs.sdgs.keys():
+      firstc=51
+      for ixclu in range(len(self.clusters)):
+        cluster= self.clusters[ixclu]
+        for cla in cluster.cls:
+          if cla.L0pr==sdgn:
+            ixclasses= cla.clanumlog-1
+            phcla= phclasses[ixclasses]
+            if int(phcla)<firstc:
+              firstc= int(phcla)
+      if firstc<51:
+        self.sdgs.setl0prsdg(sdgn, firstc)
     #prepare 4 sections: CLASSES DESCRIPTORS BCMASKS INPUTS(directly written)
     for ixclu in range(len(self.clusters)):
       cluster= self.clusters[ixclu]
@@ -2593,10 +2620,20 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           clgtime='0'
         else:
           clgtime= clgtimes[int(cla.classgroup)]  # was -1
-        lineclg="%s %s %s %s %s %s %s %d %d %s\n"%(clasname, phcla, desname, \
-          cluster.name, cla.getPFs(), cla.getBCMASKs(), \
-          myw.frommsL0pr('',cla.L0pr), \
-          cla.allrare, cla.classgroup, clgtime)
+        l0scaler= self.sdgs.find(cla.L0pr)
+        if l0scaler!=None:   #sync downscaling
+          sdg= self.sdgs.getl0prsdg(cla.L0pr)
+          l0pr= myw.frommsL0pr('',l0scaler)
+        else:
+          l0pr= myw.frommsL0pr('',cla.L0pr)
+          if int(l0pr) & 0x80000000:
+            sdg= 0   # not sync, busy way
+          else:
+            sdg= phcla   # not syncdownscaling, rnd. way
+        lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(\
+          clasname, phcla, desname, cluster.name, \
+          cla.getPFs(), cla.getBCMASKs(), l0pr, \
+          cla.allrare, cla.classgroup, clgtime, sdg)
         #ixclasses= ixclasses+1
         if phcla!='0': 
           #usedclasses.append(line); 
@@ -2905,11 +2942,16 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       if section == 'Shared':
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
-        sr= findSHR(string.split(cltds)[0])
+        shrname= string.split(cltds)[0]
+        sr= findSHR(shrname)
         if sr!=None: 
           sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
         else:
-          PrintError("bad shared resource line:"+cltds, self)
+          sr= self.sdgs.find(shrname)
+          if sr!=None: 
+            PrintError("bad sync downscaling resource line:"+cltds, self)
+          else:
+            self.sdgs.add(shrname, string.split(cltds)[1])
           #print "selfloaderrors:",self.loaderrors
         continue
       # Clusters section 
@@ -3093,6 +3135,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       IntErr("inventClusterName: cluster name not assigned")
       rc=None
     return rc
+  def sdgGroups(self, minst,ix):
+    self.sdgs.show()
 def getNames():
   """
   return: the list of names of all the partitions in trigger database
@@ -3158,6 +3202,7 @@ Cluster -add new/delete active cluster
     self.filemenu.addcommand('Cancel', self.cancelPart)
     self.filemenu.addcommand('Quit', self.quitPart)
     self.showmenu.addcommand('Shared resources', None)
+    self.showmenu.addcommand('Sync downscaling groups', None)
     self.showmenu.addcommand('Shared resources reservation', None)
     tdsnames=[]
     selshow= self.showmenu.addcascade('Descriptor')
@@ -3262,6 +3307,7 @@ The window will be closed after saving current configuration.
     self.showmenu.setcommand('Shared resources', self.part.showShared)
     self.showmenu.setcommand('Shared resources reservation', 
       self.part.getRR)
+    self.showmenu.setcommand('Sync downscaling groups', self.part.sdgGroups)
     self.clustermenu.setcommand('Add new', self.part.addCluster)
     self.clustermenu.setcommand('Delete active', self.part.delActiveCluster)
     self.clustermenu.setcommand('Rename active', self.part.renActiveCluster)

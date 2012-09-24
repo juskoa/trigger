@@ -153,6 +153,9 @@ bit31 (0x80000000)
 l0scaler:
 0xhexa  -in case of busy or rnd downscaling, starting with 0x 
          (0x0 no downscaling)
+Class busy (bit31:1, 25 least significant bits valid):
+Rate reduction (bit31:0, 21 LSB bits are valid):
+
 ident   -in case of synchronous downscaling (not starting with 0x)
 -------------------------
 l1def, 
