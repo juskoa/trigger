@@ -77,7 +77,8 @@ class TrgSDG:
     if rc!=None:
       print("Error:"+rc)
   def hide(self, event=None):
-    print "hide:", event
+    #print "hide:", event
+    pass
     # +destroy:
     #self.entries[]
     #self.entriesfr 
@@ -86,13 +87,18 @@ class TrgSDG:
     # save: will save only used SDG groups 
     # (i.e. parted.TrgPartition.findfirst() has to be invoked before
     # to get self.firstclass dictionary updated
+    from myw  import frommsL0pr
     for n in self.sdgs.keys():
+      hexarep= "0x%x"%int(frommsL0pr('', self.sdgs[n]))
       if outfile==None:
-        print("%s: %s 1.class:%d"%(n, self.sdgs[n]), self.firstclass[n])
+        print("%s: %s/%s 1.class:%d"%
+          (n, self.sdgs[n], hexarep, self.firstclass[n]))
       else:
         if self.firstclass[n]!=0:  
-          outfile.write("%s%s %s\n"%(SDG, n, self.sdgs[n]))
-
+          if SDG=="":   # .partition file, i.e. symvalue
+            outfile.write("%s%s %s\n"%(SDG, n, self.sdgs[n]))
+          else:
+            outfile.write("%s%s %s\n"%(SDG, n, hexarep))
 def main():
   f= Tk()
   #fr= myw.MywFrame(f,side=BOTTOM)

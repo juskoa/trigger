@@ -1,0 +1,9 @@
+Version: 5
+BC1 1000
+PF4 b3_withL0
+a1 23%
+a2 50%
+Clusters:
+MUON
+DTRUE(cn=CNAME,L0pr=a2,bc1) D0MSL(L0pr=a1) DMSL7(L0pr=a1,PF4)
+T0

@@ -2311,6 +2311,7 @@ class TrgPartition:
         l0scaler= cls.L0pr
         l0pr= self.sdgs.find(l0scaler)
         if l0pr==None:
+          print "l0scaler:", l0scaler,":"
           l0scaler= "0x%x"%(int(myw.frommsL0pr('', l0scaler)))
         l1def= 0x0fffffff | (clunum<<28)
         l1inv= 0
@@ -2351,7 +2352,7 @@ class TrgPartition:
                 "Undefined %s referenced by class %s, reference discarded in .pcfg file\n"%\
                 (SHRRSRCS[ix4+PFS_START].name, cls.getclsname())
               continue   
-            print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
+            #print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
             # check if common definition agrees (should be improved, can happen not all PFs used):
             comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
             if pf_comdef==None:
@@ -2648,10 +2649,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           if int(l0pr) & 0x80000000:
             sdg= 0   # not sync, busy way
           else:
-            sdg= phcla   # not syncdownscaling, rnd. way
-        lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(\
-          clasname, phcla, desname, cluster.name, \
-          cla.getPFs(), cla.getBCMASKs(), l0pr, \
+            sdg= int(phcla)   # not syncdownscaling, rnd. way
+        lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(
+          clasname, phcla, desname, cluster.name, 
+          cla.getPFs(), cla.getBCMASKs(), l0pr, 
           cla.allrare, cla.classgroup, clgtime, sdg)
         #ixclasses= ixclasses+1
         if phcla!='0': 

@@ -1128,7 +1128,7 @@ return 0;
            Table is stored in part->ClusterTable[]        
 */  
 int addClasses2HW(Tpartition *parray[]){
- int i,ip,pclass,hwclass,rcode=0;
+ int i,ip,ips,pclass,hwclass,rcode=0;
  Tpartition *part;
  TKlas *klas;
  // merge classes from partitions *parray[]
@@ -1209,6 +1209,52 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
      printf("\n"); 
    };
  }; // over all new partitions
+// find first class for each SDG group:
+for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
+  int firstc;
+  char errmsg[150];
+  if(SDGS[ips].name[0]=='\0') continue;     // empty entry
+  firstc= 51;
+  for(ip=0;ip<MNPART;ip++){           //find our partition
+    part= parray[ip];
+    if(part == NULL) continue;
+    if(strcmp(part->name, SDGS[ips].pname)==0) goto OKPART;
+  };
+  sprintf(errmsg,"addClasses2HW:SDGS with illegal partition %s",
+    SDGS[ips].pname);
+  infolog_trgboth(LOG_ERROR, errmsg);
+  rcode=2; goto ERRRET;
+  OKPART:
+  for(pclass=0; pclass<NCLASS; pclass++) { // all classes
+    klas=part->klas[pclass];
+    if(klas == NULL) continue;
+    if(klas->sdg == -1) continue;
+    if(klas->sdg == ips) {
+      if(klas->hwclass < firstc) firstc= klas->hwclass+1;   // 0..49-> 1..50
+    };
+  };
+  if(firstc<51) {
+    SDGS[ips].firstclass= firstc;
+  };
+  printf("addClasses2HW:SDGS[%d]:%s %s: 1st clas:%d\n", ips,
+    SDGS[ips].name, SDGS[ips].pname, SDGS[ips].firstclass);  
+};
+// put results from SDGS in HW.sdgs
+for(ip=0;ip<MNPART;ip++){ 
+  part= parray[ip];
+  if(part == NULL) continue;
+  for(pclass=0; pclass<NCLASS; pclass++) { // all classes
+    klas=part->klas[pclass];
+    if(klas == NULL) continue;
+    if(klas->sdg != -1) {
+      int hwclass;
+      hwclass= klas->hwclass;  // 0..49
+      HW.sdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;
+      printf("addClasses2HW:hwclass0..49:sdgs[%d]:%d\n", 
+        hwclass, HW.sdgs[hwclass]);
+    };
+  };
+};
 ERRRET:
 return(rcode);
 }
@@ -2040,7 +2086,8 @@ rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
 };
-printf("ctp_proxy ver: 24.11.2011\n");
+printf("ctp_proxy ver: 24.09.2012\n");
+SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
 readTables(); // enough only in ctp_proxy
 if(initHW(&HWold)) return 1; // initialise and clean HWold structure

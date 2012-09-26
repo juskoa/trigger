@@ -1,5 +1,6 @@
 #define MAXNAMELENGTH 80        // paths
 #define MAXCTPINPUTLENGTH 40    // ctp input name length
+#define MAXPARTNAME 12
 #define MAXDETNAME 12
 #define ERRMSGL 300
 // max. line length in .pcfg file: BCMASKS: 'BCMASKS '+3*3564+'\0' = 10701
@@ -114,6 +115,7 @@ typedef struct TKlas{
                   // in Hardware: 0 not allocated, 1: allocated
  char *partname;  // !can be not valid (in load2HW when STOP partition)
  int classgroup;  // index to ClassGroup[]. 0: no classgroup assigned
+ int sdg;         // index into SDGS. -1 if not SDG class
 }TKlas;
 
 /* old definition (w.r.t. level, never used):
@@ -224,6 +226,12 @@ typedef struct TBUSY{
  w32 set_cluster[NCLUST+1];  
 }TBUSY;
 
+typedef struct TSDGS{
+  char name[MAXPARTNAME];   // symbolic SDG name. "": empty field
+  char pname[MAXPARTNAME];  // symbolic SDG name
+  w32  l0pr;                // calculated from n% (always rnd downscale)
+  int firstclass;  //1..50, 0: not allocated yet
+}TSDGS;
 
 // Clean TFO
 void cleanTFO(TFO *fo);
@@ -247,6 +255,8 @@ typedef struct Hardware{
  TRBIF *rbif;
  TFO fo[NFO];           // clust. is free if there is no bit ON in fo[0-5]
  TBUSY busy;
+ int sdgs[NCLASS];   // Default: 0..49. Different in case if SDG active 
+     // for given class used to fill L0_SDSCG registers
 }Hardware;
 // Clean existing HW structure
 void cleanHardware(Hardware *hw, int leaveint);
@@ -291,7 +301,7 @@ int a970pos;  // position in array970 for counter 0,1,2,...
 #define CG_NEVERACTIVE 9999
 #define CLASSGROUPTIMESLOT 1
 typedef struct Tpartition{
- char name[MAXNAMELENGTH];
+ char name[MAXPARTNAME];
  char partmode[MAXNAMELENGTH];
 /* klas[i]==NULL:class not allocated. Classes are always 
 assigned here from the beginning (0,1,2,...).  I.e. after first 
@@ -354,6 +364,8 @@ EXTERN int ctpsegid;
 //extern Tdetector validLTUs[NDETEC];
 //extern Tinput validCTPINPUTs[NCTPINPUTS];
 EXTERN Tdetector *validLTUs;
+EXTERN int NSDGS;
+EXTERN TSDGS SDGS[NCLASS];
 EXTERN Hardware HW;
 EXTERN Tpartition *AllPartitions[MNPART];  //=Started + Loaded
 EXTERN Tpartition *StartedPartitions[MNPART];  //=Started only
@@ -441,11 +453,13 @@ int string2int(char *c,int length,w32 *num,char b);
 int PFL2Partition(char *line,TPastFut *pf);
 int BUSY2Partition(char *line,TBUSY *busy);
 int FO2Partition(char *line,Tpartition *part);
-TKlas *CLA2Partition(char *line,int *error);
+TKlas *CLA2Partition(char *line, int *error, char *pname);
 TRBIF *L0342Partition(char *line,TRBIF *rbif);
 TRBIF *BCMASK2Partition(char *line,TRBIF *rbif);
 //TRBIF *INTSEL2Partition(char *line,TRBIF *rbif); not used ,removed 11.1.2011
 TRBIF *RBIF2Partition(char *line,TRBIF *rbif);
+void SDGinit();
+void SDGclean(char *pname);
 int ParseFile(char lines[][MAXLINECFG],Tpartition *part);
 void readPartitionErrors(int error,char *filename);
 Tpartition *readDatabase2Tpartition(char *filename);

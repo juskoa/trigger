@@ -440,8 +440,7 @@ if(DBGCMDS) {
   prtLog(logmsg);
 };
 if(*size <msglen) msglen=*size;
-strncpy(msg, mymsg, msglen);
-msg[msglen]='\0';
+strncpy(msg, mymsg, msglen); msg[msglen]='\0';
 /*if(msg[*size-2]=='\n') {
   msg[*size-2]='\0';
 } else {

@@ -100,7 +100,7 @@ if( err != 0 ) {
       } else {
         lng=MAXlast_Value;
       };
-      strncpy(last_Value, (char *)instance[0].value, lng);
+      strncpy(last_Value, (char *)instance[0].value, lng);last_Value[lng]='\0';
       for(i=0;i<instance[0].size;i++) {
         if(fputc(((char *)instance[0].value)[i],f) == EOF) {
           printf("ERROR Cannot write to %s",fname); rc=-1;
