@@ -7,7 +7,7 @@
 
 enum {NINP=24};
 enum {NCLASS=50};
-enum bcmtype {B, A, C, E, U};
+enum bcmtype {B, A, C, E, S, U};
 using namespace std;
 //#########################################################################
 class InteractionwCount
@@ -36,6 +36,7 @@ class TrigTimeCounters{
            w32 GetPeriodCounter(){return PeriodCounter;};
            w32 GetSecs(){return TimeSec.GetNow();};
            w32 GetUsecs(){return TimeUsec.GetNow();};
+	   w32 GetActiveTGroup(){return TimeSec.GetActiveTGroup();};
 };
 //#########################################################################
 class TriggerInput{
@@ -88,10 +89,10 @@ class Detector{
 class DetectorwCount : public Detector
 {
  private:
-          Counter l2a,pp;
+          Counter l2s,l2r,pp;
  public:
         DetectorwCount(const Detector &dec);   
-        w64 GetL2aCount(){return l2a.GetCountTot();};
+        w64 GetL2aCount(){return (l2s.GetCountTot()-l2r.GetCountTot());};
         w64 GetPPCount(){return pp.GetCountTot();};
         void Update(w32* buffer);
 };
@@ -114,6 +115,7 @@ class TriggerCluster{
          string& GetName() {return fname;};
          char* GetNamechar() {return fcname;};
          int GetIndex(){return fhwindex;};
+         int GetIndex0(){return (fhwindex-1);};
          int GetNdet(){return ndet;};
          string* GetDetectors(){return fDetectors;};
          void Print();
@@ -135,6 +137,7 @@ class TriggerClusterwCount:public TriggerCluster
         int GetNumofClasses(){return nclass;};
         TriggerClasswCount* GetTriggerClass(int pos){return fTClasses[pos];};
         Counter* GetL0Counter(){return &l0;};
+        w64 GetL2aCount(){return l2.GetCountTot();};
         void Update3(w32* buffer);
         void DisplayCluster(ofstream* file);
         void DisplayClusterSortBCM(ofstream* file);

@@ -55,6 +55,7 @@ class ActiveRun : public Log
          void PrintClusters();
          void PrintClasses();
          void PrintDetectors();
+	 void PrintRun();
          //----------DisplayonScreen
          void CreateDisplaySCAL(){scal = new DisplaySCAL(fRunNumber,fname);};
          void DisplayRun(){scal->DisplayRun(ninp,fTrigInputs,nclust,fClusters,fINT,ndet,fDetectors);DisplaySCAL::GetfileSCAL()->flush();};

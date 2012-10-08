@@ -7,7 +7,7 @@
 
 enum {NINP=24};
 enum {NCLASS=50};
-enum bcmtype {B, A, C, E, U};
+enum bcmtype {B, A, C, E, S, U};
 using namespace std;
 //#########################################################################
 class InteractionwCount

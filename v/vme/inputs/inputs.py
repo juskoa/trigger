@@ -136,7 +136,7 @@ class Inputs:
       if i=='': continue
       if i[0]=='#': break
       itemph.append(i.strip('\n'))
-    if len(itemph) != 3:
+    if len(itemph) < 3:
        print "Warning: parseInputsPhases: wrong number of items ", len(items)
        print line
     phase={}   
@@ -253,7 +253,7 @@ class Inputs:
   return inputs
 ################################################################################  
 def main():
- print sys.argv
+ #print sys.argv
  #lif len(sys.argv) != 3:
  if 0:
    print 'Wrong number of argumenst'

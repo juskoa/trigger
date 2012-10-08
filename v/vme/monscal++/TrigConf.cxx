@@ -347,6 +347,7 @@ void TriggerClass::ParseClassName()
  else if(bcm1stchar == 'A') BCMtype=A;
  else if(bcm1stchar == 'C') BCMtype=C;
  else if(bcm1stchar == 'E') BCMtype=E;
+ else if(bcm1stchar == 'S') BCMtype=S;
  else{
     cout << "Unknown BCM mask in class: " << fname << endl;
     BCMtype=U;

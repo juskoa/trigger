@@ -46,12 +46,15 @@ fINT(0)
    ParseInputsList();
    ParseValidCTPInputs();
  }
+ //PrintRun();
  //ParsePartitionFile(runnum); // this is not necessary now, all info is in rcfg
  FindDetectors();
  //PrintDetectors();
  // Create global l2a counter
+ cout << "Creating global L2a counter" << endl;
  L2a.SetName("L2a");
- L2a.SetIXs(CSTART_L2+23,CSTART_L2 + 5);
+ //L2a.SetIXs(CSTART_L2+23,CSTART_L2 + 5);
+ L2a.SetIXs(CSTART_INT+8,CSTART_INT + 2);
  cout << "Starting run " << fRunNumber << endl;
 }
 ActiveRun::~ActiveRun()
@@ -91,7 +94,8 @@ int ActiveRun::ParseInputsList()
    vector<string> items;
    splitstring(line,items," ");
    int nitems = items.size();
-   if(nitems != 1){
+   if(nitems==0) continue;
+   if(nitems > 1){
      cout << "Wrong syntax in inputs.mcfg file." << endl;
      return 1;
    }
@@ -297,7 +301,9 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
          // looking for cluster
          //assuming that clusters are before classes
          for(int i=0;i<nclust;i++){
-          if((fClusters[i]->GetName().find(items[3]) != string::npos)){
+          bool b1=fClusters[i]->GetName().length()==items[3].length();
+          bool b2=fClusters[i]->GetName().find(items[3]) != string::npos;
+          if(b1 && b2){
             TriggerClasswCount* clss;
             //w32 index1 =  atoi(items[1].c_str());
             //w8 index=index1;
@@ -449,19 +455,31 @@ int ActiveRun::ParsePartitionFile(int runnumber){
 }
 void ActiveRun::PrintInputs()
 {
+ cout << "INPUTS:" << endl;
  for(int i=0;i<ninp;i++)fTrigInputs[i]->Print();
 }
 void ActiveRun::PrintClusters()
 {
+ cout << "CLUSTERS:"<< endl;
  for(int i=0;i<nclust;i++)fClusters[i]->Print();
 }
 void ActiveRun::PrintClasses()
 {
+ cout << "CLASSES:" << endl;
  for(int i=0;i<nclass;i++)fClasses[i]->Print();
 }
 void ActiveRun::PrintDetectors()
 {
+ cout << "DETECTORS:" << endl;
  for(int i=0;i<ndet;i++)fDetectors[i]->Print();
+}
+void ActiveRun::PrintRun()
+{
+ cout << "RUN: " << fRunNumber << endl;
+ PrintInputs();
+ PrintClusters();
+ PrintClasses();
+ PrintDetectors();
 }
 void ActiveRun::UpdateRunCounters(w32* buffer)
 {
@@ -475,6 +493,7 @@ void ActiveRun::UpdateRunCounters(w32* buffer)
 void ActiveRun::Write2DAQlogbook()
 {
  daq->UpdateClasses(nclass,fClasses);
+ daq->UpdateClusters(nclust,fClusters);
  daq->UpdateDetectors(ndet,fDetectors);
  daq->UpdateInputs(ninp,fTrigInputs);
  daq->UpdateL2a(L2a);

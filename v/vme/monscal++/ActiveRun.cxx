@@ -46,10 +46,12 @@ fINT(0)
    ParseInputsList();
    ParseValidCTPInputs();
  }
+ //PrintRun();
  //ParsePartitionFile(runnum); // this is not necessary now, all info is in rcfg
  FindDetectors();
  //PrintDetectors();
  // Create global l2a counter
+ cout << "Creating global L2a counter" << endl;
  L2a.SetName("L2a");
  //L2a.SetIXs(CSTART_L2+23,CSTART_L2 + 5);
  L2a.SetIXs(CSTART_INT+8,CSTART_INT + 2);
@@ -453,19 +455,31 @@ int ActiveRun::ParsePartitionFile(int runnumber){
 }
 void ActiveRun::PrintInputs()
 {
+ cout << "INPUTS:" << endl;
  for(int i=0;i<ninp;i++)fTrigInputs[i]->Print();
 }
 void ActiveRun::PrintClusters()
 {
+ cout << "CLUSTERS:"<< endl;
  for(int i=0;i<nclust;i++)fClusters[i]->Print();
 }
 void ActiveRun::PrintClasses()
 {
+ cout << "CLASSES:" << endl;
  for(int i=0;i<nclass;i++)fClasses[i]->Print();
 }
 void ActiveRun::PrintDetectors()
 {
+ cout << "DETECTORS:" << endl;
  for(int i=0;i<ndet;i++)fDetectors[i]->Print();
+}
+void ActiveRun::PrintRun()
+{
+ cout << "RUN: " << fRunNumber << endl;
+ PrintInputs();
+ PrintClusters();
+ PrintClasses();
+ PrintDetectors();
 }
 void ActiveRun::UpdateRunCounters(w32* buffer)
 {
