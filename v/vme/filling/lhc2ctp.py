@@ -8,6 +8,9 @@ BCS_BEFORE=85   # was 16, TRD request: 85
 DIS_BEFORE=3
 DIS_AFTER_AC=32
 DIS_AFTER_B=128
+# the minimal distance to the previous/next B-bunch:
+I2B_BEFORE=10
+I2B_AFTER=10
 def suborbit(a, b):
   """ cal. diffrence between 2 BCs b->a
   """
@@ -630,7 +633,7 @@ class FilScheme:
     self.mainsat= "mainsat"   # main-sat always: COMMON from 3.5.2012
     self.mask={}   # contains only meaningful (BACE) BCs: mask[3] is 'A B C or E'
     self.fsname= fsname
-    self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[]}
+    self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[], 'I':[]}
     # self.bx['B']: list of ints representing colliding BCs
     self.ignore={};    # dictionary of ignored bunches
     ixline=-1 ; Bbunches=0
@@ -665,6 +668,27 @@ class FilScheme:
       if (bace=='A') or (bace=='C'):
         #self.bx['AorC'].append(bxn)   # A + C
         self.insert('AorC', bxn)
+    Blen= len(self.bx['B'])
+    if Blen>0:
+      if Blen==1:
+        self.bx['I'].append(self.bx['B'][0])
+      else:
+        for ix in range(Blen):
+          if ix==0:
+            prevB=self.bx['B'][Blen-1]
+          else:
+            prevB=self.bx['B'][ix-1]
+          if ix==(Blen-1):
+            nextB=self.bx['B'][0]
+          else:
+            nextB=self.bx['B'][ix+1]
+          prosI=self.bx['B'][ix]
+          dist_before= suborbit(prosI, prevB)
+          dist_after= suborbit(nextB, prosI)
+          #print("Itest: %d -%d- %d"%(dist_before,prosI,dist_after))
+          if (dist_before>=I2B_BEFORE) and (dist_after>=I2B_AFTER):
+            self.insert('I', prosI)
+    #print("I:", self.bx['I'])
     if self.mainsat=='b2':    # if B>=0 : main-main else main_sat
       if Bbunches>0:
         self.mainsat= None
@@ -956,6 +980,8 @@ class FilScheme:
     self.arch['B']= self.bx['B']
     om= om+"\n" + self.print1('B')
     om= om+"\n" + "bcmB" +" "+ self.eN(self.bx['B'])
+    om= om+"\n" + self.print1('I')
+    om= om+"\n" + "bcmI" +" "+ self.eN(self.bx['I'])
     om= om+"""
 bcmGA 224H121L3219H
 bcmGC 2897H121L546H"""

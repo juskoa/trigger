@@ -47,6 +47,7 @@ build
 !*/bin
 *.swp
 *.out
+v/vme/monscall++/*
 v/vme/monscall*/cnt
 v/*/*/linux*/
 v/*/*/*/linux*/

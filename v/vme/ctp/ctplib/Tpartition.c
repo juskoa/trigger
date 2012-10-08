@@ -106,27 +106,34 @@ return(rc);
 }
 /*-----------------*/
 void printTRBIF_34(TRBIF *rbif, int ix) {   // ixlut3132 or ixlut4142
-int lutn=9,base=0;
+int lutn=9,base=0; w32 used;
+used= rbif->rbifuse[ix];
 if(ix==ixlut3132) {lutn=1; base= 0; 
-  printf("l0f3:0x%x use:0x%x symb:%s\n",
-    rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f3sym);
+  if(used!=notused) {
+    printf("l0f3:0x%x use:0x%x symb:%s\n",
+      rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f3sym);
+  };
 } else if(ix==ixlut4142) {lutn=3; base= LEN_l0f34/2; 
-  printf("l0f4:0x%x use:0x%x symb:%s\n",
-    rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f4sym);
+  if(used!=notused) {
+    printf("l0f4:0x%x use:0x%x symb:%s\n",
+      rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f4sym);
+  };
 } else {
   intError("in printTRBIF_34"); return;
 };
-printf("%1d: ", lutn);
-/* todo rc= checkEqualValues(&rbif->lut34[base]);
-if(rc==-1) { */
-for(ix=0;ix<LEN_l0f34/4;ix++) { 
-  printf("%x",rbif->lut34[ix+base]); 
-}; /* else {
-};*/
-printf("\n");
-printf("%1d: ", lutn+1); base= base+ LEN_l0f34/4;
-for(ix=0;ix<LEN_l0f34/4;ix++) { 
-  printf("%x",rbif->lut34[ix+base]); }; printf("\n");
+if(used!=notused) {
+  printf("%1d: ", lutn);
+  /* todo rc= checkEqualValues(&rbif->lut34[base]);
+  if(rc==-1) { */
+  for(ix=0;ix<LEN_l0f34/4;ix++) { 
+    printf("%x",rbif->lut34[ix+base]); 
+  }; /* else {
+  };*/
+  printf("\n");
+  printf("%1d: ", lutn+1); base= base+ LEN_l0f34/4;
+  for(ix=0;ix<LEN_l0f34/4;ix++) { 
+    printf("%x",rbif->lut34[ix+base]); }; printf("\n");
+};
 };
 /*------------------------------------------------------printTRBIF()
 */
@@ -516,6 +523,7 @@ Tpartition *deleteTpartition(Tpartition *part){
      np++;
    };
  };
+SDGclean(part->name);
  //printf("deleteTpartition: not null classes:%d\n",np);
  free(part->rbif); //free P/F
 //if(part->fixed_cnts!=NULL) free(part->fixed_cnts);
@@ -1186,6 +1194,7 @@ void cleanHardware(Hardware *hw, int leaveint){
   cleanTFO(&hw->fo[i]);
  }
  cleanTBUSY(&hw->busy);
+for(i=0; i<NCLASS; i++) hw->sdgs[i]=i;
 }
 /*-----------------------------------------------------copyHardware()
   All memory allocated by initHW
@@ -1193,10 +1202,11 @@ void cleanHardware(Hardware *hw, int leaveint){
 void copyHardware(Hardware *to,Hardware *from){
  int i;
  strcpy(to->name, from->name);
- for(i=0;i<NCLASS;i++)copyTKlas(to->klas[i],from->klas[i]);
+ for(i=0;i<NCLASS;i++) copyTKlas(to->klas[i],from->klas[i]);
  copyTRBIF(to->rbif,from->rbif);
- for(i=0;i<NFO;i++)to->fo[i]=from->fo[i];
+ for(i=0;i<NFO;i++) to->fo[i]=from->fo[i];
  copyTBUSY(&(to->busy),&(from->busy));
+for(i=0;i<NCLASS;i++) to->sdgs[i]= from->sdgs[i];
 }
 /*----------------------------------------------------------load2HW()
   Purpose: load HW to hw
@@ -1347,6 +1357,9 @@ for(i=0;i<NCLASS;i++){
   };
 };
 printf("loadHW:skipped:%s\n", skipped);
+for(i=0;i<NCLASS;i++){
+  vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
+};
  //--------------------------------------------- L0 downscalers
  vmew32(RATE_MODE,1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);

@@ -112,6 +112,76 @@ int string2int(char *cstr,int length,w32 *num,char b){
  //if((b =='h'))printf("num= 0x%x \n",*num);else printf("num= %i \n",*num);
  return 0;
 }
+/* line: "SDG name 0x23"
+*/
+int SDGadd(char *line, char *pname) {
+int ix,ixf=-1;
+char name[MAXPARTNAME]; w32 dsf;
+enum Ttokentype token; char value[80];
+// line-> name dsf
+ix= 4; token=nxtoken(line, value, &ix);
+if(token==tSYMNAME) {
+  strcpy(name, value);
+  token=nxtoken(line, value, &ix);
+  if(token==tHEXNUM) {
+    dsf= hex2int(&value[2]);
+  } else {
+    char emsg[300];
+    sprintf(emsg,"Hexadecimal number expected in 3rd column:%s",line);
+    infolog_trgboth(LOG_ERROR, emsg);
+    return(1);
+  };
+} else {
+  char emsg[300];
+  sprintf(emsg,"Symbolic name expected in 2nd column:%s",line);
+  infolog_trgboth(LOG_ERROR, emsg);
+  return(1);
+};
+for(ix=0; ix<NCLASS; ix++) {
+  if(strcmp(SDGS[ix].name,"")==0) {
+    ixf= ix ; break;
+  };
+};
+if(ixf>=0) {
+  strcpy(SDGS[ixf].name, name);
+  strcpy(SDGS[ixf].pname, pname);
+  SDGS[ixf].l0pr= dsf;
+  SDGS[ixf].firstclass= 0;
+  if(ixf>=NSDGS) NSDGS= ixf+1;
+  printf("SDGadd: %s %s 0x%x\n", name, pname, dsf);
+  return(0);
+}; 
+infolog_trgboth(LOG_ERROR, "too many SDG definitions in all partitions");
+return(1);
+}
+int SDGfind(char *name, char *pname) {
+int ix,ixf=-1;
+for(ix=0; ix<NSDGS; ix++) {
+  if((strcmp(SDGS[ix].name,name)==0) &&
+     (strcmp(SDGS[ix].pname,pname)==0)) {
+    ixf= ix ; break;
+  };
+};return(ixf);
+}
+void SDGinit(){
+int ix;
+for(ix=0; ix<NCLASS; ix++) {
+  SDGS[ix].name[0]='\0';
+  SDGS[ix].pname[0]='\0';
+  SDGS[ix].l0pr= 0;
+  SDGS[ix].firstclass= 0;
+}; NSDGS=0;
+}
+void SDGclean(char *pname){
+int ix,newNSDGS=NSDGS;
+for(ix=0; ix<NSDGS; ix++) {
+  if(strcmp(SDGS[ix].pname, pname)==0) {
+    SDGS[ix].name[0]='\0';
+    if(ix==(newNSDGS-1)) newNSDGS--;
+  };
+}; NSDGS= newNSDGS;
+}
+
 /*----------------------------------------------------PFL2Partition()
   Purpose: to convert PFL line in cfg to klas structure
   Parameters:
@@ -242,11 +312,13 @@ for(rabc=L0CONBIT0; rabc<=upto; rabc++) {  // rnd1,2, bc1,2
   Output: 
   Called by: ParseFile()
 */
-TKlas *CLA2Partition(char *line,int *error){
+TKlas *CLA2Partition(char *line,int *error, char *pname){
  TKlas *klas;
  int i,j; w32 group=0; w32 mskCLAMASK;
  w32 l0inputs,l0inverted,l0vetos,scaler;
  w32 l1definition,l1inverted,l2definition;
+int sdgix=-1;   // -1: not SDG class
+char emsg[300];
  *error=1;
  i=0;
 if(l0AB()==0) {   //firmAC
@@ -266,7 +338,26 @@ if(l0AB()==0) {   //firmAC
  if(string2int(&line[i-1],i-j-3,&l0vetos,'h'))return NULL; 
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
- if(string2int(&line[i-1],i-j-3,&scaler,'h')) return NULL; 
+ /* printf("cfg2part:%s:chars:%d, i=%d j=%d\n",&line[i-1],i-j-3,i,j);
+CLA.01 0xbfffffff 0x0 0x7fffffb1 0x1fae13 0x1bffffff 0x0 0x1f000fff
+    i-j-3=6                     j        i
+ line[j+1]: start of precaler: symname or 0x23
+            length of symname or hexnumber is: i-j-1
+ */
+ if(strncmp(&line[j+1],"0x",2)!=0) {   // SDG symname
+   char symname[12];
+   strncpy(symname, &line[j+1], i-j-1); symname[i-j-1]='\0';
+   sdgix= SDGfind(symname, pname);
+   if(sdgix==-1) {   // unknown SDG name in class definition
+     sprintf(emsg, "unknown SDG name in class definition: %s for part:%s",
+       symname, pname);
+     infolog_trgboth(LOG_ERROR, emsg); return NULL;
+   };
+   scaler= SDGS[sdgix].l0pr;
+ } else {                            // 0xvalue
+   if(string2int(&line[i-1],i-j-3,&scaler,'h')) return NULL; 
+   //printf("cfg2part scaler:%x\n",scaler);
+ };
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
  if(string2int(&line[i-1],i-j-3,&l1definition,'h'))return NULL; 
@@ -284,7 +375,9 @@ if(l0AB()==0) {   //firmAC
  if( (line[i] != '\n') && (line[i] != '\0') ) {
    while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
    if(string2int(&line[i-1],i-j-1,&group,'d')) {
-     printf("classgroup def. error i:%d line[i]:%c:%c:\n", i, line[i], line[i-1]);
+     sprintf(emsg,"classgroup def. error i:%d line[i]:%c:%c:\n", 
+       i, line[i], line[i-1]);
+     infolog_trgboth(LOG_ERROR, emsg); return NULL;
    };/* else {
      printf("classgroup:%d\n", group);
    };*/
@@ -306,8 +399,7 @@ if(l0AB()==0) {   //firmAC
  klas->l0inverted=l0inverted;
  klas->l0vetos=l0vetos;
  // Warning if using 'not defined' resources:
- 
- klas->scaler=scaler;
+klas->sdg= sdgix; klas->scaler=scaler;
  klas->l1definition=l1definition;
  klas->l1inverted=l1inverted;
  klas->l2definition=l2definition;
@@ -718,6 +810,12 @@ for(i=0;i<MAXNLINES;i++){
      sprintf(errmsg,"ParseFile: BCMASK2Partition error"); retcode= 1;
    };
    printf("BCMASK2Partition finished:\n"); printTRBIF(part->rbif);
+  } else if(strncmp("SDG ",lines[i],4) == 0){
+   if(SDGadd(lines[i], part->name)) {
+     SDGclean(part->name);
+     sprintf(errmsg,"ParseFile: SDGadd error"); retcode= 1;
+     goto RETERR;
+   };
   } else  if(strncmp("PF.",lines[i],3) == 0){
    if(PF2Partition(lines[i],part->rbif)) {
      sprintf(errmsg,"ParseFile: PF2Partition error"); retcode= 1;
@@ -738,7 +836,7 @@ for(i=0;i<MAXNLINES;i++){
     retcode=2;
     goto RETERR;
    };
-   part->klas[iklas]=CLA2Partition(lines[i],&error);
+   part->klas[iklas]=CLA2Partition(lines[i],&error, part->name);
    if((part->klas[iklas] == NULL) && error) {
      sprintf(errmsg, "ParseFile: CLA2Partition() rc:%d", error);
      retcode= 1; goto RETERR;
@@ -809,7 +907,7 @@ if(DBGcfgin) {
 RETERR:
 if(errmsg[0]!='\0') {
   prtError(errmsg);
-  infolog_trg(LOG_ERROR, errmsg);
+  infolog_trgboth(LOG_ERROR, errmsg);
 };
 return retcode;
 BADGROUP:

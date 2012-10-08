@@ -3,6 +3,7 @@ Notes about syncdownscalinog: L0 fi >= 0xAF
 Default values for these registers: 0,1,2,3,...,49.
 i.e. downscaling group for class1 is 0, ..., class50 is 49.
 Goals:
+-----
 - 0..49 are replaced by symb. names in .partition definitions
 - if SDG rpesent, the first (lowest class number) class keeps random downscaing factor,
   the remaining classes of the group points to this one.
@@ -10,6 +11,41 @@ Goals:
 New .partition syntax:
 - adding one new parameter in class definition: sdg=id. 
 Classes defined with the same sdg parameter will be downscaled synchronously,
+
+ctp_proxy
+---------
+- read .pcfg
+- when loading SDG, do similar action like in parted.py TrgPartition.findfirst()
+Data structures:
+Tpartition.h:
+TKlas
+int sdg;   // -1 if not sdg. pointer to SDGS if sdg-class
+w32 scaler; // the same for all sdg-classes in one SDG group
+           - see cfg2part.CLA2Partition. Perhaps, we should set only
+             first class in group?
+global array SDGS:
+EXTERN int NSDGS;
+typedef struct TSDGS{
+  char name[MAXPARTNAME];   // symbolic SDG name '\0' empty field
+  char pname[MAXPARTNAME];  // symbolic SDG name
+  w32  l0pr;                // calculated from n% (always rnd downscale)
+  int firstclass;  //1..50, 0: not allocated yet
+}TSDGS
+
+Hardware
+w32 sdgs[50]; default: 0,1,..,49  -for L0_SDSCG registers
+- set to default in Tpartition.c.cleanHardware()
+- set when phys. classes allocated in
+Notes about allocating classes:
+addPartitions2HW -called at 3 places when partition 
+  added/started/deleted with list of:
+  AllPartitions     ctp_InitPartition
+  StartedPartitions ctp_StartPartition
+  StartedPartitions ctp_StopPartition
+  
+  ->addClasses2HW  -after all classes allocated, update SDGS and calculate HW.sdgs
+
+- load2HW -load hw.sdgs array into L0_SDSCG
 
 ctp:
 ---
@@ -20,18 +56,25 @@ i.e. 0..49 by default. If different, sync. downscaling is active). This
 is not urgent, the SDSCG content can be examined/modified by
 SimpleTests->printsetSDSCG
 
-parted todo:
+parted todo: done: 23.9.2012
 -----------
+ -from/to .partition file
+ -from/to display
+ -to .pcfg
+ -to .rcfg
+
+.partition
 a 0.1%         #line defining sync. downscaling group
 a -any identifier (starting with letter) different from BC1/2 RND1/2 BCM*
 ...
-DINT1(sdg=a)   #present with each class synchronously downscaled
+DINT1(L0pr=a)   #present with each class synchronously downscaled
 Errors:
-L0pr present together with sdg in class definition (L0pr and sdg are mutually exclusive)
+L0pr present together with sdg in class definition (L0pr and sdg are mutually exclusive) -cannot happen (we use L0pr parameter, not special sdg=))
 Double definition of a sdg name 
 Synchronously downscaled classes not in the same TS group (Warning?)
 
 .pcfg   (see ctp_proxy/readme):
+-----
 SDG agrup 0x1fae13
 SDG c 0x1fae13
 ...
@@ -43,16 +86,17 @@ real class numbers are known)
 
 New .rcfg syntax:
 ----------------
-+1 column for each class sdg:
++1 column for each class sdg (7th l0pr-column is valid in all cases):
 0     -BUSY downscaling (implies no sync downscaling)
 1..50 -sync. downcaling group (cn-1 into DSCG register...)
        default: class number
 i.e. sdg column for class3:
-  3 or missing     -> 'no downscaling'
+  3 or missing     -> 'no sync downscaling'
   0                -> busy downscaling
   1<=n<=50 (n!=3)  -> sync. downscaling with class n 
 
 History:
+-------
 July 2012:
 0xaf loaded in lab (pit is still with 0xae)
 July 2012:
@@ -62,3 +106,6 @@ Supporting routine written in ctp/ctp.c
 
 6.9.2012
 ctp_proxy/readme -definition of .pcfg file changed (SDG + CLA lines)
+23.9.2012
+parted now copes with SDG (.partition, .pcfg, .rcfg, gui)
+
