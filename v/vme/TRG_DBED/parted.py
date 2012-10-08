@@ -1336,7 +1336,7 @@ class TrgClass:
       self.clsnamepart=[p0, "ABCE", "NOPF", cluspart]
     else:
       self.clsname= self.buildname()
-    print("updateClassName:", self.clsname, self.clsnamepart)
+    #print("updateClassName:", self.clsname, self.clsnamepart)
   def buildname(self):
       return "%s-%s-%s-%s"%(self.clsnamepart[0], self.clsnamepart[1],\
         self.clsnamepart[2], self.clsnamepart[3])
@@ -2608,7 +2608,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       cluster= self.clusters[ixclu]
       #if phclusters[ixclu] =='0': continue   # masked out
       if len(cluster.outdets)==0:continue #empty cluster,do not take its classes
-      print "Classes preparation:" ; cluster.prt()
+      #print "Classes preparation:" ; cluster.prt()
       for cla in cluster.cls:
         #---------------- prepare optional inputs (for INPUTS: section):
         bcrnd= cla.getTXTbcrnd()
@@ -2650,10 +2650,16 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
             sdg= 0   # not sync, busy way
           else:
             sdg= int(phcla)   # not syncdownscaling, rnd. way
-        lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(
-          clasname, phcla, desname, cluster.name, 
-          cla.getPFs(), cla.getBCMASKs(), l0pr, 
-          cla.allrare, cla.classgroup, clgtime, sdg)
+        if len(self.sdgs.sdgs.keys())>0:
+          lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(
+            clasname, phcla, desname, cluster.name, 
+            cla.getPFs(), cla.getBCMASKs(), l0pr, 
+            cla.allrare, cla.classgroup, clgtime, sdg)
+        else:
+          lineclg="%s %s %s %s %s %s %s %d %d %s\n"%(
+            clasname, phcla, desname, cluster.name, 
+            cla.getPFs(), cla.getBCMASKs(), l0pr, 
+            cla.allrare, cla.classgroup, clgtime)
         #ixclasses= ixclasses+1
         if phcla!='0': 
           #usedclasses.append(line); 

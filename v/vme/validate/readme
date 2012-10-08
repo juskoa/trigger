@@ -1,8 +1,8 @@
 modify setup.py:
   - change version 
 modify cphere.sh   
-  -change comment at the end
-  -add new files if needed
+  -change comment at the end (echo version...)
+  -add new files if needed (2x: p1/p2 + pyfiles !)
 modify MANIFEST
   -add new files if needed
 
@@ -21,6 +21,8 @@ history
 - 'cn=' parameter not needed in class definitions.
 - 0HWU check (if TRD in readout)
 - bug fixed (missing ')' in class definition )
+2.3. 8.10.2012
+- sync downscaling groups (syncdg.py) added
 
 Problem with SLC5:
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot

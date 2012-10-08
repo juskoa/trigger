@@ -2,6 +2,7 @@ setup.py
 ./downscaling.py
 ./myw.py
 ./parted.py
+./syncdg.py
 ./trigdb.py
 ./txtproc.py
 ./validate.py
