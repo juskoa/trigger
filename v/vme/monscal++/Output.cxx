@@ -233,6 +233,7 @@ count(0)
 {
  cout << "Starting DAQlogbook for run: " << runnum << " log=" << log << endl;
  if(daqnotopen){
+    cout << "Opening daqlogbook ..." << endl;
     int rcdaq= daqlogbook_open();
     if(rcdaq==-1) cout << "DAQlogbook open failed for run " << runnum<<endl;
     else{
@@ -254,7 +255,7 @@ count(0)
 }
 DAQlogbook::~DAQlogbook()
 {
- cout << "Stopping DAQlogbook for run: " << runnum << " log= "<< log <<endl;
+ //cout << "Stopping DAQlogbook for run: " << runnum << " log= "<< log <<endl;
  // close in MonScal
  //daqlogbook_close(); 
  if(log){
@@ -264,6 +265,7 @@ DAQlogbook::~DAQlogbook()
 }
 void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
 {
+ PrintLog("DAQlogbook UpdatedClusters called.");
  for(int i=0;i<nclust;i++){
     int ret=0;
     ret=daqlogbook_update_triggerClusterCounter(runnum,tclust[i]->GetIndex(),tclust[i]->GetL2aCount());
@@ -283,7 +285,7 @@ void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
 }
 void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 {
- //cout << "DAQlogbook UpdateClasses called." << endl;
+ PrintLog("DAQlogbook UpdateClasses called.");
  for(int i=0;i<nclass;i++){
    // warning : 3rd argument w64 but in dalogbook only w32
    //int ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), (w32)tclass[i]->GetL2aCount());
@@ -324,7 +326,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 }
 void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
 {
- //cout << "DAQlogbook UpdateDetector called." << endl;
+ PrintLog("DAQlogbook UpdateDetector called.");
  for(int i=0;i<ndet;i++){
    // warning : 3rd argument w64 but in dalogbook only w32
    int ret=0;
@@ -345,6 +347,7 @@ void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
 }
 void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
 {
+ PrintLog("DAQlogbook UpdateInputs called");
  for(int i=0;i<ninp;i++){
     int ret=0;
     ret=daqlogbook_update_triggerInputCounter(runnum,inps[i]->GetPosition(), inps[i]->GetLevel(),inps[i]->GetCounter()->GetCountTot());
@@ -364,6 +367,7 @@ void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
 }
 void DAQlogbook::UpdateL2a(Counter& L2a)
 {
+ PrintLog("DAQlogbook UpdateL2a called.");
  int ret=0;
  // skontroluj types
  ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeTot());
@@ -413,6 +417,8 @@ CountersOCDB::~CountersOCDB()
    int rc=0;
    // copy counters to dcs
    sprintf(cmd,"./dcsFES_putData.sh %d GRP CTP_xcounters /home/tri/%s",runnum, fileName.c_str());
+   cout << "Executing counters:" << endl;
+   PrintLog(cmd);
    rc=system(cmd);
    sprintf(msg,"cmd:%s rc:%d  copy2dcs:%d \n", cmd, rc, copy2dcs);
    PrintLog(msg);
@@ -428,6 +434,8 @@ CountersOCDB::~CountersOCDB()
    int rc=0;
    // copy aliases from act to tri:~tri/CFG/ctp/DB
    sprintf(cmd,"getactaliases.bash");
+   cout << "Executing aliases:" << endl;
+   PrintLog(cmd);
    rc=system(cmd);
    sprintf(msg,"cmd:%s rc:%d\n", cmd, rc);
    PrintLog(msg);

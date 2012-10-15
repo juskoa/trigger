@@ -16,6 +16,7 @@ class Log{
           void PrintLog(string& text);
           void PrintLog(const char* text);
           void PrintLog(char* text);
+	  void PrintLog(char*text, int i);
 };
 ostream &operator<<(ostream &  , Log  &);
 #endif

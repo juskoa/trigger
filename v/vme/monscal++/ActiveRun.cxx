@@ -55,7 +55,8 @@ fINT(0)
  L2a.SetName("L2a");
  //L2a.SetIXs(CSTART_L2+23,CSTART_L2 + 5);
  L2a.SetIXs(CSTART_INT+8,CSTART_INT + 2);
- cout << "Starting run " << fRunNumber << endl;
+ //cout << "Starting run " << fRunNumber << endl;
+ PrintLog("Run %i started",fRunNumber);
 }
 ActiveRun::~ActiveRun()
 {
@@ -68,7 +69,8 @@ ActiveRun::~ActiveRun()
  if(ocdb) delete ocdb;
  if(daq) delete daq;
  if(scal) delete scal;
- cout << "Stopping run " << fRunNumber << endl;
+ //cout << "Run " << fRunNumber << "stopped" << endl;
+ PrintLog("Run %i stopped.",fRunNumber);
 }
 //-----------------------------------------------------------
 int ActiveRun::ParseInputsList()
@@ -294,7 +296,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
           return 0;
    case 7:  // classes
          {
-         if((nitems < 8) || (nitems >10)){
+         if((nitems != 8) && (nitems != 10) && (nitems != 11)){
            PrintLog(("Invalid class syntax: "+line).c_str());
           return 1;
          }
