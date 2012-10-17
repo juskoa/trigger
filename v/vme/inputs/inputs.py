@@ -1,6 +1,8 @@
 #!/usr/bin/python
+from Tkinter import *
 import os.path, sys
 from operator import itemgetter
+import myw
 INPUT=['sin','detector','nameweb','namectp','eq','signature','dimnum','edge','delay','configured','deltamin','deltamax']
 class Inputs:
  def __init__(self):
@@ -9,16 +11,16 @@ class Inputs:
   self.l0inputs=None
   self.inpphases=None
   self.validctpinputs=None
+  self.prefix="../CFG/ctp/DB/"
  ##############################################################################################
  def checkVALIDCTPINPUTS(self):
   """
      Read VALID.CTPINPUTS,L0.INPUTS,INPUT.phases
      Checks consistency of VALID.CTPINPUTS against L0.INPUTS and INPUT.phases 
   """
-  prefix="../CFG/ctp/DB/"
-  if self.readL0inputs(prefix+"L0.INPUTS"): return
-  if self.readPhases(prefix+"INPUT.phases"): return
-  if self.readVALIDCTPINPUTS(prefix+"VALID.CTPINPUTS"): return
+  if self.readL0inputs("L0.INPUTS"): return
+  if self.readPhases("INPUT.phases"): return
+  if self.readVALIDCTPINPUTS("VALID.CTPINPUTS"): return
   l0inputs=self.l0inputs
   phases=self.inpphases
   notinL0INPUTS=[]
@@ -71,8 +73,11 @@ class Inputs:
  def readVALIDCTPINPUTS(self,filename):
   """
   """
-  lines = self.openFile(filename)
-  if lines==None: return 1
+  file=self.prefix+filename
+  lines = self.openFile(file)
+  if lines==None: 
+   print "Cannot open: ",file
+   return 1
   self.validctpinputs = self.parseVALIDCTPINPUTS(lines)
   #self.printVALIDCTPINPUTS()
   return 0
@@ -113,8 +118,11 @@ class Inputs:
  def readPhases(self,filename):
   """
   """
-  lines = self.openFile(filename)
-  if lines==None: return 1
+  file=self.prefix+filename
+  lines = self.openFile(file)
+  if lines==None: 
+   print "Cannot open: ",file
+   return 1
   self.inpphases = self.parseInputsPhases(lines)
   #self.printInpPhases()
   return 0
@@ -151,8 +159,11 @@ class Inputs:
   """
      Reads L0 inputs from file and creates input dictionary
   """
-  linesname=self.openFile(filename)
-  if linesname==None: return 1
+  file=self.prefix+filename
+  linesname=self.openFile(file)
+  if linesname==None:
+    print "Cannot open: ",file
+    return 1
   inputs=self.ParseL0inputs(linesname)
   self.l0inputs=self.inputs2dictionary(inputs)
   #self.printInpsDict()
@@ -251,19 +262,49 @@ class Inputs:
     print "Wrong number of inputs: ", len(inputs)
     return None
   return inputs
+################################################################################
+class InputPhasesEditor:
+ """
+     Edit file INPUT.phases. Before saving archives old version.
+ """
+ def __init__(self,master,inputs):
+  """
+  """
+  self.master=master
+  if inputs:
+   print "inputs ok"
+   if inputs.readPhases("INPUT.phases"): return
+  else:
+   print "no inputs"
+   return 
+  self.menubar= myw.MywMenu(self.master,helptext="")
+  self.master.config(menu=self.menubar)
+  self.filemenu= self.menubar.addcascade('File')
+  self.showmenu= self.menubar.addcascade('Show')
+  self.textfr=Frame(self.master)
+  self.text=Text(self.master)
+  self.scroll=Scrollbar(self.text)
+  self.text.configure(yscrollcommand=self.scroll.set)
 ################################################################################  
 def main():
- #print sys.argv
- #lif len(sys.argv) != 3:
- if 0:
-   print 'Wrong number of argumenst'
- else:
+ print sys.argv
+ #if len(sys.argv) == 2:
+ if 1:
    inps=Inputs()
    inps.checkVALIDCTPINPUTS()
    return
-   inps.readL0inputs(sys.argv[1])
-   inps.readPhases("INPUT.phases")
-   inps.readVALIDCTPINPUTS("VALID.CTPINPUTS")
-   #l0inps.Compare2L0inputs(sys.argv[1],int(sys.argv[2]))
+ elif len(sys.argv) == 1:
+   # edit and archive - not finished 
+   # instead in inputs_u.py at every measuremtn plot is saved
+   inps=Inputs()
+   f=Tk()
+   editor=InputPhasesEditor(f,inps)
+   f.mainloop()
+ else:
+   print "Wrong number of arguments." 
+ #inps.readL0inputs(sys.argv[1])
+ #inps.readPhases("INPUT.phases")
+ #inps.readVALIDCTPINPUTS("VALID.CTPINPUTS")
+ #l0inps.Compare2L0inputs(sys.argv[1],int(sys.argv[2]))
 if __name__ == "__main__":
     main()

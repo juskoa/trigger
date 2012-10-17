@@ -3,6 +3,7 @@ from mywrl import *
 #import ROOT
 import ssmbrowser,myw,types
 import os,os.path
+from time import gmtime, strftime
 COLOR_SSMC='#ffffcc'
 COLOR_normal='#dcdcdc'
 COLOR_error='red'
@@ -1106,6 +1107,18 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
        self.tl.destroy()
        return 0
     return 1
+   def saveauto(self):
+    """
+        Save file for every succesfull measurement 
+    """
+    ss=ss=strftime("_%Y-%m-%d_%H:%M:%S", gmtime())
+    fn=os.environ['VMEWORKDIR'] +"/WORK/phases/"+self.name+ss+".ps"
+    rc=self.c1.postscript(file=fn)
+    if rc is not '':
+     MywError(errmsg="File "+fn+" cannot be created.")
+     print "rc=",rc,len(rc)
+    else:
+     print "File ",fn, " saved."
    def save(self):
     """
        Save the postscript file of the plot to WORK directory.
@@ -1136,6 +1149,8 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
      self.c1.ylabel(text=self.ytitle)
      self.c1.pack()
      self.en.setEntry(str(max))
+     self.c1.update_idletasks()
+     self.saveauto()
    def ok(self):
     """
        Accept phase value and destroy ADC window.
@@ -1201,7 +1216,7 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
         #print listx[i],listy[i][0],der
         if(abs(der)>30.):
           delay.append(int(listx[i]-1))
-      print "delay=",delay
+      #print "delay=",delay
       if (delay==[]): delay=None
       return delay
      else:

@@ -175,12 +175,12 @@ class Graph(Body,Mycanvas):
    self.yg=ygraphl
    self.y0=y0l
    self.x0=x0l
-   print 'x0l,y0l,xgraphl,yraphl',x0l,y0l,xgraphl,ygraphl
-   print 'x0,y0,xgraph,yraph',x0,y0,xgraph,ygraph
+   #print 'x0l,y0l,xgraphl,yraphl',x0l,y0l,xgraphl,ygraphl
+   #print 'x0,y0,xgraph,yraph',x0,y0,xgraph,ygraph
    if nxtick == 10. and xgraph > 10.0:
       dielik=int(xgraph/10.)
       nxtick = xgraph/dielik
-   print 'nxtick,nytick',nxtick,nytick
+   #print 'nxtick,nytick',nxtick,nytick
    Mycanvas.__init__(self,parent,x0=x0l,y0=y0l,xgraph=xgraphl,ygraph=ygraphl,xsize=xsize,ysize=ysize)
    self.axis(x0l,y0l,xgraphl,ygraphl)
    self.xticks(x0,y0,xgraph,ygraph,x0l,y0l,xgraphl,ygraphl,nxtick)
