@@ -2650,17 +2650,16 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
             sdg= 0   # not sync, busy way
           else:
             sdg= int(phcla)   # not syncdownscaling, rnd. way
-        if len(self.sdgs.sdgs.keys())>0:
-          lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(
-            clasname, phcla, desname, cluster.name, 
-            cla.getPFs(), cla.getBCMASKs(), l0pr, 
-            cla.allrare, cla.classgroup, clgtime, sdg)
-        else:
-          lineclg="%s %s %s %s %s %s %s %d %d %s\n"%(
-            clasname, phcla, desname, cluster.name, 
-            cla.getPFs(), cla.getBCMASKs(), l0pr, 
-            cla.allrare, cla.classgroup, clgtime)
-        #ixclasses= ixclasses+1
+        #if len(self.sdgs.sdgs.keys())>0:
+        lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(
+          clasname, phcla, desname, cluster.name, 
+          cla.getPFs(), cla.getBCMASKs(), l0pr, 
+          cla.allrare, cla.classgroup, clgtime, sdg)
+        #else:
+        #  lineclg="%s %s %s %s %s %s %s %d %d %s\n"%(
+        #    clasname, phcla, desname, cluster.name, 
+        #    cla.getPFs(), cla.getBCMASKs(), l0pr, 
+        #    cla.allrare, cla.classgroup, clgtime)
         if phcla!='0': 
           #usedclasses.append(line); 
           usedclasses.append(lineclg)
