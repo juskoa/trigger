@@ -235,9 +235,33 @@ def main():
   signal.signal(signal.SIGUSR1, signal_handler)  # 10
   signal.signal(signal.SIGHUP, signal_handler)   # 1  kill -s SIGHUP mypid
   signal.signal(signal.SIGINT, signal_handler)   # 2  CTRL-C
+  # all monitorable:
+  #allds={"udpmon":Daemon("udpmon"), 
+  #  "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
+  #  "pydim":Daemon("pydim"), "html":Daemon("html")}
   allds={"udpmon":Daemon("udpmon"), 
     "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
     "pydim":Daemon("pydim"), "html":Daemon("html")}
+  lin=""
+  for dm in allds.keys():
+    lin=lin+dm+" "
+  log.logm("daemons: "+lin)
+  udpmsg=Udp(allds)   # starts thread reading udp messages
+  while 1:
+    for dmName in allds:
+      dm= allds[dmName]
+      # 2 sources:
+      # status: up, down
+      # lastlog: ok, smssent, down
+      rc= dm.do_check()
+      if rc[0]==Daemon.OFF:
+        if dm.state != Daemon.RESTARTED:   # was DOWN or OK
+          dm.do_start()
+          dm.set_state(Daemon.RESTARTED)
+        else:
+          dm.logm_mail("DOWN/OK->OFF cannot restart")
+      elif rc[0]==Daemon.HUNG:
+        dm.logm("hung "+rc[1])
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "

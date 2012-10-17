@@ -13,9 +13,30 @@ ok      idle      -         -
 ok      on,msg    -         -
         hung      restart   restarted
 
+The order according to monitor.py.main():
+state   check_rc  action    new state    note
+-----------------------------------------------
+down    off       start     restarted    init:down
+ok      off       start     restarted
+rstrted off       -         -            "DOWN/OK->OFF cannot restart"
+                                         try to restart/sms after 1hour?
+
+down    hung      restart   restarted    init:down
+ok      hung      restart   restarted
+rstrted hung      -         -            "RESTARTED->HUNG cannot restart"
+                                         sms?
+
+down    idle      -         ok           init:ok
+ok      idle      -         ok
+rstrted idle      -         ok
+
+down    on,msg    -         ok,msg       init:ok
+rstrted on,msg    -         ok
+ok      on,msg    -         ok
+
 -: no action, or do not change state
 
-check_rc: -ret. code from the check of the status of a daemon
+check_rc: -ret. code from do_check() checking the status of a daemon
 --------
 off  -daemon is not running (no pid)
 idle -is on (pid found), but it is not clear if it is hanged
