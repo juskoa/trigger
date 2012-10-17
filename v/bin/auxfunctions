@@ -49,4 +49,10 @@ else
 fi
 }
 # following used in bin/smaq script:
-export smaqhost=alidcscom707
+if [ "$VMESITE" = 'ALICE' ] ;then
+  export smaqhost=alidcscom707
+  export server=alidcscom188
+elif [ "$VMESITE" = 'SERVER' ] ;then
+  export smaqhost=pcalicebhm10
+  export server=pcalicebhm10
+fi

@@ -220,4 +220,16 @@ ctp/pfsimL0.py
 Simulation of PF (using BC1/2)  on L0 board in vme/ctp/pfsimL0.py
 19.9.
 parted.py -bug fixed for -PF_name- in class names.
-
+15.10.2012
+bin/mail2oncall.bash -send sms to me
+to be started from server (i.e. where sendmail is active)
+cd ~/bin ln -s /home/dl/root/usr/local/trigger/devel/v/bin/mail2oncall.bash mail2oncall.bash
+- now start through ssh form VME cpus
+15.10.2012
+bin/gcalibrestart.sh -to be called 'at -f gcalibrestart.sh now + 1 min'
+from gcalib.c
+gcalib.c -modified for automatic restart (if thread nopt started)
+-not working. Seems 'at' command cannot b used to restart itself...
+17.10.2012
+vme/inputs_u.py:
+pri kazdom merani fazy zapise obrazok do $WORKDIR/phases/inputname_date_time.ps

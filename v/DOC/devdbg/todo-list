@@ -81,7 +81,7 @@ Contents:
 19. test l0 synchronous downscaling  l0_logic_verAF.rbf
     see CFG/l0/readme +mail from Marian 16.2.2012)
     DESC(cn=CESC-ABCE-NOPF-ALL, L0pr=, cg=0..9, sdg=
-    see devdbg/syncdownscaling
+    done 8.10.2012 in pit, see devdbg/SOLVED/syncdownscaling
 20. 21.08.2012 trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
     Done: 30.8.2012 peapred for update in the pit
 21. 21.08.2012 INIT_PARTITION command to ctpproxy. 

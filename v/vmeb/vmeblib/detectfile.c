@@ -10,7 +10,7 @@
 /*-----------------------*/ int detectfile(char *name, int maxsecs) {
 /* name: name of the file
    maxsecs: timeout in seconds (0: check only once and return)
-   rc:   -1: error or file length
+   rc:   -1: error or file length (has to be >0)
 Problems:
 if we are NFS client looking for file written on NFS server,
 the file is not seen sometimes: it seems, it happens in
@@ -36,7 +36,7 @@ while(1) {
   //dp = opendir(dirpath); (void) closedir (dp);
   rc= stat(name, &buf);
   if(rc==0) {
-    printf("detectfile rc:%d from stat(%s) secs:%d\n", rc, name, secs);
+    printf("detectfile stat rc:%d from stat(%s) secs:%d\n", rc, name, secs);
     rc= buf.st_size;
     if(rc==0) {
       printf("detectfile size:0, secs:%d\n", secs);

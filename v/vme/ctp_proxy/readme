@@ -134,21 +134,22 @@ l0inverted:  0x0 if there are not inverted inputs.
 If not 0x0, corresponding bit belongs to inverted input -i.e. this class
 has to be allocated in physical classes 45..50 (not valid for >AC)
 
-                                  >=AC
-l0vetos: 0xrAAAAFFFF.CCC          0xrAAAAAAAAAAAAFFFF.CCC
-           11   7   3               19           7   3
-r     All/rare flag (bit12)
+         <AC                      >=AC
+l0vetos: 0xM....rAAAAFFFF.CCC          0xM..........rAAAAAAAAAAAAFFFF.CCC
+          16    11   7   3              31          19           7   3
+r     All/rare flag (bit12, 20 for >=AC)
 AAAA  BCmask4..1   (i.e. BCM1 veto active is coded as: 0xe, BCM2:0xd BCM3:0xb
       BCmask12..1 for >AC
 FFFF  P/F potection circuits 4..1
 .CCC  Cluster code (3 bits)
 
-Class mask: <AC:
-bit17 (0x10000) is CLASSMASK. 
-      Asserting this bit on L0 board disables the corresponding class. 
+M     Class mask 
+      <AC:
+bit16 (0x10000) is CLASSMASK (bit to be placed in L0_MASK reg). 
+      Asserting bit0 on L0 board (L0_MASK register) disables the corresponding class. 
       It means such line shouldn't be present in .pcfg file.
-            >=AC:
-bit31 (0x80000000)
+      >=AC:
+bit31 (0x80000000)  -> goes to L0_MASK register bit0
 
 l0scaler:
 0xhexa  -in case of busy or rnd downscaling, starting with 0x 
