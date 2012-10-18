@@ -233,3 +233,7 @@ gcalib.c -modified for automatic restart (if thread nopt started)
 17.10.2012
 vme/inputs_u.py:
 pri kazdom merani fazy zapise obrazok do $WORKDIR/phases/inputname_date_time.ps
+18.10.2012
+vme/monitor/monitor.py started -monitoring/restarting automatically
+udpmon gcalib html pydim daemons + sms sent to aj if restart happened.
+

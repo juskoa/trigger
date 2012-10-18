@@ -5,23 +5,29 @@ from threading import Thread
 UDP_TIMEOUT=70
 log=None
 quit=None
+pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
 
 def signal_handler(signal, stack):
   global quit
   log.logm("signal:%d received, quitting monitor.py..."%signal)
+  log.logm("anyhow, stucked till udp timeout elapses...")
+  log.flush()
   quit="quit"
+  #time.sleep(2)
+  os.remove(pidpath)
+  sys.exit(8)
 
 def send_mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
   """
   Usage:
   send_mail('This is a test', 'subj')
   """
-  sender="Anton.Jusko@cern.ch"
+  sender="Anton.Jusko@cern.ch"   #must, or error: 5.1.7 Invalid address
   headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (sender, to, subject)
   message = headers + text
-  #mailServer = smtplib.SMTP("cernmx.cern.ch")
-  #mailServer.sendmail(sender, to, message)
-  #mailServer.quit()
+  mailServer = smtplib.SMTP("cernmx.cern.ch")
+  mailServer.sendmail(sender, to, message)
+  mailServer.quit()
 
 def gcalib_onfunc(inm):
   """ inm: gcalib 18.08.2011 09:57:50  TOF 92.917 4.903  MUON_TRG 88.031 0.017  
@@ -96,7 +102,13 @@ class Daemon:
   RESTARTED=1
   OK=2
   def __init__(self,name, scb="scb", onfunc=None):
-    """scb: "scb": startClients.bash way
+    """
+    scb: 
+    "scb": startClients.bash way check
+    "udp" check last udp message arrived from this Daemon
+
+    onfunc: execute with each UDP message
+            onfunc() should return: [None], [ON,msg] or [HUNG]
     """
     self.name= name
     self.scb= scb
@@ -123,6 +135,7 @@ class Daemon:
     "scb" (StartClients.Bash way) -run localy (this script
           is supposed to run on server) startClients.bash
     "udp" check last udp message arrived from this Daemon
+
     rc: 0: on, msg
         1: idle (e.g.: gcalib on, but no calib. triggers needed)
         2: off (= not running)
@@ -175,13 +188,16 @@ class Daemon:
         log.flush()
       self.a2= self.a1 ; self.d2= self.d1
       self.a1= msg ; self.d1= ltime
-      print "logm:",self.name, msg
+      #print "logm:",self.name, msg
       self.last_state= state
   def logm_mail(self, msg):
+    msg2= self.name + ': ' + msg
     if self.sms_sent<2:   # send max. 2 messages
-      self.logm(msg)
-      send_mail(msg)
       self.sms_sent= self.sms_sent+1
+      if self.sms_sent==2:
+        msg2= msg2+". SMSs DISABLED (max. 2)"
+      self.logm("mail:"+msg2)
+      send_mail(msg2)
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
     if self.a1!=None: log.logm(self.name+': '+self.a1, ltime= self.d1)
@@ -213,23 +229,34 @@ class Daemon:
 
 def main():
   global log
-  pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
   if os.path.exists(pidpath):
     pidf=open(pidpath,"r"); pid= pidf.readline().rstrip(); pidf.close()
   else:
     pid=None
   if (len(sys.argv)>1) and ((sys.argv[1]=='stop') or (sys.argv[1]=='restart') ):
-    print "stopping %s..."%pid
-    os.kill(int(pid), signal.SIGHUP)
-    return
+    if pid: 
+      print "stopping %s..."%pid
+      os.kill(int(pid), signal.SIGHUP)
+      #os.remove(pidpath)
+    else:
+      print "monitor.py not active"
     if sys.argv[1]=='stop': return
     else: time.sleep(1) ; pid=None
   if pid!=None:
-    print "monitor.py running. kill -s SIGHUP %s or start with stop"%pid
+    print "monitor.py running. kill -s SIGHUP %s ; rm %s or use stop"%(pid,pidpath)
     return
+  else:
+    if (len(sys.argv)>1) and (sys.argv[1][-5:]=='start'):
+      print "starting..."
+    else:
+      print """
+monitor.py start &
+monitor.py stop
+"""
+      return
   mypid= str(os.getpid())
   pidf=open(pidpath,"w"); pid= pidf.write(mypid); pidf.close()
-  log=pylog.Pylog("monitor", tty="tty")
+  log=pylog.Pylog("monitor") #, tty="tty")
   log.logm("mypid: "+mypid)
   htmlfn= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.html")
   signal.signal(signal.SIGUSR1, signal_handler)  # 10
@@ -240,12 +267,12 @@ def main():
   #  "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
   #  "pydim":Daemon("pydim"), "html":Daemon("html")}
   allds={"udpmon":Daemon("udpmon"), 
-    "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
+    "gcalib":Daemon("gcalib"),
     "pydim":Daemon("pydim"), "html":Daemon("html")}
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "
-  log.logm("daemons: "+lin)
+  log.logm("monitored daemons: "+lin)
   udpmsg=Udp(allds)   # starts thread reading udp messages
   while 1:
     for dmName in allds:
@@ -258,26 +285,7 @@ def main():
         if dm.state != Daemon.RESTARTED:   # was DOWN or OK
           dm.do_start()
           dm.set_state(Daemon.RESTARTED)
-        else:
-          dm.logm_mail("DOWN/OK->OFF cannot restart")
-      elif rc[0]==Daemon.HUNG:
-        dm.logm("hung "+rc[1])
-  lin=""
-  for dm in allds.keys():
-    lin=lin+dm+" "
-  log.logm("daemons: "+lin)
-  udpmsg=Udp(allds)   # starts thread reading udp messages
-  while 1:
-    for dmName in allds:
-      dm= allds[dmName]
-      # 2 sources:
-      # status: up, down
-      # lastlog: ok, smssent, down
-      rc= dm.do_check()
-      if rc[0]==Daemon.OFF:
-        if dm.state != Daemon.RESTARTED:   # was DOWN or OK
-          dm.do_start()
-          dm.set_state(Daemon.RESTARTED)
+          dm.logm_mail("DOWN/OK->OFF. restarted")
         else:
           dm.logm_mail("DOWN/OK->OFF cannot restart")
       elif rc[0]==Daemon.HUNG:
@@ -311,10 +319,11 @@ def main():
     if quit:
       #for dm in allds: no need (a1,a2 are logged in the time of their creation)
       #  dm.flush()
-      log.logm("removing %s..."%pidpath)
+      log.logm("quitting pid: %s..."%pidpath)
       log.flush()
-      os.remove(pidpath)
       udpmsg.close()
+      time.sleep(1)   #
+      #os.remove(pidpath)
       break
 if __name__ == "__main__":
   main()

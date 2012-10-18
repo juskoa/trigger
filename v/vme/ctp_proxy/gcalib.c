@@ -425,7 +425,8 @@ usleep(100000);
 if(threadactive==0) {
   char msg[200];
   sprintf(msg,"thread not started! exiting..."); prtLog(msg);
-  exit(8);
+  //exit(8);
+  quit=8;
 };
 if(detectfile("gcalrestart", 1) >=0) {   //debug: simulate error by file presence
   // i.e.: echo blabla >$VMEWORKDIR/gcalrestart
@@ -433,7 +434,8 @@ if(detectfile("gcalrestart", 1) >=0) {   //debug: simulate error by file presenc
   //system("gcalibrestart_at.sh >/tmp/gcalibresatrt_at.log");
   system("rm gcalrestart");
   sprintf(msg,"gcalrestart removed, registered, exiting..."); prtLog(msg);
-  exit(8);
+  //exit(8);
+  quit=8; 
 }else {
   char msg[200];
   //system("gcalibrestart_at.sh");
@@ -589,10 +591,13 @@ while(1)  {
   last_heartbeat= heartbeat;
   /*dtq_sleep(2); */
   sleep(40);  // should be more than max. cal.trig period (33s for muon_trg)
-  /*if(detectfile("gcalrestart", 1) >=0) { 
+  if(detectfile("gcalrestart", 1) >=0) { 
     char msg[200];
     sprintf(msg,"gcalrestart exists"); prtLog(msg);
-  };*/
+    system("rm gcalrestart");
+    sprintf(msg,"main: gcalrestart removed, exiting..."); prtLog(msg);
+    quit=8; 
+  };
   if(quit>0) break;
   beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
   //ds_update();

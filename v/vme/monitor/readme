@@ -38,26 +38,28 @@ ok      on,msg    -         ok
 
 check_rc: -ret. code from do_check() checking the status of a daemon
 --------
-off  -daemon is not running (no pid)
-idle -is on (pid found), but it is not clear if it is hanged
-on   -is on and responding (i.e. fresh udp message)
-hung -not responding
+OFF  -daemon is not running (no pid)
+IDLE -is on (pid found), but it is not clear if it is hanged
+ON   -is on and responding (i.e. fresh udp message)
+HUNG -not responding
 
 Actions:
 -------
 restart:
- - check if on + kill if not on, start daemon
+ - check if on, kill if not on, start daemon
 idle:
  - status returned pid: 
    + SPECIAL for readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
 
 Config:
 ------
-see allds= in monitor.py main()
+see: allds= in monitor.py main()
+     doc in Daemon.__init__()
 
 start:
 ------
-./monitor.py &
+./monitor.py [re]start &
+./monitor.py stop
 
 History:
 14.8.
@@ -84,3 +86,6 @@ was stored -i.e. the interval was than included in next interval.
 20.7. 2012
 pydim added (i.e. startClients.bash returns "pid: ..." if on
 i.e. monitor-able daemons now: udpmon pydim html gcalib
+
+17.10. 2012
+control better, still not complete...
