@@ -157,6 +157,7 @@ Rate reduction can be given as fraction of triggers to go through (%).
 Examples:
 0          -> no prescaling
 1%         -> Rate reduction by 100 times
+1.5%       -> Rate reduction to 1.5%
 40ms       -> Class will be busy 40 miliseconds after each trigger
 1khz       -> Class busy is set to 1 milisecond
 
@@ -194,7 +195,8 @@ def frommsL0pr(oldval, newval):
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=str(eval(newval))
     else:     # n given directly as int
-      intrep= int(newval)
+      #intrep= int(newval)
+      intrep= string.atoi(newval)
       retval= str(newval)
   except:
     retval=None

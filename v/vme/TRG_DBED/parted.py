@@ -63,6 +63,8 @@ VERSION: 4 (.rcfg)
 Version: 4 (.partition) just to be the same with .rcfg
 23.9.2012
 VERSION: 5 (both .rcfg .partition): sync downscaling
+22.10.
+VERSION: 6 LINDF REPL added
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -75,9 +77,9 @@ if hasattr(sys,'version_info'):
     import warnings
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
-import myw, txtproc, trigdb, syncdg
+import myw, txtproc, trigdb, syncdg, preproc
 
-VERSION="5"            # from 23.9.: sync downscaling
+VERSION="6"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
 COLOR_NORMAL="#d9d9d9"
@@ -87,6 +89,8 @@ COLOR_SHARED="#cc66cc"
 COLOR_WARN="#ff9999"
 COLOR_ACTIVE="#ff00cc"
 COLOR_OK="#00ff00"
+symchars = 'abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
+
 
 # .partition .pcfg files go here:
 CFGDIR=trigdb.CFGDIR       # .partition & .pcfg files are here
@@ -106,6 +110,7 @@ else:
 lutzero="0x"+ '0'*(2**(L0F_NUMBER-2))
 TRGCTPCFG= trigdb.Trgctpcfg()
 clgtimes= TRGCTPCFG.getTIMESHARING()
+symbols= preproc.symbols()
 
 def IntErr(fstr):
   print "Internal error:",fstr
@@ -134,6 +139,27 @@ def redline(inf):                 # ignore empty lines
     else:
       cltds= cltds + cl
       break
+  #replace symbols, if any:
+  while True:
+    istart=None
+    for ic in range(len(cltds)):
+      ch= cltds[ic]
+      if ch=='$':   # start of $sym or $sym$sym
+        if istart!=None:   # $sym$sym -end of first $sym found
+          istop=ic-1 ; break
+        istart= ic         # $sym
+        continue
+      if istart!=None:   # looking for end of $sym
+        if not (ch in symchars):
+          istop=ic-1 ; break   # end of $sym found
+    if istart==None: break     # $... not found
+    # istart:istop -first:last character of sym name
+    key= cltds[istart+1:istop+1]
+    val= symbols.get(key)
+    if val==None:
+      PrintError("Unknown symbol in line:"+cltds)
+      break
+    cltds= cltds[:istart] + val + cltds[istop+1:]
   #print "redline rc:",cltds[:-1]
   return cltds
 def Parse1(clstring):
@@ -1292,7 +1318,7 @@ class TrgClass:
       PrintError("Bad TD:"+clstring); break
     # leave None if not defined in .partition (from 3.6.2012):
     if (cn_name!=None) and (cn_name!=self.getclsname()):
-      print "TrgClass:", cn_name, self.getclsname()
+      print "TrgClass:", cn_name, "default name:", self.getclsname()
       self.clsname=cn_name
   def get_clsnamepart1(self, k):
     bcm= findSHR(k)
@@ -2311,8 +2337,12 @@ class TrgPartition:
         l0scaler= cls.L0pr
         l0pr= self.sdgs.find(l0scaler)
         if l0pr==None:
-          print "l0scaler:", l0scaler,":"
-          l0scaler= "0x%x"%(int(myw.frommsL0pr('', l0scaler)))
+          #print "l0scaler:", l0scaler,":"
+          rcnone= myw.frommsL0pr('', l0scaler)
+          if rcnone:
+            l0scaler= "0x%x"%(int(rcnone))
+          else:
+            errormsg= errormsg+"Bad L0pr:%s\n"%l0scaler
         l1def= 0x0fffffff | (clunum<<28)
         l1inv= 0
         l2def= 0x0fffffff | (clunum<<28)
@@ -2967,16 +2997,33 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       if section == 'Shared':
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
-        shrname= string.split(cltds)[0]
-        sr= findSHR(shrname)
-        if sr!=None: 
-          sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
-        else:
-          sr= self.sdgs.find(shrname)
-          if sr!=None: 
-            PrintError("bad sync downscaling resource line:"+cltds, self)
+        cltdsa= string.split(cltds)
+        shrname= cltdsa[0]
+        if cltdsa[1]=="REPL":               # replacement definition
+          ixstart= cltds.find(" REPL ")+6
+          symbols.add(shrname, cltds[ixstart:-1])
+          print string.strip(cltds)
+        elif (cltdsa[1]=="FIXLUM") or (cltdsa[1]=="FIXLOSS"):
+          #ixstart= cltds.find(" LINDF ")+7
+          # cltds[ixstart:] deflum a b
+          fixll= " " + cltdsa[1] + " "
+          ixstart= cltds.find(fixll)+len(fixll)
+          # cltds[ixstart:] lum
+          rc= symbols.add_FIXLL(shrname, cltds[ixstart:], cltdsa[1])
+          if rc:
+            PrintError(rc)
           else:
-            self.sdgs.add(shrname, string.split(cltds)[1])
+            print string.strip(cltds) + "   -> " + symbols.get(shrname)
+        else:                               # BC1/2 RND1/2 BCM* PF* or SDG
+          sr= findSHR(shrname)
+          if sr!=None: 
+            sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
+          else:
+            sr= self.sdgs.find(shrname)
+            if sr!=None: 
+              PrintError("incorrect (double def?) sync downscaling resource line:"+cltds, self)
+            else:
+              self.sdgs.add(shrname, string.split(cltds)[1])
           #print "selfloaderrors:",self.loaderrors
         continue
       # Clusters section 

@@ -1,0 +1,138 @@
+Automatic/dynamic downscaling
+- see TM from 19.10.2012, it was agreed:
+Automatic: 
+  let's formula is a+b*(lum/deflum)   (not -b as stated in presentation)
+  a,b: any (i.e. also negative) is allowed
+  deflum: is 1hz/ub  (L:deflum in case L not available)
+  use L0bad (L0b after downscalig) rates for new df calculation 
+
+  After talk with Evgeny 24.10.2012:
+  df= (R0 + K*L)/(L*S)
+  R0: desired rate L0bad or at asymprotically small L
+
+  K: slope of increase of rate per 1hz/ub 
+     -negative for TRDL1
+     - zero for constant desired rate
+  S: cross section [ub]    (calculated from previous run: l0b/L)
+  
+  i.e.
+  sym LINDF act R0 S K
+
+Dynamic:
+  use L0a rates for new df calculation (i.e. L1r not meaningful)
+  GUI for manual tuning won't be needed
+  lumi does not need to be considered for new df calculation
+  implementation: very probably after LS1
+------------------
+Automatic issues:
+.partition syntax:
+sym LINDF deflum a b
+sym LINDF act a b          deflum: 10.0 -defined directly in preproc.py
+sdg $sym
+DINT1(L0pr=sdg)
+df calculation:
+df= a + b * (lum/deflum)   in % (i.e. always: 0%<=df<=100%)
+
+parted.py:
+---------
+- preproc.py added, dealing with $sym in .partition +
+  getting luminosity from IR_MONITOR/CTP/Luminosity DIM service
+- idea: calculate symbols once, in time when .partition loaded (i.e.
+  when line sym LINDF ... read)
+
+problem with symbolic names: when parted GUI started/.partition saved,
+sym. names are lost
+
+
+Test:
+[alidcscom521] /data/alice/trigger > dim_IR_clidbg.exe -s 52|head
+@ dc_cmd_line_opts : DCS master mask = 0xffffffff
+ : IRC = 0
+@
+19/10/12  11:36:16    SERVICE = IR_MONITOR/CTP/Luminosity    NDATA = 28544
+Sampling time ASTRON = 60.004692   ORBITS = 59.882309
+ORBITS               = 673410.000000
+Beam LUMInosity      = 6.98602e+30 +- 2.0412e+27
+Sync mark            = 25.000000
+BC: 0  Lumi per Bunch = 1.6598e+27 +- 3.1463e+25
+
+                                        19:29
+-rw-r--r-- 1 trigger alice 11913 Oct 19 17:31 r190307.rcfg
+-rw-r--r-- 1 trigger alice 11817 Oct 19 17:24 r190306.rcfg
+-rw-r--r-- 1 trigger alice 11913 Oct 19 17:03 r190305.rcfg
+-rw-r--r-- 1 trigger alice 11817 Oct 19 16:38 r190304.rcfg
+-rw-r--r-- 1 trigger alice 11913 Oct 19 15:56 r190303.rcfg
+-rw-r--r-- 1 trigger alice  9248 Oct 19 15:29 r190302.rcfg
+-rw-r--r-- 1 trigger alice  9248 Oct 19 13:23 r190301.rcfg
+-rw-r--r-- 1 trigger alice  1404 Oct 19 12:57 r190300.rcfg
+-rw-r--r-- 1 trigger alice  9248 Oct 19 12:43 r190299.rcfg
+-rw-r--r-- 1 trigger alice  9403 Oct 19 12:11 r190296.rcfg
+-rw-r--r-- 1 trigger alice  3462 Oct 19 06:32 r190290.rcfg
+
+time             run     length  lumi at SOR
+12:11 19.10.2012 190296  32      7.394
+12:43 19.10.2012 190299  14      7.279
+Fill   from                  to
+3200   19/10/2012 11:10:49   19/10/2012 19:29:27
+
+DMSL8  0TVX 0MSL
+DMSL8(BCM2,rare,cg=8,L0pr=2%)   BCM2=bcmS
+
+190296:
+CMSL8-S-NOPF-MUON 14 DMSL8 MUON {NONE} {BCM2} 2055208 0 8 223 14
+
+190299:
+CMSL8-S-NOPF-MUON 12 DMSL8 MUON {NONE} {BCM2} 2055208 0 8 223 12
+
+In both runs: 
+lumi: 6.9 hz/ub
+l0b 1khz
+l0a 19hz
+df  2%
+
+---------------------------
+Hi,
+now, when I tried to calculate a,b for formula given on last TM,
+I see it should be changed.
+Goal: l0a should be 100hz for CMSL8-S class
+Downscaling factor (df) will be calculated at SOR using 
+current luminosity.
+For this, we need to find out constants for linear formula used
+at SOR.
+
+I took run 190296, when founding out the constants:
+time             run     length  lumi at SOR
+12:11 19.10.2012 190296  32min   7.394 hz/ub
+
+DMSL8  0TVX 0MSL
+DMSL8(BCM2,rare,cg=8,L0pr=2%)   BCM2=bcmS
+SOR rates: l0b:1khz l0a: 19hz
+
+We assume: l0a (required rate) is proportional to the luminosity: 
+l0a= lumi * k * df
+For run 190296:
+19 = 7.394 * k * 0.02
+k= 128.48
+
+I.e. formula used for df calculation for future runs is:
+df = req_rate/lumi/k      
+where:
+k= 128.48
+lumi= measured at SOR (1hz/ub if T0 not switched on)
+reqrate= 100  (in Hz)
+
+i.e. LINDF line in partition definition should be:
+sym LINDF deflum req_rate k
+
+formula:
+df = 100 * req_rate/lumi/k 
+
+where:
+k -calculated using l0a rates for the same class from similar
+   run (i.e. where the class was in the same cluster)
+
+For CMSL8-S class:
+msl LINDF 1 100 128.48
+...
+DMSL8(BCM2,rare,cg=8,L0pr=$msl)
+Anton

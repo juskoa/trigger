@@ -38,10 +38,7 @@ Contents:
 5. 22.11.2011 BCmasks see below
 6. modify roman table l1r/l2r from TM and put to daqlogbook entry (55us for trd)
    done 27.3.2012
-7. diffrent calculation of average busy time (using l1r table)
-   - make better comment in ltu ->Simple tests-> measure busy +
-     preapre option using L0 or L2 for busy calculations or global
-    l1r table
+7. different calculation of average busy time (using l1r table)
 8. DIM services for Giacinto
 8A. DIM services publishing VALID.BCMASKS
     done: see startClients.bash masksServer
@@ -90,6 +87,8 @@ Contents:
 - tooltips missing
 - bug: on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
   not updated. Cure; quit+start miclock
+24. 24.10.2012 Automatic/Dynamic downscaling
+- see presentation at TM 19.10.2012 and DOC/devdbg/autodynds
 
 ==========================================================================
 
@@ -170,6 +169,48 @@ bcmA
 bcmC
 bcmAC
 bcmACE
+
+7. different calculation of average busy time (using l1r table)
+--------------------------------------------------------------
+- make better comment in ltu ->Simple tests-> measure busy +
+  prepare option using L0 or L2 for busy calculations or global
+  l1r table
+idea:
+- choose mode of busy calculation by button in busy screen
+- supply separate screen with the history of all 3 ways of busy calculations:
+  busyL0    totalbusy/L0s
+  busyL2a   totalbusy/L2as
+  readout   busyL2a-L1r-L2r: average L1r + L2r times substracted
+- i.e. all 3 sorts of average busy calculated simultaneously
+See CNTRRD/readctpc.c
+
+available counters:
+byin[1-24]         -total busy time in 0.4us units
+fo[1-6]l0out[1-4]  -# of L0s
+fo[1-6]l1out[1-4]  -# of L1s (i.e. L1 accepted events)
+fo[1-6]l2stro[1-4] -# of L2s (i.e. L2accept+L2reject)
+fo[1-4]l2rout[1-4] -# of L2r
+
+
+totalbusy= readout_av*L2as + L2busy_av*L2rs + L1busy_av*L1rs
+
+L1rs= L0s - L1s     # of L1 rejected events
+L2as= L2s - L2r     # of L2 accepted events
+
+busy_L2r=L2busy_av*L2rs  -busy time spent on L2 rejected events
+busy_L1r=L1busy_av*L1rs  -busy time spent on L1 rejected events
+
+readout_av= (totalbusy - busy_L2r - busyL1r)/L2as
+
+L2busy_av/L1busy_av: is measured. 
+Note for detectors with multi-event buffer: measurement was
+done with empty buffers (which does not have to be true during
+datataking).
+Done: 
+25.10.2012
+readctpc.c -now 3 sorts of busy prepared -sort of busy pased to html
+todo: test + control from web
+
 
 8. DIM services for Giacinto
 ----------------------------

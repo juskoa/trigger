@@ -33,6 +33,11 @@ ctp -classes widget
 AE version of l0 board in the pit + sw updated in the pit
 I.e. sw in lab+pit is now in sync, monscal++ still to be checked.
 Notes from update: see trigger@alidcscom188:aj/f20/readme
+4 new counters fo[1-4]l2rout[1-4] on each FO board:
+fo1l2rout1 871 fo1 C HMPID
+fo1l2rout2 872 fo1 C PHOS
+fo1l2rout3 873 fo1 C CPV
+fo1l2rout4 874 fo1 C N
 
 21.2.2012
 monscal++ in sync also
@@ -235,5 +240,5 @@ vme/inputs_u.py:
 pri kazdom merani fazy zapise obrazok do $WORKDIR/phases/inputname_date_time.ps
 18.10.2012
 vme/monitor/monitor.py started -monitoring/restarting automatically
-udpmon gcalib html pydim daemons + sms sent to aj if restart happened.
+udpmon gcalib html pydim daemons + sms sent to aj (162090) if restart happened.
 

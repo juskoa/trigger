@@ -9,6 +9,7 @@
 //#include <unistd.h>
 #include <string.h>     // memset
 #include <unistd.h>     // close
+#include <fcntl.h>     // fcntl
 #include <stdlib.h>     //exit
 #include <sys/time.h>   /* gettimeofday */
 
@@ -19,7 +20,8 @@
 #define NPACK 2 
 
 #define PORTs 9930
-#define PORTr 9930
+//#define PORTr 9930
+#define PORTr 9932
 /*pit:
 mindiffus is around 130
 
@@ -32,8 +34,11 @@ mindiffus is around 251 for both modes (server block/unblock)
 //#define CTP_IP "137.138.93.77"   //pcalicebhm11
 //#define CTP_IP "137.138.93.141"    //  05
 //#define TTCMI_IP "137.138.140.218"
-#define CTP_IP "pcalicebhm05"    //  05
+//#define CTP_IP "pcalicebhm10"    //  05
+#define CTP_IP "137.138.201.228"   // altri1
 #define TTCMI_IP "altri1"
+
+int unblockingmode=0;
 
 /*----------------------------------------------*/
 void GetMicSec(w32 *tsec, w32 *tusec) {
@@ -88,6 +93,7 @@ if (s==-1) return(s);
 memset((char *) &si_send, 0, sizeof(si_send));
 si_send.sin_family = AF_INET; si_send.sin_port = htons(PORTs);
 if (inet_aton(serverip, (struct in_addr *)&si_send.sin_addr)==0) { s=-1; };
+// "unconneted socket:" i.e. only sendto() possible
 return(s);
 }
 
@@ -99,23 +105,29 @@ if(sck or rc is -1): error
 2. start client (see above)
 */
 int udpopenr() {
-int s,rc;
-s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  //returns file descriptor
+int sock,rc;
+sock=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  //returns file descriptor
 //fcntl( not here (see MSG_NOWAIT
-//s=socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
-if(s==-1) {
+//sock=socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+if(sock==-1) {
   //diep("socket");
-  return(s);
+  return(sock);
+};
+if(unblockingmode>=1) {
+  int flags;
+  flags = fcntl(sock, F_GETFL);
+  flags |= O_NONBLOCK;
+  fcntl(sock, F_SETFL, flags);
 };
 memset((char *) &si_me, 0, sizeof(si_me));
 si_me.sin_family = AF_INET; si_me.sin_port = htons(PORTr);
 si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-rc= bind(s, (struct sockaddr *)&si_me, sizeof(si_me));
+rc= bind(sock, (struct sockaddr *)&si_me, sizeof(si_me));
 if(rc==-1) {
   //diep("bind");
   return(-1);
 };
-return(s);
+return(sock);
 }
 /* ---------------------------------------------------------- udpclose */
 void udpclose(int s) {
@@ -188,6 +200,7 @@ udplib s -start server waiting message + sending response (11 or ctp crate)\n\
 udplib c -start client sending message+waiting response(altri1 or TTCmi crate)\n\
 Note:\n\
 Server can be started in 'unblocking mode' : udplib s u\n\
+                                             udplib s ur (only receiving packets)\n\
 In this mode, the waiting for UDP message is in unblocking mode (endless loop)\n");
   exit(4);
 };
@@ -214,12 +227,15 @@ if(strcmp(argv[1],"c")==0) {         //-------------------------------------- cl
   printf("(send+wait) micsecs loops:%d average:%9.3f min:%d max:%d\n", 
     loops, 1.0*avdiffus/loops, (int)mindiffus, (int)maxdiffus);
 } else if(strcmp(argv[1],"s")==0) {  //------------------------------ server
-  int msgs=0; int unblockingmode=0;
+  int msgs=0; 
   if(argc>2) {
     if(strcmp(argv[2],"u")==0) unblockingmode=1;
+    if(strcmp(argv[2],"ur")==0) unblockingmode=2;
   };
   if(unblockingmode==1) {
     printf("Server. Starting in unblocking mode...\n");
+  } else if(unblockingmode==2) {
+    printf("Server. Starting in unblocking mode (receiving only)...\n");
   } else {
     printf("Server. Starting in blocking mode...\n");
   };
@@ -228,7 +244,13 @@ if(strcmp(argv[1],"c")==0) {         //-------------------------------------- cl
   while(1) {
     if(unblockingmode==1) {
       rc= udpwait_unblock(udpsockr, bufrec, BUFLEN); 
-      if(rc==-1) diep("udpwait_unblock()"); 
+      if(rc==-1) diep("udpwait_unblock(),1"); 
+    } else if(unblockingmode==2) {
+      rc= udpwait_unblock(udpsockr, bufrec, BUFLEN); 
+      if(rc==-1) diep("udpwait_unblock(),2"); 
+      sleep(5);
+      printf("got %d bytes: %s\n", rc, bufrec); fflush(stdout);
+      continue;
     } else {
       rc= udpwaitr(udpsockr, bufrec, BUFLEN); if(rc==-1) diep("udpwaitr()"); 
       printf("got %d bytes: %s\n", rc, bufrec);
