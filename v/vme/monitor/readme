@@ -89,3 +89,6 @@ i.e. monitor-able daemons now: udpmon pydim html gcalib
 
 17.10. 2012
 control better, still not complete...
+26.10.2012
+ttcmidim instead of pydim i.e., now monitored:
+udpmon gcalib ttcmidim html

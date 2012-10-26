@@ -268,7 +268,7 @@ monitor.py stop
   #  "pydim":Daemon("pydim"), "html":Daemon("html")}
   allds={"udpmon":Daemon("udpmon"), 
     "gcalib":Daemon("gcalib"),
-    "pydim":Daemon("pydim"), "html":Daemon("html")}
+    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "

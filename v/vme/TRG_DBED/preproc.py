@@ -22,7 +22,8 @@ def getlumi():
   return rc
 
 lumi= getlumi()
-if lumi==None: lumi= DEFLUMACT
+#better: crash run
+#if lumi==None: lumi= DEFLUMACT
 
 class symbols:
   def __init__(self):
@@ -48,6 +49,8 @@ class symbols:
       a= float(ao[0])
     except:
       return "Incorrect %s line:%s"%(fixll,value)
+    if lumi==None:
+      return "lumi (service IR_MONITOR/CTP/Luminosity) not available"
     dfn= a/lumi
     if fixll=="FIXLOSS":
       dfn= dfn*dfn

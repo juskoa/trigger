@@ -76,7 +76,7 @@ prtLog(msg1);
 void ds_stop() {
 #define EXITSERVER 1
 if(EXITSERVER==1) {
-  quit=1;   // stop thread reading ctp counters
+  quit=1;
   printf("qq...\n");
   dis_remove_service(MICLOCKid);
   dis_remove_service(SHIFTid);
@@ -347,7 +347,8 @@ if((rc!=0) and (rc2!=0) ) {
 };
 if(strncmp(msg,"qq", 2)==0) ds_stop();
 if(clocktran!=0)  {
-  sprintf(errmsg, "MICLOCK_SET: newclock thread already started!"); prtLog(errmsg); 
+  sprintf(errmsg, "MICLOCK_SET: newclock thread already started! exiting..."); prtLog(errmsg); 
+  quit=1;   // better quit, and restart (monitor.py should be active !)
   return;  
 };
 if(strncmp(msg,"BEAM1", 5)==0) { newclocktag=1;
