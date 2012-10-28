@@ -78,7 +78,7 @@ if hasattr(sys,'version_info'):
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
 import myw, txtproc, trigdb, syncdg, preproc
-
+preproc._getlumi()
 VERSION="6"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
@@ -2056,13 +2056,15 @@ See VALID.LTUS file for available LTUs.""",
     self.clfr.configure(bg=COLOR_CLUSTER)
 class TrgPartition:
   clustnames=["one","two","three","four","five","six"]
-  def __init__(self, relpname):
+  def __init__(self, relpname, strict=None):
     """
     relpname: relpath/name
     Create partition object from file 'name.partition'
     if relname=='empty_partition', file is not read, but empty part. object
     is created.
+    strict: strict: luminosity DIM service (see preproc.py) has to be available
     """
+    self.strict= strict
     self.version='0'
     self.loaderrors=''   # ok if ''
     self.relpath= os.path.dirname(relpname)
@@ -2927,7 +2929,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
             else:
               plfs[lutval]= [1, ixalloc]; ixalloc= ixalloc+1
               plfsdefs[lutval]= l0def
-    #print "allocShared2:", plfs, ixalloc
+    #print "allocShared3:", plfs, ixalloc
     for i in range(len(pl0funs)):
       if pl0funs[i]==None: break   # nothing to allocate
       lutval= list2str(pl0funs[i][0])
@@ -2935,7 +2937,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         #print "allocShared3:allocated already. ", lutval
         plfs[lutval][0]= plfs[lutval][0]+1
       else:
-        #print "allocShared4:new_allocation.:", lutval, plfs
+        #print "allocShared5:new_allocation.:", lutval, plfs
         plfs[lutval]= [1, ixalloc]; ixalloc= ixalloc+1
       if ixalloc<=2:
         newlf[plfs[lutval][1]]= lutval
@@ -2995,10 +2997,15 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         section= 'Clusters'
         continue
       if section == 'Shared':
+        #print "Shared:",cltds
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
         cltdsa= string.split(cltds)
+        if len(cltdsa)<2:
+          PrintError("at least 2 items in shared section expected:%s"%cltds,self)
+          break
         shrname= cltdsa[0]
+        print "Shared2:",cltdsa
         if cltdsa[1]=="REPL":               # replacement definition
           ixstart= cltds.find(" REPL ")+6
           symbols.add(shrname, cltds[ixstart:-1])
@@ -3011,11 +3018,15 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           # cltds[ixstart:] lum
           rc= symbols.add_FIXLL(shrname, cltds[ixstart:], cltdsa[1])
           if rc:
-            PrintError(rc)
+            PrintError(rc,self)
           else:
             print string.strip(cltds) + "   -> " + symbols.get(shrname)
+          if (self.strict=="strict") and (preproc.lumi_source != "dim"):
+            PrintError("strict required, but luminosity DIM service not available",self)
+
         else:                               # BC1/2 RND1/2 BCM* PF* or SDG
           sr= findSHR(shrname)
+          #print "Shared4:", sr
           if sr!=None: 
             sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
           else:
@@ -3023,8 +3034,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
             if sr!=None: 
               PrintError("incorrect (double def?) sync downscaling resource line:"+cltds, self)
             else:
-              self.sdgs.add(shrname, string.split(cltds)[1])
-          #print "selfloaderrors:",self.loaderrors
+              rc=self.sdgs.add(shrname, cltdsa[1])
+              if rc:
+                PrintError(rc,self)
+          #print "Shared selfloaderrors:",self.loaderrors
         continue
       # Clusters section 
       if self.version!='0': # (Version>1: 3 lines per cluster):
@@ -3454,8 +3467,11 @@ def main():
   if len(sys.argv)>2:
     if sys.argv[2]=='r':   # create .rcfg file for given partition
       # see v/vme/pydim -production code invoking parted -> .rcfg
-      part= TrgPartition(partname)
-      if len(sys.argv)>3:
+      part= TrgPartition(partname, "strict")
+      if part.loaderrors:
+        print "Errors:"
+        print part.loaderrors
+      elif len(sys.argv)>3:
         part.savercfg("%s 1234 %s"%(partname, sys.argv[3]))
       else:
         part.savercfg()

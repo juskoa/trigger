@@ -35,28 +35,33 @@ class TrgSDG:
       return self.firstclass[name]
     return None
   def add(self, name, dsf):
+    #print "syncdg adding:",name,dsf,self.sdgs
+    #import pdb ; pdb.set_trace()
     if self.sdgs.has_key(name):
       return "%s already defined"%name
     else:
       if len(self.sdgs)>=50:
         return "too many definitions of sync. downscaling groups"
-      if dsf=="": return TrgSDG.err
-      if dsf[-1]!="%": return TrgSDG.err
-      try:
-        fn= float(dsf[:-1])
-      except:
-        return TrgSDG.err
-      if (fn<=0.) or (fn>=100.):
-        return TrgSDG.err
-      self.sdgs[name]= dsf
-      self.firstclass[name]= 0
-      if self.tlw!=None:
-        self.entries.append(sdg1(self, name))
-      return None
+    if dsf=="": 
+      return TrgSDG.err
+    if dsf[-1]!="%": 
+      return TrgSDG.err+ ':'+dsf
+    try:
+      fn= float(dsf[:-1])
+    except:
+      return TrgSDG.err
+    if (fn<0.) or (fn>100.):
+      return TrgSDG.err
+    #print "syncdg2 adding:",name,dsf,self.sdgs
+    self.sdgs[name]= dsf
+    self.firstclass[name]= 0
+    #print "syncdg added:",name,dsf
+    if self.tlw!=None:
+      self.entries.append(sdg1(self, name))
+    return None
   def show(self):
     if self.tlw!=None:
-      self.RiseToplevel(self.tlw); return
-      #self.tlw.destroy()
+      myw.RiseToplevel(self.tlw); return
     self.tlw= myw.NewToplevel("SDG", self.hide, bg= COLOR_SHARED) 
     # new sdg:
     self.addfr= myw.MywFrame(self.tlw,side=TOP)
@@ -78,7 +83,8 @@ class TrgSDG:
       print("Error:"+rc)
   def hide(self, event=None):
     #print "hide:", event
-    pass
+    self.tlw.destroy()
+    self.tlw=None
     # +destroy:
     #self.entries[]
     #self.entriesfr 

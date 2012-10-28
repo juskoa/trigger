@@ -241,4 +241,9 @@ pri kazdom merani fazy zapise obrazok do $WORKDIR/phases/inputname_date_time.ps
 18.10.2012
 vme/monitor/monitor.py started -monitoring/restarting automatically
 udpmon gcalib html pydim daemons + sms sent to aj (162090) if restart happened.
-
+26.10.
+ttcmidims exists if thread not started (monitor is watching also
+ttcmidim daemon)
+28.10.
+automatic downscaling implemented (using DIM luminosity service -see preproc.py)
+validate.py: strict added

@@ -1,5 +1,5 @@
 modify setup.py:
-  - change version 
+  - change version, description 
 modify cphere.sh   
   -change comment at the end (echo version...)
   -add new files if needed (2x: p1/p2 + pyfiles !)
@@ -23,6 +23,8 @@ history
 - bug fixed (missing ')' in class definition )
 2.3. 8.10.2012
 - sync downscaling groups (syncdg.py) added
+2.4. 28.10.2012
+- automatic downscalin, strict validation added
 
 Problem with SLC5:
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot

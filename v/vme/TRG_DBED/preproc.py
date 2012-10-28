@@ -1,29 +1,35 @@
 #!/usr/bin/python
 import string,types
 
-DEFLUMACT=1.0
 lumi=None
+lumi_source=None   # "dim" or "default"
 
-def getlumi():
-  """ rc: 
-  float number: luminosity in hz/ub
-  None if luminosity DIM service not available, or lumi<1 hz/ub
+def _getlumi():
+  """ set 2 globals: lumi + lumi_source
+  lumi: float number, luminosity in hz/ub
+  lumi_source: how lumi was acquired
+     dim:     dim
+     default: dim was not available, or dip published number <1.0
+     None:    not initialized (i.e. _getlumi not called)
   """
+  global lumi
   import pydim
+  DEFLUMACT=1.0
   rc=None
   try:
     rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
     if rclumi!=None:
-      lumi= rclumi[3]
-      if lumi>1.0:
-        rc=lumi/1.0E30   # hz/ub
+      lumidim= rclumi[3]
+      if lumidim>1.0:
+        lumi_source= "dim"
+        lumi=lumidim/1.0E30   # hz/ub
+        return
   except:
     print "Except: in dic_sync_info_service(IR_MONITOR/CTP/Luminosity)"
-  return rc
+  lumi_source= "default"
+  lumi= DEFLUMACT
 
-lumi= getlumi()
-#better: crash run
-#if lumi==None: lumi= DEFLUMACT
+_getlumi()
 
 class symbols:
   def __init__(self):

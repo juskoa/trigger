@@ -56,14 +56,16 @@ def main():
       import warnings
       warnings.filterwarnings("ignore", category=FutureWarning, append=1)
   #dimserver= os.popen("./dimserver.exe","r")
-  copyit=False
+  copyit=False ; strict= None
   if os.environ.has_key('VMESITE'):
     pitsrc= os.path.join( os.environ['VMEWORKDIR'],"WORK","RCFG")
     if os.environ['VMESITE'] == 'ALICE':
       copyit=True ; acchost='trigger@alidcsvme001'
+      strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'],"alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
     elif os.environ['VMESITE'] == 'SERVER':
       copyit=True ; acchost='trigger@altri1'
+      strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
   executable= os.path.join( os.environ['VMECFDIR'],"pydim","linux","server")
   io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
@@ -112,7 +114,7 @@ def main():
       partname= cmd[1]
       runnumber= cmd[2]
       #parted.TDLTUS.initTDS(reload='yes')
-      part= parted.TrgPartition(partname)
+      part= parted.TrgPartition(partname, strict="strict")
       part.prt()
       if cmd[0]=='pcfg':
         if partname=="PHYSICS_1":

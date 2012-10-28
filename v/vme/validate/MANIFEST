@@ -1,6 +1,7 @@
 setup.py
 ./downscaling.py
 ./myw.py
+./preproc.py
 ./parted.py
 ./syncdg.py
 ./trigdb.py

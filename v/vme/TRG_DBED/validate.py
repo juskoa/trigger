@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """
-Usage: validate.py partname
+Usage: validate.py partname [strict]
+       strict: DIM service providing luminosity has to be available
 Stdout: list of input detectors (1 line)
         ' '\n -no input detectors
         'Errors:\n... -error message (integrity of files broken)
@@ -29,12 +30,16 @@ def main():
   #reload(parted)
   if len(sys.argv)<2:
     prterr("1 parameter missing: partition name")
+  strict=None
+  if len(sys.argv)>2:
+    if sys.argv[2]== "strict":
+      strict= "strict"
   saveout= sys.stdout
   logfile= open(os.path.join( WORKDIR,"validate.log"), "w")
   sys.stdout= logfile
   import parted
   partname= sys.argv[1]   #"beam" "erp"
-  part= parted.TrgPartition(partname)
+  part= parted.TrgPartition(partname, strict)
   part.prt()
   if part.loaderrors=="":
     errs= part.savepcfg(wdir=WORKDIR)   # without 'rcfg '
