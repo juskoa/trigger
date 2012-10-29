@@ -17,6 +17,10 @@ Automatic:
   
   i.e.
   sym LINDF act R0 S K
+29.10.:
+sym LUMFIX n       df= n/lumi
+sym LUMLOSS n      df= (n/lumi)^2
+-implemented in TRG_DBED/preproc.py
 
 Dynamic:
   use L0a rates for new df calculation (i.e. L1r not meaningful)

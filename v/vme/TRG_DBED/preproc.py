@@ -17,7 +17,8 @@ def _getlumi():
   DEFLUMACT=1.0
   rc=None
   try:
-    rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
+    #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
+    rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", "F", 2)
     if rclumi!=None:
       lumidim= rclumi[3]
       if lumidim>1.0:

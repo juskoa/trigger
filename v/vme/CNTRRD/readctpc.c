@@ -45,10 +45,8 @@ FILE *htmlpipe;
 //FILE *dbgout=NULL;
 FILE *spurfile=NULL;
 int csock_gcalib=-1;   // sending gcalib messages to monitor
-int ssock=-1;       /* waiting for messages
-"q " -quit
-*/
 
+w32 debugbusy=0;
 w32 prevl0time=0;
 int firstreading=1;
 unsigned int cntsFailed=0xdeaddeed;
@@ -103,6 +101,18 @@ char spurfilename[80]="xx";
 char spurline[8000];
 int spurcnts[]={150, 152, 153, -1};
 
+/*---------------------------------------------*/ void gotsignal(int signum) {
+char msg[100];
+// SIGUSR1:  // kill -s USR1 pid
+signal(signum, gotsignal); siginterrupt(signum, 0);
+sprintf(msg, "got signal:%d", signum); printf("%s\n", msg);
+if(signum==SIGUSR1) {
+  avbsyix++; if(avbsyix>2) avbsyix=0; 
+  printf("busy calculation:%d (0: b/L0 1: b/L2s 2: readout= corrected b/L2a)\n",
+    avbsyix);
+};
+}
+
 /*-------------------------------------------*/ int isDetector(char *ln) {
 int ix;
 for(ix=0; ix<N24; ix++) {
@@ -129,6 +139,12 @@ void shiftcnt(Tcnt1 *cntstr, int ix, w32 *bufw32) {
 int rad;
 //w32 *bufw32= (w32 *)buffer;
 rad= cntstr[ix].reladdr;
+// debug: change bufw32 if busy according to avbsyix:
+if(cntstr==busy) {
+  bufw32[rad]= debugbusy;
+  // +400us or 800us or 1200us
+  debugbusy= debugbusy+ (avbsyix+1)*1000*60;
+};
 cntstr[ix].prevcs= cntstr[ix].currcs; cntstr[ix].currcs= bufw32[rad];  
 }
 w32 checktrigs(w32 trigsdif) {
@@ -483,8 +499,11 @@ if(htmlpipe==NULL) {
   exit(8);
 };
 setlinebuf(htmlpipe);
+signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
+
 csock_gcalib= udpopens("localhost", 9931);
-if(csock_gcalib==-1) {printf("udpopens error\n");  /*exit(8);*/ };
+if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };
+
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
 //dbgout= fopen("logs/dbgout.log", "w");
 inforc= dic_info_service("CTPDIM/MONCOUNTERS", MONITORED, 0, 
@@ -496,7 +515,7 @@ while(1) {
 pclose(rrdpipe); pclose(htmlpipe);
 //fclose(dbgout);
 dic_release_service(inforc);
-udpclose(csock_gcalib);
+//udpclose(csock_gcalib);
 return(0);
 } 
 

@@ -6,7 +6,9 @@ UDP_TIMEOUT=70
 log=None
 quit=None
 pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
-
+pitlab="lab"
+if string.find(os.environ["HOSTNAME"],"alidcscom")==0:
+  pitlab="pit"
 def signal_handler(signal, stack):
   global quit
   log.logm("signal:%d received, quitting monitor.py..."%signal)
@@ -191,7 +193,8 @@ class Daemon:
       #print "logm:",self.name, msg
       self.last_state= state
   def logm_mail(self, msg):
-    msg2= self.name + ': ' + msg
+    global pitlab
+    msg2= pitlab+' '+self.name + ': ' + msg
     if self.sms_sent<2:   # send max. 2 messages
       self.sms_sent= self.sms_sent+1
       if self.sms_sent==2:
