@@ -47,6 +47,7 @@ FILE *spurfile=NULL;
 int csock_gcalib=-1;   // sending gcalib messages to monitor
 
 w32 debugbusy=0;
+char *hname;
 w32 prevl0time=0;
 int firstreading=1;
 unsigned int cntsFailed=0xdeaddeed;
@@ -111,6 +112,7 @@ if(signum==SIGUSR1) {
   printf("busy calculation:%d (0: b/L0 1: b/L2s 2: readout= corrected b/L2a)\n",
     avbsyix);
 };
+fflush(stdout);
 }
 
 /*-------------------------------------------*/ int isDetector(char *ln) {
@@ -140,10 +142,14 @@ int rad;
 //w32 *bufw32= (w32 *)buffer;
 rad= cntstr[ix].reladdr;
 // debug: change bufw32 if busy according to avbsyix:
-if(cntstr==busy) {
-  bufw32[rad]= debugbusy;
-  // +400us or 800us or 1200us
-  debugbusy= debugbusy+ (avbsyix+1)*1000*60;
+if(strcmp(hname, "alidcscom188")!=0) {
+  if(cntstr==busy) {
+    bufw32[rad]= debugbusy;
+    if(ix==0) {
+      // +400us or 800us or 1200us
+      debugbusy= debugbusy+ (avbsyix+1)*1000*60;
+    };
+  };
 };
 cntstr[ix].prevcs= cntstr[ix].currcs; cntstr[ix].currcs= bufw32[rad];  
 }
@@ -336,7 +342,7 @@ for(ix=0; ix<N24; ix++) {
     int cix;
     for(cix=0; cix<3; cix++) {
       int avbusy; w32 trigsdif, l2rsdif; float totbusy;
-      totbusy= dodif32(busy[ix].prevcs, busy[ix].currcs);
+      totbusy= dodif32(busy[ix].prevcs, busy[ix].currcs)*0.4;
       if(cix==0) {
         trigsdif= dodif32(l0s[ix].prevcs, l0s[ix].currcs);
         trigsdif= checktrigs(trigsdif);
@@ -375,9 +381,9 @@ for(ix=0; ix<N24; ix++) {
     };
   };
 }; strcat(htmlline,"\n");
-printf("%u=%s: l2orbit:%u busytemp:%u busyvolts:%x \n", 
+printf("%u=%s: l2orbit:%u busytemp:%u busyvolts:%x debugbusy:%d\n", 
   bufw32[epochsecs], dat, bufw32[l2orbit], bufw32[CSTART_SPEC+3],
-  bufw32[CSTART_SPEC+4]); 
+  bufw32[CSTART_SPEC+4], debugbusy); 
 if(bufw32[epochsecs]==0) {
   printf("error in gotcnts: bad time\n");
   fflush(stdout);
@@ -482,6 +488,7 @@ allreads++; return;
 
 /*------------------------------*/ int main(int argc, char **argv) {
 int inforc;
+hname= getenv("HOSTNAME");
 //setbuf(stdout, NULL);   nebavi
 initbusyl0s();
 //return(0);
@@ -492,7 +499,7 @@ if(rrdpipe==NULL) {
 };
 //htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
 //htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
-printf("rrdpipe opened, opening /tmp/htmlfifo... Is htmlCtpBusy daeomn running?\n");
+printf("%s rrdpipe opened, opening /tmp/htmlfifo... Is htmlCtpBusy daeomn running?\n", hname);
 htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
 if(htmlpipe==NULL) {
   printf("Cannot open /tmp/htmlfifo \n");
