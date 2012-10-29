@@ -18,7 +18,7 @@ cp $p2 ./
 #see readme for explanation of next line:
 #echo "%_unpackaged_files_terminate_build 0" >> ~/.rpmmacros
 echo "%_unpackaged_files_terminate_build 0" > ~/.rpmmacros
-read -p "pwd:`pwd` continue? (y/n):" yn
+#read -p "pwd:`pwd` continue? (y/n):" yn
 python setup.py bdist_rpm 
 echo "pwd:`pwd` Do:"
 #echo 'scp dist/validate-1.0.tar.gz $aj11:'

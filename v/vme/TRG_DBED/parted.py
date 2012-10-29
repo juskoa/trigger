@@ -3005,7 +3005,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           PrintError("at least 2 items in shared section expected:%s"%cltds,self)
           break
         shrname= cltdsa[0]
-        print "Shared2:",cltdsa
+        #print "Shared2:",cltdsa
         if cltdsa[1]=="REPL":               # replacement definition
           ixstart= cltds.find(" REPL ")+6
           symbols.add(shrname, cltds[ixstart:-1])
