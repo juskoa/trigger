@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup
 setup(name="validate",
-      version="2.4",
+      version="2.5",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config

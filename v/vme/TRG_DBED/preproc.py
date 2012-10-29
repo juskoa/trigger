@@ -1,20 +1,19 @@
 #!/usr/bin/python
 import string,types
 
-lumi=None
+lumi= 1.0
 lumi_source=None   # "dim" or "default"
 
-def _getlumi():
+def getlumi():
   """ set 2 globals: lumi + lumi_source
   lumi: float number, luminosity in hz/ub
   lumi_source: how lumi was acquired
      dim:     dim
      default: dim was not available, or dip published number <1.0
-     None:    not initialized (i.e. _getlumi not called)
+     None:    not initialized (i.e. getlumi not called)
   """
   global lumi
   import pydim
-  DEFLUMACT=1.0
   rc=None
   try:
     #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
@@ -28,9 +27,8 @@ def _getlumi():
   except:
     print "Except: in dic_sync_info_service(IR_MONITOR/CTP/Luminosity)"
   lumi_source= "default"
-  lumi= DEFLUMACT
 
-_getlumi()
+#getlumi()  invoked form parted.py after importing preproc
 
 class symbols:
   def __init__(self):

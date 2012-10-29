@@ -24,7 +24,10 @@ history
 2.3. 8.10.2012
 - sync downscaling groups (syncdg.py) added
 2.4. 28.10.2012
-- automatic downscalin, strict validation added
+- automatic downscaling, strict validation added
+2.5. 29.10.2012
+- pydim not even imported when strict (ACT/ECS do not have pydim
+  installed)
 
 Problem with SLC5:
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot

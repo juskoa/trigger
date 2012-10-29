@@ -78,7 +78,6 @@ if hasattr(sys,'version_info'):
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
 import myw, txtproc, trigdb, syncdg, preproc
-preproc._getlumi()
 VERSION="6"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
@@ -2065,6 +2064,8 @@ class TrgPartition:
     strict: strict: luminosity DIM service (see preproc.py) has to be available
     """
     self.strict= strict
+    if strict=="strict":
+      preproc.getlumi()
     self.version='0'
     self.loaderrors=''   # ok if ''
     self.relpath= os.path.dirname(relpname)
@@ -3023,7 +3024,6 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
             print string.strip(cltds) + "   -> " + symbols.get(shrname)
           if (self.strict=="strict") and (preproc.lumi_source != "dim"):
             PrintError("strict required, but luminosity DIM service not available",self)
-
         else:                               # BC1/2 RND1/2 BCM* PF* or SDG
           sr= findSHR(shrname)
           #print "Shared4:", sr
