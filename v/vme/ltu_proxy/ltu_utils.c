@@ -196,7 +196,7 @@ return(rc);
 */
 #define WAITBUSYOFF 5000000       // in micsecs (was 3000000 before 24.4.2012 )
 #define WAITBUSY_STEP 200000  
-w32 emustat, waiting=0;
+w32 emustat, waiting=0; w32 waitbusyoff=WAITBUSYOFF;
 int rc, killsodeod;
 char datetime[20];
 char vcfname[180];
@@ -204,7 +204,9 @@ char vcfname[180];
 /* ltu_proxy is started from WORKDIR, i.e. relative path to
    its .seq files is: CFG/ltu/SLMproxy */
 getdatetime(datetime);
-printf("%s:sodeod:%s loading...\n",datetime,seqfile);
+if(strcmp(dimservernameCAP,"TPC")==0) waitbusyoff=10000000;
+printf("%s:sodeod:%s WAITBUSYOFF:%d us, loading...\n",
+  datetime,seqfile,waitbusyoff);
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); strcat(vcfname, seqfile);
 rc=SLMload(vcfname);
 if(rc!=0) {
@@ -229,7 +231,7 @@ while(1) {
   SLMswstart(1,0);          /* SW trigger */
   usleep(WAITBUSY_STEP);   //give some time for SOD/EOD generation
   waiting=waiting+WAITBUSY_STEP;
-  if(waiting > WAITBUSYOFF) {
+  if(waiting > waitbusyoff) {
     killsodeod=1; break;
   };
 };

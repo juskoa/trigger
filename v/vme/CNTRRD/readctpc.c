@@ -47,6 +47,10 @@ FILE *spurfile=NULL;
 int csock_gcalib=-1;   // sending gcalib messages to monitor
 
 w32 debugbusy=0;
+w32 debugl2s=0;
+w32 debugl0s=0;
+w32 debugl2r=0;
+w32 debugl1s=0;
 char *hname;
 w32 prevl0time=0;
 int firstreading=1;
@@ -147,8 +151,22 @@ if(strcmp(hname, "alidcscom188")!=0) {
     bufw32[rad]= debugbusy;
     if(ix==0) {
       // +400us or 800us or 1200us
-      debugbusy= debugbusy+ (avbsyix+1)*1000*60;
+      debugbusy= debugbusy+ 1000000*60;  // 1000000*0.4us/s
+      debugl2s= debugl2s+ 100*60;   // 100hz
+      debugl0s= debugl0s+ 900*60;   // 900hz
+      debugl2r= debugl2r+ 20*60;    // 20hz
+      debugl1s= debugl1s+ 500*60;   // 500hz
     };
+  } else if(cntstr==l2s) {
+    bufw32[rad]= debugl2s;
+  } else if(cntstr==l0s) {
+    bufw32[rad]= debugl0s;
+  } else if(cntstr==l2r) {
+    bufw32[rad]= debugl2r;
+  } else if(cntstr==l1s) {
+    bufw32[rad]= debugl1s;
+  } else {
+    printf("error internal in shiftcnt\n");
   };
 };
 cntstr[ix].prevcs= cntstr[ix].currcs; cntstr[ix].currcs= bufw32[rad];  
@@ -347,13 +365,21 @@ for(ix=0; ix<N24; ix++) {
         trigsdif= dodif32(l0s[ix].prevcs, l0s[ix].currcs);
         trigsdif= checktrigs(trigsdif);
         avbusy= round(totbusy/trigsdif);
+        if(ix==0) {
+          printf("cix:%d:totb:%f trgs:%d avb:%d\n", 
+            cix, totbusy, trigsdif, avbusy);
+        };
       } else if(cix==1) {
         trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);
-        /* shoudl be: 
+        /* should be: 
         l2rsdif= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
         trigsdif= trigsdif - l2rsdif; */
         trigsdif= checktrigs(trigsdif);
         avbusy= round(totbusy/trigsdif);
+        if(ix==0) {
+          printf("cix:%d:totb:%f trgs:%d avb:%d\n", 
+            cix, totbusy, trigsdif, avbusy);
+        };
       } else if(cix==2) {
         float busy_L2r, busy_L1r; w32 cl0s, cl1s, l2rs, l1rs;
         trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);
@@ -367,6 +393,10 @@ for(ix=0; ix<N24; ix++) {
         l2rs= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
         busy_L2r= l2rusecs[ix]*l2rs;
         avbusy= round((totbusy-busy_L1r-busy_L2r)/trigsdif);
+        //if(ix==0) {
+          printf("cix:%d %d=%s:totb:%f L1rb:%f L2rb:%f trgs:%d avb:%d\n", 
+            cix,ix,LTUORDER[ix], totbusy, busy_L1r, busy_L2r,trigsdif,avbusy);
+        //};
       };
       //avbusy=100*ix;
       avbusys[ix].absy[cix]= avbusy;
@@ -381,7 +411,7 @@ for(ix=0; ix<N24; ix++) {
     };
   };
 }; strcat(htmlline,"\n");
-printf("%u=%s: l2orbit:%u busytemp:%u busyvolts:%x debugbusy:%d\n", 
+printf("%u=%s: l2orbit:%u busytemp:%u busyvolts:%x debugbusy:%u\n", 
   bufw32[epochsecs], dat, bufw32[l2orbit], bufw32[CSTART_SPEC+3],
   bufw32[CSTART_SPEC+4], debugbusy); 
 if(bufw32[epochsecs]==0) {

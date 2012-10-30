@@ -168,7 +168,7 @@ LTUf3:
 #define PIPELINE_CLEAR  0x198   /* dummy w sets the EMU_STATUS[1] bit */
 /* 0x19c - 0x1b0 reserved for SnapShot memory */
 #define SSMcommand  0x19c  /* bit0:mode: 0:VMEREAD   1:VMEWRITE */
-                           /* bit2:operation: 0:RECAFTER  0x3:RECBEFORE */
+                           /* bit1:operation: 0:RECAFTER  0x3:RECBEFORE */
                            /* bit4:CTPflag: '7FPsignals->SSM' mode */
 #define SSMstart    0x1a0  /* dummy wr */
 #define SSMstop     0x1a4  /* dummy wr */

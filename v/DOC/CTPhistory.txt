@@ -247,3 +247,7 @@ ttcmidim daemon)
 28.10.
 automatic downscaling implemented (using DIM luminosity service -see preproc.py)
 validate.py: strict added
+30.10.
+TPC ltu waitbusyeod: 10s (5s for others)
+readctpc.c+htmlCtp... -now 3busys, changed with kill -s SIGUSR1
+(default bsy/L2s)

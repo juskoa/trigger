@@ -197,8 +197,9 @@ class ActivePartitions:
 """
     nltus= len(busyl0s)
     ll= string.split(busyl0s)
-    #if busyl0s[:6]!="busyL0":
-    if busyl0s[:3]!="bsy":
+    # in readctpc.c:
+    #char *WHATBUSY[]={"bsy/L0", "bsy/L2s", "readout"};
+    if (busyl0s[:3]!="bsy") and (busyl0s[:3]!="rea"):
       print "Bad line length:%d:%s:"%(len(busyl0s), busyl0s)
       return "Bad line"
     print "line:", ll
