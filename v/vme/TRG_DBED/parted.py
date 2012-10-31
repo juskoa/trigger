@@ -2066,6 +2066,7 @@ class TrgPartition:
     self.strict= strict
     if strict=="strict":
       preproc.getlumi()
+    print "initPartition:", strict, preproc.lumi_source
     self.version='0'
     self.loaderrors=''   # ok if ''
     self.relpath= os.path.dirname(relpname)
@@ -3023,7 +3024,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           else:
             print string.strip(cltds) + "   -> " + symbols.get(shrname)
           if (self.strict=="strict") and (preproc.lumi_source != "dim"):
-            PrintError("strict required, but luminosity DIM service not available",self)
+            PrintError("strict required, but luminosity DIM service not available.lumi_source:"+str(preproc.lumi_source),self)
         else:                               # BC1/2 RND1/2 BCM* PF* or SDG
           sr= findSHR(shrname)
           #print "Shared4:", sr
