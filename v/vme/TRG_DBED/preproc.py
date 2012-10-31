@@ -2,7 +2,7 @@
 import string,types
 
 lumi= 1.0
-lumi_source=None   # "dim" or "default"
+lumi_source=None   # "dim" or "default". None: preproc.getlumi() never called
 
 def getlumi():
   """ set 2 globals: lumi + lumi_source
@@ -12,7 +12,7 @@ def getlumi():
      default: dim was not available, or dip published number <1.0
      None:    not initialized (i.e. getlumi not called)
   """
-  global lumi
+  global lumi,lumi_source
   import pydim
   rc=None
   try:
@@ -23,10 +23,16 @@ def getlumi():
       if lumidim>1.0:
         lumi_source= "dim"
         lumi=lumidim/1.0E30   # hz/ub
-        return
+      else:
+        lumi_source= "default"
+        lumi= 1.0
+    else:
+      lumi_source= "default"
+      lumi= 1.0
   except:
     print "Except: in dic_sync_info_service(IR_MONITOR/CTP/Luminosity)"
-  lumi_source= "default"
+    lumi_source= "default"
+    lumi= 1.0
 
 #getlumi()  invoked form parted.py after importing preproc
 
@@ -61,7 +67,7 @@ class symbols:
       dfn= dfn*dfn
     if dfn<0.000001: df= "0%"
     elif dfn>99.99999: df= "100%"
-    else: df= str(dfn*100) + '%'
+    else: df= "%.3f"%(dfn*100) + '%'
     self.typ[key]= fixll
     self.symbols[key]= df
     return None   # i.e. ok

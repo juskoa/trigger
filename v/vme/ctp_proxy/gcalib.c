@@ -439,7 +439,7 @@ if(detectfile("gcalrestart", 1) >=0) {   //debug: simulate error by file presenc
 }else {
   char msg[200];
   //system("gcalibrestart_at.sh");
-  sprintf(msg,"WORK/../gcalrestart not present"); prtLog(msg);
+  sprintf(msg,"WORK/../gcalrestart not present (i.e. real crash, not simulated)"); prtLog(msg);
 };
 }
 

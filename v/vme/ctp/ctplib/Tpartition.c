@@ -686,6 +686,8 @@ if strdetmask =="": only create mask according to partition detectors
 rc: 0: ok, mask applied
     1: applying mask led to empty partition
     >1: error (part. cannot be loaded)
+    WARNING message if cluster became empty
+    ERROR message in some cases
 */
 int applyMask(Tpartition *part, char *strdetmask) {
 int id, iclu, icla, nclu, retrc=0, isr, bcmscopied=0;
@@ -756,6 +758,7 @@ for(id=0;id<NDETEC;id++) {
       if( iclus & (1<<iclu)) {
         clu2det[iclu]= clu2det[iclu] & ~(1<<id);
         if(clu2det[iclu]==0) {   // Cluster iclu became empty, check classes
+          char emsg[ERRMSGL];
           for(icla=0 ; icla<NCLASS  ; icla++){
             if(part->klas[icla] == NULL) continue;
             //printTKlas(part->klas[icla],icla);
@@ -767,7 +770,8 @@ for(id=0;id<NDETEC;id++) {
               free(part->klas[icla]); part->klas[icla]=NULL;
             };
           };
-          printf("applyMask: Cluster iclu:%d became empty\n", iclu);
+          sprintf(emsg, "applyMask: Cluster iclu:%d became empty\n", iclu);
+          infolog_trgboth(LOG_WARNING, emsg);
         };
       };
     };
