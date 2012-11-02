@@ -736,8 +736,8 @@ if((detmask & realmask)!= detmask) {    // (| would be for 1=active)
       strcat(baddetstr, dtname); strcat(baddetstr," ");
     };
   };
-  sprintf(emsg, "applyMask: incorrect det. mask :0x%x dets:0x%x. Detectors: %s not allowed in partition: %s.",
-    detmask, realmask, baddetstr, part->name);
+  sprintf(emsg, "applyMask: Detectors: %s not allowed in partition: %s, incorrect det. mask :0x%x dets:0x%x.",
+    baddetstr, part->name, detmask, realmask );
   prtError(emsg); infolog_trg(LOG_ERROR, emsg);
   return(2);
 };

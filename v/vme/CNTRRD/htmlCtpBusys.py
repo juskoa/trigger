@@ -386,7 +386,7 @@ var refint="refinterval is %d";
 <th><img class="header" src="pngs/emcal.png" /></th>
 <th><img class="header" src="pngs/daq.png" /></th>
 </tr>
-<th>%s [usecs]</th>
+<th>%s</th>
 """%(refreshsecs, clockinfo, self.mesdti[0], self.mesdti[1], 
     self.mesdti[2], self.whatbusy)
     # now we go through all LTUs 2 times:

@@ -1,7 +1,8 @@
 #!/usr/bin/python
 import string,types
 
-lumi= 1.0
+DEFLUMI=3.0
+lumi= DEFLUMI
 lumi_source=None   # "dim" or "default". None: preproc.getlumi() never called
 
 def getlumi():
@@ -25,14 +26,14 @@ def getlumi():
         lumi=lumidim/1.0E30   # hz/ub
       else:
         lumi_source= "default"
-        lumi= 1.0
+        lumi= DEFLUMI
     else:
       lumi_source= "default"
-      lumi= 1.0
+      lumi= DEFLUMI
   except:
     print "Except: in dic_sync_info_service(IR_MONITOR/CTP/Luminosity)"
     lumi_source= "default"
-    lumi= 1.0
+    lumi= DEFLUMI
 
 #getlumi()  invoked form parted.py after importing preproc
 

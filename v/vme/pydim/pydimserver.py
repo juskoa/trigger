@@ -43,6 +43,7 @@ create ctp_config file (with each run?)
 #  os.path.join(os.environ['VMECFDIR'],'TRG_DBED')
 import popen2, os, os.path, string, sys, time, parted, pylog, miclock,threading
 miclock.mylog= pylog.Pylog("pydim_shift")
+mylog= pylog.Pylog(info="info")
 
 def checkShift():
   cshift= miclock.getShift()
@@ -116,6 +117,8 @@ def main():
       #parted.TDLTUS.initTDS(reload='yes')
       part= parted.TrgPartition(partname, strict="strict")
       part.prt()
+      print "%s part.loaderrors:"%time.asctime(),part.loaderrors
+      print "%s part.loadwarnings:"%time.asctime(),part.loadwarnings
       if cmd[0]=='pcfg':
         if partname=="PHYSICS_1":
           # adjust clock shift: correct any shift
@@ -129,7 +132,8 @@ def main():
           else:
             print "current clock shift:"+cshift
         fname= partname+".pcfg"
-        print "%s part.loaderrors:"%time.asctime(),part.loaderrors
+        if part.loadwarnings!='':
+          mylog.infolog(part.loadwarnings, level='w', partition=partname)
         if part.loaderrors=='':
           part.savepcfg(wdir=parted.WORKDIR)   # without 'rcfg '
         else:

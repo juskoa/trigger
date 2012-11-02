@@ -121,8 +121,14 @@ def PrintError(fstr, selfmsg=None):
       selfmsg.loaderrors= selfmsg.loaderrors + fstr + "\n"
   else:
     print "Error:",fstr
-def PrintWarning(fstr):
-  print "Warning:",fstr
+def PrintWarning(fstr, selfmsg=None):
+  if selfmsg:
+    if fstr[-1]=="\n":
+      selfmsg.loadwarnings= selfmsg.loadwarnings + fstr
+    else:
+      selfmsg.loadwarnings= selfmsg.loadwarnings + fstr + "\n"
+  else:
+    print "Warning:",fstr
 def PrintInfo(fstr):
   print "Info:",fstr
 def redline(inf):                 # ignore empty lines
@@ -2069,6 +2075,7 @@ class TrgPartition:
     print "initPartition:", strict, preproc.lumi_source
     self.version='0'
     self.loaderrors=''   # ok if ''
+    self.loadwarnings=''   # ok if ''
     self.relpath= os.path.dirname(relpname)
     self.name= os.path.basename(relpname)
     # Important! the use of clusters=[] as default parameter
@@ -3024,7 +3031,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           else:
             print string.strip(cltds) + "   -> " + symbols.get(shrname)
           if (self.strict=="strict") and (preproc.lumi_source != "dim"):
-            PrintError("strict required, but luminosity DIM service not available.lumi_source:"+str(preproc.lumi_source),self)
+            #PrintError("strict required, but luminosity DIM service not available.lumi_source:"+str(preproc.lumi_source),self)
+            PrintWarning("Luminosity not available, using default "+\
+              str(preproc.lumi)+"Hz/ub for automatic calculation of downscale factor.",self)
         else:                               # BC1/2 RND1/2 BCM* PF* or SDG
           sr= findSHR(shrname)
           #print "Shared4:", sr
@@ -3469,6 +3478,7 @@ def main():
     if sys.argv[2]=='r':   # create .rcfg file for given partition
       # see v/vme/pydim -production code invoking parted -> .rcfg
       part= TrgPartition(partname, "strict")
+      #part= TrgPartition(partname)
       if part.loaderrors:
         print "Errors:"
         print part.loaderrors

@@ -65,15 +65,23 @@ class Pylog:
     return ltim
   def logm(self,msg,log2=3, ltime=None):
     """log2:   1: only file   2: only tty   3: both
-    msgtime: if present use it instead of the current one
+    ltime: if present use it instead of the current one
     """
     if ltime==None:
       ltime= self.gettimenow()
     tmsg= ltime+msg
     if self.tty and (log2>=2): print tmsg
     if self.logf and (log2!=2): self.logf.write(tmsg+'\n')
-  def infolog(self, msg, level='i'):   # w(arning) e(rror) f(atal)
+  def infolog(self, msg, level='i', partition=""):
+    """
+    level: i(nfo) w(arning) e(rror) f(atal)
+    partition: partition name
+"""
     if self.info: 
+      if partition!="":
+        part= "-p "+partition
+      else:
+        part=""
       #iopipe("sh -c '/opt/infoLogger/log -%s %s'"%(level, msg))
       #iopipe("sh -l -c '/opt/infoLogger/log -%s %s'"%(level, msg))
       #os.system("/opt/infoLogger/log -%s %s"%(level, msg))
@@ -81,6 +89,15 @@ class Pylog:
       #iopipe("/opt/infoLogger/log -%s %s"%(level, msg))
       #iopipe("infologger.sh -%s '%s'"%(level, msg))
       #iopipe("infologger.sh -%s '%s'"%(level, msg))
-      iopipe("cat /dev/null | /opt/infoLogger/log -l OPS -s %s '%s'"%(level, msg))
-    self.logm(msg)
+      iopipe("cat /dev/null | /opt/infoLogger/log -f CTP -l OPS %s -s %s '%s'"%\
+        (part, level, msg))
+    self.logm("%s:%s: %s"%(level, partition, msg))
+def main(argv):
+  if len(argv) < 2:
+    print """
+"""
+    help(Pylog)
 
+if __name__ == "__main__":
+  import sys
+  main(sys.argv)

@@ -81,7 +81,7 @@ float l2rusecsClu[N24]={0, 112.0, 265.8, 308.1, 55.0, 6.5, 107.8,
 #define NCS 6   // elapsed time for BUSY, L0,1,2,FO1, FO3
 
 // bsy/L2s will become L2as in Oct. 2012:
-char *WHATBUSY[]={"bsy/L0", "bsy/L2s", "readout"};
+char *WHATBUSY[]={"bsy/L0 [us]", "bsy/L2s [us]", "readout [us]"};
 int avbsyix= 1;  // 0,1, or 2 -> one of items in avbsys[]
 int allreads=0;
 Tcnt1 cs[NCS];
