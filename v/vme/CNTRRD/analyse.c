@@ -155,10 +155,10 @@ int getBUSYclust(w32 clusters[][NBO],char counters[][MAXWORD]){
 }
 void printHelp() {
 printf("\n\
-analyse.exe 'date1 time1' 'date2 time2' r outfile 0 23 45 ...\n\
+analyse.exe 'date1 time1' 'date2 time2' r ../outfile 0 23 45 ...\n\
 e.g.:\n\
-cd ~/CNTRRD\n\
-$VMECFDIR/CNTRRD/linux/analyse '21.05.2011 00:00:00' '21.05.2011 23:00:00' 152077 r152077 898 899\n\
+cd ~/CNTRRD/rawcnts\n\
+$VMECFDIR/CNTRRD/linux/analyse '21.05.2011 00:00:00' '21.05.2011 23:00:00' 152077 ../r152077 898 899\n\
 \n\
 r: 0: no run given (just take all readings date1..date2)\n\
    >0: run number -find SOR after 'date1 time1' and EOR from CSTART_RUNX[]\n\
@@ -166,7 +166,7 @@ outfile: the output file name. \n\
          NOT DONE YET:anypath.rrd  -create .rrd (.txt has to exist in curr. directory\n\
                        describing rrd)\n\
 rel. numbers: in cnames.sorted2 file, i.e. 0 corresponds to l0byclstT,\n\
-    896..993: spare896runx -6 runx numbers\n\
+    896..901: spare896runx -6 runx numbers\n\
     923: l2orbit\n\
     or\n\
     dimall -put all counters in binary file (like DIM service MONCOUNTERS)\n\
@@ -189,7 +189,7 @@ strncpy(date,dc,10);
 FILE *open_rawcnts(char *date) {
 FILE *file;
 char filename[200];
-sprintf(filename,"rawcnts/%10.10s.rawcnts",date);
+sprintf(filename,"%10.10s.rawcnts",date);
 printf("open_rawcnts: %s\n",filename);
 file=fopen(filename,"r");
 return(file);
