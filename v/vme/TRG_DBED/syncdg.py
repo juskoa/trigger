@@ -51,7 +51,7 @@ class TrgSDG:
     except:
       return TrgSDG.err
     if (fn<0.) or (fn>100.):
-      return TrgSDG.err
+      return TrgSDG.err+ " but n="+ dsf[:-1]
     #print "syncdg2 adding:",name,dsf,self.sdgs
     self.sdgs[name]= dsf
     self.firstclass[name]= 0

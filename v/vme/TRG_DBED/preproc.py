@@ -67,7 +67,7 @@ class symbols:
     if fixll=="FIXLOSS":
       dfn= dfn*dfn
     if dfn<0.000001: df= "0%"
-    elif dfn>99.99999: df= "100%"
+    elif dfn>0.999: df= "100%"
     else: df= "%.3f"%(dfn*100) + '%'
     self.typ[key]= fixll
     self.symbols[key]= df
