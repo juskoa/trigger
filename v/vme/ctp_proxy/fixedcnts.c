@@ -137,7 +137,7 @@ TFixedCnts FixedCnts[]= {
 {33, 101, CSTART_L0+16, "CDG-AC-NOPF-"},
 {34, 101, CSTART_L0+16, "CDG-E-NOPF-"},
 {0,0,0,""} */
-/* pp12 July 17th
+/* pp12 July 17th */
 {3, 101, CSTART_L0+16, "C0TVX-B-NOPF-"},
 {4, 101, CSTART_L0+16, "C0TVX-A-NOPF-"},
 {5, 101, CSTART_L0+16, "C0TVX-C-NOPF-"},
@@ -167,11 +167,11 @@ TFixedCnts FixedCnts[]= {
 {29, 101, CSTART_L0+16, "CSPI7-A-NOPF-"},
 {30, 101, CSTART_L0+16, "CSPI7-C-NOPF-"},
 {31, 101, CSTART_L0+16, "CSPI7-E-NOPF-"},
-{0,0,0,""} */
-// abort gap measurements
+{0,0,0,""} 
+/* abort gap measurements
 {3, 101, CSTART_L0+16, "C0TVX-GA-NOPF-"},
 {4, 101, CSTART_L0+16, "C0TVX-GC-NOPF-"},
-{0,0,0,""}
+{0,0,0,""} */
 };
 
 /*
