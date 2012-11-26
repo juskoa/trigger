@@ -263,4 +263,7 @@ ctp_proxy/bakeryTest.c -test bakery mechanism (seems ok)
 24.11.
 DAQlogbook_update_triggerClassName(), daqlogbook_update_triggerClassName:
 -downscaling added.
+26.11.
+pydim stop improved 
+-> pit
 

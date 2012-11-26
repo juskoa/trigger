@@ -482,6 +482,7 @@ for(ixc=0; ixc<50; ixc++) {
   unsigned int classN, cg, cgtim; int rcdaq,daqlistpn;
   float cgtime;
   char dsctxt[24];   // (0.xxx% - 100%) or xxxus or xxx.xxxms
+  char *dsctxtp;
   char *daqlist[MAXALIASES]; char **daqlistp;
   char msg[300];
   t1= nxtoken(line, value, &ixl);   // class number
@@ -517,6 +518,7 @@ for(ixc=0; ixc<50; ixc++) {
   if(t1==tINTNUM) {
     unsigned int dsc;
     dsc= str2int(value);
+    dsctxtp= dsctxt;
     if(dsc>0x1fffff) {   // class busy
       int dscus;
       if((dsc & 0x80000000)!=0x80000000) {
@@ -526,7 +528,7 @@ for(ixc=0; ixc<50; ixc++) {
       dscus= 10*(dsc & 0x1ffffff);
       sprintf(dsctxt, "%dus", dscus);
     } else if(dsc==0) {  // not downscaled
-      dsctxt[0]='\0';
+      dsctxt[0]='\0'; dsctxtp= NULL;
     } else {             // random downscaling
       float dscrat;
       dscrat= 100- dsc*100./0x1fffff;
@@ -551,7 +553,7 @@ for(ixc=0; ixc<50; ixc++) {
   };
   rcdaq= daqlogbook_update_triggerClassName(runN, 
     //classN-1, value, cg, cgtime, (const char **)daqlistp);
-    classN-1, value, cg, cgtime, dsctxt, (const char **)daqlistp);
+    classN-1, value, cg, cgtime, dsctxtp, (const char **)daqlistp);
   sprintf(msg,
     "DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f, %s, %d) rc:%d",
     runN, classN-1, value, cg, cgtime, dsctxt, daqlistpn, rcdaq);
