@@ -87,9 +87,14 @@ Contents:
 - tooltips missing
 - bug: on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
   not updated. Cure; quit+start miclock
-24. 24.10.2012 Automatic/Dynamic downscaling
+24. 23.08.2012 vmeblib/infolog.c new level not set by default
+25. 24.10.2012 Automatic/Dynamic downscaling
 - see presentation at TM 19.10.2012 and DOC/devdbg/autodynds
 
+26. 31.10.2012 bug in syncdownscaling when .crfg file created
+27. 08.11.2012 backup strategy: what, where to copy how at the end of year
+28. 15.11.2012 redis: see devdbg/redis
+   
 ==========================================================================
 
 2. 10.2.2012 alidcsvme008 crash (see below)
@@ -210,7 +215,11 @@ Done:
 25.10.2012
 readctpc.c -now 3 sorts of busy prepared -sort of busy pased to html
 todo: test + control from web
-
+31.10.2012: readctpc.c, htmlCtpbusys.py modified, producing 3 busys 
+5.11.2012:
+see
+CNTWEB/exs/including.html
+~/wsgi-tutorial/myex3/ctpbusy.py, readme
 
 8. DIM services for Giacinto
 ----------------------------
@@ -459,4 +468,9 @@ Following (WAY2) abandoned 29.8.2012:
   
 24. 23.08.2012 vmeblib/infolog.c new level not set by default
 -------------------------------------------------------------
-31.8.2012: 
+
+26. 31.10.2012 bug in syncdownscaling when .crfg file created
+- appears when Empty cluster results from applying detector mask
+run 191115:
+CSHM8WU-S-NOPF-ALL 25 DSHM8WU ALL {NONE} {BCM2} 2032118 0 0 0 0
+- last column should be 25 (not 0)

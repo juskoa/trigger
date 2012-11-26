@@ -91,3 +91,5 @@ cd ~/jmiclock ; ./make.bash
 Start: an alias is defined in bin/setenv:
 alias miclock='echo -e '\''miclockold  -old, command line version\n'\''; cd ~/jmiclock; java -jar MiClockGui.jar'
 
+14.11.2012
+InfoPanel.java -comment extended " allow at least 4 min..."

@@ -31,7 +31,7 @@
 #define DBGac2HW 0     // addClasses2HW()
 #define DBGaf2HW 0     // addFO2HW()
 #define DBGbusy  0     // busy handling
-#define DBGswtrg 0     // SW trigger (generateXOD)
+#define DBGswtrg 1     // SW trigger (generateXOD)
 #define DBGcnts  0     // read and print counters (LTU, CTP)
 #define DBGlogbook 0   // updateDAQClusters()
 #define DBGgetInputDets 0   // getInputDets()

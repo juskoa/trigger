@@ -13,7 +13,7 @@ enum Ttokentype nxtoken(char *line, char *cmd, int *ix);
 enum Ttokentype nxtoken1(char *line, char *cmd, int *ix);
 void getRestLine(char *line, char delim, char *rest);
 int getNextLine(char *str);
-int str2int(char *decnumber);
+unsigned int str2int(char *decnumber);
 int hex12int(char hexdigit);
 int hex2int(char *decnumber);
 int gethexdec(char *hexdecnum, unsigned int *num);

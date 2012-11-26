@@ -93,6 +93,9 @@ def main():
     print "%s received:%s"%(time.asctime(),line)
     if line=='\n':
       print "empty line received (NL), ignored..." ; continue
+    if line=='stop\n':
+      print "stop received, closing..." 
+      break
     if line=='':
       print "empty line received (server.c crash ?), closing..." ; break
     # line (sent from ctp_proxy): 
@@ -152,10 +155,11 @@ def main():
           clname= part.activeclasses[clsn][0]
           clg   = part.activeclasses[clsn][1]
           clgtim= part.activeclasses[clsn][2]
+          dscint= part.activeclasses[clsn][3]
           #lout="%s %s %s"%(lout, clsn, part.activeclasses[clsn])
-          lout="%s %s %s %s %s"%(lout, clsn, clg,clgtim,clname)
+          lout="%s %s %s %s %s %s"%(lout, clsn, clg,clgtim,dscint,clname)
         lout=lout+'\n'
-        print "class RUN# CLS# clg clgtim CLSNAME CLS# clg ..."
+        print "class RUN# CLS# clg clgtim downsc CLSNAME CLS# clg ..."
         print lout[:-1]
         io[1].write(lout); #io[1].write("blabla\n");
       if copyit:

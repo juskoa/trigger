@@ -1,0 +1,22 @@
+<html><head>
+<meta HTTP-EQUIV="Refresh" CONTENT=5>
+<script type="text/javascript">
+function reloadfunction()
+{
+//alert("HELLO");
+//not ok
+window.location.href = window.location.href; // + "?" + new Date().getTime()
+//location.reload(true);
+}
+</script>
+</head>
+blabla2
+<a href="JavaScript:location.reload(true);">
+Refresh-method1
+</a>
+
+<form method="POST" name="selectionForm">
+<input type="button" onclick="reloadfunction()" value="Refresh method2">
+</form>
+</html>
+

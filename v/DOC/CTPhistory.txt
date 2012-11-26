@@ -251,3 +251,16 @@ validate.py: strict added
 TPC ltu waitbusyeod: 10s (5s for others)
 readctpc.c+htmlCtp... -now 3busys, changed with kill -s SIGUSR1
 (default bsy/L2s)
+1.11.2011
+pylog.py -infolog extended
+pydimserver.py -using pylog.py now
+parted.py      -TrgPartition.loadwarnings (similar to loaderrors)
+preproc.py     - 3.0hz/ub default lumi
+19.11.
+ctp_proxy/fixedcnts.c -modified for vdm (the same classes as in July2012)
+22.11.
+ctp_proxy/bakeryTest.c -test bakery mechanism (seems ok)
+24.11.
+DAQlogbook_update_triggerClassName(), daqlogbook_update_triggerClassName:
+-downscaling added.
+

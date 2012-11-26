@@ -38,7 +38,7 @@ extern "C" {
 //von #define L0clstT 152
 #define l2orbit CSTART_SPEC+2
 #define byin1 CSTART_BUSY      // from here 24 CTP busyin timers starts
-#define l0time 13
+#define l0timeix 13
 
 FILE *rrdpipe;
 FILE *htmlpipe;
@@ -66,24 +66,29 @@ char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
 float l1rusecs[N24]={0, 7.0, 7.325, 6.65, 6.75, 6.705, 6.835,
   5.8, 0.0, 14.15, 14.275, 7.075,
   8.26, 6.525, 2.303, 9.2, 7.025, 0.0, 7.035, 0.0};
-float l1rusecsClu[N24]={6.525, 8.525, 7.925, 8.225, 7.2, 7.771, 7.5,
-  7.4, 0.0, 13.3, 14.5, 7.35,
-  8.8, 7.375, 6.66, 10.3, 7.975, 0.0, 8.525, 0.0};
 // by RL on TM 9.3.2012 
 // both TRD values should be 55us(instead of 266.3)-see daqlog from 27.3.2012:
 float l2rusecs[N24]={0, 110.5, 265.1, 306.5, 55.0, 0.0, 107.1,
  56.4, 0.0, 528.3, 412.4, 108.5,
   126.0, 2.8, 0.0, 107.1, 106.8, 0.0, 106.8, 0.0};
+
+float l1rusecsClu[N24]={6.525, 8.525, 7.925, 8.225, 7.2, 7.771, 7.5,
+  7.4, 0.0, 13.3, 14.5, 7.35,
+  8.8, 7.375, 6.66, 10.3, 7.975, 0.0, 8.525, 0.0};
 float l2rusecsClu[N24]={0, 112.0, 265.8, 308.1, 55.0, 6.5, 107.8,
   57.5, 0.0, 528.6, 412.6, 108.8,
   126.6, 8.2, 6.5, 108.2, 107.7, 0.0, 108.3, 0.0};
 
 #define NCS 6   // elapsed time for BUSY, L0,1,2,FO1, FO3
 
-// bsy/L2s will become L2as in Oct. 2012:
-char *WHATBUSY[]={"bsy/L0 [us]", "bsy/L2s [us]", "readout [us]"};
-int avbsyix= 1;  // 0,1, or 2 -> one of items in avbsys[]
+/* bsy/L2s should become L2a in 2012
+one of WHATBUSY strings is set in redis.bsy_screen
+*/
+#define WHATBUSYS 4
+char *WHATBUSY[]={"bsy/L0[us]", "bsy/L2s[us]", "readout[us]", "totalbsy[%]"};
+int avbsyix= 1;  // 0,1, or 2  or 3-> one of items in avbsys[]
 int allreads=0;
+int measnum=1;   // 1..9
 Tcnt1 cs[NCS];
 Tcnt1 busy[N24];   // 24 busys, the same order as in VALID.LTUS
 Tcnt1 l0s[N24];   // 24 l2strobes, the same order as in VALID.LTUS
@@ -93,7 +98,7 @@ Tcnt1 l2r[N24];   // 24 l2reject, the same order as in VALID.LTUS
 Tcnt1 ppout[N24];   // 24 ppouts, not for each reading
 Tcnt1 l2cal[N24];   // 24 ppouts, as l0s, but not for each reading
 typedef struct {
-  int absy[3];  // avbsyl0s, avbsyl2s(till Oct. 2012) -will be l2as, avreadout
+  int absy[WHATBUSYS];  // avbsyl0s, avbsyl2s(till Oct. 2012) -will be l2as, avreadout
 } Tavbsy;
 
 Tavbsy avbusys[N24];      // usecs, -1: not connected   >999000: dead
@@ -106,16 +111,53 @@ char spurfilename[80]="xx";
 char spurline[8000];
 int spurcnts[]={150, 152, 153, -1};
 
+/* print:
+  <table class="bsyTable">
+  <tr> <th>Detector</th><th>avl1rbsy</th><th>avl2rbsy</th></tr>
+  <tr> <td>SPD</td><td>0</td><td>0</td> </tr>
+  ...
+  </table>
+---------------------------------------------*/ void prtL12Table(int ixfrom, int ixto, FILE *of) {
+int ix;
+fprintf(of,"<table class=\"bsyTable\">\n\
+  <tr> <th>Detector</th><th>avl1rbsy</th><th>avl2rbsy</th></tr>\n");
+for(ix=ixfrom; ix<=ixto; ix++) {
+  fprintf(of,"<tr> <td>%s</td><td>%.3f</td><td>%.3f</td> </tr>\n",
+    LTUORDER[ix], l1rusecs[ix], l2rusecs[ix]);
+};
+fprintf(of,"</table>\n");
+}
+/*---------------------------------------------*/ void prtTables() {
+FILE *of;
+char fname[40];
+sprintf(fname,"htmls/l12rtimes.html");
+of= fopen(fname, "w");
+if(of==NULL) {
+  printf("Cannot open %s\n", fname);
+  return;
+} else {
+  printf("File %s opened\n", fname);
+};
+fprintf(of,"<table cellspacing=\"30px\"><tr>\n");
+fprintf(of,"<td valign=\"top\">\n");
+prtL12Table(0, 9, of);
+fprintf(of,"</td>\n<td valign=\"top\">\n");
+prtL12Table(10, 19, of);
+fprintf(of,"</td>\n</table>\n");
+fclose(of);
+}
 /*---------------------------------------------*/ void gotsignal(int signum) {
 char msg[100];
-// SIGUSR1:  // kill -s USR1 pid
+// SIGUSR1:  // kill -s USR1 pid or pkill -SIGUSR1 readctpc
 signal(signum, gotsignal); siginterrupt(signum, 0);
 sprintf(msg, "got signal:%d", signum); printf("%s\n", msg);
-if(signum==SIGUSR1) {
-  avbsyix++; if(avbsyix>2) avbsyix=0; 
-  printf("busy calculation:%d (0: b/L0 1: b/L2s 2: readout= corrected b/L2a)\n",
-    avbsyix);
+if(signum==SIGUSR1) {   // signum: 10
+  avbsyix++; if(avbsyix>=WHATBUSYS) avbsyix=0; 
+  printf("busy calculation:%d (0: b/L0 1: b/L2s 2: readout= corrected b/L2a,3:totbsy)\n",
+    avbsyix); fflush(stdout);
+  //prtTables();
 };
+if(signum==SIGUSR2) { prtTables(); };  // signum:12 
 fflush(stdout);
 }
 
@@ -277,7 +319,7 @@ return(rate);
 #define do1streading() \
   caltime= -1.; \
   /* store prevl0time, prev_l2, prev_ppout for 5dets */ \
-  prevl0time= bufw32[l0time]; \
+  prevl0time= bufw32[l0timeix]; \
   for(ix=0; ix<N24; ix++) { \
     int rad; \
     rad= l2cal[ix].reladdr; \
@@ -288,6 +330,7 @@ return(rate);
 
 /*-----------------------*/ void gotcnts(void *tag, void *buffer, int *size) {
 int ix; //,ixx;
+w32 timedelta;
 float timesecs, caltime;
 char dat[20];
 char htmlline[1000];
@@ -300,6 +343,9 @@ if(*size != 4*NCOUNTERS) {
 };
 timesecs= bufw32[epochsecs]+ bufw32[epochmics]/1000000.;
 printf("%17.6f: %d counters\n", timesecs, *size/4); fflush(stdout);
+timedelta= dodif32(prevl0time, bufw32[l0timeix]);  // in 0.4micsecs
+prevl0time= bufw32[l0timeix];
+measnum++; if(measnum>=10) measnum=1;
 
 /*------------------------------------------------------------ rrd */
 fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
@@ -358,24 +404,25 @@ for(ix=0; ix<N24; ix++) {
     sprintf(htmlline, "%s -", htmlline);
   } else {
     int cix;
-    for(cix=0; cix<3; cix++) {
+    for(cix=0; cix<WHATBUSYS; cix++) {
       int avbusy; w32 trigsdif, l2rsdif; float totbusy;
       totbusy= dodif32(busy[ix].prevcs, busy[ix].currcs)*0.4;
+      totbusy= timedelta*0.4*(measnum/10.); 
       if(cix==0) {
         trigsdif= dodif32(l0s[ix].prevcs, l0s[ix].currcs);
         trigsdif= checktrigs(trigsdif);
-        avbusy= round(totbusy/trigsdif);
+        avbusy= (int)round(totbusy/trigsdif);
         if(ix==0) {
           printf("cix:%d:totb:%f trgs:%d avb:%d\n", 
             cix, totbusy, trigsdif, avbusy);
         };
       } else if(cix==1) {
-        trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);
+        trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);  // bsy/L2s
         /* should be: 
         l2rsdif= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
-        trigsdif= trigsdif - l2rsdif; */
+        trigsdif= trigsdif - l2rsdif;   // bsy/L2a */
         trigsdif= checktrigs(trigsdif);
-        avbusy= round(totbusy/trigsdif);
+        avbusy= (int)round(totbusy/trigsdif);
         if(ix==0) {
           printf("cix:%d:totb:%f trgs:%d avb:%d\n", 
             cix, totbusy, trigsdif, avbusy);
@@ -392,11 +439,13 @@ for(ix=0; ix<N24; ix++) {
         busy_L1r= l1rusecs[ix]*l1rs;
         l2rs= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
         busy_L2r= l2rusecs[ix]*l2rs;
-        avbusy= round((totbusy-busy_L1r-busy_L2r)/trigsdif);
+        avbusy= (int)round((totbusy-busy_L1r-busy_L2r)/trigsdif);
         //if(ix==0) {
           printf("cix:%d %d=%s:totb:%f L1rb:%f L2rb:%f trgs:%d avb:%d\n", 
             cix,ix,LTUORDER[ix], totbusy, busy_L1r, busy_L2r,trigsdif,avbusy);
         //};
+      } else if(cix==3) {    // totbusy
+        avbusy= (int)round(100*totbusy/(timedelta*0.4));
       };
       //avbusy=100*ix;
       avbusys[ix].absy[cix]= avbusy;
@@ -434,8 +483,6 @@ if(firstreading==1) {
   do1streading()
   firstreading=0;
 } else {
-  w32 timedelta;
-  timedelta= dodif32(prevl0time, bufw32[l0time]);  // in 0.4micsecs
   if(timedelta> (59*2500000)) {   // enough time for rates (>1min)
     int rcudpsend;
     caltime= timedelta/2500000.;   // in secs
@@ -454,7 +501,6 @@ if(firstreading==1) {
         sprintf(udpm,"%s %.3f ", udpm, ppoutrate);
       };
     };
-    prevl0time= bufw32[l0time];
     if(csock_gcalib!=-1) {
       rcudpsend= udpsend(csock_gcalib, (unsigned char *)udpm, strlen(udpm)+1);
     };
@@ -529,14 +575,16 @@ if(rrdpipe==NULL) {
 };
 //htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
 //htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
-printf("%s rrdpipe opened, opening /tmp/htmlfifo... Is htmlCtpBusy daeomn running?\n", hname);
+printf("%s rrdpipe opened, opening /tmp/htmlfifo... Is htmlCtpBusy daemon running?\n", hname);
 htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
+// waiting on above open until htmlCtpBusy is not started
 if(htmlpipe==NULL) {
   printf("Cannot open /tmp/htmlfifo \n");
   exit(8);
 };
 setlinebuf(htmlpipe);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
+signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);
 
 csock_gcalib= udpopens("localhost", 9931);
 if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };

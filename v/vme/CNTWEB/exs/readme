@@ -1,0 +1,14 @@
+including.html, incme.html busytype.jpg -> readout.jpg, bsy*.jpg
+- test of SSI (see /etc/httpd/conf/httpd.conf)
+  Conclusion: inlude statment only in .html with executable pemissions!
+
+urllib2_test.html
+- retrieve page from server
+
+hello2.py
+- check in pymod script where request originates from
+
+reload.html
+- reloading page
+
+

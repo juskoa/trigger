@@ -39,7 +39,7 @@ if [ -z $pid ] ;then
     cd $VMEWORKDIR
 #set args DAQLOGBOOK NODAQRO
     cat - <<-EOF >.gdbinit
-set args NODAQLOGBOOK NODAQRO
+set args DAQLOGBOOK NODAQRO
 EOF
     gdb $VMECFDIR/ctp_proxy/linux/test
   elif [ $# -gt 0 ] ;then

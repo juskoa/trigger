@@ -17,7 +17,8 @@ ifdef SERVER_LINK
 allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm
 else
 allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
- $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF
+ $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF \
+ $(EXEDIR)/bakeryTest.exe
 endif
 
 #vonCTPLIBa= $(CTPLD) $(VMEBLD)
@@ -67,6 +68,15 @@ dims.o:dims.c dimtypes.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/dims: dims.o dimservices.o $(LIBDEP)
 	$(CC) $(LDFLAGS) $< dimservices.o $(LIBS) -o $@ 
+
+#------------------------------------------- bakeryTest
+bakeryTest.o:bakeryTest.c 
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
+#	$(CC) $(LDFLAGS) $< $(CTPLD) -o $@
+#	$(CC) $(LDFLAGS) $< $(VMEBLD) $(CTPLD) -o $@
+#	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) -o $@
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(VMERCCLD) -o $@
 
 #------------------------------------------- gcalib
 gcalib.o:gcalib.c 

@@ -49,7 +49,7 @@ endif
 SMIinc = $(SMIDIR)/smixx
 DIMinc = $(DIMDIR)/dim
 CTPinc = $(CTPLIB)/..
-VMEBinc = $(VMEBLIB)/..
+VMEBinc = $(VMEBDIR)/vmeblib
 
 # link:
 # VMERCCLD is in vmeai.make.VMERCC:

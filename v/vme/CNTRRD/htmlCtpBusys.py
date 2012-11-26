@@ -14,6 +14,7 @@ colorSLOWEST="magenta"
 colorINTERR="blue"
 MaxBusyBarHeightInPixs=100
 
+hostname=os.environ["HOSTNAME"]
 ltusdb= trigdb.TrgLTUS()
 
 def PrintError(fstr):
@@ -199,11 +200,14 @@ class ActivePartitions:
     ll= string.split(busyl0s)
     # in readctpc.c:
     #char *WHATBUSY[]={"bsy/L0", "bsy/L2s", "readout"};
-    if (busyl0s[:3]!="bsy") and (busyl0s[:3]!="rea"):
+    if (busyl0s[:3]!="bsy") and (busyl0s[:3]!="rea") and (busyl0s[:3]!="tot"):
       print "Bad line length:%d:%s:"%(len(busyl0s), busyl0s)
       return "Bad line"
     print "line:", ll
-    self.whatbusy= ll[0]
+    whatbusy= ll[0]
+    self.whatbusyLink= """<a href="http://%s:8080/setbsy"> %s</a><br>
+<A href="bsyhelp.html">help</A>
+"""%(hostname,whatbusy)
     self.mesdti= ll[1:4]   # [date, time, interval]:20.05.2008 23:09:34 minute
     busys= ll[4:]
     #print "updateBusys:parts",self.parts 
@@ -344,6 +348,7 @@ class ActivePartitions:
     head="""<html>
 <head>
 <meta HTTP-EQUIV="Refresh" CONTENT=10>
+<title> Busy status </title>
 <style type="text/css">
 img.header { width: 40px; }
 td.bar { vertical-align:top; height:100; }
@@ -388,7 +393,7 @@ var refint="refinterval is %d";
 </tr>
 <th>%s</th>
 """%(refreshsecs, clockinfo, self.mesdti[0], self.mesdti[1], 
-    self.mesdti[2], self.whatbusy)
+    self.mesdti[2], self.whatbusyLink)
     # now we go through all LTUs 2 times:
     # 1. found for each LTU, if it is the worst
     # in some cluster. The LTU can be slowest in more clusters!

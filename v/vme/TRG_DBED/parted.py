@@ -2704,7 +2704,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         if phcla!='0': 
           #usedclasses.append(line); 
           usedclasses.append(lineclg)
-          self.activeclasses[phcla]= (clasname, cla.classgroup, clgtime)   # used in pydim
+          self.activeclasses[phcla]= (clasname, cla.classgroup, clgtime, l0pr)   # used in pydim
           #print "activeclasses:", str(self.activeclasses)
         #--------------------------------- prepare descriptors section:
         if not useddescriptors.has_key(desname):

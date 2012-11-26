@@ -75,6 +75,13 @@ void getdatetime(char *);
 int actdb_getPartition(char *name, char *filter, char *actname, char *actver);
 
 /*----------------------------------------------------*/ 
+void stopserving() {
+dis_remove_service(INT1id);
+dis_remove_service(INT2id);
+dis_remove_service(CSid);
+dis_stop_serving();
+}
+/*----------------------------------------------------*/ 
 void myprtLog(char *msg) {
 char dt[20];
 getdatetime(dt);
@@ -339,6 +346,13 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   };
   stdoutyes=0;
 };
+if(strcmp(mymsg,"\n")==0) {
+  //stopserving();
+  myprtLog("Quitting server...");
+  printf("stop\n"); fflush(stdout);
+  //sleep(1);
+  //exit(0);
+};
 if(stdoutyes==1) {   /*
   pcfg 
     -prepare .pcfg (parted.py)
@@ -349,11 +363,6 @@ if(stdoutyes==1) {   /*
   smaqmv
   */
   printf("%s",mymsg); fflush(stdout);
-};
-if(strcmp(mymsg,"\n")==0) {
-  dis_stop_serving();
-  myprtLog("Quitting server...");
-  exit(0);
 };
 }
 /*----------------------------------------------------------- CScaba
@@ -431,7 +440,9 @@ rc= daqlogbook_update_ACTConfig(runn, itemname,instname,instver);
 
 /* Input: class runNumber clid1 classname1 clid2 classname2 ... \n
 from 28.7.2010:
-   Input: class runNumber clid1 cg1 cgtime1 classname1 clid2 cg2 cgtime2 classname2 ... \n
+   Input: class runNumber 
+          clid1 cg1 cgtime1 dsc1 classname1 
+          clid2 cg2 cgtime2 dsc2 classname2 ... \n
 Operation:
 register clid:classname in DAQDB
 rc: 0: ok
@@ -441,25 +452,28 @@ rc: 0: ok
 3: classid 1..50 expected
 4: DAQDB update call error
 5: bad cg (0..20) allowed (anyhow, ctp_proxy allows only 0..9)
+6: bad dsc factor. Expected: dec. number (32 bits, i.e. unsigned int)
+7: bad dsc factor: >0x1fffff but bit31 not set
+8: premature EOCMD (unfinished line)
 */
 int updateDAQDB(char *line) {
-int ixl, ixiv, rc=0;
+int ixl, ixiv, rcex=8;
 unsigned int runN; 
 int ixc;
 char value[256];
 enum Ttokentype t1,t2;
 printf("INFO updateDAQDB...\n");
-ixl=6; t1= nxtoken(line, value, &ixl);   // "class runNumber n1 name n2 name2
+ixl=6; t1= nxtoken(line, value, &ixl);   // runNumber
 if(t1==tINTNUM) {
   runN= str2int(value);
   ixiv= find_insver(runN);
   if(ixiv == -1) {
     printf("ERROR bad line (runn not found (pcfg req. missing?) ):%s",line);
-    rc=1; return(rc);
+    rcex=1; return(rcex);
   };
 } else {
   printf("ERROR bad line (runn expected after class ):%s",line);
-  rc=1; return(rc);
+  rcex=1; return(rcex);
 };
 infolog_SetStream(insver[ixiv].parname, runN);
 updateConfig(runN, insver[ixiv].parname, insver[ixiv].insname, insver[ixiv].insver);
@@ -467,37 +481,62 @@ del_insver(runN);
 for(ixc=0; ixc<50; ixc++) {
   unsigned int classN, cg, cgtim; int rcdaq,daqlistpn;
   float cgtime;
+  char dsctxt[24];   // (0.xxx% - 100%) or xxxus or xxx.xxxms
   char *daqlist[MAXALIASES]; char **daqlistp;
   char msg[300];
   t1= nxtoken(line, value, &ixl);   // class number
-  if(t1==tEOCMD) break;   
+  //printf("INFO ixc:%d token:%d tokenvalue:%s\n",ixc,t1,value);
+  if(t1==tEOCMD) {rcex=0; break;};
   if(t1==tINTNUM) {
     classN= str2int(value);
     if( (classN>50) || (classN<1) ) {
-      rc=3; break;
+      rcex=3; break;
     };
   } else {
-    rc=3; break;
+    rcex=3; break;
   };
   t1= nxtoken(line, value, &ixl);   // class group
   if(t1==tEOCMD) break;   
   if(t1==tINTNUM) {
     cg= str2int(value);
     if( cg>50 ) {
-      rc=5; break;
+      rcex=5; break;
     };
       } else {
-    rc=5; break;
+    rcex=5; break;
   };
   t1= nxtoken(line, value, &ixl);   // class group time
   if(t1==tEOCMD) break;   
   if(t1==tINTNUM) {
     cgtim= str2int(value);
   } else {
-    rc=3; break;
+    rcex=3; break;
+  };
+  t1= nxtoken(line, value, &ixl);   // dsc
+  if(t1==tEOCMD) break;   
+  if(t1==tINTNUM) {
+    unsigned int dsc;
+    dsc= str2int(value);
+    if(dsc>0x1fffff) {   // class busy
+      int dscus;
+      if((dsc & 0x80000000)!=0x80000000) {
+        printf("ERROR in downscaling factor:0x%x\n", dsc); 
+        rcex=7; break;
+      };
+      dscus= 10*(dsc & 0x1ffffff);
+      sprintf(dsctxt, "%dus", dscus);
+    } else if(dsc==0) {  // not downscaled
+      dsctxt[0]='\0';
+    } else {             // random downscaling
+      float dscrat;
+      dscrat= 100- dsc*100./0x1fffff;
+      sprintf(dsctxt, "%2.3f%%", dscrat);
+    }
+  } else {
+    rcex=6; break;
   };
   t2= nxtoken1(line, value, &ixl);   // classname
-  if(t2!=tSYMNAME) {rc=2; break;};
+  if(t2!=tSYMNAME) {rcex=2; break;};
   cgtime= cgtim;
   getClassAliases(value, daqlist); 
   daqlistpn=0;
@@ -511,14 +550,15 @@ for(ixc=0; ixc<50; ixc++) {
     };
   };
   rcdaq= daqlogbook_update_triggerClassName(runN, 
-    //classN-1, value, cg, cgtime);
-    classN-1, value, cg, cgtime, (const char **)daqlistp);
-  sprintf(msg,"DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f %d) rc:%d",
-    runN, classN-1, value, cg, cgtime, daqlistpn, rcdaq);
+    //classN-1, value, cg, cgtime, (const char **)daqlistp);
+    classN-1, value, cg, cgtime, dsctxt, (const char **)daqlistp);
+  sprintf(msg,
+    "DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f, %s, %d) rc:%d",
+    runN, classN-1, value, cg, cgtime, dsctxt, daqlistpn, rcdaq);
   if(rcdaq!=0) {
     infolog_trg(LOG_ERROR, msg);
     printf("ERROR %s\n", msg);
-    rc=4; break;
+    rcex=4; break;
   } else {
     printf("INFO %s\n", msg);
     // without the test below, server crashes (or \n received indicating STOP)
@@ -528,7 +568,7 @@ for(ixc=0; ixc<50; ixc++) {
   fflush(stdout);
 };
 infolog_SetStream("",0);
-return(rc);
+return(rcex);
 }
 
 /*--------------------------------------------------- main */
@@ -595,6 +635,9 @@ while(1) {
     } else {
       if(ignoreDAQLOGBOOK==0) {
         rcdaq= updateDAQDB(line);
+        if(rcdaq!=0) {
+          printf("ERROR updateDAQLOGBOOK failed. rc=%d\n", rcdaq);
+        };
         rcdaq= daqlogbook_close();
         if(rcdaq==-1) {
           printf("ERROR DAQlogbook_close failed\n");
@@ -613,9 +656,6 @@ while(1) {
     printf("ERROR %s", line); fflush(stdout);
   };
 };
-dis_remove_service(INT1id);
-dis_remove_service(INT2id);
-dis_remove_service(CSid);
-dis_stop_serving();
+stopserving();
 return(grc);
 }

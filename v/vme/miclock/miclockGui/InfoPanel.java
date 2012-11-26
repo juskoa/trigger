@@ -194,7 +194,7 @@ public class InfoPanel extends JPanel implements PropertyChangeListener
 		}
 		else if(evt.getPropertyName().equals("sendShift"))
 		{
-			logEntry = ": Sent command "+evt.getNewValue()+" to Set Shift\n"; // CORDE_SET
+			logEntry = ": Sent command "+evt.getNewValue()+" to Set Shift. Allow at least 4 min. before next check\n"; // CORDE_SET
 			write = true;
 		}
 		else if(evt.getPropertyName().equals("sendOper"))
