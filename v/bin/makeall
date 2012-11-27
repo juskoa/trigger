@@ -69,8 +69,9 @@ Usage:
 makeall allctp [clean] -comp/link vmeb, vmeb/vmeblib, ctplib,ctp,ctp_proxy,smaq
                         toobusy
 makeall allltu [clean] -   ltulib,ltu,SSMANA,VME2FPGA,ltu_proxy, ltudim
-makeall others [clean] -compile this:
-makeall others 2&>1 >/tmp/others.makelog
+makeall others [clean] 
+makeall others 2>&1 >/tmp/others.makelog
+                       -compile this:
 $OTHERSmake
 $OTHERScmp
 

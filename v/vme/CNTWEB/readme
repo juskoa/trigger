@@ -15,8 +15,16 @@ Another approach:
 	PythonDebug On
   </Directory>
 
+24.11.2012: html including: chmod a+x including.html
+/etc/httpd/conf/httpd.conf
+#    AllowOverride None
+    XBitHack on
+    Options +Includes
+
+24.11.2012 wsgi: see Addons_noarch/wsgiref.tgz (-> /usr/lib/python2.4/A)site-packages/
 ------------------
 exs/       -examples 
+htmlarch/  - html archive
 chlocpart.py -choosing partition from $dbctp/pardefs2010/
 cntcom.py  -common for cnt, ltus
 cnt.py     -ctp counters

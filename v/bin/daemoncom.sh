@@ -25,7 +25,7 @@ if [ $? -ne 0 ] ;then
   return
 fi
 getpid "$dpath"
-#echo "getpidspid $spid rc:$?"
+#echo "daemoncom.sh: getpidspid $spid rc:$?"
 if [ "$sss" = 'stop' -o "$sss" = 'kill' ] ;then   #-------------------------- stop
   if [ -n "$spid" ] ;then
     #kill -s QUIT $spid

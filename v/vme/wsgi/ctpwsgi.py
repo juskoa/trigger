@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from ctpbusy import application as hey
 from fileserver import FileServer
 

@@ -407,7 +407,7 @@ for(ix=0; ix<N24; ix++) {
     for(cix=0; cix<WHATBUSYS; cix++) {
       int avbusy; w32 trigsdif, l2rsdif; float totbusy;
       totbusy= dodif32(busy[ix].prevcs, busy[ix].currcs)*0.4;
-      totbusy= timedelta*0.4*(measnum/10.); 
+      //dbg totbusy= timedelta*0.4*(measnum/10.); 
       if(cix==0) {
         trigsdif= dodif32(l0s[ix].prevcs, l0s[ix].currcs);
         trigsdif= checktrigs(trigsdif);

@@ -1,8 +1,5 @@
 # To run this example:
-
-python application.py
-
+python ctpwsgi.py
 Hit this url with your browser:
-
-http://localhost:8080/
+http://hostname:8080/
 

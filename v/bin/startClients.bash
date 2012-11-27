@@ -154,7 +154,9 @@ masksServer running on alitri. Commands: start/stop/status/update
            See v/vme/WORK/masksServer.log,.pid 
            DIM publications of CTPBCM/A,C,S,SA,... -masks available 
            in VALID.CTPINPUTS).
-
+ctpwsgi    running on alitri. start/stop/status
+           wsgi server. needed for BUSY status screen when the way how
+           busy is calculated needs to be changed. Log: v/vme/WORK
 Problems: see corresponding files in:
    ~/CNTRRD/logs                     -pydim html rrd
    trigger@alidcsvme001:v/vme/WORK/  -ctpproxy ctpdim gcalib
@@ -180,7 +182,7 @@ else
   dmn=$1
   sss=$2
 fi
-echo "pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer all " | grep "$dmn " >/dev/null
+echo "pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer ctpwsgi all " | grep "$dmn " >/dev/null
 if [ $? -eq 1 ] ;then
   echo "unknown daemon: $dmn"
   exit 8
@@ -346,6 +348,9 @@ if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
 fi
 if [ $dmn = "gmonscal" -o "$dmn" = 'all' ] ;then #-------------------- gmonscal
   st3 gmonscal gmonscal.sh trigger@$server27 $sss
+fi
+if [ $dmn = "ctpwsgi" -o "$dmn" = 'all' ] ;then #-------------------- ctpwsgi
+  st3 ctpwsgi ctpwsgi.sh LOCAL $sss
 fi
 #---------------
 if [ $dmn = "gcalib" -o "$dmn" = 'all' ] ;then #------------------- gcalib

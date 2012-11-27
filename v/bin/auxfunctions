@@ -5,6 +5,7 @@ function getpid() {
 #echo $pidcmd1
 pnam=`basename $1`
 pid=`pgrep $pnam`
+#echo "auxfunctions:pid:$pid"
 if [ -z "$pid" ] ;then
   spid=''
 else
@@ -12,6 +13,13 @@ else
   pidcmd=`ps -o'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
 #echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
   declare -a dl=($pidcmd)
+# correct for python starts:
+# i.e.:
+#24899 trigger  /usr/bin/python /data/dl/root/usr/.../wsgi/ctpwsgi.py
+#25118 trigger  /usr/local/trigger/stable/v/vme/ctp_proxy/linux/gcalib.exe
+  if [ ${#dl[@]} -eq 4 ] ;then
+    dl[2]=${dl[3]}
+  fi
 #echo dl:${dl}
 #echo "comparing:"
 #echo ${dl[2]}
@@ -24,7 +32,7 @@ else
     spid=''
   fi
 fi
-#echo getpid:$spid:${dl[0]}:$pidcmd
+#echo auxfunctions:getpid:$spid:${dl[0]}:$pidcmd
 }
 function savelog() {
 ds=`date +%y%m%d%H%M`   # %S -seconds
