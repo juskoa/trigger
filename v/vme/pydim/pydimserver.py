@@ -45,9 +45,13 @@ import popen2, os, os.path, string, sys, time, parted, pylog, miclock,threading
 miclock.mylog= pylog.Pylog("pydim_shift")
 mylog= pylog.Pylog(info="info")
 
+def tasc():
+  lt= time.localtime()
+  ltim= "%2.2d.%2.2d.%4.4d %2.2d:%2.2d:%2.2d "%(lt[2], lt[1], lt[0], lt[3], lt[4], lt[5])
+  return ltim
 def checkShift():
   cshift= miclock.getShift()
-  print "checkShift: after 5secs:"+ cshift
+  print tasc()+"resetclock: check after 5secs:"+ cshift
 
 def main():
   if hasattr(sys,'version_info'):
@@ -72,14 +76,14 @@ def main():
   io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
   #try:
   line= io[0].readline()   #ignore 1st line: DIM server:ctprcfg cmd:rcfg
-  print "%s 1st line from ./dimserver:\n%s"%(time.asctime(), line)
+  print "%s 1st line from ./dimserver:\n%s"%(tasc(), line)
   if line[:10]!='DIM server':
     print "'DIM server' expected, trying 2nd line..."
     line= io[0].readline()   #ignore 1st line: DIM server:ctprcfg cmd:rcfg
-    print "%s 2nd line from ./dimserver:\n%s"%(time.asctime(), line)
+    print "%s 2nd line from ./dimserver:\n%s"%(tasc(), line)
     if line[:10]!='DIM server':
       line= io[0].readline()   #ignore 2nd line: DIM server:ctprcfg cmd:rcfg
-      print "%s 3rd line from ./dimserver:\n%s"%(time.asctime(), line)
+      print "%s 3rd line from ./dimserver:\n%s"%(tasc(), line)
       if line[:10]!='DIM server':
         print "'DIM server' expected, exiting..."
         io[1].write("quit\n");
@@ -90,7 +94,7 @@ def main():
   #print "current clock shift:"+cshift+" [saved in db+corde]"
   while(1):
     line= io[0].readline()
-    print "%s received:%s"%(time.asctime(),line)
+    print "%s received:%s"%(tasc(),line)
     if line=='\n':
       print "empty line received (NL), ignored..." ; continue
     if line=='stop\n':
@@ -111,7 +115,7 @@ def main():
         #note: .partition file was downloaded directly in server.c
         # from ACT if present!
         reload(parted)
-        print "%s parted reloaded (pcfg request)"%time.asctime()
+        print "%s parted reloaded (pcfg request)"%tasc()
       if len(cmd)<3:
         print "Short cmd ignored:",cmd
         continue
@@ -120,20 +124,9 @@ def main():
       #parted.TDLTUS.initTDS(reload='yes')
       part= parted.TrgPartition(partname, strict="strict")
       part.prt()
-      print "%s part.loaderrors:"%time.asctime(),part.loaderrors
-      print "%s part.loadwarnings:"%time.asctime(),part.loadwarnings
+      print "%s part.loaderrors:"%tasc(),part.loaderrors
+      print "%s part.loadwarnings:"%tasc(),part.loadwarnings
       if cmd[0]=='pcfg':
-        if partname=="PHYSICS_1":
-          # adjust clock shift: correct any shift
-          cshift= miclock.getShift()
-          #if cshift != "old":
-          if cshift == "never adjust":
-            print "current clock shift:"+cshift+" [saved in db+corde]"
-            miclock.checkandsave(cshift,"fineyes", force="yes")
-            t= threading.Timer(5.0, checkShift)
-            t.start()
-          else:
-            print "current clock shift:"+cshift
         fname= partname+".pcfg"
         if part.loadwarnings!='':
           mylog.infolog(part.loadwarnings, level='w', partition=partname)
@@ -142,14 +135,14 @@ def main():
         else:
           f= open( os.path.join( parted.WORKDIR,fname), "w")
           f.write("Errors:\n") ; f.write(part.loaderrors) ; f.close()
-        print "%s %s saved,"%(time.asctime(), fname)
+        print "%s %s saved,"%(tasc(), fname)
       else:
         part.savercfg(line[5:]) 
         fname="r"+runnumber+".rcfg"
-        print "%s %s saved,"%(time.asctime(), fname)
+        print "%s %s saved,"%(tasc(), fname)
         # before the copy, ctp_proxy is waiting for, update
         # triggerClassNames in DAQdb
-        print "%s now update DAQlogbook... "%(time.asctime())
+        print "%s now update DAQlogbook... "%(tasc())
         lout="class %s"%runnumber
         for clsn in part.activeclasses.keys():
           clname= part.activeclasses[clsn][0]
@@ -169,9 +162,9 @@ def main():
           #take file created in LOAD time:
           rcpath= os.path.join( parted.WORKDIR,fname)
           cmd="scp -B -2 %s %s:/tmp/%s"% (rcpath, acchost, fname)
-          print "%s rcscp..."%(time.asctime())
+          print "%s rcscp..."%(tasc())
           rcscp=os.system(cmd)
-          print "%s rcscp:%d from %s"%(time.asctime(), rcscp, cmd)
+          print "%s rcscp:%d from %s"%(tasc(), rcscp, cmd)
         else:
           #here we should wait for end of whole DAQupdate! (io[0].read...)
           # instead, let's queue the copy request through the same LIFO cahnnel:
@@ -180,9 +173,9 @@ def main():
           # in addition, copy it once more time through scp into /tmp
           if os.path.exists(rcpath):                                                        
             cmd="cmd scp -B -2 %s %s:/tmp/%s\n"% (rcpath, acchost, fname)
-            #print "%s rcscp..."%(time.asctime())
-            #rcscp=os.system(cmd); print "%s rcscp:%d from %s"%(time.asctime(), rcscp, cmd)
-            print "%s cmd:%s"%(time.asctime(), cmd)
+            #print "%s rcscp..."%(tasc())
+            #rcscp=os.system(cmd); print "%s rcscp:%d from %s"%(tasc(), rcscp, cmd)
+            print "%s cmd:%s"%(tasc(), cmd)
             io[1].write(cmd);
           else:
             print "File %s does not exist"%rcpath
@@ -222,6 +215,25 @@ def main():
     elif cmd[0]=='INFO' or cmd[0]=='ERROR':
       #print line
       pass
+    elif cmd[0]=='resetclock':
+      # adjust clock shift: correct any shift
+      cshift= miclock.getShift()
+      if cshift != "old":
+        try:
+          cshift_ps= eval(cshift)*1000
+        except:
+          #mylog.infolog(part.loadwarnings, level='w', partition=partname)
+          print "ERROR miclock.getShift():bad clock shift:"+ cshift
+        else:
+          if abs(cshift_ps) > 100.0:
+            print "current clock shift:"+cshift+" [saving in db+corde]"
+            mylog.infolog("Clock shift %sns reset"%cshift, level='i')
+            miclock.checkandsave(cshift,"fineyes", force="yes")
+            t= threading.Timer(5.0, checkShift)
+            t.start()
+          else:
+            print "current clock shift (not adjusted):"+cshift
+            mylog.infolog("Clock shift %sns not adjusted"%cshift, level='i')
     else:
       print "Bad command:%s"%(line)
     sys.stdout.flush()

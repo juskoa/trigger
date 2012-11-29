@@ -1305,6 +1305,13 @@ Tpartition *getPartitions(char *name, Tpartition *parray[]){
  }
  return NULL;
 }
+/*------------------------*/ int getPartitionsN(Tpartition *parray[]){
+int i, rc=0;
+for(i=0;i<MNPART;i++){
+  if(parray[i]) rc++; 
+};
+return rc;
+}
 /*------------------------------------------------deletePartitions()
   Purpose: remove partition from both lists: AllPartitions[] StartedPartitions[]
   part: input partition to be deleted
@@ -1841,6 +1848,7 @@ int generateXODSSM(char x){
 #define TAGpcfg 339
 #define TAGstartcountforced 340
 #define TAGglobalcal 350
+#define TAGresetclock 351
 int pydimok=0;
 void callback(void *tag, int *retcode){
  char command[100]; char emsg[300];
@@ -1868,6 +1876,9 @@ void callback(void *tag, int *retcode){
    case(TAGglobalcal):
         strcpy(command,"CTPCALIB/DO u");
         break;
+   case(TAGresetclock):
+        strcpy(command,"CTPRCFG/RCFG resetclock");
+        break;
    default:
         printf("callback: Unknown tag %i \n",*(int *)tag);
         return;
@@ -1882,6 +1893,15 @@ void callback(void *tag, int *retcode){
    sprintf(emsg, "timestamp:callback:DIM command %s failed.",command); 
    prtError(emsg);
  };
+}
+void resetclock() {
+int tag,rcdic;
+char msg[80], cmd[40], dimcom[40];
+tag=TAGrcfgdelete;
+sprintf(cmd,"resetclock\n");
+sprintf(msg,"timestamp:resetclock:"); prtLog(msg);
+strcpy(dimcom,"CTPRCFG/RCFG");
+rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 }
 void gcalibUpdate() {
 //    res= pydim.dic_cmnd_service("CTPCALIB/DO", arg, "C")
@@ -2332,7 +2352,8 @@ return rc;
 #define MAXMSG 1000
 /*---------------------------------------------ctp_LoadPartition()
 */
-int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason) {
+int ctp_LoadPartition(char *name,char *mask, int run_number, 
+    char *ACT_CONFIG, char *errorReason) {
 int rc=0;
 Tpartition *part;
 char msg[MAXMSG];
@@ -2398,7 +2419,8 @@ rc: if !=0, errorReason set
 3: applyMask problem 
 4: addPartitions() problem
 */
-int ctp_InitPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason) {
+int ctp_InitPartition(char *name,char *mask, int run_number, 
+    char *ACT_CONFIG, char *errorReason) {
 int ret=0, rc=0;
 char name2[80];
 char msg[MAXMSG];
@@ -2408,6 +2430,9 @@ way of masking: mask is applied in memory directly
     after part. definition is read in
  */
 errorReason[0]='\0';
+if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
+  resetclock();
+}; 
 infolog_SetStream(name,0);
 part=getPartitions(name, AllPartitions); 
 if(part!=NULL) { 

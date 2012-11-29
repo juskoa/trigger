@@ -266,4 +266,5 @@ DAQlogbook_update_triggerClassName(), daqlogbook_update_triggerClassName:
 26.11.
 pydim stop improved 
 -> pit
-
+29.11.
+clock shift reset before each PHYSICS_1 when abs(shift) > 100ps

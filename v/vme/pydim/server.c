@@ -345,6 +345,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     printf("INFO set clockshift %s. rc(=chars):%d \n", halfns, rc);
   };
   stdoutyes=0;
+} else if((strncmp(mymsg,"resetclock",9)==0)) {
 };
 if(strcmp(mymsg,"\n")==0) {
   //stopserving();
