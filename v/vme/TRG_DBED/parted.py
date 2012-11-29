@@ -1010,11 +1010,12 @@ Predefined BC masks in VALID.BCMASKS file:
       ihk= string.find(line,'#')
       if ihk>0:
         line= line[:ihk]
-      self.tdinps.append(string.split(line[:-1]))
+      stripedline= string.strip(line)
+      self.tdinps.append(string.split(stripedline))
       #
       #print "initTDS:%s:"%line, "len:", len(line)
-      tdname= string.split(line)[0]    
-      tdinps= string.split(line[:-1])[1:]
+      tdname= string.split(stripedline)[0]    
+      tdinps= string.split(stripedline)[1:]
       #if tdname=="DDG1":
       #  import pdb ; pdb.set_trace()
       newtrgdes= TrgDescriptor(tdname, tdinps)
@@ -1026,7 +1027,7 @@ Predefined BC masks in VALID.BCMASKS file:
           PrintError(newtrgdes.loaderrors, self)
           notreadydescriptors= notreadydescriptors+1
         self.tds.append(newtrgdes)
-        self.validtds.append(string.split(line)[0])    
+        self.validtds.append(string.split(stripedline)[0])    
       else:
         PrintError(newtrgdes.loaderrors, self)
         baddescriptors= baddescriptors+1

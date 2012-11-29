@@ -62,10 +62,11 @@ unsigned int cnts[NCOUNTERS];
 char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
   "PHOS", "CPV", "PMD", "MUON_TRK", "MUON_TRG",
   "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ",""}; 
-// by RL on TM 1.8.2012:
+// by RL on TM 1.8.2012: THIS ONE USED FOR L1R CORRECTION
+// 28.11.2012: corrected to be equal with DQM: (pmd, muon_trg, v0):
 float l1rusecs[N24]={0, 7.0, 7.325, 6.65, 6.75, 6.705, 6.835,
-  5.8, 0.0, 14.15, 14.275, 7.075,
-  8.26, 6.525, 2.303, 9.2, 7.025, 0.0, 7.035, 0.0};
+  5.8, 0.0, 16.0, 14.275, 7.1,
+  8.26, 6.525, 0.0, 9.2, 7.025, 0.0, 7.035, 0.0};
 // by RL on TM 9.3.2012 
 // both TRD values should be 55us(instead of 266.3)-see daqlog from 27.3.2012:
 float l2rusecs[N24]={0, 110.5, 265.1, 306.5, 55.0, 0.0, 107.1,
