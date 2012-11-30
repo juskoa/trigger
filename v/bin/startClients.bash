@@ -340,7 +340,7 @@ if [ $dmn = "diprfrx" -o "$dmn" = 'all' ] ;then #------------------- diprfrx
   if [ "$VMESITE" != "ALICE" ] ;then
     echo "diprfrx available only in the pit"
   else
-    st3 diprfrx diprfrx.bash trigger@$ttcmivme $sss
+    st3 diprfrx diprfrx.sh trigger@$ttcmivme $sss
   fi
 fi
 if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal

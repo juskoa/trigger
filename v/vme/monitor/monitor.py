@@ -210,6 +210,7 @@ class Daemon:
   def getpid(self):
     self.pid= None
     pidline= self.iopipe("startClients.bash "+self.name+" status", "pid:")
+    #self.logm("getpid:pidline:"+pidline+":")
     if pidline:
       pid= string.split(pidline)[1]
       self.pid= pid
@@ -219,6 +220,7 @@ class Daemon:
     rc=None
     while(1):
       line= iop[0].readline()
+      #self.logm("iopipe:"+line+":")
       if line =='':
         break
       if lookfor:

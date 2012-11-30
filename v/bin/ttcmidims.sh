@@ -1,7 +1,7 @@
 #!/bin/bash
 # starting TTCMI server controlling the ALICE clock
 #usage: ttcmidims.sh
-. $CCRFS/usr/local/trigger/bin/auxfunctions
+. $VMECFDIR/../bin/auxfunctions
 #
 hname=`hostname`
 if [ "$hname" != 'alidcsvme017' -a "$hname" != 'altri1' ] ;then

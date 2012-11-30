@@ -1,18 +1,17 @@
 #!/bin/bash
 # common script for start/stop/status of a daemon running
 # on one of trigger machines sharing $VMECFDIR.
-# Currently used with diprfrx, gcalib.
+# Currently used with diprfrx, gcalib...
 # environment: VMECFDIR VMEWORKDIR
 #usage: daemoncom.sh daemon_name daemon_path log sss
 #  where:
-#  daemon_name.sh is script calling this script
-#  daemon_path is executable relative to $VMECFDIR
+#  daemon_name is the name of a daemon
+#  daemon_path is the path of executable relative to $VMECFDIR or absolute (/...)
 #  log is: 
 #    nolog -send log to /dev/null
-#    log   -send log to $VMEWORKDIR/$dname.log
+#    log   -send log to $VMEWORKDIR/WORK/$dname.log
 #  sss is one of: start stop status
 #
-#. $CCRFS/usr/local/trigger/bin/auxfunctions
 . $VMECFDIR/../bin/auxfunctions
 #
 dname=$1   # daemon name
@@ -25,6 +24,11 @@ if [ $? -ne 0 ] ;then
   return
 fi
 getpid "$dpath"
+if [ ${dpath:0:1} = '/' ] ;then
+  absdpath=$dpath
+else
+  absdpath=$VMECFDIR/$dpath
+fi
 #echo "daemoncom.sh: getpidspid $spid rc:$?"
 if [ "$sss" = 'stop' -o "$sss" = 'kill' ] ;then   #-------------------------- stop
   if [ -n "$spid" ] ;then
@@ -48,14 +52,14 @@ elif [ "$sss" = 'start' ] ;then    #----------------------- start
   savelog $dname
   cd $VMEWORKDIR
   if [ "$dlog" = 'nolog' ] ;then
-    nohup $VMECFDIR/$dpath 2>&1>/dev/null &
+    nohup $absdpath 2>&1>/dev/null &
     lg='/dev/null'
   else
-    nohup $VMECFDIR/$dpath >$logdir/$dname.log &
+    nohup $absdpath >$logdir/$dname.log &
     lg="$logdir/$dname.log"
   fi
   cat - <<-EOF 
-  $dname server ($VMECFDIR/$dpath) started. 
+  $dname server ($absdpath) started. 
   log: $lg
 EOF
  fi

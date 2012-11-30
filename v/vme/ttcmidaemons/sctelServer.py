@@ -1,5 +1,5 @@
 #!/bin/env python
-# 4.11. when measurement not complete, restart telnet with next measurement
+# start/stop/status use bin/sctelServer.sh
 import sys,time,string,pydim
 import sctel
 AliceClock="not defined"

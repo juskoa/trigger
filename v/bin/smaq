@@ -3,7 +3,7 @@
 # smaq CTP_INPUT DIRNAME
 #rc: 8: smaq is already running
 # smaq kill
-. $CCRFS/usr/local/trigger/bin/auxfunctions
+. $VMECFDIR/../bin/auxfunctions
 getpid "$VMECFDIR/smaq/smaq.exe"
 echo ":$spid user:$user"
 if [ $# -eq 0 ] ;then

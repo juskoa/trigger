@@ -17,7 +17,7 @@ else
 # i.e.:
 #24899 trigger  /usr/bin/python /data/dl/root/usr/.../wsgi/ctpwsgi.py
 #25118 trigger  /usr/local/trigger/stable/v/vme/ctp_proxy/linux/gcalib.exe
-  if [ ${#dl[@]} -eq 4 ] ;then
+  if [ ${#dl[@]} -ge 4 -a ${dl[2]} = "/usr/bin/python" ] ;then
     dl[2]=${dl[3]}
   fi
 #echo dl:${dl}

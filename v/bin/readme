@@ -8,7 +8,7 @@ if [ -n "$1" ] ;then
   exit
 fi
 cat - <<-EOF
-$CCRFS/usr/local/trigger/bin:          scripts:
+$VMECFDIR/../bin:          scripts:
 script            Invoked from/comment
 ------            --------------------
 findactive        show last activity for all LTUs (the mod. time 

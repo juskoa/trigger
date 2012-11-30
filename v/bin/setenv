@@ -46,7 +46,7 @@ else
   cd ~/v/vme/WORK
 fi
 export dbctp=$VMECFDIR/CFG/ctp/DB
-alias tinclient=$CCRFS/usr/local/trigger/v/vme/dimsc/linux/client
+alias tinclient=$VMECFDIR/dimsc/linux/client
 alias l0inputdb="cd $VMECFDIR/switchgui; ./l0inputdb.py; cd -"
 alias switched="cd $VMECFDIR/switchgui; ./switched.py; cd -"
 export trir='trigger@alidcscom707'

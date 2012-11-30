@@ -28,14 +28,14 @@ fi
 #else
 #  vdv='v'
 #fi
-vdv='v'
+vdv='stable'
 if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
  "$hname" = 'pcalicebhm10' -o "$hname" = 'alidcscom188' ] ;then
   if [ "$hname" = 'alidcscom188' ] ;then
     CCRFS=/data/dl/root
     CLRFS=/data/dl/snapshot
   fi
-  cfgfile=$CCRFS/usr/local/trigger/v/vme/CFG/ctp/DB/ttcparts.cfg
+  cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
   #echo "Server: $hname"
   if [ "$vdir" = 'ctp' ] ;then
     dhost='alidcsvme001'
@@ -54,7 +54,8 @@ if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
   else
     dhost=`awk '{if($1==detname) {print $2}}' detname=$vdir $cfgfile`
     if [ -z "$dhost" ] ;then
-      rdir=$CCRFS/usr/local/trigger/$vdv/vme/$vdir
+      #rdir=$CCRFS/usr/local/trigger/$vdv/vme/$vdir
+      rdir=$VMECFDIR/$vdir
     else
       rdir=$CLRFS/$dhost/home/alice/trigger/v/$vdir/WORK
     fi

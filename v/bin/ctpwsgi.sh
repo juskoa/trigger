@@ -9,4 +9,4 @@ fi
 sss=$1
 #pgrep -l ctpwsgi bavi
 # must be last (to pass retcode)
-daemoncom.sh ctpwsgi wsgi/ctpwsgi.py log $sss
+daemoncom.sh ctpwsgi $VMECFDIR/wsgi/ctpwsgi.py log $sss
