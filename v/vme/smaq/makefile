@@ -25,7 +25,7 @@ LDFLAGS +=-L$(DIMDIR)/linux -ldim -L$(DATE_INFOLOGGER_DIR) -lInfo
 endif
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
-OBJFILES=smaq.o ssm.o intint.o
+OBJFILES=smaq2.o ssm.o intint.o
 smaq.exe: $(OBJFILES)
 	$(VMECC) $(OBJFILES) $(LDFLAGS) -lm -o smaq.exe
 ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
@@ -34,5 +34,7 @@ intint.o: intint.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h intint.h
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) intint.c
 smaq.o: smaq.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
 	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) smaq.c
+smaq2.o: smaq2.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
+	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) smaq2.c
 clean:
 	rm *.o *.pyc *.exe

@@ -15,7 +15,7 @@ Print error.
 void prtError(char *msg) {
 char dt[20];
 getdatetime(dt);
-printf("%s: ***  Error:\n%s\n",dt,msg); fflush(stdout);
+printf("%s: ***  Error:%s\n",dt,msg); fflush(stdout);
 }
 /*----------------------------------------------------*/ 
 void prtLog(char *msg) {

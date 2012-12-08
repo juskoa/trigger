@@ -268,3 +268,13 @@ pydim stop improved
 -> pit
 29.11.
 clock shift reset before each PHYSICS_1 when abs(shift) > 100ps
+1.12.2012
+DSGclean DSG* subroutines moved cfg2part-> Tpartitiion.c (now vmecomp ctp
+compilation/link ok)
+7.12.
+bug in smaq.c fixed: first time, always L0 board started, also
+in case when L1 triggering input was choosen.
+8.12.
+smaq/smaq2.c -new version of smaq (change makefile when switching
+between old/new versions). new version: creates/scp 2 dump files
+if inpnum is 101..148

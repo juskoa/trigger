@@ -38,12 +38,12 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 
 int quit=0;
 char dirname[40]="last";
-int siteflag=0;
+char SMAQ_C[20]="";
 void getdatetime(char *);
 int dumpssm(int board,char *filename);
 //double rnlx();
 //void setseeds(long,int);
-int syncSSM(int n, int *boards);
+//int syncSSM(int n, int *boards);
 w32 orbitstatus;
 // DIM 
 char DETSET_COM[256]="NONE";
@@ -253,55 +253,134 @@ int checkInputs(int board,FILE *f){
  fprintf(f,"SSM INPUTS (first hits):\n %s \n",channels); */
  return 0;
 }
-/*
-   get ssms of l0/1/2 board  (board123: 1,2 or 3) and INT board if inboard>0
+
+/*----------------------- setstart_/stop_/rdumpscp_
+boards[2]: number of boards
 */
-int getSSMs(int board123, int inpnum,int intboard,FILE *f){
- char dt[32];
- char filename[256];
-int rcscp; char cmd[100];
- getdatetime(dt);
- dt[10]='_';
- //dt[13]='_';
- //dt[16]='_';
- usleep(4000); // fine even for triggering with BOBR signal
- stopSSM(board123);   // which is coming 19 orbits before interaction
- if(intboard)stopSSM(4);
- strcpy(filename,"");
- sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
- //dumpSSM(1,filename);
- readSSM(board123);
- dumpssm(board123,filename);
+int setstart_ssm(int *boards) {
+int nbs;
+nbs= boards[2];
+setomSSM(boards[0],0xb);
+if(nbs==2) {
+  setomSSM(boards[1],0xb); // IN, continuous
+};
+return(startSSM(nbs, boards));   
+};
+/*----------------------
+rc: 0:ok
+    1: at least on of the boards was not busy
+   10: >80mics between 1. and last stop
+*/ 
+int stop_ssm(int *boards) {
+w32 ssmstatus, seconds1,micseconds1, seconds2,micseconds2,diff;
+int nbs,ix,rc=0;
+ix=1; nbs= boards[2];
+GetMicSec(&seconds1, &micseconds1);
+while(1) {
+  int board;
+  w32 boardoffset, busybit;
+  if(ix>=nbs) ix=0;
+  board= boards[ix];
+  boardoffset=BSP*ctpboards[board].dial; 
+  busybit=0x100;
+  ssmstatus= vmer32(SSMstatus+boardoffset);
+  if( (ssmstatus&busybit)==0 ) {
+    printf("stopSSM: %d board not busy(SSMstatus:%x), no action\n", 
+      board, ssmstatus); 
+    rc=1;
+  };
+  vmew32(SSMstop+boardoffset, DUMMYVAL);
+  if(ix==0) break;
+  ix++;
+};
+GetMicSec(&seconds2, &micseconds2);
+if((diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1))>80) {
+  rc=10;
+  printf("startSSM: diff[usecs]=%d last SSMstatus before stop:%x\n",
+    diff, ssmstatus);
+};
+return(rc);
+}
+/*---------------------------
+Operation: read+dump+scp to smaq machine
+boards: to be readout
+board123+inpnum -triggering input
+
+dump file names: x:0,1,2  y:1..24 
+1 board:  lx_y_date.dmp     
+2 boards: l0_0_date.dmp
+          l1_12_date.dmp
+rc: 0: ok
+   >0: from scp or rm cmd
+*/
+int rdumpscp_ssm(int *boards, int board123, int inpnum, FILE *f) {
+int ix, nbs, rcscp;
+char dt[32], filename[256], cmd[100];
+getdatetime(dt);
+dt[10]='_';
+//dt[13]='_';
+//dt[16]='_';
+nbs= boards[2];
+for(ix=0; ix<nbs; ix++) {
+  rcscp= readSSM(boards[ix]);
+  if(rcscp!=0) break;
+  if(nbs==1) {
+    sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
+  } else {
+    if(nbs==board123) {
+      sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
+    } else {
+      sprintf(filename,"l%d_0_%s.dmp",boards[ix],dt);
+    };
+  };
+  rcscp= dumpSSM(boards[ix], filename);
+  if(rcscp!=0) break;
+  //printf("%s ----------------------->dumped. rc:%d\n",filename, rcscp); 
+  fprintf(f,"%s ----------------------->dumped. rc:%d\n",filename, rcscp);
   /* scp: not very nice (.dmp file is copied over network 3 times:
      1. when created (WORK directory is NFS monted)
      2. when scp reads is over NFS back
-     3. when scp send it to alidcscom707)
-  Better idea: use pydimserver on alidcscom026: .dmp file can
+     3. when scp send it to $SMAQ_C)
+  Better idea1: use pydimserver on alidcscom026: .dmp file can
   be accessed directly on 026 machine and copied to 707 machine
+  idea2: create thread, uploading ssm directly to $SMAQ_C over TCP/IP
   */
- if(siteflag){
-   sprintf(cmd, "scp -Bq2 WORK/%s trigger@alidcscom707:SMAQ/%s/", 
-   filename, dirname);
-   //printf("%s\n",cmd);
-   rcscp= system(cmd);
-   if(rcscp==0) {
-     sprintf(cmd, "rm WORK/%s", filename);
-     rcscp= system(cmd);
-     if(rcscp!=0) {
-       printf("rc:%d from remove file...\n", rcscp);
-       fprintf(f, "rc:%d from remove file...\n", rcscp);
-     };
-   };
-   //printf("%s ----------------------->dumped. rc:%d\n",filename, rcscp); 
-   fprintf(f,"%s ----------------------->dumped. rc:%d\n",filename, rcscp);
- }else{
-   printf("%s ----------------------->dumped.\n",filename); 
-   fprintf(f,"%s ----------------------->dumped.\n",filename);
- } 
+  if(SMAQ_C[0]!='\0'){
+    sprintf(cmd, "scp -Bq2 WORK/%s trigger@%s:SMAQ/%s/", 
+      filename, SMAQ_C, dirname);
+    //printf("%s\n",cmd);
+    rcscp= system(cmd);
+    if(rcscp==0) {
+      sprintf(cmd, "rm WORK/%s", filename);
+      rcscp= system(cmd);
+      if(rcscp!=0) {
+        printf("rc:%d from remove file...\n", rcscp);
+      };
+    } else {
+      break;
+    };
+  };
+};
+return(rcscp);
+}
+/*-------------------------------------
+O: get ssms of l0/1/2 board  (board123: 1,2 or 3) AND INT board if intboard>0
+boards[2] -number of boards
+boards[0..1] -boards to be stoped+readout+started
+*/
+int getSSMs(int *boards, int board123, int inpnum,int intboard,FILE *f){
+int rcscp;
+usleep(4000); // fine even for triggering with BOBR signal
+// which is coming 19 orbits before interaction
+rcscp= stop_ssm(boards);   if(rcscp == 10) goto RTRN;
+if(intboard)stopSSM(4);
+//dumpSSM(1,filename);
+//read_ssm(boards);
+rcscp= rdumpscp_ssm(boards, board123, inpnum, f);
  //checkInputs(1,f);
  checkInputs2(board123,f,inpnum);
- setomSSM(board123,0xb);
- startSSM1(board123);
+ //setomSSM(board123,0xb); startSSM1(board123);
+ setstart_ssm(boards);
  if(intboard){  
    CTPRIRDList *INTlist=NULL; 
    //sprintf(filename,"b2_%s",dt);
@@ -316,8 +395,8 @@ int rcscp; char cmd[100];
    startSSM1(4);
  }
  fflush(f);
- usleep(30000);    // was 300000= 300ms why? 30ms should be enough
- return 0;
+ usleep(30000);  // 30ms should be enough
+RTRN: return(rcscp);
 }
 //------------------------------------------------------------
  w32 prevRead[NINP];
@@ -384,6 +463,7 @@ if(trigboard==3) {
                      3 : take int board and trigger on l0int2 counters
   inpnum - inpnumber on l0 level to trigger on: 1..24
                      on l1 level to trigger on:25..48
+           101..148 -take 2 ssms triggering on 1.48 input
            0: trigger on LHCpp (BOBR card in the CTP crate)
   Output:
          - log file - contains also BC of interaction records
@@ -394,6 +474,7 @@ int inputsSMAQ(int intboard ,int inpnum012){
  w32 last[MAXCOUNTERS];
  w32 l0first[MAXCOUNTERS];
  int counteroffset,countermax,trigboard;
+int boards[2];
  w32 timeadr;
  int i,timeold,time,inpnum;
  double timediff;
@@ -419,27 +500,42 @@ int inputsSMAQ(int intboard ,int inpnum012){
  }
  printf("Log file %s opened.\n",logname);
 // Check the site (ALICE or else)
- environ= getenv("VMESITE");  
- if(strcmp(environ, "ALICE")==0) siteflag=1;
+ environ= getenv("SMAQ_C");  
+ if(environ!=0) {strcpy(SMAQ_C, environ);};
 // 
  initCorrel();
 //
+boards[2]= 1; // 1 board only
+if(inpnum012>100) {           // we want l0+l1(l2) snapshot
+  boards[2]= 2;               // 2 boards
+  boards[0]= 2; boards[1]= 1; // start order: l0, l1
+  inpnum012= inpnum012-100;
+};
 if(inpnum012>48) {
   inpnum= inpnum012-48;
-  trigboard=3;
+  trigboard=3; boards[0]= trigboard;  // l0, l2 or only l2
   timeadr=5;
   counteroffset=5;   // L2OFFSET
 } else if(inpnum012>24) {
   inpnum= inpnum012-24;
-  trigboard=2;
+  trigboard=2; boards[0]= trigboard;  // l0, l1 or only l1
   timeadr=5;
   counteroffset=5;   // L1OFFSET
-} else {
+} else {                              // l0, l1 or only l0
   inpnum= inpnum012;
   trigboard=1;
+  if(boards[2]== 2 ) {              // 2 boards
+    boards[0]= 2; boards[1]= 1;
+  } else {
+    boards[0]= 1;
+  };
   timeadr=13;
   counteroffset=L0OFFSET;
 };
+/* now boards[2]: number of boards to be readout
+       2: boards[0..1] is l1+l0 or l2+l0
+       1: boards[0] is l1 or l0
+*/
 initNames(trigboard);
 if(intboard == 2){   // trigger on int1
   // set also lut table
@@ -477,8 +573,8 @@ if(intboard == 2){   // trigger on int1
  timeold=last[timeadr];
  if(inpnum)trigold=last[counteroffset+inpnum];  //counting from 1
  else beepcond= (((lhcpp.Byte54)&0x1) != 0);
- //startSSM
- setomSSM(trigboard,0xb);startSSM1(trigboard);   // IN, continuous
+ setstart_ssm(boards);
+ //setomSSM(trigboard,0xb);startSSM1(trigboard);   // IN, continuous
  if(intboard){
   setomSSM(4,0x3);startSSM1(4);  // OUT, continuous
   initprintBCs();
@@ -510,7 +606,7 @@ if(intboard == 2){   // trigger on int1
     //printf("trig: %i old %u new %u \n",inpnum,trigold,trig);
     if(trigcond){
       //beepni(); cicolino not used recently
-      getSSMs(trigboard, inpnum,intboard,f);   // to be checked: what happens if inpnum=0?
+      getSSMs(boards, trigboard, inpnum,intboard,f);   // inpnum!=0 (the must, else crashes in checkInputs2)
       getCountersBoard(trigboard,countermax,last,3); 
       time=last[timeadr]; trig=last[counteroffset+inpnum];
       trigold=trig;

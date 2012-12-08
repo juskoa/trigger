@@ -46,12 +46,14 @@ export VMEDRIVER=VMERCC     # VMERCC, SIMVME
 ix=`expr match "$hname" 'alidcs'`
 if [ "$ix" = '6' ] ;then   #pit
   export VMESITE=ALICE
+  export SMAQ_C=alidcscom707
   export VMEGCC=g++ #export VMEGCC=gcc
   export DIM_DNS_NODE=aldaqecs
   #export ACT_DB=daq:daq@aldaqdb/ACT
   export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT
 else
   export VMESITE=SERVER
+  export SMAQ_C=pcalicebhm10
   if [[ $hname != "altri1" ]] ;then
     export VMEDRIVER=SIMVME
   fi
@@ -84,7 +86,7 @@ fi
 alias ssh="ssh -2"
 alias vmecomp=$VMEBDIR/comp.py
 alias vmecrate=$VMEBDIR/crate.py
-alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR
+alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR
 echo ACT_DB:$ACT_DB'
 shopt -s expand_aliases
 if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' ] ;then
