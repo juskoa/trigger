@@ -31,7 +31,7 @@
 #define DBGac2HW 0     // addClasses2HW()
 #define DBGaf2HW 0     // addFO2HW()
 #define DBGbusy  0     // busy handling
-#define DBGswtrg 1     // SW trigger (generateXOD)
+#define DBGswtrg 0     // SW trigger (generateXOD)
 #define DBGcnts  0     // read and print counters (LTU, CTP)
 #define DBGlogbook 0   // updateDAQClusters()
 #define DBGgetInputDets 0   // getInputDets()
@@ -456,8 +456,9 @@ int FO2Partition(char *line,Tpartition *part);
 TKlas *CLA2Partition(char *line, int *error, char *pname);
 TRBIF *L0342Partition(char *line,TRBIF *rbif);
 TRBIF *BCMASK2Partition(char *line,TRBIF *rbif);
-//TRBIF *INTSEL2Partition(char *line,TRBIF *rbif); not used ,removed 11.1.2011
 TRBIF *RBIF2Partition(char *line,TRBIF *rbif);
+int SDGadd(char *line, char *pname);
+int SDGfind(char *name, char *pname);
 void SDGinit();
 void SDGclean(char *pname);
 int ParseFile(char lines[][MAXLINECFG],Tpartition *part);

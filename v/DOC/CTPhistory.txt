@@ -278,3 +278,5 @@ in case when L1 triggering input was choosen.
 smaq/smaq2.c -new version of smaq (change makefile when switching
 between old/new versions). new version: creates/scp 2 dump files
 if inpnum is 101..148
+11.12.2012
+shorter logs: dims.c, Tpartition.h

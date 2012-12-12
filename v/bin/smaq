@@ -9,7 +9,7 @@ echo ":$spid user:$user"
 if [ $# -eq 0 ] ;then
   echo "Usage:"
   echo "smaq ctp_input DIRNAME"
-  echo "DIRNAME -this directory is created at trigger@$smaqhost:SMAQ/"
+  echo "DIRNAME -this directory is created at trigger@$SMAQ_C:SMAQ/"
   echo "         if missing, 'last' is used (it will be emptied before usage)"
   echo "smaq kill -kill active smaq"
   exit
@@ -33,14 +33,14 @@ fi
 sig=$1
 if [ $# -ge 2 ] ;then
   export SMAQDATA="$2"
-  ssh -q2 trigger@$smaqhost "mkdir -p SMAQ/$SMAQDATA"
+  ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
 else
   export SMAQDATA="last"
-  ssh -q2 trigger@$smaqhost "mkdir -p SMAQ/$SMAQDATA"
-  ssh -q2 trigger@$smaqhost "rm -rf SMAQ/$SMAQDATA/*"
+  ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
+  ssh -q2 trigger@$SMAQ_C "rm -rf SMAQ/$SMAQDATA/*"
 fi
-scp -Bq2 $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS trigger@$smaqhost:SMAQ/$SMAQDATA/
-cd ~/v/vme
+scp -Bq2 $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS trigger@$SMAQ_C:SMAQ/$SMAQDATA/
+cd $VMEWORKDIR
 #$VMECFDIR/inputs/inputs.exe <<-EOF
 #inputsSMAQ(0,$sig)
 #EOF

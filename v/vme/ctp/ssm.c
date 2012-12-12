@@ -612,7 +612,7 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
 /* ssma= vmxr32(vsp, SSMaddress);
   printf("SSMaddress end:%x\n",ssma); */
 fclose(dump);
-printf("%s created in VMECFDIR\n", fn);
+printf("%s created\n", fn);
 RET:return(retcode);
 }
 #define NOCOMPRESS

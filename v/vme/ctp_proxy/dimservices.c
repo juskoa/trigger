@@ -504,8 +504,12 @@ while(1) {   //run forever
     beammode= newbeammode;
     //nclients=dis_selective_update_service(RESULTid, cids);
     nclients= dis_update_service(BEAMMODEid);
-    sprintf(msg,"bstthread:BEAMMODE %d old:%d nclients:%d\n",
-      beammode, oldbeammode, nclients); prtLog(msg);
+    // log only PREPARE RAMP and SQUEEZE:
+    if((beammode==6) || (beammode==9)) {
+      sprintf(msg,"bstthread:BEAMMODE %d old:%d nclients:%d\n",
+        beammode, oldbeammode, nclients); 
+      prtLog(msg);
+    };
   };
   nlogbst++;
   //if((nlogbst % (60/2/BSTINTSECS))==0) {    // monitor every half minute
@@ -646,9 +650,9 @@ FOUND: return;
 */
 void BEAMMODEcaba(void *tag, void **msgpv, int *size, int *blabla) {
 unsigned int **msgp= (unsigned int **)msgpv;
-char msg[100];
+/*char msg[100];
 sprintf(msg, "BEAMMODEcaba size:%d NBST:%d bm:%d", *size, NBSTdcsmsg, beammode );
-prtLog(msg); 
+prtLog(msg); */
 //updateNMCclients(&......); we do not keep track of these clients
 *msgp= &beammode;
 *size= sizeof(beammode);

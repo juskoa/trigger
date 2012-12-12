@@ -114,7 +114,7 @@ w32 testclust[NFO],rocs[NFO];
 
 if( (((BC>3563) && (BC!=0xfff)) && (trigtype !='a')) 
   ){
-  printf("setswtrig: BC>3563 %i \n",BC);
+  printf("Error: setswtrig: BC>3563 %i \n",BC);
   return 1;
 };
 INTtcset= roc<<1;   // INT board
@@ -142,7 +142,7 @@ switch(trigtype){
     //printf("setswtrig: calib trigger 0x%x \n",word);
     break;
   default:
-       printf("setswtrig: unknown type of trigger %c \n",trigtype);
+       printf("Error: setswtrig: unknown type of trigger %c \n",trigtype);
        return 1;
 }; TRIGTYPE= trigtype;
 vmew32(L0_TCSET,word);        // L0 board -p/f prot. off

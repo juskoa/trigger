@@ -21,11 +21,11 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 #include <stdlib.h>
 #include <signal.h>
 
-#ifdef CPLUSPLUS
+/*#ifdef CPLUSPLUS
 #include <dic.hxx>
 #else
 #include <dic.h>
-#endif
+#endif */
 
 #include "vmewrap.h"
 #include "../ctp/ctplib/ctplib.h"
@@ -87,12 +87,12 @@ void callback(void *tag, int *retcode){
         return;
  }
 }
-void beepni() {
+/*void beepni() {
 int rc;
 char msg[20]="bobr";
 // see trg@aldaqacr07:aj/pydim
 rc= dic_cmnd_callback("ACR07/BOBR", msg, strlen(msg)+1, &callback, 33);
-}
+} */
 /////////////////////////////////////////////////////////////////////////////////////
 #define MAXCOUNTERS 160
 #define NINP 24
@@ -299,6 +299,7 @@ if((diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1))>80) {
   printf("startSSM: diff[usecs]=%d last SSMstatus before stop:%x\n",
     diff, ssmstatus);
 };
+//printf("stop_ssm: diff:%dus\n", diff);
 return(rc);
 }
 /*---------------------------
@@ -310,6 +311,12 @@ dump file names: x:0,1,2  y:1..24
 1 board:  lx_y_date.dmp     
 2 boards: l0_0_date.dmp
           l1_12_date.dmp
+e.g. inpnum 126 translates to the request:
+- trigger with L1 CTP input 2
+- readout 2 (L0+L1) snapshot memories given in 2 files with names:
+  l1_2_date.dmp
+  l0_0_date.dmp
+  date: the same date for both snapshots
 rc: 0: ok
    >0: from scp or rm cmd
 */
@@ -330,7 +337,7 @@ for(ix=0; ix<nbs; ix++) {
     if(nbs==board123) {
       sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
     } else {
-      sprintf(filename,"l%d_0_%s.dmp",boards[ix],dt);
+      sprintf(filename,"l%d_0_%s.dmp",boards[ix]-1,dt);
     };
   };
   rcscp= dumpSSM(boards[ix], filename);
@@ -377,10 +384,9 @@ if(intboard)stopSSM(4);
 //dumpSSM(1,filename);
 //read_ssm(boards);
 rcscp= rdumpscp_ssm(boards, board123, inpnum, f);
- //checkInputs(1,f);
- checkInputs2(board123,f,inpnum);
- //setomSSM(board123,0xb); startSSM1(board123);
- setstart_ssm(boards);
+// onl in the pit:
+if(strcmp(SMAQ_C,"pcalicebhm10")!=0) checkInputs2(board123,f,inpnum);
+setstart_ssm(boards);
  if(intboard){  
    CTPRIRDList *INTlist=NULL; 
    //sprintf(filename,"b2_%s",dt);
@@ -474,7 +480,7 @@ int inputsSMAQ(int intboard ,int inpnum012){
  w32 last[MAXCOUNTERS];
  w32 l0first[MAXCOUNTERS];
  int counteroffset,countermax,trigboard;
-int boards[2];
+int boards[3];
  w32 timeadr;
  int i,timeold,time,inpnum;
  double timediff;
@@ -656,16 +662,23 @@ validLTUs= &ctpshmbase->validLTUs[0];
 /*********************************************************
 */
 int main(int argc, char **argv) {
- char *datadir;
- int inpnum;
- //setseeds(3,3); 
- if(argc != 2){
-  printf("Expected: one argument - input number \n");
+char *datadir;
+int inpnum;
+//setseeds(3,3); 
+if(argc != 2){
+  printf("Expected: one argument - input number\n\
+ input     triggered    SSMs\n\
+ number       on       \n\
+  1.. 24      L0        L0\n\
+ 25.. 48      L1        L1\n\
+101..124      L0        L0+L1\n\
+125..148      L1        L0+L1\n\
+");
   return 1;
- }
- inpnum = atoi(argv[1]);
- if((inpnum<1 )|| (inpnum>48)){
-  printf("Expected: 0 < input number <49 \n");
+};
+inpnum = atoi(argv[1]);
+if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) ){
+  printf("Expected: input number1..48 (1 SSM) or 101..148 (2 SSMs' request)\n");
   return 2;
  }
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);

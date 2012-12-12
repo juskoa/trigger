@@ -21,11 +21,11 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 #include <stdlib.h>
 #include <signal.h>
 
-#ifdef CPLUSPLUS
+/*#ifdef CPLUSPLUS
 #include <dic.hxx>
 #else
 #include <dic.h>
-#endif
+#endif*/
 
 #include "vmewrap.h"
 #include "../ctp/ctplib/ctplib.h"
@@ -87,12 +87,12 @@ void callback(void *tag, int *retcode){
         return;
  }
 }
-void beepni() {
+/*void beepni() {
 int rc;
 char msg[20]="bobr";
 // see trg@aldaqacr07:aj/pydim
 rc= dic_cmnd_callback("ACR07/BOBR", msg, strlen(msg)+1, &callback, 33);
-}
+}*/
 /////////////////////////////////////////////////////////////////////////////////////
 #define MAXCOUNTERS 160
 #define NINP 24
