@@ -51,7 +51,7 @@ def main(action):
        mylog.infolog("Trying to get filling scheme from DIP: no BCs published", level='w')
        rc=2
     else:
-      if bcwritten != 2*bcdip:
+      if (bcwritten != 2*bcdip) and ((bcwritten+2) != 2*bcdip):
         mylog.infolog("Automatic BCmasks not correct, incorrect data will be taken in PHYSICS runs (Incomplete data from DIP:exp:%d got:%d)"%(2*bcdip, bcwritten), level='e')
         rc=2
   # rc:0 ok (DIP info in file to be processed)
