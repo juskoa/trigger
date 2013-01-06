@@ -43,4 +43,4 @@ makefile
 - to be compiled on altri1 (alidcsvme008)
 
 19.3.2012
-smaq.c  -now corect shm is used (before private one s used!)
+smaq.c  -now corect shm is used (before private one was used!)

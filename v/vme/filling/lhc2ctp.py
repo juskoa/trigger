@@ -845,44 +845,55 @@ class FilScheme:
     #print "reversed:",cmask
     return cmask
   def mainsatAC(self, AC): 
-    """ after Easter 2012:  AC could be: A C S
+    """ after Easter 2012:  AC could be: A C S SA SC
     find: 
     AC
     A or C   .A. or .C.   (where . is nothing or E )   -> A or C mask
     S        AC                            -> S (i.e. SS)
              CA                            -> S (i.e. SS)
-    SA       AC  -A is SA-bunch, C is SC-bunch
+    SA       AC  -A is SA-bunch
+    SC       AC  -C is SC-bunch
     rc: sorted list of A/C SA/SC/S bunches
     """
     #maar= self.fillL('H')   # all disabled
     bxac=[]
     for bx in self.mask.keys():   # not sorted!
       bt= self.mask[bx]
-      if bt=='E' or bt=='B': continue   # ignore B,E-bunches
+      if bt=='E' or bt=='B': continue   # B,E is always B,E
       prevbx= prevbc(bx); nextbx= nextbc(bx)
       if self.mask.has_key(prevbx): prevbt= self.mask[prevbx]
       else: prevbt=''
-      if self.mask.has_key(nextbx):
-        nextbt= self.mask[nextbx]
-      else:
-        nextbt=''
+      if self.mask.has_key(nextbx): nextbt= self.mask[nextbx]
+      else: nextbt=''
       if (AC=='A') or (AC=='C'):
         if (AC== bt):   # locate start of comb A/C
-          if (prevbt=='' or prevbt=='E') and (nextbt=='' or nextbt=='E'):
-            bxac.append(bx)
-          elif prevbt=='B' or prevbt==AC:
-            print "Error: 2 neighbouring bcs from %d:%c%c "%(prevbx, prevbt,bt)
+          bxac.append(bx)
+          # was before 7.1.2013:
+          #if (prevbt=='' or prevbt=='E') and (nextbt=='' or nextbt=='E'):
+          #  bxac.append(bx)
+          #elif prevbt=='B' or prevbt==AC:
+          #  print "Error: 2 neighbouring bcs from %d:%c%c "%(prevbx, prevbt,bt)
         continue
       # S case (AC or CA -2nd one is current one):
       if AC=='S':
-        if (prevbt=='A' and bt=='C') or (prevbt=='C' and bt=='A') or\
-           (nextbt=='A' and bt=='C') or (nextbt=='C' and bt=='A'):
+        #if (prevbt=='A' and bt=='C') or (prevbt=='C' and bt=='A') or\
+        #   (nextbt=='A' and bt=='C') or (nextbt=='C' and bt=='A'):
+        prevcb= (prevbt=='C') or (prevbt=='B')
+        nextcb= (nextbt=='C') or (nextbt=='B')
+        prevab= (prevbt=='A') or (prevbt=='B')
+        nextab= (nextbt=='A') or (nextbt=='B')
+        if (prevcb and bt=='A') or (nextcb and bt=='A') or\
+          (prevab and bt=='C') or (nextab and bt=='C'):
           bxac.append(bx)
       elif AC=='SA':
-        if (prevbt=='C' and bt=='A') or (nextbt=='C' and bt=='A'):
+        prevcb= (prevbt=='C') or (prevbt=='B')
+        nextcb= (nextbt=='C') or (nextbt=='B')
+        if (prevcb and bt=='A') or (nextcb and bt=='A'):
           bxac.append(bx)
       elif AC=='SC':
-        if (prevbt=='A' and bt=='C') or (nextbt=='A' and bt=='C'):
+        prevab= (prevbt=='A') or (prevbt=='B')
+        nextab= (nextbt=='A') or (nextbt=='B')
+        if (prevab and bt=='C') or (nextab and bt=='C'):
           bxac.append(bx)
       else:
         print "Internal error: mainsatAC arg:%s (allowed: A C S SA SC)"%AC
@@ -901,7 +912,11 @@ class FilScheme:
         if mskc=='.': 
           mskc= btype
         else:
-          print "Error: bc %d is %c or %c ?"%(ix1,mskc,btype)
+          if (btype=='S') and ((mskc=='A') or (mskc=='C')):
+            # AB: a is in A-mask and also in S-mask, return 'S'
+            mskc= btype
+          else:
+            print "Error: bc %d is %c or %c ?"%(ix1,mskc,btype)
     return mskc
     # remove following:
     if self.isin(self.arch['A'], ix1):
