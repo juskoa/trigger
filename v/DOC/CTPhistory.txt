@@ -280,3 +280,7 @@ between old/new versions). new version: creates/scp 2 dump files
 if inpnum is 101..148
 11.12.2012
 shorter logs: dims.c, Tpartition.h
+7.1.2013
+Bug fixed: deletePartitions(part); added for 2 cases (after checkResources() and applyMask() in ctp_proxy.c
+See mails/bug1912. 
+

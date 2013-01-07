@@ -2471,28 +2471,31 @@ sprintf(msg,"timestamp:reading partition %s %d", name, run_number); prtLog(msg);
 
 part=readDatabase2Tpartition(name); 
 if(part == NULL) {  
-  strncpy(errorReason, "Cannot read partition definition file (.pcfg)", ERRMSGL); rc=2;goto RET2; };
+  strncpy(errorReason, "Cannot read partition definition file (.pcfg)", ERRMSGL); 
+  rc=2;goto RET2; };
 part->run_number= run_number;
- // convention mask="" - mask is not used: applymask creates mask
- //                      acoording to partition
- printTpartition("Before mask applied", part);
- if(applyMask(part, mask)) { 
-   strncpy(errorReason, "Are the readout detectors subset of detectors allowed in partition?", ERRMSGL);
-   rc=3; goto RET2; };
- if(DBGparts) { printTpartition("After mask applied", part); };
- sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
- if((ret=checkResources(part))) {
+// convention mask="" - mask is not used: applymask creates mask
+//                      acoording to partition
+printTpartition("Before mask applied", part);
+if(applyMask(part, mask)) { 
+  strncpy(errorReason, "Are the readout detectors a subset of detectors allowed in partition being started?", ERRMSGL);
+  rc=3; goto RET2; };
+if(DBGparts) { printTpartition("After mask applied", part); };
+sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
+if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
+   ret=deletePartitions(part); 
    rc=ret; goto RET2; };
- // If resources available, continue and add part to Partitions[]
- // From now on, no checks necessary (all checks already done)
- if(addPartitions(part)) { 
-   strncpy(errorReason, "Cannot add partition", ERRMSGL);
-   rc=4; prtError("addPartitions eror."); goto RET2; };
- if(DBGparts) {
-   printf("Partitions after adding partition:%s\n",part->name);
-   printAllTp();
- };
+// If resources available, continue and add part to Partitions[]
+// From now on, no checks necessary (all checks already done)
+if(addPartitions(part)) { 
+  strncpy(errorReason, "Cannot add partition", ERRMSGL);
+  ret=deletePartitions(part); 
+  rc=4; prtError("addPartitions eror."); goto RET2; };
+if(DBGparts) {
+  printf("Partitions after adding partition:%s\n",part->name);
+  printAllTp();
+};
 sprintf(msg,"timestamp:partition merged: %s %d", name, run_number); prtLog(msg);
 
 if((ret=addPartitions2HW(AllPartitions))){ //just check if enough resources

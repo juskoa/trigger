@@ -5,12 +5,14 @@ i.e. downscaling group for class1 is 0, ..., class50 is 49.
 Goals:
 -----
 - 0..49 are replaced by symb. names in .partition definitions
-- if SDG rpesent, the first (lowest class number) class keeps random downscaing factor,
-  the remaining classes of the group points to this one.
+- if SDG rpesent, the first (lowest class number) class is set with 
+  random downscaling factor, the remaining classes of the group 
+  point to this one.
 
 New .partition syntax:
-- adding one new parameter in class definition: sdg=id. 
-Classes defined with the same sdg parameter will be downscaled synchronously,
+- adding one new parameter in class definition: sdg=id 
+  id: symbolic name defined beforehand: id 2.3%
+Classes defined with the same sdg parameter will be downscaled synchronously.
 
 ctp_proxy
 ---------
@@ -27,7 +29,7 @@ global array SDGS:
 EXTERN int NSDGS;
 typedef struct TSDGS{
   char name[MAXPARTNAME];   // symbolic SDG name '\0' empty field
-  char pname[MAXPARTNAME];  // symbolic SDG name
+  char pname[MAXPARTNAME];  // symbolic partition name
   w32  l0pr;                // calculated from n% (always rnd downscale)
   int firstclass;  //1..50, 0: not allocated yet
 }TSDGS
@@ -49,12 +51,11 @@ addPartitions2HW -called at 3 places when partition
 
 ctp:
 ---
-
 Downscaling field now given with each class in Classes window.
 It would be natural to add another column: sdg (L0_SDSCG registers content, 
 i.e. 0..49 by default. If different, sync. downscaling is active). This
 is not urgent, the SDSCG content can be examined/modified by
-SimpleTests->printsetSDSCG
+SimpleTests->printsetSDSCG for now.
 
 parted todo: done: 23.9.2012
 -----------
@@ -110,3 +111,8 @@ ctp_proxy/readme -definition of .pcfg file changed (SDG + CLA lines)
 parted now copes with SDG (.partition, .pcfg, .rcfg, gui)
 
 8.10.2012 installed in the pit
+
+20.12.2012 seems there is a bug. 
+See mails/bug1912. 
+Bug fixed: deletePartitions(part); added for 2 cases (after checkResources() and applyMask() in ctp_proxy.c
+
