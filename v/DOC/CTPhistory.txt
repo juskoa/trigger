@@ -283,4 +283,5 @@ shorter logs: dims.c, Tpartition.h
 7.1.2013
 Bug fixed: deletePartitions(part); added for 2 cases (after checkResources() and applyMask() in ctp_proxy.c
 See mails/bug1912. 
-
+8.1.2013
+parted.py saversfg(): buildname() used instead of getclsname()

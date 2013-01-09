@@ -2672,7 +2672,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         msk= cla.getBCMASKs()
         if string.find(msk,"NONE") >=0:
           atleast1classNONEbcm= atleast1classNONEbcm+1
-        clasname= cla.getclsname()
+        #clasname= cla.getclsname()
+        clasname= cla.buildname()
         #line="#%s %s %s %s %s %s %s %d\n"%(clasname, phcla, desname, \
         #  cluster.name, cla.getPFs(), cla.getBCMASKs(), \
         #  myw.frommsL0pr('',cla.L0pr), \
