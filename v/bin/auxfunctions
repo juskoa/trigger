@@ -10,7 +10,7 @@ if [ -z "$pid" ] ;then
   spid=''
 else
 #pidcmd=`ps -o'%p %u %a' $pid |tail -1`
-  pidcmd=`ps -o'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
+  pidcmd=`ps -wo'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
 #echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
   declare -a dl=($pidcmd)
 # correct for python starts:
