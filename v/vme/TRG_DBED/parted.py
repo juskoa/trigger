@@ -1362,7 +1362,7 @@ class TrgClass:
       p0= self.trde.name.replace('D','C',1)   #default class name
       if p0=='CEMPTY': p0='CTRUE'
       #if cluspart!='CENT ALL MUON TPC FAST':
-      if string.find('CENT ALL ALLNOTRD MUON TPC FAST ALLNOTRD CENTNOTRD',cluspart)<0:
+      if string.find('CENT ALL ALLNOTRD MUON TPC FAST FASTNOTRD CFAST CENTNOTRD',cluspart)<0:
         # only warning pprinted:
         print "Strange cluster name:%s"%cluspart
       self.clsnamepart=[p0, "ABCE", "NOPF", cluspart]
@@ -2672,8 +2672,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         msk= cla.getBCMASKs()
         if string.find(msk,"NONE") >=0:
           atleast1classNONEbcm= atleast1classNONEbcm+1
-        #clasname= cla.getclsname()
-        clasname= cla.buildname()
+        clasname= cla.getclsname()
+        if string.find(clasname,'-') <0:
+          # DTRUE(cn=C0TVX) -convenient for techn. runs
+          clasname= cla.buildname()
         #line="#%s %s %s %s %s %s %s %d\n"%(clasname, phcla, desname, \
         #  cluster.name, cla.getPFs(), cla.getBCMASKs(), \
         #  myw.frommsL0pr('',cla.L0pr), \
