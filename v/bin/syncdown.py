@@ -5,7 +5,7 @@ def c_sync(fdf):
   n= 100./fdf
   hwval= int(round((100-n)*0x1fffff/100))
   print " request           in class definition"
-  print "%7.7fx           L0pr=%f%%   or 0x%x"%(fdf, n, hwval)
+  print "%7.7fx           L0pr=%f%%   or %d=0x%x"%(fdf, n, hwval, hwval)
 def r_sync(fdf):
   n= int(0x7fffffff/fdf)
   realdf= 0x7fffffff/float(n)

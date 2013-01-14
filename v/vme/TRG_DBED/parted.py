@@ -1369,9 +1369,10 @@ class TrgClass:
     else:
       self.clsname= self.buildname()
     #print("updateClassName:", self.clsname, self.clsnamepart)
-  def buildname(self):
-      return "%s-%s-%s-%s"%(self.clsnamepart[0], self.clsnamepart[1],\
-        self.clsnamepart[2], self.clsnamepart[3])
+  def buildname(self,name_part=None):
+    if name_part==None: name_part= self.clsnamepart[0]
+    return "%s-%s-%s-%s"%(name_part, self.clsnamepart[1],\
+      self.clsnamepart[2], self.clsnamepart[3])
   def updateClassName1(self):
     dname= self.trde.name
     ixdash= self.clsname.find('-')
@@ -2675,7 +2676,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         clasname= cla.getclsname()
         if string.find(clasname,'-') <0:
           # DTRUE(cn=C0TVX) -convenient for techn. runs
-          clasname= cla.buildname()
+          clasname= cla.buildname(clasname)
         #line="#%s %s %s %s %s %s %s %d\n"%(clasname, phcla, desname, \
         #  cluster.name, cla.getPFs(), cla.getBCMASKs(), \
         #  myw.frommsL0pr('',cla.L0pr), \
