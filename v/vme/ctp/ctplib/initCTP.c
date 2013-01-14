@@ -11,10 +11,17 @@ Synchronise/desynchronise random generators
 mask:
 3 synchronise RND1 and RND2 generators on L0 board
 1 desynchronise RND1 and RND2 generators on L0 board
+other: print to stdout current status (3: sync, 1: desync mode)
 */
 void RNDsync(int mask) {
-vmew32(L0_ENA_CRND, mask);
-vmew32(L0_CLEAR_RND, DUMMYVAL);
+if((mask != 3) and (mask != 1)) {
+  w32 w;
+  w= vmer32(L0_ENA_CRND);
+  printf("L0_ENA_CRND (3: sync, 1: desync mode):0x%x\n", w);
+} else {
+  vmew32(L0_ENA_CRND, mask);
+  vmew32(L0_CLEAR_RND, DUMMYVAL);
+};
 }
 /*
 set L0_CONDITION L0_INVERT L0_VETO (scaler-not used here) 
@@ -151,7 +158,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //setEdge(1,6,0);   // acorde single needs Positive edge
     vmew32(ALL_RARE_FLAG , 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     setEdgesDelays(1);
-    RNDsync(1);
+    //printf("RND1/2 synchronised\n"); RNDsync(3);
+    printf("RND1/2 desynchronised\n"); RNDsync(1);
   };
   if(ctpboards[ix].code==L1code) { 
     //cfg vmew32(L1_DELAY_L0, calcL1_DELAY_L0());
