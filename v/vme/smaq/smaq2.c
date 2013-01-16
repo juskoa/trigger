@@ -519,25 +519,31 @@ if(inpnum012>100) {           // we want l0+l1(l2) snapshot
 };
 if(inpnum012>48) {
   inpnum= inpnum012-48;
-  trigboard=3; boards[0]= trigboard;  // l0, l2 or only l2
+  trigboard=3;                        // l0, l2 or only l2
+  boards[0]= trigboard;
   timeadr=5;
   counteroffset=5;   // L2OFFSET
 } else if(inpnum012>24) {
   inpnum= inpnum012-24;
-  trigboard=2; boards[0]= trigboard;  // l0, l1 or only l1
+  trigboard=2;                        // l0, l1 or only l1
+  boards[0]= trigboard;
   timeadr=5;
   counteroffset=5;   // L1OFFSET
 } else {                              // l0, l1 or only l0
   inpnum= inpnum012;
-  trigboard=1;
-  if(boards[2]== 2 ) {              // 2 boards
-    boards[0]= 2; boards[1]= 1;
-  } else {
-    boards[0]= 1;
-  };
+  trigboard=1; 
   timeadr=13;
   counteroffset=L0OFFSET;
 };
+if(boards[2]== 1 ) {
+  boards[0]= trigboard;
+  printf("triggering with L%d inp%d. Readout boards: L%d\n",
+    trigboard-1, inpnum, boards[0]-1);
+} else {
+  printf("triggering with L%d inp%d. Readout boards: L%d L%d\n",
+    trigboard-1, inpnum, boards[0]-1, boards[1]-1);
+};
+
 /* now boards[2]: number of boards to be readout
        2: boards[0..1] is l1+l0 or l2+l0
        1: boards[0] is l1 or l0
@@ -659,6 +665,16 @@ validLTUs= &ctpshmbase->validLTUs[0];
  checkCTP();
  initSSM();
 } 
+void printhelp() {
+  printf("Expected: one argument - input number\n\
+ input     triggered    SSMs\n\
+ number       on       read out \n\
+  1.. 24      L0        L0\n\
+ 25.. 48      L1        L1\n\
+101..124      L0        L0+L1\n\
+125..148      L1        L0+L1\n\
+");
+}
 /*********************************************************
 */
 int main(int argc, char **argv) {
@@ -666,19 +682,12 @@ char *datadir;
 int inpnum;
 //setseeds(3,3); 
 if(argc != 2){
-  printf("Expected: one argument - input number\n\
- input     triggered    SSMs\n\
- number       on       \n\
-  1.. 24      L0        L0\n\
- 25.. 48      L1        L1\n\
-101..124      L0        L0+L1\n\
-125..148      L1        L0+L1\n\
-");
+  printhelp();
   return 1;
 };
 inpnum = atoi(argv[1]);
 if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) ){
-  printf("Expected: input number1..48 (1 SSM) or 101..148 (2 SSMs' request)\n");
+  printhelp();
   return 2;
  }
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);

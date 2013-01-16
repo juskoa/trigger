@@ -98,11 +98,12 @@ Contents:
 29. 27.11.2012 measure busy when switching from stdalone -> global. Detector
                should be ready (maybe LOAD_FAILURE? for ltuproxy?)   see also 
                3. (mail from Franco)
-30. 27.11.2012 ltu counters archival
+30. 27.11.2012 ltu counters archivation (not archived now)
 31. 27.11.2012 web interface for counters (CNTRRD/ananlyse.c) + per min. graphs
                from any time interval
 32. 07.12.2012 smaq mutual L0/L1 alignment -> see smaq_l01
 33. 07.01.2013 CNTRRD/analyse.c -modify to get any counter for any/list of run/s
+34. 15.01.2013 why readstatus() is presnet in ctp.h (with FGROUP help) ?
 ==========================================================================
 
 2. 10.2.2012 alidcsvme008 crash (see below)

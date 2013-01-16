@@ -18,17 +18,20 @@ Automatic:
   i.e.
   sym LINDF act R0 S K
 29.10.:
-sym LUMFIX n       df= n/lumi
-sym LUMLOSS n      df= (n/lumi)^2
+sym FIXLUM n       df= n/lumi
+sym FIXLOSS n      df= (n/lumi)^2
+df: downscale factor: float number finished by %
+
+sym REPL string
 -implemented in TRG_DBED/preproc.py
 
 Dynamic:
-  use L0a rates for new df calculation (i.e. L1r not meaningful)
-  GUI for manual tuning won't be needed
-  lumi does not need to be considered for new df calculation
+  -use L0a rates for new df calculation (i.e. L1r not meaningful)
+  -GUI for manual tuning won't be needed (was said on TM!)
+  -lumi does not need to be considered for new df calculation
   implementation: very probably after LS1
 ------------------
-Automatic issues:
+Obsolete notes:
 .partition syntax:
 sym LINDF deflum a b
 sym LINDF act a b          deflum: 10.0 -defined directly in preproc.py
