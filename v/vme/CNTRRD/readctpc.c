@@ -87,7 +87,7 @@ one of WHATBUSY strings is set in redis.bsy_screen
 */
 #define WHATBUSYS 4
 char *WHATBUSY[]={"bsy/L0[us]", "bsy/L2s[us]", "readout[us]", "totalbsy[%]"};
-int avbsyix= 1;  // 0,1, or 2  or 3-> one of items in avbsys[]
+int avbsyix= 2;  // 0,1, or 2  or 3-> one of items in avbsys[]
 int allreads=0;
 int measnum=1;   // 1..9
 Tcnt1 cs[NCS];
@@ -409,7 +409,7 @@ for(ix=0; ix<N24; ix++) {
       int avbusy; w32 trigsdif, l2rsdif; float totbusy;
       totbusy= dodif32(busy[ix].prevcs, busy[ix].currcs)*0.4;
       //dbg totbusy= timedelta*0.4*(measnum/10.); 
-      if(cix==0) {
+      if(cix==0) {   // bsy/L0
         trigsdif= dodif32(l0s[ix].prevcs, l0s[ix].currcs);
         trigsdif= checktrigs(trigsdif);
         avbusy= (int)round(totbusy/trigsdif);
@@ -417,8 +417,8 @@ for(ix=0; ix<N24; ix++) {
           printf("cix:%d:totb:%f trgs:%d avb:%d\n", 
             cix, totbusy, trigsdif, avbusy);
         };
-      } else if(cix==1) {
-        trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);  // bsy/L2s
+      } else if(cix==1) {   // bsy/L2s
+        trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);
         /* should be: 
         l2rsdif= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
         trigsdif= trigsdif - l2rsdif;   // bsy/L2a */
@@ -428,7 +428,7 @@ for(ix=0; ix<N24; ix++) {
           printf("cix:%d:totb:%f trgs:%d avb:%d\n", 
             cix, totbusy, trigsdif, avbusy);
         };
-      } else if(cix==2) {
+      } else if(cix==2) {   // readout/L2a [us]
         float busy_L2r, busy_L1r; w32 cl0s, cl1s, l2rs, l1rs;
         trigsdif= dodif32(l2s[ix].prevcs, l2s[ix].currcs);
         l2rsdif= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
@@ -445,7 +445,8 @@ for(ix=0; ix<N24; ix++) {
           printf("cix:%d %d=%s:totb:%f L1rb:%f L2rb:%f trgs:%d avb:%d\n", 
             cix,ix,LTUORDER[ix], totbusy, busy_L1r, busy_L2r,trigsdif,avbusy);
         //};
-      } else if(cix==3) {    // totbusy
+        if(avbusy<0) avbusy=0;
+      } else if(cix==3) {    // totbusy [%]
         avbusy= (int)round(100*totbusy/(timedelta*0.4));
       };
       //avbusy=100*ix;

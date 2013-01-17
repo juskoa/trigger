@@ -104,6 +104,15 @@ Contents:
 32. 07.12.2012 smaq mutual L0/L1 alignment -> see smaq_l01
 33. 07.01.2013 CNTRRD/analyse.c -modify to get any counter for any/list of run/s
 34. 15.01.2013 why readstatus() is presnet in ctp.h (with FGROUP help) ?
+35. 17.01.2013 why smaq sometimes reports: 'BC signal not connected' ?
+WORK/l0_9_16.01.2013_21:29:19.dmp created
+WORK/l0_9_16.01.2013_21:32:06.dmp created
+Warn: BC signal not connected
+WORK/l0_9_16.01.2013_21:32:11.dmp created
+Warn: BC signal not connected
+WORK/l0_9_16.01.2013_21:32:59.dmp created
+...
+
 ==========================================================================
 
 2. 10.2.2012 alidcsvme008 crash (see below)
