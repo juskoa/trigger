@@ -39,6 +39,8 @@ def main(action):
   if len(dipout) != 5:  # "fs fs_name FillNumber N_fromdip N_written
     if len(dipout) == 2:  # "fs badtime"
       if dipout[0]=="fs" and dipout[1]=="badtime":  # "fs badtime"
+        mylog.infolog("DIP service not ready (BEAM mode < PREPARE RAMP)",
+          level='w')
         rc=3
     else:
       mylog.infolog("DIP service not ready", level='w')
