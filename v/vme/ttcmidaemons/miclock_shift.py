@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 2.2.2012:
+# 2.2.2012 and 20.1.2013 (DLL_RESYNC removed):
 # look for #CJI -Clock Jitter Invetsigation modifications (no DLL_RESYNC)
 #
 # This should run all the time:
@@ -184,8 +184,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
     mylog.logm("DLL_RESYNC not done (force option).")
   else:
     arg=("none",)
-    res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-    #CJI mylog.logm("DLL_RESYNC not started...")
+    #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+    mylog.logm("DLL_RESYNC not started...")   # CJI
 def checkShift():
   cshift= getShift()
   mylog.logm("checkShift: after 10 secs:"+ cshift)
@@ -215,7 +215,8 @@ def callback_bm(bm):
     getfsdip.main("act")
   cshift= getShift()
   if WEB.miclock==expclock:
-    if bmname=="SQUEEZE":
+    #if bmname=="SQUEEZE":   was before 20.1.2013
+    if bmname=="ADJUST":
       if cshift!='old':
         checkandsave(cshift, bmname)   # fine shift
         # it should certainly be less then 100ps after adjustment:
@@ -223,9 +224,9 @@ def callback_bm(bm):
         t.start()
       else:
         arg=("none",)
-        res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-        mylog.logm("DLL_RESYNC started...")
-        #CJI mylog.logm("DLL_RESYNC NOT started...")
+        #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+        #mylog.logm("DLL_RESYNC started...")
+        mylog.logm("DLL_RESYNC NOT started...")   # CJI
     mylog.logm("BEAM MODE:%s clock %s OK shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":
       if os.environ['VMESITE']=='ALICE':

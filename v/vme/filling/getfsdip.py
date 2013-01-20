@@ -34,16 +34,18 @@ def main(action):
   else:
     # 50ns_1374_1368_0_1262_144bpi12inj 1374/2748
     #dipout=string.split("fs 50ns_1374_1368_0_1262_144bpi12inj 1374 2748")
-    dipout= string.split("fs fs_name")
+    dipout= string.split("fs Single_16b_8_7_7")
   #print dipout
   if len(dipout) != 5:  # "fs fs_name FillNumber N_fromdip N_written
     if len(dipout) == 2:  # "fs badtime"
       if dipout[0]=="fs" and dipout[1]=="badtime":  # "fs badtime"
-        mylog.infolog("DIP service not ready (BEAM mode < PREPARE RAMP)",
-          level='w')
+        mylog.infolog("DIP service not ready (BEAM mode < PREPARE RAMP)", level='w')
         rc=3
+      else:
+        mylog.infolog("DIP service not ready (lab setup?)", level='w')
+        rc=4
     else:
-      mylog.infolog("DIP service not ready", level='w')
+      mylog.infolog("DIP service defining LHC filling scheme not ready, cannot update CTP BC masks", level='w')
       rc=1 
   else:
     bcdip= int(dipout[3])
@@ -135,6 +137,7 @@ rc:
  1: cannot get DIP data
  2: Incomplete data published over DIP
  3: DIP not available because beam mode < PREPARE RAMP
+ 4: DIP not available in lab
 10: test i.e. CS and masks not changed.
 99: bad action, this message
 """

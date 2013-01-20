@@ -12,7 +12,7 @@ Author: Ørjan Breimo Helstrøm
 ************************
 *** Installation     ***
 ************************
-
+See note blow: 31.8.2012 or later...
 1) Make sure you have dim installed on the computer
 2) Check that install folder looks like this:
 		- miclockGui 	-> folder with the java source code. (.java files)
@@ -75,8 +75,8 @@ correctly according to operational mode.
 28.8.
 alias miclock (in bin/setenv) now it changes working 
 directory to ~/miclock directory before starting miclock
-31.8.2012
-Installation:
+
+--------------------------------- 31.8.2012 Installation:
 mkdir -p ~/jmiclock/miclockGui
 cd ~/jmiclock
 ln -s /opt/dip/lib64/libjdim.so libjdim.so
@@ -93,3 +93,12 @@ alias miclock='echo -e '\''miclockold  -old, command line version\n'\''; cd ~/jm
 
 14.11.2012
 InfoPanel.java -comment extended " allow at least 4 min..."
+
+20.1.2013
+miclock java:
+- bug fixed in MiClockClient.java (was TTDMI instead of TTCMI)
+- DLL_RESYNC not sent (commented out for SQUEEZE in ButtonPanel.java)
+miclock.py:
+- clock shift adjustment moved to ADJUST (was: SQUEEZE)
+- DLL_RESYNC commented out (look for CJI)
+

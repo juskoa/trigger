@@ -334,7 +334,8 @@ for(ix=0; ix<nbs; ix++) {
   if(nbs==1) {
     sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
   } else {
-    if(nbs==board123) {
+    //if(nbs==board123) {
+    if(boards[ix]==board123) {
       //sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
       sprintf(filename,"l%d_%i_%s.dmp",boards[ix]-1,inpnum,dt);
     } else {

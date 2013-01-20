@@ -39,7 +39,7 @@ def application(environ, start_response):
   hostname= environ["HOSTNAME"]
   myvar= "PATH_INFO:%s REMOTE_HOST:%s"%\
     (environ["PATH_INFO"], environ["REMOTE_HOST"])
-  resp=None
+  resp="???"
   if (environ["REMOTE_HOST"]=="pcalicebhm11.cern.ch") or \
      (environ["REMOTE_HOST"]=="aldaqacr07.cern.ch"):
     if environ["PATH_INFO"]=="/":
@@ -47,17 +47,21 @@ def application(environ, start_response):
     elif environ["PATH_INFO"]=="/setbsy":
       resp= " changing busy calculation..."
       os.system("pkill -SIGUSR1 readctpc")
+    elif environ["PATH_INFO"]=="/getfsdip":
+      os.system("$VMECFDIR/filling/getfsdip.py act")
+      # return getfsdip.log? or rc ?
     elif environ["PATH_INFO"]=="/prtenv":
-      resp= None
+      #resp= None
+      body= prtenv(environ)
     else:
       resp= "uknown action:"+environ["PATH_INFO"]
   else:
-    resp= "BUSY can be cahnged only from trigger desktop machine"
+    resp= "required action can be done only from trigger desktop machine"
   #
   if resp==None:
     body= prtenv(environ)
   else:
-    body = html %(resp,hostname, hostname)
+    body= html %(resp,hostname, hostname)
   #
   start_response("200 OK", 
                    [("Content-type", "text/html"),

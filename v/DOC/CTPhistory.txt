@@ -285,3 +285,11 @@ Bug fixed: deletePartitions(part); added for 2 cases (after checkResources() and
 See mails/bug1912. 
 8.1.2013
 parted.py saversfg(): buildname() used instead of getclsname()
+20.1.
+miclock java:
+- bug fixed in MiClockClient.java (was TTDMI instead of TTCMI)
+- DLL_RESYNC not sent (commented out for SQUEEZE in ButtonPanel.java)
+miclock.py:
+- clock shift adjustment moved to ADJUST (was: SQUEEZE)
+- DLL_RESYNC commented out (look for CJI)
+

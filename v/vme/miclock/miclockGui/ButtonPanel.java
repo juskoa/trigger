@@ -254,7 +254,7 @@ public class ButtonPanel extends JPanel
 	 * The value for this is set in Main.AUTO_BEAM_MIN and Main.AUTO_BEAM_MAX.
 	 * 4-11 -> BEAM1 
 	 * 1-3,12-21 -> LOCAL 
-	 * Performs automatic clock shift in SQUEEZ.
+	 * Performs automatic clock shift in SQUEEZE -changed 20.1.2013 to ADJUST (i.e. 10).
 	 * @param state Integer of which mode the beam is in.
 	 */
 	private void autoMode(int state)
@@ -272,7 +272,7 @@ public class ButtonPanel extends JPanel
 		}
 		
 		
-		if(state == 9 && !this.client.getMiclock().equals("LOCAL"))
+		if(state == 10 && !this.client.getMiclock().equals("LOCAL"))
 		{
 			this.client.sendGetShift();
 			if(!this.shift.equals("old"))
@@ -402,11 +402,12 @@ public class ButtonPanel extends JPanel
 			{
 				this.autoMode(this.client.getBeammodeInt());
 			}
+                        /* do not send DLL_RESYNC (anyhow, should be done parhaps with clock shift, i.e. ADJUST
 			if(this.client.getBeammodeInt() == 9 && 
 					!this.client.getMiclock().equals("LOCAL"))
 			{
 				this.client.sendDLLResyncCommand();
-			}
+			} */
 			if(this.client.getBeammodeInt() == 6)
 			{
 				this.client.execGetfsdip();

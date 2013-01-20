@@ -193,7 +193,7 @@ public class MiClockClient
 	
 	public void sendDLLResyncCommand()
 	{
-		DimClient.sendCommandNB("TTDMI/DLL_RESYNC", "none");
+		DimClient.sendCommandNB("TTCMI/DLL_RESYNC", "none");
 		this.pcs.firePropertyChange(
 				new PropertyChangeEvent(this, "sendDLLResync", -1, "dll_resync"));
 	}
