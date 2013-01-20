@@ -34,7 +34,8 @@ elif [ $HN = 'alidcscom188' ] ;then
   alias fanin=$ULT/bin/fanin
   alias dcson='rdesktop -g1280x1024 alitrion001'
   alias miclockold="$VMECFDIR/ttcmidaemons/miclock.py"
-  alias miclock="echo -e 'miclockold  -old, command line version\n'; java -jar ~/jmiclock/MiClockGui.jar"
+#  alias miclock="echo -e 'miclockold  -old, command line version\n'; java -jar ~/jmiclock/MiClockGui.jar"
+  alias miclock="echo -e '\nUse please miclockold (miclock not available)'"
 elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
   export CCRFS=''
   export CLRFS=''

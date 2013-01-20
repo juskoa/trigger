@@ -328,10 +328,12 @@ Than start miclock again.
       #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
       a= raw_input("""
    enter:
-   BEAM1 LOCAL       	-to change the ALICE clock
-   man auto (now:%s) 	-to change operation mode (manual or automatic)
-   getshift reset    	-to print current clock shift or reset it to 0
-   or q:             	-to quit this script
+   BEAM1             	-change the ALICE clock to BEAM1
+   LOCAL             	-change the ALICE clock to LOCAL
+   man/auto (now:%s)    -change operation mode (manual or automatic)
+   getshift          	-display current clock shift
+   reset             	-reset current clock shift to 0
+   q              	-quit this script
 """%\
         WEB.clockchangemode)
     except:
