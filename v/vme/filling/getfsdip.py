@@ -56,8 +56,9 @@ def main(action):
        rc=2
     else:
       if (bcwritten != 2*bcdip) and ((bcwritten+2) != 2*bcdip):
-        mylog.infolog("Automatic BCmasks not correct, incorrect data will be taken in PHYSICS runs (Incomplete data from DIP:exp:%d got:%d)"%(2*bcdip, bcwritten), level='e')
-        rc=2
+        #mylog.infolog("Automatic BCmasks not correct, incorrect data will be taken in PHYSICS runs (Incomplete data from DIP:exp:%d got:%d)"%(2*bcdip, bcwritten), level='e')
+        #rc=2
+        mylog.infolog("DIP data:%d bunches"%(bcwritten))
   # rc:0 ok (DIP info in file to be processed)
   #    1 DIP info not available
   #    2 incomplete data from DIP

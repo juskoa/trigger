@@ -139,7 +139,7 @@ public:
           if(beammodeok()==1) {
             cout << "fs "<< fillsch <<" " << fillno <<" " << bunches <<" " << wlines << endl;
           } else {
-            cout << "fs "<< "badtime" << endl;
+            cout << "fs "<< "badtime:" << beammode << endl;
           };
         };
       }

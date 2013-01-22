@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys,telnetlib,time,string
+import sys,telnetlib,time,string,os
 class TN:
   scpi="SCPI> "
   def __init__(self):

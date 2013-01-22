@@ -76,7 +76,7 @@ class web:
     #print "Saving to:",fn
     #print line
     f.close()
-    mylog.logm("web.save:"+line, 1)
+    #mylog.logm("web.save:"+line, 1)
   def show(self):
     mylog.logm("miclock:%s transition:%s newclock:%s bmname:%s mode::%s"%\
       (self.miclock, self.transition, self.newclock, 
@@ -226,7 +226,7 @@ def callback_bm(bm):
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
         mylog.logm("DLL_RESYNC started...")
         #mylog.logm("DLL_RESYNC NOT started...")   # CJI
-    mylog.logm("BEAM MODE:%s clock %s OK shift:%s"%(bmname, expclock, cshift))
+    mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":
       if os.environ['VMESITE']=='ALICE':
         import sctel
@@ -271,7 +271,7 @@ def callback_bm(bm):
           mylog.logm("setting scope persitence: "+mininf)
           tn.setPersitence(mininf)
           tn.close()
-          mylog.logm("alidcsaux008 scope persitence: "+mininf)
+          #mylog.logm("alidcsaux008 scope persitence: "+mininf)
       ##mylog.logm("NOT CHANGED ##")
   mylog.flush()
 
@@ -327,22 +327,25 @@ Than start miclock again.
       #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
       a= raw_input("""
    enter:
-   BEAM1             	-change the ALICE clock to BEAM1
-   LOCAL             	-change the ALICE clock to LOCAL
-   man/auto (now:%s)    -change operation mode (manual or automatic)
-   getshift          	-display current clock shift
-   reset             	-reset current clock shift to 0
-   q              	-quit this script
+   BEAM1       	-change the ALICE clock to BEAM1
+   LOCAL       	-change the ALICE clock to LOCAL
+   man/auto     -change operation mode (manual or automatic) now:%s
+   getshift    	-display current clock shift
+   reset       	-reset current clock shift to 0
+   q            -quit this script
 """%\
         WEB.clockchangemode)
     except:
       a='q'
       mylog.logm("exception:"+str(sys.exc_info()[0]))
-    if (a!='q') and (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
+    if string.find("getshift",a)==0: a="getshift"
+    if (a!='q') and (a!='') and \
+      (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
       (a!='getshift') and (a!='reset') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
-      mylog.logm('bad input:%s...'%a) ; continue
+      mylog.logm('bad input:%s'%a) ; continue
     if a=='q': break
+    if a=='': continue
     if a=='auto':
       WEB.clockchangemode='auto'
       WEB.save()
@@ -351,16 +354,16 @@ Than start miclock again.
       WEB.save()
     elif a=='show':
       WEB.show()
-    elif a=='getshift':
+    elif (a=='getshift'):
       cshift= getShift()
       if cshift != "old":
-        mylog.logm("Clock shift: %s ns.", cshift)
+        mylog.logm("Clock shift: %s ns."%cshift)
       else:
         mylog.logm("Clock shift not measured (too old).")
     elif a=='reset':
       cshift= getShift()
       if cshift != "old":
-        mylog.logm("Clock shift (%s ns) reset...", cshift)
+        mylog.logm("Clock shift (%s ns) reset..."%cshift)
         checkandsave(cshift,"fineyes", force='yes')
       else:
         mylog.logm("Clock shift measurement is too old, reset not done")
