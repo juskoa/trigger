@@ -32,13 +32,24 @@ def b_sync(fdf):
       print "%7.2fx   %d =      %7.2f"%(df, upperx-1, upperx)
       points= points+1
     upper= upper+1
+def reverse(dsf):
+  hwbits= eval(dsf)
+  if hwbits==0x1fffff:
+    fperc=0 ; ntxt="oo x"
+  else:
+    fperc= 100.-100.*hwbits/0x1fffff
+    ntxt= ("%.8g x")%(100./fperc)
+  print "dsf:%d = 0x%x   L0pr=%.8f%%   n:%s"%(hwbits,hwbits, fperc,ntxt)
 def printhelp():
   print """
-b factor       -> BC (_B) synchronous downscaling
-r factor       random (_R) synchronous downscaling
+b factor       BC (_B) synchronous downscaling using BC1/2 generator
+r factor       random (_R) synchronous downscaling using RND1/2 generator
 c factor       class random downscaling (not in sync with other class)
-               factor 20 means downscale 20 times or to 5%
+x dsf          reverse calculation from class downscale hw-value -> factor
 q              ->to quit
+where:
+factor  =how many times. E.g. 20 means 'downscale 20 times' or to 5%
+dsf     =21 bits downscaling value (hex or dec) encoded in class register
 """
 
 def main():
@@ -53,6 +64,8 @@ def main():
       r_sync(float(linest[1]))
     elif linest[0]=='c':
       c_sync(float(linest[1]))
+    elif linest[0]=='x':
+      reverse(linest[1])
     else:
       printhelp()
 if __name__ == "__main__":

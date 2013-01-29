@@ -226,15 +226,17 @@ class LHCinfo:
       else:
         self.buckets[bc]= BcAttrs(None,buc, '', train)
     return err
-  def read_sch(self, fn):
+  def read_sch(self, fn, fsname=None):
     """ rc: err message or ""
 lines in fn:
+----------------1.format
 Old scheme (.sch), before 19.9.2010: ring_1/2 in ll[3]
  inj  3  2  ring_1     2001     1250   4             [0]     [1]
             Y          Y         Y     Y             Y       Y
             beam       bucFirst buc    repetitions SPSspace PStrains
   0   1  2   3         4         5     6            7        8
 
+----------------2.format
 New scheme (web txt), after 19.9.2010: ring_1/ring_2 in ll[2]
 # Injection sequence:
 #
@@ -253,6 +255,18 @@ i.e.:
 empty line: ignored
 len(splitted line)<7: ignore
 
+----------------3.format
+From http://lpc.web.cern.ch/lpc/fillingschemes.htm
+ -> LHC Injection Scheme Display    -> .csv file
+
+idx,inj Nbr,	Ring,RF Bucket,Bu Spac (ns),bu per PS batch,SPS Batch spac,PSbatch nbr,bu Int[1e9p]
+0   1           2    3         4            5               6              7           8
+Bu Spac : space in ns between bunches in the same PS train
+SPS Batch Spac : space in ns between 2 PS trains in the SPS
+
+-seems the same as format 2 (column 8 not used anyhow)
+
+-----------------
 Goal: prepare:
 1. abcs{}: abcs[bc] is one of: 'A' 'B' 'C' 'E'   bc:0..3563
 2. buckets: buckets[bc].buc: n or n1,n2 LHC bucket number(s) 1..35641
@@ -260,6 +274,11 @@ Goal: prepare:
     """
     errs=""
     trainlenmax=0
+    if fsname!=None:
+      dipfile= open(fsname+".schdip","w")
+      ringac= ("?","A","C")
+    else:
+      dipfile= None
     for line in string.split(fn,"\n"):
       if line == "": continue
       if line[0] == "\n": continue
@@ -287,13 +306,15 @@ Goal: prepare:
       if repetitions>trainlenmax:
         trainlenmax= repetitions
       beam= int(ring[1]) ; bucFirst= int(ll[ixbucFirst])
+      bc_spacing= int(ll[ixbuc])/25
+      #print "%d PStrains:"%beam,PStrains,"reps:",repetitions,"SPSspace:",SPSspace
       for ibcsps in range(PStrains):
         #print "ibcsps:",ibcsps, SPSspace
         for ibc in range(repetitions):   # ibc>0: multi bunch injections
-          bc_spacing= int(ll[ixbuc])/25
-          buc= (bucFirst + 10*ibcsps*SPSspace/25 + \
-            ibc*(10*bc_spacing))%(ORBITL*10)
+          buc= (bucFirst + ibc*(10*bc_spacing))%(ORBITL*10)
           bc=bu2bc(beam, buc)
+          if dipfile:
+            dipfile.write("%s %d\n"%(ringac[beam], buc))
           if ibc==0:
             trainStart= [repetitions, bc_spacing]
           else:
@@ -301,6 +322,8 @@ Goal: prepare:
           #print "bcbuc:", beam, buc,"->", bc
           err=self.__storebc(bc, beam, buc,trainStart)
           if err: errs= errs+ err + "\n"
+        bucFirst= buc + 10*SPSspace/25
+    if dipfile: dipfile.close();
     print "Max. train:", trainlenmax
     return errs
   def read_dip(self, fn):
@@ -379,6 +402,7 @@ later time (when .mask cretaed)
   alice=fsname+'\n'; 
   lhcfs= LHCinfo(fsname)
   if format == "from sch":
+    #errmsg= lhcfs.read_sch(fn,fsname)   create also fsname.schdip file
     errmsg= lhcfs.read_sch(fn)
   if format == "from dip":
     errmsg= lhcfs.read_dip(fn)

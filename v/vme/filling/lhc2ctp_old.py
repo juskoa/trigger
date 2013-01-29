@@ -8,6 +8,9 @@ BCS_BEFORE=85   # was 16, TRD request: 85
 DIS_BEFORE=3
 DIS_AFTER_AC=32
 DIS_AFTER_B=128
+# the minimal distance to the previous/next B-bunch:
+I2B_BEFORE=10
+I2B_AFTER=10
 def suborbit(a, b):
   """ cal. diffrence between 2 BCs b->a
   """
@@ -26,12 +29,37 @@ def nextbc(bc,bcs=1):
   #return bc+1
   if (bc+bcs)<=(ORBITL-1): return (bc+bcs)
   return bc+bcs-ORBITL
+def joinarrs(list1,list2):
+  ace=[] ; ecopy=[]
+  for ix in range(len(list2)):
+    ecopy.append(list2[ix])
+  #print "ecopy:",ecopy
+  for ix in range(len(list1)):
+    ac= list1[ix]
+    for ixe in range(len(ecopy)):
+      e= ecopy[ixe]
+      if e==None: continue
+      if e>ac:
+        ace.append(ac) ; ac=None
+        break   # take next ac
+      elif e<ac:
+        ace.append(e) ; ecopy[ixe]= None
+        # continue to check next e
+      else:
+        ace.append(e) ; ecopy[ixe]= None ; ac=None
+        break   # take next ac
+    if ac!=None:
+      ace.append(ac) ; ac=None
+  for ixe in range(len(ecopy)):    # flush out list2
+    e= ecopy[ixe]
+    if e!=None: ace.append(e)
+  return ace
 class BcAttrs:
   def __init__(self, buc1, buc2, parasit,trainlen):
     self.buc= [buc1, buc2]
     self.parasit= parasit
     self.train= trainlen # None or [lentgth,spacing] of train starting here
-    self.isincomb= None  # True if this bunch is part of the comb
+    self.isincomb= None  # 'SA' or 'SC' if this bunch is part of the comb
   def update(self,beam,buc):
     self.buc[beam-1]= buc
     #buckets[bc].buc= buckets[bc].buc+','+str(buc)
@@ -80,26 +108,21 @@ C: .........1.1.........1.1
 class biggaps:
   GAPBEFORE=1
   BC=0
-  def __init__(self, lhcfs,size=2):
-    self.lhcfs= lhcfs # LHCinfo() instance
+  def __init__(self, forbidden_bcs,size=2):
+    self.forbidden_bcs= forbidden_bcs # LHCinfo() instance
     self.gaps=[]   # Bgaps in descending order, sorted by Bgap length
     self.size=size # number of Bgaps stored
     for x in range(size):
-      self.gaps.append([-1,-1])   # bc(0..ORBITL-1), Bgap before this bc
+      self.gaps.append([-1,-1])   # >=0: [bc, Bgap before this bc]
       # i.e. (bc-Bgap) == BCnumber of Bbunch preceeding bc bunch 
-    # find A,C non interleaving groups:
-    self.nigs= {'A':[], 'C':[]}
-    self.findNIG('A')
-    #self.findNIG('C')
-    # find combs
-  def findNIG(self, beam):
-    # find Non Interleaving Groups. beam: A or C
-    self.lhcfs.getnext(beam, 0)
+      # 2.4.6
+      # B...B   corresponds to [5,3]
   def prt(self):
     for x in range(self.size):
       print "biggap %d: "%x, self.gaps[x]
   def update(self, bc, dif):   # dif: bc-bc_previous
     #print "biggaps:",bc,dif
+    # self.gaps[] is sorted. Replace first, smaller han new one, gap by new one:
     for ix in range(self.size):
       if dif > self.gaps[ix][self.GAPBEFORE]:
         #print "biggaps_update:",ix,bc,dif
@@ -109,37 +132,32 @@ class biggaps:
         self.gaps[ix][self.GAPBEFORE]= dif
         bc= bcold; dif= gapold
   def getempty(self, ix, bcbefore=BCS_BEFORE):
-    """ rule: place bcbefore bcs before B in largest gaps.
+    """ rule: place bcbefore bcs before B in largest gaps, if possible
     ix: gap number
+    rc: emptybc, errorMessage
     """
     ##global abcs
     msg=""
     bc= self.gaps[ix][self.BC]
     gap= self.gaps[ix][self.GAPBEFORE]
-    #e2b=bcbefore
     #print "getempty:%d: from %d to %d"%(ix,bcbefore, gap)
-    for e2b in range(bcbefore,gap):
-      if gap<=e2b:
-        e2b= gap/2
-        msg= msg+" E->B is %d <70."%(gap/2)
-      bc_e= suborbit(bc, e2b)
-      if not self.lhcfs.abcs.has_key(bc_e): break
-    b2e= gap-e2b
-    if (b2e)<100:
-      msg= msg+" B->E is %d <100."%(b2e)
+    if len(range(bcbefore,gap))==0:
+      bc_e= suborbit(bc, 5)
+      msg= "%d.gap: only %d bcs before %d. E:%d"%(ix, gap, bc, bc_e)
+    else:
+      for e2b in range(bcbefore,gap):
+        if gap<=e2b:
+          e2b= gap/2
+          msg= msg+" E->A/C/B bunch distance is %d <70."%(gap/2)
+        bc_e= suborbit(bc, e2b)
+        if not self.forbidden_bcs.has_key(bc_e): break
+      b2e= gap-e2b
+      if (b2e)<100:
+        msg= msg+" A/C/B->E distance is %d <100."%(b2e)
     if msg !="": msg= "#"+msg
     #print "getempty:",ix, bc_e, msg
     return bc_e, msg
-  #def getemptyM16(self, ix):
-  #  """rule: place E into middle between 'start of gap' and 'end of gap -16'
-  #  ix: gap number
-  #  This method is called only for large gaps (>600)
-  #  """
-  #  msg=""
-  #  bc= self.gaps[ix][self.BC]
-  #  len2= (self.gaps[ix][self.GAPBEFORE]-16)/2
-  #  bc_e= suborbit(bc, len2)
-  #  return bc_e
+
 def bu2bc(beamac12,buc):
   if type(beamac12)==types.StringType:
     if beamac12=='A': beam=1
@@ -187,14 +205,6 @@ class LHCinfo:
     self.abcs={} ;    # self.abcs[bc] is A C B or E
     self.buckets={}   # the same keys as abcs, item:BcAttrs
     self.sortedABCE= None  # will be done later by do_sortedABCE()
-  def getnext(self, abce, fromthis):
-    """ find next  A B C or E bunch starting from fromthis+1
-        return None if not found
-    """
-    ixbc= nextbc(fromthis)
-    ix=0
-    #while 1:
-    # we probably cannot use yet self.sortedABCE....  
   def __storebc(self,bc,beam,buc,train):
     err=None
     if beam==1: beamac='A'
@@ -220,12 +230,17 @@ class LHCinfo:
     """ rc: err message or ""
 lines in fn:
 Old scheme (.sch), before 19.9.2010: ring_1/2 in ll[3]
- inj  3  2  ring_1     2001     1250   4
+ inj  3  2  ring_1     2001     1250   4             [0]     [1]
             Y          Y         Y     Y             Y       Y
             beam       bucFirst buc    repetitions SPSspace PStrains
   0   1  2   3         4         5     6            7        8
 
 New scheme (web txt), after 19.9.2010: ring_1/ring_2 in ll[2]
+# Injection sequence:
+#
+#                   RF     bunch space  nr of bunches     space in     PS trains per   popul
+#                   bucket     (ns)     per PS train      SPS (ns)     SPS batch       (1e9p)
+
    1    1  ring_1      1     150      8         0       1 100
    2    1  ring_2      1     150      8         0       1 100
    3    2  ring_1   8941     150      8         0       1 100
@@ -251,8 +266,11 @@ Goal: prepare:
       if line[0] == "#": continue
       ll= string.split(line)
       if len(ll)<7: continue
-      if ll[3][:5]=='ring_':   
+      if ll[3][:5]=='ring_':    #old way
         ixring=3; ixbeam=3; ixbucFirst=4; ixbuc=5; ixrepetitions=6 
+        if len(ll)==7:          # SPS spacing + trains/SPS batch not given
+           ll.append("0")       # any?
+           ll.append("1")       # just 1 single bunch in 1 train
         ixSPSspace= 7; ixPStrains=8
       elif ll[2][:5]=='ring_':  #new
         ixring=2; ixbeam=2; ixbucFirst=3; ixbuc=4; ixrepetitions=5 
@@ -311,7 +329,7 @@ Goal: prepare:
   def do_sortedABCE(self):
     self.sortedABCE= self.abcs.keys(); self.sortedABCE.sort()   # A, C, B, E
   def locate_combs(self):
-    self.ACsatellites= 0
+    self.ACsatellites= [0,0]   # number of [AC,CA] cases
     self.BvsACs= 0
     for ixabc in range(len(self.sortedABCE)):
       abc= self.sortedABCE[ixabc]
@@ -328,19 +346,17 @@ Goal: prepare:
         # AC CA -normal     BA BC AB CB -B vs. AC satellite
         # AA CC -not comb
         if self.abcs[abc]=="E" or self.abcs[abc_next]=="E": continue
-        if ((self.abcs[abc]=="A") and (self.abcs[abc_next]=="C")) or \
-           ((self.abcs[abc]=="C") and (self.abcs[abc_next]=="A")):
-          self.ACsatellites= self.ACsatellites+1
-          self.buckets[abc].isincomb= True
-          self.buckets[abc_next].isincomb= True
-          continue
-        # one of 2 neighbouring bunches (or both) is B
+        if ((self.abcs[abc]=="A") and (self.abcs[abc_next]=="C")):
+          self.ACsatellites[0]= self.ACsatellites[0]+1
+          self.buckets[abc_next].isincomb= "SA"
+        elif ((self.abcs[abc]=="C") and (self.abcs[abc_next]=="A")):
+          self.ACsatellites[1]= self.ACsatellites[1]+1
+          self.buckets[abc_next].isincomb= "SC"
+        else:
+          # one of 2 neighbouring bunches (or both) is B -should not happen?
           self.BvsACs= self.BvsACs+1
-          self.buckets[abc].isincomb= True
-          self.buckets[abc_next].isincomb= True
     # if found, count also last one:
     if self.BvsACs>0: self.BvsACs= self.BvsACs+1
-    if self.ACsatellites>0: self.ACsatellites= self.ACsatellites+1
 
 def bu2bcstr(fn, fsname='not given', parasitic=None,\
   empty1=None,empty2=None, format="from sch"):
@@ -352,6 +368,9 @@ None:     take all bunches
 "leave4B" -leave only 2*N A and 2*N C bunches (N: number of B)  
 "leaveB" -leave only N/2 A and N/2 C bunches (N: number of B)  DEFAULT in 2011
 "rnd4B"   -leave randomly (2*N of A + 2*N of C bunches)
+
+Folowing option removed (wee combACnever)- it will be done in 
+later time (when .mask cretaed)
 "combAC"  -disable all B (head-head), show all neighbouring AC as B enabled
            disable all the others AC
   '''
@@ -366,15 +385,23 @@ None:     take all bunches
   if errmsg!="":
     return alice+format+'\n'+errmsg
   abcs= lhcfs.abcs; buckets= lhcfs.buckets
-  sortedB=[]
+  # sortedB: list of bcs used to find biggest gaps, i.e:
+  # B-bunches if at least 1 colliding bunch
+  # A+C bunches if no colliding bunch (main-sat mode)
+  b=[]; ac=[]
   for abc in abcs.keys():
-    if abcs[abc]=="B": sortedB.append(abc)
-  sortedB.sort()                # B-bunches only, sorted
-  bgap=biggaps(lhcfs)
+    if abcs[abc]=="B": b.append(abc)
+    elif abcs[abc]=="A" or abcs[abc]=="C": ac.append(abc)
+  if len(b)==0:
+    sortedB= ac
+  else:
+    sortedB= b
+  sortedB.sort()                # B or A/C bunches only, sorted
+  bgap=biggaps(lhcfs.abcs)
   #print "abcs,sortedB:",abcs,sortedB
-  if len(sortedB)==1:   # just 1 colliding bunch
+  if len(sortedB)==1:   # just 1 bunch
     bgap.update(sortedB[0], ORBITL)
-  elif len(sortedB)==0:   # no colliding bunch
+  elif len(sortedB)==0:   # should not happen!
     bgap.update(3564, ORBITL)
   else: 
     bc_prev= sortedB[-1] 
@@ -384,28 +411,30 @@ None:     take all bunches
       bc_prev= bc
   #bgap.prt()
   # we know largest gaps, so can create Empty BCs (-70bcs -TRD request):
-  #print "BC:%d 1.gap before:%d"%(bgap.gaps[0][0], bgap.gaps[0][1])
-  #print "BC:%d 2.gap before:%d"%(bgap.gaps[1][0], bgap.gaps[1][1])
+  print "BC:%d 1.gap before:%d"%(bgap.gaps[0][0], bgap.gaps[0][1])
+  print "BC:%d 2.gap before:%d"%(bgap.gaps[1][0], bgap.gaps[1][1])
   # if bigger gap is >200, put both E bunches into this gap
   if bgap.gaps[0][1] >200:
     e1, err= bgap.getempty(0)
-    if err !="" : errs= errs + err
+    if err !="" : errs= errs +'\n' + err
     e32= bgap.gaps[0][0]-e1+BCS_BEFORE
     #print "e32:",e32
     e2, err= bgap.getempty(0, e32)
-    if err !="" : errs= errs + err
+    if err !="" : errs= errs + '\n' + err
   else:
     e1, err= bgap.getempty(0)
-    if err !="" : errs= errs + err
+    if err !="" : errs= errs + '\n' + err
     e2, err= bgap.getempty(1)
-    if err !="" : errs= errs + err
+    if err !="" : errs= errs + '\n' + err
   Eerror=None
   if abcs.has_key(e1):
-    errs=errs+"bc %d is already: %s. "%(e1,abcs[e1]) 
+    errs=errs+"\nbc %d is already: %s. "%(e1,abcs[e1]) 
     Eerror=1
   if abcs.has_key(e2):
-    errs=errs+"bc %d is already: %s. "%(e2,abcs[e2]) 
+    errs=errs+"\nbc %d is already: %s. "%(e2,abcs[e2]) 
     Eerror=1
+  if errs!="":
+    print errs
   if empty1:
     print "Empty1:%d forced to %d"%(e1,empty1)
     e1= empty1
@@ -417,8 +446,7 @@ None:     take all bunches
     buc1,buc2 = bc2buc('E', e1); buckets[e1]= BcAttrs(buc1,buc2, '', None)
     buc1,buc2 = bc2buc('E', e2); buckets[e2]= BcAttrs(buc1,buc2, '', None)
   lhcfs.do_sortedABCE()   # we have already E-bunches also
-  lhcfs.locate_combs()
-  #for bc in abcs.keys():   # not sorted!
+  #lhcfs.locate_combs()   # done later in FillScheme
   #
   nbb=0   # numb. of colliding bcs
   for bc in lhcfs.sortedABCE:
@@ -430,7 +458,7 @@ None:     take all bunches
         if abcs[bc]=='A' or abcs[bc]=='C':
           #print "ACpara:",bc
           buckets[bc].parasit='*'
-    elif parasitic=="leave4B" or parasitic=="rnd4B" or parasitic=="leaveB" or parasitic=="combAC":
+    elif parasitic=="leave4B" or parasitic=="rnd4B" or parasitic=="leaveB": # or parasitic=="combAC":
       #"rnd4B"   :  mark all A,C parasitic but 2*N+2*N randomly
       # "leave4B":  # mark all A,C parasitic but 
       #    leave 2N A-bunches and 2N C-bunmches N:number of B bunches
@@ -449,7 +477,7 @@ None:     take all bunches
         nbb= nbb*2
       Aenabled= 0; Cenabled= 0;
       #if nbb>0:   # leave all A,C if no B-bunches
-      if parasitic=="combAC":
+      if parasitic=="combACnever":
         # disable all B bunches:
         nbb=0
         for bc in lhcfs.sortedABCE:
@@ -550,11 +578,11 @@ None:     take all bunches
         bc_prev= bc
   # do not allow (any B,A,C, or E) in calib. bc. Here, only A,C E can
   # happen (B should not happen in LHC gap):
-  print "bu2bcstr:buckets:",buckets.keys()
+  #print "bu2bcstr:buckets:",buckets.keys()
   if buckets.has_key(CALIBbc):
-    buckets[CALIBbc].parasit='*'
+    #buckets[CALIBbc].parasit='*'
+    print "%c-bunch %d NOT marked parasitic (L0firmware>0xAC)"%(beamac, CALIBbc)
     beamac= abcs[CALIBbc] 
-    print "%c-bunch %d marked parasitic"%(beamac, CALIBbc)
     if beamac!='A':
       print
       print "ERROR: B-bunch (only A bunch allowed here) in LHC C-gap in calib. BC %d"%CALIBbc
@@ -578,7 +606,7 @@ None:     take all bunches
     #alice= alice + "%d %s %d %d\n"%(bc, beamac, dif, spdphase)
     # .xls, but replace dif by bucket# format:
     #alice= alice + "%d %s %s %d%s %s\n"%(bc, beamac, bucket, spdphase, parasit, buccalc)
-    if parasitic=="combAC":
+    if parasitic=="combACnever":
       if buckets[bc].isincomb and beamac!='B':
         #all main B-bunches were marked parasitic already
         buc12= bc2bucstr('B',bc)
@@ -590,20 +618,25 @@ None:     take all bunches
       alice= alice + "%d %s %s %d%s\n"%(bc, beamac, bucket, spdphase, parasit)
     #alice= alice + "%d %s %s\n"%(bc, beamac, bucket)
     bc_prev= bc
-  if parasitic=="combAC":
+  if parasitic=="combACnever":
     print "combAC: A/C->B: %d"%satelliteB
   return alice+errs
 
 class FilScheme:
-  def __init__(self, fsname="", fsxls=None):
-    #self.mask=[]
-    #for ix in range(len(ORBITL)):
-    #  self.mask[]=1   # 'H' i.e. ignored
-    self.mask={}   # contains only meaningful (BACE) BCs
+  def __init__(self, fsname="", fsxls=None, mainsat="b2"):
+    """
+    mainsat: None   -> main-main collisions
+    """
+    # FOLLOWING MUST be here (called also form getfsdip.py):
+    #self.mainsat= mainsat     # from parameter 
+    #self.mainsat= None        # main-main
+    self.mainsat= "mainsat"   # main-sat always: COMMON from 3.5.2012
+    self.mask={}   # contains only meaningful (BACE) BCs: mask[3] is 'A B C or E'
     self.fsname= fsname
-    self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[]}
+    self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[], 'I':[]}
     # self.bx['B']: list of ints representing colliding BCs
-    self.ignore={}; ixline=-1
+    self.ignore={};    # dictionary of ignored bunches
+    ixline=-1 ; Bbunches=0
     for line in string.split(fsxls,"\n"):
       ixline= ixline+1
       if ixline==0:
@@ -620,7 +653,7 @@ class FilScheme:
       if len(btdp)<2: continue
       if btdp[0] == 'BX': continue
       bxn= int(btdp[0])   # 0..ORBITL-1
-      bace= btdp[1]
+      bace= btdp[1]       # A B C E
       if len(btdp)==2: 
         buckets= bc2bucstr(bace, bxn)
         spdph= bxn%4
@@ -629,22 +662,71 @@ class FilScheme:
         if btdp[4]=='*':   # ignore this BC for A/C/B/AorC but not for D
           self.ignore[bxn]=1
       #von self.bx[bace].append(bxn)
-      self.insert(bace, bxn)   # isert bxn before bace
+      self.insert(bace, bxn)   # insert bxn before bace
       self.mask[bxn]= bace
+      if bace=='B': Bbunches= Bbunches+1
       if (bace=='A') or (bace=='C'):
         #self.bx['AorC'].append(bxn)   # A + C
         self.insert('AorC', bxn)
+    Blen= len(self.bx['B'])
+    if Blen>0:
+      if Blen==1:
+        self.bx['I'].append(self.bx['B'][0])
+      else:
+        for ix in range(Blen):
+          if ix==0:
+            prevB=self.bx['B'][Blen-1]
+          else:
+            prevB=self.bx['B'][ix-1]
+          if ix==(Blen-1):
+            nextB=self.bx['B'][0]
+          else:
+            nextB=self.bx['B'][ix+1]
+          prosI=self.bx['B'][ix]
+          dist_before= suborbit(prosI, prevB)
+          dist_after= suborbit(nextB, prosI)
+          #print("Itest: %d -%d- %d"%(dist_before,prosI,dist_after))
+          if (dist_before>=I2B_BEFORE) and (dist_after>=I2B_AFTER):
+            self.insert('I', prosI)
+    #print("I:", self.bx['I'])
+    if self.mainsat=='b2':    # if B>=0 : main-main else main_sat
+      if Bbunches>0:
+        self.mainsat= None
+      else:
+        self.mainsat= "mainsat"
   def insert(self, bace, bxn):
     for ix in range(len(self.bx[bace])):
       if bxn<self.bx[bace][ix]:
         self.bx[bace].insert(ix, bxn)
         return
     self.bx[bace].append(bxn)
+  def msk_compres(self, msk):
+    """" search for multiplication of "1L1H"
+    rc: N(1L1H) in msk string instaed of 1L1H1L1H...
+    """
+    rep=0; ix=0; outmsk="" ; maxix= len(msk)
+    #print "msk_compress:",maxix,msk
+    #for ix in range(maxix):
+    while ix<(maxix):
+      # exclude case "251L1H":
+      ixp= ix-1
+      if ((ix>0) and (msk[ixp]=='L' or msk[ixp]=='H' or msk[ixp]==')')) and\
+        (ix<=maxix-4) and \
+        (msk[ix:ix+4]=="1L1H"):
+        rep= rep+1; ix= ix+4
+        if ix< (maxix-1): continue
+      if rep>1:
+        outmsk= outmsk + "%d(1L1H)"%rep; rep=0
+      elif rep==1:
+        outmsk= outmsk + "1L1H"; rep=0
+      outmsk= outmsk + msk[ix]; ix= ix+1
+    #print "msk_compress:",outmsk
+    return outmsk
   def eN(self, bx):
     """ bx: SORTED list of ints representing meaningfull (significant) bunches
     Notes:
     - self.ignore is taken into account
-    rc: "3563H1L"
+    rc: VALID.BCMASKS string, e.g.: "3563H1L"
 """
     lastbx=-1; msk=""; lrep=0
     #print "eN:bx:",bx
@@ -665,9 +747,10 @@ class FilScheme:
     rep=ORBITL-lastbx-1
     if rep>0:
       msk= msk + "%dH" % (ORBITL-lastbx-1)
+    #msk_shorter= self.msk_compres(msk); return msk_shorter
     return msk
   def H19around(self,bx,dis_after):
-    ixa=[]   # bcs around bx
+    ixa=[]   # rc: bcs around bx
     ixbc= prevbc(bx,DIS_BEFORE)
     for bc in range(dis_after+DIS_BEFORE+1):
       ixa.append(ixbc)
@@ -680,15 +763,47 @@ class FilScheme:
       ixa.append(ixbc)
       ixbc= nextbc(ixbc)
     return ixa 
-  def cosmicAllowed(self):
-    """ 
-    """
+  def fillL(self, lh):   # 'L' or 'H'
     maar=[]   # 0..3563 L-ok(triggering) H: disabled
     for ix in range(ORBITL):
-      maar.append('L')
+      maar.append(lh)
+    return maar
+  def compres(self, maar):
+    cmask=""; rep=0; lh= maar[0];
+    for ix in range(ORBITL):
+      if maar[ix]==lh:
+        rep= rep +1
+      else:
+        cmask= cmask + "%d%c"%(rep, lh)
+        #print "    mask:",cmask
+        rep=1; lh= maar[ix]
+    cmask= cmask + "%d%c"%(rep, lh)
+    return cmask
+  def cosmicAllowed(self):
+    """ 
+    cosmic not allowed in:
+    DIS_BEFORE -B- DIS_AFTER_B
+    DIS_BEFORE -A/C- DIS_AFTER_AC
+
+    cosmic allowed in:
+    E: self.mask[bx]=='E' and all the others
+    """
+    maar= self.fillL('L')         # allow all
+    for bx in self.arch['B']+self.arch['S']:
+      ixa= self.H19around(bx, DIS_AFTER_B)
+      for bc19 in ixa:
+        maar[bc19]= 'H'
+    for bx in self.arch['A']+self.arch['C']:
+      ixa= self.H19around(bx, DIS_AFTER_AC)
+      for bc19 in ixa:
+        maar[bc19]= 'H'
+    cmask= self.compres(maar)
+    #print "lastmask:",cmask
+    return cmask
+    # old (also ok for main-main mode) way using self.mask[] diictionary
     for bx in self.mask.keys():   # not sorted!
       bt= self.mask[bx]
-      if bt=='E': continue   # ignore E-bunches
+      if bt=='E': continue   # ignore E-bunches (i.e. cosmic allowed)
       # B C or A
       if bt!= 'A' and bt !='C' and bt !='B':
         print "Internal error BC type in %d is "%bx,bt
@@ -701,16 +816,8 @@ class FilScheme:
       #print ixa
       for bc19 in ixa:
         maar[bc19]= 'H'
-    maar[CALIBbc]= 'H'   # bug in ctp fy (cal. cannot be together with physics)
-    cmask=""; rep=0; lh= maar[0];
-    for ix in range(ORBITL):
-      if maar[ix]==lh:
-        rep= rep +1
-      else:
-        cmask= cmask + "%d%c"%(rep, lh)
-        #print "    mask:",cmask
-        rep=1; lh= maar[ix]
-    cmask= cmask + "%d%c"%(rep, lh)
+    #maar[CALIBbc]= 'H' # bug in ctp fy before AC l0 firmware (cal. cannot be together with physics)
+    cmask= self.compres(maar)
     #print "lastmask:",cmask
     return cmask
   def reversed(self,plus1):
@@ -718,9 +825,7 @@ class FilScheme:
     plus1: None: disable just B
            1:    disable B and the bunch after
     """
-    maar=[]   # 0..3563 L-ok(triggering) H: disabled
-    for ix in range(ORBITL):
-      maar.append('L')
+    maar= self.fillL('L')
     for bx in self.mask.keys():   # not sorted!
       bt= self.mask[bx]
       if bt=='E': continue   # ignore E-bunches
@@ -735,61 +840,126 @@ class FilScheme:
           #print "reversed ixa:",ixa
           for bc2 in ixa:
             maar[bc2]= 'H'
-    maar[CALIBbc]= 'H'   # bug in ctp fy (cal. cannot be together with physics)
-    cmask=""; rep=0; lh= maar[0];
-    for ix in range(ORBITL):
-      if maar[ix]==lh:
-        rep= rep +1
-      else:
-        cmask= cmask + "%d%c"%(rep, lh)
-        #print "    mask:",cmask
-        rep=1; lh= maar[ix]
-    cmask= cmask + "%d%c"%(rep, lh)
+    #maar[CALIBbc]= 'H'   # bug in ctp fy (cal. cannot be together with physics)
+    cmask= self.compres(maar)
     #print "reversed:",cmask
     return cmask
-  def cosmicAllowed_old(self):
-    """ bcmD mask: cosmic. Disabled in all possible bunches -3 +16 BCs
+  def mainsatAC(self, AC): 
+    """ after Easter 2012:  AC could be: A C S SA SC
+    find: 
+    AC
+    A or C   .A. or .C.   (where . is nothing or E )   -> A or C mask
+    S        AC                            -> S (i.e. SS)
+             CA                            -> S (i.e. SS)
+    SA       AC  -A is SA-bunch
+    SC       AC  -C is SC-bunch
+    rc: sorted list of A/C SA/SC/S bunches
     """
-    cmask="" ; bxprev=bxprev1=0; 
-    firstoff=3   # SPD signals are 4BCs wide
-    ordn=0
-    #for bx in self.mask.keys():   # not sorted!
-    keys= self.mask.keys() ; keys.sort()
-    #print keys
-    for bx in keys:   # now sorted!
-      #if self.mask[bx]=='E': continue   # ignore E-bunches
-      #cmask= cmask+"%dL16H"%(bx-bxprev)
-      #bxprev= bx+16
-      # enabled: length of area before BC bx:
-      if bx<bxprev: 
-        #print "bxA:%d bxprev:%d"%(bx, bxprev)
-        bxprev= bx+16
-        continue   #bx anyhow disabled
-      if (bxprev-bxprev1)>0:
-        msk= "%dH"%(bxprev-bxprev1)
-        cmask= cmask+msk
-        print " %d H:  "%bx,msk
-      enabled=(bx-firstoff)-bxprev
-      #print "bxB:%d bxprev:%d enabled:%d"%(bx, bxprev,enabled)
-      if enabled<=0:
-        msk= "%dH"%(16+firstoff+enabled)
-        cmask= cmask+msk
-        #bxprev= bxprev + 16+firstoff + enabled:
-        bxprev= bx-firstoff+16 + firstoff
+    #maar= self.fillL('H')   # all disabled
+    bxac=[]
+    for bx in self.mask.keys():   # not sorted!
+      bt= self.mask[bx]
+      if bt=='E' or bt=='B': continue   # B,E is always B,E
+      prevbx= prevbc(bx); nextbx= nextbc(bx)
+      if self.mask.has_key(prevbx): prevbt= self.mask[prevbx]
+      else: prevbt=''
+      if self.mask.has_key(nextbx): nextbt= self.mask[nextbx]
+      else: nextbt=''
+      if (AC=='A') or (AC=='C'):
+        if (AC== bt):   # locate start of comb A/C
+          bxac.append(bx)
+          # was before 7.1.2013:
+          #if (prevbt=='' or prevbt=='E') and (nextbt=='' or nextbt=='E'):
+          #  bxac.append(bx)
+          #elif prevbt=='B' or prevbt==AC:
+          #  print "Error: 2 neighbouring bcs from %d:%c%c "%(prevbx, prevbt,bt)
+        continue
+      # S case (AC or CA -2nd one is current one):
+      if AC=='S':
+        #if (prevbt=='A' and bt=='C') or (prevbt=='C' and bt=='A') or\
+        #   (nextbt=='A' and bt=='C') or (nextbt=='C' and bt=='A'):
+        prevcb= (prevbt=='C') or (prevbt=='B')
+        nextcb= (nextbt=='C') or (nextbt=='B')
+        prevab= (prevbt=='A') or (prevbt=='B')
+        nextab= (nextbt=='A') or (nextbt=='B')
+        if (prevcb and bt=='A') or (nextcb and bt=='A') or\
+          (prevab and bt=='C') or (nextab and bt=='C'):
+          bxac.append(bx)
+      elif AC=='SA':
+        prevcb= (prevbt=='C') or (prevbt=='B')
+        nextcb= (nextbt=='C') or (nextbt=='B')
+        if (prevcb and bt=='A') or (nextcb and bt=='A'):
+          bxac.append(bx)
+      elif AC=='SC':
+        prevab= (prevbt=='A') or (prevbt=='B')
+        nextab= (nextbt=='A') or (nextbt=='B')
+        if (prevab and bt=='C') or (nextab and bt=='C'):
+          bxac.append(bx)
       else:
-        msk= "%dL%dH"%(enabled, 16+firstoff)
-        cmask= cmask+msk
-        #bxprev= bxprev + enabled + 16+firstoff:
-        bxprev= bx+16
-      bxprev1= bxprev
-      ordn=ordn+1
-      print ordn,"D bx:%d %d bxprev(next allowed):%d msk:%s"%(bx,enabled,bxprev,msk)
-    if (bxprev-bxprev1)>0:
-      msk= "%dH"%(bxprev-bxprev1)
-      cmask= cmask+msk
-      print "lastH:  ",msk
-    cmask= cmask+"%dL"%(ORBITL-bxprev)
-    return cmask
+        print "Internal error: mainsatAC arg:%s (allowed: A C S SA SC)"%AC
+        return bxac
+    bxac.sort()
+    #print "mainsatAC(%s):"%AC,"length:",len(bxac)   #, bxac
+    return bxac
+  def isin(self, list, ix):
+    for iv in list:
+      if ix==iv: return True
+    return False
+  def getACB(self, ix1):
+    mskc='.'
+    for btype in ['A','C','B','S','E']:
+      if self.isin(self.arch[btype], ix1):
+        if mskc=='.': 
+          mskc= btype
+        else:
+          if (btype=='S') and ((mskc=='A') or (mskc=='C')):
+            # AB: a is in A-mask and also in S-mask, return 'S'
+            mskc= btype
+          else:
+            print "Error: bc %d is %c or %c ?"%(ix1,mskc,btype)
+    return mskc
+    # remove following:
+    if self.isin(self.arch['A'], ix1):
+      mskc= 'A'
+    if self.isin(self.arch['C'], ix1):
+      mskc= 'C'
+    if self.mainsat==None:
+      if self.isin(self.arch['B'], ix1):
+        mskc= 'B'
+    else:
+      if self.isin(self.arch['S'], ix1):
+        mskc= 'B'
+    if self.isin(self.bx['E'], ix1):
+      mskc= 'E'
+    return mskc
+  def printmap(self, ctpmsk=None):
+    """
+    ctpmsk=None  : display self.mask
+    ctpmsk="+ACS": as None + display self.arch[A/C/S] in 2nd row 
+    ctpmsk="ACSE":  display self.arch[A/C/S]+self.bx[E] in one row 
+    """
+    print "     0....,...10....,...20....,...30....,...40....,...50....,...60....,...70....,...80....,...90....,..99"
+    line=line2=''; bcsperline=100
+    for ix1 in range(ORBITL):
+      if (ix1%bcsperline)==0:
+        if ix1!=0:
+          print "%4d:%s"%(((ix1-bcsperline)/bcsperline)*bcsperline, line)
+          if line2!='': print "     %s"%line2
+          line=''; line2=''
+      if ctpmsk==None or ctpmsk=='+ACS':
+        if self.mask.has_key(ix1):
+          bace= self.mask[ix1]
+        else:
+          bace='.'
+        line= line+bace
+      if ctpmsk=='+ACS':
+        mskc= self.getACB(ix1)
+        line2= line2+mskc
+      elif ctpmsk=='ACSE':
+        bace= self.getACB(ix1)
+        line= line+bace
+    print "%4d:%s"%(((ix1-bcsperline)/bcsperline+1)*bcsperline, line)
+    if line2!='': print "     %s"%line2
   def print1(self,bace):
     ostr="#%s"%bace
     for n in range(len(self.bx[bace])):
@@ -806,6 +976,13 @@ class FilScheme:
       if self.ignore.has_key(bxn): continue
       ostr= ostr + " " + str(bxn)
     return ostr
+  def printSummary(self):
+    bb= len(self.arch['B'])
+    bs= len(self.arch['S'])
+    bsa= len(self.arch['SA'])
+    bsc= len(self.arch['SC'])
+    print "Summary: B:%d S/SA/SC:%d/%d/%d A:%d C:%d"%(bb, bs,bsa,bsc, 
+      len(self.arch['A']), len(self.arch['C']))
   def getMasks(self):
     om= "# %s"%self.fsname
     om= om+"\n" + self.print1('E')
@@ -813,43 +990,60 @@ class FilScheme:
       om= om+"\n#LESS THAN 2 EMPTY BUNCHES!"
       om= om+"\n#LESS THAN 2 EMPTY BUNCHES!"
     om= om+"\n" + "bcmEMPTY" +" "+ self.eN(self.bx['E'])
+    self.arch= {}   # A C AC S B   (A+C necessary for AC)
+    self.arch['E']= self.bx['E']
+    self.arch['B']= self.bx['B']
     om= om+"\n" + self.print1('B')
     om= om+"\n" + "bcmB" +" "+ self.eN(self.bx['B'])
-    om= om+"\n" + self.print1('A')
-    om= om+"\n" + "bcmA" +" "+ self.eN(self.bx['A'])
-    om= om+"\n" + self.print1('C')
-    om= om+"\n" + "bcmC" +" "+ self.eN(self.bx['C'])
-    om= om+"\n" + "bcmAC" +" "+ self.eN(self.bx['AorC'])
-    # prepare AC+E: (both AorC, E are sorted!)
-    ace=[] ; ecopy=[]
-    for ix in range(len(self.bx["E"])):
-      ecopy.append(self.bx['E'][ix])
-    #print "ecopy:",ecopy
-    for ix in range(len(self.bx["AorC"])):
-      ac= self.bx["AorC"][ix]
-      for ixe in range(len(ecopy)):
-        e= ecopy[ixe]
-        if e==None: continue
-        if e>ac:
-          ace.append(ac) ; ac=None
-          break   # take next ac
-        elif e<ac:
-          ace.append(e) ; ecopy[ixe]= None
-          # continue to check next e
-        else:
-          ace.append(e) ; ecopy[ixe]= None ; ac=None
-          break   # take next ac
-      if ac!=None:
-        ace.append(ac) ; ac=None
-    #print "ace:",ace      
-    om= om+"\n" + self.print2('ACE', ace)
-    om= om+"\n" + "bcmACE" +" "+ self.eN(ace)
-    # not working with trains...
-    om= om+"\n" + "bcmR" +" "+ self.reversed(None)   #None or 1
-    om= om+"\n" + "#bcmR2" +" "+ self.reversed(2)   #B +1
-    #om= om+"\n" + "bcmD" +" "+ self.cosmicAllowed()
+    om= om+"\n" + self.print1('I')
+    om= om+"\n" + "bcmI" +" "+ self.eN(self.bx['I'])
+    om= om+"""
+bcmGA 224H121L3219H
+bcmGC 2897H121L546H"""
+    if self.mainsat=="never this part of the code":
+      self.arch['A']= self.bx['A']
+      om= om+"\n" + self.print1('A')
+      om= om+"\n" + "bcmA" +" "+ self.eN(self.bx['A'])
+      self.arch['C']= self.bx['C']
+      om= om+"\n" + self.print1('C')
+      om= om+"\n" + "bcmC" +" "+ self.eN(self.bx['C'])
+      om= om+"\n" + "bcmAC" +" "+ self.eN(self.bx['AorC'])
+      # prepare AC+E: (both AorC, E are sorted!)
+      ace= joinarrs(self.bx["AorC"], self.bx["E"])
+      om= om+"\n" + self.print2('ACE', ace)
+      om= om+"\n" + "bcmACE" +" "+ self.eN(ace)
+      #
+      # not working with trains...
+      #om= om+"\n" + "bcmR" +" "+ self.reversed(None)   #None or 1
+      #om= om+"\n" + "#bcmR2" +" "+ self.reversed(2)   #B +1
+      om= om+"\n" + "bcmD" +" "+ self.cosmicAllowed()
     # for technical runs -using this mask to disable triggering in CALib bc
     #om= om+"\n" + "bcmD" +" "+ "3009L1H554L"   # see CALIBbc
+    # main-satellites masks:
+    # bcmEMPTY as in main-main mode
+    # satA/C/AC/ACE -> bcmA/C/AC/ACE
+    # satS -> bcmB
+    if self.mainsat!=None:
+      satbcm="bcm"
+      #for sattyp in ("A","C","SA","SC","S"):  before Easter 2012
+      for sattyp in ("A","C","S","SA","SC"):
+        bcxs= self.mainsatAC(sattyp)   
+        #if len(sattyp)==1:
+        self.arch[sattyp]= bcxs    # A,C,S,SA,SC: keep in arch for later usage
+        #om= om+"\n" + self.print2(sattyp, bcxs)
+        om= om+"\n" + "%s%s "%(satbcm,sattyp) + self.eN(bcxs)
+      #
+      # still we need: 1. satAC=satA+satC
+      bcxs= joinarrs(self.arch['A'], self.arch['C'])   
+      #om= om+"\n" + self.print2("AC", bcxs)
+      om= om+"\n" + satbcm+"AC " + self.eN(bcxs)
+      self.arch["AC"]= bcxs
+      # 2. satACE= satAC + satE
+      bcxs= joinarrs(self.arch['AC'], self.arch['E'])   
+      #om= om+"\n" + self.print2("ACE", bcxs)
+      om= om+"\n" + satbcm+"ACE " + self.eN(bcxs)
+      om= om+"\n" + "bcmD" +" "+ self.cosmicAllowed()
+    self.printSummary()
     return om
 
 def main():
@@ -912,6 +1106,7 @@ def main():
 
   # LHC -> alice.xls
   if len(sys.argv)>=2:
+    #shwomap=None
     schname= sys.argv[1]
     if schname=='bc2buc':
      acbe= sys.argv[2]
@@ -925,6 +1120,8 @@ def main():
         if namsuf[1]=="alice":
           alicef="from alice"
           schname= namsuf[0]
+          #if len(sys.argv)>=3:
+          #  showmap= "map"
         elif namsuf[1]=="dip":
           alicef="from dip"
           schname= namsuf[0]
@@ -970,6 +1167,12 @@ prepares 2 files (see case 1. above)
 lhc2ctp.py lhc_fs.alice
 prepares lhc_fs.mask (VALID.BCMASK for ACT) from lhc_fs.alice file
 in working directory
+or:
+lhc2ctp.py lhc_fs.alice [1-3]
+instead of .mask file, print map of all bunches to stdout
+1  -prints the .alice file map
+2  -prints the .alice map + A,C,S info 
+3  -prints A,C,S map 
 
 4.
 lhc2ctp.py bc2buc ABCE bc
@@ -977,7 +1180,7 @@ shows the bucket(s) for 'ABC or E-bunch' bc
 """
     return
   if (alicef=="from sch") or (alicef=="from dip"):
-    alice= bu2bcstr(ee, schname, empty1=empty1,empty2=empty2, format=alicef, parasitic=None)
+    alice= bu2bcstr(ee, schname, empty1=empty1,empty2=empty2, format=alicef)
     lsf= open(schname+".alice","w"); lsf.write(alice); lsf.close;
     print "Alice collisions schedule written in file:\n",schname+".alice"
   #return
@@ -985,10 +1188,16 @@ shows the bucket(s) for 'ABC or E-bunch' bc
   #lsf= open("/home/aj/act/domsk/125ns_48b_36_16_36Fromxls.alice"); 
   lsf= open(schname+".alice","r"); alice=lsf.read(); lsf.close;
   # VALID.BCMASKS:
-  mask= FilScheme("", alice); mask= mask.getMasks()
+  fs= FilScheme("", alice); mask= fs.getMasks()
+  if empty1==1: fs.printmap()
+  if empty1==2: fs.printmap(ctpmsk='+ACS')
+  if empty1==3: fs.printmap(ctpmsk='ACSE')
   #print "ignored bcs:",str(mask.ignore)
-  lsf= open(schname+".mask","w"); lsf.write(mask); lsf.close;
-  print "Alice masks written in file:\n",schname+".mask"
+  if empty1==1 or empty1==2 or empty1==3:
+    pass
+  else:
+    lsf= open(schname+".mask","w"); lsf.write(mask); lsf.close;
+    print "Alice masks written in file:\n",schname+".mask"
   #print "VALID.BCMASKS:\n",mask.getMasks()
 if __name__ == "__main__":
     main()

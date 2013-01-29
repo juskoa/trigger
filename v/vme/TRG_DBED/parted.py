@@ -162,7 +162,7 @@ def redline(inf):                 # ignore empty lines
     key= cltds[istart+1:istop+1]
     val= symbols.get(key)
     if val==None:
-      PrintError("Unknown symbol in line:"+cltds)
+      PrintError("Unknown symbol %s in line:"%(key)+cltds)
       break
     cltds= cltds[:istart] + val + cltds[istop+1:]
   #print "redline rc:",cltds[:-1]
@@ -2692,6 +2692,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           l0pr= myw.frommsL0pr('',l0scaler)
         else:
           l0pr= myw.frommsL0pr('',cla.L0pr)
+          if l0pr==None:
+            print "ERROR:savercfg: claL0pr:", cla.L0pr, clasname, l0pr, type(l0pr)
           if int(l0pr) & 0x80000000:
             sdg= 0   # not sync, busy way
           else:

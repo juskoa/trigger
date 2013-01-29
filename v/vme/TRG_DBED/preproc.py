@@ -70,7 +70,7 @@ class symbols:
       dfn= dfn*dfn
     if dfn<0.000001: df= "0%"
     elif dfn>0.99999: df= "100%"
-    else: df= "%.6f"%(dfn*100) + '%'
+    else: df= "%.7f"%(dfn*100) + '%'   # g: can return 1.1e-05 !, better f
     self.typ[key]= fixll
     self.symbols[key]= df
     return None   # i.e. ok

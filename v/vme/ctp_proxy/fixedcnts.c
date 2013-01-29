@@ -31,7 +31,11 @@ char name[40];   // input/class name without cluster (0TSC,CMUS1-AC-NOPF-)
 
 /* after the change of this table, recompile/relink/restart 
    ctp_proxy (enough, unless more than 50 counters reached).
-Commented: was valid before (May VDM). Last change: 10.07.2012
+Commented: was valid before (May VDM). Last change: 28.01.2013
+DCS test:
+check CTPDIM/MONLUMCNTS service
+.../v/vme/dimcdistrib > linux/dimccounters CTPDIM
+or start the same client on gfoxtrot@alidcscom707 through alias counters
  */
 TFixedCnts FixedCnts[]= {
 {0, 1, CSTART_SPEC, "epochsecs"},     // 921
@@ -137,7 +141,7 @@ TFixedCnts FixedCnts[]= {
 {33, 101, CSTART_L0+16, "CDG-AC-NOPF-"},
 {34, 101, CSTART_L0+16, "CDG-E-NOPF-"},
 {0,0,0,""} */
-/* pp12 July 17th */
+/* pp12 July 17th 
 {3, 101, CSTART_L0+16, "C0TVX-B-NOPF-"},
 {4, 101, CSTART_L0+16, "C0TVX-A-NOPF-"},
 {5, 101, CSTART_L0+16, "C0TVX-C-NOPF-"},
@@ -167,6 +171,30 @@ TFixedCnts FixedCnts[]= {
 {29, 101, CSTART_L0+16, "CSPI7-A-NOPF-"},
 {30, 101, CSTART_L0+16, "CSPI7-C-NOPF-"},
 {31, 101, CSTART_L0+16, "CSPI7-E-NOPF-"},
+{0,0,0,""} */
+/* Jan28 2013 */
+{3, 101, CSTART_L0+16, "C0TVX-B-NOPF-"},
+{4, 101, CSTART_L0+16, "C0TVX-A-NOPF-"},
+{5, 101, CSTART_L0+16, "C0TVX-C-NOPF-"},
+{6, 101, CSTART_L0+16, "CT0OR-B-NOPF-"},
+{7, 101, CSTART_L0+16, "CT0OR-A-NOPF-"},
+{8, 101, CSTART_L0+16, "CT0OR-C-NOPF-"},
+{9, 101, CSTART_L0+16, "CVBAND-B-NOPF-"},
+{10, 101, CSTART_L0+16, "CVBAND-A-NOPF-"},
+{11, 101, CSTART_L0+16, "CVBAND-C-NOPF-"},
+{12, 101, CSTART_L0+16, "CVBANOTC-B-NOPF-"},
+{13, 101, CSTART_L0+16, "CVBANOTC-A-NOPF-"},
+{14, 101, CSTART_L0+16, "CVBANOTC-C-NOPF-"},
+{15, 101, CSTART_L0+16, "CVBCNOTA-B-NOPF-"},
+{16, 101, CSTART_L0+16, "CVBCNOTA-A-NOPF-"},
+{17, 101, CSTART_L0+16, "CVBCNOTA-C-NOPF-"},
+{18, 12, CSTART_L1+6, "1ZED"},
+{19, 101, CSTART_L0+16, "C0TVX-E-NOPF-"},
+{20, 101, CSTART_L0+16, "CT0OR-E-NOPF-"},
+{21, 101, CSTART_L0+16, "CVBAND-E-NOPF-"},
+{22, 101, CSTART_L0+16, "CVBANOTC-E-NOPF-"},
+{23, 101, CSTART_L0+16, "CVBCNOTA-E-NOPF-"},
+{24, 101, CSTART_L0+16, "C0VGO-ABCE-NOPF-"},
 {0,0,0,""} 
 /* abort gap measurements
 {3, 101, CSTART_L0+16, "C0TVX-GA-NOPF-"},

@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/act/db
+#cd ~/act/db do not change wd (this script invoked from validate4act.bash,...)
 if [ $# -eq 0 ] ;then
   cp $dbctp/ttcparts.cfg .
   cp $dbctp/VALID.CTPINPUTS .
