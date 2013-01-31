@@ -28,6 +28,8 @@ history
 2.5. 29.10.2012
 - pydim not even imported when strict (ACT/ECS do not have pydim
   installed)
+30.1.2013
+- FIXPOWER added for automatic downscaling
 
 Problem with SLC5:
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot

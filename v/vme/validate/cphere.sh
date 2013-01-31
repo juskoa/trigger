@@ -24,7 +24,7 @@ echo "pwd:`pwd` Do:"
 #echo 'scp dist/validate-1.0.tar.gz $aj11:'
 #echo 'scp ~/validate/dist/validate-2.3-1.noarch.rpm $lxp:t/'
 # 2.5: strict validation added (pydim needed then)!
-echo 'scp ~/validate/dist/validate-2.7-1.noarch.rpm $lxp:t/'
+echo 'scp ~/validate/dist/validate-2.8-1.noarch.rpm $lxp:t/'
 read -p "remove $pyfiles in pwd:`pwd` ? (y/n):" yn
 if [ $yn = 'y' ] ;then
   rm $pyfiles

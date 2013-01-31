@@ -895,10 +895,10 @@ if(checkcid()<0) {
 if(strcmp(msg,"qq")==0) ds_stop();
 if(stringStarts(msg,"ALL")) {
   vmew32(ALL_RARE_FLAG, 1);
-  printf("ALLRARE flag set to ALL\n");
+  prtLog("ALLRARE flag set to ALL");
 } else if(stringStarts(msg,"RARE")) {
   vmew32(ALL_RARE_FLAG, 0);
-  printf("ALLRARE flag set to RARE\n");
+  prtLog("ALLRARE flag set to RARE");
 } else if(stringStarts(msg,"CHECKPHASES")) {
   strcpy(ReceivedCommand, "DO CHECKPHASES");
   // here we should check if allowed...

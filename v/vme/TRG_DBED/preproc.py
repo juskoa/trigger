@@ -41,7 +41,7 @@ def getlumi():
 
 class symbols:
   def __init__(self):
-    # self.typ[key]: "REPL" or "FIXLUM" or FIXLOSS
+    # self.typ[key]: "REPL" or "FIXLUM" or FIXLOSS or FIXPOWER
     # self.symbols[key]: string or [deflum_float, a_float, b_float]
     self.typ={} ; self.symbols={}
   def add(self, key, value):
@@ -52,22 +52,37 @@ class symbols:
     self.symbols[key]= value
   def add_FIXLL(self, key, value, fixll):
     """ Input: key: symbolic name
-    value: float number
-    fixll: FIXLUM or FIXLOSS
+    value: 'floatnumber' or 'n floatnumb' in case of FIXPOWER
+    fixll: FIXLUM or FIXLOSS or FIXPOWER (npower needed)
     rc: None -> ok   rc: string -> Error
     """
     global lumi
     ao= string.split(string.strip(value))  # original string
-    af=[]                                 # floats
+    npowertxt= None
+    if len(ao) > 1:
+      inm= ao[0]; ao[0]= ao[1]; ao[1]= inm
+      npowertxt= ao[1]
     try:
       a= float(ao[0])
     except:
       return "Incorrect %s line:%s"%(fixll,value)
     if lumi==None:
       return "lumi (service IR_MONITOR/CTP/Luminosity) not available"
-    dfn= a/lumi
-    if fixll=="FIXLOSS":
-      dfn= dfn*dfn
+    dfn1= a/lumi
+    if fixll=="FIXLUM":
+      dfn= dfn1
+    elif fixll=="FIXLOSS":
+      dfn= dfn1*dfn1
+    elif fixll=="FIXPOWER":
+      if npowertxt == None:
+        return "Expected: 'FIXPOWER N float' in line:%s"%(fixll+" "+value)
+      try:
+        npower= int(npowertxt)
+      except:
+        return "Expected: 'FIXPOWER int float' in line:%s"%(fixll+" "+value)
+      dfn= dfn1
+      for n in range(npower-1):
+        dfn= dfn*dfn1
     if dfn<0.000001: df= "0%"
     elif dfn>0.99999: df= "100%"
     else: df= "%.7f"%(dfn*100) + '%'   # g: can return 1.1e-05 !, better f
@@ -77,7 +92,6 @@ class symbols:
   def add_lindf(self, key, value):
     global lumi
     ao= string.split(string.strip(value))  # original strings
-    af=[]                                 # floats
     try:
       if ao[0]=="act":
         deflum= DEFLUMIACT

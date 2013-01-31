@@ -2972,7 +2972,16 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       newlf=None
     #print "allocShared:rc::", newlf,errmsg
     return newlf,errmsg
-          
+  def prt_FIXrc(self, rc, cltds, symbols, shrname):
+    if rc:
+      PrintError(rc,self)
+    else:
+      print string.strip(cltds) + "   -> " + symbols.get(shrname)
+    if (self.strict=="strict") and (preproc.lumi_source != "dim"):
+      #PrintError("strict required, but luminosity DIM service not available.lumi_source:"+str(preproc.lumi_source),self)
+      PrintWarning("Luminosity not available, using default "+\
+        str(preproc.lumi)+"Hz/ub for automatic calculation of downscale factor.",self)
+    return
   def loadfile(self, inf):
     """example of .partition file (spaces only between TDs, LTUs!):
     BC1 2
@@ -3026,21 +3035,17 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           ixstart= cltds.find(" REPL ")+6
           symbols.add(shrname, cltds[ixstart:-1])
           print string.strip(cltds)
-        elif (cltdsa[1]=="FIXLUM") or (cltdsa[1]=="FIXLOSS"):
-          #ixstart= cltds.find(" LINDF ")+7
-          # cltds[ixstart:] deflum a b
+        elif (cltdsa[1]=="FIXLUM") or (cltdsa[1]=="FIXLOSS") or \
+          (cltdsa[1]=="FIXPOWER"):
+          for ch in shrname:
+            if not (ch in symchars):
+              PrintError("Bad FIX* name:%s. Allowed chars:%s"%(shrname, symchars))
+          # shrname FIXPOWER n floatlum
           fixll= " " + cltdsa[1] + " "
           ixstart= cltds.find(fixll)+len(fixll)
           # cltds[ixstart:] lum
           rc= symbols.add_FIXLL(shrname, cltds[ixstart:], cltdsa[1])
-          if rc:
-            PrintError(rc,self)
-          else:
-            print string.strip(cltds) + "   -> " + symbols.get(shrname)
-          if (self.strict=="strict") and (preproc.lumi_source != "dim"):
-            #PrintError("strict required, but luminosity DIM service not available.lumi_source:"+str(preproc.lumi_source),self)
-            PrintWarning("Luminosity not available, using default "+\
-              str(preproc.lumi)+"Hz/ub for automatic calculation of downscale factor.",self)
+          self.prt_FIXrc(rc, cltds, symbols, shrname)
         else:                               # BC1/2 RND1/2 BCM* PF* or SDG
           sr= findSHR(shrname)
           #print "Shared4:", sr
