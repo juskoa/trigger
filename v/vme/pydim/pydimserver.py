@@ -225,15 +225,15 @@ def main():
           #mylog.infolog(part.loadwarnings, level='w', partition=partname)
           print "ERROR miclock.getShift():bad clock shift:"+ cshift
         else:
-          if abs(cshift_ps) > 100.0:
+          if abs(cshift_ps) >= 100.0:
             print "current clock shift:"+cshift+" [saving in db+corde]"
-            mylog.infolog("Clock shift %sns reset"%cshift, level='i')
+            mylog.infolog("Clock shift %sns resetting to 0..."%cshift, level='i')
             miclock.checkandsave(cshift,"fineyes", force="yes")
             t= threading.Timer(5.0, checkShift)
             t.start()
           else:
             print "current clock shift (not adjusted):"+cshift
-            mylog.infolog("Clock shift %sns not adjusted"%cshift, level='i')
+            mylog.infolog("Clock shift %sns ok, (<100 ps)"%cshift, level='i')
     else:
       print "Bad command:%s"%(line)
     sys.stdout.flush()

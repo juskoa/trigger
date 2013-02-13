@@ -7,6 +7,7 @@ mkdir $tdb/VALID.CTPINPUTS.ARXIV
 }
 function cpfiles() {
 cd $dbctp
+echo ; echo "Copying:"
 echo "$dbctp -> $tdb"
 cp -a L0.INPUTS CTP.SWITCH VALID.CTPINPUTS $tdb/
 }

@@ -292,4 +292,15 @@ miclock java:
 miclock.py:
 - clock shift adjustment moved to ADJUST (was: SQUEEZE)
 - DLL_RESYNC commented out (look for CJI)
-
+1.2.2013
+git describe:1.0.0-148-gb285008 (pit+lab)
+2.2.2013
+CNTRRD/graph.bash   -an example of 'upper limit' use in rrd graphs
+3.2.2013
+ctp_Sync... errorReason added
+7.2.
+cshmClear() added -clearing SHM part about started partitions. It is executed
+when ctpproxy starts (i.e. NOT WHEN ctptproxy stopped/killed!).
+10.2.2013
+ctp_Initproxy(): xcountersStop(0) moved to the begining, before
+initCTP() call

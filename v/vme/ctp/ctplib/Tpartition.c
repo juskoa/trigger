@@ -582,6 +582,7 @@ strcpy(part->partmode, partmode);  // partmode:for rcfg
  part->classgroups[8]=8; 
  part->classgroups[9]=9; */
  part->active_cg= 0;
+ part->cshmpart= NULL;
 }
 /*--------------------------------------------------deleteTpartition()
  rbif has no pinters to free.

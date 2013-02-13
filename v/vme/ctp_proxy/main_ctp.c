@@ -42,13 +42,13 @@ if((signum==SIGUSR1) || (signum==SIGQUIT) ) {
   int np;
   if((np= getNAllPartitions())) {
     quit=1; // wait till all partitions stopped
-    sprintf(msg, "Waiting for the stop off all partitions before exit"); prtLog(msg);
+    sprintf(msg, "Waiting for the stop of all partitions before exit"); prtLog(msg);
   } else {
     quit=10;  // stop immediately (no partitions loaded)
   };
-} else if(signum==SIGKILL) {
-    sprintf(msg, "SIGKILL, immediate stop"); prtLog(msg);
-  quit=10; // =9. stop immediately
+} else if((signum==SIGKILL) || (signum==SIGINT) ) {
+    sprintf(msg, "SIGINT, immediate stop"); prtLog(msg);
+  quit=11; // =9. stop immediately
 };
 }
 
@@ -161,8 +161,11 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }
   //} else if (strcmp(action,"SYNCH") == 0) {
   } else if (strncmp(action,"SYNC",4) == 0) {   // correct: strcmp("SYNC")
+    int rc;
     smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-    if(ctp_SyncPartition(pname)){
+    if(rc= ctp_SyncPartition(pname, errorReason)){
+      printf("ctp_SyncPartition() rc:%d %s\n", rc,errorReason);
+      smi_set_parER();
       sleep (1); smi_setState("ERROR");
     }else{
       sleep (1); smi_setState("RUNNING");
@@ -209,7 +212,7 @@ signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGKILL, gotsignal); siginterrupt(SIGKILL, 0); // -9
 signal(SIGTERM, gotsignal); siginterrupt(SIGTERM, 0); // kill pid
-signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);   // CTRL C
+signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);   // CTRL C   2
 partmode[0]='\0';
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 printf("cshmInit i.e. initBakery(swtriggers/ccread if shm allocated)...\n");

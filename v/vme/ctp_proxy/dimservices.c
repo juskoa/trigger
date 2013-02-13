@@ -1231,7 +1231,7 @@ strcpy(command, MYNAME); strcat(command, "/RESULT");
 RESULTid=dis_add_service(command,0, ResultString, MAXLILE+1, 
   RESULTcaba, 4567);  printf("%s:%d\n", command, RESULTid);
 strcpy(command, MYNAME); strcat(command, "/MONCOUNTERS");
-COUNTERSid=dis_add_service(command,0, CTPCNTS, 4*(NCOUNTERS),
+COUNTERSid=dis_add_service(command,"L", CTPCNTS, 4*(NCOUNTERS),
   MONCOUNTERScaba, 4567);  printf("%s:%d\n", command, COUNTERSid);
 strcpy(command, MYNAME); strcat(command, "/MONLUMCNTS");
 /* see MAXNLUMCNTS 50

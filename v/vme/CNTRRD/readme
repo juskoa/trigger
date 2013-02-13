@@ -294,6 +294,8 @@ ds[epochmics].unknown_sec = 0
 
 rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -s 1163730000 -e 1163736000
 rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -s 1163730000 -e 1163730060
+rrdtool fetch rrd/ctpcounters.rrd AVERAGE -s 14:00 31.01.2013 -e start+60s >znc
+
 CF: AVERAGE only (MIN MAX LAST not possible -not used)
 
 mon:
@@ -310,13 +312,16 @@ graph graf.png -s 1243129900 -e 1243135900 --step 60 -w 600 -u 10000 -l 8000 DEF
 
 [root@pcalicebhm05 imgs]# cp ~trigger/CNTRRD/graf.png testjs.png
 attributes:
--s
--e
--u -r         rigid (forcing upper limit)
--l
+-s        start
+-e        end
+-u -r     rigid (forcing upper limit)
+-l        
 --step
 -w 600
 
+VDEF:max=ds0,MAXIMUM
+VDEF:ds1avg=ds1,AVERAGE
+-> see graph.bash
 8. analyse
 ----------
 getc,converth2i or strcpy():

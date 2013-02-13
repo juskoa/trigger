@@ -52,9 +52,9 @@ else
   elif [ "$1" = "status" ] ;then
     exit 0
   elif [ "$1" = "kill" ] ;then
-    echo "killing $pid" ; kill -s SIGKILL $pid
+    echo "killing $pid" ; kill -s SIGINT $pid
   elif [ "$1" = "restart" ] ;then
-    echo "restarting $pid" ; kill -s SIGKILL $pid
+    echo "restarting $pid" ; kill -s SIGINT $pid
     startproxy 
   elif [ $# -gt 0 -a "$1" != "status" ] ;then
     cat - <<-EOF

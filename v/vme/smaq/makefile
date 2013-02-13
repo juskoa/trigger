@@ -15,12 +15,14 @@ ifdef SERVER_LINK
 endif
 OBJFILES=smaq.o ssm.o intint.o
 OBJFILES2=smaq2.o ssm.o intint.o
-all: smaqold.exe smaq2.exe
+all: smaqold.exe smaq2.exe checkdmp.exe
 smaqold.exe: $(OBJFILES)
 	$(CC) $(LDFLAGS) $(OBJFILES) $(LIBS) -o $@
 smaq2.exe: $(OBJFILES2) $(CTPLIB)/libctp.a 
 	$(CC) $(LDFLAGS) $(OBJFILES2) $(LIBS) -o $@
 	ln -sf smaq2.exe smaq.exe
+checkdmp.exe: checkdmp.c $(VMEBDIR)/vmeblib/vmewrap.h
+	$(CC) -g $(CFLAGS) $(LDFLAGS) $(VMERCCLD) -o $@ $<
 ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 	$(CC) -g -c $(CFLAGS) -o $@ $<
 intint.o: intint.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h intint.h

@@ -471,6 +471,7 @@ void setglobalflags(int argc, char **argv);
 // ctpshm.c
 void cshmInit();
 void cshmDetach();
+void cshmClear();
 int cshmGlobFlag(w32 flag);
 void cshmSetGlobFlag(w32 flag);
 void cshmClearGlobFlag(w32 flag);

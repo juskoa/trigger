@@ -34,6 +34,20 @@ if(validCTPINPUTs==NULL) {
 void cshmDetach() {   // client should relese memory usage by calling this
 detachShared((w8 *)ctpshmbase);
 }
+/*------------------------------------------------- */ void cshmClear() {
+int i; Tpartitionshm *shmpart;
+shmpart= &ctpshmbase->startedParts[0];
+for(i=0;i<MNPART;i++){ 
+  int ii;
+  shmpart[i].name[0]= '\0'; 
+  shmpart[i].run_number = 0;
+  shmpart[i].paused = 0;
+  for(ii=0; ii<NDETEC; ii++) {
+    shmpart[i].Detector2Clust[ii]= 0x0;
+  };
+  //part->cshmpart= NULL; done in initTpartition()
+};
+}
 /*------------------------------------------------- GlobalFlags: */
 int cshmGlobFlag(w32 flag) {
 if( ctpshmbase->GlobalFlags & flag) return(1);

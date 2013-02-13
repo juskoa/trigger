@@ -170,7 +170,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
           };
           printf("Going to send SYNC %d times\n", reps);
           for(i=0; i<reps; i++) {
-            ctp_SyncPartition(pname);
+            ctp_SyncPartition(pname, errorReason);
             usleep(1000000);
           };
           //printf("Sending sync for partition %s\n",pname);

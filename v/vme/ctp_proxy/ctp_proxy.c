@@ -2106,9 +2106,11 @@ rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
 };
-printf("ctp_proxy ver: 24.09.2012\n");
+printf("ctp_proxy ver: 10.02.2013\n");
+xcountersStop(0);           // clear list of active runs
 SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
+cshmClear();
 readTables(); // enough only in ctp_proxy
 if(initHW(&HWold)) return 1; // initialise and clean HWold structure
 if(initHW(&HW)) return 1;   // initialise and clean HW structure
@@ -2149,7 +2151,6 @@ strcpy(dimcom,"CTPRCFG/RCFG");
 rc= dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, callback, TAGctprestart);
 printf("rc from \"CTPRCFG/RCFG rcfgdel ignore/useDAQLOGBOOK\":%d (1 is OK,but check callback)\n", rc);
 usleep(1000000);
-xcountersStop(0);           // clear list of active runs
 prepareRunConfig(NULL,2);  // mv all lurking .rcfg to delmeh/
 usleep(1000000);
 if(pydimok==1) {rc=0; } else {rc=1;};
@@ -2206,7 +2207,7 @@ int ctp_PausePartition(char *name,char *mask){
 /*---------------------------------------------ctp_SyncPartition()
  * sync
 */
-int ctp_SyncPartition(char *name) {
+int ctp_SyncPartition(char *name, char *errorReason) {
 Tpartition *part; int rc=0;
 char emsg[300];
 infolog_SetStream(name,-1);
@@ -2214,9 +2215,9 @@ part=getPartitions(name, StartedPartitions);   //only Started can be paused
 if(part == NULL) return 1;
 infolog_SetStream(name, part->run_number);
 if(cshmQueryPartition(part)!=1) {
-  sprintf(emsg,"SYNC not sent (partition is not PAUSED)");
+  sprintf(emsg,"SYNC not sent (partition not PAUSED)");
   infolog_trgboth(LOG_ERROR, emsg);
-  rc=2;
+  strncpy(errorReason, emsg,ERRMSGL); rc=2;
 } else {
   int src;
   if((src=generateXOD(part,'Y', emsg ))==0) {
@@ -2226,7 +2227,7 @@ if(cshmQueryPartition(part)!=1) {
   } else {
     sprintf(emsg,"SYNC not sent. generateXOD() rc:%d", src); 
     infolog_trgboth(LOG_ERROR, emsg);
-    rc=3;
+    strncpy(errorReason, emsg,ERRMSGL); rc=3;
   };
 };
 //usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');
