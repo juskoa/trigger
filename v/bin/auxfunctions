@@ -5,14 +5,19 @@ function getpid() {
 #echo $pidcmd1
 pnam=`basename $1`
 pid=`pgrep $pnam`
+spid=''
 #echo "auxfunctions:pid:$pid"
 if [ -z "$pid" ] ;then
   spid=''
 else
 #pidcmd=`ps -o'%p %u %a' $pid |tail -1`
   pidcmd=`ps -wo'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
+  if [ -z "$pidcmd" ] ;then
+    return
+  fi
 #echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
   declare -a dl=($pidcmd)
+echo "auxfunctions:pidcmd:$pidcmd dl:$dl"
 # correct for python starts:
 # i.e.:
 #24899 trigger  /usr/bin/python /data/dl/root/usr/.../wsgi/ctpwsgi.py
