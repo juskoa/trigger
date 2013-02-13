@@ -172,7 +172,7 @@ TFixedCnts FixedCnts[]= {
 {30, 101, CSTART_L0+16, "CSPI7-C-NOPF-"},
 {31, 101, CSTART_L0+16, "CSPI7-E-NOPF-"},
 {0,0,0,""} */
-/* Jan28 2013 */
+/* Jan28 2013  for vdm 7.2.: C0VGO -> CVGO */
 {3, 101, CSTART_L0+16, "C0TVX-B-NOPF-"},
 {4, 101, CSTART_L0+16, "C0TVX-A-NOPF-"},
 {5, 101, CSTART_L0+16, "C0TVX-C-NOPF-"},
@@ -194,7 +194,7 @@ TFixedCnts FixedCnts[]= {
 {21, 101, CSTART_L0+16, "CVBAND-E-NOPF-"},
 {22, 101, CSTART_L0+16, "CVBANOTC-E-NOPF-"},
 {23, 101, CSTART_L0+16, "CVBCNOTA-E-NOPF-"},
-{24, 101, CSTART_L0+16, "C0VGO-ABCE-NOPF-"},
+{24, 101, CSTART_L0+16, "CVGO-ABCE-NOPF-"},
 {0,0,0,""} 
 /* abort gap measurements
 {3, 101, CSTART_L0+16, "C0TVX-GA-NOPF-"},
