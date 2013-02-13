@@ -97,11 +97,11 @@ def main():
   signal.signal(signal.SIGQUIT, signal_handler)   # 3
   signal.signal(signal.SIGTERM, signal_handler)   # 15 -default
   signal.signal(signal.SIGINT, signal_handler)   # 2 CTRL C
-  mtall= ['B','A','C','S','SA','SC','D','E']
+  mtall= ['B','A','C','S','SA','SC','D','E','I']
   for mtag in range(len(mtall)):
     services.append(service(mtall[mtag], mtag))
   updateAll()
-  pydim.dis_start_serving("example of simple server")
+  pydim.dis_start_serving("CTPBCM")
   mylog.logm("Starting the server ...")
   while True:
     a=""

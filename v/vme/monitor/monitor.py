@@ -255,7 +255,7 @@ def main():
       print "starting..."
     else:
       print """
-nohup ./monitor.py start & >$VMEWORKDIR/WORK/monitor.nohup
+nohup ./monitor.py start >$VMEWORKDIR/WORK/monitor.nohup &
 monitor.py stop
 """
       return

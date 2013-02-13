@@ -9,8 +9,9 @@ DIS_BEFORE=3
 DIS_AFTER_AC=32
 DIS_AFTER_B=128
 # the minimal distance to the previous/next B-bunch:
-I2B_BEFORE=10
-I2B_AFTER=10
+# i.e. 2: -at least 1 bunch between I and neighbour
+I2B_BEFORE=11
+I2B_AFTER=2
 def suborbit(a, b):
   """ cal. diffrence between 2 BCs b->a
   """
@@ -309,7 +310,7 @@ Goal: prepare:
       bc_spacing= int(ll[ixbuc])/25
       #print "%d PStrains:"%beam,PStrains,"reps:",repetitions,"SPSspace:",SPSspace
       for ibcsps in range(PStrains):
-        #print "ibcsps:",ibcsps, SPSspace
+        #print "ibcsps:",ibcsps, "bucFirst:",bucFirst, "SPSspace:",SPSspace
         for ibc in range(repetitions):   # ibc>0: multi bunch injections
           buc= (bucFirst + ibc*(10*bc_spacing))%(ORBITL*10)
           bc=bu2bc(beam, buc)
@@ -322,7 +323,10 @@ Goal: prepare:
           #print "bcbuc:", beam, buc,"->", bc
           err=self.__storebc(bc, beam, buc,trainStart)
           if err: errs= errs+ err + "\n"
-        bucFirst= buc + 10*SPSspace/25
+        if SPSspace==0:    # is 0 for Multi_100b_46_16_22_36bpi9inj (11.2.2013)
+          bucFirst= buc + 10*bc_spacing
+        else:
+          bucFirst= buc + 10*SPSspace/25
     if dipfile: dipfile.close();
     print "Max. train:", trainlenmax
     return errs
@@ -891,12 +895,18 @@ class FilScheme:
       else: nextbt=''
       if (AC=='A') or (AC=='C'):
         if (AC== bt):   # locate start of comb A/C
-          bxac.append(bx)
-          # was before 7.1.2013:
+          # was before 7.1.2013 (problem with 25ns fs):
           #if (prevbt=='' or prevbt=='E') and (nextbt=='' or nextbt=='E'):
-          #  bxac.append(bx)
+          # bxac.append(bx)
           #elif prevbt=='B' or prevbt==AC:
           #  print "Error: 2 neighbouring bcs from %d:%c%c "%(prevbx, prevbt,bt)
+          #
+          # following line for pA2013 (from 7.1.2013) i.e. full set of A/C:
+          #bxac.append(bx)
+          # after 11.2.2013:
+          if (prevbt=='' or prevbt=='E' or prevbt=='B' or prevbt==AC) and \
+             (nextbt=='' or nextbt=='E' or nextbt=='B' or nextbt==AC):
+            bxac.append(bx)
         continue
       # S case (AC or CA -2nd one is current one):
       if AC=='S':
@@ -1005,7 +1015,9 @@ class FilScheme:
     bs= len(self.arch['S'])
     bsa= len(self.arch['SA'])
     bsc= len(self.arch['SC'])
-    print "Summary: B:%d S/SA/SC:%d/%d/%d A:%d C:%d"%(bb, bs,bsa,bsc, 
+    bsi= len(self.bx['I'])
+    print "Summary: B:%d(I:%d nonB before/after:%d/%d) S/SA/SC:%d/%d/%d A:%d C:%d"%\
+      (bb, bsi,I2B_BEFORE-1,I2B_AFTER-1,bs,bsa,bsc, 
       len(self.arch['A']), len(self.arch['C']))
   def getMasks(self):
     om= "# %s"%self.fsname
