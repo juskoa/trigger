@@ -1,0 +1,65 @@
+steps:
+- copy ltusw to vmena62ltu1:
+v/bin/distrib ALL
+scp ~/vmebltu.tar $na62:
+na62:
+cd v ; tar -xf ../vmebltu.tar
+touch ~/ltusw64bit   (for rsync later:
+[pcalicebhm10] /home/dl/root/usr/local/trigger/devel/v > rsync -anv --exclude '*.[oa]' --exclude '*_cf*' jusko@vmena62ltu1:v/ . 
+
+)
+-rw-rw-r-- 1 jusko jusko 0 Feb 25 14:58 ltusw64bit
+
+- modify vmewrap.c following Vlado's notes form 23.10.2011
+  - leave SIMVME, CAENVME, VMERCC, VMECCT ( MSVISA,AIX)
+  modified:
+  ifdef HOST64 -for new driver added in vmewrap.c
+  u_long vmeptr (in Tvmespace)
+- try compile/link:
+  modified:
+    vmeb/vmeai.make.VMERCC
+    vmeblib/infolog.c
+    . v/scripts/vmebse.bash
+    make    ok in vmeblib
+    vmecomp ltu
+---------cases:
+15.3.2013 setValueNames
+cmdbase.c: In function ‘void setValueName(Tname*, char*)’:
+cmdbase.c:563: error: cast from ‘char*’ to ‘w16’ loses precision
+fix: setValueNames[VME,String] added, i.e. there are: 
+...w32 -here also indirect option possible, 
+...VME,String,Float also indirect?
+
+todo: 
+-line 1198 (funcs)
+-check for type of variable in set... get.. funcs
+
+similar getValuename problem:
+added: getValueNameString
+  
+todo:
+- vmeb/vmeaistd.h
+   intvar -> union {strptr, intvar};
+  
+   
+- DHOST setting (automatic)
+- rsync
+
+---------------notes:
+[pcalicebhm11] /home/aj/EXAMPS/x86_64vsi686 > ./beep
+
+w8:1 byte:1
+w16:2 half:2
+w32:4 word:4
+int:4 i:4
+w64:8
+char *:8
+void *:8
+void:1
+float:4
+double:8
+flx:0x54   names[0].adr:text string
+names[0].val:34
+[pcalicebhm11] /home/aj/EXAMPS/x86_64vsi686 > uname -a
+Linux pcalicebhm11 2.6.18-348.3.1.el5xen #1 SMP Tue Mar 12 08:09:00 CET 2013 x86_64 x86_64 x86_64 GNU/Linux
+

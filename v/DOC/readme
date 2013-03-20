@@ -6,6 +6,7 @@ Contents:
 4. How to prepare ltuclient distribution
 5. Files in DOC directory:
 6. environment variables
+6.1. environment variables setup
 7. DAQ rpm...
 
 1.1. accounts, machines
@@ -73,7 +74,7 @@ prog.txt -notes for programmer
 
 3. How to prepare LTU distribution
 ----------------------------------
-In trigger@pcalicebhm05:...vd
+In trigger@pcalicebhm10:...v/
 0. Prepare indexnew.html (according to DOC/history.txt)
    aj@eprexa.ph.bham.ac.uk:public_web/ltu
    scp index.html ixobsolete.html jusko1@lxplus.cern.ch:
@@ -83,7 +84,7 @@ In trigger@pcalicebhm05:...vd
            vd/DOC/history.txt
 2. 
   make sure VMECFDIR, VMEBDIR are set and:
-  vd/bin/distrib ALL
+  v/bin/distrib ALL
   scp ~/vmebltu.tar trigtest@altri1:
 3.
   trigtest@altri1:
@@ -246,6 +247,21 @@ SERVER: lab environment. Used for:
 
 DIM_DNS_NODE
 aldaqecs in th pit pcald30 in lab
+
+6.1. environment variables setup
+------------------------------
+.bashrc:
+# set environment (also for remote execution over ssh):
+cd $CCRFS/usr/local/trigger/devel ; . bin/vmebse.bash
+if [ -n "$PS1" ] ;then
+# old way (to be removed):
+#. $CCRFS/usr/local/trigger/bin/vmebse.bash vd
+#. $CCRFS/usr/local/trigger/bin/setenv
+# set interactive environment:
+export CCRFS=/home/dl/root
+export CLRFS=/home/dl/snapshot
+cd $CCRFS/usr/local/trigger/devel ; . bin/setenv
+fi
 
 7. DAQ rpm...
 -------------

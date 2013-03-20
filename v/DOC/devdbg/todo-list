@@ -81,7 +81,7 @@ Contents:
     done 8.10.2012 in pit, see devdbg/SOLVED/syncdownscaling
 20. 21.08.2012 trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
     Done: 30.8.2012 peapred for update in the pit
-21. 21.08.2012 INIT_PARTITION command to ctpproxy. 
+21. 21.08.2012 INIT_PARTITION command to ctpproxy. Done
 22. 21.08.2012 ~tri sw (dcsFES_putData.sh,.. should be kept in VMECFDIR dimcoff?
 23. 21.08.2012 miclock java:
 - tooltips missing
@@ -94,6 +94,8 @@ Contents:
 
 26. 31.10.2012 bug in syncdownscaling when .crfg file created
 27. 08.11.2012 backup strategy: what, where to copy how at the end of year
+    see: aj@11:p2/history_backups
+               DOC/eofyear
 28. 15.11.2012 redis: see devdbg/redis
 29. 27.11.2012 measure busy when switching from stdalone -> global. Detector
                should be ready (maybe LOAD_FAILURE? for ltuproxy?)   see also 
@@ -112,6 +114,8 @@ WORK/l0_9_16.01.2013_21:32:11.dmp created
 Warn: BC signal not connected
 WORK/l0_9_16.01.2013_21:32:59.dmp created
 ...
+
+36. 64bit: vme access, ltu sw
 
 ==========================================================================
 
@@ -495,3 +499,6 @@ run 191115:
 CSHM8WU-S-NOPF-ALL 25 DSHM8WU ALL {NONE} {BCM2} 2032118 0 0 0 0
 - last column should be 25 (not 0)
 
+36. 64bit: vme access, ltu sw
+-----------------------------
+see bit32_64

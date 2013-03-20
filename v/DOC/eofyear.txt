@@ -1,0 +1,131 @@
+around 18.3.2013:
+-----------------
+1. 188:
+-------
+Idea: copy 188 to /data/2012/...
+
+CNTRRD/logs ->logs2013
+CNTRRD/rawcnts ->rawcnts2011
+CNTRRD/rawcnts ->rawcnts2012
+
+v/vme/WORK/PCFG2011
+v/vme/WORK/PCFG2012
+
+RCFG2008.tgz 8,9,10,11,12
+aj  -netreba
+
+2. vmecpus
+----------
+ctpproxy logs
+ltuproxy logs
+
+ttcmi logs
+
+
+3. other cpus:
+-------------
+521 IR -Ivan takes care?
+707 SMAQ,root
+
+
+trgacr07 bin aj -> lxplus:mails/ajbin_acr2012.tgz
+
+------------------------ 188
+[alidcscom188] /home/alice/trigger > du -sh CNTRRD/rawcnts CNTRRD/logs v
+4.1G    CNTRRD/rawcnts
+681M    CNTRRD/logs
+1.7G    v
+
+/data/2011/CNTRRD/rawcnts
+[root@alidcscom188 rawcnts2011]# mv * /data/2011/CNTRRD/rawcnts/
+/data/2011/CNTRRD/logs
+[root@alidcscom188 logs2011]# mv * /data/2011/CNTRRD/logs/
+
+/data/2012    pp+pA
+/data/2012/CNTRRD/rawcnts
+/data/2012/CNTRRD/logs
+/data/2012/v
+mkdir -p /data/2012/CNTRRD/rawcnts
+mkdir -p /data/2012/CNTRRD/logs
+cd ~trigger/CNTRRD/rawcnts
+mv *.*.2012.rawcnts /data/2012/CNTRRD/rawcnts/
+cd ~trigger/CNTRRD/logs
+mv *12????????.log /data/2012/CNTRRD/logs/
+mv *.log /data/2012/CNTRRD/logs/
+
+script:
+#!/bin/bash
+rok=$1
+rok2=
+mkdir -p /data/$rok/CNTRRD/rawcnts
+cd ~trigger/CNTRRD/rawcnts
+mv *.*.$rok.rawcnts /data/$rok/CNTRRD/rawcnts/
+mkdir -p /data/$rok/CNTRRD/logs
+cd ~trigger/CNTRRD/logs
+mv *.*.$rok.rawcnts /data/$rok/CNTRRD/logs/
+-----
+
+[root@alidcscom188 vme]# cp -a WORK /data/2012/v/vme/
+/home/alice/trigger/v/vme/WORK/
+rm -rf getfsdiplogs getfs* ltuclie* miclock*.log miclock*.log pydim*.log sctelS*.log  ctpwsgi*.log  monitor*.log *.pcfg apply_any_shift*.log  masksServer*.log
+/home/alice/trigger/v/vme/WORK/PCFG
+[root@alidcscom188 PCFG]# rm -f *
+[root@alidcscom188 RCFG/delme]# rm -f *
+[root@alidcscom188 RCFG/delmeh]# rm -f *
+
+---------------- done till here 15.3.2013
+
+--------- vmecpus:
+copy these:
+/data/2012/alidcsvme00[1-8]/home/alice/trigger/v
+/data/2012/alidcsvme0017/home/alice/trigger/v
+
+[alidcscom188] /data/dl/snapshot > du -sh alidcsvme00[1-8]/home/alice/trigger/v alidcsvme017/home/alice/trigger/v
+1.7G    alidcsvme001/home/alice/trigger/v
+done
+
+49M     alidcsvme002/home/alice/trigger/v
+40M     alidcsvme003/home/alice/trigger/v
+38M     alidcsvme004/home/alice/trigger/v
+38M     alidcsvme005/home/alice/trigger/v
+81M     alidcsvme006/home/alice/trigger/v
+43M     alidcsvme007/home/alice/trigger/v
+432K    alidcsvme008/home/alice/trigger/v
+cd /data/dl/snapshot
+[root@alidcscom188 snapshot]# tar -czf /data/2012/alidcsvme2-8.tgz alidcsvme00[2-8]/home/alice/trigger/v
+clean:
+cd /data/dl/snapshot
+rm -f alidcsvme00[2-8]/home/alice/trigger/v/*/WORK/LTU-*1[1-3]*.log
+rm -f alidcsvme00[2-8]/home/alice/trigger/v/*/WORK/*.dump
+
+5.8M    alidcsvme017/home/alice/trigger/v
+cd /data/2012
+mkdir -p alidcsvme017/home/alice/trigger/v
+cd alidcsvme017/home/alice/trigger/v
+cp -a /data/dl/snapshot/alidcsvme017/home/alice/trigger/v/* .
+clean:
+cd /data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK; rm ttcmidims1[1-3]*.log
+
+still todo:
+707 (smaq)
+
+still todo:
+1. 707 (smaq)
+2. cp all (2nd copy) to 2TB disk at alidcscom027
+strategy:
+- 1st copy in 188:/data/20* dirs: 188 logs
+- 2nd copy (long time) in 2TB on 027:/b3 (copy of 188:/data/20*) 
+[root@alidcscom188 data]# time tar -cz 2012 | ssh trigger@alidcscom027 'tar -zxf - -C /b3/188'
+[root@alidcscom188 data]# time tar -cz 2013 | ssh trigger@alidcscom027 'tar -zxf - -C /b3/188'
+
+- SMAQ: only 1 copy at 027:/b5
+[alidcscom707] /data/alice/trigger > time tar -cz SMAQProject | ssh trigger@alidcscom027 'tar -zxf - -C /b5/smaq/2012'
+real    3m16.753s     3.9G
+user    3m44.558s
+sys     0m11.839s
+[alidcscom707] /data/alice/trigger > time tar -cz SMAQ | ssh trigger@alidcscom027 'tar -zxf - -C /b5/smaq/2012'
+real    9m0.175s      23G
+user    6m39.511s
+sys     0m35.373s
+
+

@@ -1,0 +1,314 @@
+See CTPhistory2011.txt for notes before January 2012
+27.1.2012
+ctp_proxy.c: ctp_PausePartition:  stopTimer(255 instead of 0 
+- now, the class counters in DAQlogbook during PAUSE should be treated
+ the same way as they are when disabled due to time sharing
+31.1.2012
+in the pit:
+1.
+copy sync.seq/slm files to all CFG/ltu/SLM/directories:
+doRightSeqs.bash  
+ rcmd 7 'makeSLMproxylinks.bash v0' for all dets on all (2-7) machines  -
+create link sync.seq -> /usr/local/trigger/v/vme/ltu_proxy/noclasses/sync.seq
+in lab:
+-scripts(unchange) copied from pit, 
+-SLMproxy/sync.seq links for daq,ssd created
+-SLM/sync.seq/slm files for daq,ssd created
+
+7.2.2012
+parted.py: BCMASKS: section in .rcfg contains ONLY used BCmasks (before:
+also mask definitions of classes masked out when detectors masked out)
+8.2.2012
+l0ifun3/4 counters now ok (in vmeb/counters.py and cnames.sorted2)
+17.2.2012
+6 bits [30..25] are initialised to 0..49 in RATE_DATA -prepared for firmware
+AF.
+Modified: ctplib/dumpCTP,initCTP,Tpartition
+Still todo: 
+TRG_DBED/   
+ctp_proxy/
+ctp -classes widget
+
+=============================20.2.2012        lab->pit
+AE version of l0 board in the pit + sw updated in the pit
+I.e. sw in lab+pit is now in sync, monscal++ still to be checked.
+Notes from update: see trigger@alidcscom188:aj/f20/readme
+4 new counters fo[1-4]l2rout[1-4] on each FO board:
+fo1l2rout1 871 fo1 C HMPID
+fo1l2rout2 872 fo1 C PHOS
+fo1l2rout3 873 fo1 C CPV
+fo1l2rout4 874 fo1 C N
+
+21.2.2012
+monscal++ in sync also
+
+22.2.2012
+bug fixed in parted.py: when .rcfg created, it could happen not all BC masks
+wer shown in BCMASKS: section
+22.2.2012
+switched.py -adjusted for l0A/B (in addition to l0f in VALDI.CTPINPUTS)
+23.2.
+bug fixed (seems): problem: l0f34 LUTs have reversed order of bits -
+i.e. vmeb/txtproc.py changed:
+<5 bits table: returns normal bit string (as till now)
+>4 bits table: returns reversed bit string
+24.2.
+vmeb/trigdb.py: bug fixed in getINT12(): return None is INT1/2 not defined
+Now: in case INT1/2 not defined in ctp.cfg, .rcfg contains just 
+INTERACTION: section line without NONE line
+26.2. 
+bcmasks processing for AB version bug fixed
+CNTWEB/chlocpart.py ok (still needs better html)
+27.2.
+monitor/monitor.py html added
+27.2.
+vmeb/vmeblib/make707, vme/fanio/dim/make707.bash ->prepare
+alidcscom707:v/linux64/client for bin/fanin script started on 707 machine
+from fmd,daq,ssd,hmpid (or trigger) account
+see p2/cavern: 707
+
+1.3.2012 l+p
+parted.py fixed: l0f34 consisting only from 1 part (12 inputs used only)
+now load correctly (i.e. empty LUT is encoded with 0x00000... in .pcfg file)
+14.3.2012
+svn commit: rev. 208
+15.3.
+showRCFG -ok for 2011/2012 runs
+19.3.
+smaq -bug fixed (using now bakery)
+20.3.
+see clockhistory.txt for ttcmi,corde, clock shift,...
+22.3.
+CNTRRD/readctpc.c -short intervals (<=59) not considered for
+calib monitoring caclculations
+26.3.
+infolog.c -modified (new infoLogger API...)
+27.3.
+707: smaq ok
+521: IRS installation ongoing (by Ivan)
+27.3.
+switched.py modified: 
+How to create new CTP.SWITCH/VALID.CTPINPUTS without affecting 
+current run/configuration in the pit?
+Use script switched4act.bash. This script operations:
+- L0.inputs, CTP.SWITCH, VALID.CTPINPUTS are copied into temporary directory
+- switched gui is started with these copies
+- now change switch config (in gui) and
+- Save only files (CTP SWITCH not loaded) and Quit
+- updated CTP.SWITCH and VALID.CTPINPUTS are left in temporary directory
+  (they can be uploaded into ACT)
+28.3.2012
+clgroups.c -ug fixed -l0vetos bit16 vs. bit 31 (AC) now correctly tested
+30.3.2012
+CTP LDC installed in lab.
+6.4.
+miclock.py: reset command added (only in the pit)
+11.4.
+parted.py -bug fixed: cn=classname -when cn= missing, validate did not
+issue error message!
+11.4.
+gcalib.c -bug possibly removed (.e. should not give messages:
+addDET:WARN 5 already active
+).
+12.4.
+monitor/monitor.py improved
+12.4.
+VDM April pp12 preparation: ctp_proxy/fixedcnts.c modified
+13.4.
+gfoxtrot user added on 707, 64bit client is in:
+707:~trigger/v/vme/dimcdistrib/dimccounters
+see dimcdistrib/make707.bash
+16.4.2012
+New version of validate deployed in pit:
+- cn= missing now reported
+- more than 6 inverting classes allowed (AC)
+16.4.2012
+sync: SLMproxy/L2async.seq link + L2async.slm in all SLM dirs -see
+- bin/doRightSeqssync.bash
+- https://twiki.cern.ch/twiki/bin/viewauth/ALICE/SyncStdAloneTest
+17.4.
+filling/lhc2ctp.py: now automatic approach to mainmain vs. mainsat mode:
+if at least 1 colliding bunch: mainmain, else we are in mainsat mode.
+Summary: line now printed (in both nmodes) giving mode, B,A,C bunches.
+18.4. pit only
+- dimservices.c updated Nupdated counter holding the number of requests 
+  from each client
+18.4.
+CNTWEB/csmap.py preapred (also cntwebenv.py created, filling/lhc2ctp.py
+modified) showing 'orbit profile' -link from main trigger web page. 
+2.5.2012
+vmeb/pylog.py, ttcmidaemons/miclock.py:
+now operator gets FATAL error if clock not BEAM1 from 
+INJECTION PHYSICS BEAM to UNSTABLE BEAM modes
+3.5.
+sync for STDALONE done. Modifications in vd/vme/ltu_proxy/ltu_utils.c,ltu_proxy.c
+10.5.
+bug in ltu_proxy/ltu_proxy,ltu_utils fixed (sync not ok in PAUSED state)
+-REMMEBER: nvoke always smi_set_state() after finishing SMI action!
+11.5.
+CNTRRD/alanyse.c -modified: now possible output to binary file -the same
+format as published by DIM service
+11.5.
+parted.py improvement started in aj@11:git/trigger
+check TRG_DBED/readme.txt
+16.5.
+vme/pydim/simpleServer,simpleClient, masksServer -started for new
+DIM service publishing CTP masks
+19.5.
+pydim/server.c,pydimserver.py + ttcmidaemons/ttcmidims.c modified.
+- ttcmidims.c: log when newclok thread started
+- pydim: NLs are ignored  (before: when server.c received CTPRCFG/RCFG
+  message consisting just from NL, pydimserver.py exited
+21.5.
+ttcmidims.c: FATAL issued if thread changing clock does not start
+24.5.
+ctp_proxy/gcalib.c,dimservices, vmeblib/dimwrap.c: 
+T0 is not calibrated during STABLE BEAMS
+BEAM MODE alternates in lab every 5 mins between STABLE BEAM and NO BEAM
+30.5.
+bug fixed in ctpproxy/dimservices: size of BEAMMODE service is 4 (was 16) !
+30.5.
+gcalib.c: T0 only gets triggers in tehcnical runs (during STABLE BEAM
+no calib. triggers are sent).
+1.6.2012
+git:
+/home/dl/root/usr/local/trigger/devel
+/home/dl/root/usr/local/trigger/vd    -still used by diskless
+todo:
+/home/dl/root/usr/local/trigger/stable  -sync with pit
+
+4.6.
+pit + devel/git:
+- smaq bug fixed
+- ltudimservices: "ttcrxrest fee" added
+5.6.
+tr10:/usr/local/trigger/devel  -development version, git. COmpile all: bin/makeall
+6.6.
+smaq.c (pit +devel): now kill i(i.e. -9) operation should let
+bakery lock/unlock finish properly -signal used to catch the interrupt
+in smaq.c
+7.6.
+parted.py: cn=name skipped if name is standard name
+20.6. ================================ lab->pit
+see git commit messages...
+- new validate.rpm deployed also
+trigger/devel in lab  -git repository juskoa/trigger
+trigger/stable in pit -accessible through git (ssh tunneled)
+also see git repository lietava/triggerapp -for applications
+running on 707 (smaq,correlations,gmonscal,...)
+T0 calib: only in technical runs (outside of STABLE BEAMS)
+...
+see also git log
+13.7
+l0 fy AF can be used: initCTP.c now initialises L0_SDSCG words
+to 1,2,...,50. To be tested
+24.8.
+getfsdip.py: FATAL -> ERROR when DIP service incomplete
+24.8.
+aliases.txt implemented (see devdbg/todo-list)
+28.8.
+ctp_proxy/linux/dimc 'sbm req_beammode' comd added -for testing
+in lab. Allows to set required beam mode at any time.
+28.8.
+ctp_InitPartition replaces ctp_LoadPartition (ctp_LoadPartition is doing
+nothing)
+28.8.
+ctp_InitPartition replaces ctp_LoadPartition (ctp_LoadPartition is doing
+nothing)
+6.9.
+\ in .partition file means: continue with next line (no space added just
+next line is added to the current line)
+13.9.2012
+ctp.[ch] ctplib/pfp.c -pfp improvements. See DOC/devdbg/pf_sw for more
+18.9.
+ctp/pfsimL0.py 
+Simulation of PF (using BC1/2)  on L0 board in vme/ctp/pfsimL0.py
+19.9.
+parted.py -bug fixed for -PF_name- in class names.
+15.10.2012
+bin/mail2oncall.bash -send sms to me
+to be started from server (i.e. where sendmail is active)
+cd ~/bin ln -s /home/dl/root/usr/local/trigger/devel/v/bin/mail2oncall.bash mail2oncall.bash
+- now start through ssh form VME cpus
+15.10.2012
+bin/gcalibrestart.sh -to be called 'at -f gcalibrestart.sh now + 1 min'
+from gcalib.c
+gcalib.c -modified for automatic restart (if thread nopt started)
+-not working. Seems 'at' command cannot b used to restart itself...
+17.10.2012
+vme/inputs_u.py:
+pri kazdom merani fazy zapise obrazok do $WORKDIR/phases/inputname_date_time.ps
+18.10.2012
+vme/monitor/monitor.py started -monitoring/restarting automatically
+udpmon gcalib html pydim daemons + sms sent to aj (162090) if restart happened.
+26.10.
+ttcmidims exists if thread not started (monitor is watching also
+ttcmidim daemon)
+28.10.
+automatic downscaling implemented (using DIM luminosity service -see preproc.py)
+validate.py: strict added
+30.10.
+TPC ltu waitbusyeod: 10s (5s for others)
+readctpc.c+htmlCtp... -now 3busys, changed with kill -s SIGUSR1
+(default bsy/L2s)
+1.11.2011
+pylog.py -infolog extended
+pydimserver.py -using pylog.py now
+parted.py      -TrgPartition.loadwarnings (similar to loaderrors)
+preproc.py     - 3.0hz/ub default lumi
+19.11.
+ctp_proxy/fixedcnts.c -modified for vdm (the same classes as in July2012)
+22.11.
+ctp_proxy/bakeryTest.c -test bakery mechanism (seems ok)
+24.11.
+DAQlogbook_update_triggerClassName(), daqlogbook_update_triggerClassName:
+-downscaling added.
+26.11.
+pydim stop improved 
+-> pit
+29.11.
+clock shift reset before each PHYSICS_1 when abs(shift) > 100ps
+1.12.2012
+DSGclean DSG* subroutines moved cfg2part-> Tpartitiion.c (now vmecomp ctp
+compilation/link ok)
+7.12.
+bug in smaq.c fixed: first time, always L0 board started, also
+in case when L1 triggering input was choosen.
+8.12.
+smaq/smaq2.c -new version of smaq (change makefile when switching
+between old/new versions). new version: creates/scp 2 dump files
+if inpnum is 101..148
+11.12.2012
+shorter logs: dims.c, Tpartition.h
+7.1.2013
+Bug fixed: deletePartitions(part); added for 2 cases (after checkResources() and applyMask() in ctp_proxy.c
+See mails/bug1912. 
+8.1.2013
+parted.py saversfg(): buildname() used instead of getclsname()
+20.1.
+miclock java:
+- bug fixed in MiClockClient.java (was TTDMI instead of TTCMI)
+- DLL_RESYNC not sent (commented out for SQUEEZE in ButtonPanel.java)
+miclock.py:
+- clock shift adjustment moved to ADJUST (was: SQUEEZE)
+- DLL_RESYNC commented out (look for CJI)
+1.2.2013
+git describe:1.0.0-148-gb285008 (pit+lab)
+2.2.2013
+CNTRRD/graph.bash   -an example of 'upper limit' use in rrd graphs
+3.2.2013
+ctp_Sync... errorReason added
+7.2.
+cshmClear() added -clearing SHM part about started partitions. It is executed
+when ctpproxy starts (i.e. NOT WHEN ctptproxy stopped/killed!).
+10.2.2013
+ctp_Initproxy(): xcountersStop(0) moved to the begining, before
+initCTP() call
+19.3.
+backup made (see also eofyear.txt) to:
+188 logs -> 188:/data/ and the same copied also to 027:/b3
+707 SMAQ,SMAQProject -> 027:/b5
+
+19.3.
+new CTPhistory started (this file renamed to CTPhistory2012.txt)
+
