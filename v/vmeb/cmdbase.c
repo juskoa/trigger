@@ -170,7 +170,7 @@ int opPriorities[]={0, 0, 0, 0, 0, 0,   /* HEXNUM */
 #define flsFchar   0x500
 /* float variable */
 #define flsFLOAT    0x80000000
-/* indirect tVAR (Tname.intvar is pointer to value */
+/* indirect tVAR (Tname.intvar_ptr is pointer to value */
 #define flsINDIRECT 0x40000000
 /* temporary variable (when computing expression) */
 #define flsTEMP     0x20000000
@@ -212,6 +212,7 @@ void printop();
 void printarg();
 w32 getFlags(Tname *ix);
 w32 getValueName(Tname *ix);
+char *getValueNameString(Tname *ix);
 void printTname(Tname *arg, int printnice);
 Tname *findName(char *name); 
 Tname *addName(const char *name, w32 fls);
@@ -276,9 +277,9 @@ vmeopwX(vmeadd,value) -vme write (vmeadd: constant or variable)\n\
     };
     goto OKRET;
   } else {
-    enum Ttokentype t;
+    //enum Ttokentype t;
     int ix=iline;
-    t= nxtoken(line, namehelp, &ix);
+    nxtoken(line, namehelp, &ix);
   };
 }; 
 /* printf("namehelp:%s\n", namehelp); */
@@ -288,11 +289,13 @@ if(nm!= NULL) {
     printTname(nm,1);
     printf("\n");
   }else{
-    w32 val;
-    val=getValueName(nm);
     if(getFlags(nm) & flsSTRING) {
-      printf("%s\n",(char *)val);
+      char *val;
+      val=getValueNameString(nm);
+      printf("%s\n",val);
     } else {
+      w32 val;
+      val=getValueName(nm);
       printf("%d\n",val);
     };
   };
@@ -315,7 +318,7 @@ OKRET: return;
 /*------------------------------------------*/ void prerr(const char *msg) {
 printf("%s\n", msg);
 }
-/*------------------------------------------*/ void errexit(char *msg) {
+/*------------------------------------------*/ void errexit(const char *msg) {
 prerr(msg);
 printop(); printarg();
 exit(8);
@@ -333,12 +336,12 @@ printf("A--- %s\n", msg);
 /*----------------------------------------------*/ void add2allnames(
   const char *name, w32 fls, 
   w32 (*fp)(w32,w32,w32,w32,w32,w32,w32,w32,w32,w32), 
-  w32 intvar, 
+  const char *strptr, 
   Tpardesc *pardesc, w32 vmenp, char *usage) {
 Tname *p;
 p= addName(name, fls);
 p->fp= fp;
-p->intvar= intvar; 
+p->strptr= (char *)strptr; 
 p->pardesc= pardesc;
 p->vmenp= vmenp;
 p->usage= usage;
@@ -425,23 +428,26 @@ void vmeopw16(w32 adr, w16 val) { vmew16(adr, val); }
 void vmeopw32(w32 adr, w32 val) { vmew32(adr, val); }
 
 /*----------------------------------------------*/ void init_allnames() {
-add2allnames("vmeopr8", tFUN, (funcall)vmeopr8, 0xdead, vmeopr8_parameters, 1, NULL);
-add2allnames("vmeopr16", tFUN, (funcall)vmeopr16, 0xdead, vmeopr16_parameters, 1, NULL);
-add2allnames("vmeopr32", tFUN, (funcall)vmeopr32, 0xdead, vmeopr32_parameters, 1, NULL);
-add2allnames("vmeopmr32", tFUN, (funcall)vmeopmr32, 0xdead, vmeopmr32_parameters, 1, NULL);
-add2allnames("vmeopw8", tFUN, (funcall)vmeopw8, 0xdead, vmeopw8_parameters, 2, NULL);
-add2allnames("vmeopw16", tFUN, (funcall)vmeopw16, 0xdead, vmeopw16_parameters, 2, NULL);
-add2allnames("vmeopw32", tFUN, (funcall)vmeopw32, 0xdead, vmeopw32_parameters, 2, NULL);
-add2allnames("cctopen", tFUN, (funcall)cctopen, 0xdead, NULL, 0, NULL);
-add2allnames("cctclose", tFUN, (funcall)cctclose, 0xdead, NULL, 0, NULL);
-add2allnames("logfile", tVAR | flsSTRING, NULL, (w32)"", NULL, 0, NULL);
-add2allnames("EMPTYSTRING", tVAR | flsSTRING, NULL, (w32)"", NULL, 0, NULL);
+//allnames[0].fls= tSYMNAME;
+allnames[0].strptr= BoardSpaceLength;
+allnames[0].bax= BoardBaseAddress;
+add2allnames("vmeopr8", tFUN, (funcall)vmeopr8, (char *)0xdead, vmeopr8_parameters, 1, NULL);
+add2allnames("vmeopr16", tFUN, (funcall)vmeopr16, (char *)0xdead, vmeopr16_parameters, 1, NULL);
+add2allnames("vmeopr32", tFUN, (funcall)vmeopr32, (char *)0xdead, vmeopr32_parameters, 1, NULL);
+add2allnames("vmeopmr32", tFUN, (funcall)vmeopmr32, (char *)0xdead, vmeopmr32_parameters, 1, NULL);
+add2allnames("vmeopw8", tFUN, (funcall)vmeopw8, (char *)0xdead, vmeopw8_parameters, 2, NULL);
+add2allnames("vmeopw16", tFUN, (funcall)vmeopw16, (char *)0xdead, vmeopw16_parameters, 2, NULL);
+add2allnames("vmeopw32", tFUN, (funcall)vmeopw32, (char *)0xdead, vmeopw32_parameters, 2, NULL);
+add2allnames("cctopen", tFUN, (funcall)cctopen, (char *)0xdead, NULL, 0, NULL);
+add2allnames("cctclose", tFUN, (funcall)cctclose, (char *)0xdead, NULL, 0, NULL);
+add2allnames("logfile", tVAR | flsSTRING, NULL, "", NULL, 0, NULL);
+add2allnames("EMPTYSTRING", tVAR | flsSTRING, NULL, "", NULL, 0, NULL);
 /* add2allnames("init", tFUN, NULL, 0xdead, NULL, 0, NULL);*/
-add2allnames("init", tVAR, NULL, (w32)"", NULL, 0, NULL);
+add2allnames("init", tVAR, NULL, "", NULL, 0, NULL);
 }
 
 /*======================================== allnames[] operations: */
-/*----------------------------------------------*/ Tname *findName(char *name) {
+/*-----------------------------------*/ Tname *findName(char *name) {
 int i;
 if(name[0]=='\0') return(NULL);
 for(i=0; i<nnames; i++) {
@@ -453,11 +459,11 @@ FOUND: return(&allnames[i]);
 /*----------------------------------------------*/ void delName(Tname *ix) {
 if(ix->name[0]=='\0') return;   /* already deleted */
 if( typeName(ix) == tSTRING) {
-  if((char *)ix->intvar == NULL) {
-    errexit((char *)"NULL pointer in tSTRING variable\n");
+  if(ix->strptr == NULL) {
+    errexit("NULL pointer in tSTRING variable\n");
   };
-  if(strlen((char *)ix->intvar)>3) {
-    free((char *)ix->intvar);
+  if(strlen(ix->strptr)>3) {
+    free(ix->strptr);
     /*(char *)ix->intvar=NULL;   -fc5: invalid lvalue */
     ix->intvar=0;
   };
@@ -503,10 +509,10 @@ EMPTYFOUND:
   allnames[ix].usage= NULL;
   return(&allnames[ix]);
 }
-/*-----------------*/ Tname *addNameIndirect(char *name, w32 fls, void *p) {
+/*-----------------*/ Tname *addNameIndirect(const char *name, w32 fls, void *p) {
 Tname *tp;
 tp= addName(name, fls);
-tp->intvar= (w32)p;
+tp->strptr= (char *)p;
 return(tp);
 }
 
@@ -522,7 +528,7 @@ ix->fls= fls;
 };
 /*----------------------------------*/ w32 getValueNameDbg(Tname *ix) {
 if( ix->fls & flsINDIRECT ) {
-  return(*(w32 *)ix->intvar);
+  return(*ix->intvar_ptr);
 } else {
   return(ix->intvar);
 };
@@ -539,7 +545,7 @@ if( typeName(ix) == tVMEADR) {
   };
 };
 if( ix->fls & flsINDIRECT ) {
-  return(*(w32 *)ix->intvar);
+  return(*ix->intvar_ptr);
 } else {
   return(ix->intvar);
 };
@@ -547,26 +553,27 @@ if( ix->fls & flsINDIRECT ) {
 /*----------------------------------*/ float getValueNameFloat(Tname *ix) {
 return(ix->floatvar);
 }
+/*----------------------------------*/ char *getValueNameString(Tname *ix) {
+return(ix->strptr);
+}
 /*----------------------------------*/ char *getStringName(char *nm) {
 Tname *ix;
 char *ixrc=NULL;
 ix=findName(nm);
 if(ix==NULL) goto RET;
 if( getFlags(ix)& flsSTRING ) {
-  ixrc= (char *)ix->intvar;
+  ixrc= ix->strptr;
 };
 RET:return ixrc;
 }
 /*----------------------------------*/ void setValueName(Tname *ix, w32 val) {
 if( typeName(ix) == tVMEADR) {
-  if (ix->fls & flsVME16) {
-    w16 val16=val;
-    vmew16(ix->vmenp, val16);
-  } else if (ix->fls & flsVME8) vmew8(ix->vmenp, val);
-  else vmew32(ix->vmenp, val);
+  prerr("setValueName() used instead setValueNameVME()");
+  return;
 };
 if( ix->fls & flsINDIRECT ) {
-  *(w32 *)ix->intvar= val;
+  //*(w32 *)ix->strptr= val;     //*(w32 *)ix->intvar= val;
+  *ix->intvar_ptr= val;
 } else {
   ix->intvar= val;
 };
@@ -576,6 +583,18 @@ if( ix->fls & flsINDIRECT ) {
   prerr("attempt for indirect addressing with float (internal error)");
 } else {
   ix->floatvar= val;
+};
+}
+/*-------------------------*/ void setValueNameString(Tname *ix, char *val) {
+ix->strptr= val;
+}
+/*------------------------------*/ void setValueNameVME(Tname *ix, w32 val) {
+if( typeName(ix) == tVMEADR) {
+  if (ix->fls & flsVME16) {
+    w16 val16=(w16)val;
+    vmew16(ix->vmenp, val16);
+  } else if (ix->fls & flsVME8) vmew8(ix->vmenp, val);
+  else vmew32(ix->vmenp, val);
 };
 }
 /*---------------------------*/ void copyValueName(Tname *ix, Tname *ixsrc) {
@@ -605,13 +624,14 @@ case tVMEADR:
   value= getValueNameDbg(arg);
   if( arg->fls & flsSTRING ) {
     printf("%16s=%8x(%s) %x", arg->name, 
-      *(w32 *)value,(char *)value, arg->vmenp);
+      //*(w32 *)value,getValueNameString(arg), arg->vmenp);
+      value,getValueNameString(arg), arg->vmenp);
   } else {
     printf("%16s=%8x(%8d)float:%f", arg->name, value,value, arg->floatvar);
     if(niceprint==1) {
       if(tt== tVMEADR) printf("  adr:%x",  arg->vmenp);
       if(tt== tFUN) printf("  # of pars:%d",  arg->vmenp);
-      if(tt== tSYMNAME) printf("  base:%s",  (char *)arg->vmenp);
+      if(tt== tSYMNAME) printf("  base:%s",  arg->bax);
     } else {
       printf("   %x", arg->vmenp);
     };
@@ -700,7 +720,7 @@ case tSTRING:
       strvalue= (char *)malloc(strlng-1);
     };
     strncpy(strvalue,&token[1],strlng-2); strvalue[strlng-2]='\0';
-    setValueName(inx, (w32)strvalue);
+    setValueNameString(inx, strvalue);
   };
 /*  printf("semantic:\n"); printTname(inx,1); printf("\n");  */
   break;
@@ -932,7 +952,7 @@ case tASSIGN:
   };
   if( targ2==tVAR || targ2==tHEXNUM  || targ2==tINTNUM || targ2==tVMEADR) {
     if( targ1 == tVMEADR ) {                /* vme write */
-      setValueName(arg1, getValueName(arg2));
+      setValueNameVME(arg1, getValueName(arg2));
       ixresult= arg1;
     } else if( targ1 == tVAR ) {
       if(((getFlags(arg1) & flsSTRING)==0) ) {     /* arg1 nostring or */
@@ -940,7 +960,7 @@ case tASSIGN:
         ixresult= arg1;
       } else if(((getFlags(arg1) & flsSTRING)!=0) &&   /* string1 && string2 */
                 ((getFlags(arg2) & flsSTRING)!=0)) {  
-        setValueName(arg1, getValueName(arg2));
+        setValueNameString(arg1, getValueNameString(arg2));
         /* arg2 string is not temporary because arg1 points to it */
         setFlags(arg2, getFlags(arg2) & (~flsTEMP));
         ixresult= arg1;

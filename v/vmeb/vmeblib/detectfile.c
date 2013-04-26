@@ -36,18 +36,18 @@ while(1) {
   //dp = opendir(dirpath); (void) closedir (dp);
   rc= stat(name, &buf);
   if(rc==0) {
-    printf("detectfile stat rc:%d from stat(%s) secs:%d\n", rc, name, secs);
+    printf("detectfile stat rc:%d from stat(%s) msecs:%d\n", rc, name, secs);
     rc= buf.st_size;
     if(rc==0) {
-      printf("detectfile size:0, secs:%d\n", secs);
+      printf("detectfile size:0, msecs:%d\n", secs);
     } else {
       break;
     };
   };
   rc=-1;
-  if(secs>=maxsecs) break;
+  if(secs>=maxsecs*1000) break; //if(secs>=maxsecs) break;
   //printf("waiting %d secs\n", secs);
-  sleep(1); secs++;
+  usleep(1000); secs=secs+1; //sleep(1); secs++;
   /* fopen does not refresh.
   opf= fopen(name,"r"); 
   if(opf!=NULL) {

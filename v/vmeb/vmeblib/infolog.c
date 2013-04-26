@@ -37,10 +37,12 @@ if((severity==LOG_ERROR) || (severity==LOG_FATAL)) {
 };
 }
 
+#ifndef NOINFOLOGGER
 void my_infoLogS_f(char severity, char *msg) {
 int rc;
 rc= infoLogger_msg_xt(UNDEFINED_STRING,UNDEFINED_INT,UNDEFINED_INT,UNDEFINED_STRING,severity,INFOLOGLEVEL_OPS,msg);
 }
+#endif
 
 void infolog_trg(char severity, char *msg) {
 #ifndef NOINFOLOGGER

@@ -45,7 +45,8 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "3.7 15.06.2010"   // lnxpool31
 //#define LTU_SW_VER "3.8 19.07.2010"   // 0xb5, RATE_LIMIT +3bits
 //#define LTU_SW_VER "4.0 19.2.2012"     // 0xb6, +ltu2_b6.rbf
-#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
+//#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
+#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
 
 /*REGSTART32 */
 /* VME FPGA: */

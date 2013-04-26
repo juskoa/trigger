@@ -32,7 +32,7 @@ if(validCTPINPUTs==NULL) {
 };
 }
 void cshmDetach() {   // client should relese memory usage by calling this
-detachShared((w8 *)ctpshmbase);
+detachShared((void *)ctpshmbase);
 }
 /*------------------------------------------------- */ void cshmClear() {
 int i; Tpartitionshm *shmpart;

@@ -1887,8 +1887,8 @@ class VmeBoard:
       #if self.baseAddr[0:6]=='VXI0::':
       #  self.workdir= os.path.join( os.environ['VMEWORKDIR'],"WORK", self.boardName+self.baseAddr[6:])
       #else:
-      self.workdir= os.path.join( os.environ['VMEWORKDIR'],"WORK", 
-        self.boardName+self.baseAddr)
+      self.workdir= os.path.join( os.environ['VMEWORKDIR'],"WORK")
+      #  self.boardName+self.baseAddr)
       if os.access(self.workdir, os.W_OK)!=1:
         try:
           os.mkdir(self.workdir) 

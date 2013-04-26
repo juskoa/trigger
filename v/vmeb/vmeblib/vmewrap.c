@@ -19,30 +19,15 @@ vmxw32(vmespace, offset, value)
 rccret = VME_BusErrorRegisterSignal(0)   -added in vmxclose()
 
 ---------------------------
-1 of the following (defined with gcc -Di$VMEDRIVER option):
+1 of the following (defined with gcc -D$VMEDRIVER option):
 AIX
 VMECCT
 VMERCC
 SIMVME
-MSVISA
 CAENVME (added by P. Antonioli)
-
-1 of the following (defined directly here in the source ):
-linux
-cygwin
-WIN32
 */
 /* #define linux */
-/* #define cygwin */
-/* #define WIN32  */
-/*
-#ifdef WIN32
-  #include <stdio.h>
-  #include <signal.h>
-  #include <process.h>
-#endif
-*/
-#if defined(linux) || defined(AIX) || defined(cygwin)
+#if defined(linux) || defined(AIX)
   #include <stdio.h>
   /* #include <stdlib.h> */
   #include <unistd.h>
@@ -58,6 +43,7 @@ WIN32
 #ifdef VMERCC 
 #include "rcc_error/rcc_error.h"
 #include "vme_rcc/vme_rcc.h"
+// #define HOST64    -defined in cmd line: -DHOST64
 #endif
 #ifdef VMECCT 
 #include "vme_api.h"
@@ -66,12 +52,6 @@ WIN32
 #define PCI_ADDRESS     0xC0000000
 /*#define WINDOW_SIZE     1024*1024*7     0x1000 = 4KB */
 int lsi_fd;
-#endif
-#ifdef MSVISA 
-  /* visa.h requires WIN32 */
-  #define WIN32
-  #include "visa.h"
-  #undef WIN32
 #endif
 #ifdef CAENVME 
 #include "CAENVMElib.h"
@@ -92,14 +72,10 @@ cv_t cv;
 #include <stdlib.h>
 #include <string.h> 
 
-#ifdef MSVISA
-/* w32 *vmeptr=(w32 *)0; should not be used with VISA */
-ViSession defaultRM, instr; /* Communication channels */
-#endif
 #if defined(AIX) || defined(VMERCC) 
 int handle;
 #endif
-w8 *vmeptr=NULL;
+u_long vmeptr=0;
 
 /* max. 10 for VMERCC (or increase VME_MAX_BERR_PROCS in VMERCC driver srcs) */
 #define MAXVMESPACES 10    
@@ -108,28 +84,36 @@ typedef struct {
   int size;
   w32 am;
   int handle;
-  w8 *vmeptr;    /* NULL: this item in vxsp[] is empty (not opened) */
-/*
-#ifdef MSVISA
-  ViSession defaultRM,instr;
-#endif
-*/
+  u_long vmeptr;    /* 0: this item in vxsp[] is empty (not opened) */
 } Tvmespace;
 Tvmespace vxsp[MAXVMESPACES]=
-{{0,0,0,0,NULL},
- {0,0,0,0,NULL},
- {0,0,0,0,NULL},
- {0,0,0,0,NULL},
- {0,0,0,0,NULL},
- {0,0,0,0,NULL},
- {0,0,0,0,NULL},
+{{0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
  /*
  {0,0,0,0,NULL},
  {0,0,0,0,NULL},*/
- {0,0,0,0,NULL},
- {0,0,0,0,NULL},
- {0,0,0,0,NULL}};
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0}};
 
+#ifdef VMERCC 
+/*-------------------------------*/int VME_MasterMapVirtualDummyLongAddress(int lochandle, u_long *locvmeptr){
+int ret;
+#ifdef HOST64 /*this is to be called for the new driver*/
+ret = VME_MasterMapVirtualLongAddress((int)lochandle, locvmeptr);
+#else /*this is to be called for the old driver */
+unsigned int ptr;
+ret = VME_MasterMapVirtualAddress((int)lochandle, &ptr);
+*locvmeptr = ptr;
+#endif
+return ret;
+};
+#endif
 /*---------------------------------------------*/ w32 hex2ui(char *ich) {
 /* input: 023d or 023D rc: 573
    operation: convert ich to binary */
@@ -152,20 +136,6 @@ w8 retval=0xde;
   retval=vmesimr8(0,offset);
 #endif
 
-#ifdef cygwin
-#ifdef MSVISA
-{
-ViStatus status;
-w32 adr;
-adr= offset;
-status = viIn8(instr, VI_A24_SPACE, adr, &retval);
-if (status < VI_SUCCESS) {
-  printf("viIn8 error:%x reading:%x\n", status, adr);
-};
-};
-#endif   /* MSVISA */
-#endif   /* cygwin */
-
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_ReadCycle(cv.handle, cv.adr,  &(cv.value), cvA24_U_DATA,cvD8);
@@ -184,21 +154,7 @@ return(retval);
 w16 retval=0xdead;
 #ifdef SIMVME
   retval=vmesimr16(0,offset);
-#else
-#ifdef cygwin
-#ifdef MSVISA
-{
-ViStatus status;
-w32 adr;
-adr= offset;
-status = viIn16(instr, VI_A24_SPACE, adr, &retval);
-if (status < VI_SUCCESS) {
-  printf("viIn16 error:%x reading:%x\n", status, adr);
-};
-};
 #endif
-#endif   /* cygwin */
-
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_ReadCycle(cv.handle, cv.adr,  &(cv.value), cvA24_U_DATA,cvD16);
@@ -210,7 +166,6 @@ retval= (w16)cv.value;
 retval= *(w16 *)(vmeptr+offset);
 #endif
 /*printf("vmer16 from %x value:%x\n", offset, retval);*/
-#endif   /*SIMVME */
 return(retval);
 }
 
@@ -224,23 +179,9 @@ w32 retval=0xdeaddead;
   if(offset==0x4) { // CODE_ADD
     retval=0x56;   // always ltu
   } else if(offset==0x80) { //LTUVERSION_ADD
-    retval=0xf3;
+    retval=0xb6;
   };
 #endif
-
-#ifdef cygwin
-#ifdef MSVISA
-{
-ViStatus status;
-w32 adr;
-adr= offset;
-status = viIn32(instr, VI_A24_SPACE, adr, &retval);
-if (status < VI_SUCCESS) {
-  printf("viIn32 error:%x reading:%x\n", status, adr);
-};
-};
-#endif
-#endif   /* cygwin */
 
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
@@ -258,50 +199,21 @@ return(retval);
 /*----------------------------------*/ void vmew8(w32 offset, w8 value) {
 #ifdef SIMVME
   vmesimw8(0,offset,value);
-#else
-#ifdef cygwin
-#ifdef MSVISA
-{w32 adr;
-ViStatus status; /* For checking errors */
-/* adr= ((w32)(BASEam << 24) | (w32)BASEaddr | (w32)offset) + (w32)vmeptr; */
-adr=offset;
-status = viOut8(instr, VI_A24_SPACE, adr, value);
-if (status < VI_SUCCESS) {
-  printf("viOut8 error:%x\n", status);
-};
-};
 #endif
-#endif
-
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_WriteCycle(cv.handle, cv.adr,  &value, cvA24_U_DATA,cvD8);
 if (cv.status < 0) printf("CAENVME_WriteCycle8 error:%x\n", cv.status);
  printf("CAENVME_WriteCycle8:%x %x %x\n", cv.status, cv.adr, cv.value);
 #endif
-
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w8 *)(vmeptr+offset)=value;
 #endif
-#endif   /* SIMVME */
 return;
 }
 /*----------------------------------*/ void vmew16(w32 offset, w16 value) {
 #ifdef SIMVME
   vmesimw16(0,offset,value);
-#else
-#ifdef cygwin
-#ifdef MSVISA
-{w32 adr;
-ViStatus status; /* For checking errors */
-adr=offset;
-/* adr= ((w32)(BASEam << 24) | (w32)BASEaddr | (w32)offset) + (w32)vmeptr; */
-status = viOut16(instr, VI_A24_SPACE, adr, value);
-if (status < VI_SUCCESS) {
-  printf("viOut16 error:%x\n", status);
-};
-};
-#endif
 #endif
 
 #ifdef CAENVME
@@ -313,29 +225,13 @@ if (cv.status < 0) printf("CAENVME_WriteCycle16 error:%x\n", cv.status);
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w16 *)(vmeptr+offset)=value;
 #endif
-#endif   /* SIMVME */
 return;
 }
 /*----------------------------------*/ void vmew32(w32 offset, w32 value) {
 #ifdef SIMVME
   //printf("vmew32 sim: doing nothing:\n");
-  //vmesimw32(0,offset,value);
+  vmesimw32(0,offset,value);
 #endif
-
-#ifdef cygwin
-#ifdef MSVISA
-{w32 adr;
-ViStatus status; /* For checking errors */
-adr=offset;
-/* adr= ((w32)(BASEam << 24) | (w32)BASEaddr | (w32)offset) + (w32)vmeptr; */
-status = viOut32(instr, VI_A24_SPACE, adr, value);
-if (status < VI_SUCCESS) {
-  printf("viOut32 error:%x\n", status);
-};
-};
-#endif
-#endif
-
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_WriteCycle(cv.handle,cv.adr,  &value, cvA24_U_DATA,cvD32);
@@ -402,16 +298,9 @@ int i;
 int rccret=0; /* For checking errors */
 w32 BoBaAd,BoBaLength;
 
-#ifdef MSVISA
-ViStatus status; /* For checking errors */
-if(*vsp!=0) {
-  printf("vmx...() not supported for MSVISA driver\n");
-  rccret= 4; goto RCRET;
-};
-#endif
 #ifdef VMERCC
 int lochandle;
-w8 *locvmeptr;
+u_long locvmeptr;
 static VME_MasterMap_t master_map = {0xa00000, 0xCB, VME_A24, 0};
 #endif
 #ifdef VMECCT
@@ -429,7 +318,7 @@ if(*vsp>(MAXVMESPACES-1)) {
 if(*vsp==-1) {
   /* find free one: */
   for(i=1; i<MAXVMESPACES; i++) {
-    if(vxsp[i].vmeptr==NULL) {
+    if(vxsp[i].vmeptr==0) {
       *vsp= i; break;
     };
   };
@@ -438,7 +327,7 @@ if(*vsp==-1) {
     rccret= 10; goto RCRET;
   };
 } else {
-  if(vxsp[*vsp].vmeptr != NULL) {
+  if(vxsp[*vsp].vmeptr != 0) {
     printf("Trying to open already opened vme space %d\n",*vsp);
     rccret= 4; goto RCRET;
   };
@@ -451,6 +340,7 @@ BoBaLength=hex2ui(&BoardSpaceLength[2]);
     printf("vmesimOpen() error: %d\n",rccret);
     goto EXIT8;
   };
+vxsp[*vsp].vmeptr= BoBaAd;   //just for vmxclose()
 #else 
 #ifdef VMERCC
 if((rccret=VME_Open()) != VME_SUCCESS) {
@@ -466,7 +356,9 @@ if (rccret != VME_SUCCESS) {
   VME_ErrorPrint(rccret);
   goto EXIT8;
 };
-rccret = VME_MasterMapVirtualAddress((int)lochandle, (u_int *)&locvmeptr);
+//rccret = VME_MasterMapVirtualAddress((int)lochandle, (u_int *)&locvmeptr);
+rccret = VME_MasterMapVirtualDummyLongAddress((int)lochandle, &locvmeptr);
+
 if (rccret != VME_SUCCESS) {
   printf("VME_MasterMapVirtualAddress() error: %d\n",rccret);
   goto EXIT8;
@@ -609,28 +501,6 @@ if( *vsp==0) {
 /*printf("DBG vmxopen(%d):lsi_fd:%d vmeptr:%x BoBaAd:%x\n",
 		*vsp,loclsi_fd, locvmeptr, BoBaAd); */
 #endif    //------------------------------------------------------- VMECCT
-#ifdef MSVISA
-{char BBA[100]="a";
-
-/*printf("alignvar:%d BBA1:%s\n", alignvar, BBA);*/
-/*strcpy(BBA,BoardBaseAddress);*/
-status = viOpenDefaultRM(&defaultRM);
-if (status != VI_SUCCESS) {
-  printf("viOpenDefaultRM error:%x\n", status);
-  goto EXIT8;
-};
-strcpy(BBA, BoardBaseAddress);
-/*printf("BBA2:%s\n", BoardBaseAddress);*/
-strcat(BBA,"::INSTR");  
-/*strcpy(BBA, "VXI0::450::INSTR");*/
-/*printf("BBA:%s\n", BBA);*/
-status = viOpen(defaultRM, BBA, VI_NULL, VI_NULL, &instr);
-if (status != VI_SUCCESS) {
-  printf("viOpen error:%x\n", status);
-  goto EXIT8;
-};
-};
-#endif
 #ifdef AIX
 vmeptr=(w8 *)MapVME(BoBaAd,BoBaLength);
 /*void (*signal(int signum, void (*handler)(int)))(int); 
@@ -670,7 +540,8 @@ return(8);
 }
 /*----*/ int vmxopen(int *vsp, char *BoardBaseAddress, 
              char *BoardSpaceLength) {
-return( vmxopenam(vsp, BoardBaseAddress, BoardSpaceLength, "A24"));
+char a24[]="A24";
+return( vmxopenam(vsp, BoardBaseAddress, BoardSpaceLength, a24));
 }
 
 #ifdef CAENVME
@@ -711,9 +582,6 @@ int rc, vsp0=0;
 #ifdef SIMVME
 rc= vmxopen(&vsp0, BoardBaseAddress, BoardSpaceLength);
 #endif
-#ifdef MSVISA
-rc= vmxopen(&vsp0, BoardBaseAddress, BoardSpaceLength);
-#endif
 #ifdef VMERCC
 rc= vmxopen(&vsp0, BoardBaseAddress, BoardSpaceLength);
 handle= vxsp[0].handle;
@@ -752,7 +620,7 @@ if(vsp>(MAXVMESPACES-1)) {
   printf("vmxclose(vsp,...), vsp>%d\n",MAXVMESPACES-1);
   rccret= 16; goto RCRET;
 };
-if(vxsp[vsp].vmeptr == NULL) {
+if(vxsp[vsp].vmeptr == 0) {
   printf("vmxclose(vsp,...), vsp:%d was not open.\n",vsp);
   rccret= 16; goto RCRET;
 };
@@ -775,11 +643,6 @@ rccret = VME_Close();
 if (rccret != VME_SUCCESS) {
   printf("VME_Close() error: %d\n",rccret);
 };
-#endif
-#ifdef MSVISA
-ViStatus status;
-status = viClose(instr);
-status = viClose(defaultRM);
 #endif
 #ifdef AIX
 UnmapVME();
@@ -826,17 +689,14 @@ vme_closeDevice( lsi_fd );
 
 RCRET:
 vxsp[vsp].baseaddr= 0;
-vxsp[vsp].vmeptr=NULL;
+vxsp[vsp].vmeptr=0;
 /*printf("vmxclose rccret:%d vsp: %d\n", rccret, vsp); */
 return(rccret);
 }
 /*---------------------------------------------*/ int vmeclose() {
 int rc;
 rc= vmxclose(0);
-#ifdef MSVISA
-#else
-vmeptr=NULL;
-#endif
+vmeptr=0;
 return(rc);
 }
 /*--------------------------------------*/ int cctopen() {
@@ -873,7 +733,7 @@ return(retval);
 
 /*---------------------------------------*/ w32 vmxr32(int vsp, w32 offset) {
 w32 retval=0xdeaddead;
-if(vxsp[vsp].vmeptr==NULL) {
+if(vxsp[vsp].vmeptr==0) {
   printf("vmxr32: VME space %d not opened\n",vsp);
 } else {
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
@@ -883,21 +743,30 @@ retval= *(w32 *)(vxsp[vsp].vmeptr+offset);
 return(retval);
 }
 /*----------------------------*/ void vmxw8(int vsp, w32 offset, w8 value) {
+#ifdef SIMVME
+  vmesimw8(vsp,offset,value);
+#endif
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w8 *)(vxsp[vsp].vmeptr+offset)=value;
 #endif
 return;
 }
 /*----------------------------*/ void vmxw16(int vsp, w32 offset, w16 value) {
+#ifdef SIMVME
+  vmesimw16(vsp,offset,value);
+#endif
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w16 *)(vxsp[vsp].vmeptr+offset)=value;
 #endif
 return;
 }
 /*----------------------------*/ void vmxw32(int vsp, w32 offset, w32 value) {
-if(vxsp[vsp].vmeptr==NULL) {
+if(vxsp[vsp].vmeptr==0) {
   printf("vmxw32: VME space %d not opened\n",vsp);
 } else {
+#ifdef SIMVME
+  vmesimw32(vsp,offset,value);
+#endif
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w32 *)(vxsp[vsp].vmeptr+offset)=value;
 #endif

@@ -1,0 +1,29 @@
+21.3.2013
+git tag pAend
+
+8.4.2013
+bin/vmebse.bash -echoint() added (no stdout when non-interactive shell)
+8.4.2013
+batch of new LTUs tested by Graham.
+8.4.2013
+devel/archived introduced for archived packages (not used generally).
+archived/ltutests.tgz -testing new LTUs (with special firmware).
+Prepared from na62 LTU testing sw.
+See: Bigtest/doBackup.bash   -how backup was done on altrip2 + install notes
+
+also to be kept in mind (not in devel/archived):
+devel/../rf2ttc.tgz
+      ../atlas/BOBR
+
+17.4.2013
+[pcalicebhm10] /home/dl/root/usr/local/trigger/devel/v/vme/ltu_proxy/noclasses >
+cp *ync* $VMECFDIR/CFG/ltu/SLMproxy/
+cp *ync*.slm $VMECFDIR/CFG/ltu/SLM/
+i.e. *ync* files kept preferrably in  $VMECFDIR/CFG/ltu/SLMproxy/
+(not in ltu_proxy/noclasses/)
+17.4.
+VMELIBS env. variable introduced (default: /lib/modules/daq)
+26.4.
+v/SPECS/ directory introduced for .spec files (currently for ltuclient+ltusw)
+26.4.
+bin/vmebse_lab.bash  -use ideas for vmebse.bash (todo)

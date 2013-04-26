@@ -124,3 +124,18 @@ SYNC added (smi command executing sync )
 ltuclient-2.9-1.x86_64.rpm prepared (see DOC/ltu_distrib) -older version
 does not communicate correctly with server (Counters read)
 
+9.4.2013
+ltu/ltu.c  serial#:0 this LTU is accounted version 2 (i.e. not scratched yet)
+see also CTPhistory: (cmdbase.c, vmewrap.c also 64 bits now ok, not tested
+thoroughly).
+17.4.2013
+vme/CFG/ltu/SLM/L2a.seq,slm,...          -here are standard .seq/slm files
+vme/CFG/ltu/SLMproxy/L2async.seq,slm,...  placed
+17.4.2013
+vmeb/myw.py: if ltuclient: $VMEWORKDIR/WORK created if not existing before
+vme/ltudim/ltuclient.spec added (copied into ~/rpms/SPECS before .rpm built)
+26.4.
+v/SPECS directory now for spec files (ltusw binary rpm and ltuclient
+src+bin rpms now available)
+
+

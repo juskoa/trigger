@@ -29,11 +29,15 @@ cd v ; tar -xf../vmebltu.tar
   -now update the files: 
      vmeb/vmeai.make.$VMEDRIVER
      scripts/vmebse.bash
+     defaults: DIMDIR:/opt/dim   SMIDIR:/opt/smi
+               VMELIBS:/lib/modules/daq
+               DATE_INFOLOGGER_DIR:/opt/infoLogger
   -set environment variables:
 . scripts/vmebse.bash
   -compile and link:
 distrib make
 
+3. clean: distrib clean
 EOF
   exit
 fi
@@ -48,7 +52,7 @@ fi
 cfdir=`dirname $VMECFDIR`
 distrfile="$HOME/vmebltu.tar"
 if [ "$1" == "ALL" ] ;then
-  rm $distrfile
+  rm -f $distrfile
   names='vmeb ltu ltu_proxy ltudim ttcvi VME2FPGA'     #vmeb has to be 1st!
   #names='vmeb ltu ttcvi VME2FPGA'     #vmeb has to be 1st!
 else
@@ -99,15 +103,16 @@ if [ "$1" == "make" ] ;then
   mkdir -p $VMEWORKDIR/WORK
   exit
 fi
-#mv ../vmebltu.tar ../vmebltu.tar.old
 RVF='--no-recursion -rvf'
 for pn in $names ;do
-  if [ $pn == 'vmeb' ] ;then
+  if [ $pn = 'vmeb' ] ;then
     echo "pwd:" `pwd`
-    rm -ri $VMECFDIR/../scripts
+    read -p "rm $VMECFDIR/../scripts ? (y/n)" rmyn
+    [ "$rmyn" = "y" ] && rm -r $VMECFDIR/../scripts/*
     mkdir $VMECFDIR/../scripts
-    cd $VMECFDIR/../../bin
+    cd $VMECFDIR/../bin
     cp -a vmebse_lab.bash $VMECFDIR/../scripts/vmebse.bash
+    cp -a setup_lab.sh $VMECFDIR/../scripts/setup.sh
     cp -a distrib ltuproxy.sh loadLTUfpga seq2slm.bash \
       $VMECFDIR/../scripts/
     cd `dirname $VMEBDIR`
@@ -156,3 +161,18 @@ for pn in $names ;do
     tar -rvf $distrfile vme/$pn/*.py vme/$pn/*.[hc] vme/CFG/$pn
   fi
 done
+version=`grep '^#define LTU_SW_VER' $VMECFDIR/ltu/ltu.h`
+version=${version:20:3}
+cd ~ ; mv vmebltu.tar ltusw-$version.src.tar
+gzip ltusw-$version.src.tar ; mv ltusw-$version.src.tar.gz ~/rpms/SOURCES/
+cat - <<-EOF
+ltusw-$version.src.tar created in home directory.
+.gz version is in  ~/rpms/SOURCES:
+EOF
+ls -lt ~/rpms/SOURCES
+cat - <<-EOF
+
+Now prepare rpms/RPMS/ltusw-$version.rpm on altri1: 
+cd ~/rpms/SPECS ; rpmbuild -bb ltusw.spec"
+EOF
+

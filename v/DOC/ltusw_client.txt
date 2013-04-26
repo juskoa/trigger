@@ -1,0 +1,187 @@
+1. How to prepare ltusw distribution
+   i386.rpm   on altri1
+   Note: ltuclient is automatically included also
+
+2. How to prepare ltuclient distribution
+   x86_64.rpm on pcalicebhm10
+   i386.rpm   on altri1
+
+1. How to prepare ltusw distribution
+------------------------------------
+Goal:
+- prepare just vmebltu.tar file
+- prepare ltusw.rpm
+
+In trigger@pcalicebhm10:...v/
+A. Prepare indexnew.html (according to DOC/history.txt)
+   aj@eprexa.ph.bham.ac.uk:public_web/ltu
+   scp index.html ixobsolete.html jusko1@lxplus.cern.ch:
+   aj@eprexa.ph.bham.ac.uk
+   mkdir public_web/ltu/08092009
+B. Modify: version in v/vme/ltu/ltu.h
+           v/DOC/history.txt
+cd $VMECFDIR
+grep -e '^#define LTU_SW_VER' -e 'VERSION=' -e 'Version:' ltu/ltu.h ../bin/distrib ../SPECS/ltusw.spec
+C. 
+  make sure VMECFDIR, VMEBDIR are set. Execute on pcalicebhm10:
+  v/bin/distrib ALL
+  scp ~/vmebltu.tar testu@altri1:
+
+D.
+  testu@altri1:
+  rm -r vold; mv v vold
+  mkdir v ; cd v ; tar -xvf ~/vmebltu.tar
+  See DOC/Installation or:
+   gvimdiff v/scripts/vmebse.bash vold/bin/vmebse.bash
+   gvimdiff v/vmeb/vmeai.make.VMERCC vold/vmeb/vmeai.make.VMERCC
+   gvimdiff v/vme/CFG/ctp/DB/ttcparts.cfg vold/vme/CFG/ctp/DB/ttcparts.cfg
+
+  . v/scripts/vmebse.bash
+  v/scripts/distrib make   (to get back all .o, executables in ~triad:/usr/lcoal/trigger/...)
+Notes for new machines:
+yum install vim-X11
+yum install tkinter
+dim, smi:/home/dl/root/usr/local/trigger/root/Addons_32 
+
+  scp ~/vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
+
+E. ltusw.rpm (binary .rpm available from 26.4.2013):
+trigger@altri1: cd ~/rpms/SPECS
+rpmbuild -bb ltusw.spec
+
+Check rpm (installationon server, VME client mount /opt read-only!):
+[root@pcalicebhm10 RPMS]# cd /data/dl/snapshot/altri1/home/alice/trigger/rpms/RPMS/
+rpm --root /data/dl/root -e ltusw
+rpm -ivh --nodeps  --nocontexts --root /data/dl/root ltusw-4.2-1.i386.rpm
+
+Or without --root on target machine (not mounting /opt readonly)
+
+testu@altri1:
+rpm -qi ltusw
+
+F. aj@eprexa
+   modify web:
+   cd public_web
+   gvim indexnew.html ixobsolete.html   modify
+   scp index.html ixobsolete.html aj@eprexa.ph.bham.ac.uk:public_web/ltu/
+   scp vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
+       ltusw.rpm ?
+mail to detectors:   pine alias: detectors
+Dear users of LTUs,
+new distribution of LTU software, supporting LTUvi (TTCvi not required more)
+was released. It can be downloaded from:
+http://epweb2.ph.bham.ac.uk/user/jusko/ltu/index.html
+
+History:
+--------
+22.4.2013 ltu.h LTU_SW_VER 4.2   
+vmebltu.tar + .rpm prepared, but not published on web
+Obsolete -----------------------------(to be removed from here).
+   26 in the pit:
+   ./distrib ALL
+   in testu@altri1:
+   - vmeb/vmeai.make.VMERCC copied from aj
+   [altri1] /home/alice/testu/v/scripts > . ./vmebse.bash
+
+   todo:   (aj -to be done in aj, 
+            X -to be done only in testu account
+            N - not necessary (not existing in pit)):
+   aj pit testu
+   n  n y     - no workdir (...0x811000) necesary in myw class VmeBoard
+      X y    - NOINFOLOGGER in vmeblib/makefile
+   n  y y     -ltuttc.cfgall (add in distrib too)
+   n  y y    - L2a.seq, sod.seq eod.seq:
+               CFG/ltu/SLMproxy -> links to vme/ltu_proxy/noclasses
+               CFG/ltu/SLM  -.slm + .seq copies
+   n  y y    - isdigit in ltu_u.py replace by try:/except:
+   n  y y    - SLMdump modified, scripts/distrib modified (WORK created)
+   distrib clean/ALL
+   n  X y    - scripts/ltuproxy.sh: VMEWORKDIR left untouched (comment 1 line)
+               i.e. in labs: VMEWORKDIR = VMECFDIR
+   n  y y    - scripts/distrib: removed: WORKIMAGE,WORKSIMAGE,WORK/ssm.lst.all
+   n  y y    -ltudim/ltuclient.c ltu_proxy/ltudimservices.c   -if file
+              is the same copy not made
+   n  N y    -DOC/Installation updated
+   n  X y    -NOINFOLLOGGER (vmeblib/makefile,ltu_proxy/GNUmakefile)
+   n  y y    - distrib -CFG/ltu/SLMproxy is copied (only links to noclasses needed)
+------------------------------------- remove till here
+
+2. How to prepare ltuclient distribution   in trigger@pcalicebhm10
+----------------------------------------
+- modify LTU_CLIENT_VERSION string constant in v/vme/ltudim/ltuclient.c
+  in:
+  - v/vme/ltudim/ltuclient.c
+    COMPILE/LINK:  
+    cd v/vme/ltudim ; make
+    -should be modified/done on x86_64 machine with v.2.8
+  - v/bin/distrdimclient  (VERSION here)
+  - ~trigger/rpms/SPECS/ltuclient.spec   (Version: here)
+     Release: is 'rpm-only' related
+i.e. use:
+cd $VMECFDIR
+grep -e 'ne LTU_CLIENT_VERSION' -e 'VERSION=' -e 'Version:' ltudim/ltuclient.c ../bin/distrdimclient ~trigger/rpms/SPECS/ltuclient.spec
+
+- preparing rpm distribution:
+  distrdimclient distrib
+   ->prepares ltuclient-VERSION.src.tar.gz in ~rpms/SOURCES
+
+  cd ~/rpms/SPECS ; rpmbuild -ba ltuclient.spec
+     PROBLEM:
+[pcalicebhm10] /home/dl/root/usr/local/trigger/v/vme/ltudim > cd ~/rpms/SPECS ; rpmbuild -ba ltuclient.spec
+g++  -g -I/opt/dim/dim  -DCPLUSPLUS -DMIPSEL -DPROTOCOL=1 -Dunix -Dlinux  ./ltucmd.c -L/opt/dim/linux -ldim -o linux/ltucmd  -lpthread
+make: *** No rule to make target `cmd1.c', needed by `linux/cmd1'.  Stop.
+error: Bad exit status from /var/tmp/rpm-tmp.27997 (%build)
+Cure?:
+[pcalicebhm10] /home/trigger > cat .rpmmacros 
+%_unpackaged_files_terminate_build 0
+
+  ->should finish with exit 0
+  created files:
+  rpms/RPMS/ltuclient-2.7-1.i386.rpm
+history:
+  11.10: 2.1   (was 1.0 in ltuclient.c and 2.0 in distrdimclient/ltuclient.spec)
+  25.4.  2.2 -attempt on alidcscom026 ,not working:
+  26.4.  2.2  -on aj@altri1: ltucmd.c added to distrdimclient
+               2.4 at 11.3.2009
+  12.4.  2.4  rpms moved to triad
+   8.9.  2.5 -on triad with mounted v directory
+   4.2. 2010 2.6
+  22.2. 2010 2.7 no threads, done on trigger@05
+    2.7 -last SLC4 version (32 bit)
+    2.8 -first SLC5 version (x86_64) 21.1.2010
+17.4.2013 -ltuclient-2.9-2.x86_64.rpm         (64 bit support)
+
+installation:
+  move: 
+[altri1] /home/alice/triad/rpms/RPMS > scp  ltuclient-2.5-1.i386.rpm root@pcalicebhm05:
+
+  as root:
+  rpm -e ltuclient
+  rpm -ivh ltuclient-2.5-1.i386.rpm
+  as user:
+  . /opt/ltuclient/scripts/setup.sh
+       !!! instead vmecrate alias use ltuclient alias !!!
+  ltuclient daq or
+  $VMEBDIR/cratedim.sh daq
+  $? is: 0:ok  4:parameter/environment error   8:server cannot be contacted
+
+[altri1] /home/alice/triad/rpms/RPMS > scp  ltuclient-2.5-1.i386.rpm aj@eprexa.ph.bham.ac.uk:public_web/ltuclient/
+and modify index.html in this directory
+
+=========================================
+LTU distribution made  22.2.2007 (22022007): (lnxpool01)
+1. trigger@altri1:
+  ajupdate ALLLTU
+  v/scripts/distrib clean
+  v/scripts/distrib ALL
+  check: vmeb/vmeai.make.VMERCC
+  v/scripts/distrib make   (to get back all .o, executables in ~trigger)
+  scp vmebltu.tar apixel@lnxpool20:
+2. apixel@lnxpool20:  
+mkdir v ; cd v ; tar -xf../vmebltu.tar
+- modify scripts/vmebse.bash, vmeb/vmeai.make.VMECCT
+. v/scripts/vmebse.bash 
+  v/scripts/distrib make
+  v/scripts/loadLTUfpga load 0x810000
+3. 16.6.2010 -lnxpool31: see file lnxpool31
+

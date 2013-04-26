@@ -39,6 +39,7 @@ Contents:
 6. modify roman table l1r/l2r from TM and put to daqlogbook entry (55us for trd)
    done 27.3.2012
 7. different calculation of average busy time (using l1r table)
+   done
 8. DIM services for Giacinto
 8A. DIM services publishing VALID.BCMASKS
     done: see startClients.bash masksServer

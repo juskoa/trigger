@@ -59,5 +59,6 @@ Differencies:
 - different pinout of FPGA
 - CRC error (SEU) bit in 0x5c TEMP_STATUS bit 0x2: 
   1:CRCerror (FPGA have to be reconfigured), 0:ok
-- SERIAL_NUMBER is 7 bits (was 6bits), and LTUs serial numbers are 64,65,...
+- SERIAL_NUMBER is 7 bits (was 6bits), and LTUs serial numbers 
+  are > 63, i.e. 64,65,... (seems it is 0 if not scratched on ltu2 board)
 

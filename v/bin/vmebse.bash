@@ -8,6 +8,11 @@
 # 3. /usr/local/trigger/v    absolute (rdir= vdir )
 # Usefull for trigger@altri1:   production (/mnt) -> development (/usr):
 # . vmebse.bash swonly /usr/local/trigger/v 
+function echoint() {
+if [ -n "$PS1" ] ;then
+  echo $1
+fi
+}
 vdir=`pwd`/v     # before git: vdir='v'
 hname=`hostname -s`
 if [ -n "$1" ] ;then
@@ -42,7 +47,15 @@ fi
 #  rdir=$ult/$vdir
 #fi
 # pit or lab:
-export VMEDRIVER=VMERCC     # VMERCC, SIMVME
+if [ -e /dev/vme_rcc ] ;then
+ export VMEDRIVER=VMERCC     # VMERCC, SIMVME
+ if [[ -z $VMELIBS ]] ;then
+  export VMELIBS=/lib/modules/daq
+  export VMEINCS=/usr/local/include
+ fi
+else
+ export VMEDRIVER=SIMVME
+fi
 ix=`expr match "$hname" 'alidcs'`
 if [ "$ix" = '6' ] ;then   #pit
   export VMESITE=ALICE
@@ -54,9 +67,6 @@ if [ "$ix" = '6' ] ;then   #pit
 else
   export VMESITE=SERVER
   export SMAQ_C=pcalicebhm10
-  if [[ $hname != "altri1" ]] ;then
-    export VMEDRIVER=SIMVME
-  fi
   export VMEGCC=g++
   export DIM_DNS_NODE=pcald30
   export ACT_DB=daq:daq@pcald30/ACT
@@ -74,8 +84,8 @@ if [[ $PATH != *$vdir/bin* ]] ;then
   export PATH="$PATH:$vdir/bin"
 fi
 export PYTHONPATH=$VMEBDIR
-if [[ $LD_LIBRARY_PATH != *:/lib/modules/daq:* ]] ;then
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib/modules/daq:$DIMDIR/linux:$SMIDIR/linux:/opt/dip/lib
+if [[ $LD_LIBRARY_PATH != *:$VMELIBS:* ]] ;then
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VMELIBS:$DIMDIR/linux:$SMIDIR/linux:/opt/dip/lib
 fi
 if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then
 . /opt/infoLogger/infoLoggerStandalone.sh
@@ -86,11 +96,10 @@ fi
 alias ssh="ssh -2"
 alias vmecomp=$VMEBDIR/comp.py
 alias vmecrate=$VMEBDIR/crate.py
-alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR
-echo ACT_DB:$ACT_DB'
+alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB'
 shopt -s expand_aliases
 if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' ] ;then
-  echo "Server cpu: $hname, alias defs in bin/setenv"
+  echoint "Server cpu: $hname, alias defs in bin/setenv"
 elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then
   #ctp vme cpu:
   alias "ctp=vmecrate nbi ctp"
@@ -105,6 +114,6 @@ else
 #alias slmedit='cd $VMECFDIR/CFG/ltu/SLM;$VMECFDIR/ltu/ltu6'
 #alias initttc='$VMEBDIR/../scripts/ttcvi'
 #alias vmeshow='/local/trigger/ECS/vmeshow'
-#echo "LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
-#echo 'useful aliases: vmedirs, vmecomp, vmecrate, slmshow, slmedit'
+#echoint "LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+#echoint 'useful aliases: vmedirs, vmecomp, vmecrate, slmshow, slmedit'
 #vmedirs

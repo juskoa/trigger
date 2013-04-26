@@ -1,5 +1,8 @@
 # LDFLAGS+, COMMONCFLAGS, CFLAGS:
 include $(VMEBDIR)/com_defs.make
+ifdef HOST64
+COMMONCFLAGS += -DHOST64
+endif
 include $(VMEBDIR)/daq_defs.make
 COMMONCFLAGS += $(daqCCDEFS) $(daqINCDIRS)
 

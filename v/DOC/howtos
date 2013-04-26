@@ -13,3 +13,8 @@ t.getL012inputs('0')
 [alidcscom188] /data/dl/root/usr/local/trigger/v/vme/ctp_proxy > mysql -u acttrg -pCBNRR2be -h aldaqdb ACT
 ERROR 1044 (42000): Access denied for user 'acttrg'@'%' to database 'ACT'
 
+3. catch terminal output:
+script file.script
+...
+CTRL-D
+

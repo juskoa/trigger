@@ -1,4 +1,4 @@
-steps:
+-----------steps:
 - copy ltusw to vmena62ltu1:
 v/bin/distrib ALL
 scp ~/vmebltu.tar $na62:
@@ -62,4 +62,38 @@ flx:0x54   names[0].adr:text string
 names[0].val:34
 [pcalicebhm11] /home/aj/EXAMPS/x86_64vsi686 > uname -a
 Linux pcalicebhm11 2.6.18-348.3.1.el5xen #1 SMP Tue Mar 12 08:09:00 CET 2013 x86_64 x86_64 x86_64 GNU/Linux
+
+--------------------- history
+8.4.2013
+[vmena62ltu1] /home/jusko > ls -l ltusw64bit
+-r--r--r-- 1 jusko jusko 0 Feb 25 14:58 ltusw64bit
+
+[alitoftm00] /home/tof/SOFT > ls -l ltusw64bit
+-r--r--r-- 1 tof tof 0 Feb 25 14:58 ltusw64bit
+[alitoftm00] /home/tof/SOFT/ltu > ls -l ltusw64bit
+-r--r--r-- 1 tof tof 0 Mar 18 13:44 ltusw64bit
+
+[alitoftm00] /home/tof/SOFT/ltu > cat v/scripts/zen2tar.sh
+#!/bin/sh
+#[alitoftm00] /home/tof > ls -l SOFT/ltusw6* SOFT/ltu/ltusw6*
+#-r--r--r-- 1 tof tof 0 Mar 18 13:44 SOFT/ltu/ltusw64bit
+#-r--r--r-- 1 tof tof 0 Feb 25 14:58 SOFT/ltusw64bit
+#
+cd ~/SOFT/ltu
+find . -newer ../ltusw64bit \( -name '*.[ch]' -o -name '*[Mm]ake*' -o -name '*eadm*' -o -name '*.py' -o -name '*.sh' -o -name '*.bash' \) >/tmp/tar.inp
+#find . -newer ../ltusw64bit >/tmp/tarall.inp
+tar -zcf ~/ltuv.tgz -T/tmp/tar.inp
+
+-nothing happened from Mar 18th...
+
+8.4.2013
+all files modified now copied to tr10:devel/ i.e.:
+[alitoftm00] /home/tof/SOFT/ltu > touch ltusw64bit 
+[alitoftm00] /home/tof/SOFT/ltu > ls -l
+total 4
+-r--r--r-- 1 tof tof    0 Apr  8 17:14 ltusw64bit
+drwxr-xr-x 6 tof tof 4096 Mar 18 13:44 v
+i.e. nothing found with:
+[alitoftm00] /home/tof/SOFT/ltu > find . -newer ltusw64bit \( -name '*.[ch]' -o -name '*[Mm]ake*' -o -name '*eadm*' -o -name '*.py' -o -name '*.sh' -o -name '*.bash' \)
+
 

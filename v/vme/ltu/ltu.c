@@ -17,7 +17,7 @@
 
 #include "ltu.h"
 
-int mallocShared(w32, int, int *);
+void *mallocShared(w32, int, int *);
 double rnlx();
 w32 dodif32(w32 before, w32 now);
 void setseeds(long,int);
@@ -426,7 +426,10 @@ if( (pll & BC_STATUSorbiterr) == BC_STATUSorbiterr ) {
   printf("errorneous Orbit input signal\n");
 };
 pll= vmer32(TEMP_STATUS)&0x2;
-if(serial>=64) {
+if((serial>=64) || (serial==0)) {
+  if(serial==0) {
+    printf("Serial number:0 ->this board accounted LTU version 2\n");
+  };
   if(pll==0x2) {
     printf("CRC error bit set, reconfigure!\n");
   } else {
@@ -809,7 +812,7 @@ void TestConnection(){
  w32 mode,w;
  int i,j;
  float f;
- char *pole[]={"ORBIT","PP","L0","L1","L1data","L2s","L2data"};
+ const char *pole[]={"ORBIT","PP","L0","L1","L1data","L2s","L2data"};
  int bit[7]; 
  // 0=orbit,1=pp,2=l0,3=l1,4=l1data,5=l2s,6=l2data
  for(j=0;j<7;j++)bit[j]=0;

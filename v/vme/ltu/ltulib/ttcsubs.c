@@ -59,7 +59,7 @@ rc: vsp (vme space number to be use in 'vmx*(...' calls
     -1: vme not opened, error printed to stdout
 */
 int openvmeTTCvi() {
-int vsp, rc;
+int vsp, rc; char xcb[]="0xcb";
 char TTCviba[40];    // TTCvi base address
 strcpy(TTCviba, BoardBaseAddress);
 if(ltuviyes) {
@@ -73,7 +73,7 @@ if(strncmp(TTCviba,"VXI0::",6)==0) {
 } else {
   TTCviba[3]= '0';
 };
-vsp=-1; rc= vmxopen(&vsp, TTCviba, "0xcb");
+vsp=-1; rc= vmxopen(&vsp, TTCviba, xcb);
 if(rc!=0) {
   printf("vmxopen error:%d opening TTCvi vme\n",rc);
   vsp=-1;
@@ -280,7 +280,11 @@ w32 cntmem2[LTUNCOUNTERS];  char busy1note[80];
 char rxreset[20];
 char rxnotready[20];
 //char byhis[101];
-if(ltuvino) { vspg= openvmeTTCvi(); if(vspg==-1) return(-1); };
+if(ltuvino) { 
+  vspg= openvmeTTCvi(); 
+  if(vspg==-1) return(-1);
+  printf("TTCinitgs: TTCvi vme space %d opened\n",vspg);
+};
 avrg=0; avrgn=0;
 rc=0;
 if(ltuvino) {

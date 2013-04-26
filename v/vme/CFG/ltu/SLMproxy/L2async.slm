@@ -1,0 +1,5 @@
+# classes 48..25: 0xffffff000000
+L2A 0x0 0xffffff000000 0x0 Restart 
+#sync event:
+# dets: 0-16,18,19: hex(0x1ffff | 1<<18 | 1<<19 )<<24 = 0xdffff000000
+L2A 0x0 0xdffff000000 0x0 roc=13 Restart Last L1SwC L2SwC 

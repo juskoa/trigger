@@ -1,1 +1,1 @@
-setbcdelay(16)
+setbcdelay(16,1)

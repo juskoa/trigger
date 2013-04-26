@@ -22,7 +22,7 @@ double rnlx();
 void setseeds(long,int);
 /**-------------------------------------------------------*/
 void setbcdelay(w32 delay, int ttcint) {
-/* ttcinit: 1: just set BC_DELAY_ADD (to be used for scan)
+/* ttcint:  1: just set BC_DELAY_ADD (to be used for scan)
             0: set BC_DEALY_ADD taking into account correction
                for the clock when LTU is in global! 
 */

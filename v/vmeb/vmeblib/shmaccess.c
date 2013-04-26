@@ -32,9 +32,9 @@ Client:
         mallocShared(IDKEY, 0, &segid)
         shmdt(shmbase);   -release (not used by client more)
 */
-w8 *mallocShared(w32 shmkey, int size, int *segid) {
+void *mallocShared(w32 shmkey, int size, int *segid) {
 int segment_id, segment_size, created=0;
-w8 *shared_memory=NULL;
+void *shared_memory=NULL;
 struct shmid_ds shmbuffer;
   
 segment_id = shmget (shmkey, size,
@@ -67,22 +67,22 @@ if( segment_id == -1) {
 *segid= segment_id;
 if(segment_id != -1) {
   /* Attach the shared memory segment.  */
-  shared_memory = (w8*) shmat (segment_id, 0, 0);
+  shared_memory = shmat (segment_id, 0, 0);
   printf ("shared memory attached at address %p\n", shared_memory);
   /* Determine the segment's size.  */
   shmctl (segment_id, IPC_STAT, &shmbuffer);
   segment_size = shmbuffer.shm_segsz;
   printf ("segment size: %d\n", segment_size);
   if (created==1) {
-    int i;
-    for(i=0; i<size; i++) shared_memory[i]=0;
-    printf("First %d bytes initialized to 0\n", size);
+    int i; w32 *wp= (w32 *)shared_memory;
+    for(i=0; i<size/4; i++) wp[i]=0;
+    printf("First %d 32bits words initialized to 0\n", size/4);
   };
 };
-RET: fflush(stdout); return(shared_memory);
+RET: fflush(stdout); return((void *)shared_memory);
 }
 
-int freeShared(w8 *shmbase, int shmsegid) {
+int freeShared(void *shmbase, int shmsegid) {
 int rc;
 /* Detach the shared memory segment.  */
 shmdt(shmbase);
@@ -93,7 +93,7 @@ if( rc != 0) {
 };
 return(rc);
 }
-void detachShared(w8 *shmbase) {
+void detachShared(void *shmbase) {
 shmdt(shmbase);
 }
 /*

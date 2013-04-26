@@ -1,0 +1,16 @@
+See also: 
+DOC/ltusw_client.txt
+bin/*_lab.* bin/distrib bin/distdimclient
+
+[pcalicebhm10] /home/dl/root/usr/local/trigger/devel/v/SPECS > ls -l
+total 16
+-rw-r--r-- 1 trigger alice 1958 Apr 17 10:44 ltuclient.spec
+-rw-r--r-- 1 trigger alice 3000 Apr 26 13:54 ltusw.spec
+
+[altri1] /home/alice/trigger/rpms/SPECS > ls -l
+lrwxrwxrwx 1 trigger alice 43 Apr 26 13:55 ltusw.spec -> /usr/local/trigger/devel/v/SPECS/ltusw.spec
+[pcalicebhm10] /home/trigger/rpms/SPECS > ls -l
+lrwxrwxrwx 1 trigger alice 60 Apr 26 13:57 ltuclient.spec -> /home/dl/root/usr/local/trigger/devel/v/SPECS/ltuclient.spec
+
+ltuclient.spec:
+ltusw.spec:
