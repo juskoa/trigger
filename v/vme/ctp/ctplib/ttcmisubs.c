@@ -15,10 +15,11 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 #include "infolog.h"
 #include "vmewrap.h"
 #include "vmeblib.h"
+#include "daqlogbook.h"
 #include "ctplib.h"
 #include "../../ttcmi/ttcmi.h"
 
-#include "/opt/libDAQlogbook/DAQlogbook.h"
+//#include "/opt/libDAQlogbook/DAQlogbook.h"
 //----------------------------------------- corde board:
 #define RESET 0x24
 #define ORBMAIN 0x7fbb4

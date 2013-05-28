@@ -47,11 +47,11 @@ mylog= pylog.Pylog(info="info")
 
 def tasc():
   lt= time.localtime()
-  ltim= "%2.2d.%2.2d.%4.4d %2.2d:%2.2d:%2.2d "%(lt[2], lt[1], lt[0], lt[3], lt[4], lt[5])
+  ltim= "%2.2d.%2.2d.%4.4d %2.2d:%2.2d:%2.2d"%(lt[2], lt[1], lt[0], lt[3], lt[4], lt[5])
   return ltim
 def checkShift():
   cshift= miclock.getShift()
-  print tasc()+"resetclock: check after 5secs:"+ cshift
+  print tasc()+" resetclock: check after 5secs:"+ cshift
 
 def main():
   if hasattr(sys,'version_info'):
@@ -92,16 +92,22 @@ def main():
   #cshift= miclock.getShift()
   #miclock.checkandsave(cshift,"fineyes")
   #print "current clock shift:"+cshift+" [saved in db+corde]"
+  #pts: active paritions, i.e. added: with pcfg and removed after rcfg finished or
+  # later -when part content to be kept till rcfgdel
+  pts={}
   while(1):
     line= io[0].readline()
-    print "%s received:%s"%(tasc(),line)
+    if line=='':
+      print "empty line received (server.c crash ?), closing..." ; break
+    if line[-1]=='\n':
+      print "%s received:%s"%(tasc(),line[:-1])
+    else:
+      print "%s received:%s"%(tasc(),line)
     if line=='\n':
       print "empty line received (NL), ignored..." ; continue
     if line=='stop\n':
       print "stop received, closing..." 
       break
-    if line=='':
-      print "empty line received (server.c crash ?), closing..." ; break
     # line (sent from ctp_proxy): 
     # partname runnumber 1 2 3 4 5 6 c1 c2 ... c50
     cmd= string.split(line)
@@ -111,32 +117,41 @@ def main():
       print line
       # process trigger db and update service
     elif cmd[0]=='rcfg' or cmd[0]=='pcfg':
-      if cmd[0]=='pcfg':
-        #note: .partition file was downloaded directly in server.c
-        # from ACT if present!
-        reload(parted)
-        print "%s parted reloaded (pcfg request)"%tasc()
       if len(cmd)<3:
         print "Short cmd ignored:",cmd
         continue
       partname= cmd[1]
       runnumber= cmd[2]
-      #parted.TDLTUS.initTDS(reload='yes')
-      part= parted.TrgPartition(partname, strict="strict")
-      part.prt()
-      print "%s part.loaderrors:"%tasc(),part.loaderrors
-      print "%s part.loadwarnings:"%tasc(),part.loadwarnings
       if cmd[0]=='pcfg':
+        #note: .partition file was downloaded directly in server.c
+        # from ACT if present!
+        part= parted.TrgPartition(partname, strict="strict")
+        part.prt()
+        print "%s part.loaderrors:"%tasc(),part.loaderrors
+        print "%s part.loadwarnings:"%tasc(),part.loadwarnings
         fname= partname+".pcfg"
         if part.loadwarnings!='':
           mylog.infolog(part.loadwarnings, level='w', partition=partname)
         if part.loaderrors=='':
           part.savepcfg(wdir=parted.WORKDIR)   # without 'rcfg '
+          pts[partname]= part   # store for rcfg phase only if no load erors
         else:
           f= open( os.path.join( parted.WORKDIR,fname), "w")
           f.write("Errors:\n") ; f.write(part.loaderrors) ; f.close()
         print "%s %s saved,"%(tasc(), fname)
+        if copyit:
+          #rcpath= os.path.join( os.environ['VMECFDIR'],"CFG","ctp","pardefs",fname)
+          #take file created in LOAD time:
+          rcpath= os.path.join( parted.WORKDIR,fname)
+          cmd="scp -B -2 %s %s:/tmp/%s"% (rcpath, acchost, fname)
+          print "%s rcscp..."%(tasc())
+          rcscp=os.system(cmd)
+          print "%s rcscp:%d from %s"%(tasc(), rcscp, cmd)
+        else:
+          print "not in the pit neither lab"
+          #print "not done:",os.path.join(pitsrc,fname),'->',os.path.join(pitdes,fname)
       else:
+        part= pts[partname]    # rcfg phase, just restore partition from pcfg time
         part.savercfg(line[5:]) 
         fname="r"+runnumber+".rcfg"
         print "%s %s saved,"%(tasc(), fname)
@@ -155,17 +170,7 @@ def main():
         print "class RUN# CLS# clg clgtim downsc CLSNAME CLS# clg ..."
         print lout[:-1]
         io[1].write(lout); #io[1].write("blabla\n");
-      if copyit:
-        #import shutil
-        if cmd[0]=='pcfg':
-          #rcpath= os.path.join( os.environ['VMECFDIR'],"CFG","ctp","pardefs",fname)
-          #take file created in LOAD time:
-          rcpath= os.path.join( parted.WORKDIR,fname)
-          cmd="scp -B -2 %s %s:/tmp/%s"% (rcpath, acchost, fname)
-          print "%s rcscp..."%(tasc())
-          rcscp=os.system(cmd)
-          print "%s rcscp:%d from %s"%(tasc(), rcscp, cmd)
-        else:
+        if copyit:
           #here we should wait for end of whole DAQupdate! (io[0].read...)
           # instead, let's queue the copy request through the same LIFO cahnnel:
           rcpath= os.path.join(pitsrc,fname)
@@ -179,15 +184,21 @@ def main():
             io[1].write(cmd);
           else:
             print "File %s does not exist"%rcpath
-      else:
-        print "not in the pit neither lab"
-        #print "not done:",os.path.join(pitsrc,fname),'->',os.path.join(pitdes,fname)
+        else:
+          print "not in the pit neither lab"
+          #print "not done:",os.path.join(pitsrc,fname),'->',os.path.join(pitdes,fname)
+        del pts[partname]
       sys.stdout.flush()
       part=None
     elif cmd[0]=='rcfgdel':
       if len(cmd)==3:   #rcfgdel partname NNN
-        if (cmd[2]=='0') and (cmd[1]=='ALL'):   #rcfgdel ALL 0
+        if (cmd[2]=='0') and (cmd[1]=='ALL'):   #rcfgdel ALL 0, i.e. ctpproxy restarted
           import glob
+          if len(pts)!=0: 
+            print "ERROR partition list not empty:", pts.keys()
+          pts= {}
+          reload(parted)
+          print "%s parted reloaded (ctpproxy restarted)"%tasc()
           os.chdir("RCFG")
           rnames= glob.glob('*.rcfg')
           if len(rnames)>0:

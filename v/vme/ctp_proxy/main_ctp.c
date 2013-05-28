@@ -32,7 +32,6 @@ int quit=0;   // 1: do not start new runs >9 stop immediately
 
 void UPPER(char *strin);
 char pname[64]="UNKNOWN"; 
-
 /*---------------------------------------------*/ void gotsignal(int signum) {
 char msg[100];
 // SIGUSR1:  // kill -s USR1 pid
@@ -67,7 +66,7 @@ char action[64], param[64], parname[64], msg[256];
 int n_params, ptype, psize, i, run_number=0;
 char mask[64],run_number_str[64];
 char ACT_CONFIG[8]="YES";
-
+prtProfTime(NULL);
 smi_get_action(action,&n_params); UPPER(action); strcpy(msg,"");
 if(n_params != 2){
   printf("# of pars received: %i. \n",n_params);
@@ -163,7 +162,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
   } else if (strncmp(action,"SYNC",4) == 0) {   // correct: strcmp("SYNC")
     int rc;
     smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-    if(rc= ctp_SyncPartition(pname, errorReason)){
+    if((rc= ctp_SyncPartition(pname, errorReason))!=0){
       printf("ctp_SyncPartition() rc:%d %s\n", rc,errorReason);
       smi_set_parER();
       sleep (1); smi_setState("ERROR");
@@ -204,6 +203,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }   
 };      
 RETSMI:
+prtProfTime("SMI_handle end");
 return;
 }
 /*----------------------------------------*/ int main(int argc, char **argv) {
@@ -245,5 +245,6 @@ while(1) {
   if(quit>9) break;
 };
 rc= ctp_Endproxy();
+printf("Calling cshmDetach()...\n"); cshmDetach();
 return (0);
 }

@@ -1,6 +1,7 @@
 #include "vmewrap.h"
 #include "ctp.h"
 #include "Tpartition.h"
+#include "TpartitionPlus.h"
 #include <sstream>
 #include <iostream>
 

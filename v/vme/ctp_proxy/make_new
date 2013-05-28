@@ -7,8 +7,8 @@
 #include makefile_sc
 include $(VMEBDIR)/com_defs.make
 include $(VMEBDIR)/daq_defs.make
-LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS)
-LIBS += $(VMERCCLD)
+#LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS) $(VMERCCLD)
+PROXYLIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(VMERCCLD)
 
 CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/.. -I$(DIMinc) -I$(SMIinc)
 
@@ -33,7 +33,7 @@ $(EXEDIR):
 	mkdir $(EXEDIR)
 #------------------------------------------ ctp_proxy
 $(EXEDIR)/ctp_proxy: main_ctp.o $(proxyOBJS) $(LIBDEP)
-	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(LIBS) $(SMILD) -o $@ 
+	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) $(SMILD) -o $@ 
 
 $(EXEDIR)/main_fixedcnts: main_fixedcnts.c fixedcnts.o
 	$(CC) $(LDFLAGS) $< fixedcnts.o $(DIMLD) $(VMEBLD) -o $@
@@ -57,17 +57,17 @@ fixedcnts.o:fixedcnts.c
 test.o:test.c ctp_proxy.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/test: test.o $(proxyOBJS) $(LIBDEP)
-	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(LIBS) -o $@
+	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) -o $@
 main_TRBIF.o:main_TRBIF.c ctp.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/main_TRBIF: main_TRBIF.o $(main_TRBIFOBJS) $(LIBDEP)
-	$(CC) $(LDFLAGS) $< $(main_TRBIFOBJS) $(LIBS) -o $@
+	$(CC) $(LDFLAGS) $< $(main_TRBIFOBJS) $(PROXYLIBS) -o $@
 
 #------------------------------------------- dims
 dims.o:dims.c dimtypes.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/dims: dims.o dimservices.o $(LIBDEP)
-	$(CC) $(LDFLAGS) $< dimservices.o $(LIBS) -o $@ 
+	$(CC) $(LDFLAGS) $< dimservices.o $(PROXYLIBS) -o $@ 
 
 #------------------------------------------- bakeryTest
 bakeryTest.o:bakeryTest.c 

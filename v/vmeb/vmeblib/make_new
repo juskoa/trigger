@@ -27,7 +27,8 @@ S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o \
  udplib.o $(dimwrapo) bakery.o
 endif
 
-all: $(vmewro) $(S_OBJS)
+all: libvmeb.a
+libvmeb.a: $(vmewro) $(S_OBJS)
 	-rm -f libvmeb.a
 	ar rs libvmeb.a *.o
 #ifeq ($(notdir $(CURDIR)), linux_s)
@@ -40,6 +41,8 @@ udplib.o: udplib.c udplib.h
 dimwrap.o: dimwrap.c
 	$(CC) $(CFLAGS) -c -I$(DIMDIR)/dim -o $@ $<
 bakery.o: bakery.c bakery.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+daqlogbook.o: daqlogbook.c daqlogbook.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 #%.o: %.c    nebavi
 .o: .c .h

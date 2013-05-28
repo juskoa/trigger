@@ -1,7 +1,8 @@
 include $(VMEBDIR)/com_defs.make
 
 include $(VMEBDIR)/daq_defs.make
-LIBS= $(VMEBLD) $(CTPLD)
+#LIBS= $(VMEBLD) $(CTPLD)
+LIBS= $(CTPLD) $(VMEBLD)
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
 LIBS += $(daqLD) $(DIMLD) $(MYSQLLIBS)
 

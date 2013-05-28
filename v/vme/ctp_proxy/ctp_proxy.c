@@ -24,26 +24,29 @@ prepareRunConfig/registerRunConfig
 #include "infolog.h"
 #ifdef CPLUSPLUS
 #include <dic.hxx>
-#ifndef TEST
+/*von #ifndef TEST
 extern "C" {
 #include "DAQlogbook.h"
 }
-#endif
+#endif */
 #else
 #include <dic.h>
-#ifndef TEST
+/*von #ifndef TEST
 #include "DAQlogbook.h"
-#endif
+#endif */
 #endif
 
 #include "vmewrap.h"
 #include "shmaccess.h"
 #include "vmeblib.h"
 #include "lexan.h"
+#include "daqlogbook.h"
 #include "ctp.h"
 #include "ctplib.h"
 #include "ssmctp.h"
 #include "Tpartition.h"
+int getDAQClusterInfo(Tpartition *part, TDAQInfo *daqi);
+
 #include "ctp_proxy.h"
 //#include "../ltu/ltu.h"     from ltu.h file:
 #define LTUNCOUNTERS   21
@@ -62,6 +65,188 @@ Hardware HWold;
 int get_fixed(char *rcfg, int *fixpos);
 int lenfixpos=2;
 int fixpos[53];   // run, clgroup, rel1,rel2,...,-2
+static TDAQInfo daqi;
+
+#define TAGstartcount 333
+#define TAGstopcount 334
+#define TAGprintruns 335
+#define TAGrcfgdo 336
+#define TAGrcfgdelete 337
+#define TAGctprestart 338
+#define TAGpcfg 339
+#define TAGstartcountforced 340
+#define TAGglobalcal 350
+#define TAGresetclock 351
+int pydimok=0;
+void callback(void *tag, int *retcode){
+ char command[100]; char emsg[300];
+ //printf("callback: %li %i \n",*tag,*retcode);
+ switch(*(int *)tag){
+   case(TAGstartcount):
+   case(TAGstartcountforced):
+        strcpy(command,"STARTRUNCOUNT");
+        break;
+   case(TAGstopcount):
+        strcpy(command,"STOPRUNCOUNT");
+        break;
+   case(TAGrcfgdo):
+        strcpy(command,"CTPRCFG/RCFG");
+        break;
+   case(TAGrcfgdelete):
+        strcpy(command,"CTPRCFG/RCFG delete");
+        break;
+   case(TAGctprestart):
+        strcpy(command,"CTPRCFG/RCFG delete(testifpydimON)");
+        break;
+   case(TAGpcfg):
+        strcpy(command,"CTPRCFG/RCFG pcfg");
+        break;
+   case(TAGglobalcal):
+        strcpy(command,"CTPCALIB/DO u");
+        break;
+   case(TAGresetclock):
+        strcpy(command,"CTPRCFG/RCFG resetclock");
+        break;
+   default:
+        printf("callback: Unknown tag %i \n",*(int *)tag);
+        return;
+ }
+ if(*retcode){
+   if(*(int *)tag!=TAGstartcountforced) {
+     sprintf(emsg, "timestamp:callback:%s successful.",command); 
+     prtLog(emsg);
+   };
+   if(*(int *)tag==TAGctprestart) pydimok=1;
+ } else {
+   sprintf(emsg, "timestamp:callback:DIM command %s failed.",command); 
+   prtError(emsg);
+ };
+}
+/*
+Input:
+part: pointer to Tpartition
+      NULL: move  all .rcfg files in RCFG directory to delmeh/
+dodel: 
+1: prepare file. Called from:
+  - _LoadPartition(, 1)
+0: delete file   called from:
+  - _LoadPartition( ,0) -in case of error and if it was created
+  - _StartPartition( ,0) -in case of error 
+  - _StopPartition( ,0)
+rc: 0: ok .rcfg prepared, (confirmed from parted)
+       or all .rcfg files moved to delmeh/
+    1
+    2 -bad dodel
+daqi: global structure seen in ctp_proxy only
+*/
+int prepareRunConfig(Tpartition *part, int dodel) {
+/* 17.12.2007: just copy
+$VMECFDIR/CFG/ctp/pardefs/partname.pcfg ->
+$VMEWORKDIR/RCFG/rRUNNUMBER.rcfg
+*/
+int rc=0, icla, tag, rcdic; w32 ilog;
+char namemode[80];
+//char *environ; char runcfg[100];
+char cmd[400];
+char dimcom[40];
+char msg[500];
+if(part == NULL){ dodel=2;
+ /*intError("prepareRunConfig: part=NULL");
+ rc=1;return(rc);*/
+} else {
+  if(part->hwallocated != 0x3) {
+    char emsg[300];
+    sprintf(emsg, "hwallocated:%x (0x2 expected) for part:%s", 
+      part->hwallocated, part->name);
+    intError(emsg);
+    rc=1; return(rc);
+  };
+  if(part->partmode[0]!='\0') {
+    strcpy(namemode, part->partmode);
+  } else {
+    strcpy(namemode, part->name);
+  };
+};
+if(dodel==1) {
+  w32 int1lookup,int1def,int2lookup,int2def;
+  tag=TAGrcfgdo;
+  //printTpartition("prepareRunConfig1", part);
+  sprintf(cmd,"rcfg %s %d 0x%x", namemode, part->run_number,
+    part->MaskedDetectors);
+  for(ilog=0;ilog<NCLUST;ilog++){
+    int hwclu, ihw;
+    hwclu=0;
+    for(ihw=0;ihw<NCLUST;ihw++){
+      if(part->ClusterTable[ihw]==0) continue;
+      if(part->ClusterTable[ihw]==(ilog+1)) {hwclu=ihw+1; break;};
+    };
+    printf("%i -> %i hwclu:%d,",ilog,part->ClusterTable[ilog], hwclu);
+    sprintf(cmd, "%s %d", cmd, hwclu);
+  }; printf("\n");
+  for(icla=0;icla<NCLASS;icla++){
+    TKlas *klas;
+    klas=part->klas[icla];
+    if(klas!=NULL) {
+      printTKlas(klas,icla);
+      sprintf(cmd,"%s %d", cmd, klas->hwclass+1);
+    } else {
+      sprintf(cmd,"%s 0", cmd);
+    };
+  };
+  // int1lookup int1def int2lookup int2def
+  //int2lookupdef bug
+  int1lookup= vmer32(L0_INTERACT1);
+  int2lookup= vmer32(L0_INTERACT2);
+  int2def= vmer32(L0_INTERACTSEL);
+  int1def= int2def & 0x1f; int2def= int2def >> 5;
+  sprintf(cmd, "%s 0x%x 0x%x 0x%x 0x%x", cmd, int1lookup, int1def, int2lookup, int2def);
+  strcat(cmd,"\n");
+  //printf("prepareRunConfig:%s \n",cmd);
+} else if(dodel==0) {
+  tag=TAGrcfgdelete;
+  sprintf(cmd,"rcfgdel %s %d\n", namemode, part->run_number);
+} else if(dodel==2) {
+  tag=TAGrcfgdelete;
+  sprintf(cmd,"rcfgdel ALL 0\n");
+} else {
+  char emsg[300];
+  sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
+  intError(emsg);
+  rc=2; return(rc);
+};
+sprintf(msg,"timestamp:prepareRunConfig1: %s", cmd); prtLog(msg);
+if(dodel==1) {
+  // new way for rcfg command:
+  strncpy(daqi.run1msg, cmd, MAXRUN1MSG);
+  rcdic= dic_cmnd_service("CTPRCFG", (void *)&daqi, sizeof(TDAQInfo));
+} else {
+  strcpy(dimcom,"CTPRCFG/RCFG");
+  //dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, tag);
+  rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
+};
+sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
+return(rc);
+}
+
+/*------------------------------------------------ preparepcfg()
+*/
+void preparepcfg(char *partname, int runnumber, char *ACT_CONFIG) {
+int rcdic;
+char cmd[400];
+char dimcom[40];
+char msg[500];
+if(strcmp(ACT_CONFIG,"NO")==0) {
+  sprintf(cmd,"Ncfg %s %d\n", partname, runnumber);
+} else {
+  sprintf(cmd,"pcfg %s %d\n", partname, runnumber);
+};
+sprintf(msg,"timestamp:pcfg1: %s", cmd); prtLog(msg);
+strcpy(dimcom,"CTPRCFG/RCFG");
+//dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, TAGpcfg);
+rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
+sprintf(msg,"timestamp:pcfg1:rc %d", rcdic); prtLog(msg);
+return;
+}
 /*----------------------------------------------void getNAllPartitions();
 */
 int getNAllPartitions() {
@@ -741,20 +926,24 @@ for(iclu=0; iclu<6 iclu++) {
 }
 */
 int updateDAQClusters(Tpartition *partit) {
-int idet, iclu, iclass, rc;
-int rco;    // 0: DAQlogbook opened    -1: not opened/do not update it
+//int rc; //idet, iclu, iclass, rc;
+//int rco;    // 0: DAQlogbook opened    -1: not opened/do not update it
 int rcdaqlog=0;    // rc from updateDAQClusters(). 0: ok  >1 stop the run
+/*
 w32 daqonoff;
 w32 masks[NCLUST];      // detectors in each CLUSTER
 w32 inpmasks[NCLUST];   // input detectors feeding each CLUSTER
-w32 l0finputs=0;          // L0 inputs referenced by l0functions 
-w32 l0finputs1;         // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
 unsigned long long classmasks[NCLUST];  // classes for each CLUSTER
-unsigned long long ULL1=1;
-char *vmesite;
-char DAQlogbookDB[120]="", emsg[ERRMSGL];
+*/
+//w32 l0finputs=0;          // L0 inputs referenced by l0functions 
+//w32 l0finputs1;         // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
+//unsigned long long ULL1=1;
+//char *vmesite;
+//char DAQlogbookDB[120]="", 
+char emsg[ERRMSGL];
 /* only if we need verbose output:
 DAQlogbook_verbose(1);     */
+/*
 if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) {
   infolog_trgboth(LOG_INFO, "DAQlogbook not used (FLGignoreDAQLOGBOOK)");
 } else {
@@ -779,71 +968,22 @@ if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) {
     };
   };
 };
-
-//if(partit->run_number<10) { return(0); };
-for(iclu=0;iclu<NCLUST;iclu++){
-  masks[iclu]=0;
-  inpmasks[iclu]=0;
-  classmasks[iclu]=0;
+*/
+prtProfTime("get mic4daq");
+//rcdaqlog= getDAQClusterInfo(partit, &daqi);
+//daqi.daqonoff= vmer32(INT_DDL_EMU) &0xf;
+prtProfTime("got mic4daq");
+/* rc= daqlogbook_update_clusters(partit->run_number, partit->name,
+  &daqi, cshmGlobFlag(FLGignoreDAQLOGBOOK));
+if(rc!=0) {
+  char errm[300];
+  sprintf(errm, "DAQlogbook_update_cluster failed. rc:%d", rc);
+  infolog_trgboth(LOG_FATAL, errm);
+  rcdaqlog=4;
 };
-//--------------------- masks:
-for(idet=0;idet<NDETEC;idet++){
-  int pclu, pclust, hwclust;
-  pclust= partit->Detector2Clust[idet]; // det. can belong to more clusters!
-  if(pclust ==0) continue;
-  // idet is in pclust, find HWclust:
-  for(pclu=0; pclu<NCLUST; pclu++) {
-    if(pclust & (1<<pclu)) {
-      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", partit->name, pclust, pclu);
-      hwclust= findHWCluster(partit, pclu+1);
-      if(hwclust>0) {
-        masks[hwclust-1]= masks[hwclust-1] | (1<<idet);
-      };
-    };
-  };
-};
-if(DBGlogbook) 
-  printf("updateDAQClusters:masks[0-5]:0x:%x %x %x %x %x %x\n",
-  masks[0], masks[1], masks[2], masks[3], masks[4], masks[5]);
-//--------------------- classmasks and inpmasks:
-for(iclass=0; iclass<NCLASS; iclass++) {
-  int hwclass; int indets; TKlas *klas;
-  if((klas=partit->klas[iclass]) == NULL) continue;
-  hwclass= partit->klas[iclass]->hwclass;  // 0..49
-  if(hwclass>49) {
-    intError("updateDAQClusters: hwclass>49"); rcdaqlog=10;
-  };
-  iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
-  classmasks[iclu]= classmasks[iclu] | (ULL1<<hwclass);
-  indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1); l0finputs= l0finputs|l0finputs1;
-  // l0finputs will be usd later when ctp_alignment called
-  if(indets<0) rcdaqlog=2;   
-  if(DBGlogbook) printf("updateDAQClusters:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
-    partit->hwallocated, iclu, iclass, indets);
-  inpmasks[iclu]= inpmasks[iclu] | indets;
-};
-daqonoff= vmer32(INT_DDL_EMU) &0xf;
-for(iclu=0;iclu<NCLUST;iclu++){
-  if(masks[iclu]==0) continue;
-  if(daqonoff==0) { // ctp readout active, set TRIGGER bit17 
-    masks[iclu]= masks[iclu] | (1<<17);
-  };
-  printf("updateDAQClusters:run#:%d cluster:%d det/inp/class mask:0x:%x %x %llx\n", 
-    partit->run_number, iclu+1, masks[iclu], inpmasks[iclu], classmasks[iclu]);
-  if(rco==0) {
-    int rc;
-    if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rc=0;
-    } else {
-      rc=DAQlogbook_update_cluster(partit->run_number, iclu+1, 
-        masks[iclu], partit->name, inpmasks[iclu], classmasks[iclu]);
-    };
-    if(rc!=0) {
-      infolog_trgboth(LOG_FATAL, "DAQlogbook_update_cluster failed");
-      rcdaqlog=4;
-    };
-  };
-};
-{// inputs -> DAQ
+-----   moved to pydim */
+prtProfTime("get inps2daq");
+/*{// inputs -> DAQ
 int level,maxinp,ix,ind,rcu;
 for(level=0; level<3; level++) {
   if(level==2) {maxinp=12; }
@@ -865,7 +1005,8 @@ for(level=0; level<3; level++) {
     };
   }; 
 };
-};
+};  moved to pydim */
+prtProfTime("got inps2daq");
 {
   int len;
   char *mem;
@@ -878,7 +1019,7 @@ for(level=0; level<3; level++) {
   //sprintf(name,"WORK/RCFG/r%d.rcfg", partit->run_number);
   //getruncfgname(partit->run_number, name);
   sprintf(name, "/tmp/r%d.rcfg", partit->run_number);
-  len= detectfile(name, 25);    // wait max. 25 (was 9) secs for file
+  len= detectfile(name, 8);    // wait max. 8 (was 25 before LS1) secs for file
   /*sprintf(emsg, "updateDAQClusters: Run: %d file:%s len:%d",
     partit->run_number, name, len); prtLog(emsg); */
   /*if(len<=0) {
@@ -912,6 +1053,7 @@ moved*/
         sprintf(emsg, "updateDAQClusters: File: %s read error\n",name); 
         infolog_trgboth(LOG_FATAL, emsg);
       };  
+      prtProfTime("got rcfg");
 /* move ->
       //printf("%s\n", mem);
       if(rco==0) {
@@ -953,6 +1095,7 @@ moved*/
   };
 };
 //-------------------------------- close
+/*
 if(rco==0) {
   if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rc=0;
   } else {
@@ -961,7 +1104,7 @@ if(rco==0) {
   if(rc==-1) {
     infolog_trgboth(LOG_ERROR, "DAQlogbook_close failed");
   };
-};
+};*/
 return(rcdaqlog);
 /*von
 if(rcdaqlog==0) {
@@ -1838,62 +1981,7 @@ int generateXODSSM(char x){
  stopSSM(5);
  return ret;
 }*/
-/*----------------------------------------------------- xcounters */
-#define TAGstartcount 333
-#define TAGstopcount 334
-#define TAGprintruns 335
-#define TAGrcfgdo 336
-#define TAGrcfgdelete 337
-#define TAGctprestart 338
-#define TAGpcfg 339
-#define TAGstartcountforced 340
-#define TAGglobalcal 350
-#define TAGresetclock 351
-int pydimok=0;
-void callback(void *tag, int *retcode){
- char command[100]; char emsg[300];
- //printf("callback: %li %i \n",*tag,*retcode);
- switch(*(int *)tag){
-   case(TAGstartcount):
-   case(TAGstartcountforced):
-        strcpy(command,"STARTRUNCOUNT");
-        break;
-   case(TAGstopcount):
-        strcpy(command,"STOPRUNCOUNT");
-        break;
-   case(TAGrcfgdo):
-        strcpy(command,"CTPRCFG/RCFG");
-        break;
-   case(TAGrcfgdelete):
-        strcpy(command,"CTPRCFG/RCFG delete");
-        break;
-   case(TAGctprestart):
-        strcpy(command,"CTPRCFG/RCFG delete(testifpydimON)");
-        break;
-   case(TAGpcfg):
-        strcpy(command,"CTPRCFG/RCFG pcfg");
-        break;
-   case(TAGglobalcal):
-        strcpy(command,"CTPCALIB/DO u");
-        break;
-   case(TAGresetclock):
-        strcpy(command,"CTPRCFG/RCFG resetclock");
-        break;
-   default:
-        printf("callback: Unknown tag %i \n",*(int *)tag);
-        return;
- }
- if(*retcode){
-   if(*(int *)tag!=TAGstartcountforced) {
-     sprintf(emsg, "timestamp:callback:%s successful.",command); 
-     prtLog(emsg);
-   };
-   if(*(int *)tag==TAGctprestart) pydimok=1;
- } else {
-   sprintf(emsg, "timestamp:callback:DIM command %s failed.",command); 
-   prtError(emsg);
- };
-}
+/*----------------------------------------------------- resetclock */
 void resetclock() {
 int tag,rcdic;
 char msg[80], cmd[40], dimcom[40];
@@ -1903,11 +1991,13 @@ sprintf(msg,"timestamp:resetclock:"); prtLog(msg);
 strcpy(dimcom,"CTPRCFG/RCFG");
 rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 }
+/*----------------------------------------------------- gcalibUpdate */
 void gcalibUpdate() {
 //    res= pydim.dic_cmnd_service("CTPCALIB/DO", arg, "C")
 //dic_cmnd_service("CTPCALIB/DO", (void *)"u", 2);
 dic_cmnd_callback("CTPCALIB/DO", (void *)"u", 2,&callback,TAGglobalcal);
 };
+/*----------------------------------------------------- xcounters */
 void xcountersStart(w32 run, w32 clgroup) {
 char com[100],msg[254];
 int size; int tag; int runcg[2];
@@ -1952,124 +2042,6 @@ void xcountersStop(w32 run) {
  This client should invoke (after closing the xcounters file)
  dcsFES_putData.sh to register it on DCS FES */
 }
-/*
-Input:
-part: pointer to Tpartition
-      NULL: move  all .rcfg files in RCFG directory to delmeh/
-dodel: 
-1: prepare file. Called from:
-  - _LoadPartition(, 1)
-0: delete file   called from:
-  - _LoadPartition( ,0) -in case of error and if it was created
-  - _StartPartition( ,0) -in case of error 
-  - _StopPartition( ,0)
-rc: 0: ok .rcfg prepared, (confirmed from parted)
-       or all .rcfg files moved to delmeh/
-    1
-    2 -bad dodel
-*/
-int prepareRunConfig(Tpartition *part, int dodel) {
-/* 17.12.2007: just copy
-$VMECFDIR/CFG/ctp/pardefs/partname.pcfg ->
-$VMEWORKDIR/RCFG/rRUNNUMBER.rcfg
-*/
-int rc=0, icla, tag, rcdic; w32 ilog;
-char namemode[80];
-//char *environ; char runcfg[100];
-char cmd[400];
-char dimcom[40];
-char msg[500];
-if(part == NULL){ dodel=2;
- /*intError("prepareRunConfig: part=NULL");
- rc=1;return(rc);*/
-} else {
-  if(part->hwallocated != 0x3) {
-    char emsg[300];
-    sprintf(emsg, "hwallocated:%x (0x2 expected) for part:%s", 
-      part->hwallocated, part->name);
-    intError(emsg);
-    rc=1; return(rc);
-  };
-  if(part->partmode[0]!='\0') {
-    strcpy(namemode, part->partmode);
-  } else {
-    strcpy(namemode, part->name);
-  };
-};
-if(dodel==1) {
-  w32 int1lookup,int1def,int2lookup,int2def;
-  tag=TAGrcfgdo;
-  //printTpartition("prepareRunConfig1", part);
-  sprintf(cmd,"rcfg %s %d 0x%x", namemode, part->run_number,
-    part->MaskedDetectors);
-  for(ilog=0;ilog<NCLUST;ilog++){
-    int hwclu, ihw;
-    hwclu=0;
-    for(ihw=0;ihw<NCLUST;ihw++){
-      if(part->ClusterTable[ihw]==0) continue;
-      if(part->ClusterTable[ihw]==(ilog+1)) {hwclu=ihw+1; break;};
-    };
-    printf("%i -> %i hwclu:%d,",ilog,part->ClusterTable[ilog], hwclu);
-    sprintf(cmd, "%s %d", cmd, hwclu);
-  }; printf("\n");
-  for(icla=0;icla<NCLASS;icla++){
-    TKlas *klas;
-    klas=part->klas[icla];
-    if(klas!=NULL) {
-      printTKlas(klas,icla);
-      sprintf(cmd,"%s %d", cmd, klas->hwclass+1);
-    } else {
-      sprintf(cmd,"%s 0", cmd);
-    };
-  };
-  // int1lookup int1def int2lookup int2def
-  //int2lookupdef bug
-  int1lookup= vmer32(L0_INTERACT1);
-  int2lookup= vmer32(L0_INTERACT2);
-  int2def= vmer32(L0_INTERACTSEL);
-  int1def= int2def & 0x1f; int2def= int2def >> 5;
-  sprintf(cmd, "%s 0x%x 0x%x 0x%x 0x%x", cmd, int1lookup, int1def, int2lookup, int2def);
-  strcat(cmd,"\n");
-  //printf("prepareRunConfig:%s \n",cmd);
-} else if(dodel==0) {
-  tag=TAGrcfgdelete;
-  sprintf(cmd,"rcfgdel %s %d\n", namemode, part->run_number);
-} else if(dodel==2) {
-  tag=TAGrcfgdelete;
-  sprintf(cmd,"rcfgdel ALL 0\n");
-} else {
-  char emsg[300];
-  sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
-  intError(emsg);
-  rc=2; return(rc);
-};
-sprintf(msg,"timestamp:prepareRunConfig1: %s", cmd); prtLog(msg);
-strcpy(dimcom,"CTPRCFG/RCFG");
-//dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, tag);
-rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
-sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
-return(rc);
-}
-
-/*------------------------------------------------ preparepcfg()
-*/
-void preparepcfg(char *partname, int runnumber, char *ACT_CONFIG) {
-int rcdic;
-char cmd[400];
-char dimcom[40];
-char msg[500];
-if(strcmp(ACT_CONFIG,"NO")==0) {
-  sprintf(cmd,"Ncfg %s %d\n", partname, runnumber);
-} else {
-  sprintf(cmd,"pcfg %s %d\n", partname, runnumber);
-};
-sprintf(msg,"timestamp:pcfg1: %s", cmd); prtLog(msg);
-strcpy(dimcom,"CTPRCFG/RCFG");
-//dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, TAGpcfg);
-rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
-sprintf(msg,"timestamp:pcfg1:rc %d", rcdic); prtLog(msg);
-return;
-}
 
 /*int registerRunConfig(w32 run) {
 // Offline tag: CTP_runconfig
@@ -2111,7 +2083,7 @@ xcountersStop(0);           // clear list of active runs
 SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
 cshmClear();
-readTables(); // enough only in ctp_proxy
+readTables(); // onlly in ctp_proxy and pydim/server.c
 if(initHW(&HWold)) return 1; // initialise and clean HWold structure
 if(initHW(&HW)) return 1;   // initialise and clean HW structure
 initCTP();    /* has to be after initHW(&HW). Init system pars in CTP boards + INT* in HW */
@@ -2445,6 +2417,7 @@ infolog_SetStream(name, run_number);
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };
 sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);
+prtProfTime("get pcfg");
 preparepcfg(name2, run_number, ACT_CONFIG);
 sprintf(msg, "/tmp/%s.pcfg", name2);
 ret= detectfile(msg, 39);  // wait max. 19 (was 9) secs for file
@@ -2467,6 +2440,7 @@ if(msg[0]!='\0') {
   strncpy(errorReason, "partition definition incorrect",ERRMSGL); 
   rc=1; goto RET2;
 };
+prtProfTime("got pcfg");
 copyHardware(&HWold,&HW);   // HWold <- HW
 sprintf(msg,"timestamp:reading partition %s %d", name, run_number); prtLog(msg);
 
@@ -2513,6 +2487,9 @@ if(DBGparts) {
 
 sprintf(msg,"timestamp:partition inHW: %s %d", name, run_number); prtLog(msg);
 //we already know HW configuration (allocation of physics resources):
+rc= getDAQClusterInfo(part, &daqi);
+daqi.daqonoff= vmer32(INT_DDL_EMU) &0xf;
+prtProfTime("get rcfg");
 prepareRunConfig(part,1); 
 //has to be here (2 secs for pydimserver to prepare .rcfg file
 // 27.1.2012: following usleep commented:

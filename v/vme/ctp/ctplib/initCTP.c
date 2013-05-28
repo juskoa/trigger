@@ -56,7 +56,7 @@ if(notInCrate(1)==0) {   // L0 board
   };
   /*Klas[klasix].regs[3]= scaler;  update is done in 1 pass in rates2hwInit */
   if(ctpboards[1].boardver>=0xaf) {  // sync. downscaling
-    printf("boardver:%x klas:%d sdg:%d\n", ctpboards[1].boardver, klas, klas-1);
+    //printf("boardver:%x klas:%d sdg:%d\n", ctpboards[1].boardver, klas, klas-1);
     vmew32(L0_SDSCG+bb, klas-1); 
     //printf("initCTP%x+ %d <- %d\n", L0_SDSCG, bb, klas-1);
   };

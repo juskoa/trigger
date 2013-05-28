@@ -27,11 +27,11 @@ Operation:
 #include "lexan.h"
 #include "vmewrap.h"
 #include "vmeblib.h"
+#include "daqlogbook.h"
 #include "ctp.h"
 #include "ctplib.h"
-/*von #define DBMAIN
-#include "ctp.h"
-#include "Tpartition.h" */
+#define DBMAIN
+#include "Tpartition.h"
 
 #include "infolog.h"
 #ifdef CPLUSPLUS
@@ -60,7 +60,7 @@ int ignoreDAQLOGBOOK=0;
 
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
-int INT1id, INT2id, CSid;
+int INT1id, INT2id, CSid, CTPRCFGRCFGid, CTPRCFGid;
 char INT1String[MAXINT12LINE]="int1 source";
 char INT2String[MAXINT12LINE]="int2 source";
 #define MAXCSString 80000
@@ -76,6 +76,8 @@ int actdb_getPartition(char *name, char *filter, char *actname, char *actver);
 
 /*----------------------------------------------------*/ 
 void stopserving() {
+dis_remove_service(CTPRCFGRCFGid);
+dis_remove_service(CTPRCFGid);
 dis_remove_service(INT1id);
 dis_remove_service(INT2id);
 dis_remove_service(CSid);
@@ -190,8 +192,84 @@ for(ix=0; ix<rl; ix++) {
 printf("INFO readCS:%s\n", csname);
 return(rcstr);
 }
+/*--------------------------------------------------- getname_rc()
+rc: 0 ok
+*/
+int getname_rn(char *mymsg, char *pname, unsigned int *runn) {
+char c; unsigned int rundec=0;
+int rc=0, ix=0, runnactive=0;
+char runc[16]="";
+while(1) {
+  int cix;
+  c=mymsg[5+ix];
+  if((c==' ') || (c=='\n') || (c=='\0')) {
+    if(runnactive==0) {
+      if(c==' ') {
+        ix++; runnactive=1; cix=0;
+        continue;
+      } else { break; };
+    } else {
+      if(runc[0]!='\0') {
+        rundec=atoi(runc); break;
+      };
+    };
+  };
+  if(runnactive==1) {
+    runc[cix]=c; runc[cix+1]='\0'; cix++;
+  } else {
+    pname[ix]= c; pname[ix+1]='\0';
+  };
+  ix++;
+  if(ix>=60) {
+    printf("ERROR bad rcfg message\n"); rc=1;
+    break;
+  };
+};
+if(runnactive!=1) {
+  printf("ERROR bad rcfg message, runN missing\n"); rc=1;
+};
+*runn= rundec;
+return(rc);
+}
 
-
+/*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
+// bmsg: binary message TDAQInfo
+TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
+printf("INFO Dorcfg len:%d\n", *size); 
+dain= (TDAQInfo *)bmsg;
+printf("INFO Dorcfg msg:%s\n", dain->run1msg); 
+rc= getname_rn(dain->run1msg, pname, &rundec);
+if(rc==0) {
+  rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK);
+  printf("%s",dain->run1msg); fflush(stdout);
+  if(rc==0) { // inputs -> DAQ
+    int level,maxinp,ix,ind,rcu;
+    for(level=0; level<3; level++) {
+      if(level==2) {maxinp=12; }
+      else         {maxinp=24; }
+      for(ix=0; ix<maxinp; ix++) {
+        ind= findInput(level, ix+1);
+        if(ind==-1) continue;
+        if(ignoreDAQLOGBOOK) { rcu=0;
+          //printf("INFO L%d.%d %s\n", level, ix+1, validCTPINPUTs[ind].name);
+        } else {
+          rcu= daqlogbook_insert_triggerInput(rundec,   
+            ix+1, validCTPINPUTs[ind].name, level);
+          printf("INFO L%d.%d %s\n", level, ix+1, validCTPINPUTs[ind].name);
+        };
+        if(rcu != 0) {
+          char emsg[ERRMSGL];
+          sprintf(emsg, "daqlogbook_insert_triggerInput(%d,%d,%s,%d) rc:%d",
+            rundec,ix+1, validCTPINPUTs[ind].name, level, rcu);
+          infolog_trg(LOG_FATAL, emsg);
+          printf("ERROR %s\n", emsg);
+          break;
+        };
+      }; 
+    };
+  };
+};
+}
 /*--------------------*/ void DOcmd(void *tag, void *msg, int *size)  {
 /* msg: string finished by "\n\0" */
 //printf("DOcmd: tag:%d size:%d msg:%s<-endofmsg\n", *tag, *size,msg);
@@ -211,6 +289,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   char pname[60]="";
   char runc[16]="";
   char emsg[500];
+  //rc= getname_rn(mymsg, pname, rundec);
   while(1) {
     int cix;
     c=(mymsg)[5+ix];
@@ -299,6 +378,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   ignoreDAQLOGBOOK=0;
 } else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {
   reset_insver();
+  readTables();
 } else if((strncmp(mymsg,"csupdate",8)==0)) {
   int csclients; char *cs;
   cs= readCS();
@@ -344,6 +424,9 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     //csclients= dis_update_service(CSid);  is not here
     printf("INFO set clockshift %s. rc(=chars):%d \n", halfns, rc);
   };
+  stdoutyes=0;
+} else if((strncmp(mymsg,"rcfg ",5)==0)) {
+  printf("ERROR rcfg cmd ignored (processed by CTPRCFG cmd\n");
   stdoutyes=0;
 } else if((strncmp(mymsg,"resetclock",9)==0)) {
 };
@@ -596,6 +679,8 @@ printf("DIM server:%s cmd:%s\n", servername, command); // should be 1st line
 reset_insver();
 cs= readCS();
 rc= readAliases(); 
+cshmInit();
+readTables();   // + in time of rcfgdel 0 ALL
 if(rc==-1) {
   char emsg[200];
   strcpy(emsg,"aliases info from aliases.txt not updated correctly");
@@ -607,17 +692,23 @@ printf("INFO rc:%d INT1:%s INT2:%s\n", rc, INT1String, INT2String);
 dis_add_error_handler(error_handler);
 dis_add_exit_handler(exit_handler);
 dis_add_client_exit_handler (client_exit_handler);
-dis_add_cmnd(cmd,"C", DOcmd, 88);
+// commands:
+CTPRCFGRCFGid= dis_add_cmnd(cmd,"C", DOcmd, 88);
+printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGRCFGid);
+sprintf(cmd, "%s", servername);   // CTPRCFG new (binary) RCFG request
+CTPRCFGid= dis_add_cmnd(cmd,NULL, DOrcfg, 89);
+printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGid);
 
+// services:
 sprintf(cmd, "%s/INT1", servername);   // CTPRCFG/INT1
 INT1id=dis_add_service(cmd,"C:99", INT1String, MAXINT12LINE, NULL, 4567);
 printf("INFO DIM service:%s id:%d\n", cmd, INT1id);
 sprintf(cmd, "%s/INT2", servername);   // CTPRCFG/INT2
-printf("INFO DIM service:%s\n", cmd);
 INT2id=dis_add_service(cmd,"C:99", INT2String, MAXINT12LINE, NULL, 4568);
+printf("INFO DIM service:%s id:%d\n", cmd, INT2id);
 sprintf(cmd, "%s/CS", servername);   // CTPRCFG/CS
-printf("INFO DIM service:%s\n", cmd);
 CSid=dis_add_service(cmd,"C", CSString, MAXCSString, CScaba, 4569);
+printf("INFO DIM service:%s id:%d\n", cmd, CSid);
 
 dis_start_serving(servername);  
 while(1) {
@@ -660,5 +751,6 @@ while(1) {
   };
 };
 stopserving();
+cshmDetach(); printf("INFO shm detached.\n");
 return(grc);
 }

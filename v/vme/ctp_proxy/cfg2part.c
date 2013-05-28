@@ -86,12 +86,14 @@ int string2int(char *cstr,int length,w32 *num,char b){
   printf("string2int error: unknown base %cstr \n",b);
   return 1;
  }
- if((length>w32toint((2*sizeof(w32)))) && (b =='h')){
-  printf("string2int error: length=%i >2*sizeof(w32) \n",length);
+ if((length>8) && (b =='h')){
+  char cstr20[20];
+  strncpy(cstr20, cstr, 20); cstr[19]='\0';
+  printf("string2int error: length=%i >8 cstr[0..20]:%s\n",length,cstr20);
   return 1;
  }
  if(length>9 && b == 'd'){
-  printf("string2int error: length=%i >2*sizeof(w32) \n",length);
+  printf("string2int error: length=%i >9 \n",length);
   return 1;
  }
  *num=0;
@@ -249,6 +251,7 @@ TKlas *CLA2Partition(char *line,int *error, char *pname){
  w32 l1definition,l1inverted,l2definition;
 int sdgix=-1;   // -1: not SDG class
 char emsg[300];
+char clsnum[3];
  *error=1;
  i=0;
 if(l0AB()==0) {   //firmAC
@@ -256,9 +259,23 @@ if(l0AB()==0) {   //firmAC
 } else {
   mskCLAMASK=0x10000;
 }
+strncpy(clsnum,&line[4],2); clsnum[2]='\0';
+while(line[i] != ' ' && (i<MAXLINECFG))i++;
+j=i++;    // i.e. j=i; i=i+1
+/* now:
+       l0inputs       l0vetos    presc    l1def      l1i l2def      cg
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
+       i
+      j 
+*/
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
- j=i++;
- while(line[i] != ' ' && (i<MAXLINECFG))i++;
+/* 
+      0123456789.1
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
+                 i
+      j 
+                1   -here 1st parameter is pointing. 2nd = 11-3=8
+*/
  if(string2int(&line[i-1],i-j-3,&l0inputs,'h'))return NULL; 
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
@@ -271,7 +288,7 @@ if(l0AB()==0) {   //firmAC
  /* printf("cfg2part:%s:chars:%d, i=%d j=%d\n",&line[i-1],i-j-3,i,j);
 CLA.01 0xbfffffff 0x0 0x7fffffb1 0x1fae13 0x1bffffff 0x0 0x1f000fff
     i-j-3=6                     j        i
- line[j+1]: start of precaler: symname or 0x23
+ line[j+1]: start of prescaler: symname or 0x23
             length of symname or hexnumber is: i-j-1
  */
  if(strncmp(&line[j+1],"0x",2)!=0) {   // SDG symname
@@ -296,22 +313,37 @@ CLA.01 0xbfffffff 0x0 0x7fffffb1 0x1fae13 0x1bffffff 0x0 0x1f000fff
  if(string2int(&line[i-1],i-j-3,&l1inverted,'h'))return NULL; 
  j=i++;
  while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
- if(string2int(&line[i-1],i-j-3,&l2definition,'h'))return NULL;
- // i: points to last character of l2definition
- j=i++;
- // j and i point to:
- // \n  -group definition is missing 
- // ' ' -group definition probably follows the l2definition
- if( (line[i] != '\n') && (line[i] != '\0') ) {
-   while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
-   if(string2int(&line[i-1],i-j-1,&group,'d')) {
-     sprintf(emsg,"classgroup def. error i:%d line[i]:%c:%c:\n", 
-       i, line[i], line[i-1]);
-     infolog_trgboth(LOG_ERROR, emsg); return NULL;
-   };/* else {
-     printf("classgroup:%d\n", group);
-   };*/
- };
+/* 
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
+                                                                   i
+                                                        j
+                1   -here 1st parameter is pointing. 2nd = 11-3=8
+*/
+if(string2int(&line[i-1],i-j-3,&l2definition,'h'))return NULL;
+// i: points to the space|\n after l2definition
+j=i++;
+/* now: (X == new line character)
+group defined:
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1X
+group not defined:
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fffX
+                                                                    i
+                                                                   j
+*/
+// j points to space|\n and i points to:
+// ?  -1 char after \n (group definition is missing) 
+// 'x' -start of group definition (x is digit)
+if( (line[j] != '\n') && (line[i] != '\n') ) {
+  while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
+  // i: points to the space|\n after group
+  if(string2int(&line[i-1],i-j-1,&group,'d')) {
+    sprintf(emsg,"classgroup def. error i:%d line[i]:%c:%c:\n", 
+      i, line[i], line[i-1]);
+    infolog_trgboth(LOG_ERROR, emsg); return NULL;
+  } else {
+    ; //printf("classgroup:CLAfrom1.%s cg=%d\n", clsnum,group);
+  };
+};
  // class enable
  if(~(l0vetos) & mskCLAMASK){ 
   klas = (TKlas *) malloc(sizeof(TKlas));
@@ -502,7 +534,7 @@ Input: - string containig BCMASK line from pcfg file
 Return: pointer to rbif, NULL = error
 */
 TRBIF *BCMASK2Partition(char *line,TRBIF *rbif){
-int ix,il; unsigned int bcmaskn;
+int ix,il; unsigned int lenline,bcmaskn;
 if(rbif == NULL){
   rbif = allocTRBIF();
   if(rbif == NULL){
@@ -511,7 +543,10 @@ if(rbif == NULL){
   };
 };
 if(l0AB()==0) {bcmaskn=BCMASKN;} else {bcmaskn=4;};
-if(strlen(line) < ((bcmaskn/4)*ORBITLENGTH+8)) {
+lenline= strlen(line);
+if(lenline < ((bcmaskn/4)*ORBITLENGTH+8)) {
+  char errm[300];
+  sprintf(errm, "BCMASK2Partition: short BCMASKS line (len:%d bcmaskn:%d) in .pcfg", lenline,bcmaskn);
   infolog_trgboth(LOG_FATAL, "BCMASK2Partition: short BCMASKS line in .pcfg");
   return NULL;
 };

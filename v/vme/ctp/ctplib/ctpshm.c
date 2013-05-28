@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>   //malloc
 #include "string.h"
-#include "vmewrap.h"
+#include "vmewrapdefs.h"
 #include "shmaccess.h"
 //#include "bakery.h" is in Tpartition.h
 #include "vmeblib.h"
-#include "ctp.h"
+//#include "ctp.h"
 #include "Tpartition.h"
 
 /*-------------------------------------------------------*/ void cshmInit() {

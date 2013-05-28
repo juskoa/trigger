@@ -27,3 +27,22 @@ VMELIBS env. variable introduced (default: /lib/modules/daq)
 v/SPECS/ directory introduced for .spec files (currently for ltuclient+ltusw)
 26.4.
 bin/vmebse_lab.bash  -use ideas for vmebse.bash (todo)
+17.5.2013
+getDAQClusterInfo()
+daqlogbook_update_clusters()
+called in ctp_proxy. Idea: move these calls later to pydimserver -i.e.
+DAQlogbook (and hence mysql) needed ONLY on server.
+Steps:
+- find alternative way to DIM (seems UDT is ok also for 1GB smaqs)
+- measure current InitPartition phases
+- improve pydimserver.py (now .partition loaded 2x for
+  pcfg and rcfg)
+- move the DAQlogbook operations to server
+- after the move of DAQlogbook operations to server, measure again
+22.5.
+prtProfTime() added in ctp_proxy
+28.5.
+ctp_proxy linked without mysql! (i.e. all daqlogbook updates
+were moved to pydim). pysidm/server.c uses cshm* like ctpproxy
+(i.e. not complete usage, only validLTUs and validCTPinputs)
+

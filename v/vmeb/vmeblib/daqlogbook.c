@@ -7,9 +7,15 @@ pydimserver.py
 #include <stdlib.h>
 #include <string.h>
 
-#include "vmewrap.h"
 #include "lexan.h"
 #include "vmeblib.h"
+#include "vmewrap.h"
+#include "daqlogbook.h"
+/* from Tpartition.h:
+#define NCLUST 6
+struct TDAQInfo
+*/
+
 #ifdef DAQLOGBOOK
 #ifdef CPLUSPLUS
 extern "C" {
@@ -308,6 +314,40 @@ rc= DAQlogbook_insert_ACTConfig(runn, item, iname, iver);   // OK:
 printf("INFO DAQlogbook_insert_ACTConfig(%d,...) not called", runn);
 rc=0;
 #endif
+return(rc);
+}
+/* update clusters info in DAQlogbook (6 clusters)
+*/
+int daqlogbook_update_clusters(unsigned int runn, char *pname,
+  TDAQInfo *daqi, 
+  unsigned int ignoredaqlog) {    // on vme available in shm
+int iclu,rc;
+printf("INFO daqlogbook_update_clusters: pname:%s runn:%d\n", pname, runn);
+for(iclu=0;iclu<NCLUST;iclu++) {
+  if(daqi->masks[iclu]==0) continue;
+  if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
+    daqi->masks[iclu]= daqi->masks[iclu] | (1<<17);
+  };
+  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class1/class33 mask:0x:%x %x %x %x\n", 
+    iclu+1, daqi->masks[iclu], daqi->inpmasks[iclu], daqi->classmasks01_32[iclu],
+    daqi->classmasks33_64[iclu]);
+#ifdef DAQLOGBOOK
+  if(ignoredaqlog!=0) { rc=0;
+  } else { 
+    unsigned long long classmasks_l;
+    classmasks_l=  daqi->classmasks33_64[iclu];
+    classmasks_l= classmasks_l<<32;
+    classmasks_l= classmasks_l | daqi->classmasks01_32[iclu];
+    rc=DAQlogbook_update_cluster(runn, iclu+1, daqi->masks[iclu], 
+      pname, daqi->inpmasks[iclu], classmasks_l);
+    if(rc!=0) {
+      printf("ERROR DAQlogbook_update_cluster failed. rc:%d", rc);
+      break;
+    };
+  };
+#else
+#endif
+};
 return(rc);
 }
 

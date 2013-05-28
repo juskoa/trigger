@@ -11,6 +11,7 @@ See  cfg2part.c clg_defaults[MAXCLASSGROUPS]= {0,1,1,3,4,5,6,7,8,9999}; */
 #include "vmewrap.h"
 #include "infolog.h"
 #include "vmeblib.h"
+#include "vmeblib.h"
 #include "ctp.h"
 #include "Tpartition.h"
 #include "ctp_proxy.h"

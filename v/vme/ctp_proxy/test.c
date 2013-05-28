@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
@@ -102,6 +103,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
    case 'M':
         strcpy(pname, "MUON_TRK");
         printf("Loading partition %s mask:\"\" run:9999\n",pname);
+        prtProfTime(NULL);
         if(ctp_InitPartition(pname,"", run, ACT_CONFIG, errorReason) ){
          run++;
          printf("MUON_TRK load partition error:%s. \n", errorReason);
@@ -120,6 +122,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
         printf("Stoping partition %s\n",pname);
         ctp_StopPartition(pname);
         printf("Loading partition %s mask:\"\" run:%d\n",pname,run);
+        prtProfTime(NULL);
         if(ctp_InitPartition(pname,"", run, ACT_CONFIG, errorReason) ){
          run++;
          printf("%s load partition error:%s. \n", pname, errorReason);
@@ -131,6 +134,7 @@ if((rc=ctp_Initproxy())!=0) exit(8);
    case 'H':
         strcpy(pname, "HMPID");
         printf("Loading partition %s mask:\"\" run:8888\n",pname);
+        prtProfTime(NULL);
         ctp_InitPartition(pname,"",run,ACT_CONFIG, errorReason); run++;
         printf("Starting partition %s\n",pname);
         ctp_StartPartition(pname, errorReason);
@@ -140,16 +144,19 @@ if((rc=ctp_Initproxy())!=0) exit(8);
         entername("MODE:", partmode);
         printf("Loading partition %s  enter mask (integer or 0xHHH..):",pname);
         getmask(mask);
+        prtProfTime(NULL);
         ctp_InitPartition(pname,mask,run,ACT_CONFIG, errorReason); run++ ;//return 1;
         break;
    case 's':
         entername("Partition name:", pname);
         printf("Starting partition %s...\n",pname);
+        prtProfTime(NULL);
         ctp_StartPartition(pname, errorReason); //return 1;
         break;
    case 'F':
         strcpy(pname, "HMPID");
         printf("Stoping partition %s\n",pname);
+        prtProfTime(NULL);
         ctp_StopPartition(pname);
         break;
    case 'f':

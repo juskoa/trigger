@@ -3,6 +3,7 @@
 #include <time.h>   
 #include <sys/time.h>   /* gettimeofday */
 typedef unsigned int w32;
+#include "vmeblib.h"
 
 /*--------------------------------*/ void getdatetime(char *dmyhms) {
 /* format date/time for logs
@@ -102,6 +103,19 @@ if(loopspermic==0) {    /* calibrate */
 };
 for(j=0; j<micsecs; j++) {
   for(i=1; i<loopspermic; i++) {if (i>0) continue;};
+};
+}
+unsigned int profSecs, profUsecs;
+/*---------------------------------------------*/ void prtProfTime(char *name) {
+unsigned int s_now, us_now, us;
+char msg[100];
+if(name==NULL) { 
+  GetMicSec(&profSecs, &profUsecs);
+  sprintf(msg,"prof_ts:cleared 0 us"); prtLog(msg);
+} else {
+  GetMicSec(&s_now, &us_now);
+  us= DiffSecUsec(s_now, us_now, profSecs, profUsecs);
+  sprintf(msg,"prof_ts:%s %d us", name, us); prtLog(msg);
 };
 }
 

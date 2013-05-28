@@ -21,8 +21,9 @@ linux/act.exe VALID.BCMASKS
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include "vmewrap.h"
-#include "ctp.h"
+#include <string.h>
+#include "vmewrapdefs.h"
+//#include "ctp.h"
 #define DBMAIN
 #include "Tpartition.h"
 

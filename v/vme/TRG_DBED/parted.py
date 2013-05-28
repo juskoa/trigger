@@ -196,6 +196,8 @@ def Parse1(clstring):
         if par=='': continue
         valpar=string.split(par,'=')
         if len(valpar)==2:
+          if rc.has_key(valpar[0]):
+            PrintWarning("Multiple definition of %s, redefined to: %s"%(valpar[0],valpar[1]))
           rc[valpar[0]]=valpar[1]
         elif len(valpar)==1:
           rc[valpar[0]]="ON"
@@ -1324,7 +1326,7 @@ class TrgClass:
       PrintError("Bad TD:"+clstring); break
     # leave None if not defined in .partition (from 3.6.2012):
     if (cn_name!=None) and (cn_name!=self.getclsname()):
-      print "TrgClass:", cn_name, "default name:", self.getclsname()
+      #print "TrgClass:", cn_name, "default name:", self.getclsname()
       self.clsname=cn_name
   def get_clsnamepart1(self, k):
     bcm= findSHR(k)

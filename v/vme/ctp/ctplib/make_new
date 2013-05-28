@@ -13,21 +13,22 @@ CFLAGS= $(COMMONCFLAGS) -D$(WHICHSETUP) -D$(VMEDRIVER) \
 
 include $(VMEBDIR)/sc.make
 
-S_OBJSCOM = fileManip.o
+S_OBJSCOM = fileManip.o readTables.o ctpshm.o
 ifdef SERVER_LINK
 S_OBJS = $(S_OBJSCOM)
 else
 #compiled/linked on client:
-S_OBJS = $(S_OBJSCOM) readBICfile.o readTables.o timingpars.o \
+S_OBJS = $(S_OBJSCOM) readBICfile.o readTablesClient.o timingpars.o \
  calcOverlap.o bcmask.o Tpartition.o shared.o Partition.o \
  checkCTP.o notInCrate.o readCounters.o initCTP.o swtrigger.o \
  scope.o i2ctemp.o  inputsTools.o busyTools.o dumpCTP.o \
- phase.o pfp.o bobr.o ctpshm.o ttcmisubs.o ctpTools.o
+ phase.o pfp.o bobr.o ttcmisubs.o ctpTools.o
 # intint.o
 # mysqlwrap.o
 endif
 $(info S_OBJS:$(S_OBJS))
-all: $(S_OBJS)
+all: libctp.a
+libctp.a: $(S_OBJS)
 	-rm libctp.a
 	ar rs libctp.a *.o
 
@@ -36,9 +37,12 @@ bobr.o: bobr.c ctplib.h
 readCounters.o: readCounters.c ctplib.h
 readBICfile.o: readBICfile.c $(VMECFDIR)/ctp/ctp.h
 swtrigger.o: swtrigger.c $(VMECFDIR)/ctp_proxy/Tpartition.h
-ctpshm.o: ctpshm.c $(VMEBinc)/vmewrap.h $(VMECFDIR)/ctp/ctp.h \
+#ctpshm.o: ctpshm.c $(VMEBinc)/vmewrapdefs.h $(VMECFDIR)/ctp/ctp.h \
+ctpshm.o: ctpshm.c $(VMEBinc)/vmewrapdefs.h $(VMEBinc)/vmeblib.h \
  $(VMECFDIR)/ctp_proxy/Tpartition.h
 readTables.o: readTables.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+	$(CC) $(CFLAGS) $(MYSQLCFLAGS) -c -o $@ $<
+readTablesClient.o: readTablesClient.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
 	$(CC) $(CFLAGS) $(MYSQLCFLAGS) -c -o $@ $<
 Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<

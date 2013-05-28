@@ -2,6 +2,7 @@
 SHM: ipcs -m, ipcrm shm SHMID
 */
 #include <stdio.h>
+#include <string.h>
 #include "vmewrap.h"
 #include "shmaccess.h"
 #include "ctp.h"
