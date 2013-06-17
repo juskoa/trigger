@@ -85,6 +85,35 @@ else
   return $?
 fi
 }
+function showpids() {
+s_dnames="pydimserver.py htmlCtpBusys.py readctpc readltuc udpmon irdim xcounters gmonscal monscal masksServer ctpwsgi"
+c_dnames="ctpproxy dims gcalib.exe gdb test"
+mi_dnames="ttcmidims"
+#echo "dnames:$dnames"
+#echo "1,2:$1,$2"
+for dn in $s_dnames ;do
+  pgrep -l $dn
+  [ $? -eq 1 ] && echo ----	$dn
+done
+echo ------------ $ctpvme: $c_dnames
+sshcmd=""
+for dn in $c_dnames ;do
+  sshcmd="pgrep -x -l $dn; $sshcmd"
+done
+#echo $sshcmd
+ssh -2 trigger@$ctpvme "$sshcmd"
+echo ------------ $ttcmivme: $mi_dnames
+sshcmd=""
+for dn in $mi_dnames ;do
+  sshcmd="pgrep -x -l $dn; $sshcmd"
+done
+#echo $sshcmd
+ssh -2 trigger@$ttcmivme "$sshcmd"
+#for dn in $c_dnames ;do
+#  ssh -2 trigger@$ctpvme pgrep -x -l $dn
+#  [ $? -eq 1 ] && echo ----	$dn
+#done
+}
 #--------------------------------------------------
 hname=`hostname`
 if [ "$hname" != 'tp' -a "$hname" != 'pcalicebhm05' \
@@ -107,6 +136,7 @@ if [ "$1" = 'help' ] ;then
 cat - <<-EOF
 Usage:                    
 startClients              -get status of all daemons
+startClients pids         -get pids of all daemons
 startClients help         -this message
 
 startClients pydim stop | start | status
@@ -169,11 +199,15 @@ Problems: see corresponding files in:
 EOF
 exit
 fi
+dnames="pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer ctpwsgi diprfrx"
 cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
   dmn='all'
   sss='status'
+elif [ $# -eq 1 -a "$1" = "pids" ] ;then
+  showpids
+  dmn=pids
 elif [ $# -eq 1 ] ;then
   echo "Current sttus of $1            (type help to get help message)"
   dmn=$1
@@ -182,7 +216,7 @@ else
   dmn=$1
   sss=$2
 fi
-echo "pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer ctpwsgi all " | grep "$dmn " >/dev/null
+echo $dnames | grep "$dmn " >/dev/null
 if [ $? -eq 1 ] ;then
   echo "unknown daemon: $dmn"
   exit 8

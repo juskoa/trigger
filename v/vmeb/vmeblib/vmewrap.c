@@ -139,7 +139,7 @@ w8 retval=0xde;
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_ReadCycle(cv.handle, cv.adr,  &(cv.value), cvA24_U_DATA,cvD8);
-if (cv.status < 0) printf("CAENVME_ReadCycle32 error:%x\n", cv.status);
+if (cv.status < 0) printf("CAENVME_ReadCycle32 error:%li\n", cv.status);
 retval= (w8)cv.value;
 #endif
 
@@ -150,6 +150,41 @@ retval= *(w8 *)(vmeptr+offset);
 return(retval);
 }
 
+#ifdef CAENVME
+int getCaenVmeConf(int *type, int *link, int *num)
+{
+  char stconf[120];
+  char bridgeDir[120];
+  char *envptr,*configFile;
+  FILE *caenvme_conf;
+  char LinkTypeDesc[2][7]={"V1718\0","V2718\0"};
+  envptr=getenv("VMEBDIR");
+  if (envptr==NULL) {
+    (void)fprintf(stdout,"Undefined VMEBDIR variable\n");
+    exit(1);
+  } else strcpy(bridgeDir,getenv("VMEBDIR"));
+  configFile=strcat( bridgeDir,"/caenvme.setup");
+  if (envptr!=NULL)
+  errno=0;
+  caenvme_conf=fopen(configFile,"r");
+  if (errno) {
+    (void)fprintf(stdout,"Failed to open %s file\n",configFile);
+    perror("fopen"); fflush(stderr); exit(1);
+  }
+  while ( fgets(stconf,sizeof(stconf),caenvme_conf) != NULL ) {
+    //    printf("CANVME config file %s",stconf);
+    if (strncmp(stconf,"#",1) != 0) {
+      (void)sscanf(stconf,"%d %d %d",type,link,num);
+      printf("CAENVME Setup on %s bridge: Card #: %d Link #: %d\n",
+	     LinkTypeDesc[*type],*link,*num);
+    }
+  }
+  (void)fclose(caenvme_conf);
+  return 0;
+}
+#endif
+
+
 /*----------------------------------------------*/ w16 vmer16(w32 offset) {
 w16 retval=0xdead;
 #ifdef SIMVME
@@ -158,7 +193,7 @@ w16 retval=0xdead;
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_ReadCycle(cv.handle, cv.adr,  &(cv.value), cvA24_U_DATA,cvD16);
-if (cv.status < 0) printf("CAENVME_ReadCycle16 error:%x at%x\n", cv.status,cv.adr);
+if (cv.status < 0) printf("CAENVME_ReadCycle16 error:%li at%lx\n", cv.status,cv.adr);
 retval= (w16)cv.value;
 #endif
 
@@ -186,7 +221,7 @@ w32 retval=0xdeaddead;
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_ReadCycle(cv.handle, cv.adr,  &(cv.value),cvA24_U_DATA,cvD32);
-if (cv.status < 0) printf("CAENVME_ReadCycle32 error:%x at %x\n", cv.status,cv.adr);
+if (cv.status < 0) printf("CAENVME_ReadCycle32 error:%li at %lx\n", cv.status,cv.adr);
 retval= (w32)cv.value;
 #endif
 
@@ -203,8 +238,8 @@ return(retval);
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_WriteCycle(cv.handle, cv.adr,  &value, cvA24_U_DATA,cvD8);
-if (cv.status < 0) printf("CAENVME_WriteCycle8 error:%x\n", cv.status);
- printf("CAENVME_WriteCycle8:%x %x %x\n", cv.status, cv.adr, cv.value);
+if (cv.status < 0) printf("CAENVME_WriteCycle8 error:%li\n", cv.status);
+ printf("CAENVME_WriteCycle8:%li %lx %lx\n", cv.status, cv.adr, cv.value);
 #endif
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w8 *)(vmeptr+offset)=value;
@@ -219,7 +254,7 @@ return;
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_WriteCycle(cv.handle, cv.adr,  &value, cvA24_U_DATA,cvD16);
-if (cv.status < 0) printf("CAENVME_WriteCycle16 error:%x\n", cv.status);
+if (cv.status < 0) printf("CAENVME_WriteCycle16 error:%li\n", cv.status);
 #endif
 
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
@@ -235,7 +270,7 @@ return;
 #ifdef CAENVME
 cv.adr=cv.BaseAddr+offset;
 cv.status= CAENVME_WriteCycle(cv.handle,cv.adr,  &value, cvA24_U_DATA,cvD32);
-if (cv.status < 0) printf("CAENVME_WriteCycle32 error:%x at %x\n", cv.status,cv.adr);
+if (cv.status < 0) printf("CAENVME_WriteCycle32 error:%li at %lx\n", cv.status,cv.adr);
 #endif
 
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
@@ -521,11 +556,12 @@ printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
   cv.BdNum=(short)num;
   cv.handle=0; 
   cv.status=0;
-  rccret= CAENVME_Init(cv.BdType, cv.Link, cv.BdNum, (long *)&(cv.handle));
-  if(rccret<0){
+  rccret=0;
+  rccret= CAENVME_Init(cv.BdType, cv.Link, cv.BdNum, (int32_t*)&(cv.handle));
+  printf( "CAENVME_Init: %d, %d %d %d %d \n", rccret, cv.BdType, cv.Link, cv.BdNum, cv.handle );   
+  if (rccret<0){
     printf( "CAENVME_Init: %d \n", rccret );    
-    //    goto EXIT8;
-    return(rccret);
+    goto EXIT8;
   }
   printf( "CAENVME_Init: %d, %d %d %d %d \n", rccret, cv.BdType, cv.Link, cv.BdNum, cv.handle ); 
  cv.BaseAddr=BoBaAd;
@@ -535,7 +571,9 @@ RCRET:
 //printf("vmxopen rccret:%d vsp: %d\n", rccret, *vsp);
 return(rccret);
 EXIT8:
+#ifndef CAENVME
 printf("Base address:%x Length: %d\n",BoBaAd, BoBaLength);
+#endif
 return(8);
 }
 /*----*/ int vmxopen(int *vsp, char *BoardBaseAddress, 
@@ -544,41 +582,12 @@ char a24[]="A24";
 return( vmxopenam(vsp, BoardBaseAddress, BoardSpaceLength, a24));
 }
 
-#ifdef CAENVME
-int getCaenVmeConf(int *type, int *link, int *num)
-{
-  char stconf[80];
-  char bridgeDir[120];
-  char *envptr,*configFile;
-  FILE *caenvme_conf;
-  char LinkTypeDesc[2][6]={"V1718\0","V2718\0"};
-  envptr=getenv("VMEBDIR");
-  if (envptr==NULL) {
-    (void)fprintf(stdout,"Undefined VMEBDIR variable\n");
-    exit(1);
-  } else strcpy(bridgeDir,getenv("VMEBDIR"));
-  configFile=strcat( bridgeDir,"/caenvme.setup");
-  if (envptr!=NULL)
-  errno=0;
-  caenvme_conf=fopen(configFile,"r");
-  if (errno) {
-    (void)fprintf(stdout,"Failed to open %s file\n",configFile);
-    perror("fopen"); fflush(stderr); exit(1);
-  }
-  while ( fgets(stconf,sizeof(stconf),caenvme_conf) != NULL ) {
-    if (strncmp(stconf,"#",1) != 0) {
-      (void)sscanf(stconf,"%d %d %d",type,link,num);
-      printf("CAENVME Setup on %s bridge: Link #: %d Chained Link #: %d\n",
-	     LinkTypeDesc[*type],*link,*num);
-    }
-  }
-  (void)fclose(caenvme_conf);
-  return 0;
-}
-#endif
 
 /*-----------*/ int vmeopen(char *BoardBaseAddress, char *BoardSpaceLength) {
-int rc, vsp0=0;
+  int rc;
+#ifndef CAENVME
+ int vsp0=0;
+#endif
 #ifdef SIMVME
 rc= vmxopen(&vsp0, BoardBaseAddress, BoardSpaceLength);
 #endif
@@ -599,7 +608,7 @@ vmeptr= vxsp[0].vmeptr;
   cv.Link=(short)link;              
   cv.BdNum=(short)num;
   cv.handle=0; 
-  rc= CAENVME_Init(cv.BdType, cv.Link, cv.BdNum, (long *)&(cv.handle));
+  rc= CAENVME_Init(cv.BdType, cv.Link, cv.BdNum, (int32_t*)&(cv.handle));
   if(rc<0){
     printf( "CAENVME_Init: %d \n", rc );    
     //    goto EXIT8;

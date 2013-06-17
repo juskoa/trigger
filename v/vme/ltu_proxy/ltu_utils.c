@@ -240,11 +240,11 @@ if(killsodeod == 1) {
   SLMquit();
   sprintf(msg, "%s killed. Waiting:%d micsecs", seqfile, waiting);
   infolog_trg(LOG_ERROR, msg);
-  printf("%s:%s killed. Waiting:%d micsecs\n", datetime, seqfile, waiting);
+  //printf("%s:%s killed. Waiting:%d micsecs\n", datetime, seqfile, waiting);
 } else {
   sprintf(msg, "%s generated. Waiting:%d micsecs", seqfile, waiting);
   infolog_trg(LOG_INFO, msg);
-  printf("%s:%s generated. Waiting:%d micsecs\n", datetime, seqfile, waiting);
+  //printf("%s:%s generated. Waiting:%d micsecs\n", datetime, seqfile, waiting);
 };
 return(killsodeod);
 }

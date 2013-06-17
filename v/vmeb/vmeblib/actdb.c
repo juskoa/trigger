@@ -278,7 +278,7 @@ FILE *f;
 char partitionCtpConfigItem[64];
 char fname[184];
 #define MAXFILTER 2000
-char filter[MAXFILTER];
+char filter[MAXFILTER]="";
 if((err=actdb_open())!=0) {
   printf("ERROR actdb_open. RC:%d\n",err);
   return(-4);

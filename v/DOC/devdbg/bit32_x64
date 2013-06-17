@@ -96,4 +96,6 @@ drwxr-xr-x 6 tof tof 4096 Mar 18 13:44 v
 i.e. nothing found with:
 [alitoftm00] /home/tof/SOFT/ltu > find . -newer ltusw64bit \( -name '*.[ch]' -o -name '*[Mm]ake*' -o -name '*eadm*' -o -name '*.py' -o -name '*.sh' -o -name '*.bash' \)
 
-
+11.6.2013
+seems ltusw ok on 64 alitoftm00 -to be confirmed (caenvme, Pietro vmewrap.c)
+and downloaded.

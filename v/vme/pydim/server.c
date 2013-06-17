@@ -372,10 +372,22 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
 -------- moved to .rcfg */
 //                        1...,...10....,....20..3
 } else if((strncmp(mymsg,"rcfgdel ignoreDAQLOGBOOK",23)==0)) {
+  int rcdaq;
   ignoreDAQLOGBOOK=1;
-  printf("INFO DAQlogbook will not be used (ignoreDAQLOGBOOK)\n");
+  printf("INFO closing DAQlogbook (ignoreDAQLOGBOOK from ctpproxy received)\n");
+  rcdaq= daqlogbook_close();
+  if(rcdaq==-1) {
+    printf("ERROR DAQlogbook_close failed\n");
+  };
 } else if((strncmp(mymsg,"rcfgdel useDAQLOGBOOK",20)==0)) {
-  ignoreDAQLOGBOOK=0;
+  int rcdaq;
+  rcdaq= daqlogbook_open(); //rcdaq=0;
+  if(rcdaq!=0) {
+    printf("ERROR DAQlogbook_open failed rc:%d",rcdaq);
+    ignoreDAQLOGBOOK=1;
+  } else {
+    ignoreDAQLOGBOOK=0;
+  };
 } else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {
   reset_insver();
   readTables();
@@ -695,7 +707,7 @@ dis_add_client_exit_handler (client_exit_handler);
 // commands:
 CTPRCFGRCFGid= dis_add_cmnd(cmd,"C", DOcmd, 88);
 printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGRCFGid);
-sprintf(cmd, "%s", servername);   // CTPRCFG new (binary) RCFG request
+sprintf(cmd, "%s", servername);   // CTPRCFG binary (after LS1) RCFG request
 CTPRCFGid= dis_add_cmnd(cmd,NULL, DOrcfg, 89);
 printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGid);
 
@@ -723,6 +735,7 @@ while(1) {
   } else if(strncmp(line,"class ",6)==0) {
     int rcdaq;
     printf("INFO igDAQLOGBOOK:%d line:%s",ignoreDAQLOGBOOK, line);
+    /* from 28.5.2013: DAQlogbook opened/closed when ctp_proxy restarted
     rcdaq= daqlogbook_open();
     if(rcdaq==-1) {
       printf("ERROR DAQlogbook_open failed\n");
@@ -736,6 +749,12 @@ while(1) {
         if(rcdaq==-1) {
           printf("ERROR DAQlogbook_close failed\n");
         };
+      };
+    };*/
+    if(ignoreDAQLOGBOOK==0) {
+      rcdaq= updateDAQDB(line);
+      if(rcdaq!=0) {
+        printf("ERROR updateDAQLOGBOOK failed. rc=%d\n", rcdaq);
       };
     };
   } else if(strncmp(line,"cmd ",4)==0) {

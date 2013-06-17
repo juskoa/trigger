@@ -1,28 +1,28 @@
 state   check_rc  action    new state    note
 -----------------------------------------------
-down    off       start     restarted    init:down
+down    off       start     rstrted      init:down
 down    idle      -         ok           init:ok
 down    on,msg    -         ok,msg       init:ok
-        hung      restart   restarted    init:down
+        hung      restart   rstrted      init:down
 rstrted off       -         -            try to restart/sms after 1hour?
 rstrted idle      -         ok
 rstrted on,msg    -         ok
         hung      -         -            sms?
-ok      off       start     restarted
+ok      off       start     rstrted  
 ok      idle      -         -
 ok      on,msg    -         -
-        hung      restart   restarted
+        hung      restart   rstrted  
 
 The order according to monitor.py.main():
 state   check_rc  action    new state    note
 -----------------------------------------------
-down    off       start     restarted    init:down
-ok      off       start     restarted
+down    off       start     rstrted      init:down
+ok      off       start     rstrted  
 rstrted off       -         -            "DOWN/OK->OFF cannot restart"
                                          try to restart/sms after 1hour?
 
-down    hung      restart   restarted    init:down
-ok      hung      restart   restarted
+down    hung      restart   rstrted      init:down
+ok      hung      restart   rstrted  
 rstrted hung      -         -            "RESTARTED->HUNG cannot restart"
                                          sms?
 
@@ -34,14 +34,14 @@ down    on,msg    -         ok,msg       init:ok
 rstrted on,msg    -         ok
 ok      on,msg    -         ok
 
--: no action, or do not change state
+-: no action, i.e. the state not changed
 
 check_rc: -ret. code from do_check() checking the status of a daemon
 --------
 OFF  -daemon is not running (no pid)
-IDLE -is on (pid found), but it is not clear if it is hanged
+IDLE -is on (pid found), but it is not clear if stuck
 ON   -is on and responding (i.e. fresh udp message)
-HUNG -not responding
+HUNG -not responding (pid found, but stuck)
 
 Actions:
 -------
@@ -56,12 +56,13 @@ Config:
 see: allds= in monitor.py main()
      doc in Daemon.__init__()
 
-start:
+Control:
 ------
 ./monitor.py [re]start &
 ./monitor.py stop
 
 History:
+-------
 14.8.
 gcalib.sh, udpmon.sh refurbished:
 - kill introduced (the same as stop)
@@ -92,3 +93,14 @@ control better, still not complete...
 26.10.2012
 ttcmidim instead of pydim i.e., now monitored:
 udpmon gcalib ttcmidim html
+28.11.2012
+udpmon gcalib ctpwsgi ttcmidim html
+29.5.2013
+autor (autorestart: y|n) option added. pydim added with autor='n'. Now
+monitoring: udpmon gcalib ctpwsgi ttcmidim html pydim
+14.6.
+.html:
+
+system state AUTOR time last
+START  STOP        time previous action
+

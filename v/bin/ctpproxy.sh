@@ -20,7 +20,8 @@ function startproxy() {
     # if following not working, try /etc/security/limits.conf
     #*  hard  core unlimited
     ulimit -c unlimited
-    $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP DAQRO </dev/null >WORK/ctp_proxy.log 2>&1 &
+    #set args NODAQLOGBOOK NODAQRO
+    $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
     #echo "ctp_proxy rc:$? is 0 always (in case ctp_proxy does not exist)"
     pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
     echo "pid:$pid"
@@ -35,6 +36,8 @@ if [ -z $pid ] ;then
     exit 8
   elif [ "$1" = "start" ] ;then
     startproxy
+  elif [ "$1" = "startnd" ] ;then
+    startproxy NODAQLOGBOOK NODAQRO
   elif [ "$1" = "starttest" ] ;then
     cd $VMEWORKDIR
 #set args [NO]DAQLOGBOOK [NO]DAQRO
@@ -59,11 +62,15 @@ else
   elif [ $# -gt 0 -a "$1" != "status" ] ;then
     cat - <<-EOF
 Bad parameter:$1. One of the following expected:
-status  -check if ctpproxy is started
-stop    -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
-         active partitions (check with ECS operator). 
-kill    -stop ctpproxy immediately. This option should not be used!
-restart = kill + start (i.e. preferred way is: 'ctpproxy stop ; ctpproxy start')
+status    -check if ctpproxy is started
+stop      -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
+           active partitions (check with ECS operator). 
+kill      -stop ctpproxy immediately. This option should not be used!
+restart =  kill + start (preferred way is: 'ctpproxy [stop status start]')
+
+starttest -debugging: start interactive session without DAQLOGBOOK/readout
+startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
+           (interface to be written sending SMI cmds to ctpproxy)
 EOF
   fi
 fi

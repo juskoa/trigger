@@ -12,7 +12,7 @@ if string.find(os.environ["HOSTNAME"],"alidcscom")==0:
 def signal_handler(signal, stack):
   global quit
   log.logm("signal:%d received, quitting monitor.py..."%signal)
-  log.logm("anyhow, stucked till udp timeout elapses...")
+  log.logm("anyhow, I am waiting till udp timeout elapses...")
   log.flush()
   quit="quit"
   #time.sleep(2)
@@ -103,16 +103,18 @@ class Daemon:
   DOWN=0
   RESTARTED=1
   OK=2
-  def __init__(self,name, scb="scb", onfunc=None):
+  def __init__(self,name, scb="scb", onfunc=None, autor='y'):
     """
     scb: 
-    "scb": startClients.bash way check
-    "udp" check last udp message arrived from this Daemon
+    "scb": startClients.bash way check (i.e. name used with startClietns.bash)
+    "udp" check last udp message arrived from this Daemon (name still
+          used for start/stop with startClients.bash)
 
     onfunc: execute with each UDP message
             onfunc() should return: [None], [ON,msg] or [HUNG]
     """
     self.name= name
+    self.autor= autor
     self.scb= scb
     self.onfunc= onfunc 
     self.state= None   # ok, restarted, down
@@ -167,7 +169,7 @@ class Daemon:
     self.logm("started")
   def do_restart(self):
     """ 
-    rc: new status of Daemon after action
+    kill + start
     """
     rc= self.iopipe("startClients.bash "+self.name+" kill","killing:")
     self.logm(rc)
@@ -199,13 +201,14 @@ class Daemon:
       self.sms_sent= self.sms_sent+1
       if self.sms_sent==2:
         msg2= msg2+". SMSs DISABLED (max. 2)"
-      self.logm("mail:"+msg2)
+      self.logm(msg) #self.logm("mail:"+msg)
       send_mail(msg2)
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
     if self.a1!=None: log.logm(self.name+': '+self.a1, ltime= self.d1)
   def do_html(self):
-    lin= "%s: %s:%s %s:%s\n"%(self.name, str(self.a1), str(self.d1), str(self.a2), str(self.d2))
+    lin= "%s:%s: %s:%s %s:%s\n"%(self.name, self.autor, 
+      str(self.a1), str(self.d1), str(self.a2), str(self.d2))
     return lin
   def getpid(self):
     self.pid= None
@@ -273,7 +276,7 @@ monitor.py stop
   #  "pydim":Daemon("pydim"), "html":Daemon("html")}
   allds={"udpmon":Daemon("udpmon"), 
     "gcalib":Daemon("gcalib"),
-    "ctpwsgi":Daemon("ctpwsgi"),
+    "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
     "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
   lin=""
   for dm in allds.keys():
@@ -289,16 +292,22 @@ monitor.py stop
       rc= dm.do_check()
       if rc[0]==Daemon.OFF:
         if dm.state != Daemon.RESTARTED:   # was DOWN or OK
-          dm.do_start()
-          dm.set_state(Daemon.RESTARTED)
-          dm.logm_mail("DOWN/OK->OFF. restarted")
+          if dm.autor=='y':
+            dm.do_start()
+            dm.set_state(Daemon.RESTARTED)
+            dm.logm_mail("DOWN/OK->OFF. restarted")
+          else:
+            dm.logm_mail("DOWN/OK->OFF. not restarted (autor:NO)")
         else:
           dm.logm_mail("DOWN/OK->OFF cannot restart")
       elif rc[0]==Daemon.HUNG:
         dm.logm("hung "+rc[1])
         if (dm.state == Daemon.OK) or (dm.state == Daemon.DOWN):
-          dm.do_restart()
-          dm.set_state(Daemon.RESTARTED)
+          if dm.autor=='y':
+            dm.do_restart()
+            dm.set_state(Daemon.RESTARTED)
+          else:
+            dm.logm_mail("DOWN/OK->HUNG. not restarted (autor:NO)")
         elif dm.state == Daemon.RESTARTED:
           dm.logm_mail("RESTARTED->HUNG cannot restart")
       elif rc[0]==Daemon.IDLE:

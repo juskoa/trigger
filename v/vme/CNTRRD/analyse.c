@@ -137,7 +137,7 @@ return(num);
 #define NL1 300+2
 #define NL2 446+2
 //-----------------------------------------------------------------------
-int getBUSYclust(w32 clusters[][NBO],char counters[][MAXWORD]){
+/*int getBUSYclust(w32 clusters[][NBO],char counters[][MAXWORD]){
  int i;
  for(i=0;i<NL0;i++){
   w32 num;
@@ -152,16 +152,19 @@ int getBUSYclust(w32 clusters[][NBO],char counters[][MAXWORD]){
   clusters[i][3]=num;
  }
  return 0;
-}
+}*/
 void printHelp() {
 printf("\n\
-analyse.exe 'date1 time1' 'date2 time2' r ../outfile 0 23 45 ...\n\
+analyse.exe 'date1 time1' 'date2 time2' opt runn ../outfile 0 23 45 ...\n\
 e.g.:\n\
 cd ~/CNTRRD/rawcnts\n\
-$VMECFDIR/CNTRRD/linux/analyse '21.05.2011 00:00:00' '21.05.2011 23:00:00' 152077 ../r152077 898 899\n\
+$VMECFDIR/CNTRRD/linux/analyse '21.05.2011 00:00:00' '21.05.2011 23:00:00' hexa 152077 ../r152077.dat 898 899\n\
 \n\
-r: 0: no run given (just take all readings date1..date2)\n\
-   >0: run number -find SOR after 'date1 time1' and EOR from CSTART_RUNX[]\n\
+opt:  hexa -give readings in hexa format, default. (e.g. 0fab)\n\
+      dec  -give readings in decimal (unisgned long)\n\
+      gnu  -give readings in decimal and '-' separator between date and time\n\
+runn: 0: no run given (just take all readings date1..date2)\n\
+     >0: run number -find SOR after 'date1 time1' and EOR from CSTART_RUNX[]\n\
 outfile: the output file name. \n\
          NOT DONE YET:anypath.rrd  -create .rrd (.txt has to exist in curr. directory\n\
                        describing rrd)\n\
@@ -231,26 +234,44 @@ if(argc==1) {
   int noc;   // number of counters
   int runxpos;   //  pisition in RUNX array
   w32 runi;   // atoi(runc)
+  int decdata=0;   // 0: hexa   1: decimal
   int cpos[MAXNOC];
   char date[20], dati1[20],dati2[20];   // "21.05.2011 23:40:01"
   char runc[20]; char outfilepath[80];
   char oline[MAXNOC*15];
   int olines=0; int binarydata=0;
-  if(argc < (5+1)) {printHelp(); return 8; };
+  char fmtsep[20]="%s %s ";
+  if(argc < (6+1)) {printHelp(); return 8; };
+  /* dati1 dati2 option run datafile.out n1 n2 ...
+     1     2            3   4            5     old (before 31.5.2013)
+     1     2     3      4   5            6
+  */
   strcpy(dati1, argv[1]); strcpy(dati2, argv[2]);
-  strcpy(runc, argv[3]); runi=atoi(runc); strcpy(outfilepath, argv[4]);
+  strcpy(runc, argv[3]); runi=atoi(runc); strcpy(outfilepath, argv[5]);
   printf("%s %s %d %s. Counters' rel. addresses:\n", dati1, dati2, runi, outfilepath);
   runxpos=-1;
-  if((argc>= 6) && (strcmp("dimall",argv[5])==0)) {
+  if((argc>= 7) && (strcmp("dimall",argv[6])==0)) {
     binarydata=1;
     printf("dimall ");
   } else {
+    if(strcmp(argv[3],"dec")==0) {
+      decdata=1;
+      printf("decimal ");
+    } else if(strcmp(argv[3],"gnu")==0) {
+      decdata=1;
+      strcpy(fmtsep, "%s-%s ");
+      printf("gnu decimal ");
+    } else {
+      decdata=0;
+      strcpy(fmtsep, "%s %s ");
+      printf("hexa ");
+    }
     for(noc=0; noc<=MAXNOC; noc++) {
       if(noc>=MAXNOC) {
         printf("Error: too many counters. max:%d\n",MAXNOC); return 3;
       };
-      if( noc>= (argc-5)) break;
-      cpos[noc]= atoi(argv[noc+5]);
+      if( noc>= (argc-6)) break;
+      cpos[noc]= atoi(argv[noc+6]);
       printf("%d ", cpos[noc]);
     }; 
   };
@@ -311,7 +332,8 @@ if(argc==1) {
         fwrite(&cnt, 4, 1, ofile);
       };  //printf("\n");
     } else {
-      oline[0]='\0'; sprintf(oline, "%s %s ", counters[0], counters[1]);
+      //oline[0]='\0'; sprintf(oline, "%s %s ", counters[0], counters[1]);
+      oline[0]='\0'; sprintf(oline, fmtsep, counters[0], counters[1]);
       for(i=0; i<noc; i++) {
         //w32 number; 
         int ix; char cnumber[MAXWORD];
@@ -319,8 +341,14 @@ if(argc==1) {
         //converth2i(&number,i,counters);
         //printf("n:%i \n",number);
         //sprintf(oline, "%s%i ",oline, number);
-        strcpy(cnumber, counters[ix]);
-        sprintf(oline, "%s%s ",oline, cnumber);
+        if(decdata!=0) {
+          w32 cnumberdec;
+          converth2i(&cnumberdec,ix,counters);
+          sprintf(oline, "%s%d " ,oline, cnumberdec);
+        } else {
+          strcpy(cnumber, counters[ix]);
+          sprintf(oline, "%s%s ",oline, cnumber);
+        };
       }; 
       oline[strlen(oline)-1]='\0'; 
     };

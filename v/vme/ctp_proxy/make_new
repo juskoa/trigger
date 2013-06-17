@@ -14,7 +14,8 @@ CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(C
 
 include $(VMEBDIR)/sc.make
 ifdef SERVER_LINK
-allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm
+allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm \
+ $(EXEDIR)/ctpshm.exe
 else
 allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
  $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF \
@@ -85,10 +86,11 @@ $(EXEDIR)/gcalib.exe: gcalib.o $(LIBDEP)
 	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) -o $@
 
 #------------------------------------------- ctpshm
-main_shm.o:main_shm.c Tpartition.h 
+main_shm.o:main_shm.c Tpartition.h $(VMEBLIB)/../shmaccess.h
 	$(CC) $(CFLAGS) -c -o $@ $<
-$(EXEDIR)/ctpshm.exe: main_shm.o cfg2part.o $(LIBDEP)
-	$(CC) $(LDFLAGS) $< cfg2part.o $(CTPLD) $(VMEBLD) $(infoLD) \
+#$(EXEDIR)/ctpshm.exe: main_shm.o cfg2part.o $(LIBDEP)
+$(EXEDIR)/ctpshm.exe: main_shm.o $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(infoLD) \
  $(VMERCCLD) -o $@
 #------------------------------------------- act.exe
 main_act.o:main_act.c Tpartition.h 

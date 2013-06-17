@@ -39,10 +39,26 @@ Steps:
   pcfg and rcfg)
 - move the DAQlogbook operations to server
 - after the move of DAQlogbook operations to server, measure again
+20.5.
+some testing with UDP-based Data Transfer (UDT) Library - version 4
+done (available from git server). 
+Goal: to be used with SSM esp. after LS1 with new L0 10G ethernet readout.
+See:
+aj@pcalicebhm11:git/udt-git
+trigger@altri1:udt4
 22.5.
 prtProfTime() added in ctp_proxy
 28.5.
 ctp_proxy linked without mysql! (i.e. all daqlogbook updates
 were moved to pydim). pysidm/server.c uses cshm* like ctpproxy
 (i.e. not complete usage, only validLTUs and validCTPinputs)
+28.5.
+linux/ctpshm.exe  -compiled/linked on client+server -i.e. only the last one
+(i.e. according to where compile/link done) works
+DAQlogbook opened/closed in pydim/server.c always when ctpproxy restarted
+according to DIM message received from ctpproxy
+31.5.2013
+CNTRRD/analyse.c, option  gnu/dec/hexa added
+6.6.
+pac demo (for PAC with clusters) is in aj@11:h/wsgi.
 

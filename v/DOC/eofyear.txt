@@ -11,6 +11,7 @@ CNTRRD/rawcnts ->rawcnts2012
 v/vme/WORK/PCFG2011
 v/vme/WORK/PCFG2012
 
+$dbctp (not done yet)
 RCFG2008.tgz 8,9,10,11,12
 aj  -netreba
 

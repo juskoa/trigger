@@ -137,5 +137,7 @@ vme/ltudim/ltuclient.spec added (copied into ~/rpms/SPECS before .rpm built)
 26.4.
 v/SPECS directory now for spec files (ltusw binary rpm and ltuclient
 src+bin rpms now available)
-
+7.6.
+vmeb/caenvme.setup vmeb/vmeblib/vmewrap.c bin/startClients.bash
+copied from alitoftm00. Still to be updated later (Pietro).
 

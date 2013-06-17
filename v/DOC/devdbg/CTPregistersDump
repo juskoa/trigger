@@ -1,5 +1,5 @@
-1.) to ctp proxy call dumpCTP at start/stop of every run.
+1.) ctp proxy should call dumpCTP at start/stop of every run.
     it should write file to eg WORK/dumps
-2.) to finish dumpCTP
-16.5.2013
+2.) finish dumpCTP + write GUI showing/comparing ctp config 
+    stored in dump files 16.5.2013
 still busy + int boards are missing in dumpCTP
