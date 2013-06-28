@@ -21,3 +21,11 @@ CTRL-D
 4. send SMI command manually: ----------------------
 /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION pamb2 -dbg
 -dbg: don't send, just see how it looks like. 
+
+5. mount samba on alidcscom188: -----------------------
+[root@alidcscom188 dcsScripts]# pwd
+/root/dcsScripts
+[root@alidcscom188 dcsScripts]# ./mntDcsUser juskoa
+- type nice passwd 4x
+- use /mnt/alidcsfs001/Scratch/tri for our backups
+

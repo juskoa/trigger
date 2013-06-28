@@ -1,7 +1,11 @@
 #!/bin/bash
 echo $0
 if [ $0 != "./cphere.sh" ] ;then
-  echo "Start: ./cphere"
+  cat - <<-EOF
+Start: 
+./cphere mkdir            -prepare ~/validate only
+./cphere                  -above + build
+EOF
   exit
 fi
 mkdir ~/validate ; cp MANIFEST setup.py ~/validate/ ; cd ~/validate
@@ -12,6 +16,10 @@ pyfiles="myw.py trigdb.py txtproc.py parted.py syncdg.py validate.py downscaling
 #echo $pyfiles
 cp $p1 ./
 cp $p2 ./
+if [ "$1" = "mkdir" ] ;then
+  echo "~/validate prepared"
+  exit
+fi
 #echo 'Copy of these files made to local directory:'
 #ls -l *.py
 #echo 'python setup.py sdist   (bdist_rpm creates .rpm distribution)'

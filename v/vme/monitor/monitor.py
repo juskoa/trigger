@@ -3,6 +3,7 @@ import os,sys,string,popen2,time,types,signal,socket,smtplib,pylog
 from threading import Thread
 
 UDP_TIMEOUT=70
+ALARMhddtemp=35
 log=None
 quit=None
 pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
@@ -12,12 +13,12 @@ if string.find(os.environ["HOSTNAME"],"alidcscom")==0:
 def signal_handler(signal, stack):
   global quit
   log.logm("signal:%d received, quitting monitor.py..."%signal)
-  log.logm("anyhow, I am waiting till udp timeout elapses...")
+  log.logm("anyhow, waiting till udp timeout elapses...")
   log.flush()
   quit="quit"
   #time.sleep(2)
   os.remove(pidpath)
-  sys.exit(8)
+  #sys.exit(8)
 
 def send_mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
   """
@@ -106,16 +107,27 @@ class Daemon:
   def __init__(self,name, scb="scb", onfunc=None, autor='y'):
     """
     scb: 
-    "scb": startClients.bash way check (i.e. name used with startClietns.bash)
+    "scb": startClients.bash way check (i.e. name used 
+          with startClietns.bash to check status/start)
     "udp" check last udp message arrived from this Daemon (name still
-          used for start/stop with startClients.bash)
+          used for status/start with startClients.bash)
+    "hddtemp" just execute self.hddtemp.
+          ["OFF"] in case onfunc could not run correctly
+          do_check returns: 
+            [self.ON, msg_temp]    -temperature ok
+            [self.HUNG, msg_temp]  -high temperature (msg sent)
+            [self.OFF]             -cannot measure
 
-    onfunc: execute with each UDP message
+    onfunc: execute with each UDP message (scb="udp")
             onfunc() should return: [None], [ON,msg] or [HUNG]
+
+    autor: 'y' automatic restart
+           'n' action done (i.e. mail), but not restarted
     """
     self.name= name
     self.autor= autor
     self.scb= scb
+    if scb=="hddtemp":self.autor='n'
     self.onfunc= onfunc 
     self.state= None   # ok, restarted, down
     self.d1= self.d2= None    # 'dates' of last 2 actions (d2: older)
@@ -145,14 +157,27 @@ class Daemon:
         2: off (= not running)
     """
     rc=[None]
-    if self.udplast:
+    if self.scb=="hddtemp":
+      rline= self.iopipe("hddtemp /dev/hda",lookfor="/dev/hda")
+      if rline:
+        #self.logm(rline)
+        tempC= string.split(rline)[-1]
+        temp= int(tempC[:-3])
+        if temp>=ALARMhddtemp:
+          self.logm_mail("too high temp:%d C"%temp)
+          rc= [self.HUNG, "too high temp:%d C"%temp]
+        else:
+          rc= [self.ON, "%d C"%temp]
+      else:
+        rc= [self.OFF]
+    elif self.udplast:
       difsec= time.time()- self.udplast[0]
       if difsec<UDP_TIMEOUT: # we got fresh udp message
         if self.onfunc:
           rc= self.onfunc(self.udplast[1])
           # should return: [None], [ON,msg] or [HUNG]
-    else:
-      rc= [None]
+    #else:
+    #  rc= [None]
     if (rc[0]==None) and (self.scb=="scb"): 
       # we could not decide from udp, check at least status if possible,
       # i.e. 'scb':
@@ -207,8 +232,8 @@ class Daemon:
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
     if self.a1!=None: log.logm(self.name+': '+self.a1, ltime= self.d1)
   def do_html(self):
-    lin= "%s:%s: %s:%s %s:%s\n"%(self.name, self.autor, 
-      str(self.a1), str(self.d1), str(self.a2), str(self.d2))
+    lin= "%8s | %s | %s:%24s | %s:%24s\n"%(self.name, self.autor, 
+      str(self.d1), str(self.a1), str(self.d2), str(self.a2))
     return lin
   def getpid(self):
     self.pid= None
@@ -265,7 +290,7 @@ monitor.py stop
   mypid= str(os.getpid())
   pidf=open(pidpath,"w"); pid= pidf.write(mypid); pidf.close()
   log=pylog.Pylog("monitor") #, tty="tty")
-  log.logm("mypid: "+mypid)
+  log.logm("mypid: "+mypid+ " ALARMhddtemp: %d"%ALARMhddtemp)
   htmlfn= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.html")
   signal.signal(signal.SIGUSR1, signal_handler)  # 10
   signal.signal(signal.SIGHUP, signal_handler)   # 1  kill -s SIGHUP mypid
@@ -277,7 +302,8 @@ monitor.py stop
   allds={"udpmon":Daemon("udpmon"), 
     "gcalib":Daemon("gcalib"),
     "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
-    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
+    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+    "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "

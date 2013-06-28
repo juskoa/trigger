@@ -476,6 +476,40 @@ strcpy(detname, ltuitem->name);
 return;
 }
 
+/*------------------------------------------------------------detList2bitpat()
+I: dlist: "SPD,MUON_TRK"
+O: rc: detector pattern (bits 0..23 set for given detectors)
+       -1 in case of bad dlist
+*/
+int detList2bitpat(char *dlist) {
+enum Ttokentype token; int ix=0; int rc=0;
+char value[MAXLINELENGTH];
+while(1) {
+  token= nxtoken(dlist, value, &ix); if(token==tEOCMD) break;
+  if(token==tSYMNAME) {
+    int bit;
+    bit= findLTUdetnum(value);
+    if(bit==-1) {
+      // sprintf(em1," unknown detector:%s",value);
+      rc=-1; break;
+    };
+    rc= rc | (1 << bit);
+  } else {
+    rc=-1; break;
+  };
+  token= nxtoken(dlist, value, &ix); if(token==tEOCMD) break;
+  if(token!=tCOMMA) {
+    //strcpy(em1,", expected");
+    rc=-1; break;
+  };
+};
+return(rc);
+}
+/*------------------------------------------------------------findClusbydets()
+find cluster pattern corresponding to given partition and dets pattern
+*/
+w32 findClusbydets(Tpartition *part, int dets) {
+}
 /*------------------------------------------------------------findBUSYINP()
 fo:1-6, foc:1-4
 Ret: 1-24, 0: not connected
@@ -538,7 +572,8 @@ int ix;
 for(ix=0; ix<NDETEC; ix++) {
   if(validLTUs[ix].fo==0) continue;
   if(validLTUs[ix].fo==fo) {
-    if(validLTUs[ix].foc==foc) {
+    if(validLTUs[
+ix].foc==foc) {
       printf("%s",validLTUs[ix].name);
       return;
     };
@@ -563,6 +598,7 @@ if(idet == 8) {
 } else if(idet == 9) {
   idetout=1;   // FO 0 det 1
 } else {
+
 */
 if(*ifo==-1) {
   char emsg[ERRMSGL];

@@ -455,6 +455,7 @@ Tdetector *findLTUdaqdet(int daqdetnum);
 Tdetector *findLTU(char *ltuname);
 int findLTUdetnum(char *ltuname);
 void bit2name(w32 ctprodets, char *detname);
+int detList2bitpat(char *dlist);
 int findINPdaqdet(int level, int input);
 w32 findBUSYinputs(w32 ctprodets);
 void findLTUNAMESby(w32 busypat, w32 detpat, char *names);

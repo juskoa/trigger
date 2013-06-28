@@ -12,6 +12,7 @@
 #include "ctp_proxy.h"
 
 int quit=0;
+char errorReason[ERRMSGL];
 void printStartedTp();
 
 /*---------------------------------------------------- ctp_Disablernd1
@@ -79,6 +80,7 @@ int main(int argc, char **argv){
  char pname[64],mask[64]="0";
  Tpartition *part;
  char ACT_CONFIG[8]="YES"; // or "NO"
+char DETECTORS[200];
  //setlinebuf(stdout);   // see swtrcheck.py
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
@@ -92,7 +94,8 @@ infolog_SetFacility("CTP"); infolog_SetStream("",0);
 cshmInit();
 setglobalflags(argc, argv);
 if((rc=ctp_Initproxy())!=0) exit(8);
- while(1) {
+while(1) {
+  int detectors;
   printHelp();
   if((c = mygetchar()) == 'q') break;
   switch(c){
@@ -165,28 +168,39 @@ if((rc=ctp_Initproxy())!=0) exit(8);
         ctp_StopPartition(pname);
         break;
    case 'p':
-   case 'y':
         entername("Partition name:", pname);
-        if(c=='p') {
-          ctp_PausePartition(pname);
-          printf("Pausing partition %s\n",pname);
+        entername("DETECTORS to be paused:", DETECTORS);
+        detectors= detList2bitpat(DETECTORS);
+        if(detectors== -1) {
+          printf("Bad list of dets (comma separated expected) %s\n", DETECTORS);
         } else {
-          int i,reps=1;
-          if(strlen(line)>=3) {
-            reps= atoi(&line[2]);
-          };
-          printf("Going to send SYNC %d times\n", reps);
-          for(i=0; i<reps; i++) {
-            ctp_SyncPartition(pname, errorReason);
-            usleep(1000000);
-          };
-          //printf("Sending sync for partition %s\n",pname);
+          printf("Pausing partition %s dets:%x...\n",pname,detectors);
+          ctp_PausePartition(pname, detectors);
         };
+        break;             
+   case 'y': { int i,reps=1;
+        entername("Partition name:", pname);
+        if(strlen(line)>=3) {
+          reps= atoi(&line[2]);
+        };
+        printf("Going to send SYNC %d times\n", reps);
+        for(i=0; i<reps; i++) {
+          ctp_SyncPartition(pname, errorReason);
+          usleep(1000000);
+        };
+        //printf("Sending sync for partition %s\n",pname);
         break;
+      };
    case 'r':
         entername("Partition name:", pname);
-        ctp_ResumePartition(pname);
-        printf("Resuming partition %s\n",pname);
+        entername("DETECTORS to be left paused:", DETECTORS);
+        detectors= detList2bitpat(DETECTORS);
+        if(detectors== -1) {
+          printf("Bad list of dets (comma separated expected) %s\n", DETECTORS);
+        } else {
+          printf("Resuming partition %s dets:%x...\n",pname,detectors);
+          ctp_ResumePartition(pname, detectors);
+        };
         break;             
    case 'h':
         printHardware(&HW,"test.c");

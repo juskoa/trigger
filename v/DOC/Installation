@@ -5,8 +5,18 @@ Additional packages: python/tkinter (i.e 'yum install tkinter' on Linux)
 If ltuproxy required (i.e. ALICE DAQ), SMI and DIM installation required
 as well as DAQ-logbook and infoLogger.
 
-Private installation $HOME:
---------------------------
+rpm installation in /opt/ltusw on CCT VP315 with VMERCC driver:
+------------------------------
+rpm -ivh ltusw-4.2-1.i386.rpm
+Modify:
+/opt/ltusw/vmebse.bash
+  - env. variable VMELIBS defining VMERCC libraries
+
+/opt/ltusw/vme/CFG/ctp/DB/ttcparts.cfg
+  - define where LTU is (computer name and base address)
+
+Private installation in $HOME:
+-----------------------------
 Create directory (let's call it v), and unpack tar file in it:
 cd v
 tar -xvf../vmebltu.tar
@@ -93,9 +103,15 @@ Firmware files are placed in v/vme/CFG/ltu/*.rbf.
 
 There is a link to current firmware file in $VMEWORK directory, i.e.:
 FlashMem.cfg -> CFG/ltu/ltu_b5.rbf
-The upgrade to the newest version is done by typing:
+The upgrade to the newest version (this statement is valid 21.6.2013, 
+the latest firmware can be found in vme/CFG/ltu directory)
+is done by typing:
 
-v/vme/scripts/loadLTUfpga ltu_b5.rbf 0x81x000
+Old LTUs (serial number <55):
+v/vme/scripts/loadLTUfpga ltu_b6.rbf 0x81x000
+
+New LTUs manufactured in 2012 (serial number >60):
+v/vme/scripts/loadLTUfpga ltu2_b6.rbf 0x81x000
 
 This script will create FlashMem.cfg link and loads the firmware
 to LTU flash memory.

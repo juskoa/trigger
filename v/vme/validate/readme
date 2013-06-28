@@ -30,8 +30,11 @@ history
   installed)
 30.1.2013
 - FIXPOWER added for automatic downscaling
+27.6.2013
+- build on SLC6 trigger@pcaldctp2, ver. 2.8.1 for python 2.6
 
 Problem with SLC5:
+-----------------
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot
 error: Installed (but unpackaged) file(s) found:
    /usr/lib/python2.4/site-packages/validate/myw.pyo

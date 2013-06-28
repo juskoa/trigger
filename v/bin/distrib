@@ -107,10 +107,13 @@ RVF='--no-recursion -rvf'
 for pn in $names ;do
   if [ $pn = 'vmeb' ] ;then
     echo "pwd:" `pwd`
-    read -p "rm $VMECFDIR/../scripts ? (y/n)" rmyn
-    [ "$rmyn" = "y" ] && rm -r $VMECFDIR/../scripts/*
-    mkdir $VMECFDIR/../scripts
+    if [ -d $VMECFDIR/../scripts ] ;then
+      read -p "rm $VMECFDIR/../scripts ? (y/n)" rmyn
+      [ "$rmyn" = "y" ] && rm -r $VMECFDIR/../scripts/*
+      mkdir $VMECFDIR/../scripts
+    fi
     cd $VMECFDIR/../bin
+    echo " copying some scripts into $VMECFDIR/../scripts..."
     cp -a vmebse_lab.bash $VMECFDIR/../scripts/vmebse.bash
     cp -a setup_lab.sh $VMECFDIR/../scripts/setup.sh
     cp -a distrib ltuproxy.sh loadLTUfpga seq2slm.bash \

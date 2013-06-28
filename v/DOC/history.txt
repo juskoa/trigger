@@ -140,4 +140,6 @@ src+bin rpms now available)
 7.6.
 vmeb/caenvme.setup vmeb/vmeblib/vmewrap.c bin/startClients.bash
 copied from alitoftm00. Still to be updated later (Pietro).
+20.6.2013
+spec for ltusw changed (AutoReq: no) -i.e. no dependency on .so libraries now
 

@@ -36,6 +36,9 @@ export DIM_DNS_NODE=pcald30
 export VMEBDIR=$rdir/vmeb
 export VMECFDIR=$rdir/vme
 export VMEWORKDIR=~/v/vme
+if [ ! -d $VMEWORKDIR/WORK ] ;then
+  mkdir -p $VMEWORKDIR/WORK
+fi
 export dbctp=$VMECFDIR/CFG/ctp/DB
 [ -z "$VMEDRIVER" ] && export VMEDRIVER=VMERCC   # VMERCC, CAENVME, SIMVME
 [ -z "$VMEINCS" ] && export VMEINCS=/usr/local/inlude
@@ -49,8 +52,8 @@ if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then
 export DATE_INFOLOGGER_SYSTEM=TRG
 fi
 #
-if [[ $PATH != *$rdir/bin* ]] ;then
-  export PATH="$PATH:$rdir/bin"
+if [[ $PATH != *$rdir/scripts* ]] ;then
+  export PATH="$PATH:$rdir/scripts"
 fi
 export PYTHONPATH=$VMEBDIR
 if [[ $LD_LIBRARY_PATH != *:$VMELIBS:* ]] ;then

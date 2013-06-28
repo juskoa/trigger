@@ -1,0 +1,103 @@
+Now (jun 2013): whole parition can be paused/resumed
+Goal: allow subset of clusters to be paused/resumed. ECS maintains
+      detectors, i.e. list of detectors will be provided with Pause/Resume
+      command for given partition
+Required modifications:
+
+ECS_cmd now      after
+PAUSE   -        list of det.names to be paused
+RESUME  -        list of det.names to be left paused
+SYNC    now: sent to all detectors in partition (ALL PAUSED)
+                 after:sent to all dets, but they are NOT ALL paused (i.e.
+                 'not paused' have to be 'internally paused' to get SYNC
+                 through in case of high physics rate)
+
+----------ctp_proxy.c ctp_PausePartition():
+-check if part. started
+-cshmPausePartition(part); -setting only flag 'paused'
+-setPartDAQBusy(part);
+  -check DAQBUSY.global ->ERR
+  -set BUSY for all clusters in part. + store in DAQBUSY.activebusys
+   MODIF: instead of all clusters:
+   - find out the set of clusters according to given detectors:
+     findClusbydets(DAQBUSY.paused_dets)
+     todo: see readTables.c
+   - set BUSY + DAQBUSY.activebusys only for those clusters found
+   MODIF_END
+  -if TIMESHARING: 
+     -> stopTimer(part, 255) 
+        -> xcountersStart(0, clgroup);
+           -> CTPDIM/STARTRUNCOUNTER run=0 255
+              -> dimservices.c startruncounter()
+                 -> readctpcounters(0,255)
+                    -> readCounters() + 
+                    -> ctpc[CSTART_TSGROUP]= active_cg
+                    -> active_cg= 255
+
+---------- ctp_ResumePartition():
+-> if TS: startTimer(part, part->remseconds, clgroup=255)
+   -> xcountersStart(0, clgroup);
+      -> CTPDIM/STARTRUNCOUNTER run=0 part->active_cg
+-> unsetPartDAQBusy(part); 
+   -release ALL clusters in part
+    MODIF: release only SUBSET of ALL clusers, leaving busy those
+    required by resume parameter 
+         
+-----------DAQBUSY.global 
+set in setALLDAQBusy() -> invoked only in time of loadHW at:
+-ctp_StopPartition
+-ctp_StartPartition
+
+-----------Steps todo:
+0. check DETECTORS SMI param, pass the pattern to ctp_Pause/Resume
+   done:26.6.2013. see main_ctp.c
+1. keep DAQBUSY.global
+2. should we keep PAUSE  without parameters -> pause whole partition
+                  RESUME without pars      -> resume whole partiion ?
+   -> to be agreed with Franco
+3. add in DAQBUSY:
+   - list of detectors in 'paused' state (is tied with cluster's
+     DAQBUSY.activebusys ): DAQBUSY.paused_dets
+   - list of dets 'paused_due_to_sync': DAQBUSY.paused_dts
+     -these dets are paused only during minimal time ( several orbits)
+      necessary to avoid their busy from physics
+     -they should be resumed immediately after SYNC execution -i.e.
+      the 'paused_due_to_sync' list DOES NOT overlap the 'paused' list
+      (there are no common detectors in both lists!)
+4. counters: we should keep the same actions, but now
+   applied to clusters (not whole partitions).
+4A. Pause
+now: after counters read, set clgroup to 255 when part. paused 
+     (if clgroups defined in partition),i.e. 
+     readings during 'partition paused' are all with 
+     clgroup set to 255 (resp. 0 if no TS defined), see above.
+new: ? list of paused clusters to be delivered in TSGROUP counter
+       to moncounter (Roman) program?
+Suggestion:
+TSGROUP 8 low bits (oxff) defined as follows:
+0    -no class groups defined, partition active (i.e. not in paused)
+255  -whole partition PAUSED (all classes count only before vetos)
+1..9 -class group 1..9 active, i.e. all the other classes PAUSED
+
+TSGROUP new:
+0..255 -see above
+>255   -at least 1 cluster paused. Bits 0x1ff00 define
+        which cluster is paused. Example:
+0x10400 -clusters 3 and 9 are paused. No class groups -i.e.
+         all classes active, the classes feeding clusters 3 and 9
+         count only before vetos. 
+0x10411 -clusters 3 and 9 paused. Only classes in class group 9
+         active, those feeding cluster 3 or 9
+         count only before vetos. 
+         
+4B. Resume
+now: after counters read, set ctpc[CSTART_TSGROUP] active in Pause time.
+new:
+
+5. 
+Errors:
+- attempt to pause a detector not included in the partition
+- attemt to resume with a detector not in paused state
+Warnings:
+- pause issued for  a detector already in paused state
+

@@ -1577,7 +1577,10 @@ struct daqbusys {
   int global;      // 1: global busy ON. activebusys keeps info about
                    // active busys), BUSY_DAQBUSY is set to 0x3f
                    // 0: global busy OFF. activebusys is copy of BUSY_DAQBUSY
-} DAQBUSY={0,0};   // Initialised in ctp_Initproxy
+  int paused_dets; // detectors in PAUSED state
+  int paused_dts;  // detectors in quick PAUSED state (during SYNC) -MUST NOT
+                   // overlap with paused_dets
+} DAQBUSY={0,0,0,0};   // Initialised in ctp_Initproxy
 
 //--------------------------------------------------------setALLDAQBusy()
 void setALLDAQBusy(){
@@ -1621,23 +1624,23 @@ clustbusy=getBusyMaskPartition(part);
 int unsetPartDAQBusy(Tpartition *part){
 w32 clust;
 clust=getBusyMaskPartition(part);
- if(DAQBUSY.global==1) {
-   if(part-> remseconds != -1) {
-     if(part->cshmpart->paused==0) {
-       intError("unsetPartDAQBusy: called when GLOBAL busy ON. No acion taken");
-     } else {
-       prtError("unsetPartDAQBusy: called when GLOBAL busy ON,paused partition. No acion taken");
-     };
-   };
-   DAQBUSY.activebusys= DAQBUSY.activebusys & (~clust); 
-   if(DBGmask)printf("unsetPartDAQBusy: called when GLOBAL busy ON. Daqbusy.activebusys:%x\n",DAQBUSY.activebusys);
- } else {
-   clust = DAQBUSY.activebusys & (~clust); 
-   vmew32(BUSY_DAQBUSY,clust);
-   DAQBUSY.activebusys= clust;
-   if(DBGbusy) printf("unsetPartDAQBusy BUSY_DAQBUSY=0x%x \n",clust); 
- };
- return 0;
+if(DAQBUSY.global==1) {
+  if(part-> remseconds != -1) {
+    if(part->cshmpart->paused==0) {
+      intError("unsetPartDAQBusy: called when GLOBAL busy ON. No acion taken");
+    } else {
+      prtError("unsetPartDAQBusy: called when GLOBAL busy ON,paused partition. No acion taken");
+    };
+  };
+  DAQBUSY.activebusys= DAQBUSY.activebusys & (~clust); 
+  if(DBGmask)printf("unsetPartDAQBusy: called when GLOBAL busy ON. Daqbusy.activebusys:%x\n",DAQBUSY.activebusys);
+} else {
+  clust = DAQBUSY.activebusys & (~clust); 
+  vmew32(BUSY_DAQBUSY,clust);
+  DAQBUSY.activebusys= clust;
+  if(DBGbusy) printf("unsetPartDAQBusy BUSY_DAQBUSY=0x%x \n",clust); 
+};
+return 0;
 }
 /*------------------------------------------------ readLTUcntsInCraDIM()
 read LTU counters if they ar in the same crate (to be thrown away
@@ -2152,7 +2155,7 @@ return(rc+rc1);
 /*---------------------------------------------ctp_PausePartition()
  * Standard Pause
 */
-int ctp_PausePartition(char *name){
+int ctp_PausePartition(char *name, int detectors){
  Tpartition *part;
  infolog_SetStream(name,-1);
  part=getPartitions(name, StartedPartitions);   //only Started can be paused
@@ -2210,7 +2213,7 @@ return(rc);
 /*---------------------------------------------ctp_ResumePartition()
  * Standard resume
 */
-int ctp_ResumePartition(char *name){
+int ctp_ResumePartition(char *name, int detectors){
  Tpartition *part;
  infolog_SetStream(name, -1);
  part=getPartitions(name, StartedPartitions);

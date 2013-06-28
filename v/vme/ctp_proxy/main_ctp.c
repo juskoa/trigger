@@ -25,6 +25,7 @@ smi_setState() introduced
 
 void ds_register();
 
+char errorReason[ERRMSGL];
 char state[16];
 char obj[128];
 
@@ -66,6 +67,7 @@ char action[64], param[64], parname[64], msg[256];
 int n_params, ptype, psize, i, run_number=0;
 char mask[64],run_number_str[64];
 char ACT_CONFIG[8]="YES";
+int detectors=0;   // ECS bits set for detectors in DETECTORS SMI par
 prtProfTime(NULL);
 smi_get_action(action,&n_params); UPPER(action); strcpy(msg,"");
 if(n_params != 2){
@@ -76,9 +78,11 @@ for (i=1;i<=n_params;i++) {
   smi_get_next_par(parname,&ptype,&psize);
   smi_get_par_value(parname,param);
   printf("SMI: parname=%s  param=%s \n", parname,param);
-  if(strcmp(parname,"PARTITION") == 0)strcpy(pname,param);
-  if(strcmp(parname,"MASK") == 0)strcpy(mask,param);
-  if(strcmp(parname,"MODE") == 0){
+  if(strcmp(parname,"PARTITION") == 0) {
+    strcpy(pname,param);
+  } else if(strcmp(parname,"MASK") == 0){
+    strcpy(mask,param);
+  } else if(strcmp(parname,"MODE") == 0){
     if((strcmp(param,"NOTHING")!=0) &&
        (strcmp(param,"PHYSICS")!=0) &&
        (strcmp(param,"UNDEFINED")!=0)) {
@@ -86,8 +90,7 @@ for (i=1;i<=n_params;i++) {
     } else {
       strcpy(partmode,"");
     };
-  };
-  if(strcmp(parname,"RUN_NUMBER") == 0) {
+  } else if(strcmp(parname,"RUN_NUMBER") == 0) {
     strcpy(run_number_str,param);
     //run_number=atoi(run_number_str)
     run_number= (int) strtol(run_number_str, (char **)NULL, 10);
@@ -95,9 +98,16 @@ for (i=1;i<=n_params;i++) {
       printf("RUN_NUMBER <=0\n");
       smi_setState("ERROR"); goto RETSMI;
     };
-  };
-  if(strcmp(parname,"ACT_CONFIG") == 0) {
+  } else if(strcmp(parname,"ACT_CONFIG") == 0) {
     strcpy(ACT_CONFIG,param);
+  } else if(strcmp(parname,"DETECTORS") == 0) {
+    // comma separated list of dets (e.g. "PMD,MUON_TRK")
+    detectors= detList2bitpat(param);
+    if(detectors==-1) {
+      sprintf(errorReason, "Bad list of detectors:%80.80s...",param);
+      smi_set_parER();
+      smi_setState("ERROR"); goto RETSMI;
+    };
   };
   strcat(msg," ");
   strcat(msg,param);
@@ -153,7 +163,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }
   } else if (strcmp(action,"PAUSE_PARTITION") == 0) {
     smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-    if(ctp_PausePartition(pname)){
+    if(ctp_PausePartition(pname, detectors)){
       sleep (1); smi_setState("ERROR");
     }else{
       sleep (1); smi_setState("RUNNING");
@@ -171,7 +181,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }
   } else if (strcmp(action,"RESUME_PARTITION") == 0) {
     smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-    if(ctp_ResumePartition(pname)){
+    if(ctp_ResumePartition(pname, detectors)){
       sleep (1); smi_setState("ERROR");
     } else {
       sleep (1); smi_setState("RUNNING");

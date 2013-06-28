@@ -1,7 +1,7 @@
 #define MNPART 6      // Maximum number of partitions
 #define NCON 4        // # of connectors at FO
 #ifdef DBMAIN
-char errorReason[ERRMSGL];
+//char errorReason[ERRMSGL]; not needed -see main_ctp.c and test.c
 #endif
 //
 //------------------------------------------------------------------
@@ -59,9 +59,9 @@ int generateXOD(Tpartition *part,char x);
 ------------------------------------------------------------------*/
 int ctp_Initproxy();
 int ctp_Endproxy();
-int ctp_PausePartition(char *name);
+int ctp_PausePartition(char *name, int detectors);
 int ctp_SyncPartition(char *name, char * errorReason);
-int ctp_ResumePartition(char *name);
+int ctp_ResumePartition(char *name, int detectors);
 int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
 int ctp_InitPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
 int ctp_StartPartition(char *name, char *errorReason);

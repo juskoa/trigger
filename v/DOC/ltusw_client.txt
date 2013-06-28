@@ -20,14 +20,16 @@ A. Prepare indexnew.html (according to DOC/history.txt)
    mkdir public_web/ltu/08092009
 B. Modify: version in v/vme/ltu/ltu.h
            v/DOC/history.txt
+check:
 cd $VMECFDIR
-grep -e '^#define LTU_SW_VER' -e 'VERSION=' -e 'Version:' ltu/ltu.h ../bin/distrib ../SPECS/ltusw.spec
+grep -e '^#define LTU_SW_VER' -e 'VERSION=' -e 'Version:' ltu/ltu.h ../SPECS/ltusw.spec
+inote: bin/distrib script extracts current version from ltu.h
 C. 
   make sure VMECFDIR, VMEBDIR are set. Execute on pcalicebhm10:
   v/bin/distrib ALL
   scp ~/vmebltu.tar testu@altri1:
-
-D.
+  continue with D (checking vmebltu.tar) and E (building+check .rpm)
+D. -------------------------- vmebltu.tar
   testu@altri1:
   rm -r vold; mv v vold
   mkdir v ; cd v ; tar -xvf ~/vmebltu.tar
@@ -45,9 +47,11 @@ dim, smi:/home/dl/root/usr/local/trigger/root/Addons_32
 
   scp ~/vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
 
-E. ltusw.rpm (binary .rpm available from 26.4.2013):
+E. ----------------------- ltusw.rpm (binary .rpm available from 26.4.2013):
 trigger@altri1: cd ~/rpms/SPECS
 rpmbuild -bb ltusw.spec
+- has to finish by line 'exit 0'
+- see ~/rpms/RPMS/
 
 Check rpm (installationon server, VME client mount /opt read-only!):
 [root@pcalicebhm10 RPMS]# cd /data/dl/snapshot/altri1/home/alice/trigger/rpms/RPMS/

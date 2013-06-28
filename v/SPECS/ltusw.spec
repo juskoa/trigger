@@ -14,7 +14,8 @@ Prefix: /opt/ltusw
 BuildRoot: %{_tmppath}/%{name}-root
 
 #automatic dependencies
-AutoReqProv: yes
+#AutoReqProv: yes
+AutoReq: no
 
 Requires: dim python tkinter
           
@@ -62,34 +63,34 @@ scripts/distrib make
 #remove install dir if existing
 [ -d $RPM_BUILD_ROOT ] && rm -rf $RPM_BUILD_ROOT
 echo install pwd:`pwd`
-echo install bld:$RPM_BUILD_ROOT/%{prefix}
+echo install bld:$RPM_BUILD_ROOT%{prefix}
 #make install in install root directory
-mkdir -p $RPM_BUILD_ROOT/%{prefix}
-cp -a scripts $RPM_BUILD_ROOT/%{prefix}
+mkdir -p $RPM_BUILD_ROOT%{prefix}
+cp -a scripts $RPM_BUILD_ROOT%{prefix}
 cd vme
-cp -a CFG $RPM_BUILD_ROOT/%{prefix}/vme
+cp -a CFG $RPM_BUILD_ROOT%{prefix}/vme
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vme/SSMANA
-cp -a SSMANA/ssmanv.exe $RPM_BUILD_ROOT/%{prefix}/vme/SSMANA
+cp -a SSMANA/ssmanv.exe $RPM_BUILD_ROOT%{prefix}/vme/SSMANA
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vme/VME2FPGA
 cd VME2FPGA
-cp -a VME2FPGA.exe VME2FPGA_u.py VME2FPGA_cf.py mywrl.py $RPM_BUILD_ROOT/%{prefix}/vme/VME2FPGA
+cp -a VME2FPGA.exe VME2FPGA_u.py VME2FPGA_cf.py mywrl.py $RPM_BUILD_ROOT%{prefix}/vme/VME2FPGA
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vme/ltu/ltulib/linux_c
 cd ../ltu
-cp -a ltu.exe ltu_u.py ltu_cf.py ltu6.tcl slmcmp.py slmcomp.py ssman.py $RPM_BUILD_ROOT/%{prefix}/vme/ltu
-cp -a ltulib/linux_c/libltu.a $RPM_BUILD_ROOT/%{prefix}/vme/ltu/ltulib/linux_c
-#cp -a vmeb $RPM_BUILD_ROOT/%{prefix}
+cp -a ltu.exe ltu_u.py ltu_cf.py ltu6.tcl slmcmp.py slmcomp.py ssman.py $RPM_BUILD_ROOT%{prefix}/vme/ltu
+cp -a ltulib/linux_c/libltu.a $RPM_BUILD_ROOT%{prefix}/vme/ltu/ltulib/linux_c
+#cp -a vmeb $RPM_BUILD_ROOT%{prefix}
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vme/ltu_proxy/linux
 cd ../ltu_proxy/linux 
-cp -a ltu_proxy $RPM_BUILD_ROOT/%{prefix}/vme/ltu_proxy/linux
+cp -a ltu_proxy $RPM_BUILD_ROOT%{prefix}/vme/ltu_proxy/linux
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vme/ltudim/linux
 cd ../..
 cp -a ltudim/linux/ltuclient $RPM_BUILD_ROOT%{prefix}/vme/ltudim/linux
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vmeb/vmeblib
 cd ../vmeb
-cp -a myw.py crate.py cmdlin2.py counters.py $RPM_BUILD_ROOT/%{prefix}/vmeb
+cp -a myw.py crate.py cmdlin2.py counters.py $RPM_BUILD_ROOT%{prefix}/vmeb
 mkdir -p $RPM_BUILD_ROOT%{prefix}/DOC
 cd ../DOC
-cp -a Installation history.txt $RPM_BUILD_ROOT/%{prefix}/DOC
+cp -a Installation history.txt $RPM_BUILD_ROOT%{prefix}/DOC
 mkdir -p $RPM_BUILD_ROOT%{prefix}/vme/CFG/ctp/DB
 cd ..
 cp -a vme/CFG $RPM_BUILD_ROOT%{prefix}/vme

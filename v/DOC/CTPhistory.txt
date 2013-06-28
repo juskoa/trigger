@@ -61,4 +61,11 @@ according to DIM message received from ctpproxy
 CNTRRD/analyse.c, option  gnu/dec/hexa added
 6.6.
 pac demo (for PAC with clusters) is in aj@11:h/wsgi.
+17.6.
+git commit -a
+24.6.
+monitor/monitor.py -the server disk temperature monitoring added
+28.6.
+backup of /data/dl/root + snapshot to /mnt/alidcsfs001/Scratch/tri/2013
+Idea: make it alice on diffrent computer (virtual?)
 
