@@ -40,7 +40,8 @@ if [ ! -d $VMEWORKDIR/WORK ] ;then
   mkdir -p $VMEWORKDIR/WORK
 fi
 export dbctp=$VMECFDIR/CFG/ctp/DB
-[ -z "$VMEDRIVER" ] && export VMEDRIVER=VMERCC   # VMERCC, CAENVME, SIMVME
+# VMERCC, CAENVME, SIMVME, TSI148
+[ -z "$VMEDRIVER" ] && export VMEDRIVER=VMERCC
 [ -z "$VMEINCS" ] && export VMEINCS=/usr/local/inlude
 [ -z "$VMELIBS" ] && export VMELIBS=/lib/modules/daq
 [ -z "$DIMDIR" ] && export DIMDIR=/opt/dim

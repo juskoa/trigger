@@ -25,6 +25,7 @@ VMECCT
 VMERCC
 SIMVME
 CAENVME (added by P. Antonioli)
+TSI148 (added by Y.Kharlov 30.06.2013)
 */
 /* #define linux */
 #if defined(linux) || defined(AIX)
@@ -68,6 +69,21 @@ typedef struct {
 } cv_t; 
 cv_t cv;
 #endif
+
+#ifdef TSI148
+  /* Include files needed for VME driver TSI148 */
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <fcntl.h> 
+  #include <unistd.h> 
+  #include <stdio.h> 
+  #include <string.h> 
+  #include <errno.h> 
+  #include <sys/ioctl.h> 
+  #include <asm/byteorder.h>
+  #include "vmedrv.h"
+#endif
+static int fTSI148;
 
 #include <stdlib.h>
 #include <string.h> 
@@ -225,6 +241,17 @@ if (cv.status < 0) printf("CAENVME_ReadCycle32 error:%li at %lx\n", cv.status,cv
 retval= (w32)cv.value;
 #endif
 
+#ifdef TSI148
+  int n, readvalue;
+  lseek(fTSI148, offset, SEEK_SET);
+  n = read(fTSI148, &retval, 4);
+  if(n != 4){
+    printf("TSI148 vmer32 read failed at 0x%0X.  Errno = %d\n",offset, errno);
+    _exit(1);
+  }
+  retval = (w32)(__swab32(retval));
+#endif
+  
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 retval= *(w32 *)(vmeptr+offset);
 /*printf("vmer32 vmeptr:%x from %x value:%x\n", vmeptr, offset, retval); */
@@ -273,6 +300,17 @@ cv.status= CAENVME_WriteCycle(cv.handle,cv.adr,  &value, cvA24_U_DATA,cvD32);
 if (cv.status < 0) printf("CAENVME_WriteCycle32 error:%li at %lx\n", cv.status,cv.adr);
 #endif
 
+#ifdef TSI148
+  int n;
+  lseek(fTSI148, offset, SEEK_SET);
+  value = __swab32(value);
+  n = write(fTSI148, &value, 4);
+  if(n != 4){
+    printf("TSI148 vmew32 write failed at 0x%0X.  Errno = %d\n",offset, errno);
+    _exit(1);
+  }
+#endif
+
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
 *(w32 *)(vmeptr+offset)=value;
 #endif
@@ -313,6 +351,24 @@ return(rc);
 #ifdef VMECCT
 w32 BoBaLengthcct;
 #endif
+
+#ifdef TSI148
+/* ======================================================================== */
+int getTSI148Info()
+{
+  vmeInfoCfg_t myVmeInfo;
+  int   fd, status;
+  fd = open("/dev/vme_ctl", 0);
+  if (fd < 0) return(1);
+  memset(&myVmeInfo, 0, sizeof(myVmeInfo));
+  status = ioctl(fd, VME_IOCTL_GET_SLOT_VME_INFO, &myVmeInfo);
+  if (status < 0) return(1);
+  close(fd);
+  return(0);
+}
+#endif
+
+/* ======================================================================== */
 /*----*/ int vmxopenam(int *vsp, char *BoardBaseAddress, 
              char *BoardSpaceLength, char *VMEAM) {
 /* 
@@ -567,6 +623,51 @@ printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
  cv.BaseAddr=BoBaAd;
 #endif
 
+#ifdef TSI148
+/* Interface to VME chip Tundra Tsi148 */
+/* Contact: Yuri Kharlov. 30.06.2013   */
+//----------------------------------------------------------------------
+  int fdCtl, status, window;
+  vmeOutWindowCfg_t vmeOut;
+    
+  if(getTSI148Info()){
+    printf("getTSI148Info failed.  Errno = %d\n", errno);
+    _exit(1);
+  }
+
+  fTSI148 = open("/dev/vme_m0", O_RDWR);
+  if(fTSI148 < 0){
+    printf("TSI148 open /dev/vme_m0 failed.  Errno = %d\n", errno);
+    _exit(1);
+  }
+
+  window = 0;
+  memset(&vmeOut, 0, sizeof(vmeOutWindowCfg_t));
+
+  vmeOut.windowNbr        = 0;
+  vmeOut.windowEnable     = 1;
+  vmeOut.windowSizeU      = 0;
+  vmeOut.windowSizeL      = 1<<16; // VME window size, assume 16 bitsh
+  vmeOut.xlatedAddrU      = 0;
+  vmeOut.xlatedAddrL      = hex2ui(&BoardBaseAddress[2]); // LTU base address
+  vmeOut.bcastSelect2esst = VME_SSTNONE;
+  vmeOut.wrPostEnable     = 1;
+  vmeOut.prefetchEnable   = 1;
+  vmeOut.xferRate2esst    = VME_SSTNONE;
+  vmeOut.addrSpace        = VME_A24;
+  vmeOut.maxDataWidth     = VME_D32;
+  vmeOut.xferProtocol     = VME_SCT;
+  vmeOut.userAccessType   = VME_SUPER;
+  vmeOut.dataAccessType   = VME_DATA;
+
+  status = ioctl(fTSI148, VME_IOCTL_SET_OUTBOUND, &vmeOut);
+  if(status < 0){
+    printf("TSI148 ioctl failed.  Errno = %d\n", errno);
+    return(status);
+  }
+  printf("TSI148 successfully opened and configured\n");
+  rccret = status;
+#endif
 RCRET:
 //printf("vmxopen rccret:%d vsp: %d\n", rccret, *vsp);
 return(rccret);
@@ -579,12 +680,14 @@ return(8);
 /*----*/ int vmxopen(int *vsp, char *BoardBaseAddress, 
              char *BoardSpaceLength) {
 char a24[]="A24";
+  printf("\t YK-1\n");
 return( vmxopenam(vsp, BoardBaseAddress, BoardSpaceLength, a24));
 }
 
 
 /*-----------*/ int vmeopen(char *BoardBaseAddress, char *BoardSpaceLength) {
   int rc;
+  printf("\t YK-0: BoardBaseAddress=%s, BoardSpaceLength=%s\n",BoardBaseAddress,BoardSpaceLength);
 #ifndef CAENVME
  int vsp0=0;
 #endif
