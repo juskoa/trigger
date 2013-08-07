@@ -587,9 +587,9 @@ Middle-> modify the invert bit (only for classes 45-50)
     if Gl0AB==None:   #firmAC
       # we cannot do the following:
       lut34= vbexec.getsl("getSharedL0f34(1)")[0]
-      print "writeShared_shared:lut34:",lut34
-      for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
-        print "writeSharedishr:%x"%ishr, self.sharedrs[ishr].value
+      #print "writeShared_shared:lut34:",lut34
+      #for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
+      #  print "writeSharedishr:%x"%ishr, self.sharedrs[ishr].value
       # but we take modifications stored in python-code only:
       longs=[] ; lut34="" #; lut4=[]
       for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):

@@ -162,12 +162,13 @@ if(clgroup!=0xfffffffe) {
 showTotals(part);
 }
 
+#define waitslot 1000
 /*-------------------------------------------------------- cgInterrupt
 */
 void cgInterrupt(void *tagv) {
 //void cgInterrupt(int tag) {
 Tpartition *part;
-int clgroup, oldclgroup, tag= (int)tagv; //tag=(int)tag;;
+w32 clgroup, oldclgroup, tag= (int)tagv; //tag=(int)tag;;
 part= AllPartitions[tag];
 if(DBGCLGROUPS) {
   printf("cgInterrupt, tag:%d part:%s\n", tag, part->name);
@@ -175,12 +176,32 @@ if(DBGCLGROUPS) {
 oldclgroup= part->active_cg;
 clgroup= nextclassgroup(part);
 if(clgroup > 0) {
-  setPartDAQBusy(part); // disable triggers
+  int waitcr;
+  char msg[200];
+  setPartDAQBusy(part, 0); // disable triggers
   // following has to be here (see DOC/devdbg/TimeSharing)
   updateTotalTime(part, clgroup);   // +force counters reading
   enableclassgroup(part, clgroup);  // in HW only
   startTimer(part, 0, 0xfffffffe);
-  unsetPartDAQBusy(part); // enable triggers
+  /* How can we be sure counters are read out before 
+     next line execution enabling triggers? Perhaps, dims should run with
+     higher priority...
+     Let's try to wait for it max. 10ms:
+  */
+  waitcr=0;
+  while(ctpshmbase->active_cg != clgroup) {
+    usleep(waitslot);
+    waitcr++; if(waitcr>10) { break; };
+  };
+  if(waitcr>10) {
+    sprintf(msg, "cgInterrupt:%s active_cg %d still <> %d, after:%d us", 
+      part->name, ctpshmbase->active_cg, clgroup, waitcr*waitslot);
+    prtError(msg);
+  } else {
+    sprintf(msg, "cgInterrupt: active_cg ok after %d us", waitcr*waitslot);
+    prtLog(msg);
+  };
+  unsetPartDAQBusy(part, 0); // enable triggers
 };
 }
  

@@ -1053,84 +1053,83 @@ int checkTClustVDClustTpartition(Tpartition *part){
  }
  return 0;
 }
-/*---------------------------------------------------------getBusyMaskPartition()
- Purpose: to calculate busy mask for partition part (for pause/resume)
- Parameters: input: part
- Globals: none
- Returns: busymask
-*/
-w32 getBusyMaskPartition(Tpartition *part){
- w32 clust;
- int i;
- clust=0;
- for(i=0;i<NCLUST;i++){
-  if(part->ClusterTable[i])clust=clust+(1<<i);
- }
- //printf("getBusyMaskPartition: part:%s 0x%x \n", part->name, clust);
- return clust;
-}
-/*------------------------------------------------------- getDAQClusterInfo()
-*/
-int getDAQClusterInfo(Tpartition *partit, TDAQInfo *daqi) {
-unsigned long long ULL1=1,classmasks_l[NCLUST];
-int idet, iclu, iclass, rcdaqlog=0;
-w32 l0finputs=0;// L0 inputs referenced by l0functions 
-w32 l0finputs1; // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
-//if(partit->run_number<10) { return(0); };
-// only in run1msg: daqi->MaskedDetectors= partit->MaskedDetectors;
-for(iclu=0;iclu<NCLUST;iclu++){
-  daqi->masks[iclu]=0;
-  daqi->inpmasks[iclu]=0;
-  //daqi->classmasks01_32[iclu]=0; daqi->classmasks33_64[iclu]=0;
-  classmasks_l[iclu]=0;
-};
-//--------------------- masks:
+/*-------------------------------------------------*/ int getPartDetectors(Tpartition *part) {
+int idet, rc=0, rc_exp=0;
 for(idet=0;idet<NDETEC;idet++){
   int pclu, pclust, hwclust;
-  pclust= partit->Detector2Clust[idet]; // det. can belong to more clusters!
+  pclust= part->Detector2Clust[idet]; // det. can belong to more clusters!
   if(pclust ==0) continue;
   // idet is in pclust, find HWclust:
+  rc_exp= rc_exp | (1<<idet);   // should be enough, but chek for possible int. error
   for(pclu=0; pclu<NCLUST; pclu++) {
     if(pclust & (1<<pclu)) {
-      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", partit->name, pclust, pclu);
-      hwclust= findHWCluster(partit, pclu+1);
+      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", part->name, pclust, pclu);
+      hwclust= findHWCluster(part, pclu+1);
       if(hwclust>0) {
-        daqi->masks[hwclust-1]= daqi->masks[hwclust-1] | (1<<idet);
+        rc= rc | (1<<idet);
       };
     };
   };
 };
-if(DBGlogbook) {
-  int pclu;
-  printf("getDAQClustersInfo:masks[0-%d]:0x:",NCLUST);
-  for(pclu=0; pclu<NCLUST; pclu++) {
-    printf("%x ", daqi->masks[pclu]); 
-  }; printf("\n");
+if(rc!=rc_exp) {
+  char errmsg[120];
+  sprintf(errmsg,"getPartDetectors: rc:0x%x expected:0x%x", rc, rc_exp);
+  intError(errmsg);
 };
-//--------------------- classmasks and inpmasks:
-for(iclass=0; iclass<NCLASS; iclass++) {
-  int hwclass; int indets; TKlas *klas;
-  if((klas=partit->klas[iclass]) == NULL) continue;
-  hwclass= partit->klas[iclass]->hwclass;  // 0..49
-  if(hwclass>49) {
-    intError("getDAQClustersInfo: hwclass>49"); rcdaqlog=10;
+return(rc);
+}
+/*---------------------------------------------------------getBusyMaskPartition()
+ Purpose: calculate cluster busy mask for partition part (for pause/resume)
+ Parameters: input: part, 
+   detectors: 0: return all clusters in partition
+            !=0: consider only clusters with these detectors
+ Returns: cluster mask, i.e. 5..0 bits, 1: cluster in part
+*/
+w32 getBusyMaskPartition(Tpartition *part, int detectors){
+w32 clust=0, exp_clust=0;
+int i, locdetectors; int idet;
+if(detectors==0) {
+  locdetectors= 0xffffff;
+  for(i=0;i<NCLUST;i++){ // old way (all clusters)
+    if(part->ClusterTable[i]) exp_clust=exp_clust | (1<<i);
   };
-  iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
-  //daqi->classmasks[iclu]= daqi->classmasks[iclu] | (ULL1<<hwclass);
-  classmasks_l[iclu]= classmasks_l[iclu] | (ULL1<<hwclass);
-  indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
-  l0finputs= l0finputs|l0finputs1;
-  // l0finputs will be usd later when ctp_alignment called
-  if(indets<0) rcdaqlog=2;   
-  if(DBGlogbook) printf("getDAQClustersInfo:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
-    partit->hwallocated, iclu, iclass, indets);
-  daqi->inpmasks[iclu]= daqi->inpmasks[iclu] | indets;
+} else {
+/* instead of all clusters, find out only those defined in detectors pattern
+   detector pattern not checked for correctness here.
+*/
+  locdetectors= detectors;
 };
-for(iclu=0;iclu<NCLUST;iclu++){
-  daqi->classmasks01_32[iclu]= classmasks_l[iclu];
-  daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;
+for(idet=0;idet<NDETEC;idet++){
+  int pclu, pclust, hwclust;
+  if((locdetectors & (1<<idet)) == 0 ) continue;
+  pclust= part->Detector2Clust[idet]; // det. can belong to more clusters!
+  if(pclust ==0) continue;
+  for(pclu=0; pclu<NCLUST; pclu++) { // idet is in pclust, find HWclust:
+    if(pclust & (1<<pclu)) {
+      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", part->name, pclust, pclu);
+      hwclust= findHWCluster(part, pclu+1);
+      printf("getBusyMaskPartition:idet:%2d pclust:%d pclu:%d hwclust:%d\n", idet, pclust, pclu,hwclust);
+      if(hwclust>0) {
+        clust= clust | (1<<(hwclust-1));
+      } else {
+        printf("ERROR internal hwclust:0 for pclu(0..5):%d\n", pclu);
+      };
+    };
+  };
 };
-return(rcdaqlog);
+if(detectors==0) {   // check if available (for possible bug in ctpproxy code...)
+  if(exp_clust != clust) {
+    char errmsg[120];
+    sprintf(errmsg,"getBusyMaskPartition: clust:0x%x expected:0x%x", clust, exp_clust);
+    intError(errmsg);
+  };
+};
+if(DBGbusy) {
+  printf("getBusyMaskPartition: %s dets:0x%x clust:0x%x\n" ,
+    part->name, detectors, clust);
+};
+//printf("getBusyMaskPartition: part:%s 0x%x \n", part->name, clust);
+return clust;
 }
 /*------------------------------------------------------- prtalignment1()
 I: level:0..2, inp:1..24, af, leng
@@ -1612,7 +1611,7 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
    };
  }
  //--------------------------------------------- BUSYs
-if(DBGbusy) printf("load2HW. SET_CLUSTER T 1..6:");
+if(DBGbusy) printf("readHW. SET_CLUSTER T 1..6:");
 for(i=0;i<NCLUST+1;i++){
   if(DBGbusy) {
      printf("0x%x ",hw->busy.set_cluster[i]);

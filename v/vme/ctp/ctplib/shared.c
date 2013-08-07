@@ -5,7 +5,7 @@
 #include "ctp.h"
 #include "Tpartition.h"
 /*---------------------------------------------------------------- L0-Shared */
-/*FGROUP DbgNewFW     */
+/* FGROUP DbgNewFW
 void loadRun(w32 runnumber){
   CTPHardware ctp;
   VALIDLTUS ltus;
@@ -15,15 +15,15 @@ void loadRun(w32 runnumber){
   run.Load2SW();
   CTPHardware::Print();
   run.Load2HW();
-}
-/*FGROUP DbgNewFW     */
+} */
+/* FGROUP DbgNewFW 
 void printHW(){
  CTPHardware::Print();
-}
-/*FGROUP DbgNewFW     */
+} */
+/* FGROUP DbgNewFW
 void unloadRun(w32 run){
  CTPHardware::Unload(run);
-}
+} */
 /*Shared memory (not yet shared between all tasks running on ctp CPU):
 l0f34stat[] -rightmost bit/column (bit 0) corresponds to LUT1
 */

@@ -241,7 +241,7 @@ printf("INFO Dorcfg msg:%s\n", dain->run1msg);
 rc= getname_rn(dain->run1msg, pname, &rundec);
 if(rc==0) {
   rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK);
-  printf("%s",dain->run1msg); fflush(stdout);
+  //printf("%s",dain->run1msg); fflush(stdout);  moved down
   if(rc==0) { // inputs -> DAQ
     int level,maxinp,ix,ind,rcu;
     for(level=0; level<3; level++) {
@@ -267,6 +267,7 @@ if(rc==0) {
         };
       }; 
     };
+    printf("%s",dain->run1msg); fflush(stdout);
   };
 };
 }
@@ -768,6 +769,10 @@ while(1) {
   } else {
     printf("ERROR %s", line); fflush(stdout);
   };
+};
+rc= daqlogbook_close();
+if(rc==-1) {
+  printf("ERROR DAQlogbook_close failed\n");
 };
 stopserving();
 cshmDetach(); printf("INFO shm detached.\n");

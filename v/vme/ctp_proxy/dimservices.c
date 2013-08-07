@@ -238,7 +238,7 @@ operation:
   if lng request, another request won't be satisfied, but queued only)
 */
 void SWTRGthread(int tagix) {
-w32 detectors;
+w32 detectors, orbitn;
 int succeeded, todo, ncls;
 //printf("SWTRGthread:%d\n",tagix);
 detectors= 1 << findLTUdetnum(actrs[tagix].name);
@@ -253,7 +253,7 @@ while(actrs[tagix].Ngenerated < actrs[tagix].N) {
 // still to be added (in GenSwtrg): pf,bcmask as symb. names
 todo= actrs[tagix].N;
 succeeded=GenSwtrg(todo, actrs[tagix].type, 
-  actrs[tagix].roc, actrs[tagix].bc,detectors,2);
+  actrs[tagix].roc, actrs[tagix].bc,detectors,2, &orbitn);
 actrs[tagix].Ngenerated= succeeded;
 ncls= updateservice(actrs[tagix].cid);
 

@@ -68,4 +68,25 @@ monitor/monitor.py -the server disk temperature monitoring added
 28.6.
 backup of /data/dl/root + snapshot to /mnt/alidcsfs001/Scratch/tri/2013
 Idea: make it alice on diffrent computer (virtual?)
+16.7.
+monitor/monitor.py -hddtemp now hysteresis
+CNTRRD/analyse.c   -bug fixed, header in output ascii file added
+CNTRRD/analyse.py  -processing of data file obtained with analyse.c
+pydim/bcmcheck.c   - added
+17.7.
+improved fanio/dim/server.c. Compiles+runs also in lab without hw (using
+VMESITE env. vaiable).
+22/23.7. PauseResume for clusters ongoing...
+31.7. startswtrig() -> returns L2_ORBIT of event generation
+5.8. new version of daqlogbook -used for slc6, Vasco compiled it for slc5
+64bit. For 32bit: we do not need it (but in pit we have 32bit server) 
+-all daqlogbook access should be done from
+server
+7.8.
+ctp_Pause/ctp_Resume: more checks done, 
+still todo: bakery locks (look for bakery) for Pause/Resume/Sync/clgroups
+git pull
+git commit --author Jusko
+git push
+
 

@@ -13,7 +13,7 @@ include $(VMEBDIR)/sc.make
 
 ifdef SERVER_LINK
 allEXES = $(EXEDIR)/server $(EXEDIR)/act_main $(EXEDIR)/comment2daqlog \
- $(EXEDIR)/client
+ $(EXEDIR)/client $(EXEDIR)/bcmcheck
 else
 EXEDIR= ./
 allEXES = $(EXEDIR)/client
@@ -32,6 +32,8 @@ server.o: server.c $(VMEBLIB)/../lexan.h
 #aliases.o: aliases.c $(CTPLIB)/ctplib.h
 aliases.o: aliases.c
 	$(CC) $(CFLAGS) $< -c -o $@
+$(EXEDIR)/bcmcheck: bcmcheck.c
+	$(CC)  $< -o $@
 
 #client: client.c $(DIMDIR)/linux/libdim.a
 $(EXEDIR)/client: client.c $(DIMDIR)/linux/libdim.a

@@ -31,6 +31,12 @@ typedef struct {  // detname/STATUS response
   unsigned int ed;
   unsigned int busy;
 } Tstatusmsg;
+typedef struct {
+  w32 xCONTROL_REG;
+  w32 xBUSY_MASK;
+  w32 xREAD_INPUTS;
+} Tsim;
+Tsim sim;
 
 Tstatusmsg statusmsg={0xabcd, 0x1234};
 
@@ -55,31 +61,43 @@ Tfanin fanis[Nfanios]= {
 /*----------------------------------- start of DETECTOR specific code */
 /*----------------------*/ void HW_init_common(char *base) {
 int rc;
+#ifdef SIMHW
+rc=0; sim.xCONTROL_REG=0;
+#else
 rc= vmeopen(base, "0x200");
 //if(rc!=0) { printf("vmeopen rc:%d base:%s\n", rc, base); return; };
 vmew32(CONTROL_REG, 0);
 printf("HW_init_common:%s\n", base);
 rc= vmeclose();
+#endif
 if(rc!=0) { printf("vmeclose rc:%d base:%s\n", rc, base); };
 fflush(stdout);
 }
 /*----------------------*/ void HW_init_in(char *base, w32 enabled) {
 int rc;
+#ifdef SIMHW
+rc=0; sim.xBUSY_MASK=enabled;
+#else
 rc= vmeopen(base, "0x200");
 //if(rc!=0) { printf("vmeopen rc:%d base:%s\n", rc, base); return; };
 vmew32(BUSY_MASK, enabled);
 printf("HW_init_in: %s enabled:0x%x\n", base, enabled);
 rc= vmeclose();
+#endif
 if(rc!=0) { printf("vmeclose rc:%d base:%s\n", rc, base); };
 fflush(stdout);
 }
 /*----------------------*/ void HW_enable(char *base, w32 mask) {
 int rc;
+#ifdef SIMHW
+rc=0; sim.xBUSY_MASK=mask;
+#else
 rc= vmeopen(base, "0x200");
 if(rc!=0) { printf("vmeopen rc:%d base:%s\n", rc, base); return; };
 vmew32(BUSY_MASK, mask);
 printf("HW_enable: %s mask:0x%x\n", base, mask);
 rc= vmeclose();
+#endif
 if(rc!=0) { printf("ERROR vmeclose rc:%d base:%s\n", rc, base); };
 fflush(stdout);
 }
@@ -87,12 +105,20 @@ fflush(stdout);
 w32 ed=0xdeadbeaf;
 w32 busy=0xbeaf;
 int rc;
+#ifdef SIMHW
+rc=0; 
+ed= sim.xBUSY_MASK;
+busy= ~sim.xBUSY_MASK; //busy= sim.READ_INPUTS;
+printf("HW_getmask: %s ed:0x%x busy:0x%x\n", base, ed, busy);
+msg->ed=ed; msg->busy=busy;
+#else
 rc= vmeopen(base, "0x200");
 if(rc!=0) { printf("vmeopen rc:%d base:%s\n", rc, base); return; };
 ed= vmer32(BUSY_MASK); busy= vmer32(READ_INPUTS);
 printf("HW_getmask: %s ed:0x%x busy:0x%x\n", base, ed, busy);
 msg->ed=ed; msg->busy=busy;
 rc= vmeclose();
+#endif
 if(rc!=0) { printf("vmeclose rc:%d base:%s\n", rc, base); };
 }
 /*----------------------------------- end of DETECTOR specific code */
@@ -143,7 +169,11 @@ fflush(stdout);
 int main()  {
 int ix, rc;
 char command[MAXCMDL];
+#ifdef SIMHW
+printf("Commands/services:   SIMHW mode.\n");
+#else
 printf("Commands/services:\n");
+#endif
 strcpy(command, "ENABLE");
 dis_add_cmnd(command,NULL, set_oc, 18);  printf("%s\n", command);
 strcpy(command, "SAVE");

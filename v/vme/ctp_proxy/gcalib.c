@@ -361,8 +361,9 @@ while(1) {
     };
     // generate calib. trigger:
     if(cshmGlobFlag(FLGignoreGCALIB)==0) {
+      w32 orbitn;
       rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].roc, ACTIVEDETS[ndit].calbc,
-        1<<ndit, 1);
+        1<<ndit, 1, &orbitn);
       if(rcgt==12345678) {
         delDET(ndit); if(NACTIVE==0) goto STP;
         continue;

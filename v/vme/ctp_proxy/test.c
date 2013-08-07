@@ -174,7 +174,7 @@ while(1) {
         if(detectors== -1) {
           printf("Bad list of dets (comma separated expected) %s\n", DETECTORS);
         } else {
-          printf("Pausing partition %s dets:%x...\n",pname,detectors);
+          printf("Pausing partition %s dets:0x%x ...\n",pname,detectors);
           ctp_PausePartition(pname, detectors);
         };
         break;             
@@ -185,10 +185,11 @@ while(1) {
         };
         printf("Going to send SYNC %d times\n", reps);
         for(i=0; i<reps; i++) {
-          ctp_SyncPartition(pname, errorReason);
+          int rc; w32 orbitn;
+          ctp_SyncPartition(pname, errorReason, &orbitn);
+          printf("rc:%d errorReason:%s orbitn:%d\n",rc, errorReason, orbitn);
           usleep(1000000);
         };
-        //printf("Sending sync for partition %s\n",pname);
         break;
       };
    case 'r':
@@ -198,7 +199,7 @@ while(1) {
         if(detectors== -1) {
           printf("Bad list of dets (comma separated expected) %s\n", DETECTORS);
         } else {
-          printf("Resuming partition %s dets:%x...\n",pname,detectors);
+          printf("Resuming partition %s dets:0x%x ...\n",pname,detectors);
           ctp_ResumePartition(pname, detectors);
         };
         break;             

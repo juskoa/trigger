@@ -8,13 +8,22 @@ LIBS = $(DIMLD) $(VMEBLD)
 ifdef SERVER_LINK
 allEXES=$(EXEDIR)/client
 else
+#@echo VMESITE: $VMESITE
+#ifneq ($(VMESITE), ALICE)
+#CFLAGS += -DSIMHW
+#endif
 allEXES=$(EXEDIR)/server
 endif
 all: $(EXEDIR) $(allEXES)
 $(EXEDIR):
 	mkdir $(EXEDIR)
 $(EXEDIR)/server:server.c $(DIMDIR)/linux/libdim.a
+ifneq ($(VMESITE), ALICE)
+	@echo VMESITE: $(VMESITE)
+	$(CC) -DSIMHW $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
+else
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
+endif
 	
 $(EXEDIR)/client:client.c $(DIMDIR)/linux/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@

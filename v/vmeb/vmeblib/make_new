@@ -21,9 +21,10 @@ S_OBJS := ranlux.o lexan.o timeroutines.o dodif32.o \
  prtError.o shmaccess.o infolog.o detectfile.o environment.o \
  daqlogbook.o udplib.o actdb.o $(dimwrapo) bakery.o doItemName.o
 else
+# daqlogbook.o removed 5.8.2013 for client
 S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o \
  loadFPGA.o dodif32.o prtError.o shmaccess.o infolog.o \
- detectfile.o signature.o environment.o daqlogbook.o \
+ detectfile.o signature.o environment.o \
  udplib.o $(dimwrapo) bakery.o
 endif
 

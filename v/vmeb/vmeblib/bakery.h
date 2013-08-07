@@ -13,8 +13,12 @@ unsigned int Nunlocks;          // -1 when unlock
 } Tbakery;
 
 /*
-"initBakery(swtriggers,3): 0:SOD/EOD 1:gcalib 2:ctp.exe + dims\n"
+"initBakery(swtriggers,3): 0:SOD/EOD/SYNC 1:gcalib 2:ctp.exe + dims\n"
 "initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n"
+ clgroups timer counters: just sending DIM cmd to dims, i.e. the locking managed
+                 by dims (still problem with eading  -is it really done before
+                 releasing triggers?)
+          [un]setPartDAQBusy: initBakery(clusterbusys,2)
 */
 
 void initBakery(Tbakery *bakery, char *name, int maxn);

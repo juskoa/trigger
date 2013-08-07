@@ -342,12 +342,12 @@ Operation:
 */
 char reason[9][40]={"Fail", "killed at L0", "killed at L1", "L2r", "OK",
   "PP timeout", "L0 timeout", "L2a/r timeout","bad TRIGTYPE (!= c s a)"};
-int startswtrig(){
+int startswtrig(w32 *orbitn){
  w32 flag;
  int ret,i;
 //w32 itime=0,time[20]; 
 //time[itime++]=CountTime();
-vmew32(L0_TCSTART,0);
+*orbitn= vmer32(L2_ORBIT_READ); vmew32(L0_TCSTART,0); 
 if(TRIGTYPE == 'c'){ i=0;
   while(getPPrqst() && i<TIMEOUT)i++;
   if(i>=TIMEOUT){
@@ -430,13 +430,16 @@ customer: number 0..1
 1: calibration triggers from gcalib task
 2: dimservices.c (usually not used) + ctp.exe (expert sw) + ctpt.exe
 
+orbitn: orbit number read just before the first trigger generation, i.e.
+        it is always <= of ORBITID of the sw. trigger event
 RC: number of L2a successfully generated, or
     12345678: cal. triggers stopped becasue det. is not in global run
 */
-int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
+int  GenSwtrg(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, 
+              int customer, w32 *orbitn ){
 int flag,itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
-w32 status;
+w32 status, orbitnloc;
 status=vmer32(L0_TCSTATUS);
 if((status&0x10)==0x10){
   printf(" GenSwtrg: TC busy. L0 TC_STATUS:0x%x\n", status);
@@ -458,13 +461,14 @@ lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig(trigtype,roc,BC,detectors)!=0) {
   l2a=0; goto RELEASERET; //return 0;
 };
-while(((itr<n) && ((flag=startswtrig())))){
+while(((itr<ntriggers) && ((flag=startswtrig(&orbitnloc))))){
+  if(itr==0) *orbitn= orbitnloc;
   if(flag == 1)l0++;
   else if(flag == 2)l1++;
   else if(flag == 3)l2r++;
   else if(flag == 4)l2a++;
   else {
-    printf(" GenSwtrg: unexpected flag %i \n",flag);
+    printf(" GenSwtrg: unexpected flag %i\n",flag);
     goto RELEASERET; //return l2a;
   }
   itr++;
@@ -497,7 +501,7 @@ return l2a;
 }
 /* called only in case of problem with gcalib. Idea: print
 out (vmew32f()) all vme access */
-int GenSwtrg2(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
+int GenSwtrg2(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
 int itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
 w32 status;
@@ -523,7 +527,7 @@ if( setswtrig2(trigtype,roc,BC,detectors)!=0) {
   l2a=0; goto RELEASERET; //return 0;
 };
 /* { int flag;
-while(((itr<n) && ((flag=startswtrig())))){
+while(((itr<ntriggers) && ((flag=startswtrig())))){
   if(flag == 1)l0++;
   else if(flag == 2)l1++;
   else if(flag == 3)l2r++;

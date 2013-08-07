@@ -4,6 +4,7 @@
 #include <errno.h>
 #include "vmewrap.h"
 #include "vmeblib.h"
+#include "daqlogbook.h"
 #include "infolog.h"
 #include "ctp.h"
 #include "Tpartition.h"
@@ -1119,6 +1120,70 @@ for(ixlevel=0; ixlevel<3; ixlevel++) {
 RTRN:
 return(allinpdets);
 }
+/*------------------------------------------------------- getDAQClusterInfo()
+*/
+int getDAQClusterInfo(Tpartition *partit, TDAQInfo *daqi) {
+unsigned long long ULL1=1,classmasks_l[NCLUST];
+int idet, iclu, iclass, rcdaqlog=0;
+w32 l0finputs=0;// L0 inputs referenced by l0functions 
+w32 l0finputs1; // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
+//if(partit->run_number<10) { return(0); };
+// only in run1msg: daqi->MaskedDetectors= partit->MaskedDetectors;
+for(iclu=0;iclu<NCLUST;iclu++){
+  daqi->masks[iclu]=0;
+  daqi->inpmasks[iclu]=0;
+  //daqi->classmasks01_32[iclu]=0; daqi->classmasks33_64[iclu]=0;
+  classmasks_l[iclu]=0;
+};
+//--------------------- masks:
+for(idet=0;idet<NDETEC;idet++){
+  int pclu, pclust, hwclust;
+  pclust= partit->Detector2Clust[idet]; // det. can belong to more clusters!
+  if(pclust ==0) continue;
+  // idet is in pclust, find HWclust:
+  for(pclu=0; pclu<NCLUST; pclu++) {
+    if(pclust & (1<<pclu)) {
+      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", partit->name, pclust, pclu);
+      hwclust= findHWCluster(partit, pclu+1);
+      if(hwclust>0) {
+        daqi->masks[hwclust-1]= daqi->masks[hwclust-1] | (1<<idet);
+      };
+    };
+  };
+};
+if(DBGlogbook) {
+  int pclu;
+  printf("getDAQClustersInfo:masks[0-%d]:0x:",NCLUST);
+  for(pclu=0; pclu<NCLUST; pclu++) {
+    printf("%x ", daqi->masks[pclu]); 
+  }; printf("\n");
+};
+//--------------------- classmasks and inpmasks:
+for(iclass=0; iclass<NCLASS; iclass++) {
+  int hwclass; int indets; TKlas *klas;
+  if((klas=partit->klas[iclass]) == NULL) continue;
+  hwclass= partit->klas[iclass]->hwclass;  // 0..49
+  if(hwclass>49) {
+    intError("getDAQClustersInfo: hwclass>49"); rcdaqlog=10;
+  };
+  iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
+  //daqi->classmasks[iclu]= daqi->classmasks[iclu] | (ULL1<<hwclass);
+  classmasks_l[iclu]= classmasks_l[iclu] | (ULL1<<hwclass);
+  indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  l0finputs= l0finputs|l0finputs1;
+  // l0finputs will be usd later when ctp_alignment called
+  if(indets<0) rcdaqlog=2;   
+  if(DBGlogbook) printf("getDAQClustersInfo:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
+    partit->hwallocated, iclu, iclass, indets);
+  daqi->inpmasks[iclu]= daqi->inpmasks[iclu] | indets;
+};
+for(iclu=0;iclu<NCLUST;iclu++){
+  daqi->classmasks01_32[iclu]= classmasks_l[iclu];
+  daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;
+};
+return(rcdaqlog);
+}
+
 void setglobalflags(int argc, char **argv) {
 setglobalflag(argc, argv, "NODAQLOGBOOK", FLGignoreDAQLOGBOOK);
 setglobalflag(argc, argv, "NODAQRO", FLGignoreDAQRO);

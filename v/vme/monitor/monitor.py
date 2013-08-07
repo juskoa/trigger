@@ -3,7 +3,8 @@ import os,sys,string,popen2,time,types,signal,socket,smtplib,pylog
 from threading import Thread
 
 UDP_TIMEOUT=70
-ALARMhddtemp=35
+ALARMhddtemp=35   # if >=, issue sms
+OKhddtemp=33      # as soon it goes back to this temp., sms: 'ok temp'
 log=None
 quit=None
 pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
@@ -82,12 +83,12 @@ class Udp(Thread):
       else:
         log.logm("unknown udp:"+data)
   def waitudp(self):
-    #try:
-    data,addr = self.UDPSock.recvfrom(1024)
-    #except:
-    #  print sys.exc_info()[0]
-    #  log.logm("waitudp except")
-    #  data=""
+    try:
+      data,addr = self.UDPSock.recvfrom(1024)
+    except:
+      print sys.exc_info()[0]
+      log.logm("waitudp except")
+      data=""
     return data
   def close(self):
     #self.UDPSock.shutdown(socket.SHUT_RD) 
@@ -127,7 +128,9 @@ class Daemon:
     self.name= name
     self.autor= autor
     self.scb= scb
-    if scb=="hddtemp":self.autor='n'
+    if scb=="hddtemp":
+      self.autor='n'
+      self.hightempstate= False
     self.onfunc= onfunc 
     self.state= None   # ok, restarted, down
     self.d1= self.d2= None    # 'dates' of last 2 actions (d2: older)
@@ -151,6 +154,7 @@ class Daemon:
     "scb" (StartClients.Bash way) -run localy (this script
           is supposed to run on server) startClients.bash
     "udp" check last udp message arrived from this Daemon
+    "hddtemp" check temp against ALARMhddtemp/OKhddtemp
 
     rc: 0: on, msg
         1: idle (e.g.: gcalib on, but no calib. triggers needed)
@@ -164,10 +168,22 @@ class Daemon:
         tempC= string.split(rline)[-1]
         temp= int(tempC[:-3])
         if temp>=ALARMhddtemp:
-          self.logm_mail("too high temp:%d C"%temp)
-          rc= [self.HUNG, "too high temp:%d C"%temp]
+          msg="temp alarm:%d >= %d C"%(temp,ALARMhddtemp)
+          if not self.hightempstate:
+            self.hightempstate= True
+            self.logm_mail(msg)
+            #rc= [self.ON, msg]
+        elif temp>OKhddtemp:
+          msg="temp high:%d > %d C"%(temp,OKhddtemp)
+          #rc= [self.ON, msg]   # state: OK all the time
+          #rc= [self.HUNG, msg]
         else:
-          rc= [self.ON, "%d C"%temp]
+          msg= "temp ok:%d C"%temp
+          if self.hightempstate:
+            self.hightempstate= False
+            self.logm_mail(msg)
+          #rc= [self.ON, msg]
+        rc= [self.ON, msg]
       else:
         rc= [self.OFF]
     elif self.udplast:
@@ -206,8 +222,8 @@ class Daemon:
     if newstat==Daemon.OK: self.sms_sent=0
   def logm(self, msg, state=None):
     """ 
-    log msg. Keep last 2 messages in self.a1/2 and their times in self.d1/2
-    .log   -all msgs, but only when changed
+    log msg ONLY WHEN CHANGED. Keep last 2 messages in 
+    self.a1/2 and their times in self.d1/2
     """
     ltime= log.gettimenow()
     if msg != self.a1:
@@ -224,9 +240,9 @@ class Daemon:
     msg2= pitlab+' '+self.name + ': ' + msg
     if self.sms_sent<2:   # send max. 2 messages
       self.sms_sent= self.sms_sent+1
+      self.logm(msg) #self.logm("mail:"+msg)
       if self.sms_sent==2:
         msg2= msg2+". SMSs DISABLED (max. 2)"
-      self.logm(msg) #self.logm("mail:"+msg)
       send_mail(msg2)
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
@@ -340,8 +356,9 @@ monitor.py stop
         dm.set_state(Daemon.OK)
         dm.logm("idle")
       elif rc[0]==Daemon.ON:
-        dm.set_state(Daemon.OK)
-        dm.logm("ok   "+rc[1], Daemon.OK)
+        if dm.state!= Daemon.OK:
+          dm.set_state(Daemon.OK)
+          dm.logm("ok   "+rc[1], Daemon.OK)
       else:
         dm.logmsg= str(rc)
       if quit: 
@@ -356,7 +373,7 @@ monitor.py stop
       htmlf.write(htm)
     htmlf.close()
     log.flush()
-    time.sleep(5)   #
+    time.sleep(30)   # was 5 before 11.7.2013
     if quit:
       #for dm in allds: no need (a1,a2 are logged in the time of their creation)
       #  dm.flush()

@@ -58,6 +58,10 @@ Contents:
     done: 30.5.2012 
 13. web-counters: signal names + any time (i.e. create .rrd from archive files)
 14. CPU+IO+Ethernet monitoring for all machines
+    evaluate munin: http://munin.projects.linpro.no/
+    nfs:
+    cat /proc/net/rpc/nfsd 
+    iostat -x -n
 14A. monitor daemons (startClients.bash, vme/monitor)
 15. busy problems when starting global partition
 16. sync management in global runs-see email from end of April 26th 2012

@@ -50,11 +50,11 @@ ifeq (BNAME,ctpt)
   LDFLAGS +=-Lctplib/linux_c -lctp
   CFLAGS +=-DSSMCONNECTIONS
 endif
+# ctplib has to be before vmeblib
+LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb
 ifdef DATE_INFOLOGGER_DIR
 INCDIRS=-I$(DATE_INFOLOGGER_DIR)
-LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb -L$(DATE_INFOLOGGER_DIR) -lInfo
-else
-LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb
+LDFLAGS +=-L$(DATE_INFOLOGGER_DIR) -lInfo
 endif
 ifdef DATE_DAQLOGBOOK_DIR
 MYSQLLIBS=`/usr/bin/mysql_config --libs`

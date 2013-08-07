@@ -98,25 +98,26 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 printf("CTP boards in the crate (counters:%d):\n", NCOUNTERS);
 printf("   board code ser# base     vmeV boardV BCstatus\n");
 for(ix=0; ix<NCTPBOARDS; ix++) {
-  w32 bcst,lom;
+  w32 bcst;
   char errnote[80];
   if(notInCrate(ix)) continue;
   adshift=BSP*ctpboards[ix].dial;
   bcst= vmer32(adshift+BC_STATUS)&0x7;
-  //lom= vmer32(adshift+BUSY_ORBIT_SELECT)&0x2000;
   errnote[0]='\0';
   if(ctpboards[ix].boardver != ctpboards[ix].lastboardver) {
     sprintf(errnote,"Bad boardV (%x expected).", ctpboards[ix].lastboardver);
   };
   if(bcst!= 2) {
     char msg1[40]="";
-    if(bcst&0x4) {
-    //busy: always external orbit/BC signals checked?
-    //if(lom==0x2000) {
-    //  strcpy(msg1,"Bit 0x4:ON,OK -local orbit used");
-    //} else {
+    if(((bcst&0x4)==0x4) && (ix==0)) {   
+      //busy: always external orbit/BC signals checked?
+      w32 lom;
+      lom= vmer32(BUSY_ORBIT_SELECT)&0x2000;
+      if(lom==0x2000) {
+        strcpy(msg1,"Bit 0x4:ON,OK -local orbit used");
+      } else {
         strcpy(msg1,"Bit 0x4:bad external Orbit.");
-    //};
+      };
     };
     sprintf(errnote,"%s BCstatus: 0x2 expected. %s", errnote, msg1);
   };

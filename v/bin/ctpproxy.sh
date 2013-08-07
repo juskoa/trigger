@@ -26,6 +26,21 @@ function startproxy() {
     pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
     echo "pid:$pid"
 }
+function helpout() {
+cat - <<-EOF
+Bad parameter:$1. One of the following expected:
+status    -check if ctpproxy is started
+stop      -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
+           active partitions (check with ECS operator). 
+kill      -stop ctpproxy immediately. This option should not be used!
+restart =  kill + start (preferred way is: 'ctpproxy [stop status start]')
+
+starttest -debugging: start interactive session without DAQLOGBOOK/readout
+startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
+           (interface to be written sending SMI cmds to ctpproxy)
+startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS)
+EOF
+}
 proxyname="TRIGGER::CTP"
 pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
 if [ -z $pid ] ;then
@@ -36,17 +51,21 @@ if [ -z $pid ] ;then
     exit 8
   elif [ "$1" = "start" ] ;then
     startproxy
+  elif [ "$1" = "startnr" ] ;then
+    startproxy NODAQRO
   elif [ "$1" = "startnd" ] ;then
     startproxy NODAQLOGBOOK NODAQRO
   elif [ "$1" = "starttest" ] ;then
     cd $VMEWORKDIR
 #set args [NO]DAQLOGBOOK [NO]DAQRO
+#defaults: DAQLOGBOOK DAQRO
     cat - <<-EOF >.gdbinit
 set args NODAQLOGBOOK NODAQRO
 EOF
     gdb $VMECFDIR/ctp_proxy/linux/test
   elif [ $# -gt 0 ] ;then
-    echo "Bad parameter(s) (start or starttest expected)"
+    #echo "Bad parameter(s) (start or starttest expected)"
+    helpout $1
   fi
 else
   echo "TRIGGER::CTP running. pid:$pid"
@@ -60,17 +79,6 @@ else
     echo "restarting $pid" ; kill -s SIGINT $pid
     startproxy 
   elif [ $# -gt 0 -a "$1" != "status" ] ;then
-    cat - <<-EOF
-Bad parameter:$1. One of the following expected:
-status    -check if ctpproxy is started
-stop      -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
-           active partitions (check with ECS operator). 
-kill      -stop ctpproxy immediately. This option should not be used!
-restart =  kill + start (preferred way is: 'ctpproxy [stop status start]')
-
-starttest -debugging: start interactive session without DAQLOGBOOK/readout
-startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
-           (interface to be written sending SMI cmds to ctpproxy)
-EOF
+    helpout $1
   fi
 fi

@@ -463,7 +463,7 @@ for(ix=0; ix<24; ix++) {
       detname[0]='\0'; return;   // more detectors
     };
   };
-};
+};   // attempt to pause a detector not included in the partition
 if(det==-1) {
   printf("bit2name: empty det. pattern:0x%x\n",ctprodets);
   detname[0]='\0'; return;};   // no detector in bit pattern
@@ -471,7 +471,7 @@ ltuitem= findLTUdaqdet(det);
 if(ltuitem==NULL) {
   printf("bit2name: detector %d not found in VALID.LTUS, det. pattern:0x%x\n",
     det, ctprodets);
-  detname[0]='\0'; return;};   // no detector in LTU
+  detname[0]='\0'; return;};   // unknown detector
 strcpy(detname, ltuitem->name);
 return;
 }
@@ -504,11 +504,6 @@ while(1) {
   };
 };
 return(rc);
-}
-/*------------------------------------------------------------findClusbydets()
-find cluster pattern corresponding to given partition and dets pattern
-*/
-w32 findClusbydets(Tpartition *part, int dets) {
 }
 /*------------------------------------------------------------findBUSYINP()
 fo:1-6, foc:1-4

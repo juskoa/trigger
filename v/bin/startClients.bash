@@ -16,7 +16,7 @@ echo '----- rrd status (2 processes):'
 ps -C readctpc -C readltuc -o"%p %a"
 }
 function status_pydim() {
-echo '----- pydim status (2 processes):'
+echo '----- pydim status (2 processes), HAS TO BE STARTED BEFORE ctpproxy!:'
 ps -C pydimserver.py -C server -o"%p %a"
 pids=`ps -C pydimserver.py -C server -o"%p %a" --no-headers |colrm 6`
 if [ "$pids" != "" ] ;then
@@ -217,7 +217,9 @@ else
   sss=$2
 fi
 echo $dnames | grep "$dmn " >/dev/null
-if [ $? -eq 1 ] ;then
+rc=$?
+echo "rc:$rc dmn:$dmn:"
+if [ "$dmn" != "all" -a "$rc" = "1" ] ;then
   echo "unknown daemon: $dmn"
   exit 8
 fi

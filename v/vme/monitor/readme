@@ -105,5 +105,8 @@ system state AUTOR time last
 START  STOP        time previous action
 
 24.6.
-hddtemp added (sms in case of high temperature, but not when it comes back to normal-
-should be done with some hysteresis)
+hddtemp added:
+- sms in case of high temperature, but 
+- not when it comes back to normal- should be done with some hysteresis
+16.7.
+hddtemp improved -hysteresis when hddtemp higk/ok

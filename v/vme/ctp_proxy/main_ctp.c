@@ -33,6 +33,7 @@ int quit=0;   // 1: do not start new runs >9 stop immediately
 
 void UPPER(char *strin);
 char pname[64]="UNKNOWN"; 
+char ORBIT_NUMBER[12]=""; 
 /*---------------------------------------------*/ void gotsignal(int signum) {
 char msg[100];
 // SIGUSR1:  // kill -s USR1 pid
@@ -52,12 +53,15 @@ if((signum==SIGUSR1) || (signum==SIGQUIT) ) {
 };
 }
 
+void smi_setState(char *newstate) {
+strcpy(state, newstate); smi_set_state(state);
+}
 void smi_set_parER() {
 if(strlen(errorReason)>99) { errorReason[99]='\0'; };
 smi_set_par("ERROR_REASON", errorReason, STRING);
 }
-void smi_setState(char *newstate) {
-strcpy(state, newstate); smi_set_state(state);
+void smi_set_parEF(char *pname) {
+smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
 }
 
 /*--------------------------------------------------- SMI_handle_command()
@@ -108,6 +112,10 @@ for (i=1;i<=n_params;i++) {
       smi_set_parER();
       smi_setState("ERROR"); goto RETSMI;
     };
+    printf("detectors:%80.80s= 0x%x\n",param, detectors);
+  } else {
+    char wmsg[200];
+    sprintf(wmsg,"unknown parameter from ECS:%s", param); prtWarning(wmsg);
   };
   strcat(msg," ");
   strcat(msg,param);
@@ -126,8 +134,9 @@ if (strcmp(state,"RUNNING") == 0 ) {
       sprintf(msg,"%s_PARTITION ignored. ctp_proxy stopping, waiting for the stop of all partitions",INITLOAD);
       infolog_trgboth(LOG_FATAL, msg);
     } else {
-      smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-      printf("%s partition: %s mask: %s run:%d\n", INITLOAD,pname,mask,run_number);
+      smi_set_parEF(pname);
+      printf("%s partition: %s mask: %s run:%d\n", INITLOAD,pname,
+        mask,run_number);
       if(strcmp(INITLOAD,"LOAD")==0) {
         rc= ctp_LoadPartition(pname,mask,run_number,ACT_CONFIG, errorReason);
       } else {
@@ -143,7 +152,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
     };
   } else if (strcmp(action,"START_PARTITION") == 0) {
     int rc;
-    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
+    smi_set_parEF(pname);
     printf("Starting partition: %s\n", pname);
     rc= ctp_StartPartition(pname, errorReason);
     if(rc){
@@ -154,7 +163,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
       sleep (1); smi_setState("RUNNING");
     }
   } else if (strcmp(action,"STOP_PARTITION") == 0) {
-    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
+    smi_set_parEF(pname);
     printf("Send EOD and then unload the partition\n");
     if(ctp_StopPartition(pname)){
       sleep(1); smi_setState("ERROR");
@@ -162,7 +171,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
       sleep (1); smi_setState("RUNNING");
     }
   } else if (strcmp(action,"PAUSE_PARTITION") == 0) {
-    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
+    smi_set_parEF(pname);
     if(ctp_PausePartition(pname, detectors)){
       sleep (1); smi_setState("ERROR");
     }else{
@@ -170,17 +179,19 @@ if (strcmp(state,"RUNNING") == 0 ) {
     }
   //} else if (strcmp(action,"SYNCH") == 0) {
   } else if (strncmp(action,"SYNC",4) == 0) {   // correct: strcmp("SYNC")
-    int rc;
-    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
-    if((rc= ctp_SyncPartition(pname, errorReason))!=0){
+    int rc; w32 orbitn;
+    smi_set_parEF(pname);
+    if((rc= ctp_SyncPartition(pname, errorReason, &orbitn))!=0){
       printf("ctp_SyncPartition() rc:%d %s\n", rc,errorReason);
       smi_set_parER();
       sleep (1); smi_setState("ERROR");
     }else{
+      sprintf(ORBIT_NUMBER,"%u", orbitn);
+      smi_set_par("ORBIT_NUMBER", ORBIT_NUMBER, STRING);
       sleep (1); smi_setState("RUNNING");
     }
   } else if (strcmp(action,"RESUME_PARTITION") == 0) {
-    smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
+    smi_set_parEF(pname);
     if(ctp_ResumePartition(pname, detectors)){
       sleep (1); smi_setState("ERROR");
     } else {
@@ -248,6 +259,7 @@ printf("CTP attached to: %s\n",obj);
 smi_volatile();   
 */
 strcpy(errorReason,"not set"); smi_set_parER();
+strcpy(ORBIT_NUMBER,""); smi_set_par("ORBIT_NUMBER",ORBIT_NUMBER,STRING);
 strcpy(pname,"UNKNOWN"); smi_set_par("EXECUTING_FOR",pname,STRING);
 smi_setState("RUNNING");
 while(1) {

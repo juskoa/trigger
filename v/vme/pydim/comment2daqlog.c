@@ -1,6 +1,7 @@
 #include "stdio.h"      // printf
 #include "vmewrap.h"
 #include "vmeblib.h"
+#include "daqlogbook.h"
 int main() {
 int rcdaq,runN;
 rcdaq= daqlogbook_open();

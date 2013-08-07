@@ -247,7 +247,7 @@ if(argc==1) {
      1     2     3      4   5            6
   */
   strcpy(dati1, argv[1]); strcpy(dati2, argv[2]);
-  strcpy(runc, argv[3]); runi=atoi(runc); strcpy(outfilepath, argv[5]);
+  strcpy(runc, argv[4]); runi=atoi(runc); strcpy(outfilepath, argv[5]);
   printf("%s %s %d %s. Counters' rel. addresses:\n", dati1, dati2, runi, outfilepath);
   runxpos=-1;
   if((argc>= 7) && (strcmp("dimall",argv[6])==0)) {
@@ -322,6 +322,14 @@ if(argc==1) {
         printf("cant open %s\n", outfilepath);
         return(3);
       };
+      if(binarydata!=1) {
+        int ix;
+        strcpy(oline, "# date     time    ");
+        for(ix=0; ix<noc; ix++) {
+          sprintf(oline,"%s %s", oline, argv[ix+6]);
+        };
+        fprintf(ofile, "%s\n", oline); 
+      };
     };
     if(binarydata==1) {
       //printf("Bindata: ");
@@ -344,7 +352,7 @@ if(argc==1) {
         if(decdata!=0) {
           w32 cnumberdec;
           converth2i(&cnumberdec,ix,counters);
-          sprintf(oline, "%s%d " ,oline, cnumberdec);
+          sprintf(oline, "%s%u " ,oline, cnumberdec);
         } else {
           strcpy(cnumber, counters[ix]);
           sprintf(oline, "%s%s ",oline, cnumber);

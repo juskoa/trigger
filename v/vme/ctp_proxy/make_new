@@ -59,6 +59,8 @@ test.o:test.c ctp_proxy.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/test: test.o $(proxyOBJS) $(LIBDEP)
 	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) -o $@
+Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h Tpartition.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 main_TRBIF.o:main_TRBIF.c ctp.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/main_TRBIF: main_TRBIF.o $(main_TRBIFOBJS) $(LIBDEP)

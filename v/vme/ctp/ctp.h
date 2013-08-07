@@ -445,16 +445,15 @@ set INTERACTSEL ALL_RARE_FLAG
 */
 void setShared2(w32 intsel, w32 allrare);
 /*----------------------------libctp.a subroutines for new firmware  */
-/*FGROUP DbgNewFW 
+/* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
-*/
-void loadRun(w32 runnumber);
-/*FGROUP DbgNewFW 
+
+void loadRun(w32 runnumber); */
+/* FGROUP DbgNewFW 
 Prints static class CTPHardware.
-*/
-void printHW();
-/*FGROUP DbgNewFW */
-void unloadRun(w32 runnumber);
+void printHW(); */
+/* FGROUP DbgNewFW 
+void unloadRun(w32 runnumber); */
 /*FGROUP DbgNewFW */
 void printL0FUN34();
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
@@ -501,7 +500,8 @@ rc: busy pattern: [0..23] bits set to 1 correspond to Dead busy inputs
 w32 findDeadBusys(w32 dets);
 
 /*FGROUP DebCon */
-int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer);
+int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, 
+  int customer, w32 *orbitn);
 /*FGROUP DebCon */
 int getCALIBBC2(w32 ctprodets);
 void clearflags();

@@ -7,7 +7,8 @@ if [ -n "$SERVER" ] ;then
   echo --- $1 not done on server:$SERVER
   return
 fi
-echo "========================== vmecomp package $1 $2"
+echo
+echo "=======================### vmecomp package $1 $2 =================================="
 cd $VMECFDIR/$1 
 if [ "$2" == "clean" ] ;then
   make -f $1.make clean
@@ -28,7 +29,8 @@ if [ -z "$SERVER" -a "$1" = 's' ] ;then
   echo "--- $2 not done ($1, but this is client)"
   return
 fi
-echo "========================== make package $2 $3"
+echo
+echo "=======================### make package $2 $3 ====================================="
 cd $VMECFDIR/$2 
 if [ "$3" == "clean" ] ;then
   make clean

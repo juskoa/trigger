@@ -29,6 +29,6 @@ Internal error.
 void intError(char *msg) {
 char dt[20];
 getdatetime(dt);
-printf("%s: *** Internal Error:\n%s\n\n",dt,msg); fflush(stdout);
+printf("%s: *** Internal Error:%s\n\n",dt,msg); fflush(stdout);
 }
 

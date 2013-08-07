@@ -1,38 +1,93 @@
+1. Summary
+2. Code modifications
+3A. Class groups
+3B. Calibration
+4. Counters
+5. Errors:
+6. Testing
+
+1. Summary
+----------
 Now (jun 2013): whole parition can be paused/resumed
 Goal: allow subset of clusters to be paused/resumed. ECS maintains
       detectors, i.e. list of detectors will be provided with Pause/Resume
       command for given partition
 Required modifications:
 
-ECS_cmd now      after
+ECS_cmd parameters
+        now      after
 PAUSE   -        list of det.names to be paused
 RESUME  -        list of det.names to be left paused
 SYNC    now: sent to all detectors in partition (ALL PAUSED)
                  after:sent to all dets, but they are NOT ALL paused (i.e.
                  'not paused' have to be 'internally paused' to get SYNC
                  through in case of high physics rate)
+                 done:31.7.: with SYNC, new request is to return ID of generated
+                       SYNC even => startswtrig() returns orbit number
+                       read from L2-board just before generation of SYNC.
 
+todo: use bakery critical section when moving clusters
+between active/paused state, because of 2 asynchronous users:
+A. ECS (namely pause/resume/sync)
+B. timer activated quite often when class groups active
+[un]setPartDAQBusy() amended with bakery [un]locks. Seems 2 customers are
+sufficient:
+ECS - pause/start/stop/sync/resume: requests serialised in
+      SMI_handle_command()
+CLG - interrupt routine for clg (clgroups.c cgInterrupt())
+
+done:26.7.2013 todo: tested -see Testing
+Seems sync is special: while sod/eod/pause/resume are controlled by ECS,
+i.e. ECS is always aware who is active/paused -we do not need to stack
+pause/resume operations but we can simply overlab the set of 
+paused detectors/clusters. But with SYNC we need to do:
+- find active detectors/clusters which needs to be paused (some
+  can already be paused) -let's name this set _dts
+- if _dts!=None: pause 
+- sync
+- if _dts!=None resume the same set of detectors/clusters active before sync
+
+Start partition: done
+instead of setALLDAQBusy/unsetALLDAQBusy use just:
+                         unsetPartDAQBusy(part, 0)
+Stop partition: done
+instead of setALLDAQBusy/unsetPartDAQBusy/unsetALLDAQBusy use just:
+  setPartDAQBusy(part, 0)
+
+Pause part:
+before and also now: 
+setPartDAQBusy(part, detectors);
+
+Resume part:
+before and also now: 
+unsetPartDAQBusy(part, detectors);
+
+2. Code modifications
+---------------------
+Sync part: see above
 ----------ctp_proxy.c ctp_PausePartition():
 -check if part. started
--cshmPausePartition(part); -setting only flag 'paused'
+-cshmPausePartition(part); -setting only flag 'paused' (i.e. regardless
+ of number of clusters paused!)
 -setPartDAQBusy(part);
+  -getBusyMaskPartition()
+    -set BUSY for all clusters in part. + store in DAQBUSY.activebusys
+     todo:done modify getBusyMaskPartition() instead of all clusters:
+     - find out the set of clusters according to given detectors:
+       findClusbydets(DAQBUSY.paused_dets)
+       todo:done see readTables.c
+     - set BUSY + DAQBUSY.activebusys only for those clusters found
+     done:
   -check DAQBUSY.global ->ERR
-  -set BUSY for all clusters in part. + store in DAQBUSY.activebusys
-   MODIF: instead of all clusters:
-   - find out the set of clusters according to given detectors:
-     findClusbydets(DAQBUSY.paused_dets)
-     todo: see readTables.c
-   - set BUSY + DAQBUSY.activebusys only for those clusters found
-   MODIF_END
-  -if TIMESHARING: 
-     -> stopTimer(part, 255) 
-        -> xcountersStart(0, clgroup);
-           -> CTPDIM/STARTRUNCOUNTER run=0 255
-              -> dimservices.c startruncounter()
-                 -> readctpcounters(0,255)
-                    -> readCounters() + 
-                    -> ctpc[CSTART_TSGROUP]= active_cg
-                    -> active_cg= 255
+-if TIMESHARING: 
+   -> stopTimer(part, 255) 
+      -> xcountersStart(0, clgroup);
+         -> CTPDIM/STARTRUNCOUNTER run=0 255
+            -> dimservices.c startruncounter()
+               -> readctpcounters(0,255)
+                  -> readCounters() + 
+                  -> ctpc[CSTART_TSGROUP]= active_cg
+                  -> active_cg= 255
 
 ---------- ctp_ResumePartition():
 -> if TS: startTimer(part, part->remseconds, clgroup=255)
@@ -40,7 +95,7 @@ SYNC    now: sent to all detectors in partition (ALL PAUSED)
       -> CTPDIM/STARTRUNCOUNTER run=0 part->active_cg
 -> unsetPartDAQBusy(part); 
    -release ALL clusters in part
-    MODIF: release only SUBSET of ALL clusers, leaving busy those
+    todo:done: release only SUBSET of ALL clusers, leaving busy those
     required by resume parameter 
          
 -----------DAQBUSY.global 
@@ -51,21 +106,52 @@ set in setALLDAQBusy() -> invoked only in time of loadHW at:
 -----------Steps todo:
 0. check DETECTORS SMI param, pass the pattern to ctp_Pause/Resume
    done:26.6.2013. see main_ctp.c
+0A. set BUSY_DAQBUSY to 1 for all clusters not inluded in global runs!
+    Before LS1, inactive clusters were allowed (i.e. disabled ONLY
+    if partition paused). Keeping them disabled should improve L1 glitch 
+    problem!
+   todo:done 15.7.2013 in  ctp_Initproxy()
+   todo:done 17.7. still needs to be Enabled/disabled at SOR/EOR, i.e.:
+         -DAQBUSY.activebusys reflects always paused_dets+paused_dts,
+          the copy stored in hw. DAQBUSY access controlled through 
+          bakery (see above).
+         -paused_dts is normally 0 (set only during SYNC if necessary)
+         -expand by 1 par. (detectors) getBusyMaskPartition()
 1. keep DAQBUSY.global
 2. should we keep PAUSE  without parameters -> pause whole partition
                   RESUME without pars      -> resume whole partiion ?
-   -> to be agreed with Franco
+   -> agreed with Franco. LET'S KEEP IT.
 3. add in DAQBUSY:
    - list of detectors in 'paused' state (is tied with cluster's
      DAQBUSY.activebusys ): DAQBUSY.paused_dets
+     done:26.7.
+       -check in setALLDAQBusy() after read from hw
+       -setPartDAQBusy to be modified. Done 22.7.
+       -unsetPartDAQBusy modified. todo: bakery lock
+       -ctp_Initproxy:DAQBUSY.global=0;  DAQBUSY.activebusys=0x3f;
+
    - list of dets 'paused_due_to_sync': DAQBUSY.paused_dts
      -these dets are paused only during minimal time ( several orbits)
       necessary to avoid their busy from physics
      -they should be resumed immediately after SYNC execution -i.e.
       the 'paused_due_to_sync' list DOES NOT overlap the 'paused' list
-      (there are no common detectors in both lists!)
-4. counters: we should keep the same actions, but now
-   applied to clusters (not whole partitions).
+      (there must be no common detectors in both lists!) todo:done 26.7.
+
+3A. Class groups
+----------------
+clgroups.c cgInterrupt(): when pausing due to class group change,
+NOW: all clusters for given parition were paused in RUN1.
+todo: pause only concerned clusters?
+
+3B. Calibration
+---------------
+FLGignoreGCALIB -in RUN1, set/unset only in [un]setALLDAQBusy(), i.e.
+globally.
+
+4. Counters
+-----------
+We should keep the same actions, but now applied to clusters (not 
+whole partitions).
 4A. Pause
 now: after counters read, set clgroup to 255 when part. paused 
      (if clgroups defined in partition),i.e. 
@@ -73,7 +159,7 @@ now: after counters read, set clgroup to 255 when part. paused
      clgroup set to 255 (resp. 0 if no TS defined), see above.
 new: ? list of paused clusters to be delivered in TSGROUP counter
        to moncounter (Roman) program?
-Suggestion:
+Suggestion (sent to Roman June 27th):
 TSGROUP 8 low bits (oxff) defined as follows:
 0    -no class groups defined, partition active (i.e. not in paused)
 255  -whole partition PAUSED (all classes count only before vetos)
@@ -94,10 +180,77 @@ TSGROUP new:
 now: after counters read, set ctpc[CSTART_TSGROUP] active in Pause time.
 new:
 
-5. 
-Errors:
+5. Errors:
+---------
 - attempt to pause a detector not included in the partition
-- attemt to resume with a detector not in paused state
+- attempt to resume with a detector not in paused state
 Warnings:
 - pause issued for  a detector already in paused state
+
+6. Testing
+----------
+daqbusy.partition:
+Version: 6
+Clusters:
+CENT
+DTRUE(L0pr=3ms)
+SPD
+ALL
+DTRUE(L0pr=4ms)
+T0 V0
+NOTRD
+DTRUE(L0pr=1ms)
+T0
+MUON
+DTRUE(L0pr=2ms)
+SSD
+
+l s daqbusy
+26.07.2013 17:24:15: Run 1: starting xcounters.
+getBusyMaskPartition:idet: 0 pclust:1 pclu:0 hwclust:1
+getBusyMaskPartition:idet: 2 pclust:8 pclu:3 hwclust:2
+getBusyMaskPartition:idet:13 pclust:6 pclu:1 hwclust:3
+getBusyMaskPartition:idet:13 pclust:6 pclu:2 hwclust:4
+getBusyMaskPartition:idet:14 pclust:2 pclu:1 hwclust:3
+getBusyMaskPartition: p2 dets:0x0 clust:0xf
+getBusyMaskPartition:idet: 0 pclust:1 pclu:0 hwclust:1
+getBusyMaskPartition:idet: 2 pclust:8 pclu:3 hwclust:2
+getBusyMaskPartition:idet:13 pclust:6 pclu:1 hwclust:3
+getBusyMaskPartition:idet:13 pclust:6 pclu:2 hwclust:4
+getBusyMaskPartition:idet:14 pclust:2 pclu:1 hwclust:3
+getBusyMaskPartition: p2 dets:0x0 clust:0xf
+unsetPartDAQBusy clsts _dts:0x0 org/all/leavebusy:0x3f 0xf 0xf ->0x30
+unsetPartDAQBusy  dets _dts:0x0 org/all/leavebusy:0xffffff 0x6005 0x6005 ->0xff9ffa
+
+p 
+DETECTORS to be paused:T0,SSD
+Pausing partition p2 dets:0x2004 ...
+getBusyMaskPartition:idet: 2 pclust:8 pclu:3 hwclust:2
+getBusyMaskPartition:idet:13 pclust:6 pclu:1 hwclust:3
+getBusyMaskPartition:idet:13 pclust:6 pclu:2 hwclust:4
+getBusyMaskPartition: p2 dets:0x2004 clust:0xe
+setPartDAQBusy: clustbusy:0xe BUSY_DAQBUSY=0x3e 
+
+y
+setPartDAQBusy:paused_dts/clust_dts:0x4001 0x1
+setPartDAQBusy: clustbusy:0xf BUSY_DAQBUSY=0x3f 
+genXOD: BUSY/SET_CLUSTER: 0x0 L2_TCSET:0x6005
+SYNC event ok at 0 attempt.
+getBusyMaskPartition: p2 dets:0xffffffff clust:0xf
+getBusyMaskPartition: p2 dets:0x0 clust:0xf
+unsetPartDAQBusy clsts _dts:0x0 org/all/leavebusy:0x3f 0xf 0x1 ->0x3e
+unsetPartDAQBusy  dets _dts:0x0 org/all/leavebusy:0xffffff 0x6005 0x4001 ->0xffbffe
+26.07.2013 17:24:33: SYNC sent.
+
+r
+DETECTORS to be left paused:
+Resuming partition p2 dets:0x0 ...
+getBusyMaskPartition: p2 dets:0x0 clust:0xf
+getBusyMaskPartition: p2 dets:0x0 clust:0xf
+unsetPartDAQBusy clsts _dts:0x0 org/all/leavebusy:0x3e 0xf 0xf ->0x30
+unsetPartDAQBusy  dets _dts:0x0 org/all/leavebusy:0xffbffe 0x6005 0x6005 ->0xff9ffa
+
+f
+getBusyMaskPartition: p2 dets:0x0 clust:0xf
+setPartDAQBusy: clustbusy:0xf BUSY_DAQBUSY=0x3f 
 

@@ -82,8 +82,8 @@ cv_t cv;
   #include <sys/ioctl.h> 
   #include <asm/byteorder.h>
   #include "vmedrv.h"
-#endif
 static int fTSI148;
+#endif
 
 #include <stdlib.h>
 #include <string.h> 
@@ -432,7 +432,8 @@ BoBaLength=hex2ui(&BoardSpaceLength[2]);
     goto EXIT8;
   };
 vxsp[*vsp].vmeptr= BoBaAd;   //just for vmxclose()
-#else 
+#endif
+//von #else 
 #ifdef VMERCC
 if((rccret=VME_Open()) != VME_SUCCESS) {
   printf("VME_Open() error: %d\n",rccret);
@@ -602,7 +603,7 @@ vmeptr=(w8 *)MapVME(BoBaAd,BoBaLength);
 printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
   BoBaAd, BoardBaseAddress, vmeptr); */
 #endif
-#endif   /* SIMVME */
+//von #endif   /* SIMVME */
 
 #ifdef CAENVME
   int type,link,num,rc;
@@ -680,14 +681,18 @@ return(8);
 /*----*/ int vmxopen(int *vsp, char *BoardBaseAddress, 
              char *BoardSpaceLength) {
 char a24[]="A24";
+#ifdef TSI148
   printf("\t YK-1\n");
+#endif
 return( vmxopenam(vsp, BoardBaseAddress, BoardSpaceLength, a24));
 }
 
 
 /*-----------*/ int vmeopen(char *BoardBaseAddress, char *BoardSpaceLength) {
   int rc;
+#ifdef TSI148
   printf("\t YK-0: BoardBaseAddress=%s, BoardSpaceLength=%s\n",BoardBaseAddress,BoardSpaceLength);
+#endif
 #ifndef CAENVME
  int vsp0=0;
 #endif
