@@ -60,7 +60,7 @@ int ignoreDAQLOGBOOK=0;
 
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
-int INT1id, INT2id, CSid, CTPRCFGRCFGid, CTPRCFGid;
+int INT1id, INT2id, CSid, CTPRCFGRCFGid, CTPRCFGid,C2Did;
 char INT1String[MAXINT12LINE]="int1 source";
 char INT2String[MAXINT12LINE]="int2 source";
 #define MAXCSString 80000
@@ -78,6 +78,7 @@ int actdb_getPartition(char *name, char *filter, char *actname, char *actver);
 void stopserving() {
 dis_remove_service(CTPRCFGRCFGid);
 dis_remove_service(CTPRCFGid);
+dis_remove_service(C2Did);
 dis_remove_service(INT1id);
 dis_remove_service(INT2id);
 dis_remove_service(CSid);
@@ -268,6 +269,34 @@ if(rc==0) {
       }; 
     };
     printf("%s",dain->run1msg); fflush(stdout);
+  };
+};
+}
+/*--------------------*/ void DOcom2daq(void *tag, void *msg, int *size)  {
+// msg: runN "title" "comment" 
+int ixl, runN;
+char *line;
+#define MAXDAQCOMMENT 500
+char value[MAXDAQCOMMENT];
+char title[MAXDAQCOMMENT];
+enum Ttokentype t1;
+line= (char *)msg;
+printf("INFO DOcom2daq len:%d m:%s\n", *size, line); 
+if(*size > MAXDAQCOMMENT) {
+  printf("ERROR too long title+comment for DAQlogbook\n"); return;
+};
+ixl=0; t1= nxtoken(line, value, &ixl);   // title
+if(t1==tINTNUM) {
+  runN= str2int(value);
+  if(t1==tSTRING) {
+    strcpy(title, value);
+    t1= nxtoken(line, value, &ixl);   // message
+    if(t1==tSTRING) {
+      int rcdl;
+      rcdl= daqlogbook_add_comment(0,title,value);
+      printf("INFO DAQlogbook comment: %d %s %s rc:%d\n",
+        runN, title, value,rcdl);
+    };
   };
 };
 }
@@ -711,6 +740,9 @@ printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGRCFGid);
 sprintf(cmd, "%s", servername);   // CTPRCFG binary (after LS1) RCFG request
 CTPRCFGid= dis_add_cmnd(cmd,NULL, DOrcfg, 89);
 printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGid);
+sprintf(cmd, "%s/COM2DAQ", servername);   // CTPRCFG/COM2DAQ
+C2Did= dis_add_cmnd(cmd,NULL, DOcom2daq, 90);
+printf("INFO DIM cmd:%s id:%d\n", cmd, C2Did);
 
 // services:
 sprintf(cmd, "%s/INT1", servername);   // CTPRCFG/INT1

@@ -53,7 +53,7 @@ if(*rc == 1) {
 };
 }
 void CScallback(void *tag, void *buffer, int *size) {
-char *buf= (char *)buffer;
+char *buf= ( char *)buffer;
 printf("CScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
 //printf("CScallback:%s\n",StatusString); //not changed (callback)
 }
