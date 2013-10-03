@@ -88,5 +88,8 @@ still todo: bakery locks (look for bakery) for Pause/Resume/Sync/clgroups
 git pull
 git commit --author Jusko
 git push
-
+3.10.
+trigger/devel/archived moved up 1 level and emoved from git, i.e. is now in
+trigger/
+git commit -a  and push , new clone created on avmes /home/dl6/local/trigger
 

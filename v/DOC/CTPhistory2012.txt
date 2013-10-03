@@ -251,7 +251,7 @@ validate.py: strict added
 TPC ltu waitbusyeod: 10s (5s for others)
 readctpc.c+htmlCtp... -now 3busys, changed with kill -s SIGUSR1
 (default bsy/L2s)
-1.11.2011
+1.11.2012
 pylog.py -infolog extended
 pydimserver.py -using pylog.py now
 parted.py      -TrgPartition.loadwarnings (similar to loaderrors)
