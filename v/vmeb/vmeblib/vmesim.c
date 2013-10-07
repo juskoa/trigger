@@ -136,7 +136,7 @@ int vmesimOpen(int vmespace, w32 baseaddr, w32 size, w32 am) {
 int i,ret=0;
 if( (vmespace >=0) && (vmespace <MAXVMESPACES) && 
   (vsps[vmespace]==NULL) ) {
-  int shmsegid;
+  int shmsegid=0;
   vsps[vmespace]= (Tvmespace *)malloc(sizeof(Tvmespace));
   if (vsps[vmespace] == NULL) {ret=1; goto ERR; };
   vsps[vmespace]->simspace= (w8 *)malloc(size); 

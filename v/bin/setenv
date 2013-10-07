@@ -5,7 +5,7 @@
 HN=`hostname -s`
 XY='-Y'
 ULT=`pwd`
-if [ $HN = 'alidcscom026' -o $HN = 'alidcscom027' -o $HN = 'pcalicebhm05' ] ;then
+if [ $HN = 'alidcscom835' -o $HN = 'alidcscom027' ] ;then
   export CCRFS=/data/ClientCommonRootFs
   export CLRFS=/data/ClientLocalRootFs
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
@@ -13,9 +13,14 @@ if [ $HN = 'alidcscom026' -o $HN = 'alidcscom027' -o $HN = 'pcalicebhm05' ] ;the
   export tr26='trigger@alidcscom026.cern.ch'
   export tr188='trigger@alidcscom188.cern.ch'
   export tr521='trigger@alidcscom521.cern.ch'
-elif [ $HN = 'pcalicebhm10' ] ;then
-  export CCRFS=/home/dl/root
-  export CLRFS=/home/dl/snapshot
+elif [ $HN = 'pcalicebhm10' -o $HN = 'avmes' ] ;then
+  if [ $HN = 'pcalicebhm10' ] ;then
+    export CCRFS=/home/dl/root
+    export CLRFS=/home/dl/snapshot
+  else
+    export CCRFS=/home/dl6/local
+    export CLRFS=/home/dl6/snapshot
+  fi
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
   #export ULT=$CCRFS/usr/local/trigger
   export tr1='trigger@altri1.cern.ch'
@@ -81,5 +86,5 @@ fi
 alias vt100='export TERM=vt100'
 shopt -s expand_aliases
 # set common trigger software environment (/etc/bashrc on vme ~/.bashrc on com)
-# . $CCRFS/usr/local/trigger/bin/vmebse.bash
+# . $CCRFS/trigger/bin/vmebse.bash
 

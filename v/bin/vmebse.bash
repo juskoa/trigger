@@ -25,14 +25,14 @@ if [ -n "$1" ] ;then
   fi
 fi
 # let's abandon ult,rdir (not use below!) . vdir: stable/v or dvlp/v (in lab)
-if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' ] ;then
-  ult=/data/ClientCommonRootFs/usr/local/trigger
+if [ "$hname" = 'alidcscom026' -o "$hname" = 'avmes' ] ;then
+  ult=/home/dl6/local/trigger
 elif [ "$hname" = 'pcalicebhm10' ] ;then
   ult=/home/dl/root/usr/local/trigger
 elif [ "$hname" = 'alidcscom188' ] ;then
   ult=/data/dl/root/usr/local/trigger
-elif [ "$hname" = 'alidcscom188' ] ;then
-  ult=/data/dl/root/usr/local/trigger
+elif [ "$hname" = 'alidcscom835' ] ;then
+  ult=/home/dl6/local/trigger
 #elif [ "$hname" = 'altri1' ] ;then
 #  ult=/mnt/trigger
 else
@@ -65,8 +65,13 @@ if [ "$ix" = '6' ] ;then   #pit
   #export ACT_DB=daq:daq@aldaqdb/ACT
   export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT
 else
+  # lab environment:
+  if [ `uname -r` == "2.6.18-194.26.1.el5" ] ;then
+    export SMAQ_C=pcalicebhm10
+  else
+    export SMAQ_C=avmes
+  fi
   export VMESITE=SERVER
-  export SMAQ_C=pcalicebhm10
   export VMEGCC=g++
   export DIM_DNS_NODE=pcald30
   #export DIM_DNS_NODE=128.141.139.225   #slc6 dbg (Fraco's setup)

@@ -21,6 +21,13 @@ SERVER_PREF := /home/dl/root
 SERVER_BASEDIR := vd
 odl64 := /opt/dip/lib64
 endif
+ifeq ($(HOSTNAME), avmes)
+SERVER_LINK := yes
+CLIENT_HOST := altri1
+SERVER_PREF := /home/dl6
+SERVER_BASEDIR := 
+odl64 := /opt/dip/lib64
+endif
 
 EXEDIR= ../linux
 ifeq ($(HOSTNAME), alidcscom707)

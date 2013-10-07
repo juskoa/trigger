@@ -29,12 +29,12 @@ fi
 #  vdv='v'
 #fi
 vdv='stable'
-if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
+if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' -o \
  "$hname" = 'pcalicebhm10' -o "$hname" = 'alidcscom188' ] ;then
-  if [ "$hname" = 'alidcscom188' ] ;then
-    CCRFS=/data/dl/root
-    CLRFS=/data/dl/snapshot
-  fi
+  #if [ "$hname" = 'alidcscom188' ] ;then
+    #CCRFS=/data/dl/root  or /data/dl6/rootfs
+    #CLRFS=/data/dl/snapshot  or /home/dl6/snapshot (see setenv)
+  #fi
   cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
   #echo "Server: $hname"
   if [ "$vdir" = 'ctp' ] ;then
