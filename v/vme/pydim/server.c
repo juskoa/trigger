@@ -274,7 +274,7 @@ if(rc==0) {
 }
 /*--------------------*/ void DOcom2daq(void *tag, void *msg, int *size)  {
 // msg: runN "title" "comment" 
-int ixl, runN;
+int ixl, runN; char errmsg[200]="";
 char *line;
 #define MAXDAQCOMMENT 500
 char value[MAXDAQCOMMENT];
@@ -296,8 +296,17 @@ if(t1==tINTNUM) {
       rcdl= daqlogbook_add_comment(0,title,value);
       printf("INFO DAQlogbook comment: %d %s %s rc:%d\n",
         runN, title, value,rcdl);
+    } else {
+      strcpy(errmsg,"Bad message (\"string\" expected)");
     };
+  } else {
+    strcpy(errmsg,"Bad title (\"string\" expected)");
   };
+} else {
+  strcpy(errmsg,"Bad run number (int expected)");
+};
+if(errmsg[0]!='\0') {
+  printf("ERROR DOcom2daq:%s:%s\n",errmsg, line);
 };
 }
 /*--------------------*/ void DOcmd(void *tag, void *msg, int *size)  {

@@ -738,7 +738,9 @@ return: tktype,tkvalue
         #print "tk:",tk
         if tk[0] == SYMNAME:
           t1= tk[1]             # type ?
-          if t1=='void' or t1=='int' or t1=='w8' or t1=='w16' or\
+          if t1=='const':
+            continue
+          elif t1=='void' or t1=='int' or t1=='w8' or t1=='w16' or\
              t1=='w32' or t1=='char' or t1=='float':
             lastType= t1
             tk= self.getToken()

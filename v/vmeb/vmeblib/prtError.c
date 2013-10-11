@@ -9,7 +9,7 @@ char dt[20];
 getdatetime(dt);
 printf("%s: ***  Warning:%s\n",dt,msg); fflush(stdout);
 }
-/*------------------------------------------------------prtError(char *msg)
+/*------------------------------------------------------prtError(const char *msg)
 Print error.
 */
 void prtError(char *msg) {

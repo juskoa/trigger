@@ -51,6 +51,8 @@ Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h $(CTPinc)/Tpartition.h
 #	$(CC) $(CFLAGS) -c -o $@ $<
 mysqlwrap.o: mysqlwrap.c
 	$(CC) $(MYSQLCFLAGS) -c -g -o $@ $<
+ttcmisubs.o: ttcmisubs.c
+	$(CC) $(CFLAGS) -I/opt/dim/dim -c -g -o $@ $<
 clean:
 	-rm *.o
 

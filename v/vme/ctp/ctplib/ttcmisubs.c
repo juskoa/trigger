@@ -15,7 +15,12 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 #include "infolog.h"
 #include "vmewrap.h"
 #include "vmeblib.h"
-#include "daqlogbook.h"
+//#include "daqlogbook.h"
+#ifdef CPLUSPLUS
+#include <dic.hxx>
+#else
+#include <dic.h>
+#endif
 #include "ctplib.h"
 #include "../../ttcmi/ttcmi.h"
 
@@ -29,6 +34,17 @@ char corde_A32[]="A32";
 
 w32 halfnsvme=0x140+29, cordevalvme=512;
 int havemicrate=1;
+
+void com2daq(int run, char *title, char *msg) {
+int rc; char cmd[530];
+if( (strlen(title)+strlen(msg)) > 500) {
+  printf("Error: com2daq: too long msg: %d %s %s\n", run,title,msg);
+} else {
+  sprintf(cmd, "%d \"%s\" \"%s\"", run, title, msg);
+  rc= dic_cmnd_service((char *)"CTPRCFG/COM2DAQ", cmd, strlen(cmd)+1);
+  printf("com2daq: rc:%d title:%s\n", rc, title);
+};
+}
 
 w32 corde_get(int del) {  // 1..7. VME is opened/closed with each call!
 int rc,vsp=-1; w32 adr, val;
@@ -158,15 +174,16 @@ fineshift is "": course shift (when the LOCAL/BEAM1 change)
 fineshift is "fine": fine shift (only Corde board, after FLAT TOP -
                      halfns and dbhalfns not valid.
 */
-int shiftCommentInDAQ(int halfns, int cordeval, 
+void shiftCommentInDAQ(int halfns, int cordeval, 
   int dbhalfns, int dbcordeval, char *fineshift) {
-int ps,dbps,rcdl; char daqlog[200];
+int ps,dbps; char daqlog[200];
   ps= halfns*500 + cordeval*10;
   dbps= dbhalfns*500 + dbcordeval*10;
   sprintf(daqlog,"changed from %d %d(%dps) to %d %d(%dps). %s", 
     halfns,cordeval,ps, dbhalfns,dbcordeval,dbps, fineshift);
-  rcdl= daqlogbook_add_comment(0,"Clock shift",daqlog);
-return(rcdl);
+  //rcdl= daqlogbook_add_comment(0,"Clock shift",daqlog);
+  com2daq(0,(char *) "Clock shift",daqlog);
+return;
 }
 
 /*------------------------------------------------------------readclockshift()
@@ -186,9 +203,7 @@ if(cf != NULL) {
 };
 return(sp);
 }
-void setCordeshift(int rcdl) {
-/* rcdl: 0: daq logbook opened
-*/
+void setCordeshift() {
 #define MAXdbhns 40
 w32 pol, halfns, dbhalfns, cordeval, dbcordeval, dblast_applied; 
 char dbhns[MAXdbhns]; int ldbhns;
@@ -211,9 +226,7 @@ char dbhns[MAXdbhns]; int ldbhns;
         i2cset_delay( BC_DELAY25_BCMAIN, dbhalfns);
         i2cset_delay( BC_DELAY25_BC1, dbhalfns);  //keep the same for BPIM
         corde_set(CORDE_DELREG, dbcordeval);
-        if(rcdl==0) {
-          rcdl= shiftCommentInDAQ(halfns, cordeval, dbhalfns, dbcordeval,"");
-        };
+        shiftCommentInDAQ(halfns, cordeval, dbhalfns, dbcordeval,"");
       };
     };
   } else {
@@ -224,19 +237,19 @@ char dbhns[MAXdbhns]; int ldbhns;
 }
 
 void setbcorbitMain(int maino) {
-w32 bcmain,orbmain; int rcdl;
+w32 bcmain,orbmain;
 char msg[300]; char daqlog[90];
 infolog_SetFacility((char *)"CTP");   // shoul be set in ttcmi.c main...
 infolog_SetStream("",0);
 //rcdl= DAQlogbook_open("trigger:trigger123@10.161.36.8/LOGBOOK");
-rcdl=daqlogbook_open();   //rcdl must be 0 if opened
+// rcdl=daqlogbook_open();   //rcdl must be 0 if opened
 //rcdl=2; printf("setbcorbitMain: DAQlogbook not used...\n");
 //if(rcdl!=-1) { rcdl=0; };
 bcmain= vmer32(BCmain_MAN_SELECT); orbmain= vmer32(ORBmain_MAN_SELECT);
 if((maino==1) || (maino==2) || (maino==3)) {   // when LHC clock 
 //if(1) {   // shift ALWAYS before clock change
 /* should be thrown out and executed only when crate is powered up: */
-setCordeshift(rcdl);
+setCordeshift();
 };
 if(maino==1) {
   vmew32(BCmain_MAN_SELECT, 3);  /* 3: BC1 input */
@@ -266,10 +279,11 @@ sprintf(msg, "%s + DLL resync", msg);
 DLL_RESYNC(0);        //vmew32(BC_DELAY25_GCR, 0x40);
 infolog_trg(LOG_INFO, msg);
 //rcdl= daqlogbook_open();
-if(rcdl==0) {
-  rcdl= daqlogbook_add_comment(0,"CLOCK",daqlog);
-  daqlogbook_close(); 
-};
+//if(rcdl==0) {
+//  rcdl= daqlogbook_add_comment(0,"CLOCK",daqlog);
+//  daqlogbook_close(); 
+//};
+com2daq(0,"CLOCK",daqlog);
 }
 w32 readstatus() {
 w16 rc; w32 s1,s2,s3,s4,s5;
@@ -290,12 +304,13 @@ vmew32(BC_DELAY25_GCR, 0x40);
 if(msg==DLL_stdout) {
 printf("0x40 -> BC_DELAY25_GCR done\n");
 } else if(msg==DLL_daq) {
-  int rcdl;
-  rcdl=daqlogbook_open();   //rcdl must be 0 if opened
-  if(rcdl==0) {
-    rcdl= daqlogbook_add_comment(0,"CLOCK","DLL_RESYNC");
-    daqlogbook_close(); 
-  };
+  com2daq(0,"CLOCK","DLL_RESYNC");
+  //int rcdl;
+  //rcdl=daqlogbook_open();   //rcdl must be 0 if opened
+  //if(rcdl==0) {
+  //  rcdl= daqlogbook_add_comment(0,"CLOCK","DLL_RESYNC");
+  //  daqlogbook_close(); 
+  //};
 } else if(msg==DLL_info) {
   //infolog_SetFacility((char *)"CTP"); set in ttcmidims.c
   //infolog_SetStream("",0);

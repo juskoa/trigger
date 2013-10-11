@@ -35,7 +35,7 @@ void i2cset_delay(w32 delayadd, int halfns);
 void micrate(int present);
 int micratepresent();
 
-int shiftCommentInDAQ(int halfns, int cordeval, 
+void shiftCommentInDAQ(int halfns, int cordeval, 
   int dbhalfns, int dbcordeval, char *fineshift);
 
 /* FGROUP

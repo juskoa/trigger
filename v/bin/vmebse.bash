@@ -63,7 +63,9 @@ if [ "$ix" = '6' ] ;then   #pit
   export VMEGCC=g++ #export VMEGCC=gcc
   export DIM_DNS_NODE=aldaqecs
   #export ACT_DB=daq:daq@aldaqdb/ACT
-  export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT
+  if [ -d /opt/act ] ;then   # only on server needed
+    export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT
+  fi
 else
   # lab environment:
   if [ `uname -r` == "2.6.18-194.26.1.el5" ] ;then
@@ -75,7 +77,9 @@ else
   export VMEGCC=g++
   export DIM_DNS_NODE=pcald30
   #export DIM_DNS_NODE=128.141.139.225   #slc6 dbg (Fraco's setup)
-  export ACT_DB=daq:daq@pcald30/ACT
+  if [ -d /opt/act ] ;then
+    export ACT_DB=daq:daq@pcald30/ACT
+  fi
 fi
 export VMEBDIR=$vdir/vmeb
 export VMECFDIR=$vdir/vme

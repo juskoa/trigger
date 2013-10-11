@@ -55,7 +55,8 @@ OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
 #
 
 HOSTNAME=`hostname`
-if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' ] ;then
+if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' \
+  -o  $HOSTNAME = 'avmes' ] ;then
   SERVER=$HOSTNAME
 else
   unset SERVER
