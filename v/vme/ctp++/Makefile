@@ -23,7 +23,7 @@ LIBS          = $(ROOTLIBS) -lg++ -lm -ldl -rdynamic
 #GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -L/usr/X11R6/lib \
                 -lXpm -lX11 -lm -ldl -rdynamic
 GLIBS         = -L/usr/X11R6/lib -lXpm -lX11 -lm -ldl -rdynamic
-VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/usr/local/tdaq/tdaq-01-05-00/installed/include
+VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/home/dl/root/usr/local/include
 
 .SUFFIXES: .$(cc)
 
