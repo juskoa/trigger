@@ -2,6 +2,7 @@
 #include "ctpcounters.h"
 #include "ActiveRun.h"
 #include <iostream>
+#include "stdlib.h"
 #include "vmeblib.h"
 #include <sstream>
 #include <sys/stat.h> 

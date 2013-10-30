@@ -1,0 +1,6 @@
+1.) to run trigger you need to disable busy on busy board:
+BUSY_DISB_CTP_BUSY. There is similar word on INT board, which disable busy from int to busy on backplane
+2.) synchronizacia cez orbit nema pri ingen zmysel ?
+3.) ssmaddress : overflow flag problem:
+    reading ssm clears flag and so when I try read deom ctp it reads only few words.
+    In other words you can not read ssm two times subsequently. 

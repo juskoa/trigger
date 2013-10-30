@@ -21,6 +21,7 @@ class CTP
 	 BOARD *fo[NUMOFFO];
          BOARD *ltu[NUMOFFO*NUMOFCON];
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
+	 int readCFG(string const &name);
 	 list<BOARD*> boards;
  private:
 	 int numofltus;  //Number of ltus in crate, up to 4

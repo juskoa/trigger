@@ -42,7 +42,7 @@ ifeq (BNAME,ADCI)
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
 ifeq (BNAME,ttcmi)
-  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp -L$(DIMDIR)/linux -ldim
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
 ifeq (BNAME,ctpt)

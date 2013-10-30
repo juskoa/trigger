@@ -93,3 +93,13 @@ trigger/devel/archived moved up 1 level and emoved from git, i.e. is now in
 trigger/
 git commit -a  and push , new clone created on avmes /home/dl6/local/trigger
 
+29.10.2013
+plan:
+/home/dl6/local/trigger -development version (git r/w) for altri1/2 avmes
+/home/dl6/local/trigger_run1 -to be used for other diskless on CERN network.
+                       - can be used also for the pit (if needed)
+avmes: slc6 with altri1/2 -seems works from today -let's use it
+                       for some days before:
+update pcalicebhm10 to slc6 and move diskless server from avmes on it
+
+

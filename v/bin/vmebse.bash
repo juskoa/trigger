@@ -47,14 +47,24 @@ fi
 #  rdir=$ult/$vdir
 #fi
 # pit or lab:
+export DIMDIR=/opt/dim
+export SMIDIR=/opt/smi
 if [ -e /dev/vme_rcc ] ;then
  export VMEDRIVER=VMERCC     # VMERCC, SIMVME
  if [[ -z $VMELIBS ]] ;then
   export VMELIBS=/lib/modules/daq
   export VMEINCS=/usr/local/include
+  DIPLIB=/opt/dip/lib
+  if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VMELIBS:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
+  fi
  fi
 else
  export VMEDRIVER=SIMVME
+ DIPLIB=/opt/dip/lib64
+ if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
+ fi
 fi
 ix=`expr match "$hname" 'alidcs'`
 if [ "$ix" = '6' ] ;then   #pit
@@ -85,8 +95,6 @@ export VMEBDIR=$vdir/vmeb
 export VMECFDIR=$vdir/vme
 export VMEWORKDIR=~/v/vme
 export dbctp=$VMECFDIR/CFG/ctp/DB
-export DIMDIR=/opt/dim
-export SMIDIR=/opt/smi
 if [ -z "$DATE_DAQLOGBOOK_DIR" -a -d /opt/libDAQlogbook ] ;then
   export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
 fi
@@ -94,9 +102,6 @@ if [[ $PATH != *$vdir/bin* ]] ;then
   export PATH="$PATH:$vdir/bin"
 fi
 export PYTHONPATH=$VMEBDIR
-if [[ $LD_LIBRARY_PATH != *:$VMELIBS:* ]] ;then
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VMELIBS:$DIMDIR/linux:$SMIDIR/linux:/opt/dip/lib
-fi
 if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then
 . /opt/infoLogger/infoLoggerStandalone.sh
 export DATE_INFOLOGGER_DIR=/opt/infoLogger

@@ -120,13 +120,13 @@ Tvmespace vxsp[MAXVMESPACES]=
 #ifdef VMERCC 
 /*-------------------------------*/int VME_MasterMapVirtualDummyLongAddress(int lochandle, u_long *locvmeptr){
 int ret;
-#ifdef HOST64 /*this is to be called for the new driver*/
+/*#ifdef HOST64 this is to be called for the new driver*/
 ret = VME_MasterMapVirtualLongAddress((int)lochandle, locvmeptr);
-#else /*this is to be called for the old driver */
+/* #else this is to be called for the old driver 
 unsigned int ptr;
 ret = VME_MasterMapVirtualAddress((int)lochandle, &ptr);
 *locvmeptr = ptr;
-#endif
+#endif */
 return ret;
 };
 #endif

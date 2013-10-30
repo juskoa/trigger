@@ -16,7 +16,9 @@ BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
      d_vsp=vsp;
      vmeopenflag=0;
    }else{
-     d_vsp=OpenVME("0x810000","0xffff");
+     char base[]="0x810000";
+     char length[]="0xffff";
+     d_vsp=OpenVME(base,length);
      vmeopenflag=1;
    }
  }else{
@@ -25,7 +27,9 @@ BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
      d_vsp=vsp;
      vmeopenflag=0;
    }else{
-     d_vsp=OpenVME("0x820000","0xd000");
+     char base[]="0x820000";
+     char length[]="0xd000";
+     d_vsp=OpenVME(base,length);
      vmeopenflag=1;
    }
  }

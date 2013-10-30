@@ -10,4 +10,6 @@ recompiled without CRC option, same fpga code
 Wed Aug 27 2008
 l2_logic_a6.rbf
 phase measurement included
-
+29.10.2013
+l2_logic_verA7.rbf
+100 classes (counters not yet functional)

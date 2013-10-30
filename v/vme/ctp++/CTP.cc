@@ -161,7 +161,7 @@ void CTP::readBICfile()
 void CTP::readDBVALIDLTUS()
 {
  ifstream file;
- string const DBfile = "CFG/ctp/DB/VALID.LTUS";
+ string const DBfile = "../CFG/ctp/DB/VALID.LTUS";
  file.open(DBfile.c_str());
   if(! file){
   cout << "File "<< DBfile  << " cannot be opened, exiting." << endl;
@@ -212,6 +212,12 @@ void CTP::getdetector(string const &line){
  fo2det[fo-1][focon-1] = det;
  det->print();
  return ;
+}
+//---------------------------------------------------------------------------
+// Reads ctp cfg file
+int CTP::readCFG(string const &name){
+ // this should be available in ctplib ?
+return 0;
 }
 
 

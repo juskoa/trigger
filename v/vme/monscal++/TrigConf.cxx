@@ -1,6 +1,7 @@
 #include "TrigConf.h"
 #include <iostream>
 #include <stdlib.h>
+#include <string.h>
 #include "ctpcounters.h"
 
 #define NWIDE 133

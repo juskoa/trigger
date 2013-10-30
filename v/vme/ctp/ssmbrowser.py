@@ -12,10 +12,10 @@ import myw
 def DoSaveLoadWidgets(initialfile,filetypes):
   fts= filetypes + [("all files","*")]
   OpenLoad=tkFileDialog.Open(
-    initialdir= os.environ['VMECFDIR'] +"/WORK/",
+    initialdir= os.environ['VMEWORKDIR'] +"/WORK/",
     initialfile=initialfile, filetypes=fts)
   OpenSave=tkFileDialog.SaveAs(
-    initialdir= os.environ['VMECFDIR'] +"/WORK/",
+    initialdir= os.environ['VMEWORKDIR'] +"/WORK/",
     initialfile=initialfile, filetypes=fts)
   return (OpenSave, OpenLoad)
 
@@ -329,7 +329,7 @@ class SSMbrowser:
     #import pdb ; pdb.set_trace()
     self.vb=vb
     self.sigfdir= os.environ['VMECFDIR'] +"/CFG/ctp/ssmsigs/"
-    workfdir= os.environ['VMECFDIR'] +"/WORK/"
+    workfdir= os.environ['VMEWORKDIR'] +"/WORK/"
     self.tl= myw.NewToplevel("SSM browser")
     self.basebc=0
     self.savedsigs=[]   # list of saved signals

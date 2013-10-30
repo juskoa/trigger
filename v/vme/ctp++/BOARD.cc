@@ -81,7 +81,9 @@ int BOARD::AddSSMmode(string const modename,int const imode)
 //-----------------------------------------------------------------------------
 void BOARD::SetFile(string const &modename) 
 {
- string name="CFG/ctp/ssmsigs/"+d_name+"_"+modename+".sig";
+ // this should be done via $VME???
+ //string name="CFG/ctp/ssmsigs/"+d_name+"_"+modename+".sig";
+ string name="../CFG/ctp/ssmsigs/"+d_name+"_"+modename+".sig";
  //cout << "Mode file:"<< name << endl;
  modefile.open(name.c_str());
  if(!modefile.is_open()){
@@ -125,12 +127,20 @@ int BOARD::ReadSSM() const
  //cout << "status= " << hex << status << endl;
  w32 enable=(status&0xc0)<<2;
  w32 mod=SSMomvmer | (status&0x38) | enable;
+ w32 ssma=vmer(SSMaddress);
  int rc=setomvspSSM(mod);
  if(rc) return rc;
- vmew(SSMaddress,Mega-1);  
+ w32 nwords=Mega;
+ if((ssma & 0x100000)==0){ //overflow bit is 0
+    
+   //vmew(SSMaddress,Mega-1);  
+   vmew(SSMaddress,(w32)-1);
+   nwords=ssma;
+   printf("Warning: readins SSM without overflow flag: %i read",nwords);
+ }  
  w32 d= vmer(SSMdata);
  d= vmer(SSMdata);
- for(int i=0; i<Mega; i++) {
+ for(w32 i=0; i<nwords; i++) {
    ssm[i]= vmer(SSMdata);
  };
  return 0;

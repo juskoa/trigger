@@ -32,6 +32,8 @@ ACTIVE_INJECTION_SCHEME "Single_13b_8_8_8"
 #include "Dip.h"
 #include "DipSubscription.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <iostream>
 #include <fstream>   // ofstrem

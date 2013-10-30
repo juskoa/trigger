@@ -2,6 +2,7 @@
 #define _BOARDBASIC_h_
 #include "vmewrap.h"
 #include "libctp++.h"
+#include <cstdlib>
 class BOARDBASIC 
 {
  public: 

@@ -5,8 +5,8 @@ MYSQLLIBS=`/usr/bin/mysql_config --libs`
 EXTRALIBS = -L$(VMEBDIR)/vmeblib/linux_s -lvmeb -L$(DIMDIR)/linux -ldim -L$(DAQDIR) -lDAQlogbook $(MYSQLLIBS) 
 CC=g++
 SFX=cxx
-#CFLAGS = -Wall -g3 -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib -I$(VMECFDIR)/ctp -I$(DAQDIR)
-CFLAGS = -Wall -g3 -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib  -I$(VMECFDIR)/ctp 
+CFLAGS = -Wall -g3 -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib -I$(VMECFDIR)/ctp -I$(DAQDIR)
+#CFLAGS = -Wall -g3 -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib  -I$(VMECFDIR)/ctp 
 LDFLAGS = -lpthread
 CFLAGS +=-DCPLUSPLUS
 

@@ -56,7 +56,7 @@ A severity code: 0 - info, 1 - warning, 2 - error, 3 - fatal.
 */
 void error_handler(int severity, int error_code, char *message) {
 char msg1[100];
-char *sev[5]={"info", "warning", "error", "fatal", "???"};
+const char *sev[5]={"info", "warning", "error", "fatal", "???"};
 if((severity<0) || (severity>3)) {
   severity=4;
 };
@@ -300,14 +300,11 @@ if(cosh>1023) {
   pol= i2cread_delay(BC_DELAY25_BCMAIN); halfns= pol-0x140;
   // update $dbctp/clockshift
   sprintf(line, "%d %d %d", halfns, cosh, origshift);
-  writedbfile("/home/alice/trigger/v/vme/CFG/clockshift", line);
-  //
-  rcdl=daqlogbook_open();   //rcdl must be 0 if opened
-  rcdl= shiftCommentInDAQ((int)halfns, origshift, (int)halfns, (int)cosh,"fine");
-  sprintf(errmsg,"DAQlogbook updated (rc:%d).Corde: %d -> %d\n", rcdl,origshift, cosh);prtLog(errmsg); 
-  daqlogbook_close(); 
-
-  //rc= daqlogbook_add_comment(0,"Clock shift",daqlog);
+  writedbfile((char *)"/home/alice/trigger/v/vme/CFG/clockshift", line);
+  shiftCommentInDAQ((int)halfns, origshift, 
+    (int)halfns, (int)cosh,"fine");
+  sprintf(errmsg,"DAQlogbook updated (rc:void).Corde: %d -> %d\n",
+    origshift, cosh);prtLog(errmsg); 
 };
 }
 /*-----------------*/ void DLL_RESYNCcmd(void *tag, void *msgv, int *size)  {

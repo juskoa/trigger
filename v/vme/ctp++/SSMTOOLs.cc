@@ -47,11 +47,11 @@ void SSMTOOLs::writeNumber(int i0,int length,w32 mask, w32 Number){
  //printf("Number %x at %i \n written \n", Number, i0);
 }
 //-----------------------------------------------------------------WriteSPP()
-/*Write bit pattern Pattern to channel n from Start. 
+/*Write bit pattern Pattern to channel n counting from 0  from Start. 
 //Pattern is string of (0-9),(a-f) which is interpreted as hexadecimal number.
 //Least significant bits on the left.
 */
-int SSMTOOLs::writeSPP(int Start,int Channel,char *Pattern){
+int SSMTOOLs::writeSPP(int Start,int Skip,int Channel,char *Pattern){
  int i,j,i0,length;
  w32 bit,mask0,mask1;
  int pat;
@@ -59,7 +59,8 @@ int SSMTOOLs::writeSPP(int Start,int Channel,char *Pattern){
  else return 3;
  //printf("Pattern=%x %s \n",Pattern,Pattern);
  printf("writeSPP: strlen= %i \n",length);
- if(!length) return 1;     
+ if(!length) return 1; 
+ Skip=Skip-3; // To make distance compatible with BC1 settings    
  mask1=1<<Channel;
  mask0= ~(0xffffffff & mask1);
  i=Start;
@@ -75,6 +76,7 @@ int SSMTOOLs::writeSPP(int Start,int Channel,char *Pattern){
      i++;
    }
    j= (j+1) % length;
+   i=i+Skip*(!j);
  }
  return 0;
 }
@@ -250,13 +252,22 @@ int SSMTOOLs::genSeq(int Period,int Start){
 return 0;
 }
 //----------------------------------------------------------------------------
+int SSMTOOLs::write0(){
+ for(int i=0;i<Mega;i++)ssm[i]=0;
+ return 0;
+}
+//----------------------------------------------------------------------------
 int SSMTOOLs::findOffset() const
 {
- int i=0,j=0;
- while(i<Mega && j<10){
- j=j+(ssm[i] != 0);
- i++;
- }
+ // stary kod - 10 je asi ze obcas sa na zaciatku ssm objavia artefakty
+ //int i=0,j=0;
+ //while(i<Mega && j<10){
+ //j=j+(ssm[i] != 0);
+ //i++;
+ //}
+ // novy kod
+ int i=0;
+ while(i<Mega && !(ssm[i]&0x1))i++;
  return i;
 }
 //----------------------------------------------------------------------------

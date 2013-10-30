@@ -10,3 +10,7 @@ recompiled without CRC option, same fpga code
 Wed Aug 27 2008
 l1_logic_a4.rbf
 phase measurement option included
+29.10.2013
+l1_logic_verA5.rbf
+- 100 classes instead of 50 (counters not availbale yet)
+- massive change in VME addresses

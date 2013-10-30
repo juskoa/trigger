@@ -1,4 +1,5 @@
 #include "libctp++.h"
+#include <algorithm>
 //------------------------------------------------------------------------------
 // Converts string hex number to int
 w32 convertS2H(w32 &number,string const ss){
@@ -65,7 +66,7 @@ char int2char(int i){
   case 7: c='7';break;
   case 8: c='8';break;
   case 9: c='9';break;
-  default: cout << "integer" << i << " not in table" << endl;
+  default: cout << "integer " << i << " not in table" << endl;
  }
  return c;
 }
@@ -84,7 +85,7 @@ string int2str(int i){
   case 7: c='7';break;
   case 8: c='8';break;
   case 9: c='9';break;
-  default: cout << "integer" << i << " not in table" << endl;
+  default: cout << "integer " << i << " not in table" << endl;
  }
  return c;
 }
@@ -102,7 +103,13 @@ int char2int(char c){
   case '7': i=7;break;
   case '8': i=8;break;
   case '9': i=9;break;
-  default: cout << "character" << c << " not in table" << endl;
+  case 'a': i=10;break;
+  case 'b': i=11;break;
+  case 'c': i=12;break;
+  case 'd': i=13;break;
+  case 'e': i=14;break;
+  case 'f': i=15;break;
+  default: cout << "character " << c << " not in table" << endl;
  }
  return i;
 }

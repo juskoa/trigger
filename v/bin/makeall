@@ -69,11 +69,12 @@ fi
 if [ "$#" -eq 0 ] ;then
 cat - <<-EOF
 Usage:
+Repeat 3 steps on avmes first, than on altri1 (alidcsvme008):
 makeall allctp [clean] -comp/link vmeb, vmeb/vmeblib, ctplib,ctp,ctp_proxy,smaq
                         toobusy
 makeall allltu [clean] -   ltulib,ltu,SSMANA,VME2FPGA,ltu_proxy, ltudim
 makeall others [clean] 
-makeall others 2>&1 >/tmp/others.makelog
+script -c 'makeall others clean' ~/others.makelog
                        -compile this:
 $OTHERSmake
 $OTHERScmp
@@ -88,7 +89,9 @@ else
   CLEAN=""
 fi
 if [ "$1" = "allctp" ] ;then
-cd $VMEBDIR ; make clean ; make
+echo "=======================### make package vmeb clean ====================================="
+cd $VMEBDIR ; make -f makefile_vmeb clean ; make -f makefile_vmeb
+echo "=======================### make package vmeblib clean ====================================="
 cd $VMEBDIR/vmeblib ; make clean ; make
 cleanmake s ctp/ctplib $CLEAN
 #complink ctp/ctplib $CLEAN
