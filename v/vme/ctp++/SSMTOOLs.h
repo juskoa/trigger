@@ -18,6 +18,7 @@ public:
          int genSeq(int Period,int Start);
 	 int write0();
 	 int writeSPP(int Start,int Skip,int Channel,char *Pattern);
+	 int writeSPPOld(int Start,int Skip,int Channel,char *Pattern);
          int findOffset() const;
 	 int find0();
          int CompSSM(w32 *ssm2);

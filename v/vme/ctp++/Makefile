@@ -28,7 +28,7 @@ VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/home/dl/root/usr/local/inclu
 .SUFFIXES: .$(cc)
 
 ##$(LD) $(LDFLAGS) $(HWORLDO) $(GLIBS) $(OutPutOpt) $(HWORLD)
-OBJFILES = vmewrap.o BOARDBASIC.o BOARD.o SSMTOOLs.o DETECTOR.o CTP.o CONNECT.o 
+OBJFILES = vmewrap.o BOARDBASIC.o BOARD.o SSMTOOLs.o DETECTOR.o CTP.o CONNECT.o L0BOARD.o L1BOARD.o L2BOARD.o
 
 $(FILE).e: $(FILE).o $(OBJFILES)
 	g++ $(FILE).o $(OBJFILES) $(LDFLAGS) $(GLIBS) lib/libctp++.a -o $(FILE).e
@@ -44,6 +44,9 @@ checkbckplane.o: checkbckplane.cc
 BOARDBASIC.o: BOARDBASIC.cc BOARDBASIC.h
 DETECTOR.o: DETECTOR.cc DETECTOR.h
 BOARD.o:    BOARD.cc BOARD.h
+L0BOARD.o:    L0BOARD.cc L0BOARD.h
+L1BOARD.o:    L1BOARD.cc L1BOARD.h
+L2BOARD.o:    L2BOARD.cc L2BOARD.h
 DETECTOR.o:	DETECTOR.cc DETECTOR.h
 SSMTOOLs.o:      SSMTOOLs.cc SSMTOOLs.h
 CTP.o:	    CTP.cc CTP.h	
@@ -53,3 +56,6 @@ vmewrap.o: $(VMEBDIR)/vmeblib/vmewrap.c
 
 .$(SrcSuf).$(ObjSuf):
 	$(CXX) $(CXXFLAGS) -c $<
+
+clean:
+	rm *.o

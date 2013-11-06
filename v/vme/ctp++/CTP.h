@@ -2,6 +2,9 @@
 #define _CTP_h
 #include <list>
 #include "BOARD.h"
+#include "L0BOARD.h"
+#include "L1BOARD.h"
+#include "L2BOARD.h"
 #include "DETECTOR.h"
 #include "libctp++.h"
 using namespace std;
@@ -14,9 +17,9 @@ class CTP
 	 CTP();
          ~CTP();
          BOARD *busy;
-         BOARD *l0;     //Here should be pointers instead objects
-	 BOARD *l1;     // otherwise compiler crashes probably due to the memory
-         BOARD *l2;
+         L0BOARD *l0;     //Here should be pointers instead objects
+	 L1BOARD *l1;     // otherwise compiler crashes probably due to the memory
+         L2BOARD *l2;
          BOARD *inter;
 	 BOARD *fo[NUMOFFO];
          BOARD *ltu[NUMOFFO*NUMOFCON];

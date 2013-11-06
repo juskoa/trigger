@@ -21,6 +21,7 @@ class BOARD: public BOARDBASIC
 	 int StartSSM() const;
          void StopSSM() const;
          SSMTOOLs ssmtools;
+	 enum {kNClasses=100};
  private:
 	 void SetFile(string const &modename);
          SSMmode *SSMModes;

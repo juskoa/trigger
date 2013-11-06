@@ -49,9 +49,43 @@ void SSMTOOLs::writeNumber(int i0,int length,w32 mask, w32 Number){
 //-----------------------------------------------------------------WriteSPP()
 /*Write bit pattern Pattern to channel n counting from 0  from Start. 
 //Pattern is string of (0-9),(a-f) which is interpreted as hexadecimal number.
-//Least significant bits on the left.
+// 0x1234 = ssm:0001001000110100
 */
 int SSMTOOLs::writeSPP(int Start,int Skip,int Channel,char *Pattern){
+ int i,j,i0,length;
+ w32 bit,mask0,mask1;
+ int pat;
+ if(Pattern)length=strlen(Pattern);
+ else return 3;
+ //printf("Pattern=%x %s \n",Pattern,Pattern);
+ printf("writeSPP: strlen= %i \n",length);
+ if(!length) return 1; 
+ Skip=Skip-3; // To make distance compatible with BC1 settings    
+ mask1=1<<Channel;
+ mask0= ~(0xffffffff & mask1);
+ i=Start;
+ j=0;         // char count
+ while(i<Mega){
+   pat = char2int(Pattern[j]);
+   if(pat<0) return 4;
+   i0=i+3;
+   while(((i0-i)>=0) && i<Mega){  
+     bit=(1<<(i0-i)) & pat;	   
+     if(bit)ssm[i]=ssm[i] | mask1;
+     else ssm[i]=ssm[i] & mask0;
+     i++;
+   }
+   j= (j+1) % length;
+   i=i+Skip*(!j);
+ }
+ return 0;
+}
+//-----------------------------------------------------------------WriteSPPOld()
+/*Write bit pattern Pattern to channel n counting from 0  from Start. 
+//Pattern is string of (0-9),(a-f) which is interpreted as hexadecimal number.
+// hexa from pattern appears in memory as mirror immage
+*/
+int SSMTOOLs::writeSPPOld(int Start,int Skip,int Channel,char *Pattern){
  int i,j,i0,length;
  w32 bit,mask0,mask1;
  int pat;

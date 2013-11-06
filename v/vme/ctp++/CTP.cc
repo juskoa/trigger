@@ -79,31 +79,18 @@ void CTP::getboard(string const &line)
     boards.push_back(busy);    
  }else if(!line.compare(0,2,"l0")){
     //cout << " l0 board found " << endl;
-    l0 = new BOARD("l0",0x829000,vspctp,4);
+    l0 = new L0BOARD(vspctp);
     vspctp=l0->getvsp();
-    l0->AddSSMmode("inmon",0); 
-    l0->AddSSMmode("outmon",1); 
-    l0->AddSSMmode("ingen",2); 
-    l0->AddSSMmode("outgen",3); 
     boards.push_back(l0);    
  }else if(!line.compare(0,2,"l1")){
     //cout << " l1 board found " << endl;
-    l1 = new BOARD("l1",0x82a000,vspctp,4);
+    l1 = new L1BOARD(vspctp);
     vspctp=l1->getvsp();
-    l1->AddSSMmode("inmon",0); 
-    l1->AddSSMmode("outmon",1); 
-    l1->AddSSMmode("ingen",2); 
-    l1->AddSSMmode("outgen",3); 
     boards.push_back(l1);    
  }else if(!line.compare(0,2,"l2")){
     //cout << " l2 board found " << endl;
-    l2 = new BOARD("l2",0x82b000,vspctp,5);
+    l2 = new L2BOARD(vspctp);
     vspctp=l2->getvsp();
-    l2->AddSSMmode("inmon",0); 
-    l2->AddSSMmode("outmon",1); 
-    l2->AddSSMmode("ingen",2); 
-    l2->AddSSMmode("outgen",3); 
-    l2->AddSSMmode("pf",4); 
     boards.push_back(l2);
  }else if(!line.compare(0,3,"int")){
     inter = new BOARD("int",0x82c000,vspctp,4);
