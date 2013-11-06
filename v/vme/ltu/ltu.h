@@ -69,7 +69,7 @@ LTU FPGA:80-bc   -reserved
 /*REGSTART32 */
 #define TEMP_START    0x58   /* LTU temperature: */
 #define TEMP_STATUS   0x5c   /* bit0: temp, 
-for new LTUs (serial>=64):      bit1: CRCerror 1:error 0:ok */
+for new LTUs (serial>=64, ver.>=0xb6):  bit1: CRCerror 1:error 0:ok */
 #define TEMP_READ     0x60 
 #define MASTER_MODE   0x64   /* b4=0 ->TTCvi, b4=1 ->test-mode (LTU snapshot)
 				b[3..0] dest. LTU dial address in test-mode */
@@ -146,8 +146,8 @@ LTUf3:
   bit2=0 -> L1out positive (for TTCex)
   bit2=1 -> L1out negative (for TTCvi)
 				*/
-#define STDALONE_MODE   0x534  /* bit0: GLOBAL:0 STDALONE:1 
-  for ltuver>=0xb6 also bit1: ext. orbit:1 int. orbit:0 */
+#define STDALONE_MODE   0x534  /* RW. bit0: GLOBAL:0 STDALONE:1 
+  for ltuver>=0xb6 also bit1: ext. orbit:1 written, int. orbit:0 written*/
 /* BUSY configuration: */
 #define BUSY_ENABLE     0x138  /* w 0x3 enables BUSY1,2 */
 #define BUSY_STATUS     0x13c

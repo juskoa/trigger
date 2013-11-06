@@ -112,8 +112,8 @@ CLA.xx 0xffffffff 0x0 0xfff1 0x0 0xCFiiiiii 0x0 0xCFIIIiii G
                                             l1inverted
                                                 l2def
 
-xx 
-logical class number (01-50). 
+xx xxx
+logical class number (01-50, resp 001-100 in run2). 
 
 l0inputs, l0inverted, l0vetos, l0scaler
 From ctp_classl0.doc, ctp_l0function.doc:

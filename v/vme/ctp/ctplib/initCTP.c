@@ -26,7 +26,7 @@ if((mask != 3) and (mask != 1)) {
 /*
 set L0_CONDITION L0_INVERT L0_VETO (scaler-not used here) 
     L1_DEFINITION L1_INVERT L2_DEFINITION 
-words for klas (1..50)
+words for klas (1..100)
 ATTENTION: 
 1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
    bit31 for >AC
@@ -78,7 +78,7 @@ void rates2hwInit() {
 int ix;
 vmew32(RATE_MODE,1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
-for(ix=0; ix<50; ix++) {
+for(ix=0; ix<NCLASS; ix++) {
   vmew32(RATE_DATA, ix<<25);
 };
 vmew32(RATE_MODE,0);   /* normal mode */
@@ -99,6 +99,11 @@ for(ixinp=0; ixinp<ninp; ixinp++) {
   setEdgeDelay(board,ixinp+1,edge,delay);
 };
 }
+void gettableSSM();
+void dbgssm(const char *msg) {
+printf("dbgssm:%s\n", msg);
+gettableSSM();
+}
 /* init CTP. Should be called only once. 
    ! Another instance of vmecrate ctp calls this routine too! 
    -> i.e. use: 'vmecrate nbi ctp' for expert (ctp) sw.
@@ -108,9 +113,10 @@ for(ixinp=0; ixinp<ninp; ixinp++) {
 void initCTP() {
 int ix,rc;
 resetPLLS();
-for(ix=1; ix<=50; ix++) {
+for(ix=1; ix<=NCLASS; ix++) {
   setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
 }; rates2hwInit();
+dbgssm("classes set");
 vmew32(L0_INTERACT1, 0); vmew32(L0_INTERACT2, 0); vmew32(L0_INTERACTT, 0);
 vmew32(L0_INTERACTSEL, 0);
 vmew32(L0_FUNCTION1, 0); vmew32(L0_FUNCTION2, 0);
@@ -118,6 +124,7 @@ if(l0AB()==0) {   //firmAC
 rc= setL0f34c(0, "0");
 };
 ix= loadcheckctpcfg();
+dbgssm("after loadcheckctpcfg");
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
   if(ctpboards[ix].code==FOcode) { 

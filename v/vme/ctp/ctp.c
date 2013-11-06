@@ -55,14 +55,14 @@ void initNames();
 void setseeds(long, int);
 double rnlx();
 
-Tklas Klas[50];
+Tklas Klas[NCLASS];
 Tfanout FOs[6];   /* place for 6 fanouts, see getFO(), setFO() */
 int ReadTemp(int ix);
 
 /* HIDDEN Common dbghw ConfiguratioH DbgScopeCalls DebCon L012 DbgSSMBROWSERcalls */
 /*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon L012 DebugSSMcalls DbgSSMBROWSERcalls */
 /*FGROUP TOP GUI CTP_Classes "Classes"
-The Classes definition, i.e. for each (1-50) class: 
+The Classes definition, i.e. for each (1-NCLASS) class: 
  -enabling/disabling
  -L0,L1,L2 inputs and selectable vetos
  -cluster
@@ -433,7 +433,8 @@ Tklas *getpClass(int klas) {
 /* read klas from HW to memory */
 int bb, klasix; w32 mskbit1,mskbit2;
 w32 l0invAC; int minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44; };
+//if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44; };
+l0invAC=L0_INVERTac; minAC=0;
 klasix= klas-1; bb= klas*4; 
 if(notInCrate(1)) {
   Klas[klasix].regs[0]= 0;
@@ -473,7 +474,7 @@ if(notInCrate(3)) {
 return &Klas[klasix];
 }
 /*FGROUP L0
-klas: 1-50   -class number
+klas: 1-NCLASS   -class number
 get L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
     L1_DEFINITION L1_INVERT L2_DEFINITION words for klas
 i.e. 7 hexa numbers.
@@ -492,7 +493,7 @@ for(ix=0; ix<MAXL0REGS; ix++) {
 /*FGROUP L0
 set L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
     L1_DEFINITION L1_INVERT L2_DEFINITION
-words for klas (1..50)
+words for klas (1..NCLASS)
 ATTENTION: 
 1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
    bit31 for firmAC
@@ -502,7 +503,7 @@ void setClass(int klas,w32 condition, w32 invert, w32 veto, w32 scaler,
               w32 l1def, w32 l1invert, w32 l2def) {
 int bb,klasix; w32 mskbit;
 w32 l0invAC; int minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44; };
+l0invAC=L0_INVERTac; minAC=0;
 bb= klas*4; klasix=klas-1;
 if(notInCrate(1)==0) {   // L0 board
   Klas[klasix].regs[0]= condition; vmew32(L0_CONDITION+bb, condition);
@@ -531,8 +532,8 @@ if(notInCrate(3)==0) {
 }
 
 /*FGROUP L0
-disable all 50 classes, i.e.:
-- set all inputs,vetos as dontcare for all 50 classes i.e.:
+disable all NCLASS classes, i.e.:
+- set all inputs,vetos as dontcare for all NCLASS classes i.e.:
 L0_CONDITION = 0xffffffff
 L0_VETO      = 0xfffffff0   (cluster0) bit31:1-> class is disabled
 and 0x0 in:
@@ -542,7 +543,7 @@ L0_PRESCALER=0
 void disableClasses() {
 int klas;
 if(notInCrate(1)) return;
-for(klas=1; klas<=50; klas++) {
+for(klas=1; klas<=NCLASS; klas++) {
   setClass(klas, 0xffffffff, 0, 0xfffffff0, 0, 0x0fffffff, 0,0x0f000fff);
 };
 }
@@ -554,7 +555,7 @@ void hw2rates() {
 int ix;
 vmew32(RATE_MODE,1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
-for(ix=0; ix<50; ix++) {
+for(ix=0; ix<NCLASS; ix++) {
   Klas[ix].regs[3]= vmer32(RATE_DATA) & RATE_MASK;
 };
 vmew32(RATE_MODE,0);   /* normal mode */
@@ -567,7 +568,7 @@ void rates2hw() {
 int ix;
 vmew32(RATE_MODE,1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
-for(ix=0; ix<50; ix++) {
+for(ix=0; ix<NCLASS; ix++) {
   vmew32(RATE_DATA, Klas[ix].regs[3] & RATE_MASK);
 };
 vmew32(RATE_MODE,0);   /* normal mode */
@@ -667,42 +668,42 @@ for(sync=0; sync<=15; sync++) {
 clas:
 0: print L0_SDSCG+4,8,...
 1,2,3,...: class number
-51: set all classes to 'group'
-52: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,49
+951: set all classes to 'group'
+952: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,99
 group: Set class' group to group
-       Should be : 1,2,3,...,50
+       Should be : 1,2,3,...,NCLASS
 */
 void printsetSDSCG(int clas, int group) {
 if(clas==0) {
   int ixc;
-  for(ixc=1; ixc<=50; ixc++) {
+  for(ixc=1; ixc<=NCLASS; ixc++) {
     w32 adr,val;
     adr= L0_SDSCG + ixc*4;
     val= vmer32(adr);
     printf("%2d:%2d ", ixc, val);
     if((ixc%10)==0) printf("\n");
   };
-} else if(clas==51) {
+} else if(clas==951) {
   printf("setting SDSCG for all classes to %d...\n",group);
   int ixc;
-  for(ixc=1; ixc<=50; ixc++) {
+  for(ixc=1; ixc<=NCLASS; ixc++) {
     w32 adr;
     adr= L0_SDSCG + ixc*4;
     vmew32(adr, group);
   };
-} else if(clas==52) {
-  printf("setting SDSCG for all classes to default: 0,1,...,49\n");
+} else if(clas==952) {
+  printf("setting SDSCG for all classes to default: 0,1,...,99\n");
   int ixc;
-  for(ixc=1; ixc<=50; ixc++) {
+  for(ixc=1; ixc<=NCLASS; ixc++) {
     w32 adr;
     adr= L0_SDSCG + ixc*4;
     vmew32(adr, ixc-1);
   };
-} else if(clas>50) {
-  printf("clas: 0..50 allowed\n");
+} else if(clas>NCLASS) {
+  printf("clas: 0..100 allowed\n");
 } else {
-  if((group<0) && (group>49)) {
-    printf("group: 0..50 allowed (0: allowed but should not be used)\n");
+  if((group<0) && (group>99)) {
+    printf("group: 0..100 allowed (0: allowed but should not be used)\n");
   } else {
     w32 adr;
     if(group==0) {
@@ -1014,6 +1015,7 @@ initSSM();
 #ifdef SSMCONNECTIONS 
 initNames();
 #endif
+gettableSSM();
 }
 void endmain() {
 }
@@ -1023,7 +1025,7 @@ for(ix=0; ix<6; ix++) {    moved to initmain (2.2.2007)
   FOs[ix].cluster= 0;
   FOs[ix].tcluster= 0;
 };*/
-/* do not init in ctp expert software becasue:
+/* do not init in ctp expert software because:
 1. it should be initialised by starting ctp_proxy
 2. initCTP calls loadcheckctpcfg which call popenread which
    start python -> i.e. ctp.exe when started through cmdlin2

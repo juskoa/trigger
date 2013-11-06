@@ -116,9 +116,11 @@ class Genhw:
         atr.hwwritten(newval)
 
 class Ctpconfig:
-  clusterx0=17    # left top corner of cluster's rectangles 
-  l0x0=30         # left top corner of classes L0 bit rectangles 
+  NCLASS= 100
+  clusterx0=25 #17  left top corner of cluster's rectangles 
+  l0x0=clusterx0+13 # left top corner of classes L0 bit rectangles 
   l0y0=10         # class 0 -not class, instead reserved for text header
+  hty0= 3 #was 10         # header text line
   int1bits=["INTfun1","BC1","BC2","RND1","RND2"]
   int2bits=["INTfun2","BC1","BC2","RND1","RND2"]
   #vonint2bits=[("i0",1),("i1",1),("i2",1),("i3",1),("i4",1),"INTfun2","BC1","BC2","RND1","RND2"]
@@ -232,11 +234,15 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
       print "Ctpconfig:cct:",cct
     if cct[0]=='0':   # L0 in the crate
       self.readShared()
+      #dbgssmo= vbexec.get1("gettableSSM()")
+      #print "dbgssm: before getClass",dbgssmo
       self.klasses=[]
-      for ix in range(1,51):   #keep this order ! 
+      for ix in range(1,Ctpconfig.NCLASS+1):   #keep this order ! 
         k=Klas(self,ix)
         k.readhw()    # should be OK with shared memory
         self.klasses.append(k)
+      #dbgssmo= vbexec.get1("gettableSSM()")
+      #print "dbgssm: after getClass",dbgssmo
     else:
       self.klasses= [ Klas(self,31, 0xaa55, 0x3230),
         Klas(self, 8, 0xaa55, 0x3232)]
@@ -250,12 +256,16 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
         self.fanouts.append(Fanout(self,ix+1,None))
         # let's read FO once more when initialised
       ixinbt= ixinbt+1
+    #dbgssmo= vbexec.get1("gettableSSM()")
+    #print "dbgssm: after getFO",dbgssmo
     #BUSY:
     cct= vbexec.get2("notInCrate(0)")
     if cct[0]=='0':   # BUSY in the crate
       self.busyboard= BusyBoard(self)
     else:
       self.busyboard=None
+    #dbgssmo= vbexec.get1("gettableSSM()")
+    #print "dbgssm: after BusyBoard",dbgssmo
   def findKlass(self,clnumber):
     for cl in self.klasses:
       if cl.clnumber==clnumber: return cl
@@ -266,6 +276,7 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
     if self.caclstl:
       myw.RiseToplevel(self.caclstl); return
     self.caclstl= myw.NewToplevel("CTP classes",self.classesDestroyed)
+    print "doClasses:", self.caclstl
     self.cmdbuts= myw.MywHButtons(self.caclstl, [
       ("blabla",self.cmdallenabled)
       ],side=TOP, helptext="""
@@ -285,17 +296,20 @@ All/Enabled -show all or only enabled classes. This button becomes red
           nclines= nclines+1
     self.cmdbuts.buttons[0].setLabel(aetx)
     self.cmdbuts.buttons[0].setColor(myw.COLOR_BGDEFAULT)
+    if nclines>30: nclines=30   #show max. 30 classes (with scrollbar)
     canvash= (nclines+1)*myw.Kanvas.bitHeight + Ctpconfig.l0y0
+    canvashmax= (Ctpconfig.NCLASS+1)*myw.Kanvas.bitHeight + Ctpconfig.l0y0
     canvasw= Klas.l2vetosx0 + myw.Kanvas.bitWidth*4 + myw.Kanvas.interspace   #980
     if self.canvas: print "error -canvs not deleted"
     self.freenumber=1   #line (from 1) on canvas
     self.canvas= myw.Kanvas(self.caclstl,self.canvasDestroyed, ctpcfg=self,
       width=canvasw,height=canvash,
+      scrollregion=(0, 0, canvasw, canvashmax),
       background='yellow', borderwidth=1)
-    id0=self.canvas.create_text(1, Ctpconfig.l0y0,
+    id0=self.canvas.create_text(1, Ctpconfig.hty0,
       anchor=NW,text="Cl#")
     self.canvas.doHelp(id0, """Class number and Cluster it belongs to""")
-    id1=self.canvas.create_text(Ctpconfig.l0x0, Ctpconfig.l0y0,
+    id1=self.canvas.create_text(Ctpconfig.l0x0, Ctpconfig.hty0,
       anchor=NW,text="L0 inputs")
     self.canvas.doHelp(id1, 
 """L0 inputs: 1-24, 2 special functions, 2 scaled down BC, 2 random triggers.
@@ -306,14 +320,14 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit for classes 1-50 (45-50 with <AC version of L0-board)
 """)
-    id2=self.canvas.create_text(Klas.l0vetosx0, Ctpconfig.l0y0,
+    id2=self.canvas.create_text(Klas.l0vetosx0, Ctpconfig.hty0,
       anchor=NW,text="L0 vetos sel.")
     self.canvas.doHelp(id2,"""L0 selectable vetos. As with L0 inputs:
          red:         don't care    (1)
          green:       veto selected (0)
 Bit 'Class mask' must be selected (i.e. green) for active (triggering) classes
 """)
-    id3=self.canvas.create_text(Klas.l0scalerx0, Ctpconfig.l0y0,
+    id3=self.canvas.create_text(Klas.l0scalerx0, Ctpconfig.hty0,
       anchor=NW,text="L0 pre-scaler")
     self.canvas.doHelp(id3,
 """ L0 pre-scaler. 21 bits (0-no downscaling 0x1fffff-supress all triggers).
@@ -321,7 +335,7 @@ Bit 'Class mask' must be selected (i.e. green) for active (triggering) classes
 %50 -reduce triggers by half
 %1  -full trigger rate down-scaled 100 times
 """)
-    id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.l0y0,
+    id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.hty0,
       anchor=NW,text="L1 inputs")
     self.canvas.doHelp(id4, """ L1 inputs: 1-24.
 Mouse buttons clicks:
@@ -331,12 +345,12 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit (only for classes 45-50)
 """)
-    id5=self.canvas.create_text(Klas.l1vetosx0, Ctpconfig.l0y0,
-      anchor=NW,text="L1 vetos")
+    id5=self.canvas.create_text(Klas.l1vetosx0, Ctpconfig.hty0,
+      anchor=NW,text="L1vetos")
     self.canvas.doHelp(id5,"""L1 vetos
 """)
-    id6=self.canvas.create_text(Klas.l2inputsx0, Ctpconfig.l0y0,
-      anchor=NW,text="L2 inputs")
+    id6=self.canvas.create_text(Klas.l2inputsx0, Ctpconfig.hty0,
+      anchor=NW,text=" L2 inputs")
     self.canvas.doHelp(id6, """ L2 inputs: 1-12.
 Mouse buttons clicks:
 Left  -> modify
@@ -345,13 +359,13 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit (only for classes 45-50)
 """)
-    id7=self.canvas.create_text(Klas.l2vetosx0, Ctpconfig.l0y0,
-      anchor=NW,text="L2 vetos")
+    id7=self.canvas.create_text(Klas.l2vetosx0, Ctpconfig.hty0,
+      anchor=NW,text="L2vetos")
     self.canvas.doHelp(id7,"""L2 vetos
 """)
-    # sort klasses according to their cluster:
     sorted= self.klasses
-    sorted.sort(self.compCluster)
+    # sort klasses according to their cluster:
+    # sorted.sort(self.compCluster)
     for k in sorted:
     #for k in self.klasses:
       if self.allorenabled==1:
@@ -362,7 +376,7 @@ Middle-> modify the invert bit (only for classes 45-50)
   def canvasDestroyed(self,event):
     # this method is automatically invoked (by Tk) , when 
     # canvas' Toplevel window is destroyed
-    #print "canvasDestroyed: marking classes 'not-visible'"
+    #print "canvasDestroyed: marking classes 'not-visible'i event:",event
     for k in self.klasses:
       k.linenumber=0      # not visible
     self.freenumber=1   #line (from 1, line0 is text header) on canvas
@@ -391,8 +405,9 @@ Middle-> modify the invert bit (only for classes 45-50)
     #print "classesDestroyed3:",type(event.widget), '\n:', type(self.caclstl)
     #print "keycode keysym:",event.keycode, event.keysym
     if myw.compwidg(event, self.caclstl):
-      #print "==========",dir(event)
+      print "==========",dir(event)
       self.caclstl=None
+    #self.caclstl=None    # this line added 31.10.2013
     #if (event.widget==self.canvas) or (event.widget==self.caclstl):
     #always (when toplevel 'Classes' or only canvas destroyed):
   def doline(self, xy1, xy2, color="white",width=1):
@@ -448,7 +463,15 @@ Middle-> modify the invert bit (only for classes 45-50)
         self.sharedrs[ishr].setattrfo(rest, 0)
         #self.sharedrs[ishr].hwwritten(0) #anyhow already set with BCMASKS:
       elif lab[:4]=='CLA.':
-        clnmb= int(lab[4:6])
+        if len(lab)==6:
+          clnmb= int(lab[4:6])
+          print "Warning: .cfg file: 50 classes format %s..."%lab
+        elif len(lab)==7:
+          clnmb= int(lab[4:7])
+          #print ".cfg file: 100 classes format"
+        else:
+          PrintError("bad line: %s"%(line))   
+          continue
         kl= self.findKlass(clnmb)
         kl.readhw(rest)
         if kl.linenumber==0:     # not displayed
@@ -919,7 +942,7 @@ class Klas(Genhw):
   l0vetosx0=myw.Kanvas.bitWidth*l0allinputs + Ctpconfig.l0x0 + myw.Kanvas.interspace
   # 15 -2 vetos overwritten
   l0scalerx0= l0vetosx0+ myw.Kanvas.bitWidth*l0allvetos + myw.Kanvas.interspace
-  l1inputsx0=  l0scalerx0+82
+  l1inputsx0=  l0scalerx0+90   # 82
   l1vetosx0=  l1inputsx0 + myw.Kanvas.bitWidth*24 + myw.Kanvas.interspace
   l2inputsx0=  l1vetosx0 + myw.Kanvas.bitWidth*5 + myw.Kanvas.interspace
   l2vetosx0=  l2inputsx0 + myw.Kanvas.bitWidth*12 + myw.Kanvas.interspace
@@ -931,7 +954,7 @@ class Klas(Genhw):
   colCluster=('black','brown','red','orange','yellow','green','blue')
   def __init__(self, ctpcfg, number, inputs=0, vetos=0, scaler=0):
     Genhw.__init__(self)
-    self.clnumber=number      # hw. number of the class (1-50)
+    self.clnumber=number      # hw. number of the class (1-NCLASS)
     self.linenumber= 0        # line number on Canvas (1...) 0-not displayed
     self.ctpcfg=ctpcfg
     self.l0inputs=inputs
@@ -966,7 +989,7 @@ class Klas(Genhw):
       self.l2definition= c5[6]
   def writehw(self,cf=None):
     if cf:
-      fmt="CLA.%02d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
+      fmt="CLA.%03d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
       cmdout= cf.write
     else:
       fmt="setClass(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
@@ -1068,11 +1091,11 @@ class Klas(Genhw):
       if cabi>=200:
         startx0= Klas.l2inputsx0; i=cabi-200
         hlptext="L2 input "+str(i+1)
-        minInverted= 45
+        minInverted= 1 #45
       elif cabi>=100:
         startx0= Klas.l1inputsx0; i=cabi-100
         hlptext="L1 input "+str(i+1)
-        minInverted= 45
+        minInverted= 1 #45
       else:
         startx0= Ctpconfig.l0x0; i=cabi
         minInverted= Klas.MININVL0_45   # <AC or >=AC 

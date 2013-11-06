@@ -43,3 +43,6 @@ Default values for these registers: 0,1,2,3,...,49.
 Setting 0x233:1 leads to synchronous downscaling of first 2 classes.
 see DOC/devdbg/syncdownscaling
 
+6.11.2013
+l0_logic_verB0.rbf
+100 classes, vme addresses reorganized 

@@ -7,7 +7,7 @@
 // or 'L0F34 '+ ~ 4*1024 + symb.definitions
 #define MAXLINECFG 10800
 #define MAXNLINES 256      // not more lines allowed in .pcfg
-#define NCLASS 50
+#define NCLASS 100
 #define NCLUST 6
 #define NFO 6
 #define NCON 4        // # of connectors at FO

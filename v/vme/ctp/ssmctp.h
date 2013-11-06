@@ -54,6 +54,7 @@ EXTRN int SYNCFLAG;  /* used to set sms[].syncflag for synced SSMs.
 
 /*int setSSM(int board,char *mode, w32 omiocs); */
 void initSSM();
+void gettableSSM();
 w32 getswSSM(int board);
 void setsmssw(int board, char *newmode);
 int setomSSM(int board, w32 omiocs);    // rc=0 -> OK

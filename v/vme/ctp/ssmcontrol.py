@@ -269,7 +269,7 @@ Flags: symbolic meaning of SSMstatus bits.
     #print "SSMcontrol:",lines,':'
     for ix in range(len(lines)):
       nm= string.split(lines[ix])
-      #print nm
+      #print "SSMcontrol nm:", nm
       if len(nm)==0: break
       if nm[1]=='notin': continue
       if nm[0]=='test': continue

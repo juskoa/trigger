@@ -31,7 +31,8 @@ $(GOALS):
 ifdef MAKE_CLIENT_DIR
 #	echo $(MAKE_CLIENT_DIR)
 	echo
-	ssh trigger@$(CLIENT_HOST) $(MAKE_CLIENT_CMD)
+#	ssh trigger@$(CLIENT_HOST) $(MAKE_CLIENT_CMD)
+	ssh $(CLIENT_HOST) $(MAKE_CLIENT_CMD)         # trigger or run1
 endif
 #%: force
 #	cd $(ODIR) && $(MAKE) -f ../make_new $@

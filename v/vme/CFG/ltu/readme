@@ -52,6 +52,7 @@ LK1 -> cut, LK21 -> make connection (change output to input)
 LK6 -> cut, LK4 -> make connection (change NECL to NIM, if necessary)
 Signal from TTCmi is ECL, but AC coupled, so the NIM treshold (-0.47V) is choosen.
 New PCBs include these changes.
+
 12.1.2012 ---------------------------------New vs. old LTUs (see ltu.h):
 ltu_*.rbf  -old LTU firmware today last one is ltu_b6.rbf
 ltu2_*.rbf -new LTU firmware (starting from ltu2_b6.rbf)

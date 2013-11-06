@@ -321,23 +321,41 @@ class MywError:
    self.tlm.destroy()
 
 class Kanvas(Canvas):
-  bitWidth=10   # including border lines
-  bitHeight=18
+  bitWidth= 8   # 10   # including border lines
+  bitHeight= 20 # 18 10
   bitBorder=1
   interspace=1
   colHelpBg='#ccffff'
   def __init__(self, tlw, canvasDestroyed=None, ctpcfg=None, **kw):
     self.tlw=tlw
     self.ctpcfg=ctpcfg   # to get help window over L0 scaler entries
-    selfargs=(self,tlw)
+    selfargs=(self,self.tlw)
     apply(Canvas.__init__,selfargs, kw)
     #self.pack(fill='y', side=RIGHT)
     #self.pack(expand='yes', fill='y', side=RIGHT)
-    self.pack(side=RIGHT)
+    #self.pack(side=RIGHT)
+    #frame= Frame(self)    # fr_version
+    self.pack(side=LEFT)
+    # create scrollbar
+    # see http://effbot.org/zone/tkinter-scrollbar-patterns.htm
+    self.scrollbar = Scrollbar(self.tlw)
+    #self.sbfm= Frame(self.tlw)
+    #self.scrollbar = Scrollbar(self.sbfm)
+    self.scrollbar.pack(side=RIGHT, fill=Y)
+    print "Kanvasinit:", self.scrollbar, self.tlw
+    #self.create_window((0,0),window=frame,anchor='nw')   # fr_version
+    #frame.bind("<Configure>", #   fr_version
+    # attach scrollbar to Canvas:
+    self.config(yscrollcommand=self.scrollbar.set)
+    self.scrollbar.config(command=self.yview)
     if canvasDestroyed!=None:
       self.bind("<Destroy>",canvasDestroyed)
   #def canvasDestroyed(self,ev):
   #  print "myw.Kanvas destroyed"
+  def destroy(self):
+    self.scrollbar.destroy()
+    #print "myw Kanvasdestroy:"
+    Canvas.destroy(self)
   def dobit(self, xy, color=None, helptext=None):
     """ Create box.
     rc: canvas box id
@@ -357,6 +375,7 @@ class Kanvas(Canvas):
   def doEntry(self, xy, klas_method):
     entw= MywEntry(self.tlw,bind='lr', label='',
       cmdlabel=klas_method, width=10)
+    #print "doEntry:",xy
     id= self.create_window(xy[0], xy[1],window=entw,
       anchor=NW, tags="TAGl0pr")
     return entw
@@ -2105,8 +2124,8 @@ class Vbexecvoid:
   def printmsg(self,msg):
     print msg
 
-def checklabel():
-  print "here checklabel"
+def checklabel(arg1=None):
+  print "here checklabel. arg1:", arg1
 def checklabel2():
   print "here checklabel2"
   #print event,b
@@ -2118,6 +2137,28 @@ def efdestroy(event):
   print "efdestroy:",event
 def fdestroy(event):
   print "fdestroy:",event
+
+class Testcfg:
+  def __init__(self):
+    self.caclstl= NewToplevel("CTP classes",self.k_destroyed)
+    self.canvas= Kanvas(self.caclstl,self.canvasDestroyed, ctpcfg=self,
+      width=200,height=100,
+      scrollregion=(0, 0, 200, 300),
+      background='yellow', borderwidth=1)
+    for ixl in range(20):
+      id0=self.canvas.create_text(1, 3+10*ixl,
+        anchor=NW,text="Cl#%d"%ixl)
+      self.canvas.doHelp(id0, """Class number and Cluster it belongs to
+help text %d"""%ixl)
+  def k_destroyed():
+    print "k_destroyed:"
+  def canvasDestroyed(self,event):
+    print "canvasDestroyed:",event
+    self.canvas=None
+
+def Test_Kanvas():
+  cfg= Testcfg()
+
 def main():
   global butsFrame
   f = Tk()
@@ -2199,6 +2240,10 @@ piaty")
   #
   #for n in range(1,20):
   #  but.flash()
+  #----------------------------------------------------canvas test:
+  canvFrame=MywFrame(entriesFrame, side=LEFT); 
+  canvFrame.config(bg="green")
+  docanvbut= MywButton(canvFrame,label="Test Kanvas",cmd=Test_Kanvas)
   f.mainloop()
 
 if __name__ == "__main__":

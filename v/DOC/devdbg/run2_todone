@@ -1,0 +1,13 @@
+1. modify ctp for 100 classes:
+- new addresses
+- inversion of all L1/L2 inputs allowed (was only for classes 45..50)
+
+Introduced: NCLASS=100 (ctp.h and ctpcfg.py)
+
+ctpcfg.py, myw.py: problems: 
+- cannot close/open Classes window
+- scrollbar in canvas not working well -fixed 1.11.2013
+
+modified:
+ctp.c, ctpcfg.py:  100 classes should be ok
+ 

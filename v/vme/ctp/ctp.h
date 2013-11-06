@@ -1,5 +1,5 @@
 /*  ctp.h */
-#define CTP_SW_VER "1.2 05.03.2008"
+#define CTP_SW_VER "2.0 30.09.2013"
 
 /* CTP boards in ctpboards[] table (ix):
       base        +     code ix I2Caddr
@@ -34,6 +34,8 @@ Max.  block size of Interaction record is 458 752 words
 #define BICfile "/root/NOTES/boardsincrate" 
 #define MAXLINE 256
 #define ORBITLENGTH 3564
+
+#define NCLASS 100
 
 typedef struct {
   char name[8];
@@ -71,8 +73,6 @@ typedef struct {
 
 /* common board logic FPGA addresses for all CTP boards: */
 #define FPGAVERSION_ADD 0x80 /* board's FPGA version */
-/*#define TEST_ADD        0xc0  was till 12.3.2008 */
-#define TEST_ADD        0x7e0  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 #define BC_STATUS       0xc4   /* [2:0] Orbit error, PLL-locked, BC-error */
 /* Orbit error: set even BUSY board programmed for local orbit*/
 #define SSMcommand  0x19c  /* 0x0: VMEREAD   0x1: VMEWRITE */
@@ -96,24 +96,31 @@ typedef struct {
 #define COPYREAD       0x1e0   /*ro copy memory data */
 #define CLEARCOUNTER   0x5ac /* clear counters CMD */
 
-#define SPY_MEMORY     0x400
-#define SCOPE_SELECT   0x4f8  /* groupB: 0x1e0 groupA: 0x01f */
+#define SPY_MEMORY     0x400  /* of length 0xff on each CTP board */
+//#define SCOPE_SELECT   0x4f8
+#define SCOPE_SELECT   0x5b0  /* groupB: 0x1e0 groupA: 0x01f */
                                /* 0x17+0x17-not selected                */
                                /* 0x800: enableB, 0x400: enableA        */
-#define ADC_SELECT     0x500 /*ADC mode, ADC input selector. 0x100:ADCmode */
+#define ADC_SELECT     0x5b4 /*ADC mode, ADC input selector. 0x100:ADCmode */
   /* not FOs, only L0/1/2.      0x100 GND (before A2 version: Orbit (toggle))
                                 0x1NN NN:01-18 i: Input1-Input24
                                 0x119: Vhigh
                                 0x11a: (Vhigh-Vlow)/2 
                                 0x11b: ADC test -new way (ver. A2 from 14.12)
                                 0x11c: Vlow   */
-#define SYNCH_ADD      0x504 /*Synch/delay adds: 0x504-0x560    not FO*/
+/*#define TEST_ADD        0xc0  was till 12.3.2008 */
+/*#define TEST_ADD        0x7e0 was till  6.11.2013 */
+#define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
+/* #define SYNCH_ADD      0x504 */
+#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO*/
 
-#define PF_COMMON      0x564  /* 1 word per L0/L1/L2 board */
-#define PFBLOCK_A      0x568  /* 5*3 words per L0/L1/L2 board */
+//#define PF_COMMON      0x564
+#define PF_COMMON      0x864  /* 1 word per L0/L1/L2 board */
+//#define PFBLOCK_A      0x568
+#define PFBLOCK_A      0x868  /* 5*3 words per L0/L1/L2 board */
 			      /* Circuit1. 2,3,4,T      -> +0xc */
-#define PFBLOCK_B      0x56c
-#define PFLUT          0x570
+#define PFBLOCK_B      0x86c
+#define PFLUT          0x870
 
 /* FO boards */
 /* not valid for A3 (from 2.3.2006) -> use common SCOPE_SELECT
@@ -193,7 +200,42 @@ bits    newMeaning (>=AC)            meaning before AC
 23..0   Select L0 input 24..1        Select L0 input 24..1
 
 */
-#define L0_VETO        0x9600    /* +4*n n=1,2,...,50 
+#define DAQ_LED        0x9600    /* reserved for SW use */
+
+/*von #define L0_INVERT      0x9500     old (before AC) +4*n n=45,....,50 
+bit23..0: 1: invert L0 input   0: use original polarity
+firmAC:
+all classes can use inverted inputs, use L0_INVERTac symbol.
+*/
+/* see PFCOMMON... */
+#define MASK_MODE      0x95a4 /* BCMask memory mode 1:vme 0:normal */
+#define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
+//#define L0_ENA_CRND    0x94fc
+#define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
+//#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
+#define L0_INTERACT1   0x95bc    /* 16 bits thruth table */
+#define L0_INTERACT2   0x95c0
+#define L0_INTERACTT   0x95c4
+#define L0_INTERACTSEL 0x95c8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
+                              /* [5..9]-> ... for INTERACT2 */
+#define L0_FUNCTION1   0x95cc
+#define L0_FUNCTION2   0x95d0
+#define RANDOM_1       0x95d4 /* bit31: 1: Enable filter (for FPGAVER>=A5) */
+#define RANDOM_2       0x95d8
+#define SCALED_1       0x95dc
+#define SCALED_2       0x95e0
+#define ALL_RARE_FLAG  0x95e4
+/*   L0_SCOPE_SELECT   0x94f8 see SCOPE_SELECT*/
+#define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
+//#define L0_FUNCTION3  0x97ec
+//#define L0_FUNCTION4  0x97f0
+//#define RATE_MODE      0x9700
+#define RATE_MODE      0x95fc /* Rate mem. mode 1:vme 0:normal */
+//#define L0_INVERTac    0x9800
+#define L0_INVERTac    0x9600    /* +4*n n=1,....,100, 0x9604..0x9790 */ 
+/* bit23..0: 1: invert L0 input   0: use original polarity */
+//#define L0_VETO        0x9600
+#define L0_VETO        0x9900    /* +4*n n=1,2,...,100
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
                                  19..8: BCmask[12..1]
@@ -201,57 +243,47 @@ bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
  7..4: Select PFprot[4..1]        7..4: the same
  2..0: Cluster code (1-6)         2..0: the same
 */
-#define DAQ_LED        0x9600    /* reserved for SW use */
-#define L0_MASK        0x9700    /* +4*n n=1,2,...,50 
+#define L0_MASK        0x9b00    /* +4*n n=1,2,...,100
 bit0: 1: the class is disabled */
-
-#define L0_INVERT      0x9500    /* old (before AC) +4*n n=45,....,50 
-bit23..0: 1: invert L0 input   0: use original polarity
-firmAC:
-all classes can use inverted inputs, use L0_INVERTac symbol.
-*/
-#define L0_INTERACT1   0x94cc    /* 16 bits thruth table */
-#define L0_INTERACT2   0x94d0
-#define L0_INTERACTT   0x94d4
-#define L0_INTERACTSEL 0x94d8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
-                              /* [5..9]-> ... for INTERACT2 */
-#define L0_FUNCTION1   0x94dc
-#define L0_FUNCTION2   0x94e0
-#define RANDOM_1       0x94e4 /* bit31: 1: Enable filter (for FPGAVER>=A5) */
-#define RANDOM_2       0x94e8
-#define SCALED_1       0x94ec
-#define SCALED_2       0x94f0
-#define ALL_RARE_FLAG  0x94f4
-#define L0_ENA_CRND    0x94fc /* 1..0: enable RND2, RND1 clear */
-/* see PFCOMMON... */
-#define MASK_MODE      0x95a4 /* BCMask memory mode 1:vme 0:normal */
-#define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
-#define RATE_MODE      0x9700 /* Rate mem. mode 1:vme 0:normal */
-/*   L0_SCOPE_SELECT   0x94f8 see SCOPE_SELECT*/
-#define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
-//#define L0_FUNCTION3  0x97ec
-//#define L0_FUNCTION4  0x97f0
-#define L0_INVERTac    0x9800    /* +4*n n=1,....,50, 0x9804..0x98c8 */ 
-#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
+//#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
+#define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90*/ 
 
 /* L1 board */
 #define L1_TCSTATUS    0xa1c0   /*R/O*/
 #define L1_TCCLEAR     0xa1c8   /*dummy wr. */
 #define L1_TCSET       0xa400   /* 18: P/F */
 #define L1_DEFINITION  0xa400    /* +4*n n=1,2,...,50 */
-#define L1_DELAY_L0    0xa4cc
-#define L1_INVERT      0xa500    /* +4*n n=45,....,50 */
-#define ROIP_BUSY      0xa600 /* RoI Processor BUSY flag */
+/* bits:
+31 RoI Veto Flag. 1: segmented readout (RoI) is suspended if class triggered
+30..28 Cluster code
+27..24 Select P/F[4..1] protection veto
+23.. 0 Select L1 triggr input
+*/
+//#define L1_DELAY_L0    0xa4cc
+#define L1_DELAY_L0    0xa5b8
+//#define L1_INVERT      0xa500    /* +4*n n=45,....,50 */
+#define L1_INVERT      0xa600    /* +4*n n=1,...,100 */
+/* bits: 23..0: 0: original polarity, 1: corresponding input is inverted
+*/
+//#define ROIP_BUSY      0xa600
+#define ROIP_BUSY      0xa5bc /* RoI Processor BUSY flag */
 
 /* L2 board */
 #define L2_DEFINITION  0xb400    /* +4*n n=1,2,...,50 */
+/* bits:
+30..28   Cluster code
+27..24 Select P/F[4..1] protection veto
+23..12 Invert L1 trigger input (0: original polarity, 1: inverted)
+11.. 0 Select L2 trigger input
+*/
 #define L2_ORBIT_READ  0xb140    /* synced with INT */
 #define L2_ORBIT_CLEAR 0xb144
 #define L2_TCSTATUS    0xb1c0   /*R/O*/
 #define L2_TCCLEAR     0xb1c8   /*dummy wr. */
 #define L2_TCSET       0xb400   /* 24: P/F 23..0:Subdetector [24..1] */
-#define L2_DELAY_L1    0xb4cc
 #define L2_BCOFFSET    0xb5a8 /* BC/Orbit offset data */
+//#define L2_DELAY_L1    0xb4cc
+#define L2_DELAY_L1    0xb5b8
 
 /* INT board */
 #define INT_ORBIT_READ 0xc140   /* orbit counter synced with L2 */

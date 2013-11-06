@@ -35,7 +35,11 @@ loadCTPfpga load BASE       -load v/vme/CFG/board/board.rbf and configure
    fo1-6 0x821000-0x826000
 
 Use name to force update of .rbf file from master computer (trigger@altri1)
+
+Now, these links are active:
 EOF
+cd $VMECFDIR/CFG
+ls -l busy/busy.rbf l0/l0.rbf l1/l1.rbf l2/l2.rbf fo/fo.rbf int/int.rbf
 exit
 fi
 if [ "$CTPBASE" = 'busy' ] ;then
