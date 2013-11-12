@@ -332,20 +332,36 @@ class TrgVALIDINPUTS(Table):
     for ix in range(len(ins)):
       if ins[ix]: rc= rc+"%s:"%(ix+1)+ins[ix]+' '
     return rc
-  def prtall(self,ofile):
-    for ent in self.ents:
-      if ent[0][0]=='#': continue
-      if self.isL0f(ent): continue
-      if ent[7]!="1": continue  # not configured
+  def getdn(self, ent, niceout=True):
+    if ent[0][0]=='#': return None
+    if self.isL0f(ent): return None
+    if ent[7]!="1": return None  # not configured
+    detn= ent[2]
+    if niceout:
       if ent[2]=='DAQ':
         detn= 'DAQ_TEST'
       elif ent[2]=='EMCAL':
         detn= 'EMCal'
       else:
         detn= ent[2]
+    return detn
+  def prtall(self,ofile):
+    for ent in self.ents:
+      detn= self.getdn(ent)
+      if detn==None: continue
       line= "%s %s %s %s %s\n"%(ent[0], detn, \
         ent[3], ent[4], ent[5])
       ofile.write(line)
+  def addl12(self,l0inps):
+    for ent in self.ents:
+      detn= self.getdn(ent, False)
+      if detn==None: continue
+      if ent[3]=='0': continue   # L0 already taken from L0.INPUTS
+      if l0inps.has_key(detn):
+        l0inps[detn]= l0inps[detn] + ' ' + ent[0]
+      else:
+        l0inps[detn]= ent[0]
+ 
   def getEdgesDelays(self):
     """ this method not used (ctp_alignment file created directly in ctpproxy)
     rc:
@@ -415,8 +431,8 @@ class TrgL0INPUTS(Table):
   #  return None
   def prtnames(self):
     all={}
-    print "\nAvailable inputs:"
-    print "-----------------"
+    print "\nAvailable L0 inputs:"
+    print "---------------------"
     for en in self.ents:
       if en[0][0]=='#': continue
       if en[9]!='1': continue      # what does it mean 2?
@@ -427,6 +443,7 @@ class TrgL0INPUTS(Table):
       #if en[1]=='PHOS': print '!:',en
     for en in all.keys():
       print "%s:%s"%(en, all[en])
+    return all
 
 class Trgctpcfg(Table):
   def __init__(self):
@@ -641,7 +658,8 @@ def main(argv):
   if len(argv) < 2:
     print """
   trigdb.py log2tab 'logical expression from L0inputs'
-  trigdb.py prtinps
+  trigdb.py prtinps     source: VALID.CTPINPUTS taken
+  trigdb.py cables      source: L0.INPUTS (L0) + VALID.CTPINPUTS (L1+L2) 
 """
     return
   if argv[1]=='log2tab':
@@ -652,5 +670,17 @@ def main(argv):
     a=TrgVALIDINPUTS()
     print a.getL012inputs('0')
     print a.getL012inputs('1')
+  elif argv[1]=='cables':
+    #print "todo..."
+    a=TrgL0INPUTS()
+    allds= a.prtnames()
+    #print allds
+    vci= TrgVALIDINPUTS()
+    vci.addl12(allds)
+    print # print allds
+    for det in allds.keys():
+      print "%s: %s"%(det, allds[det])
+    
 if __name__ == "__main__":
     main(sys.argv)
+

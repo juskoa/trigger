@@ -237,13 +237,13 @@ signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);   // CTRL C   2
 partmode[0]='\0';
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 printf("cshmInit i.e. initBakery(swtriggers/ccread if shm allocated)...\n");
-/*printf("initBakery(swtriggers,3): 0:SOD/EOD 1:gcalib 2:ctp.exe + dims\n");
+/*printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
 printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 */
 cshmInit();
 
-printf("initBakery(swtriggers,3): 0:SOD/EOD 1:gcalib 2:ctp.exe + dims\n");
-initBakery(&ctpshmbase->swtriggers, "swtriggers", 3);
+printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
+initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
 printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 initBakery(&ctpshmbase->ccread, "ccread", 5);
 

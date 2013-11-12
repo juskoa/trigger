@@ -139,10 +139,12 @@ v/SPECS directory now for spec files (ltusw binary rpm and ltuclient
 src+bin rpms now available)
 7.6.
 vmeb/caenvme.setup vmeb/vmeblib/vmewrap.c bin/startClients.bash
-copied from alitoftm00. Still to be updated later (Pietro).
+copied from alitoftm00 (64bits PC). Still to be updated later (Pietro).
 20.6.2013
 spec for ltusw changed (AutoReq: no) -i.e. no dependency on .so libraries now
 5.7.2013
 TSI148: VME driver for the single-board
 computer Fastwel CPC600 with the VME bridge Tundra Tsi148
+8.11.2013
+checkSEU() added in Simple  tests menu
 

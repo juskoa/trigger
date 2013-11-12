@@ -395,6 +395,30 @@ printf("BUSY_COUNTER:%d\n   BUSY_TIMER:%d(%f ms)\nSUBBUSY1_TIMER:%d(%f ms)\n",
   getCounter(BUSY_COUNTERrp), bt, bt*0.0004, sbt, sbt*0.0004);
 }
 /*FGROUP SimpleTests
+rc: >0 in case of SEU was registered.
+rc:  0 ok, no SEU registered from last checkSEU() activation
+*/
+int checkSEU() {
+w32 serial, pll;
+pll= vmer32(TEMP_STATUS)&0x2;
+serial= 0x3f&vmer32(SERIAL_NUMBER);
+if((serial>=64) || (serial==0)) {
+  if(serial==0) {
+    printf("Serial number:0 ->this board accounted LTU version 2\n");
+  };
+  if(pll==0x2) {
+    printf("CRC error bit set, reconfigure LTU!\n");
+    vmew32(TEMP_STATUS, 0);    // is needed here?
+    return(1);
+  } else {
+    printf("CRC bit ok\n");
+  };
+} else {
+  printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");
+};
+return(0);
+}
+/*FGROUP SimpleTests
 print: 
 CODE_ADD       always 0x56 for LTU
 SERIAL_NUMBER  of the LTU board
@@ -425,19 +449,7 @@ if( (pll & BC_STATUSerr) == 0x01) {
 if( (pll & BC_STATUSorbiterr) == BC_STATUSorbiterr ) {
   printf("errorneous Orbit input signal\n");
 };
-pll= vmer32(TEMP_STATUS)&0x2;
-if((serial>=64) || (serial==0)) {
-  if(serial==0) {
-    printf("Serial number:0 ->this board accounted LTU version 2\n");
-  };
-  if(pll==0x2) {
-    printf("CRC error bit set, reconfigure!\n");
-  } else {
-    printf("CRC bit ok\n");
-  };
-} else {
-  printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");
-};
+pll= checkSEU();
 return;
 }
 /* FGROUP SimpleTests

@@ -96,7 +96,12 @@ typedef struct {
 #define COPYREAD       0x1e0   /*ro copy memory data */
 #define CLEARCOUNTER   0x5ac /* clear counters CMD */
 
-#define SPY_MEMORY     0x400  /* of length 0xff on each CTP board */
+#define SPY_MEMORY     0x400  /* spy memory length: 
+L1/2 boards: (0x100 - 0x2ff)*4 from November 2013.
+L0 board: increased length (max. adr 0x1ff*4 -> 0x2ff*4) implemented earlier.
+          From November 2013 max. addr. in spy mem was increased to 
+          0x3ff*4 on L0 board. */
+
 //#define SCOPE_SELECT   0x4f8
 #define SCOPE_SELECT   0x5b0  /* groupB: 0x1e0 groupA: 0x01f */
                                /* 0x17+0x17-not selected                */
@@ -150,7 +155,7 @@ typedef struct {
 				     [13..12]: 
                                      0 -> ORBIT input, positive BC edge 
                                      1 -> ORBIT input, neg+pos. BC edge 
-				     2 -> LocalORBIT  option
+				     2 -> LocalORBIT  option (i.e. 0x2deb)
 				     3 -> instead ORBIT produce BC/2 to
 				          test ADCs on L0/1/2 
 				     [14] RO EDGE. 0:negBC   1:posBC */
@@ -191,7 +196,7 @@ bit31=1: 25bits for L0-class busy time in steps of 10micsecs
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
                                    11..0: BCnumber (valid for Synch. trigger)*/
-#define L0_CONDITION   0x9400    /* +4*n n=1,2,...,50 
+#define L0_CONDITION   0x9400    /* +4*n n=1,2,...,100
 bits    newMeaning (>=AC)            meaning before AC
 ----    ----------                   --------------
 31..30  Select Scaled-down BC2..1    not used
@@ -242,6 +247,7 @@ bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
 11..8: Select BCmask[4..1]
  7..4: Select PFprot[4..1]        7..4: the same
  2..0: Cluster code (1-6)         2..0: the same
+Note: in ctp.c getClass L0_VETO[bit31] is set according to L0_MASK[0] bit
 */
 #define L0_MASK        0x9b00    /* +4*n n=1,2,...,100
 bit0: 1: the class is disabled */

@@ -26,7 +26,7 @@ while(1) {
   } else if(line[0]=='h') {
 printf("Now l/u/p concerns swtriggers. bakery alg. used for\n\
 2 groups of tasks (initialised in main_ctp.c):\n\
-initBakery(swtriggers,3): 0:SOD/EOD 1:gcalib 2:ctp.exe + dims\n\
+initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n\
 initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n\
 ");
   } else {

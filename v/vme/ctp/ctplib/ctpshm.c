@@ -23,7 +23,7 @@ if(ctpshmbase->datetime[0]=='\0') {
   for(i=0;i<MNPART;i++){ shmpart[i].name[0]= '\0'; };
   ctpshmbase->GlobalFlags=0;
   ctpshmbase->active_cg=0;
-  initBakery(&ctpshmbase->swtriggers, "swtriggers", 3);
+  initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
   initBakery(&ctpshmbase->ccread, "ccread", 5);
 };
 if(validCTPINPUTs==NULL) {

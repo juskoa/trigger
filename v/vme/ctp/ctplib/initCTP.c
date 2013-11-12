@@ -36,7 +36,7 @@ void setClassInit(int klas,w32 condition, w32 invert, w32 veto, w32 scaler,
               w32 l1def, w32 l1invert, w32 l2def) {
 int bb,klasix; w32 mskbit;
 w32 l0invAC; int minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+l0invAC=L0_INVERTac; minAC=0;
 bb= klas*4; klasix=klas-1;
 if(notInCrate(1)==0) {   // L0 board
   //Klas[klasix].regs[0]= condition; 
@@ -99,11 +99,11 @@ for(ixinp=0; ixinp<ninp; ixinp++) {
   setEdgeDelay(board,ixinp+1,edge,delay);
 };
 }
-void gettableSSM();
-void dbgssm(const char *msg) {
-printf("dbgssm:%s\n", msg);
-gettableSSM();
-}
+//void gettableSSM();
+//void dbgssm(const char *msg) {
+//printf("dbgssm:%s\n", msg);
+//gettableSSM();
+//}
 /* init CTP. Should be called only once. 
    ! Another instance of vmecrate ctp calls this routine too! 
    -> i.e. use: 'vmecrate nbi ctp' for expert (ctp) sw.
@@ -114,17 +114,23 @@ void initCTP() {
 int ix,rc;
 resetPLLS();
 for(ix=1; ix<=NCLASS; ix++) {
-  setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
-}; rates2hwInit();
-dbgssm("classes set");
+  //klas,w32 condition, w32 invert, w32 veto, w32 scaler,
+  //            w32 l1def, w32 l1invert, w32 l2def
+  //setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
+  setClassInit(ix, 0xffffffff, 0x0, 0x801ffff0, 0, 
+    0x8fffffff, 0x0, 0xf000fff);
+}; 
+rates2hwInit();
+//dbgssm("classes set");
 vmew32(L0_INTERACT1, 0); vmew32(L0_INTERACT2, 0); vmew32(L0_INTERACTT, 0);
 vmew32(L0_INTERACTSEL, 0);
 vmew32(L0_FUNCTION1, 0); vmew32(L0_FUNCTION2, 0);
 if(l0AB()==0) {   //firmAC
-rc= setL0f34c(0, "0");
+rc= setL0f34c(0, (char *)"0");
 };
 ix= loadcheckctpcfg();
-dbgssm("after loadcheckctpcfg");
+//dbgssm("after loadcheckctpcfg");
+return;
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
   if(ctpboards[ix].code==FOcode) { 
@@ -193,10 +199,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //cfg vmew32(INT_DDL_EMU,0x0);       /* DAQ from 30.5.2008 always active */
     if(cshmGlobFlag(FLGignoreDAQRO)) {
       vmew32(INT_DDL_EMU,0xb);      /*  DAQ not active */
-      infolog_trgboth(LOG_INFO, "CTP readout OFF (NODAQRO option)");
+      infolog_trgboth(LOG_INFO, (char *)"CTP readout OFF (NODAQRO option)");
     } else {
       vmew32(INT_DDL_EMU,0x0);      /*  DAQ active  */
-      infolog_trgboth(LOG_INFO, "CTP readout ON");
+      infolog_trgboth(LOG_INFO, (char *)"CTP readout ON");
     };
   };
 };

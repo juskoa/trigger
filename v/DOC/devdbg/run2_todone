@@ -1,3 +1,5 @@
+Content
+-------
 1. modify ctp for 100 classes:
 - new addresses
 - inversion of all L1/L2 inputs allowed (was only for classes 45..50)
@@ -11,3 +13,4 @@ ctpcfg.py, myw.py: problems:
 modified:
 ctp.c, ctpcfg.py:  100 classes should be ok
  
+

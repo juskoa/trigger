@@ -117,4 +117,10 @@ Problem with 'Classes' widget in ctp is seen also with old sw (i.e. cannot
 be open again when closed)
 3.11.2013
 vmeaistd.h MAXNAMES 400 -> 600
-
+11.11.2013
+bakery: the swtrigger lock now separated for ctp (2) and dims (3).
+GenSwtrg_op() -special for ctp interface
+Note: slightly different for run1 version (also modified)
+11.11.2013
+vmeb/tigdb.py cables   -added, printing the names of all L0+L1+L2 inputs
+in L0.INPUTS + VALID.CTPINPUTS.

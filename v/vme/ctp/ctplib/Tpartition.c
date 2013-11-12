@@ -377,7 +377,6 @@ checkRES
 */
 int l0condition2rbif(int bit,int *ix){
  int ret=0;
-if(l0AB()==0) {   //firmAC
  switch(bit){
   case 24: *ix=ixl0fun1; break;
   case 25: *ix=ixl0fun2; break;
@@ -390,18 +389,6 @@ if(l0AB()==0) {   //firmAC
   default: printf("Internal error:l0condition2rbif: wrong bit 0x%x\n",bit);
            ret=1; break;
  };
-} else {
- switch(bit){
-  case 24: *ix=ixl0fun1; break;
-  case 25: *ix=ixl0fun2; break;
-  case 26: *ix=ixrnd1; break;
-  case 27: *ix=ixrnd2; break;
-  case 28: *ix=ixbc1; break;
-  case 29: *ix=ixbc2; break;
-  default: printf("Internal error:l0condition2rbif: wrong bit 0x%x\n",bit);
-           ret=1; break;
- };
-};
 return ret;
 }
 /*-----------------------------------------------------------------------
@@ -462,16 +449,16 @@ l0veto= (l0veto & 0xfffffff8) + hwclust;
 l1def=  (l1def & 0x8fffffff) + (hwclust<<28);
 l2def=  (l2def & 0x8fffffff) + (hwclust<<28);
 // RBIF
-if(l0AB()==0) {   //firmAC
+//if(l0AB()==0) {   //firmAC
   modL0input(&l0inp,part,24);  //l0f1
   modL0input(&l0inp,part,26);  //l0f3
   modL0input(&l0inp,part,28);  //rnd1
   modL0input(&l0inp,part,30);  //bc1
-} else {
-  modL0input(&l0inp,part,24);  //l0fun 
-  modL0input(&l0inp,part,26);  //rnd
-  modL0input(&l0inp,part,28);  //bc
-};
+//} else {
+//  modL0input(&l0inp,part,24);  //l0fun 
+//  modL0input(&l0inp,part,26);  //rnd
+//  modL0input(&l0inp,part,28);  //bc
+//};
 toklas->l0inputs= l0inp;
 toklas->l0vetos= l0veto;      
 toklas->l1definition= l1def;      
@@ -483,11 +470,7 @@ void cleanTKlas(TKlas *klas){
 if(klas != NULL){ w32 mskCLAMASK;
   klas->l0inputs=0;
   klas->l0inverted=0;
-  if(l0AB()==0) {   //firmAC
-    mskCLAMASK=0x80000000;
-  } else {
-    mskCLAMASK=0x10000;
-  };
+  mskCLAMASK=0x80000000;
   klas->l0vetos=mskCLAMASK;// disbale klas by default
   klas->scaler=0;
   klas->l1definition=0;
@@ -857,13 +840,8 @@ for(id=0;id<NDETEC;id++) {
   };
 };
 // release shared resources (i.e. allocate by going over classes left):
-if(l0AB()==0) {   //firmAC
   upperbit= L0CONBITLac;
   bcmfrom=8; bcmto=19;
-} else {
-  upperbit= L0CONBITL;
-  bcmfrom=8; bcmto=11;
-};
 for(icla=0 ; (icla<NCLASS) ; icla++){
   TKlas *cls;
   int bit;
@@ -1293,11 +1271,7 @@ void printHardware(Hardware *hwpart, char *dbgtext){
  if(hwpart->name == NULL)printf("%s Hardware name=NULL \n", dbgtext);
  else printf("%s Hardware name: %s -----------\n", dbgtext,hwpart->name);
  printTRBIF(hwpart->rbif);
-if(l0AB()==0) {   //firmAC
   mskCLAMASK=0x80000000;
-} else {
-  mskCLAMASK=0x10000;
-};
  for(i=0;i<NCLASS;i++){
   TKlas *klas;
   if((klas=hwpart->klas[i])) {
@@ -1369,7 +1343,7 @@ w32 l0invAC, minAC;
 int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
 char skipped[200]="";
 
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+l0invAC=L0_INVERTac; minAC=0;
 // find out TIMESHARING classes, using StartedPartitions:
 for(i=0;i<NCLASS;i++) parthwclasses[i]=0;
 for(isp=0;isp<MNPART;isp++){
@@ -1540,7 +1514,8 @@ int readHW(Hardware *hw){
  TKlas *klas;
  TRBIF *rbif;
 w32 l0invAC, minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+//if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+l0invAC=L0_INVERTac; minAC=0;
 /* we keep interactin definition as SYSTEM PARAMETER (i.e. like L0L1delay...)
    see initCTP.c -these are set there and left untouched
 hw->int12tdef.interact1= vmer32(L0_INTERACT1); 
@@ -1581,11 +1556,9 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
     else klas->l0inverted=0;
     l0vetos=vmer32(L0_VETO+bb);
     mskbit=vmer32(L0_MASK+bb);
-  if(l0AB()==0) {   //firmAC
-    l0vetos= (l0vetos&0x1fffff) | ((mskbit&0x1)<<31);
-  } else {
-    l0vetos= (l0vetos&0xffff ) | ((mskbit&0x1)<<16);
-  };
+  //if(l0AB()==0) {   //firmAC
+  l0vetos= (l0vetos&0x1fffff) | ((mskbit&0x1)<<31);
+  //} else { l0vetos= (l0vetos&0xffff ) | ((mskbit&0x1)<<16); };
     klas->l0vetos=l0vetos;
     //mskbit= (l0vetos&0x10000)>>16; 
     //L0 scaler done separately to keep vme access low

@@ -126,3 +126,20 @@ INT_DDL_EMU word in normal mode (i.e. DAQ active):
 */
 void DAQonoff(int daqon);
 
+/*FGROUP DebCon
+Generate n software trigger sequences
+Operation:
+-check if all detectors are in global (ctpproxy shared memory)
+-setswtrig()
+-while(n) startswtrig()
+
+Parameters: see setswtrig()
+customer: number 0..1
+0: SOD/EOD/SYNC generation initiated from ctp_proxy
+1: calibration triggers from gcalib task
+2: dimservices.c (usually not used) + ctp.exe (expert sw) + ctpt.exe
+
+RC: number of L2a successfully generated, or
+    12345678: cal. triggers stopped becasue det. is not in global run
+*/
+int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors);

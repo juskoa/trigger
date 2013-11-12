@@ -253,7 +253,7 @@ while(actrs[tagix].Ngenerated < actrs[tagix].N) {
 // still to be added (in GenSwtrg): pf,bcmask as symb. names
 todo= actrs[tagix].N;
 succeeded=GenSwtrg(todo, actrs[tagix].type, 
-  actrs[tagix].roc, actrs[tagix].bc,detectors,2, &orbitn);
+  actrs[tagix].roc, actrs[tagix].bc,detectors,3, &orbitn);
 actrs[tagix].Ngenerated= succeeded;
 ncls= updateservice(actrs[tagix].cid);
 

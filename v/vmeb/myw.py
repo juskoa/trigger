@@ -58,7 +58,7 @@ def NewToplevel(title, whenDestroyed=None, tlw=None,bg=None):
     tlw.bind("<Destroy>", whenDestroyed)
     return tlw
 def compwidg(event, tlw):
-  if event.widget == str(tlw):
+  if event.widget == tlw:   # was str(tlw) before nov2013
     return 1
   else:
     return None

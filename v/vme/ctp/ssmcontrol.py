@@ -314,6 +314,7 @@ upgrade corresponding status fields in this window.
     ssmcend()
   def checkcname(self, val):
     val=val.strip()
+    if val=='': return
     vb.io.write('checkcname:%s\n'%val)
     if not val.isdigit():
       pos= findCPosition(val)

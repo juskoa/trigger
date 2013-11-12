@@ -99,9 +99,9 @@ int main(){
  CTP ctp;
  ctp.l0->setClassesToZero();
  ctp.l0->printClasses();
- //ctp.l1->setClassesToZero();
- //ctp.l2->setClassesToZero();
+ ctp.l1->setClassesToZero();
+ ctp.l2->setClassesToZero();
  //L1ingenL2inmon(&ctp);
- //L1gen(&ctp);
+ L1gen(&ctp);
  //L2read(&ctp);
 }

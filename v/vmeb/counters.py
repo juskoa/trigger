@@ -309,7 +309,7 @@ class VMECounter:
 #LTU: name, rel.address, CGT, help
 LTUvicnts={
 "time":(0,"T","Elapsed time (in 0.4micsecs counts)"),
-"in_busy1":(1,"T","Subdetector BUSY1 input timer"),
+"in_busy1":(1,"T","Subdetector BU/readTablesClient.cSY1 input timer"),
 "in_busy2":(2,"T","Subdetector BUSY2 input timer"),
 "sbusy":(3,"T","Subdetector BUSY timer (in_busy1 OR in_busy2)"),
 "busy":(4,"T","LTU BUSY timer"),
@@ -1202,12 +1202,13 @@ orc_error  -Orbit record with error
     self.addw=None
   def hidemrm(self,event):
     #print "hidemrm...",event.widget
+    #print "       ...", self.mrmaster
     if self.perrep>0:
       #self.finish()
       self.perrep=0
     #if event.widget== self.mrmaster:   #invoked as the very last
     if myw.compwidg(event, self.mrmaster):
-      #print "hidemrm-mrmaster...",event.widget
+      print "hidemrm-mrmaster...",event.widget
       self.finish()
       if self.saveconf:
         cf= open(self.defcounters,"w")

@@ -95,7 +95,12 @@ char parname[MAXPARNAME];
 char line[MAXLINELENGTH], value[MAXLINELENGTH];
 char emsg[ERRMSGL];
 cfgfile=openFile("ctp.cfg","r");
-if(cfgfile == NULL) return(1);
+if(cfgfile == NULL) {
+  printf("ctp.cfg not present...\n");
+  return(1);
+} else {
+  printf("ctp.cfg load...\n");
+};
 while(fgets(line, MAXLINELENGTH, cfgfile)){
   int rc; w32 ival;
   //printf("Decoding line:%s:\n",line);

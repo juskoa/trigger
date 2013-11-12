@@ -405,7 +405,7 @@ Middle-> modify the invert bit (only for classes 45-50)
     #print "classesDestroyed3:",type(event.widget), '\n:', type(self.caclstl)
     #print "keycode keysym:",event.keycode, event.keysym
     if myw.compwidg(event, self.caclstl):
-      print "==========",dir(event)
+      #print "==========",dir(event)
       self.caclstl=None
     #self.caclstl=None    # this line added 31.10.2013
     #if (event.widget==self.canvas) or (event.widget==self.caclstl):
@@ -1152,11 +1152,11 @@ class Klas(Genhw):
     if ibit>=200:
       inputs= self.l2definition
       inverted= self.l2definition>>12
-      minInverted= 45
+      minInverted= 1 #45
     elif ibit>=100:
       inputs= self.l1definition
       inverted= self.l1inverted
-      minInverted= 45
+      minInverted= 1 #45
     else:
       inputs= self.l0inputs
       inverted= self.l0inverted

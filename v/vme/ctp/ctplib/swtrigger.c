@@ -19,6 +19,7 @@ can be invoked togethether with physics triggers being active)
 #define TIMEOUT 100      /* <10 with mysleep(10) */
 #define DBGswtrg2 1
 #define DBGswtrg3 1
+#define DBGswtrg4 1
 w32 ifoglob[NFO];
 /* read CALIBRATION_BC from ltuproxy. Return -1 if more detectors
 involved or unknow detector
@@ -159,7 +160,7 @@ word=(1<<24)+ctprodets;
     //};
   };
 vmew32(L2_TCSET,word);        // L2 board p/f off
-if(DBGswtrg) printf("setswtrig:L2_TCSET set to:%x\n", word);
+if(DBGswtrg4) printf("setswtrig:L2_TCSET set to:%x\n", word);
 vmew32(INT_TCSET,INTtcset);   // INT board
 /* set BUSY_CLUSTER word (bits 23..0 for detectors 24..1 connected to BUSY)
 */
@@ -172,7 +173,7 @@ for(i=1;i<NCLUST+1;i++){
   bsysc[i]=vmer32(BUSY_CLUSTER+i*4);
 };
 overlap= calcOverlap(bsysc); vmew32(BUSY_OVERLAP, overlap);
-if(DBGswtrg) {
+if(DBGswtrg4) {
   printf("setswtrig: BUSY/SET_CLUSTER: 0x%x BUSY_OVERLAP:0x%x ctprodets:0x%x\n", 
     busyclusterT, overlap, ctprodets);
 };
@@ -186,7 +187,7 @@ for(idet=0;idet<NDETEC;idet++){
       testclust[ifo]=testclust[ifo] | 0x100000 ;
     };
     rocs[ifo]=rocs[ifo]+(roc<<(4*iconnector));  
-    if(DBGswtrg) {printf(
+    if(DBGswtrg4) {printf(
       "setswtrig ifo=%i icon=%i testcl=0x%x roc=0x%x BC:%d dets:0x%x\n",
         ifo,iconnector,testclust[ifo],rocs[ifo], BC, ctprodets);
     };
@@ -198,7 +199,7 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
     w32 vmeaddr;
     vmeaddr= FO_TESTCLUSTER+BSP*(ifo+1);
     ifoglob[ifo]= testclust[ifo] | rocs[ifo];
-    if((DBGswtrg==1)&&(testclust[ifo]!=0)) printf("setswtrig FO:%d Waddr: 0x%x data: 0x%x\n",
+    if((DBGswtrg4==1)&&(testclust[ifo]!=0)) printf("setswtrig FO:%d Waddr: 0x%x data: 0x%x\n",
       ifo, vmeaddr, rocs[ifo] | testclust[ifo]);
     vmew32(vmeaddr, rocs[ifo] | testclust[ifo]);
   }
@@ -392,7 +393,7 @@ while(((flag&0xc) == 0) && i<TIMEOUT) {   //wait L2a/L2r ACK
   mysleep(10);
   i++;
 };
-//if(DBGswtrg) printf("  l2ackn:0x%x loops(10us sleep) %i \n",flag, i);
+//if(DBGswtrg4) printf("  l2ackn:0x%x loops(10us sleep) %i \n",flag, i);
 if(i >= TIMEOUT){
   printf("startswtrig: Timeout at l2ackn. \n");
   ret= 7; goto RET;
@@ -412,24 +413,12 @@ if(flag == 4){         // L2r ack
  printf("ret= %i \n",ret);
  */ 
 RETERR:
-if(DBGswtrg) printf("startswtrig: %d %s\n", ret, reason[ret] );
+if(DBGswtrg4) printf("startswtrig: %d %s\n", ret, reason[ret] );
 RET:  clearflags(); 
 return(ret);
 }
 
-/*FGROUP DebCon   --------------------------------------------- GenSwtrg
-Generate n software trigger sequences
-Operation:
--check if all detectors are in global (ctpproxy shared memory)
--setswtrig()
--while(n) startswtrig()
-
-Parameters: see setswtrig()
-customer: number 0..1
-0: SOD/EOD/SYNC generation initiated from ctp_proxy
-1: calibration triggers from gcalib task
-2: dimservices.c (usually not used) + ctp.exe (expert sw) + ctpt.exe
-
+/* ------------------------------------------------------------ GenSwtrg 
 orbitn: orbit number read just before the first trigger generation, i.e.
         it is always <= of ORBITID of the sw. trigger event
 RC: number of L2a successfully generated, or
@@ -490,7 +479,7 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
 };
 RELEASERET:
 unlockBakery(&ctpshmbase->swtriggers, customer);
-if(DBGswtrg) {
+if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
   printf("l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
@@ -498,6 +487,11 @@ if(DBGswtrg) {
 TRIGTYPE='.';
 // return i;
 return l2a;
+}
+/* see ctplib.h */
+int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors) {
+w32 orbitn;
+return(GenSwtrg(ntriggers, trigtype, roc, BC, detectors, 2, &orbitn ));
 }
 /* called only in case of problem with gcalib. Idea: print
 out (vmew32f()) all vme access */

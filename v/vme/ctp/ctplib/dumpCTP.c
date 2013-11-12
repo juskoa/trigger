@@ -19,7 +19,7 @@ void dumpL0(FILE *f){
  w32 word1,word2,word3;
  w32 rates[NCLASSES];
 w32 l0invAC; int i, minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44; };
+l0invAC=L0_INVERTac; minAC=0;
 /* rates: */
 vmew32(RATE_MODE,1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
