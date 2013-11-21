@@ -20,4 +20,5 @@ Synchronisation of Orbit counters on INT board cahnged to fit
 longer L2a time (TL2 = 4208).
 5.9.2011
 int_logic_aa.rbf. Now only 1024-2047 BCids are used for INT/L2 sync.
-
+13.11.2013
+int_logic_verAB.rbf   -first version for run2 (100 classes, new readout)

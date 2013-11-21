@@ -12,7 +12,7 @@ it should differentiate between real and non-real SSM.
 key preparation for finding fname in fixsmsmode now correct 
 '''
 from Tkinter import *
-import os, os.path, string
+import os, os.path, string, time
 cfdir= os.environ['VMECFDIR']
 bdir= os.environ['VMEBDIR']
 os.chdir(cfdir)
@@ -50,6 +50,8 @@ class SSM:
       "Bad mode/op:7"
       ]
   CTPactions= [["Read","Read"], ["Write","Write"], 
+      ["INMON: record AFTER-27ms (1pass)+READ","R0x00a"],
+      ["OUTMON: record AFTER-27ms (1pass)+READ","R0x002"],
       ["INMON: record AFTER-27ms (1pass)","0x00a"],
       ["OUTMON: record AFTER-27ms (1pass)","0x002"],
       ["INMON: record BEFORE -(continuous)","0x00b"],
@@ -151,6 +153,10 @@ Set CS1 CS2 flags before starting GEN/MON operation.
           (self.smsix+20, pos, ssmctl.btimeout.getEntry()))
         # board 21: stop L0 + L1
     else:
+      waitread= False
+      if om[:3]== "R0x":
+        # special case: "R..." -> 27ms IN/OUT mon + WAIT 27ms + READ
+        om= om[1:] ; waitread= True
       om=eval(om) | (self.status&0x30)
       hexstr= vb.io.execute("setomSSM(%d,0x%x)"%(self.smsix,om),
         applout="<>")[0]
@@ -158,6 +164,10 @@ Set CS1 CS2 flags before starting GEN/MON operation.
         vb.io.write(hexstr+' -from setomSSM, action not started\n')
       else:
         hexstr= vb.io.execute("startSSM1(%d)"%(self.smsix))
+        if waitread:
+          self.readssmst()
+          time.sleep(0.030)
+          intstr= vb.io.execute("readSSM(%d)"%(self.smsix))
     self.readssmst()
   def modcs(self):
     self.status= self.lstatus.getEntry()

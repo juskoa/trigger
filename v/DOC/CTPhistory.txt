@@ -122,5 +122,11 @@ bakery: the swtrigger lock now separated for ctp (2) and dims (3).
 GenSwtrg_op() -special for ctp interface
 Note: slightly different for run1 version (also modified)
 11.11.2013
-vmeb/tigdb.py cables   -added, printing the names of all L0+L1+L2 inputs
+vmeb/trigdb.py cables   -added, printing the names of all L0+L1+L2 inputs
 in L0.INPUTS + VALID.CTPINPUTS.
+18.11.
+trigger@aldaqctp2 -daq readout ok (see
+trigger@altri1:$VMEWORKDIR/WORK/pat1.txt)
+20.11.2013
+ssmbrowser: allows save/restore including SSMs content
+yet todo: stdalone browser for browsing on any comp (not vme)

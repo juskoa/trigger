@@ -561,7 +561,7 @@ return(rc);
 }
 /*FGROUP DebugSSMcalls
 ------------------------------------------------------ dumpSSM()
-write whole sms[].sm into hardware
+read SSM from hw and write it into file
 Input:
 board: board according to sms global array
 rc:    0: no errors found during writing
@@ -746,6 +746,17 @@ return 0;
 
 int dumpssm(int board,char *fname){
 return(dumpssm_compress(board,fname, 0));
+}
+/*FGROUP SSMcalls
+*/
+int readSSMDumpMode(int board,char *filename, char *mode){
+int rc;
+rc= readSSMDump_compress(board,filename, 0);
+if(rc==0) {
+  if(strlen(mode)> (MAXSSMMODE-1)) return(5);
+  strcpy(sms[board].mode, mode);        
+};
+return(rc);
 }
 int readSSMDump(int board,char *filename){
 return(readSSMDump_compress(board,filename, 0));

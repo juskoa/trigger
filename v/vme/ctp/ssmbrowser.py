@@ -28,12 +28,13 @@ class BSnames:
     siginst -instance of SSMsig (SSMsig+BSnames -> 1 line in SSMbrowser win)
     brdix   - index into siginst.brinst.sms (STRING)
     """
-    #print "BSnames brdix:",brdix, type(brdix)
+    #print "BSnames brdix:",brdix, type(brdix), "siginst:", siginst
     self.siginst=siginst
     sms=self.siginst.brinst.sms[eval(brdix)]
     self.fbname=sms[1]
     self.brdix=brdix
     self.signal=None
+    #print "BSnames ssmboards:",self.siginst.brinst.ssmboards
     if siginst.brinst.ssmboards!=None:
       self.board= myw.MywxMenu(self.siginst.topfr, label='SSM:',
         helptext="""
@@ -155,6 +156,10 @@ class SSMsig:
   colOffsetBg='#ccff00'
   colNotSync='#ff0000'
   def __init__(self,brinst,ssmix,ssmixbit='0'):
+    """ brinst: SSMbrowser instance
+        ssmix:  SSMindex (0:busy, 1:l0, ...)
+        ssmixbit: SSM bit (0..31)
+    """
     #self.fr=brinst.fsigs
     self.brinst=brinst
     self.ssmix= ssmix   # STRING -ssm identification (ix to sms)
@@ -325,6 +330,8 @@ Signal values (0->green, 1->red).
     #print "canvasDestroyed:"
 
 class SSMbrowser:
+  saveactions= [["Save signals","names"], ["Save also the content of SSMs", "ssms"]]
+  restactions= [["Restore signals","names"], ["Restore also the content of SSMs", "ssms"]]
   def __init__(self,vb):
     #import pdb ; pdb.set_trace()
     self.vb=vb
@@ -355,15 +362,19 @@ i.e. unsynchronised SSMs can be viewed too.
 Redraw the signals on the screen. Note: SSM on the board is not read
 into computer memory -the refresh is done only from computer memory
 """)
-    self.savebut= myw.MywButton(self.fbuts, label="Save shown signals",
-      cmd=self.savesigs, side=LEFT, helptext="""
-Save choosen boards/bits names for future restore with new instance 
-of SSMbrowser and pressing Restore button
+    #self.savebut= myw.MywButton(self.fbuts, label="Save shown signals",
+    self.savebut= myw.MywxMenu(self.fbuts, side=LEFT, defaultinx=0,
+      label='', items=SSMbrowser.saveactions,
+       cmd=self.savesigs,helptext="""
+Save choosen boards/bits names, possibly with SSMs content,
+for future restoration with new instance of SSMbrowser and pressing Restore button
 """)
-    self.restorebut= myw.MywButton(self.fbuts, label="Restore signals",
+
+    self.restorebut= myw.MywxMenu(self.fbuts, label="",
+      defaultinx=0, items=SSMbrowser.restactions,
       cmd=self.restoresigs, side=LEFT, helptext="""
-Restore shown signals from file created before by 'Save shown signals'
-button.
+Restore shown signals, optionally with SSMs content, from file(s)
+saved before by 'Save shown signals' button.
 """)
     llbut= myw.MywButton(self.fbuts, label="<<",
       cmd=myw.curry(self.shiftsigs,0), side=LEFT)
@@ -418,27 +429,51 @@ the numbers-boardnames of boards with synchronised SSMs.
   def refreshsigs(self):
     for nt in self.sigs:
       nt.draw()
-  def savesigs(self):
-    """ savedsigs[] -list of ['ssmix', 'ssmixbit']
+  def savesigs(self, inst, ix):
+    om= self.savebut.getEntry()
+    print "savesigs:",ix, om, type(om)
+    if om=="names":
+      self.savesigs_ssm(False)
+    elif om=="ssms":
+      self.savesigs_ssm(True)
+  def savesigs_ssm(self, dumpssm):
+    """ savedsigs[] -list of ['ssmix', 'ssmixbit', mode]
     """
+    sssfile= SavedSignals[0].show()
+    print "savesigs_file:",type(sssfile),sssfile
+    if sssfile=='': return
+    basenam= os.path.splitext( os.path.basename(sssfile))
     savedsigs=[]
     for nt in range(len(self.sigs)):
-      savedsigs.append([self.sigs[nt].ssmix, self.sigs[nt].ssmixbit])
+      #itm= [self.sigs[nt].ssmix, self.sigs[nt].ssmixbit]
+      mode= self.sms[int(self.sigs[nt].ssmix)][1]
+      itm= [self.sigs[nt].ssmix, self.sigs[nt].ssmixbit, mode]
+      savedsigs.append(itm)
       #print "savesigs:",self.sms[int(self.sigs[nt].ssmix)],':', savedsigs[nt]
-    sssfile= SavedSignals[0].show()
-    if sssfile:
-      sf=shelve.open(sssfile)
-      sf['savedsigs']= savedsigs
-      #print "savesigs:",savedsigs
-      sf.close()
-  def restoresigs(self):
+      print "savesigs_itm:", itm
+      if dumpssm:
+        #  (ssmixbit, ssmix, self.sms[int(ssmix)][0])
+        ssmname= "%s_%s.ssm"%(basenam[0],itm[0])
+        rc= self.vb.io.execute('dumpSSM(%s,"%s")'%(itm[0],ssmname), applout="<>")
+    sf=shelve.open(sssfile)
+    sf['savedsigs']= savedsigs
+    #print "savesigs:",savedsigs
+    sf.close()
+  def restoresigs(self, inst, ix):
+    om= self.restorebut.getEntry()
+    print "restsigs:",ix, om, type(om)
+    if om=="names":
+      self.restoresigs_ssm(False)
+    elif om=="ssms":
+      self.restoresigs_ssm(True)
+  def restoresigs_ssm(self, restssm):
     sssfile= SavedSignals[1].show()
     if not sssfile: return
     sf=shelve.open(sssfile)
     if not sf.has_key('savedsigs'): return
     savedsigs=sf['savedsigs']
     sf.close()
-    #print "restoresigs:",savedsigs
+    basenam= os.path.splitext( os.path.basename(sssfile))
     #for sig in self.sigs:
     for isig in range(len(self.sigs)):
       #print "restoresigs:", self.sigs[0].ssmix, len(self.sigs)
@@ -451,19 +486,64 @@ the numbers-boardnames of boards with synchronised SSMs.
     for nt in range(len(savedsigs)):
       ssmix= savedsigs[nt][0]
       ssmixbit= savedsigs[nt][1]
-      if self.sms[int(ssmix)][1]=='nossm':
-        msg="SSM not read, bit %s for board:%s(%s) not restored\n"%\
-          (ssmixbit, ssmix, self.sms[int(ssmix)][0])
-        self.vb.io.write(msg)
-        continue
-      self.sigs.append(SSMsig(self, ssmix, ssmixbit))
+      if len(savedsigs[nt])>=3:
+        modeix= savedsigs[nt][2]   # intended mode saved before
+      else:
+        modeix= ""
+      brmode= self.sms[int(ssmix)][1]
+      #print "restoresigs:", ssmix, ssmixbit, modeix, "brmode:",brmode, "restssm:", restssm
+      #   mode= self.sms[int(self.sigs[nt].ssmix)][1]
+      #itm= [self.sigs[nt].ssmix, self.sigs[nt].ssmixbit, mode]
+      #print "restoresigs_itm:", self.sigs[nt]
+      if brmode=='nossm':
+        if not restssm:
+          msg="SSM not read, bit %s for board:%s(%s) not restored\n"%\
+            (ssmixbit, ssmix, self.sms[int(ssmix)][0])
+          self.vb.io.write(msg)
+          continue
+        #if SSM to be restored also, try to overwrite their content anyhow
+      if brmode!=modeix:
+        if not restssm:
+          msg="W: Bit %s for board:%s(%s) mode:%s but browser is using: %s\n"%\
+            (ssmixbit, ssmix, self.sms[int(ssmix)][0], modeix, brmode)
+          self.vb.io.write(msg)
+          continue
+        # if SSM see comment above
+      if restssm:
+        # 1. check if SSM available:
+        #  (ssmixbit, ssmix, self.sms[int(ssmix)][0])
+        ssmname= "WORK/%s_%s.ssm"%(basenam[0],ssmix)
+        #brmode= self.sms[int(ssmix)][1]
+        # modeix: "l2_inmon"  -> modeonly: "inmon"
+        # netreba modeonly= modeix[ string.find(modeix,"_")+1:]
+        #print "restoresigs2:", ssmname   #, modeonly
+        # change also mode according to restored mode:
+        rc= self.vb.io.execute('readSSMDumpMode(%s,"%s","%s")'%\
+          (ssmix, ssmname,modeix), applout="<>")
+        #rc= self.vb.io.execute('readSSMDump(%s,"%s")'%(ssmix, ssmname))
+        # rc: '<1>\n' if file does not exist
+        #rc= self.vb.io.execute('readSSMDump(%s,"%s")'%(ssmix, ssmname), applout="<>")
+        # rc: ['1'] if file does not exist
+        #print "restoresigs3:%s:"%rc, rc
+        if rc[0]=='0':
+          # 2. SSM available and restored. Now show the signal row in browser:
+          # refresh:
+          self.findAllSMS(); self.dossmboards()
+          #self.sms[ssmix]   "_nomode"
+          self.sigs.append(SSMsig(self, ssmix, ssmixbit))
+        else:
+          self.vb.io.write("%s not restored\n"%(ssmname))
+      else:
+        # restore only a signal row in browser:
+        self.sigs.append(SSMsig(self, ssmix, ssmixbit))
     self.refreshsigs()
   def findAllSMS(self):
-    """
+    """ Return:
     self.sms: list of [name,mode]
     name: busy,l0,l1,l2,fo1,fo2,...,fo6,ltu1,...,ltu4
-    mode: nossm  - ssm not read (or board missing)
-          _nomode - empty mode
+    mode: nossm    -ssm not read (or board missing)
+          notin    -board not in
+          _nomode  -empty mode
     """
     self.sms=[]
     lines= string.split(self.vb.io.execute("gettableSSM()","NO"),"\n")
