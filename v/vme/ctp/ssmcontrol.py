@@ -127,6 +127,12 @@ Symbolic meaning of SSMstatus[2..0] bits.
       label= '', bits= self.ltuctpbits, cmd=self.modcs,helptext="""
 Symbolic meaning of SSMstatus[7..2] bits.
 Set CS1 CS2 flags before starting GEN/MON operation. 
+Certainly for fo* operations:
+CS2 CS1  command      ssmsigs_file
+------------------------------------
+0   0   fo OUTMON     fo_inmonl0.sig
+0   1   fo OUTMON     fo_inmonl1.sig
+1   0   fo OUTMON     fo_inmonl2.sig
 """)
     self.readssmst()
   def action(self,mywxinst,ix):

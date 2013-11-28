@@ -18,3 +18,6 @@ fo_logic_02_l1error.rbf
 as 01 + glitches detection
 22.3.2012
 fo_ae.rbf -added 4 counters 48..51 counting L2a only
+21.11.2013
+fo_logic_verAF.rbf
+- new L2a messages with 100 classes
