@@ -147,4 +147,11 @@ TSI148: VME driver for the single-board
 computer Fastwel CPC600 with the VME bridge Tundra Tsi148
 8.11.2013
 checkSEU() added in Simple  tests menu
+2.12.2013
+ltu_proxy: daqlogbook_update_LTUConfig() call
+todo: 
+1. replace it by DIM call (like com2daq in ctplib/ttcmisubs.c)
+   i.e. NO daqlogbook usage on VME comps (infoLogger is using mysql libs anyhow)
+2. abandon idea of (1.), and arrange daqlogbook+mysql linking on VME comps
+   (as it was during run1)
 

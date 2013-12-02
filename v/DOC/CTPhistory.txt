@@ -130,3 +130,5 @@ trigger@altri1:$VMEWORKDIR/WORK/pat1.txt)
 20.11.2013
 ssmbrowser: allows save/restore including SSMs content
 yet todo: stdalone browser for browsing on any comp (not vme)
+28.11.
+python -m compileall .   -recompile 

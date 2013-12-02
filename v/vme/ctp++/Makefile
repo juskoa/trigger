@@ -1,4 +1,5 @@
-FILE          = generL1
+FILE          = l0l1l2
+#FILE          = generL1
 
 CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -I$(VMEBDIR)/../vme/ctp++/src
