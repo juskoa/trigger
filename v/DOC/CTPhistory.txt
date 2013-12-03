@@ -134,3 +134,11 @@ yet todo: stdalone browser for browsing on any comp (not vme)
 python -m compileall .   -recompile 
 3.11.
 ltu_proxy: daqlogbook usage moved to pydim/server.c (see history.txt)
+ctplib/ttcmisubs.c moved to ttcmi/ttcmisubs.c (vme/ttcmidaemons linking
+also modified accordingly)
+3.12.
+makeall ok on bhm10+altrip2, i.e.:
+script -c 'makeall allctp clean' ~/makeall_allctp.log
+script -c 'makeall allltu clean' ~/makeall_allltu.log
+script -c 'makeall others clean' ~/makeall_others.log
+

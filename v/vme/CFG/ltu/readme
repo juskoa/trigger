@@ -63,3 +63,6 @@ Differencies:
 - SERIAL_NUMBER is 7 bits (was 6bits), and LTUs serial numbers 
   are > 63, i.e. 64,65,... (seems it is 0 if not scratched on ltu2 board)
 
+3.12.2013
+ltu2_b7.rbf  -100 classes CTP emulator (15 words/instruction), NEW BORDS ONLY
+
