@@ -18,19 +18,19 @@ ifdef SERVER_LINK
 S_OBJS = $(S_OBJSCOM)
 else
 #compiled/linked on client:
-# Partition.o
+# Partition.o ttcmisubs.o: moved to vme/ttcmi
 S_OBJS = $(S_OBJSCOM) readBICfile.o readTablesClient.o timingpars.o \
  calcOverlap.o bcmask.o shared.o Tpartition.o \
  checkCTP.o notInCrate.o readCounters.o initCTP.o swtrigger.o \
  scope.o i2ctemp.o  inputsTools.o busyTools.o dumpCTP.o \
- phase.o pfp.o bobr.o ttcmisubs.o ctpTools.o
+ phase.o pfp.o bobr.o ctpTools.o
 # intint.o
 # mysqlwrap.o
 endif
 $(info S_OBJS:$(S_OBJS))
 all: libctp.a
 libctp.a: $(S_OBJS)
-	-rm libctp.a
+	-rm -f libctp.a
 	ar rs libctp.a *.o
 
 .o: .c 
@@ -51,8 +51,8 @@ Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h $(CTPinc)/Tpartition.h
 #	$(CC) $(CFLAGS) -c -o $@ $<
 mysqlwrap.o: mysqlwrap.c
 	$(CC) $(MYSQLCFLAGS) -c -g -o $@ $<
-ttcmisubs.o: ttcmisubs.c
-	$(CC) $(CFLAGS) -I/opt/dim/dim -c -g -o $@ $<
+#ttcmisubs.o: ttcmisubs.c
+#	$(CC) $(CFLAGS) -I/opt/dim/dim -c -g -o $@ $<
 clean:
-	-rm *.o
+	-rm -f *.o
 

@@ -25,10 +25,8 @@ if [ -n "$1" ] ;then
   fi
 fi
 # let's abandon ult,rdir (not use below!) . vdir: stable/v or dvlp/v (in lab)
-if [ "$hname" = 'alidcscom026' -o "$hname" = 'avmes' ] ;then
+if [ "$hname" = 'pcalicebhm10' -o "$hname" = 'avmes' ] ;then
   ult=/home/dl6/local/trigger
-elif [ "$hname" = 'pcalicebhm10' ] ;then
-  ult=/home/dl/root/usr/local/trigger
 elif [ "$hname" = 'alidcscom188' ] ;then
   ult=/data/dl/root/usr/local/trigger
 elif [ "$hname" = 'alidcscom835' ] ;then
@@ -78,11 +76,11 @@ if [ "$ix" = '6' ] ;then   #pit
   fi
 else
   # lab environment:
-  if [ `uname -r` == "2.6.18-194.26.1.el5" ] ;then
-    export SMAQ_C=pcalicebhm10
-  else
+  #if [ `uname -r` == "2.6.18-194.26.1.el5" ] ;then
+  #  export SMAQ_C=pcalicebhm10
+  #else
     export SMAQ_C=avmes
-  fi
+  #fi
   export VMESITE=SERVER
   export VMEGCC=g++
   export DIM_DNS_NODE=pcald30

@@ -154,4 +154,9 @@ todo:
    i.e. NO daqlogbook usage on VME comps (infoLogger is using mysql libs anyhow)
 2. abandon idea of (1.), and arrange daqlogbook+mysql linking on VME comps
    (as it was during run1)
-
+3.11.
+option 1. done, i.e.:
+daqlogbook access from pydim/server.c. ltu_proxy uses ltucfg2daq().
+Possible problem: 
+for private lab setup, pydim server is not available -i.e.
+I keep also original option commented in case it is needed.

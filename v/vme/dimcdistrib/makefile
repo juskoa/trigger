@@ -47,7 +47,7 @@ $(ODIR)/dimccounters2.o:$(SDIR)/dimccounters2.$(SFX) $(SDIR)/ctpcounters.h
 $(ODIR)/allrare_client.o:$(SDIR)/allrare_client.$(SFX) $(SDIR)/dimctypes.h
 	$(CC) $(CFLAGS) -c -o $(ODIR)/allrare_client.o allrare_client.$(SFX)
 $(ODIR)/dimcswtrg.o:$(SDIR)/dimcswtrg.$(SFX) $(SDIR)/dimctypes.h
-	-mkdir $(ODIR)
+	-mkdir -p $(ODIR)
 	$(CC) $(CFLAGS) -c -o $@ dimcswtrg.$(SFX)
 $(ODIR)/dimcltus.o:$(SDIR)/dimcltus.$(SFX) $(SDIR)/dimctypes.h
 	$(CC) $(CFLAGS) -c -o $(ODIR)/dimcltus.o dimcltus.$(SFX)
@@ -55,5 +55,5 @@ $(ODIR)/server.o:$(SDIR)/server.c $(SDIR)/ctpcounters.h
 	$(CC) $(CFLAGS) -c -o $(ODIR)/server.o server.c
 	$(CC) $(CFLAGS) -c -o $(ODIR)/dimccounters.o dimccounters.$(SFX)
 clean:
-	-rm $(ODIR)/*.o
+	-rm -f $(ODIR)/*.o
 

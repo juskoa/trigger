@@ -45,5 +45,5 @@ $(EXEDIR)/comment2daqlog: comment2daqlog.c
 $(EXEDIR)/act_main: act_main.c $(VMEBLIB)/libvmeb.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 clean:
-	-rm $(allEXES) *.o
+	-rm -f $(allEXES) *.o
 

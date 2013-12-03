@@ -28,6 +28,11 @@ Operation:
 #include "vmewrap.h"
 #include "vmeblib.h"
 #include "daqlogbook.h"
+// Tltucfg1 from the following:
+#define ONLY_Tltucfg1
+#include "../ltu_proxy/ltu_utils.h"
+#undef ONLY_Tltucfg1
+
 #include "ctp.h"
 #include "ctplib.h"
 #define DBMAIN
@@ -60,7 +65,7 @@ int ignoreDAQLOGBOOK=0;
 
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
-int INT1id, INT2id, CSid, CTPRCFGRCFGid, CTPRCFGid,C2Did;
+int INT1id, INT2id, CSid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did;
 char INT1String[MAXINT12LINE]="int1 source";
 char INT2String[MAXINT12LINE]="int2 source";
 #define MAXCSString 80000
@@ -78,6 +83,7 @@ int actdb_getPartition(char *name, char *filter, char *actname, char *actver);
 void stopserving() {
 dis_remove_service(CTPRCFGRCFGid);
 dis_remove_service(CTPRCFGid);
+dis_remove_service(LTUCFGid);
 dis_remove_service(C2Did);
 dis_remove_service(INT1id);
 dis_remove_service(INT2id);
@@ -272,6 +278,16 @@ if(rc==0) {
   };
 };
 }
+/*--------------------*/ void DOltucfg(void *tag, void *bmsg, int *size)  {
+// bmsg: binary message Tltucfg
+Tltucfg1 *dain; int rc;
+dain= (Tltucfg1 *)bmsg;
+printf("INFO Dltucfg len:%d run:%d det:%s\n",*size,dain->run,dain->detector); 
+rc= daqlogbook_update_LTUConfig(dain->run, dain->detector,
+  dain->LTUFineDelay1, dain->LTUFineDelay2, dain->LTUBCDelayAdd);
+// INFO msg in daqlogbook...
+}
+
 /*--------------------*/ void DOcom2daq(void *tag, void *msg, int *size)  {
 // msg: runN "title" "comment" 
 int ixl, runN; char errmsg[200]="";
@@ -749,8 +765,13 @@ printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGRCFGid);
 sprintf(cmd, "%s", servername);   // CTPRCFG binary (after LS1) RCFG request
 CTPRCFGid= dis_add_cmnd(cmd,NULL, DOrcfg, 89);
 printf("INFO DIM cmd:%s id:%d\n", cmd, CTPRCFGid);
+
+sprintf(cmd, "%s/LTUCFG", servername);   // LTUCFG binary (after LS1)
+LTUCFGid= dis_add_cmnd(cmd,NULL, DOltucfg, 90);
+printf("INFO DIM cmd:%s id:%d\n", cmd, LTUCFGid);
+
 sprintf(cmd, "%s/COM2DAQ", servername);   // CTPRCFG/COM2DAQ
-C2Did= dis_add_cmnd(cmd,NULL, DOcom2daq, 90);
+C2Did= dis_add_cmnd(cmd,NULL, DOcom2daq, 91);
 printf("INFO DIM cmd:%s id:%d\n", cmd, C2Did);
 
 // services:

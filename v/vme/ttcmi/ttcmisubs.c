@@ -21,8 +21,8 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 #else
 #include <dic.h>
 #endif
-#include "ctplib.h"
-#include "../../ttcmi/ttcmi.h"
+//von #include "ctplib.h"
+#include "ttcmi.h"
 
 //#include "/opt/libDAQlogbook/DAQlogbook.h"
 //----------------------------------------- corde board:
@@ -193,7 +193,8 @@ FILE *cf; int sp;
 char fname[200]; char *environ;
 environ= getenv("VMEWORKDIR");
 sprintf(fname,"%s/CFG/clockshift", environ);
-cf= openFile(fname,"r");
+//cf= openFile(fname,"r");
+cf= fopen(fname,"r");
 if(cf != NULL) {
   sp=fread((void *)mem, 1, maxlen-1, cf); 
   mem[sp]='\0';

@@ -48,5 +48,5 @@ $(ODIR)/server.o:$(SDIR)/server.c ../ctp/ctpcounters.h
 $(ODIR)/sendcomm.o:$(SDIR)/sendcomm.c ../ctp/ctpcounters.h
 	$(CC) $(CFLAGS) -c -o $(ODIR)/sendcomm.o sendcomm.c
 clean:
-	-rm linux/*.o
+	-rm -f linux/*.o
 

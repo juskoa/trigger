@@ -17,5 +17,5 @@ endif
 $(ODIR)/client:	$(SDIR)/client.c $(DIMDIR)/$(ODIR)/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/client.c -L$(DIMDIR)/linux -ldim -o $(ODIR)/client $(LIBS)
 clean:
-	-rm $(ODIR)/*.o $(ODIR)/client $(ODIR)/server
+	-rm -f $(ODIR)/*.o $(ODIR)/client $(ODIR)/server
 

@@ -26,54 +26,6 @@ int getlhcpp(int vsp, int bstn, int waitforpp, Tlhcpp *lhcpp);
 void nextBSTdcs(int vspbobr, w32 *bstmsg, int bstn);
 void getlhc2ctpOrbit(int vspbobr, w32 *bst2ctp, w32 *bst3124);
 
-#define CORDE_DELREG 7
-w32 corde_get(int del);  // 1..7. VME is opened/closed with each call!
-void corde_set(int del, w32 val); // detto
-w32 corde_shift(int del, int shift, int *origval);  //detto
-w32 i2cread_delay(w32 delayadd);
-void i2cset_delay(w32 delayadd, int halfns);
-void micrate(int present);
-int micratepresent();
-
-void shiftCommentInDAQ(int halfns, int cordeval, 
-  int dbhalfns, int dbcordeval, char *fineshift);
-
-/* FGROUP
-Input: maino: 
-1 -> BC1/Orbit1
-2 -> BC2/Orbit2
-3 -> BCref/int BCmain synch. orbit generator
-4 -> internal 40.078MHz/int BCmain synch. orbit generator
-Operastion:
-- compare 2 regs on ttcmi and corde board with $dbctp/clockshift
-- set new values in these regs if different
-- 'Clock shift' comment to daqlogbook
-- change clock 
-- 'CLOCK' comment written into DAQ logbook
-Note (todo?):
-It seems, for
-A. BC2/ORB2 or BC1/ORB1 we should set ORB1_MAN_SELECT=ORB2_MAN_SELECT=0
-B. BCREF/
-C. localBC/
-*/
-void setbcorbitMain(int maino);
-/*FGROUP
-read QPLL* and TTCrx status bits.
-RC: 0xTAB
-T: bit 8. 1: TTCrx ok
-A: [7..6] BC1 error,locked (i.e. 01 correct)
-   [5..4] BC2
-B: [3..2] BCref
-   [1..0] BCmain
-I.e. 0x155 is correct status of all 9 bits
-     0x1aa error in both BC, was not locked. NEXT READING is 0x155 !
-*/
-w32 readstatus();
-#define DLL_stdout 1
-#define DLL_daq 2
-#define DLL_info 4
-void DLL_RESYNC(int msg);
-
 //readtables.c:
 FILE *openFile(char *fname, char *rw);
 int readdbfile(char *fname, char *mem, int maxlen);

@@ -40,7 +40,6 @@ RF2TTC: BST fibre is marked 41994C XF1346
 #include "infolog.h"
 #include "vmeblib.h"
 //#include "../ctp/ctplib/ctplib.h"
-#include "ctplib.h"
 #include "ttcmi.h"
 
 // following: deliberatelly leave NULL -i.e. readCounters crash if called
@@ -76,6 +75,24 @@ for(ix=0; ix<300; ix++) {
 printf("read1000: %4.1fns (%d reads) not0xDEC:%d\n",del/2.,ix, not0xDEC);
 return(not0xDEC);
 }
+/*FGROUP delays
+set delayadd with halfns value (in steps of 0.5 ns):
+#define BC_DELAY25_BC1             0x7D000
+#define BC_DELAY25_BC2             0x7D004
+#define BC_DELAY25_BCREF           0x7D008
+#define BC_DELAY25_BCMAIN          0x7D00C
+#define BC_DELAY25_GCR             0x7D014
+#define ORBIN_DELAY25_ORB1         0x7D020
+#define ORBIN_DELAY25_ORB2         0x7D024
+#define ORBIN_DELAY25_GCR          0x7D034
+#define ORBOUT_DELAY25_ORB1        0x7D040
+#define ORBOUT_DELAY25_ORB2        0x7D044
+#define ORBOUT_DELAY25_ORBMAIN     0x7D048
+#define ORBOUT_DELAY25_GCR         0x7D054
+*/
+void i2cset_delay(w32 delayadd, int halfns);
+void DLL_RESYNC(int msg);
+
 /*FGROUP calib
 orb:
 0: ORB1/BC1 -BPTX monitoring
@@ -134,23 +151,6 @@ while(1) {
   valDEL++;
 };
 }
-
-/*FGROUP delays
-set delayadd with halfns value (in steps of 0.5 ns):
-#define BC_DELAY25_BC1             0x7D000
-#define BC_DELAY25_BC2             0x7D004
-#define BC_DELAY25_BCREF           0x7D008
-#define BC_DELAY25_BCMAIN          0x7D00C
-#define BC_DELAY25_GCR             0x7D014
-#define ORBIN_DELAY25_ORB1         0x7D020
-#define ORBIN_DELAY25_ORB2         0x7D024
-#define ORBIN_DELAY25_GCR          0x7D034
-#define ORBOUT_DELAY25_ORB1        0x7D040
-#define ORBOUT_DELAY25_ORB2        0x7D044
-#define ORBOUT_DELAY25_ORBMAIN     0x7D048
-#define ORBOUT_DELAY25_GCR         0x7D054
-*/
-void i2cset_delay(w32 delayadd, int halfns);
 
 /*FGROUP delays
 read BC_DEALY25_* registers

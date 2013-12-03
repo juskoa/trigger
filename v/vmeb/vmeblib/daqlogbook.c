@@ -20,9 +20,9 @@ struct TDAQInfo
 #ifdef CPLUSPLUS
 extern "C" {
 #include "DAQlogbook.h"
-int DAQlogbook_update_LTUConfig(unsigned int run, const char *detector,
+/*von int DAQlogbook_update_LTUConfig(unsigned int run, const char *detector,
   unsigned int LTUFineDelay1, unsigned int LTUFineDelay2, 
-  unsigned int LTUBCDelayAdd);
+  unsigned int LTUBCDelayAdd); */
 }
 #else
 #include "DAQlogbook.h"
@@ -79,7 +79,7 @@ rc= DAQlogbook_close();
 rc=0;
 #endif
 if(rc==-1) {
-  prtError("DAQlogbook_close failed");
+  char em[]= "DAQlogbook_close failed"; prtError(em);
 };
 return(rc);
 }

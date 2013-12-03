@@ -1,10 +1,12 @@
 include $(VMEBDIR)/com_defs.make
 include $(VMEBDIR)/daq_defs.make
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
-LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS)
+#LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS)
+LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD)
 LIBS += $(VMERCCLD)
 
-CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(DIMDIR)/dim -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(VMECFDIR)/ctp/ctplib
+#CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(DIMDIR)/dim -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(VMECFDIR)/ctp/ctplib
+CFLAGS += -I$(DIMDIR)/dim -I$(VMEBLIB)/.. 
 LDFLAGS = -lpthread
 
 include $(VMEBDIR)/sc.make
@@ -24,10 +26,11 @@ endif
 all: $(allEXES)
 
 #------------------------------------------- ttcmidims
+$(EXEDIR)/ttcmidims: ttcmidims.o $(VMECFDIR)/ttcmi/ttcmisubs.o
+	$(CC) $(LDFLAGS) $< $(VMECFDIR)/ttcmi/ttcmisubs.o $(LIBS) -o $@
 ttcmidims.o:ttcmidims.c
 	$(CC) $(NOVME) $(CFLAGS) -c -o $@ $<
-$(EXEDIR)/ttcmidims: ttcmidims.o $(CTPLIB)/libctp.a
-	$(CC) $(LDFLAGS) $< $(LIBS) -o $@
+#
 exsctel.o:exsctel.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/exsctel: exsctel.o
@@ -45,5 +48,5 @@ $(VMEBDIR)/vmeblib/libvmeb.a:$(VMEBDIR)/vmeblib/*.c
 	cd $(VMEBDIR)/vmeblib ; make
 
 clean:
-	-rm $(allEXES) *.o
+	-rm -f $(allEXES) *.o
 

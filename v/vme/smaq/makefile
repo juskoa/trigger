@@ -33,4 +33,4 @@ smaq2.o: smaq2.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
 #	echo CFLAGS: $(CFLAGS)
 	$(CC) -g -c $(CFLAGS) -o $@ $<
 clean:
-	rm *.o *.pyc *.exe
+	rm -f *.o *.pyc *.exe

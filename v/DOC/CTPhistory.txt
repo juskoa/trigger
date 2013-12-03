@@ -132,3 +132,5 @@ ssmbrowser: allows save/restore including SSMs content
 yet todo: stdalone browser for browsing on any comp (not vme)
 28.11.
 python -m compileall .   -recompile 
+3.11.
+ltu_proxy: daqlogbook usage moved to pydim/server.c (see history.txt)

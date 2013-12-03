@@ -45,7 +45,8 @@ if(rrdpipe==NULL) {
   exit(8);
 };
 printf("rrdpipe opened, starting udp server...\n");
-udpsockr= udpopenr(PORTr); if(rc==-1) {printf("udpopenr() error\n"); exit(8);};
+udpsockr= udpopenr(PORTr); 
+if(udpsockr==-1) {printf("udpopenr() error\n"); exit(8);};
 //setlinebuf(htmlpipe);
 while(1) {
   char bufrec[BUFLEN];

@@ -6,5 +6,5 @@ EXEDIR = linux
 $(EXEDIR)/ssmanv.exe:ssmanv.c list.c
 	$(CC) $(CFLAGS) ssmanv.c -o ssmanv.exe
 clean:
-	-rm *.o *.exe
+	-rm -f *.o *.exe
 

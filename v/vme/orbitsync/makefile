@@ -13,4 +13,4 @@ myudplib.exe: myudplib.c
 orbitsyn.exe: orbitsyn.c
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
 clean:
-	-rm myudplib.exe orbitsyn.exe
+	-rm -f myudplib.exe orbitsyn.exe

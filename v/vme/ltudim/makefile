@@ -24,5 +24,5 @@ $(ODIR)/ltucmd: $(SDIR)/ltucmd.c $(DIMDIR)/$(ODIR)/libdim.a
 $(ODIR)/cmd1: $(SDIR)/cmd1.c $(DIMDIR)/$(ODIR)/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/cmd1.c -L$(DIMDIR)/linux -ldim -o $(ODIR)/cmd1 $(LIBS)
 clean:
-	-rm $(ODIR)/ltuclient $(ODIR)/ltucmd $(ODIR)/cmd1
+	-rm -f $(ODIR)/ltuclient $(ODIR)/ltucmd $(ODIR)/cmd1
 

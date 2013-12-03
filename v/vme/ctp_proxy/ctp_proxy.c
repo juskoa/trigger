@@ -137,6 +137,7 @@ rc: 0: ok .rcfg prepared, (confirmed from parted)
        or all .rcfg files moved to delmeh/
     1
     2 -bad dodel
+    3 rc from dic_cmnd_servcie !=1 (i.e. dim problem)
 daqi: global structure seen in ctp_proxy only
 */
 int prepareRunConfig(Tpartition *part, int dodel) {
@@ -224,6 +225,7 @@ if(dodel==1) {
   //dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, tag);
   rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 };
+if(rcdic!=1) rc= 3;   // dim problem?
 sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
 return(rc);
 }

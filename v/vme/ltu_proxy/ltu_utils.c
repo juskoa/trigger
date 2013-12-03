@@ -3,6 +3,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#ifdef CPLUSPLUS
+#include <dic.hxx>
+#else
+#include <dic.h>
+#endif
 
 #include "infolog.h"
 
@@ -362,4 +367,9 @@ if (sodeodecs) {
 };
 readcounters(memend,1);
 return(rc);
+}
+int ltucfg2daq(Tltucfg1 *lcp) {
+int rc;
+rc= dic_cmnd_service("CTPRCFG/LTUCCFG", (void *)lcp, sizeof(Tltucfg1));
+return(rc);   // 1: ok  !=1 dim problem?
 }

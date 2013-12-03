@@ -16,7 +16,7 @@ allEXES=$(EXEDIR)/server
 endif
 all: $(EXEDIR) $(allEXES)
 $(EXEDIR):
-	mkdir $(EXEDIR)
+	mkdir -p $(EXEDIR)
 $(EXEDIR)/server:server.c $(DIMDIR)/linux/libdim.a
 ifneq ($(VMESITE), ALICE)
 	@echo VMESITE: $(VMESITE)
@@ -28,4 +28,4 @@ endif
 $(EXEDIR)/client:client.c $(DIMDIR)/linux/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 clean:
-	-rm $(allEXES)
+	-rm -f $(allEXES)

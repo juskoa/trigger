@@ -18,6 +18,10 @@ See v/DOC/history.txt for history of modifications */
 #include "infolog.h"
 #include "vmewrap.h"
 #include "vmeblib.h"
+/* we use intermediate DIM (ltucfg2daq()...
+  #include "daqlogbook.h"
+
+   */
 #define LTUMAIN
 #include "ltu.h"
 #define PROXY_MAIN
@@ -150,15 +154,27 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
          strcpy(state,"STANDALONE_RUNNING"); smi_set_state(state);
        };
      } else if (strcmp(action,"NV_GOTOGLOBAL") == 0) {
-       w32 fd1,fd2,bcd; int rcdaq;
+       int rcdaq; 
+       Tltucfg1 ltucfg;
+       //w32 fd1,fd2,bcd; 
        Setglobalmode();
        printf("%s -->    GLOBAL.\n",obj);
        busy12(1);
        setRWMODE('R');
        strcpy(state,"GLOBAL"); smi_set_state(state);
        //von infolog_SetStream(dimservernameCAP,RUN_NUMBER);
-       fd1= templtucfg->FineDelay1; fd2= templtucfg->FineDelay2;
-       bcd= templtucfg->bc_delay_add;
+       /* ---> DIM -> alitri -> daqlogbook way: */
+       ltucfg.run= RUN_NUMBER;
+       strcpy(ltucfg.detector, dimservernameCAP);
+       ltucfg.LTUFineDelay1= templtucfg->FineDelay1; 
+       ltucfg.LTUFineDelay2= templtucfg->FineDelay2;
+       ltucfg.LTUBCDelayAdd= templtucfg->bc_delay_add;
+       rcdaq= ltucfg2daq(&ltucfg);
+       sprintf(msg,"ltucfg2daq(%d,%s,%d,%d,%d) rc:%d",
+         ltucfg.run,ltucfg.detector, ltucfg.LTUFineDelay1,
+         ltucfg.LTUFineDelay2, ltucfg.LTUBCDelayAdd, rcdaq);
+       //
+       /* --->                  daqlogbook way: 
        rcdaq= daqlogbook_open();
        if(rcdaq==-1) {
          sprintf(msg,"DAQlogbook not opened");
@@ -172,6 +188,8 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
          infolog_trg(LOG_INFO, msg);
        };
        rcdaq= daqlogbook_close();
+       */
+       infolog_trg(LOG_INFO, msg);
      } else if( strcmp(action, "SET_DEFAULT")==0) {
        //printltuDefaultsMem(templtucfg);
        if(setOptionMem(NAME, VALUE,templtucfg)!=0) {

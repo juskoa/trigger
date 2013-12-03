@@ -208,7 +208,7 @@ if(strcmp(argv[1],"c")==0) {         //-------------------------------------- cl
   int ix;
   printf("Client, server should be active already,...\n");
   udpsocks= udpopens(CTP_IP); if(udpsocks==-1) diep("udpopens CTP_IP");
-  udpsockr= udpopenr(); if(rc==-1) diep("udpopenr()"); 
+  udpsockr= udpopenr(); if(udpsockr==-1) diep("udpopenr()"); 
 
   avdiffus=0; mindiffus=10000000; maxdiffus=0;
   for(ix=0; ix<loops; ix++) {

@@ -33,6 +33,9 @@ int daqlogbook_insert_triggerInput(unsigned int run,
 int daqlogbook_update_triggerInputCounter(unsigned int run,
   unsigned int inputId, unsigned int inputLevel, unsigned long long inputCount);
 int daqlogbook_add_comment(int runNor0,char *title,char *msg);
+int daqlogbook_update_LTUConfig(unsigned int run, const char *detector,
+  unsigned int LTUFineDelay1, unsigned int LTUFineDelay2, 
+  unsigned int LTUBCDelayAdd);
 int daqlogbook_close();
 int daqlogbook_update_LTUConfig(unsigned int run, const char *detector,
   unsigned int LTUFineDelay1, unsigned int LTUFineDelay2, 

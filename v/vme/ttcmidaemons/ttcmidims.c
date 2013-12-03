@@ -28,7 +28,9 @@
 #define CORDE_SETtag 5 
 #define QPLLtag 6 
 #define DLL_RESYNCtag 7 
+
 int readclockshift(char *mem, int maxlen);
+
 int MICLOCKid;
 int SHIFTid,QPLLid;
 int MICLOCK_TRANSITIONid;
@@ -282,7 +284,7 @@ cosh= corde_shift(CORDE_DELREG, shift, &origshift);
 if(cosh>1023) {
   sprintf(errmsg, "Error: Corde reg. not set, corde_shift rc:0x%x\n", cosh); prtLog(errmsg); 
 } else {
-  w32 pol,halfns; int rcdl; char line[80];
+  w32 pol,halfns; char line[80];
   // always, after shift resynchronize DLL on RF2TTC:
   // not here (called from miclock):
   //DLL_RESYNC(0);

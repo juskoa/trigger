@@ -29,7 +29,7 @@ popen2.o: popen2.c
 ltudimservices.o: ltudimservices.c 
 	${CC} -c $(CFLAGS) -I${VMEBinc} -I$(LTUDIR) -I${DIMinc} $< -o $@
 ltu_utils.o: ltu_utils.c 
-	${CC} -c $(CFLAGS) -I${VMEBinc} -I${LTUDIR} $< -o $@
+	${CC} -c $(CFLAGS) -I${DIMinc} -I${VMEBinc} -I${LTUDIR} $< -o $@
 ltu_proxy.o: ltu_proxy.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/vmeblib.h
 #	@echo $<
 	${CC} -c $(CFLAGS) -I${SMIinc} -I${DIMinc} -I$(VMEBinc) \
