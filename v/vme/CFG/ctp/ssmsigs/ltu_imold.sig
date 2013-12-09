@@ -1,6 +1,6 @@
 0 Orbit
-1 PPrequest
-2 L0out
+1 PP
+2 L0
 3 L1Strobe
 4 L1data
 5 L2S
@@ -9,11 +9,11 @@
 8 ALLBUSY
 9 L1NF
 10 L2NF
-11 TTCA
-12 TTCB
-13 TTCbusy
-14 PPtransm
-15 VMEStrobe
+11 LBHALT
+12 VMEM
+13 TTCLS
+14 TTCMS
+15 VMES
 16 ALLSTART
 17 ANYERR
 
