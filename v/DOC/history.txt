@@ -160,3 +160,7 @@ daqlogbook access from pydim/server.c. ltu_proxy uses ltucfg2daq().
 Possible problem: 
 for private lab setup, pydim server is not available -i.e.
 I keep also original option commented in case it is needed.
+11.12.2013
+ltu/slmcmp.py slmcomp.py: modified for 100 classes (-run1 argument if
+old way 50 classes needed)
+

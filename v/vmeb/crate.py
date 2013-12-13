@@ -65,7 +65,7 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       break
     bnbase.append(string.split(p,'='))
     board= bnbase[-1]
-    #print 'p:',p
+    #print 'p:',p, board
     if len(board) == 2:         # base address given too
       basead=string.strip(board[1])
     else:       #default base addr.
@@ -93,7 +93,7 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       except:
         print sys.exc_info()[0]
         print """Board name ['ltu', 'ttcvi',...], or
-detectore name """ +str(myw.DimLTUservers.keys()) + " expected."
+detector name """ +str(myw.DimLTUservers.keys()) + " expected."
         sys.exit(0)
       f1.addBoard(vmeboard)
       syspadd= os.path.join(cfdir, board[0])

@@ -6,7 +6,10 @@ class L0BOARD: public BOARD
  public:
 	L0BOARD(int vsp);
 	void setClass(w32 index,w32 inputs,w32 l0f,w32 rn,w32 bc);
+	void setClass(w32 index,w32 inputs);
+	void SetClass(w32 index,w32 inputs,w32 cluster);
 	void setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask);
+	void setClassVetoes(w32 index,w32 cluster);
 	void setClassesToZero();
 	void printClasses();
 

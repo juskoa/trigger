@@ -64,8 +64,8 @@ class SSM:
       ["Conditional stop","Condition"]
       ]
   LTUactions= [["Read","Read"], ["Write","Write"], 
-    ["FP->SSM: record AFTER-27ms (1pass)","0x2"],
-    ["FP->SSM: record BEFORE -(continuous)","0x3"],
+    ["  ->SSM: record AFTER-27ms (1pass)","0x2"],
+    ["  ->SSM: record BEFORE -(continuous)","0x3"],
     ["Stop (gen. or rec.)","Stop"]
     ]
   modenames= {"ltu":"ltu_im", "ltuFP":"ltu_i1",

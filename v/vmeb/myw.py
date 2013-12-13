@@ -1966,6 +1966,16 @@ Main log/cmd window is started by itself if necessary.
       elif rc=='0':
         self.io.write("LTU in global mode !\n")
         self.setColor(COLOR_WARNING)
+      #rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)",applout='<>')
+      rcs= string.strip(self.io.execute("vmeopr32(LTUVERSION_ADD)"))
+      print "VmeBoard:",rcs
+      rc= eval(rcs)
+      if rc>=0xb7:
+        self.io.write("LTU version %s, (i.e. run2)\n"%rcs)
+        self.lturun2= True
+      else:
+        self.lturun2= False
+        self.io.write("LTU version %s, (i.e. run1)\n"%rcs)
     #
     """ from 23.6. init.mac is called directly from cmdbase.c
     initmac= os.path.join( os.environ['VMEWORKDIR'],"CFG",

@@ -605,7 +605,11 @@ vmew32(L1_DELAY,259);   // TL1-1 (see ctplib/timingpars.c) 224
 //vmew32(L2_DELAY,3520);  till 11.6.2008
 //vmew32(L2_DELAY,3952);  till 29.8.2011
 vmew32(L2_DELAY,4208);  // TL2 (see ctplib/timigpars.c)
-
+/* With run2 ctp+ltu firmwares, equal L1-L2 delay (global == stdalone) 
+reached when:
+ltu L2_DELAY modified from 4208 -> 810 and
+ctp L2_DELAY_L1 modified from   3884 -> 500
+*/
 /* following overwritten from file CFG/ltu/ltuttc.cfg:*/
 vmew32(ORBIT_BC,ltc->orbitbc);
 vmew32(L1_FORMAT,ltc->l1format);

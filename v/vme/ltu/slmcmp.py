@@ -7,9 +7,11 @@ Translate .slm (mnemonic SLM instructions) to .seq (binary-like) file.
            similarly for L2R (L2classe/clusters) and CL0, CPP
 11.5. ESR now is coded in L2msg too (i.e. 2 bits: 0.9 and 4.13)
 28.3.2008 NOSWC flag added -forcing ClT, L1SwC and L2SwC to 0
+11.12.2013 run2 support added (with slmdefs.py)
 """
-import os.path, os, string
+import os.path, os, string, slmdefs
 
+sdf= slmdefs.Slmdefs_run2
 slmseqpath='WORK/slmseq.seq'
 errtext=''
 wartext=''
@@ -28,7 +30,9 @@ def Err(text=None, warn=None, line=None):
 class Sequence:
   def __init__(self, line):
     #print line
-    self.s=[0,0,0,0,0,0,0,0]   # 8 words of 1 trg. sequence
+    self.s=[]   # 8 or 15 words of 1 trg. sequence
+    for ix in range(sdf.wordseq):
+      self.s.append(0)
     self.noswc=0               # NOSWC flag not present
     self.line=line
     atms= string.split(line)
@@ -47,13 +51,14 @@ class Sequence:
       atms.append("0x0")
       if code==2 or code==3 or code==6 or code==7:
         Err("No L1 classes","Warning",line)
-    clas1= self.proccls(atms[1], 3, 0, 50)
+    #clas1= self.proccls(atms[1], 3, 0, 50)
+    clas1= self.proccls(atms[1], sdf.L1cls[0], sdf.L1cls[1], sdf.L1cls[2])
     if not clas1:
       Err("Bad definition of L1 classes:"+atms[1])
       return
     # Move bits self.s[0][1..0] to right place (L1Class 50-49):
     # and put Instr. code to bits self.s[0][2..1]
-    self.s[0]= ((self.s[0] & 3)<<6) | code
+    self.s[0]= ((self.s[0] & 3)<<sdf.L1cls2) | code
     if code>3: self.setCIT()
     if len(atms)==2:
       atms.append("0x0")
@@ -62,7 +67,8 @@ class Sequence:
     #if len(atms)>2:       to be finished (L1 does not need l2classes)
     # if atms[2][:2]=='0x':
     #  if (code==2) or (code==6):
-    clas2= self.proccls(atms[2], 7, 3, 50)
+    #clas2= self.proccls(atms[2], 7, 3, 50)
+    clas2= self.proccls(atms[2], sdf.L2cls[0], sdf.L2cls[1], sdf.L2cls[2])
     if not clas2:
       Err("Bad definition of L2 classes:"+atms[2])
       return
@@ -70,7 +76,8 @@ class Sequence:
       atms.append("0x0")
       if code==2 or code==6:
         Err("No Cluster defined","Warning",line)
-    cluster= self.proccls(atms[3], 4, 5, 6)
+    #cluster= self.proccls(atms[3], 4, 5, 6)
+    cluster= self.proccls(atms[3], sdf.Clust[0], sdf.Clust[1], sdf.Clust[2])
     if not cluster:
       Err("Bad definition of L2 clusters:"+atms[3], None,line)
       return
@@ -82,15 +89,20 @@ class Sequence:
     if self.noswc==1: self.unsetCIT()
   def proccls(self, lhexa, wix, bix, bitlength):
     """
-    lhexa: 0x123456789abcd (max. 13 hex. digits)
+    lhexa: 0x123456789abcd (max. 13/25 hex. digits)
     wix,bix: 3,0 for L1Class  7,3 for L2Class, 4,5 for L2Cluster
+             i.e. starting bit
     bitlength   : max. number of bits
-    returns: words 3-0 or 7-4 or 4 filled in correspondingly
+    returns: None in case of error
+      1: bit string correct, words 3-0 or 7-4 or 4 filled in correspondingly
     """
     if lhexa[:2]!='0x':
       Err("hexadecimal number not beginning with 0x:"+lhexa)
       return None
     word=wix; bit=bix ; bitn=1
+    #maxwrds=4; if sdf.wordseq>8: maxwrds=8
+    #print "proccls:",lhexa, wix, bix, bitlength
+    #0x400000000000f000000000003
     for ix in range(len(lhexa)-1,1,-1):
       hdig= eval('0x'+lhexa[ix])
       #for ix4 in range(3,-1,-1):
@@ -98,6 +110,7 @@ class Sequence:
         if bitn>bitlength: break
         if hdig & (1<<ix4):
           self.s[word]= self.s[word] | (1<<bit)
+          #print "proccls:word biti bitn:", word, bit, bitn
         bit= bit+1
         if bit==16:
           bit=0; word=word-1
@@ -105,11 +118,15 @@ class Sequence:
       if bitn>bitlength: break
     return 1
   def setCIT(self):
-    self.s[0]= self.s[0] | 0x4100   # CIT + L1SwC flag
-    self.s[4]= self.s[4] | 0x1800   # CIT + L2SwC flag
+    w= sdf.CITflg[0]
+    self.s[w]= self.s[w] | sdf.CITflg[1]  # CIT + L1SwC flag
+    w= sdf.CITflg[2]
+    self.s[w]= self.s[w] | sdf.CITflg[3]   # CIT + L2SwC flag
   def unsetCIT(self):
-    self.s[0]= self.s[0] & ~0x4100   # CIT + L1SwC flag
-    self.s[4]= self.s[4] & ~0x1800   # CIT + L2SwC flag
+    w= sdf.CITflg[0]
+    self.s[w]= self.s[w] & ~sdf.CITflg[1]   # CIT + L1SwC flag
+    w= sdf.CITflg[2]
+    self.s[w]= self.s[w] & ~sdf.CITflg[3]   # CIT + L2SwC flag
     Err("ClT, L1SwC and L2SwC forced to 0 (NOSWC)","Warning", self.line)
   def procflag(self, flag):
     rc= 1
@@ -118,18 +135,18 @@ class Sequence:
       try:
         roc= int(flag[4:])
       except:
-        Err("roc flag has to be integer 0..15 (%s is incorrect)"%flag)
+        Err("roc flag has to be integer 0..15 (%s is incorrect), setting 0..."%flag)
         roc=0
       if roc>15:
-        Err("roc=%d    >15(only 4 least significant bits meaningful)"%(roc))
-      self.s[0]= self.s[0] | ((roc&0xf)<<10)
+        Err("roc=%d    >15, setting 4 least significant bits...)"%(roc))
+      self.s[0]= self.s[0] | ((roc&0xf)<<sdf.rocsh)
     elif flag=="ESR":
       self.s[0]= self.s[0] | 0x200
-      self.s[4]= self.s[4] | 0x2000
+      self.s[sdf.esr2[0]]= self.s[sdf.esr2[0]] | sdf.esr2[1]
     elif flag=="L1SwC":
       self.s[0]= self.s[0] | 0x100
     elif flag=="L2SwC":
-      self.s[4]= self.s[4] | 0x800
+      self.s[sdf.l2swc[0]]= self.s[sdf.l2swc[0]] | sdf.l2swc[1]
     elif flag=="NOSWC":
       self.noswc=1
     elif flag=="ErrProne":
@@ -141,14 +158,14 @@ class Sequence:
     elif flag=="spare1":
       self.s[0]= self.s[0] | 0x8000
     elif flag=="spare2":
-      self.s[4]= self.s[4] | 0x4000
+      self.s[sdf.spare23w]= self.s[sdf.spare23w] | 0x4000
     elif flag=="spare3":       # only L2-bit of ESR required
-      self.s[4]= self.s[4] | 0x2000
+      self.s[sdf.spare23w]= self.s[sdf.spare23w] | 0x2000
     else:
       rc=None
     return rc
   def savebin(self, of):
-    for ix in range(8):
+    for ix in range(sdf.wordseq):
       l=''
       #print "%d: %8.8x"%(ix,self.s[ix])
       for i15 in range(15,-1,-1):
@@ -162,7 +179,7 @@ class Sequence:
 class Cmpslm:
   def __init__(self, slmfile):
     Err()
-    self.slm=[]   # max. 32 items (sequences)
+    self.slm=[]   # max. 32/17 items (sequences)
     self.allowederrs=[0,0,0,0,0,0,0]   # allowed errors
     if os.access(slmfile, os.R_OK) == 0:
       Err(slmfile+" doesn't exist")
@@ -208,7 +225,7 @@ class Cmpslm:
       self.slm[ix].savebin(of)
     of.close()
 def main():
-  global errtext, wartext #slmseqpath
+  global errtext, wartext, sdf #slmseqpath
   import sys
   if len(sys.argv) < 2:
     print """
@@ -216,10 +233,12 @@ Convert .slm file to .seq file.
 See CFG/ltu/SLM/all.slm file for example of .slm file
 
 Usage: cd $VMEWORKDIR
-       $VMECFDIR/slmcmp.py name.slm
+       $VMECFDIR/slmcmp.py [-run1] name.slm
 
 name.slm: abs. path or relative path. name  to VMEWORKDIR
 (e.g. CFG/ltu/SLM/all.slm)
+-run1: optional parameter (by default, run2 data file is created
+
 Operation:
 File WORK/slmseq.seq is created, which can be than:
  -loaded to LTU seq. memory (see ltu.c SLMload()) or
@@ -231,6 +250,12 @@ File WORK/slmseq.seq is created, which can be than:
   else:
     #os.chdir(os.environ['VMEWORKDIR'])
     for bn in sys.argv[1:]:
+      if bn=="-run1":
+        sdf= slmdefs.Slmdefs
+        continue
+      if bn=="-run2":
+        sdf= slmdefs.Slmdefs_run2
+        continue
       a= Cmpslm(bn)
       if wartext:
         print wartext

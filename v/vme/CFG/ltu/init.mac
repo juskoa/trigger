@@ -1,1 +1,4 @@
 setbcdelay(16,1)
+# L2_DELAY=810, disbale busys,...
+vmeopw32(L2_DELAY,810)
+vmeopw32(BUSY_ENABLE,0)

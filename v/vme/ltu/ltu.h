@@ -9,6 +9,9 @@ LTUVERSION_ADD: 0xf3 ltu   -see vme/ltu. Last LTU+TTCVI version.
                 0xb0 ltuvi
                 0xb3 rate limit implemented (TPC)
                 0xb4 higher L2_DELAY
+0xb6 -last run1 version
+0xb7 -run2: 100 classes
+
 trigger input generator:
 -----------------------
 L0 top connector -CTP L0 trigger input
@@ -46,7 +49,8 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "3.8 19.07.2010"   // 0xb5, RATE_LIMIT +3bits
 //#define LTU_SW_VER "4.0 19.2.2012"     // 0xb6, +ltu2_b6.rbf
 //#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
-#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
+//#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
+#define LTU_SW_VER "5.0 13.12.2013"    // run2:100 classes
 
 /*REGSTART32 */
 /* VME FPGA: */
@@ -344,6 +348,7 @@ EXTRN Tltushm *ltushm;
 
 #define ltuvino ((Gltuver&0xf0)!=0xb0)
 #define ltuviyes ((Gltuver&0xf0)==0xb0)
+#define lturun2 ((Gltuver&0xf0)>=0xb7)
 
 /* ltulib functions: */
 /*FGROUP "ExpertConf"
