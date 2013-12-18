@@ -91,9 +91,8 @@ nbi         -if parameter nbi supplied, the board won't be initialised
         vmeboard= myw.VmeBoard(f1, boardName=board[0], \
                 baseAddr=basead, initboard=initboard)
       except:
-        print sys.exc_info()[0]
-        print """Board name ['ltu', 'ttcvi',...], or
-detector name """ +str(myw.DimLTUservers.keys()) + " expected."
+        print "crate.py:", sys.exc_info()[0]
+        print """Board name ['ltu', 'ttcvi',...], or detector name """ +str(myw.DimLTUservers.keys()) + " expected."
         sys.exit(0)
       f1.addBoard(vmeboard)
       syspadd= os.path.join(cfdir, board[0])

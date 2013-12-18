@@ -1942,8 +1942,9 @@ Main log/cmd window is started by itself if necessary.
     #
     # user funcs:
     self.funbuts()
-    if self.iamltu('dim') or (self.initboard=='nbi' and self.iamltu()):
+    if vbexec==None:
       self.openCmd() ; vbinit(self)
+    if self.iamltu('dim') or (self.initboard=='nbi' and self.iamltu()):
       #print ":", self.io.execute("getsgmode()",applout='<>')[0], ":"
       rcs= self.io.execute("getsgmode()",applout='<>')
       if len(rcs)==1:
@@ -1967,6 +1968,8 @@ Main log/cmd window is started by itself if necessary.
         self.io.write("LTU in global mode !\n")
         self.setColor(COLOR_WARNING)
       #rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)",applout='<>')
+    #
+    if self.iamltu():
       rcs= string.strip(self.io.execute("vmeopr32(LTUVERSION_ADD)"))
       print "VmeBoard:",rcs
       rc= eval(rcs)
@@ -1976,7 +1979,6 @@ Main log/cmd window is started by itself if necessary.
       else:
         self.lturun2= False
         self.io.write("LTU version %s, (i.e. run1)\n"%rcs)
-    #
     """ from 23.6. init.mac is called directly from cmdbase.c
     initmac= os.path.join( os.environ['VMEWORKDIR'],"CFG",
       self.boardName, "init.mac")

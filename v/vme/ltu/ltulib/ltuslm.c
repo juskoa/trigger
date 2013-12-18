@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "vmewrap.h"
 #include "ltu.h"
 
@@ -140,7 +141,7 @@ if(slm ==NULL) {
 };
 linenum=0,ixx=0; 
 while(1){
-  int ix;
+  int ix,w1632;
   char *frc;
   w32 dw;
   frc= fgets(line, MAXLINE, slm);
@@ -156,10 +157,15 @@ while(1){
   linenum++; 
   if(linenum <= SLMSKIPL) continue;
   dw=0;
-  for(ix=15; ix>=0; ix--) {
+  if(strlen(line)>=32) {
+    w1632= 31;
+  } else {
+    w1632= 15;
+  };
+  for(ix=w1632; ix>=0; ix--) {
     if(line[ix]=='0') {
     } else if(line[ix]=='1') {
-      dw= dw | (1<<(15-ix));
+      dw= dw | (1<<(w1632-ix));
     } else {
       goto ERRLINE;
     };

@@ -50,7 +50,8 @@ import os.path, os, string, slmdefs
 sdf= slmdefs.Slmdefs_run2
 class Seq:
   SNAME=['ZERO', 'L0  ', 'L2A ', 'L2R ', 'CPP ', 'CL0 ', 'CL2A', 'CL2R']
-  def __init__(self):
+  def __init__(self, swidth):
+    self.swidth= swidth      # 16 or 32
     self.s=[]   # 8/15 words of 1 trg. sequence
     for ix in range(sdf.wordseq):
       self.s.append(0)
@@ -87,9 +88,9 @@ class Seq:
   def spare1(self):
     return (self.s[0]&0x8000)>>15
   def spare2(self):
-    return (self.s[sdf.spare23w]&0x4000)>>14 #13
+    return (self.s[sdf.spare23w[0]]&sdf.spare23w[1])>>14 #13
   def spare3(self):
-    return (self.s[sdf.spare23w]&0x2000)>>13 #12
+    return (self.s[sdf.spare23w[0]]&sdf.spare23w[2])>>13 #12
   def ErrorProne(self):
     return (self.s[0]&0x20)>>5
   def Last(self):
@@ -99,25 +100,26 @@ class Seq:
   def warn(self, m):
     self.warns=self.warns+', '+m
   def word(self,ix,line):
-    """
+    """ set self.s bit + self.l1c self.l2c bits
     ix: 0,1,...,7/15 -sequence word index
     ret: 0-OK, 1-error
     """
     bit=0   # bit number in the word (0..15)
     cn= sdf.L1cls[2]
-    for i in range(15,-1,-1):
+    for i in range(self.swidth-1,-1,-1):
       if line[i]=='1':
         self.s[ix]= self.s[ix] | 1<<bit
         if ix==0:
           if bit==7: self.l1c[cn]=1
           if bit==6: self.l1c[cn-1]=1
+          if (self.swidth==32) and (bit>=16) and (bit<=18): # L2 data:
+            self.l2c[cn-2+(bit-16)]=1
         elif (ix==1) or (ix==2) or (ix==3):
           #self.l1c[33+bit]=1
-          self.l1c[cn-1-16*ix+bit]=1
-        #elif ix==2:
-        #  self.l1c[17+bit]=1
-        #elif ix==3:
-        #  self.l1c[1+bit]=1
+          if bit<16:
+            self.l1c[cn-1-16*ix+bit]=1
+          if (bit>=16) and (bit<=31): # L2 data:
+            self.l2c[cn-2-16*ix+(bit-16)]=1
         else:
           if cn==50:
             if ix==4:
@@ -130,18 +132,25 @@ class Seq:
             elif ix==7:
               if bit>=3: self.l2c[bit-2]=1
           else:   # 100 classes
-            if (ix==4) or (ix==5) or (ix==6):
-              self.l1c[cn-1-16*ix+bit]=1
-            elif ix==7:
-              if bit>=14: 
+            if bit<16:            # i.e. low bits of 16 or 8 words
+              if (ix==4) or (ix==5) or (ix==6):
                 self.l1c[cn-1-16*ix+bit]=1
-              # 7[13..0] -spare bits in slm
-            elif ix==8:
-              if bit<=2: self.l2c[98+bit]=1
-            elif (ix>=9) and (ix<=14):
-              self.l2c[(98-16*(ix-8))+bit]=1
-            elif ix==15:
-              if bit==15: self.l2c[1]=1
+              elif ix==7:
+                if bit>=14: 
+                  self.l1c[cn-1-16*ix+bit]=1
+                # 7[13..0] -spare bits in slm
+              elif ix==8:
+                if bit<=2: self.l2c[98+bit]=1
+              elif (ix>=9) and (ix<=14):
+                self.l2c[(98-16*(ix-8))+bit]=1
+              elif ix==15:
+                if bit==15: self.l2c[1]=1
+            else:   # i.e. 8x32 bits words -high bits
+              if (ix>=4) and (ix<=7):
+                self.l2c[cn-2-16*ix+(bit-16)]=1
+                # 7[30..16] -spare bits in slm
+              else:
+                print "Error: ix:%d"%ix
       elif line[i]!='0':
         return 1
       bit= bit+1
@@ -231,7 +240,14 @@ class Seq:
     return instrline,seqok
 class Disslm:
   ALERRS= ["PP", "L0", "L1", "L1M", "L1&L1M", "L2aM", "L2rWord"]
-  def __init__(self, seqfile):
+  def __init__(self, seqfile, run="-run2"):
+    global sdf
+    if run=="-run1":
+      sdf= slmdefs.Slmdefs
+    elif run=="-run2a":
+      sdf= slmdefs.Slmdefs_run2a
+    elif run=="-run2":
+      sdf= slmdefs.Slmdefs_run2
     self.loglist= ''
     self.AllowedErrors= 0
     self.fileok= 1   # 0 if load not recommended
@@ -243,7 +259,8 @@ class Disslm:
     sf= open(seqfile, 'r')
     ln=-4   #ignore first 3 lines
     for line in sf.readlines():
-      if line=='' or line==None or len(line)<=1: 
+      lenline= len(line)
+      if line=='' or line==None or lenline<=1: 
         self.error("Error:too short line");
         self.fileok=0
       ln= ln+1
@@ -254,13 +271,24 @@ class Disslm:
         continue
       #if ln>20: break
       #print ln,':',line[:-1]
+      if lenline==17:
+        slmcodeix= 13; 
+      elif lenline==33:
+        slmcodeix= 29    #version3 .seq file
+        if sdf.version!=3:
+          self.error("Error: strange line (length:%d)"%slenline);
+          self.fileok=0
+      else:
+        self.error("Error: strange line (length:%d)"%slenline);
+        self.fileok=0
+      swidth= lenline-1
       if (ln % sdf.wordseq) == 0:
         #print ln,'::',line[:-1]
-        if line[13:16]=='000': 
+        if line[slmcodeix:slmcodeix+3]=='000':
           self.error("Warning: seq. code 0 found in input file")
           #break
         #s=Seq()
-        self.slm.append(Seq())
+        self.slm.append(Seq(swidth))
       if self.slm[-1].word(ln%sdf.wordseq, line):
         self.error("Error: incorrect format of input file")
         del(self.slm[-1])
@@ -318,7 +346,6 @@ class Disslm:
     return self.loglist
 
 def main():
-  global sdf
   import sys
   if len(sys.argv) < 2:
     print """
@@ -328,6 +355,7 @@ representing bits in LTU-sequencer memory). The format of .seq
 file is described in file slmcomp.py.
 
 Usage: slmcomp.py [-run1] name.seq
+                  [-runr2a] name.seq
 Expected abs. path or relative path. name  to VMECFDIR 
 (e.g. CFG/ltu/SLM/all.seq)
 Operation: .slm file printed to stdout
@@ -336,14 +364,18 @@ Operation: .slm file printed to stdout
     #print a.getlist()
   else:
     #os.chdir(os.environ['VMECFDIR'])
+    run="-run2"
     for bn in sys.argv[1:]:
       if bn=="-run1":
-        sdf= slmdefs.Slmdefs
+        run= "-run1"
         continue
-      if bn=="-run2":
-        sdf= slmdefs.Slmdefs_run2
+      elif bn=="-run2":
+        run= "-run2"
         continue
-      a= Disslm(bn)
+      elif bn=="-run2a":
+        run= "-run2a"
+        continue
+      a= Disslm(bn, run)
       print a.getlist()
 
 if __name__ == "__main__":

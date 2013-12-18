@@ -2,6 +2,7 @@
 #12.10.2005 loadseq: .seq file (old way) or .slm file -> compile
 #           to /tmp/slmseq.seq and then load it
 #examineslm: getfile added for dim-operation
+#16.12.2013 lturun2 added
 from Tkinter import *
 import tkFileDialog
 import os, os.path, glob, string, types
@@ -485,8 +486,12 @@ interval""")
       fn= os.path.join(self.slmdir,fnbase)
       if string.split(fnbase,'.')[1]=='slm':   # new format, compile first
         import slmcmp
-        self.vb.io.write('Compiling:%s -> WORK/slmseq.seq\n'%fn)
-        sqbin= slmcmp.Cmpslm(fn); 
+        if self.vb.lturun2:
+          run="-run2"
+        else:
+          run="-run1"
+        self.vb.io.write('Compiling:%s -> WORK/slmseq.seq (%s)\n'%(fn,run))
+        sqbin= slmcmp.Cmpslm(fn, run); 
         #print "loadseq:",slmcmp.wartext
         if slmcmp.wartext!='':
           self.vb.io.thds[0].write(slmcmp.wartext)
@@ -499,7 +504,11 @@ interval""")
           self.vb.io.execute('putfile("'+fn+'")')
           time.sleep(1)
       #check sequence file:
-      slm= slmcomp.Disslm(fn)
+      if self.vb.lturun2:
+        run="-run2"
+      else:
+        run="-run1"
+      slm= slmcomp.Disslm(fn, run)
       #print 'loadseq: ',slm.fileok
       self.AllowedErrors=slm.getaerrs()
       if self.ersr: self.errsel.setEntry(self.AllowedErrors)
@@ -517,11 +526,15 @@ interval""")
         fnasci= "WORK/slmasci.seq"
         if myw.DimLTUservers.has_key(self.vb.boardName):
           self.vb.io.execute('getfile("'+fnasci+'")')
-        slm= slmcomp.Disslm(fnasci)
+        if self.vb.lturun2:
+          run="-run2"
+        else:
+          run="-run1"
+        slm= slmcomp.Disslm(fnasci, run)
         aerrors=slm.getaerrs()
         #print "aerrors:0x",hex(aerrors)
         if slm.fileok:
-          self.vb.io.thds[0].write("SLM content (saved in WORK/slmasci.seq):\n")
+          self.vb.io.thds[0].write("SLM (%s content, saved in WORK/slmasci.seq):\n"%run)
           self.vb.io.thds[0].write(slm.getlist())
         else:
           self.vb.io.thds[0].write("SLM not loaded with valid sequences\n")

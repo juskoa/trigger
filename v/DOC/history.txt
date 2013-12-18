@@ -163,4 +163,7 @@ I keep also original option commented in case it is needed.
 11.12.2013
 ltu/slmcmp.py slmcomp.py: modified for 100 classes (-run1 argument if
 old way 50 classes needed)
-
+18.12.2013
+slmcmp.py, slmcomp.py, ltulib/ltuslm.c: using 32 bit words (2x bigger slm),
+L2 data placed in bits 31..16
+Todo: Error message when attempt to load 16 bits .seq file
