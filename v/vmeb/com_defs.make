@@ -29,7 +29,7 @@ endif
 ifeq ($(HOSTNAME), avmes)
 SERVER_LINK := yes
 CLIENT_HOST := altri1
-SERVER_PREF := /home/dl6/local
+SERVER_PREF := /home/dl6
 SERVER_BASEDIR := 
 odl64 := /opt/dip/lib64
 endif

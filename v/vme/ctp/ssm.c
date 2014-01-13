@@ -748,6 +748,16 @@ int dumpssm(int board,char *fname){
 return(dumpssm_compress(board,fname, 0));
 }
 /*FGROUP SSMcalls
+Read binary dump written before by dumpSSM() to the sms[board].sm
+Inputs:
+board: 0,1,2,... ->   BUSY, L0, L1,L2,INT,FO1,...,FO6,ltu1,ltu2,
+       ltu3, ltu4, test, none  (see ssmctp.h)
+       ltu1: LTU sitting in the same VME crate, base addr: 0x811000
+filename: e.g. 'WORK/name.dmp'
+mode: text indicating mode, i.e. the names of 32 signals assigned
+      to SSM bits in file $dbctp/../ssmsigs/mode.sig
+Output: rc: 0: ok
+            5: incorrect mode (too long)
 */
 int readSSMDumpMode(int board,char *filename, char *mode){
 int rc;

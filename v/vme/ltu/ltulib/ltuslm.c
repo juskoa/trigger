@@ -160,6 +160,7 @@ while(1){
   if(strlen(line)>=32) {
     w1632= 31;
   } else {
+    if(lturun2) goto ERRLINErun1;
     w1632= 15;
   };
   for(ix=w1632; ix>=0; ix--) {
@@ -181,6 +182,9 @@ return(rc);
 ERRLINE:
 printf("ERROR in SLMreadasci %s. Line:%d %s\n", filen,linenum,line); 
 rc=2; goto ERRRET;
+ERRLINErun1:
+printf("ERROR in SLMreadasci %s. Short line (i.e. run1 format (16bits words)?).\n", filen); 
+rc=2; goto ERRRET;
 }
 
 /*FGROUP SLM 
@@ -188,7 +192,7 @@ filen: load this file into SLM memory. Absolute path or
        relative path to $VMEWORKDIR has to be given, i.e.
        CFG/ltu/SLM/one.seq, or CFG/ltu/SLMproxy/sod.seq
 rc: 0: ok, loaded
-   >0: not loaded, error printed to stdout
+   >0: not loaded, error printed to stdout:
        3: emulation active   4: global mode
 */
 int SLMload(char *filen) {

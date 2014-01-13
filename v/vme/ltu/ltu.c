@@ -523,12 +523,22 @@ for(ix= fromd; ix<=tod; ix++) {
 }
 
 /*--------------------------------------- SLM and ERROR emulation */
+
+#define SLM_BITS 0xffffffff
+#define SLM_BITSN 32
 /*FGROUP SLM 
 filen: see SLMload (e.g. CFG/ltu/SLM/one.seq) */
 int SLMcheck(char *filen) {
 int rc=0;
-int ixx;
+int ixx; int slmbitsn; w32 slmbits;
 w32 slmdata[MAXSLMW];
+if(lturun2) {
+  slmbitsn= SLM_BITSN;
+  slmbits= SLM_BITS;
+} else {
+  slmbitsn= 16;
+  slmbits= 0xffff;
+};
 rc= SLMreadasci(filen, slmdata); if(rc!=0) goto ERRRET;
 if(vmer32(EMU_STATUS)&0x1) {
   printf("ERROR: emulation active\n");
@@ -544,7 +554,7 @@ usleep(1000);
 printf("word file SLM\n");
 for(ixx=0; ixx<MAXSLMW; ixx++) {
   w32 dw;
-  dw= vmer32(SLM_DATA)&0xffff;
+  dw= vmer32(SLM_DATA)&slmbits;
   if(ixx < 10) {
     printf("%3d: %4x %4x\n", ixx, slmdata[ixx], dw);
   }else {
@@ -566,10 +576,19 @@ return(rc);
 read SLM and write its contents to the file WORK/slmasci
 */
 int SLMdump() {
-int rc=0;
-int ixx,ix; w32 erbits;
+int rc=0; int slmbitsn;
+int ixx,ix; w32 erbits, slmbits;
 FILE *sa;
-char l16[17];
+char l16[SLM_BITSN+1];   // 17
+if(lturun2) {
+  //printf("run2... Gltuver:%x\n", Gltuver);
+  slmbitsn= SLM_BITSN;
+  slmbits= SLM_BITS;
+} else {
+  //printf("run1... Gltuver:%x\n", Gltuver);
+  slmbitsn= 16;
+  slmbits= 0xffff;
+};
 if(vmer32(EMU_STATUS)&0x1) {
   printf("ERROR: emulation active, SLM cannot be read.\n");
   rc=3; goto ERRRET;
@@ -594,13 +613,17 @@ for(ix=0; ix<7; ix++) {
 }; fprintf(sa,"%s\n", l16); 
 for(ixx=0; ixx<MAXSLMW; ixx++) {
   w32 dw;
-  dw= vmer32(SLM_DATA)&0xffff;
+  dw= vmer32(SLM_DATA)&slmbits;
   /*if(ixx < 10) {
     printf("%3d: %4x\n", ixx,  dw);
   };*/
-  strcpy(l16,"0000000000000000");
-  for(ix=0; ix<16; ix++) {
-    if((dw & (1<<ix)) != 0) l16[15-ix]='1';
+  if(lturun2) {
+    strcpy(l16,"00000000000000000000000000000000");
+  } else {
+    strcpy(l16,"0000000000000000");
+  };
+  for(ix=0; ix<slmbitsn; ix++) {
+    if((dw & (1<<ix)) != 0) l16[slmbitsn-1-ix]='1';
   };
   fprintf(sa,"%s\n", l16); 
 };

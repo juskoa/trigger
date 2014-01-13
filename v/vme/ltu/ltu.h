@@ -346,9 +346,11 @@ typedef struct {
 
 EXTRN Tltushm *ltushm;
 
-#define ltuvino ((Gltuver&0xf0)!=0xb0)
-#define ltuviyes ((Gltuver&0xf0)==0xb0)
-#define lturun2 ((Gltuver&0xf0)>=0xb7)
+//#define ltuvino ((Gltuver&0xf0)!=0xb0)
+//#define ltuviyes ((Gltuver&0xf0)==0xb0)
+#define ltuvino ((Gltuver&0xff)<0xb0)
+#define ltuviyes ((Gltuver&0xff)>=0xb0)
+#define lturun2 ((Gltuver&0xff)>=0xb7)
 
 /* ltulib functions: */
 /*FGROUP "ExpertConf"

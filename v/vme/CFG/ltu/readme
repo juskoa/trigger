@@ -65,4 +65,9 @@ Differencies:
 
 3.12.2013
 ltu2_b7.rbf  -100 classes CTP emulator (15 words/instruction), NEW BORDS ONLY
-
+9.1.2013
+mv ltu_logic_vB7.rbf ltu_logic_vB7ver1.rbf
+new version ltu_logic_vB7.rbf from Marian - new way of generating messages due to time problems
+13.1.2013
+ltu_logic_vB7ver1.rbf removed, ltu2_b7.rbf is latest version for 100 classes
++ 32bits SLM + timing corrections (an option for compilation)

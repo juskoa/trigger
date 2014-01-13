@@ -167,3 +167,11 @@ old way 50 classes needed)
 slmcmp.py, slmcomp.py, ltulib/ltuslm.c: using 32 bit words (2x bigger slm),
 L2 data placed in bits 31..16
 Todo: Error message when attempt to load 16 bits .seq file
+7.1.2014
+32 bits SLM memory, text editor invoked for .slm and .seq (with
+different help)
+13.1.oltu_u.py:
+if (type(f2save)==types.StringType) or (type(f2save)==types.UnicodeType):
+i.e. tkFileDialog returns UnicodeType (before 2.6 seems it was StringType)
+
+

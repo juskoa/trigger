@@ -141,4 +141,6 @@ makeall ok on bhm10+altrip2, i.e.:
 script -c 'makeall allctp clean' ~/makeall_allctp.log
 script -c 'makeall allltu clean' ~/makeall_allltu.log
 script -c 'makeall others clean' ~/makeall_others.log
-
+13.1.2014
+git push. We do not know about errors in LTU firmware (seems 100 classes
+ok)

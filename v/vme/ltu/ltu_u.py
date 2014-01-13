@@ -34,7 +34,7 @@ L2rWord -L2 reject word
 
 Lines starting with character '#' are comments
 
-1 trigger sequences is coded per 1 line, following this format:
+1 trigger sequence is coded per 1 line, following this format:
 
 CODE L1classes L2classes Clusters flags
 
@@ -43,18 +43,20 @@ CODE is one of: L0 L2A L2R CPP CL0 CL2A CLR
 ----
 L1classes:
 -------------- 
-Bit pattern of L1 classes written as 13 hexa digits (13*4=52 bits).
+Bit pattern of L1 classes written as 25 (13 before 2014) hexa digits
 The least signifiant bit is 1st class = 0x1.
-The most significant is 50th class = 0x2000000000000
-(All classes = 0x3ffffffffffff)
+The most significant bit is class 100:  0x8000000000000000000000000
+Before 2014, only 50 classes were available, i.e. class 50: 0x2000000000000
+All classes: 0xfffffffffffffffffffffffff 
+(0x3ffffffffffff during run1)
 
 L2classes:
 ------------
 same as L1 classes, but in case of software trigger bits 48..25 are
-"Participating L2 detectors" (at least one bit must be deifferent from 0
+"Participating L2 detectors" (at least one bit must be different from 0
 in order to avoid generation of error in DAQ) 
 
-Clusters: is 6 bits long string: e.g.
+Clusters: is 8 bits (6 bits during rn1) long string: e.g.
 --------
    0x3f    - all clusters (1,2,3,4,5,6)
    0x7     - just clusters 1,2,3
@@ -82,6 +84,59 @@ Last     last sequence in the list (set automatically)
 spare1   2 unused bits in L1/L2 messages
 spare2
 spare3   = ESR bit in L2a message (word4.bit13)
+"""
+    seqhelptext="""
+.seq file fomat:
+First 2 lines (name and # of valid sequences in the file) not used
+3. line contains 7 bits for ERROR_SELECTOR word in this order:
+PP L0 L1 L1M L1&L1M L2aM L2rWord
+
+Starting from 4th line, 8 lines are reserved for 1 sequence:
+30....,...20....,...10....,....0
+0SsC2XXXXXXXXcccSCrrrrsW99ELRxxx
+xxx  seq. code: 1:L0 2:L2A 3:L2R 4:CPP 5:CL0 6:CL2A 7:CLR
+ELR  3 bits: Error prone, Last and Restart    
+99   L1class100..99
+W    L1SwC
+s    ESR
+rrrr RoC 4 bits
+C    Calibration trigger
+S    spare
+ccc  L2class100..98
+XXXXXXXX L2Cluster8..1
+2    L2SwC
+
+CCCCCCCCCCCCCCCCcccccccccccccccc
+cccccccccccccccc L1class98..83
+CCCCCCCCCCCCCCCC L2class97..82
+
+CCCCCCCCCCCCCCCCcccccccccccccccc
+cccccccccccccccc L1class82..67
+CCCCCCCCCCCCCCCC L2class81..66
+
+CCCCCCCCCCCCCCCCcccccccccccccccc
+cccccccccccccccc L1class66..51
+CCCCCCCCCCCCCCCC L2class65..50
+
+CCCCCCCCCCCCCCCCcccccccccccccccc  or
+0dddddddddddddddcccccccccccccccc
+cccccccccccccccc L1class50..35
+CCCCCCCCCCCCCCCC L2class49..34
+ddddddddddddddd  Detector24..10
+
+CCCCCCCCCCCCCCCCcccccccccccccccc or
+dddddddddCCCCCCCcccccccccccccccc
+cccccccccccccccc L1class34..19
+CCCCCCCCCCCCCCCC L2class33..18
+ddddddddd Detector9..1
+
+CCCCCCCCCCCCCCCCcccccccccccccccc
+cccccccccccccccc L1class18..3 
+CCCCCCCCCCCCCCCC L2class17..2 
+
+C000000000000000cc00000000000000
+cc L1class2..1
+C  L2class1   
 """
     CLICKHERE='click here to choose the sequence'
     def __init__(self, vb):
@@ -548,10 +603,10 @@ interval""")
         # .seq default:
         fnbase='blabla.seq'
       fname=string.split(fnbase,'.')[0]
-      if string.split(fnbase,'.')[-1]=='slm':   # new format
+      if string.split(fnbase,'.')[-1]=='slm':   # slm format
         if fname=='sod' or fname=='eod' or fname=='L2a':
           self.vb.io.thds[0].write(
-            "Warning: If you are going to use sod.slm,eod.slm or L2a.slm with DAQ, do not modify class2 pattern!")
+            "Warning: If you are going to use sod.slm,eod.slm or L2a.slm with DAQ, do not modify class2 pattern!\n")
         fn= os.path.join(self.slmdir,fnbase)
         e=Editor(fn,self.slmhelptext,self.vb)
         #print "use a text editor to edit file:%s in SLM directory"%fnbase
@@ -559,8 +614,15 @@ interval""")
       # .seq format. Prevent edit of sod eod L2a
       if fname=='sod' or fname=='eod' or fname=='L2a':
         self.vb.io.thds[0].write(
-          "sod.seq,eod.seq,L2a.seq sequences are read-only")
+          "sod.seq,eod.seq,L2a.seq sequences are read-only\n")
         return
+      if vb.lturun2:
+        #print "run2 .seq case..."
+        fn= os.path.join(self.slmdir,fnbase)
+        e=Editor(fn,self.seqhelptext,self.vb)
+        #print "use a text editor to edit file:%s in SLM directory"%fnbase
+        return
+      #------------------------------- run1 .seq case
       import popen2
       #os.chdir(self.slmdir)  don't change current directory (which is SLM)
       ltu6path= os.path.join(os.environ['VMECFDIR'],"ltu","ltu6.tcl")
@@ -1130,10 +1192,13 @@ class Editor:
       initialfile=os.path.basename(self.filename),
       filetypes=[("CTPemu text files",self.suffix), ("all files","*")])
     f2save= OpenSave.show()
-    #print "OpenSave:",type(f2save), f2save
-    if type(f2save) == types.StringType:
+    #print "Editor:",f2save,type(f2save)
+    # Editor: /ram/home/alice/trigger/v/vme/CFG/ltu/SLM/zzz.slm <type 'unicode'>
+    if (type(f2save)==types.StringType) or (type(f2save)==types.UnicodeType):
       cfgltuslmName=os.path.join(self.initialdir,os.path.basename(f2save))
       f= open(f2save,"w")
+      #txt=self.textview.get("1.0","end")
+      #print "Editor:saving:%s:%s:\n"%(f2save, txt)
       f.write(self.textview.get("1.0","end"))
       f.close()
       if myw.DimLTUservers.has_key(self.vb.boardName):

@@ -10,7 +10,7 @@ Input file (file.seq):
   Order of the bits in file:
   PP L0 L1 L1M L1&L1M L2aM L2rWord
   Order of the bits in ERROR_STATUS word is reversed!
-- 1 sequence is encoded in 8 (or 15) lines
+- 1 sequence is encoded in 8 (or 15 in case of run2a -obsolete) lines
   1 word of the sequence is encoded in 1 line, which
   consists of '0'/'1' chars
     1. char in the line corresponds to bit15, 
@@ -273,6 +273,10 @@ class Disslm:
       #print ln,':',line[:-1]
       if lenline==17:
         slmcodeix= 13; 
+        if run=="-run2":
+          self.error("Error: bad .seq file (seems run1 format)");
+          self.fileok=0
+          break
       elif lenline==33:
         slmcodeix= 29    #version3 .seq file
         if sdf.version!=3:
@@ -296,7 +300,7 @@ class Disslm:
         break
       if (ln % sdf.wordseq) == (sdf.wordseq-1):
         if self.slm[-1].Last(): break
-    if ln<((sdf.wordseq+3)-4):
+    if(self.fileok==1) and (ln<((sdf.wordseq+3)-4)):
       self.error("Error:not enough lines (at least %d+3 expected)"%sdf.wordseq);
       self.fileok=0
     sf.close()
@@ -354,8 +358,9 @@ Reverse compilation of .seq file (text file consisting from 0,1
 representing bits in LTU-sequencer memory). The format of .seq
 file is described in file slmcomp.py.
 
-Usage: slmcomp.py [-run1] name.seq
-                  [-runr2a] name.seq
+Usage: slmcomp.py [-run2] name.seq
+                  [-run1] name.seq
+                  [-run2a] name.seq
 Expected abs. path or relative path. name  to VMECFDIR 
 (e.g. CFG/ltu/SLM/all.seq)
 Operation: .slm file printed to stdout

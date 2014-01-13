@@ -12,6 +12,7 @@ class Slmdefs:
   l2swc= (4, 0x800)
   spare23w= (4, 0x4000, 0x2000)
 class Slmdefs_run2a:
+  # obsolete (replaced in jan2014 by Slmdefs_run2.
   version=2
   wordseq=16
   L1cls= (7,14,100)  
