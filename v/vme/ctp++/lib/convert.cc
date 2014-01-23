@@ -66,7 +66,7 @@ char int2char(int i){
   case 7: c='7';break;
   case 8: c='8';break;
   case 9: c='9';break;
-  default: cout << "integer " << i << " not in table" << endl;
+  default: cout << "int2char: integer " << i << " not in table" << endl;
  }
  return c;
 }
@@ -85,7 +85,7 @@ string int2str(int i){
   case 7: c='7';break;
   case 8: c='8';break;
   case 9: c='9';break;
-  default: cout << "integer " << i << " not in table" << endl;
+  default: cout << "int2str: integer " << i << " not in table" << endl;
  }
  return c;
 }

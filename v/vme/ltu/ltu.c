@@ -395,29 +395,26 @@ printf("BUSY_COUNTER:%d\n   BUSY_TIMER:%d(%f ms)\nSUBBUSY1_TIMER:%d(%f ms)\n",
   getCounter(BUSY_COUNTERrp), bt, bt*0.0004, sbt, sbt*0.0004);
 }
 /*FGROUP SimpleTests
-rc: >0 in case of SEU was registered.
-rc:  0 ok, no SEU registered from last checkSEU() activation
+action: Flash memory -> FPGA
+Note: never tested, probably uncomplete ...
 */
-int checkSEU() {
-w32 serial, pll;
-pll= vmer32(TEMP_STATUS)&0x2;
-serial= 0x3f&vmer32(SERIAL_NUMBER);
-if((serial>=64) || (serial==0)) {
-  if(serial==0) {
-    printf("Serial number:0 ->this board accounted LTU version 2\n");
-  };
-  if(pll==0x2) {
-    printf("CRC error bit set, reconfigure LTU!\n");
-    vmew32(TEMP_STATUS, 0);    // is needed here?
-    return(1);
-  } else {
-    printf("CRC bit ok\n");
-  };
-} else {
-  printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");
+int loadFPGA() {
+w32 status; int attempts=0;
+//resetFM:
+vmew32(FlashAccessNoIncr,0xF0);
+while(1) {
+  status= vmer32(FlashStatus); attempts++;
+  if(status&0x80) break;
+  if(attempts>=4000) break;
 };
+if(attempts>=4000) return(1);  // cannot resetFM
+printf("resetFM ok after %d attempts\n", attempts);
+status=vmer32(ConfigStatus);
+vmew32(ConfigStart,0x0);
+usleep(300000);   // usually takes 264milsecs
 return(0);
 }
+
 /*FGROUP SimpleTests
 print: 
 CODE_ADD       always 0x56 for LTU

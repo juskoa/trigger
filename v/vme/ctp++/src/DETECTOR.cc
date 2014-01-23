@@ -9,6 +9,7 @@ DETECTOR::DETECTOR()
  fo=100;
  focon=100;
  dimserver="None";
+ ltu=0;
 }
 void DETECTOR::print()
 {

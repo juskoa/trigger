@@ -136,7 +136,7 @@ int BOARD::ReadSSM() const
    //vmew(SSMaddress,Mega-1);  
    vmew(SSMaddress,(w32)-1);
    nwords=ssma;
-   printf("Warning: readins SSM without overflow flag: %i read",nwords);
+   printf("Warning: readins SSM without overflow flag: %i read \n",nwords);
  }  
  w32 d= vmer(SSMdata);
  d= vmer(SSMdata);
@@ -219,6 +219,7 @@ int BOARD::SetMode(string const &mode,char const cont) const
 int BOARD::SetMode(w32 const modecode) const
 {
  int rc;
+ ///printf("Setting mode for %s: %x \n",d_name.c_str(), modecode);
  if(d_name == "ltu"){
    if( (modecode&7) >3) {
      cout << "ERROR: setomSSM: " << modecode << ">3 for ltu board" << endl;
@@ -227,7 +228,7 @@ int BOARD::SetMode(w32 const modecode) const
    if( (modecode&0x10) != 0x10) {
     cout << "WARNING: setomSSM: "<< modecode <<" bit 0x10 not set for ltu board" <<endl;
    }
-   rc= setomvspSSM(modecode);
+   rc= setomvspSSM(modecode&3);
  }else
    rc= setomvspSSM(modecode);   //CTP Board
  return rc;

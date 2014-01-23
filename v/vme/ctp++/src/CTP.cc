@@ -61,9 +61,9 @@ void CTP::getboard(string const &line)
     string base=line.substr(line.length()-8,line.length());
     w32 basehex;
     convertS2H(basehex,base);
-    ltu[numofltus] = new BOARD(name,basehex,vspltu,1);
+    //ltu[numofltus] = new BOARD(name,basehex,vspltu,1);
+    ltu[numofltus] = new LTUBOARD(name,basehex,vspltu);
     vspltu=ltu[numofltus]->getvsp();  
-    ltu[numofltus]->AddSSMmode("inmon",0); 
     boards.push_back(ltu[numofltus]);    
     numofltus++; 
  }else if(!line.compare(line.length()-8,4,"0x80")){
@@ -194,7 +194,10 @@ void CTP::getdetector(string const &line){
  }
  det->ltunum=-1;
  for(int i=0;i<numofltus;i++){
-  if((ltu[i]->getboardbase()) == det->ltuvmeaddhex)det->ltunum=i;
+  if((ltu[i]->getboardbase()) == det->ltuvmeaddhex){
+   det->ltunum=i;
+   det->ltu=ltu[i];
+  }
  }
  fo2det[fo-1][focon-1] = det;
  det->print();

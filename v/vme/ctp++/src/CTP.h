@@ -5,6 +5,7 @@
 #include "L0BOARD.h"
 #include "L1BOARD.h"
 #include "L2BOARD.h"
+#include "LTUBOARD.h"
 #include "DETECTOR.h"
 #include "libctp++.h"
 using namespace std;
@@ -22,7 +23,7 @@ class CTP
          L2BOARD *l2;
          BOARD *inter;
 	 BOARD *fo[NUMOFFO];
-         BOARD *ltu[NUMOFFO*NUMOFCON];
+         LTUBOARD *ltu[NUMOFFO*NUMOFCON];
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
 	 int readCFG(string const &name);
 	 list<BOARD*> boards;

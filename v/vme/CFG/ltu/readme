@@ -20,7 +20,7 @@ ltu_b0.rbf  ltuvi (inluded improvements for busyprobe)
 18.7.2008
 ltu_b1.rbf  recompiled with Normal PLLmode (till now was: no_compensation)
 Fri Sep 19 15:12:20 CEST 2008
-ltu_b3.rbf - discarede
+ltu_b3.rbf - discarded
 LTU BC phase (was in b2 version)+RATE_LIMIT
 Mon Sep 22 13:50:14 CEST 2008
 In firmware it is version b4 - discarded
@@ -71,3 +71,8 @@ new version ltu_logic_vB7.rbf from Marian - new way of generating messages due t
 13.1.2013
 ltu_logic_vB7ver1.rbf removed, ltu2_b7.rbf is latest version for 100 classes
 + 32bits SLM + timing corrections (an option for compilation)
+14.1. 17:30
+B7 -seems better timing in FPGA for SSM, but SEU bit (TEMP_STATUS&0x2)
+is always set to 1
+21.1.2014
+ltu2_b8.rbf =ltu2_b7.rbf with functional SEU bit

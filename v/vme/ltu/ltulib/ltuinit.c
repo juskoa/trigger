@@ -659,3 +659,28 @@ if(ltc->ttcrx_reset==0) {
 int getgltuver() {
 return(Gltuver);
 }
+/*
+rc: >0 in case of SEU was registered.
+rc:  0 ok, no SEU registered from last checkSEU() activation
+*/
+int checkSEU() {
+w32 serial, pll;
+pll= vmer32(TEMP_STATUS)&0x2;
+serial= 0x3f&vmer32(SERIAL_NUMBER);
+if((serial>=64) || (serial==0)) {
+  if(serial==0) {
+    printf("Serial number:0 ->this board accounted LTU version 2\n");
+  };
+  if(pll==0x2) {
+    printf("CRC error bit set, reconfigure LTU!\n");
+    vmew32(TEMP_STATUS, 0);    // is needed here?
+    return(1);
+  } else {
+    printf("CRC bit ok\n");
+  };
+} else {
+  printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");
+};
+return(0);
+}
+

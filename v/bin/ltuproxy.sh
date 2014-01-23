@@ -18,16 +18,17 @@ else
   echo "$dtn: not known or not on this machine (possible cpu: $hn)"
 fi
 }
-function makelinks() {
-    SEQFILES=noclasses
-    cd $VMEWORKDIR/CFG/ltu/SLMproxy
-    ABSEFI=$VMECFDIR/ltu_proxy/$SEQFILES
-    echo "making links: $VMEWORKDIR/CFG/ltu/SLMproxy/*.seq"
-    echo "          --> $ABSEFI/"
-    ln -sf "$ABSEFI/sod.seq" sod.seq
-    ln -sf "$ABSEFI/eod.seq" eod.seq
-    ln -sf "$ABSEFI/L2a.seq" L2a.seq
-}
+#function makelinks() {
+#    SEQFILES=noclasses
+#    cd $VMEWORKDIR/CFG/ltu/SLMproxy
+#    ABSEFI=$VMECFDIR/ltu_proxy/$SEQFILES
+#    echo "making links: $VMEWORKDIR/CFG/ltu/SLMproxy/*.seq"
+#    echo "          --> $ABSEFI/"
+#    ln -sf "$ABSEFI/sod.seq" sod.seq
+#    ln -sf "$ABSEFI/eod.seq" eod.seq
+#    ln -sf "$ABSEFI/L2a.seq" L2a.seq
+#    ln -sf "$ABSEFI/sync.seq" sync.seq
+#}
 function mvfile() {
 # $1: relative path of the log file NO SUFFIX, i.e.: WORK/ctpproxy
 # operation: WORK/ctpproxy.log -> WORK/ctpproxyYYMMDDhhmm.log
@@ -152,11 +153,12 @@ else
   elif [ "$1" = "all" -o "$1" = "active" ] ;then
     if [ "$1" = "all" ] ;then
     echo "Known detectors:"
-    cat $cfgfile
+    grep -v '^#' $cfgfile
     echo
   fi
   echo "On this machine, `hostname`, these servers are running:"
-  ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 72
+  #ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 72
+  ps --columns 120 -C ltu_proxy o user,pid,args | awk '{print $1 "\t" $2 "\t" $4 " " $5}'
   exit
   else
   action="error"
@@ -170,9 +172,10 @@ if [ ! -d $VMEWORKDIR ] ; then
      mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
      mkdir -p $VMEWORKDIR/CFG/ltu/SLM
      cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
-     cp -a $VMECFDIR/CFG/ltu/SLM/L2a.slm $VMEWORKDIR/CFG/ltu/SLM/
+     cp -a $VMECFDIR/CFG/ltu/SLM/*.slm $VMEWORKDIR/CFG/ltu/SLM/
      mkdir -p $VMEWORKDIR/WORK
-     makelinks
+     #makelinks
+     makeSLMproxylinks.bash $dtn
   elif [ "$2" = "status" ] ;then
     echo 2
     exit

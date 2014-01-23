@@ -50,7 +50,7 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "4.0 19.2.2012"     // 0xb6, +ltu2_b6.rbf
 //#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
 //#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
-#define LTU_SW_VER "5.0 13.12.2013"    // run2:100 classes
+#define LTU_SW_VER "5.0 17.01.2014"    // run2:100 classes
 
 /*REGSTART32 */
 /* VME FPGA: */
@@ -482,6 +482,13 @@ int getsgmode();
 void setstdalonemode(w32 b2);
 /*FGROUP ConfiguratioH */
 int getgltuver();
+/*FGROUP SimpleTests
+Check SEU ( TEMP_STATUS&0x2 ) bit. NOT CHECKED for LTUver1
+rc: >0 in case of SEU was registered.
+rc:  0 ok, no SEU registered from last checkSEU() activation
+*/
+int checkSEU();
+
 void readCounters(w32 *mem, int N, int accrual);
 w32 getCounter(int reladr);
 void getCounters(int N, int accrual, int bakery_customer);
@@ -539,7 +546,7 @@ int SSMclearac();
 void SSMclear();
 int readSSM(w32 *sm);
 int checkSignature(w32 *sm,int *channels,int offset); 
-char *getAB(w32 opmo);
+const char *getAB(w32 opmo);
 
 /*FGROUP ADC
 Set BC_DELAY_ADD 

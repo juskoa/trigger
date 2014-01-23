@@ -32,6 +32,7 @@ int quit=0;
 static int SSMem[Mega];
 struct list *dump;
 int ttcboffset=0;
+int TTCLX=0;
 /*********************************************************************/
 /*FGROUP SSM_VME_Access ReadSSM
 Analyze SSM memory - like AS python + check of serial versus TTC
@@ -230,15 +231,15 @@ void channelB(int canal, int bit, int i, int *COUNT,int *COUNTa, int *icount, in
 /*---------------------------------------------------------------------------------*/
 void lxprint(int i,int rc,int NLxdat,int *LxDATA,char *name)
 {
- int k,j,offset=0,Ntclstart=7;
+ int k,j,offset=0,Ntclstart=8;
  //int tcl1,tcl2,tcl3;
  char tcl[25];
  char mess[38],line[256]=" ",www[256];
  switch(rc){
   case(0):
    if(NLxdat == NL2dat){
-     offset=0;  // L2ar flag is not included
-     Ntclstart=48; 
+     offset=1;  // L2ar flag is not included
+     Ntclstart=49; 
    }
    for(k=0;k<38;k++)mess[k]=0;
    for(k=offset;k<NLxdat;k++){
@@ -327,7 +328,7 @@ void txprintOP(int i,int *TXS,char *name){
  dump=addlist(dump,i-15,text);
 }
 /*--------------------------------------------------------------------------
- * txprint wheb for finding offset
+ * txprint when for finding offset - no printing
  */ 
 int txprintOff(int *TXS)
 {
@@ -346,12 +347,13 @@ int txprintOff(int *TXS)
  return rc;
 }
 /*--------------------------------------------------------------------------
- * txprint wheb offset is known
+ * txprint when offset is known
  */ 
 void txprint(int i,int *TXS, char *name)
 {
  int k;
- char *ttcadl[]={"ZERO","L1h ","L1d ","L2h ","L2d ","L2r ","RoIh","RoId"};
+ //char *ttcadl[]={"ZERO","L1h ","L1d ","L2h ","L2d ","L2r ","RoIh","RoId"};
+ char *ttcadl[]={"ZERO","L1h","L1d","L2h","L2d","L2r ","RoIh","RoId"};
  char text[256];
  int ttcadd,e,code,data,chck;
  ttcadd=0;
@@ -375,7 +377,11 @@ void txprint(int i,int *TXS, char *name)
   writeLog();
   exit(2);
  }
- sprintf(text,"%s %s:0x%04x %x 0x%x 0x%03x 0x%02x ",name,ttcadl[code],ttcadd,e,code,data,chck);
+ // Counting TTC words for L1 and L2 messages
+ if(code==1 || code==3) TTCLX=0;
+ TTCLX++;
+ //sprintf(text,"%s %s:0x%04x %x 0x%x 0x%03x 0x%02x ",name,ttcadl[code],ttcadd,e,code,data,chck);
+ sprintf(text,"%s %s%02i:0x%04x %x 0x%x 0x%03x 0x%02x ",name,ttcadl[code],TTCLX,ttcadd,e,code,data,chck);
  dump=addlist(dump,i-39,text);
 }
 int txsig(int canal, int bit, int i,int *COUNTa, int *itxs,int *TXS)

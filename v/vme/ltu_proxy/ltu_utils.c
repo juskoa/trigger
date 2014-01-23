@@ -194,6 +194,21 @@ int rc;
 rc= ltu_configure(1);
 return(rc);
 }
+int SLMloadrun2(char *vcfname) {
+int rc,lng; char vcfname_run1[190];
+lng= strlen(vcfname);
+if(!lturun2) {
+  // "xxx.seq" -> "xxx_run1.seq"
+  if(strcmp(&vcfname[lng-4], ".seq")!=0) {
+    infolog_trg(LOG_FATAL, (char *)"SLM sequence does not finish with .seq");
+    return(10);
+  };
+  strncpy(vcfname_run1, vcfname, lng-4);
+  strcat(vcfname_run1, "_run1.seq");
+} 
+rc=SLMload(vcfname_run1);
+return(rc);
+};
 
 /*----------------------------------------------- */ int sodeod(char *seqfile) {
 /* Input: seqfile: sod.seq or eod.seq
@@ -265,7 +280,7 @@ if(rc!=0) goto RET;
 usleep(1000);   // SDD get stuck in BUSY after 1st event without this line
 /*-------------------------------------- Start of Data event */
 if (templtucfg->ltu_sodeod_present) {
-  rc=sodeod("sod.seq");
+  rc=sodeod((char *)"sod.seq");
   //printf("waiting in startemu after sod: 1 secs\n"); usleep(1000000);
 };
 /*
@@ -330,9 +345,9 @@ int syncemu() {
 !!! check templtucfg
 */
 int rc,rc1; char vcfname[180];
-rc=sodeod("sync.seq");
+rc=sodeod((char *)"sync.seq");
 if(rc!=0) {
-  infolog_trg(LOG_FATAL, "SYNC not sent");
+  infolog_trg(LOG_FATAL, (char *)"SYNC not sent");
 };
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); 
 strcat(vcfname, templtucfg->mainEmulationSequence);
@@ -340,7 +355,7 @@ printf("loading original sequence+start signal:%s\n",vcfname);
 rc1= SLMload(vcfname);
 printf("SLMload rc:%d\n",rc1); fflush(stdout);
 if(rc1!=0) {
-  infolog_trg(LOG_FATAL, "LTU SLM not loaded with original sequence after SYNC");
+  infolog_trg(LOG_FATAL, (char *)"LTU SLM not loaded with original sequence after SYNC");
 } else {
   SLMsetstart(templtucfg->ltu_autostart_signal | templtucfg->ltu_LHCGAPVETO);
   printf("SLMsetstart ok.\n");
@@ -359,7 +374,7 @@ if (sodeodecs) {
   //w32 emustat, busys, busytime, avdt;
   //readcounters(0);
   //busytime= mem[BUSY_TIMERrp]; busys= mem[BUSY_COUNTERrp];
-  rc=sodeod("eod.seq");
+  rc=sodeod((char *)"eod.seq");
   //readcounters(0);
   //busys= dodif32(busys, mem[BUSY_COUNTERrp]);   // number of BUSYS
   //busytime= dodif32(busytime, mem[BUSY_TIMERrp]);
@@ -370,6 +385,6 @@ return(rc);
 }
 int ltucfg2daq(Tltucfg1 *lcp) {
 int rc;
-rc= dic_cmnd_service("CTPRCFG/LTUCCFG", (void *)lcp, sizeof(Tltucfg1));
+rc= dic_cmnd_service((char *)"CTPRCFG/LTUCCFG", (void *)lcp, sizeof(Tltucfg1));
 return(rc);   // 1: ok  !=1 dim problem?
 }

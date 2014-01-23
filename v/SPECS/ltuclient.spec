@@ -2,8 +2,8 @@
 
 Summary: ltuclient - Alice TRIGGER software
 Name: ltuclient
-Version: 2.9
-Release: 2
+Version: 2.10
+Release: 1
 #Copyright: Alice_TRG
 License: Alice_TRG
 Distribution: Alice_TRG
@@ -19,7 +19,7 @@ AutoReqProv: yes
 Requires: dim python tkinter
           
 # here is defined the installation root directory
-#%define _topdir /home/alice/trigger/rpms
+#%define _topdir /home/alice/trigger/rpmbuild
 %define pkgname %{name}-%{version}
 %define destdir %{prefix}
 

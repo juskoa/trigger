@@ -1033,9 +1033,8 @@ is postponed until:
 - Start Signal Selection (pulser,random, BC scaled down) or
   1st SW Start Signal generated. 
   'After mode' stops by itself after about 26 ms,
-  'Before mode' stops by pressing 'Quit emulation' button,
-  i.e. just after issuing QUIT EMULATION command.
-- 
+  'Before mode' stops by pressing 'Quit emulation' button
+ 
 """, 
         items=schopts)
       self.Sfp2ssm=myw.MywButton(self.fss, label="Wait L0, startAfter FP2ssm",
@@ -1120,7 +1119,11 @@ and create human readable file""", state=NORMAL,
       self.vb.io.execute("SSMschedule("+p+")")
       #self.quitCmdButs()
     def Cdump(self):
-      import ssman
+      import ssman,platform
+      if platform.machine()=="x86_64":
+        lindir= "lin64"
+      else:
+        lindir= "linux"
       #print 'Cshow:'
       rcl= self.vb.io.execute("SSMdump()",applout='<>')
       #print rcl
@@ -1133,13 +1136,10 @@ and create human readable file""", state=NORMAL,
         output=self.vb.io.execute("getgltuver()",applout='<>')
         ltuver=hex(int(output[0]))
         #print ltuver
-        if ltuver == '0xf3' :
-          plog= os.popen(os.path.join(os.environ['VMECFDIR'],"SSMANA/ssmana.exe"),"r")
-        elif (eval(ltuver) & 0xf0) == 0xb0:
-          plog= os.popen(os.path.join(os.environ['VMECFDIR'],"SSMANA/ssmanv.exe"),"r")
+        if ltuver >= '0xb7':
+          plog= os.popen(os.path.join(os.environ['VMECFDIR'],"SSMANA",lindir,"ssmanls1.exe"),"r")
         else:
-          self.vb.io.write("Cannot do dump for ltu version "+ltuver)
-          return;
+          plog= os.popen(os.path.join(os.environ['VMECFDIR'],"SSMANA",lindir,"ssmanv.exe"),"r")
         log= plog.read()
         rc= plog.close()
         self.vb.io.thds[0].write(log)

@@ -70,6 +70,7 @@ int main()
 {
   cout <<"classes " <<  sizeof(classes) << endl;
   CTP* ctp = new CTP;
+  return 1;
   generateConfiguration();
   //return 0;
   configureL0(ctp->l0);

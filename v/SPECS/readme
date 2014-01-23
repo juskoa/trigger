@@ -13,4 +13,7 @@ lrwxrwxrwx 1 trigger alice 43 Apr 26 13:55 ltusw.spec -> /usr/local/trigger/deve
 lrwxrwxrwx 1 trigger alice 60 Apr 26 13:57 ltuclient.spec -> /home/dl/root/usr/local/trigger/devel/v/SPECS/ltuclient.spec
 
 ltuclient.spec:
+16.1.2014: 2.9 Release: 3       built on avmes
+
 ltusw.spec:
+16.1.2014: 5.0 Release: 1       built on avmes

@@ -28,7 +28,7 @@ public:
          int CompSSMch(w32 *ssm2,int const offset,list<Connection> &Connections,int *channel,int *position) const;
 	 int genSignatureAll();
          int checkSignatureCon(list<Connection> &Connections);
-         int dumpSSM(char *name);
+         int dumpSSM(const char *name);
 private:
         w32 *ssm;
         w32 getNumber(int i0,int length,w32 mask);

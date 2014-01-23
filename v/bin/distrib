@@ -64,7 +64,7 @@ if [ "$1" == "clean" ] ;then
   rmnn $VMECFDIR/ltu
   rm $VMECFDIR/ltu/ltu.make
   rmnn $VMECFDIR/ltu/ltulib/linux_c
-  rm $VMECFDIR/SSMANA/ssmana.exe
+  rm $VMECFDIR/SSMANA/*.exe
   rmnn $VMECFDIR/VME2FPGA
   rm $VMECFDIR/VME2FPGA/VME2FPGA.make
   rmnn $VMEBDIR
@@ -81,12 +81,13 @@ if [ "$1" == "make" ] ;then
     echo "DIMDIR not defined -necessary for ltudim"
     echo
   else
-    cd $VMECFDIR/ltudim ; mkdir linux ; make
+    cd $VMECFDIR/ltudim ; make
   fi
   #$VMEBDIR/comp.py ttcvi
   $VMEBDIR/comp.py ltu
   $VMEBDIR/comp.py VME2FPGA
-  cd $VMECFDIR/SSMANA ; gcc ssmanv.c -o ssmanv.exe
+  #cd $VMECFDIR/SSMANA ; gcc ssmanv.c -o ssmanv.exe
+  cd $VMECFDIR/SSMANA ; make
   if [ "$SMIDIR" == "" ] ;then
     echo
     echo "SMIDIR not defined -necessary for ltu_proxy"
@@ -108,8 +109,9 @@ for pn in $names ;do
   if [ $pn = 'vmeb' ] ;then
     echo "pwd:" `pwd`
     if [ -d $VMECFDIR/../scripts ] ;then
-      read -p "rm $VMECFDIR/../scripts ? (y/n)" rmyn
+      read -p "should be files in $VMECFDIR/../scripts removed? (y/n)" rmyn
       [ "$rmyn" = "y" ] && rm -r $VMECFDIR/../scripts/*
+    else
       mkdir $VMECFDIR/../scripts
     fi
     cd $VMECFDIR/../bin
@@ -117,6 +119,7 @@ for pn in $names ;do
     cp -a vmebse_lab.bash $VMECFDIR/../scripts/vmebse.bash
     cp -a setup_lab.sh $VMECFDIR/../scripts/setup.sh
     cp -a distrib ltuproxy.sh loadLTUfpga seq2slm.bash \
+      doRightSeqs.bash makeSLMproxylinks.bash \
       $VMECFDIR/../scripts/
     cd `dirname $VMEBDIR`
     #ls vmeb/*.c vmeb/*.py vmeb/vmeai.make* vmeb/*.h vmeb/*.bash
@@ -125,9 +128,9 @@ for pn in $names ;do
  vmeb/vmeblib/*.[ch] vmeb/vmeblib/Makefile vmeb/vmeblib/make_new \
  vmeb/com_defs.make vmeb/lib_stuff.make \
  vmeb/daq_defs.make vmeb/sc.make \
- vmeb/vmeblib/linux_c/ \
- vme/CFG/ctp/DB/ttcparts.cfg scripts/* \
- vme/SSMANA/*.c DOC/Installation DOC/history.txt DOC/prog.txt 
+ vmeb/vmeblib/linux_c/ scripts/* \
+ vme/SSMANA/*.c vme/SSMANA/makefile \
+ DOC/Installation DOC/history.txt DOC/prog.txt 
   elif [ $pn == 'VME2FPGA' ] ;then
     cd $cfdir
     tar -rvf $distrfile vme/$pn/*.py vme/$pn/*.h vme/$pn/*.c
@@ -139,15 +142,13 @@ for pn in $names ;do
  $ltd/*.h $ltd/*.c \
  $ltd/ltulib/*.c $ltd/ltulib/Makefile $ltd/ltulib/make_new \
  $ltd/ltulib/linux_c/ \
- vme/CFG/ltu/ltu_b5.rbf vme/CFG/ltu/ltu_b6.rbf \
- vme/CFG/ltu/ltu2_b6.rbf vme/CFG/ltu/readme \
+ vme/CFG/ltu/ltu_b6.rbf vme/CFG/ltu/ltu2_b6.rbf \
+ vme/CFG/ltu/ltu_b8.rbf vme/CFG/ltu/ltu2_b8.rbf \
+ vme/CFG/ltu/readme \
  vme/CFG/ltu/init.mac vme/CFG/ltu/run.mac vme/CFG/ltu/ltuttc.cfgall \
- vme/CFG/ltu/ltuttc.cfg \
- vme/CFG/ltu/SLMproxy/eod.seq vme/CFG/ltu/SLMproxy/sod.seq \
- vme/CFG/ltu/SLMproxy/L2a.seq \
- vme/CFG/ltu/SLMproxy/sync.seq vme/CFG/ltu/SLMproxy/L2async.seq \
- $lts/L2a.slm $lts/all.slm $lts/sod.slm $lts/eod.slm \
- $lts/run*err.slm $lts/sync.slm $lts/L2async.slm $lts/synconly.slm
+ vme/CFG/ltu/ltuttc.cfg vme/CFG/ltu/ttcparts_lab.cfg \
+ $lts/L2a.slm $lts/all.slm $lts/run*err.slm $lts/L2async.slm $lts/synconly.slm
+# vme/CFG/ltu/SLMproxy/eod.seq vme/CFG/ltu/SLMproxy/sod.seq vme/CFG/ltu/SLMproxy/L2a.seq vme/CFG/ltu/SLMproxy/sync.seq vme/CFG/ltu/SLMproxy/L2async.seq 
   elif [ $pn == 'ltu_proxy' ] ;then
     cd $cfdir ; ltp='vme/ltu_proxy'
     tar $RVF $distrfile $ltp/*.[ch] \
@@ -159,6 +160,7 @@ for pn in $names ;do
     cd $cfdir ; ltp='vme/ttcvi'
     tar $RVF $distrfile $ltp/ttcvi.h
   else
+    echo "package:vme/$pn/.py vme/$pn/.[hc] vme/CFG/%pn..."
     cd $cfdir
     #ls vme/$pn.cf vme/$pn/*_u.py
     tar -rvf $distrfile vme/$pn/*.py vme/$pn/*.[hc] vme/CFG/$pn
@@ -167,15 +169,15 @@ done
 version=`grep '^#define LTU_SW_VER' $VMECFDIR/ltu/ltu.h`
 version=${version:20:3}
 cd ~ ; mv vmebltu.tar ltusw-$version.src.tar
-gzip ltusw-$version.src.tar ; mv ltusw-$version.src.tar.gz ~/rpms/SOURCES/
+gzip ltusw-$version.src.tar ; mv ltusw-$version.src.tar.gz ~/rpmbuild/SOURCES/
 cat - <<-EOF
-ltusw-$version.src.tar created in home directory.
-.gz version is in  ~/rpms/SOURCES:
+ltusw-$version.src.tar.gz is in  ~/rpmbuild/SOURCES:
 EOF
-ls -lt ~/rpms/SOURCES
+ls -lt ~/rpmbuild/SOURCES
 cat - <<-EOF
 
-Now prepare rpms/RPMS/ltusw-$version.rpm on altri1: 
-cd ~/rpms/SPECS ; rpmbuild -bb ltusw.spec"
+Now prepare rpmbuild/RPMS/ltusw-$version.rpm on altri1: 
+cd ~/rpmbuild/SPECS
+script -c 'rpmbuild -bb ltusw.spec' ~/ltusw.log 
 EOF
 

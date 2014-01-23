@@ -173,5 +173,8 @@ different help)
 13.1.oltu_u.py:
 if (type(f2save)==types.StringType) or (type(f2save)==types.UnicodeType):
 i.e. tkFileDialog returns UnicodeType (before 2.6 seems it was StringType)
-
-
+14.1.
+slmc[o]mp.py: Warning issued now, when L2class pattern is not a subset
+of L1 classes
+16.1.
+checkSEU() added in ltu_proxy.c. See also devdbg/seu

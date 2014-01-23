@@ -8,6 +8,13 @@ export DIM_DNS_NODE=$dnsdimnode
 export VMEBDIR=$rdir/vmeb
 export VMECFDIR=$rdir/vme
 export VMEWORKDIR=~/v/vme
+mkdir -p $VMEWORKDIR/WORK
+if [ ! -d $VMEWORKDIR/CFG/ltu/SLM ] ;then
+  echo "creating default $VMEWORKDIR/CFG/ltu ..."
+  mkdir -p $VMEWORKDIR/CFG/ltu
+  cp -a $VMECFDIR/CFG/ltu/SLM $VMEWORKDIR/CFG/ltu
+  cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu
+fi
 export dbctp=$VMECFDIR/CFG/ctp/DB
 [ -z "$VMELIBS" ] && export VMELIBS=/lib/modules/daq
 [ -z "$DIMDIR" ] && export DIMDIR=/opt/dim

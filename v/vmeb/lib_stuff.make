@@ -25,12 +25,12 @@ endif
 endif
 endif
 $(GOALS):
-	@echo t: $@ $(MAKECMDGOALS) making:$(ODIR) pwd:`pwd`
-	mkdir -p $(ODIR)
+	@echo lib_stuff.make: $@ $(MAKECMDGOALS) making:$(ODIR) pwd:`pwd`
+	@mkdir -p $(ODIR)
 	- cd $(ODIR) && $(MAKE) -f ../make_new $@
 ifdef MAKE_CLIENT_DIR
 #	echo $(MAKE_CLIENT_DIR)
-	echo
+	@echo
 #	ssh trigger@$(CLIENT_HOST) $(MAKE_CLIENT_CMD)
 	ssh $(CLIENT_HOST) $(MAKE_CLIENT_CMD)         # trigger or run1
 endif

@@ -1,3 +1,5 @@
+VMEGCC = g++
+OS = Linux
 CC = $(VMEGCC)
 CXX = CC
 
@@ -8,7 +10,12 @@ SHAREABLE=
 ##SHAREABLE=no
 ##IDIR = ./dim
 IDIR = $(DIMDIR)/dim
+HW := $(shell uname -i)
+ifeq ($(HW), x86_64)
+ODIR = lin64
+else
 ODIR = linux
+endif
 MAKE = gmake
 
 EXTRALIBS = 

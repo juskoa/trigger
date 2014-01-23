@@ -164,6 +164,7 @@ class Seq:
   def longhex(self,l12c):
     """
     l12c -list. l12c[0] -not used, l12c[1..50/100] - 0 or 1
+    rc: "0xabcd..."
     """
     if sdf.L1cls[2]==50:
       a= (l12c[50]<<1) | l12c[49] 
@@ -223,6 +224,11 @@ class Seq:
       flags= flags+ 'spare2 '
     #if self.spare3():
     #  flags= flags+ 'ESR '
+    #
+    l2pat= eval(l2class)
+    l12pat= eval(l1class) & l2pat
+    if l12pat != l2pat:
+      self.warn("L2 classes are not a subset of L1 classes")
     #check ESR:
     if self.spare3() != self.ESR():
       self.warn("ESR flag missing (in word0.bit9 or word4.bit13)")
@@ -280,11 +286,13 @@ class Disslm:
       elif lenline==33:
         slmcodeix= 29    #version3 .seq file
         if sdf.version!=3:
-          self.error("Error: strange line (length:%d)"%slenline);
+          self.error("Error: strange line (length:%d)"%lenline);
           self.fileok=0
+          break
       else:
-        self.error("Error: strange line (length:%d)"%slenline);
+        self.error("Error: strange line (length:%d)"%lenline);
         self.fileok=0
+        break
       swidth= lenline-1
       if (ln % sdf.wordseq) == 0:
         #print ln,'::',line[:-1]

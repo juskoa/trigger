@@ -111,7 +111,7 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        //von infolog_SetStream(dimservernameCAP,RUN_NUMBER);
        if( isNotNONE(configuration) ) {
          int rc;
-         rc= setOptionMem("L2aseq", configuration,templtucfg);
+         rc= setOptionMem((char *)"L2aseq", configuration,templtucfg);
          if(rc!=0) {
            sprintf(msg, "Bad CONFIGURATION:%s", configuration);
            infolog_trg(LOG_FATAL, msg); goto SETERROR;
@@ -119,7 +119,7 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        }; /* do nothing if not supplied!  */
        if( isNotNONE(mode) ) {
          int rc;
-         rc= setOptionMem("mode", mode,templtucfg);
+         rc= setOptionMem((char *)"mode", mode,templtucfg);
          if(rc!=0) {
            sprintf(msg, "Bad MODE:%s", mode);
            infolog_trg(LOG_FATAL, msg); goto SETERROR;
@@ -127,11 +127,14 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        }; /* do nothing if not supplied!  */
        if( isNotNONE(FineDelay1) ) {
          int rc;
-         rc= setOptionMem("FineDelay1", FineDelay1,templtucfg);
+         rc= setOptionMem((char *)"FineDelay1", FineDelay1,templtucfg);
          if(rc!=0) {
            sprintf(msg, "Bad FineDelay1:%s", FineDelay1);
            infolog_trg(LOG_FATAL, msg); goto SETERROR;
          };
+       };
+       if((rcse= checkSEU())) {
+         infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
        };
        busy12(1);
        // check busy:
@@ -157,6 +160,9 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        int rcdaq; 
        Tltucfg1 ltucfg;
        //w32 fd1,fd2,bcd; 
+       if((rcdaq= checkSEU())) {
+         infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
+       };
        Setglobalmode();
        printf("%s -->    GLOBAL.\n",obj);
        busy12(1);
@@ -201,20 +207,24 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
      } else {goto RETERR;}
    } else if (strcmp(state,"STANDALONE_RUNNING") == 0) {
       if (strcmp(action,"STOP") == 0) {
-         strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
-         stopemu(sodeodecs);
-         printf("%s --> Stops the emulator and waiting 2 secs why?\n",obj);
-         sleep (2);
-         strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
-         setRWMODE('W');
-         //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
+        int rcse;
+        strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
+        stopemu(sodeodecs);
+        printf("%s --> Stop the emulator and waiting 2 secs why?\n",obj);
+        sleep (2);
+        strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
+        setRWMODE('W');
+        if((rcse= checkSEU())) {
+          infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
+        };
+        //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
       } else if (strcmp(action,"PAUSE") == 0) {
-         //strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
-         // keep commented (from 10.4.)
-         pauseemu();
-         printf("%s --> Stops the emulator and waiting 2 secs why?\n",obj);
-         sleep (2);
-         strcpy(state,"STANDALONE_PAUSED"); smi_set_state(state);
+        //strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
+        // keep commented (from 10.4.)
+        pauseemu();
+        printf("%s --> Stops the emulator and waiting 2 secs why?\n",obj);
+        sleep (2);
+        strcpy(state,"STANDALONE_PAUSED"); smi_set_state(state);
       } else {goto RETERR;}
    } else if (strcmp(state,"STANDALONE_PAUSED") == 0) {
       if (strcmp(action,"STOP") == 0) {
@@ -239,12 +249,16 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
       } else {goto RETERR;}
    } else if (strcmp(state,"GLOBAL") == 0 ) {
       if (strcmp(action,"NV_GOTOSTANDALONE_STOPPED") == 0) {
-         Setstdalonemode();
-         printf("%s -->    STDALONE. \n",obj);
-         busy12(1);
-         strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
-         setRWMODE('W');
-         //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
+        int rcse;
+        Setstdalonemode();
+        printf("%s -->    STDALONE. \n",obj);
+        busy12(1);
+        strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
+        setRWMODE('W');
+        if((rcse= checkSEU())) {
+          infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
+        };
+        //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
       } else {goto RETERR;}
    } else if (strcmp(state,"ERROR") == 0) {
       if (strcmp(action,"RESET") == 0) {

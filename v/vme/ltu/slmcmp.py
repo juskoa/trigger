@@ -75,6 +75,10 @@ class Sequence:
     if not clas2:
       Err("Bad definition of L2 classes:"+atms[2])
       return
+    l2pat= eval(atms[2])
+    l12pat= eval(atms[1]) & l2pat
+    if l12pat != l2pat:
+      Err("L2 classes are not a subset of L1 classes","Warning", line)
     if len(atms)==3:
       atms.append("0x0")
       if code==2 or code==6:
@@ -278,7 +282,7 @@ File WORK/slmseq.seq is created, which can be than:
         print errtext
       else:
         a.savefile(slmseqpath)
-        print "See %s"%slmseqpath 
+        print "See %s %s fomat"%(slmseqpath, run)
 if __name__ == "__main__":
   main()
 

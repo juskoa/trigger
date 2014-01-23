@@ -1594,8 +1594,8 @@ part of the 'CTP fo boards' widget) to conform with FOs setting (upper part).
 NOTES:
 1. INT_TC_SET word (INT board i.e. RoC and CIT bits in L2a message) 
    is left untouched.
-2. HW (i.e. BUSY board) is not programmed, unless the next File->Write2hw
-   button pressed
+2. HW (i.e. BUSY board) is not programmed, unless the File->Write2hw
+   button activation
 """)
     for ibc in (0,1,2,3,4,5,6):
       self.bcs[ibc].showCluster(fr)
@@ -1647,10 +1647,12 @@ NOTES:
               str(focon.connector)+")")[0]
             ibsyinp=int(bsyinp)
             if ibsyinp==0: continue   # not connected bsy input
-            #print "bsyinp:", detn, ibsyinp
+            print "bsyinp:", detn, ibsyinp
             #self.refreshClusters(detn, clstr)
             self.refreshClusters(ibsyinp, clstr)
-            self.hwwritten(0)
+            #self.hwwritten(0)
+    # always when FOs->BUSY button presses, reprogram BUSY_CLSTER: (from 14..2014)
+    self.hwwritten(0)
     #cl06=vbexec.get1("updateBusyClusts()")
     #print "fos2busy:", cl06
   def readhw(self, line=None):

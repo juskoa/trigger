@@ -1,7 +1,11 @@
 #!/bin/bash
 # Start this script:
 # makeall 2>&1>~/makeall.gccor++
-# compiled in pit (gcc): 20.7.2009
+# better, start on both (server + client, i.e. 6times):
+# script -c 'makeall allctp clean' ~/makeall_allctp.log
+# script -c 'makeall allltu clean' ~/makeall_allltu.log
+# script -c 'makeall others clean' ~/makeall_others.log
+
 function cleancmp() {
 if [ -n "$SERVER" ] ;then
   echo --- $1 not done on server:$SERVER

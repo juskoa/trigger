@@ -2,6 +2,7 @@
 #define _DETECTOR_h
 #include <stdlib.h>
 #include "libctp++.h"
+#include "LTUBOARD.h"
 using namespace std;
 class DETECTOR
 {
@@ -13,6 +14,7 @@ class DETECTOR
      w32 ltuvmeaddhex;
      string ltuvmeaddress;
      int fo,focon;
+     LTUBOARD* ltu;
      string dimserver;
      void print();
 };

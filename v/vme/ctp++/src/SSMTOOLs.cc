@@ -376,7 +376,7 @@ int SSMTOOLs::find0(){
  return i; 
 }
 //----------------------------------------------------------------------------
-int SSMTOOLs::dumpSSM(char *name){
+int SSMTOOLs::dumpSSM(const char *name){
  char filename[200];
  char *environ;
  char fnpath[1024];
@@ -392,7 +392,7 @@ int SSMTOOLs::dumpSSM(char *name){
   exit(1);
  }
  for(int i=0; i<Mega; i++) {
-    w32 d=ssm[i];
+    w32 d=ssm[i]&0x3ffff;
     fwrite(&d, sizeof(w32), 1, dump);
   };
  fclose(dump); 

@@ -1715,7 +1715,12 @@ class VmeBoard:
     if self.io==None:
       bdir= os.environ['VMECFDIR']
       if self.iamltu('dim'):
-        cm= os.path.join(bdir, "ltudim","linux","ltuclient")+" " + self.boardName
+        import platform
+        if platform.machine()=="x86_64":
+          exdir= "lin64"
+        else:
+          exdir= "linux"
+        cm= os.path.join(bdir, "ltudim",exdir,"ltuclient")+" " + self.boardName
       else:
         cm= os.path.join(bdir, self.boardName, self.boardName)
         cm= cm+'.exe '+self.baseAddr
@@ -1867,9 +1872,11 @@ class VmeBoard:
   def iamltu(self, dim=None):
     """
     self.boardName  dim  rc
+    -----------------------
     ltu            'dim' False
     ltu            None  True
     hmpid           -    True
+    blbina          -    ZDOCHNE
     """
     if DimLTUservers.has_key(self.boardName): 
       return True
@@ -1955,6 +1962,7 @@ Main log/cmd window is started by itself if necessary.
         self.setColor(COLOR_WARNING)
         errmsg="rc:-2, cannot contact server"
         print errmsg
+        return
       elif rc == '-1':
         self.setColor(COLOR_WARNING)
         errmsg="""
@@ -1964,6 +1972,7 @@ Main log/cmd window is started by itself if necessary.
 - unsuccessfull FPGA load from Flash memory on the board after power off/on"""
         self.io.write(errmsg)
         print errmsg
+        return
       elif rc=='0':
         self.io.write("LTU in global mode !\n")
         self.setColor(COLOR_WARNING)
