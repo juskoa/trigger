@@ -178,3 +178,4 @@ slmc[o]mp.py: Warning issued now, when L2class pattern is not a subset
 of L1 classes
 16.1.
 checkSEU() added in ltu_proxy.c. See also devdbg/seu
+ltusw-5.0 published on web

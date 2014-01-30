@@ -93,12 +93,8 @@ void CTP::getboard(string const &line)
     vspctp=l2->getvsp();
     boards.push_back(l2);
  }else if(!line.compare(0,3,"int")){
-    inter = new BOARD("int",0x82c000,vspctp,4);
+    inter = new INTBOARD(vspctp);
     vspctp=inter->getvsp();
-    inter->AddSSMmode("ddldat",0); 
-    inter->AddSSMmode("ddllog",1); 
-    inter->AddSSMmode("i2c",2); 
-    inter->AddSSMmode("inmon",3);     
     boards.push_back(inter); 
  }else  if(!line.compare(0,2,"fo")){
     //cout << "fo found "<< endl;

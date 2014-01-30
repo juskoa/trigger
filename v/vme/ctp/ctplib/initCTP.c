@@ -151,14 +151,19 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 #endif
     //cfg vmew32(BUSY_DELAY_ADD, 0);
     vmew32(BUSY_DISB_CTP_BUSY, 1);   /* disable CTPbusy (see INT) */
-    /* longest serial message in bits -2 -2. 
+    /* cfg vmew32(BUSY_CTPDEADTIME, 60);    
+       longest serial message in bits -2 -2. 
        Now: (61: 1bit header +60databits) + (3: to be safe) = 64
        i.e. BUSY_CTPDEADTIME is 64 -2 -2 = 60
+    
+      - was 52 before 13.3. 2008
+      - was 60 before 30.1.2014
+      - is 60+50=110 after 30.1.2014 which corresponds 
+        to real deadtime (scope) to 112BCs
+       BUSY_L0L1_DEADTIME=213 corresponds to L1_DELAY_L0:160 -> to get 1 BC 
+       between L1end/nearest_next_L0start on LTU output when using 
+       'L0 over TTC' option
     */
-    //cfg vmew32(BUSY_CTPDEADTIME, 60);    /* was 52 before 13.3. 2008 */
-    /* 213 corresponds to L1_DELAY_L0:160 -> to get 1 BC between 
-       L1end/nearest_next_L0start on LTU output when using 'L0 over TTC'
-       option */
     //calc vmew32(BUSY_L0L1DEADTIME, 213);  
     //cfg vmew32(BUSY_L0L1DEADTIME, calcBUSY_L0L1DEADTIME());  
   };                                 

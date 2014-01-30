@@ -158,10 +158,11 @@ fflush(stdout);
 
 /*----------*/ void get_oc(void *tag,  void **msgv, int *size, int *blabla) {
 Tstatusmsg **msg= (Tstatusmsg **)msgv;
-printf("get_oc: tag:%d\n", *(int *)tag);
+int itag; itag= *(int *)tag;
+printf("get_oc: tag:%d det:%s\n", itag, fanis[itag].name);
 *msg= &statusmsg;
 *size= sizeof(statusmsg);
-HW_getmask(fanis[*(int *)tag].base, *msg);
+HW_getmask(fanis[itag].base, *msg);
 printf("get_oc: ed:0x%x busy:0x%x size:%d\n", (*msg)->ed, (*msg)->busy, *size);
 fflush(stdout);
 }

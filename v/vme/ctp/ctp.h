@@ -177,7 +177,7 @@ L0 board: increased length (max. adr 0x1ff*4 -> 0x2ff*4) implemented earlier.
 #define BUSY_L0L1DEADTIME 0x8620  /* [8..0] -L0L1 deadtime is (N+2) BCs.
                                      default: 202 */
 #define BUSY_CTPDEADTIME 0x8624   /* [6..0] -ctp deadtime is (N+2) BCs.
-                         default: 52. 60 (1.6us) for ctp readout version */
+                         default: 52. 60. 110 from 30.1.2014 */
 #define BUSY_OVERLAP     0x8640   /* [20..0] bits.1:overlap 0: not overlap for
                                      12 13 14 15 16 1T 23 24 ... 6T */
 /* L0 board: */

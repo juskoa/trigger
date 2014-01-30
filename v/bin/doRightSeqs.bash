@@ -8,6 +8,8 @@ if [ "$2" = "run1" ] ;then
 else:
   r=""
 fi
+echo "cd $VMECFDIR/ltu_proxy/noclasses ..."
+cd $VMECFDIR/ltu_proxy/noclasses
 cp $1.slm $VMEWORKDIR/WORK/
 cd $VMEWORKDIR
 $VMECFDIR/ltu/slmcmp.py WORK/$1.slm

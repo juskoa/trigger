@@ -1,14 +1,12 @@
 #Errors: PP L0 L1 L1M L1&L1M L2aM L2rWord
-# following line defines 19 L1Classes (50,49,45,...) and 4 L2classes (1,5,9,13)
-L0 0x3123456789012 0x1111 0x0 roc=13
-# following line specifies 1 L1class (50) and 1 L2class (1)
+# L1/L2 class pattern defines classes 1,48-51,99,100
+L0
 # The triggers sometimes do not go through (according to 1st 'Errors' line)
-L2A 0x1 0x2000000000000 0x1 ErrProne roc=12
-L2R 0x2 0x1000000000000 0x2 roc=11
-CPP 0x4 0x0800000000000 0x4 roc=10
-CL0 0x8 0x0400000000000 0x8 roc=9
-CL2A 0x10 0x0200000000000 0x10 roc=8
-CL2R 0x20 0x0100000000000 0x20 roc=7 Restart Last
-
+L2A 0xcf0000000000f000000000001 0xc00000000000f000000000001 0x1 ErrProne roc=12
+L2R 0xc00000000000f000000000001 0xc00000000000f000000000001 0x2 roc=11
+CPP 
+CL0
+CL2A 0xc00000000000f000000000001 0xc00000000000f000000000001 0x10 roc=8
+CL2R 0xc00000000000f000000000001 0xc00000000000f000000000001 0xff roc=7 Restart Last
 
 

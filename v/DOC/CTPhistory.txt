@@ -151,3 +151,9 @@ now: when the button pressed, 'HW not updated' indicator
      goes red and BUSY_CLUSTER word is than reprogrammed when HW written.
      This happens even if BUSY_CLUSTER words were not changed (but
      we are sure the displayed info agrees with HW).
+30.1.2014
+BUSY_CTPDEADTIME was 60 before 30.1.2014
+From now is 60+50=110 which corresponds to real deadtime (minimal
+distance of 2 L0 in 2 non overlaping clusters) to 112BCs= 2.8us
+todo: measure with scope
+

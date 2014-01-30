@@ -24,7 +24,7 @@ cd $VMECFDIR
 grep -e '^#define LTU_SW_VER' -e 'VERSION=' -e 'Version:' ltu/ltu.h ../SPECS/ltusw.spec
 note: bin/distrib script extracts current version from ltu.h
 C. 
-  make sure VMECFDIR, VMEBDIR are set. Execute on pcalicebhm10:
+  make sure VMECFDIR, VMEBDIR are set. Execute on pcalicebhm10 (altri1!):
   script -c '$VMECFDIR/../bin/distrib ALL' ~/distrib.log
   continue with D (checking vmebltu.tar) and E (building+check .rpm)
 D. -------------------------- vmebltu.tar
@@ -45,6 +45,8 @@ dim, smi:/home/dl/root/usr/local/trigger/root/Addons_32
 
   scp ~/vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
 
+cd ~rpmbuild
+scp RPMS/ltusw-5.0-1.i686.rpm SOURCES/ltusw-5.0.src.tar.gz juskoa@lxplus:www/ltu/28012014/
 E. ----------------------- ltusw.rpm (binary .rpm available from 26.4.2013):
 trigger@altri1: cd ~/rpmbuild/SPECS
 script -c 'rpmbuild -bb ltusw.spec' ~/ltusw.log 

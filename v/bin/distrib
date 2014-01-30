@@ -147,7 +147,8 @@ for pn in $names ;do
  vme/CFG/ltu/readme \
  vme/CFG/ltu/init.mac vme/CFG/ltu/run.mac vme/CFG/ltu/ltuttc.cfgall \
  vme/CFG/ltu/ltuttc.cfg vme/CFG/ltu/ttcparts_lab.cfg \
- $lts/L2a.slm $lts/all.slm $lts/run*err.slm $lts/L2async.slm $lts/synconly.slm
+ $lts/L2a.slm $lts/all.slm $lts/l0l2rl2a.slm $lts/run*err.slm \
+ $lts/L2async.slm $lts/synconly.slm
 # vme/CFG/ltu/SLMproxy/eod.seq vme/CFG/ltu/SLMproxy/sod.seq vme/CFG/ltu/SLMproxy/L2a.seq vme/CFG/ltu/SLMproxy/sync.seq vme/CFG/ltu/SLMproxy/L2async.seq 
   elif [ $pn == 'ltu_proxy' ] ;then
     cd $cfdir ; ltp='vme/ltu_proxy'

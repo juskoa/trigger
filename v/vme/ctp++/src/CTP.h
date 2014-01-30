@@ -5,6 +5,7 @@
 #include "L0BOARD.h"
 #include "L1BOARD.h"
 #include "L2BOARD.h"
+#include "INTBOARD.h"
 #include "LTUBOARD.h"
 #include "DETECTOR.h"
 #include "libctp++.h"
@@ -21,7 +22,7 @@ class CTP
          L0BOARD *l0;     //Here should be pointers instead objects
 	 L1BOARD *l1;     // otherwise compiler crashes probably due to the memory
          L2BOARD *l2;
-         BOARD *inter;
+         INTBOARD *inter;
 	 BOARD *fo[NUMOFFO];
          LTUBOARD *ltu[NUMOFFO*NUMOFCON];
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
