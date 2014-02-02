@@ -24,7 +24,6 @@ class BOARD: public BOARDBASIC
 	 enum {kNClasses=100};
  private:
 	 void SetFile(string const &modename);
-         SSMmode *SSMModes;
          int const numofmodes;
 	 int parsemode(string const &mode) const;
 	 ifstream modefile;
@@ -45,5 +44,13 @@ class BOARD: public BOARDBASIC
 	 w32 const SSMomvmer;
 	 w32 const SSMomvmew;
          w32 SSMbusybit;  // because it is different for ltu and ctp
+	 //
+	 struct SSMmode{
+		string name;
+		w32 modecode;
+		string channels[32];
+	 };
+         SSMmode *SSMModes;
+
 };
 #endif

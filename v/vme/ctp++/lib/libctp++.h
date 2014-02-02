@@ -3,15 +3,17 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "vmeblib.h"
 #define Mega (1024*1024)
 using namespace std;
-typedef unsigned int w32;
-//
+//typedef unsigned int w32;
+/*
 typedef struct SSMmode{
  string name;
  w32 modecode;
  string channels[32];
 }SSMmode;
+*/
 //
 typedef struct Connection{
  string name;
