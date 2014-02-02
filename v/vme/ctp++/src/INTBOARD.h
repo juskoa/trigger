@@ -13,5 +13,6 @@ class INTBOARD: public BOARD
          // ssm testing
          deque <CTPReadOut> ctpro;
 	 void getCTPReadOutList();
+         // Add structures here
 };
 #endif

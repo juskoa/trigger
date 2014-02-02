@@ -2,7 +2,7 @@
 ObjSuf        = o
 SrcSuf        = cc
 CXX           = g++
-CXXFLAGS      = -g -Wall -fPIC
+CXXFLAGS      = -g -Wall -fPIC -I$(VMEBDIR)/vmeblib
 
 libctp++.a: time.o convert.o
 	ar -q libctp++.a *.o
