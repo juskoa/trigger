@@ -1,22 +1,37 @@
 #!/bin/bash
-name=$1
-cp ~/$name alidcsvme002/home/alice/trigger/v/ssd/CFG/ltu/SLM/
-cp ~/$name alidcsvme002/home/alice/trigger/v/fmd/CFG/ltu/SLM/
-cp ~/$name alidcsvme002/home/alice/trigger/v/t0/CFG/ltu/SLM/
-cp ~/$name alidcsvme003/home/alice/trigger/v/hmpid/CFG/ltu/SLM/
-cp ~/$name alidcsvme003/home/alice/trigger/v/phos/CFG/ltu/SLM/
-cp ~/$name alidcsvme003/home/alice/trigger/v/cpv/CFG/ltu/SLM/
-cp ~/$name alidcsvme004/home/alice/trigger/v/trd/CFG/ltu/SLM/
-cp ~/$name alidcsvme004/home/alice/trigger/v/zdc/CFG/ltu/SLM/
-cp ~/$name alidcsvme004/home/alice/trigger/v/emc/CFG/ltu/SLM/
-cp ~/$name alidcsvme005/home/alice/trigger/v/tpc/CFG/ltu/SLM/
-cp ~/$name alidcsvme005/home/alice/trigger/v/pmd/CFG/ltu/SLM/
-cp ~/$name alidcsvme005/home/alice/trigger/v/acorde/CFG/ltu/SLM/
-cp ~/$name alidcsvme006/home/alice/trigger/v/sdd/CFG/ltu/SLM/
-cp ~/$name alidcsvme006/home/alice/trigger/v/muon_trk/CFG/ltu/SLM/
-cp ~/$name alidcsvme006/home/alice/trigger/v/muon_trg/CFG/ltu/SLM/
-cp ~/$name alidcsvme006/home/alice/trigger/v/daq/CFG/ltu/SLM/
-cp ~/$name alidcsvme007/home/alice/trigger/v/spd/CFG/ltu/SLM/
-cp ~/$name alidcsvme007/home/alice/trigger/v/tof/CFG/ltu/SLM/
-cp ~/$name alidcsvme007/home/alice/trigger/v/v0/CFG/ltu/SLM/
+#allvmes="alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 alidcsvme008"
+allvmes="lnxpool33 hmptrg1 ltu4spd lnxpool31 pcald55 altri1 altri2 altrip2"
+#CLRFS=/data/dl/snapshot  or /home/dl6/snapshot (see setenv)
+CLRFS=/home/dl6/snapshot
+src="$VMECFDIR/CFG/ltu/SLM"
+for hn in $allvmes ;do
+ cd $CLRFS/$hn/home/alice/trigger/v
+ #pwd ; ls vme
+ #cat .ssh/id_rsa.pub >>$CLRFS/$hn/home/alice/trigger/.ssh/authorized_keys
+ #mv vme vmeDELME
+ mkdir -p vme/CFG/ltu/SLM ; mkdir -p vme/CFG/ltu/SLMproxy
+ cp -a $src/all.slm $src/l0l2rl2a.slm vme/CFG/ltu/SLM/
+ echo "cp -a $src/all.slm $src/l0l2rl2a.slm vme/CFG/ltu/SLM/"
+done
+#
+#name=$1
+#cp ~/$name alidcsvme002/home/alice/trigger/v/ssd/CFG/ltu/SLM/
+#cp ~/$name alidcsvme002/home/alice/trigger/v/fmd/CFG/ltu/SLM/
+#cp ~/$name alidcsvme002/home/alice/trigger/v/t0/CFG/ltu/SLM/
+#cp ~/$name alidcsvme003/home/alice/trigger/v/hmpid/CFG/ltu/SLM/
+#cp ~/$name alidcsvme003/home/alice/trigger/v/phos/CFG/ltu/SLM/
+#cp ~/$name alidcsvme003/home/alice/trigger/v/cpv/CFG/ltu/SLM/
+#cp ~/$name alidcsvme004/home/alice/trigger/v/trd/CFG/ltu/SLM/
+#cp ~/$name alidcsvme004/home/alice/trigger/v/zdc/CFG/ltu/SLM/
+#cp ~/$name alidcsvme004/home/alice/trigger/v/emc/CFG/ltu/SLM/
+#cp ~/$name alidcsvme005/home/alice/trigger/v/tpc/CFG/ltu/SLM/
+#cp ~/$name alidcsvme005/home/alice/trigger/v/pmd/CFG/ltu/SLM/
+#cp ~/$name alidcsvme005/home/alice/trigger/v/acorde/CFG/ltu/SLM/
+#cp ~/$name alidcsvme006/home/alice/trigger/v/sdd/CFG/ltu/SLM/
+#cp ~/$name alidcsvme006/home/alice/trigger/v/muon_trk/CFG/ltu/SLM/
+#cp ~/$name alidcsvme006/home/alice/trigger/v/muon_trg/CFG/ltu/SLM/
+#cp ~/$name alidcsvme006/home/alice/trigger/v/daq/CFG/ltu/SLM/
+#cp ~/$name alidcsvme007/home/alice/trigger/v/spd/CFG/ltu/SLM/
+#cp ~/$name alidcsvme007/home/alice/trigger/v/tof/CFG/ltu/SLM/
+#cp ~/$name alidcsvme007/home/alice/trigger/v/v0/CFG/ltu/SLM/
 

@@ -20,7 +20,7 @@ odl64 := /opt/dip/lib
 endif
 ifeq ($(HOSTNAME), pcalicebhm10)
 SERVER_LINK := yes
-CLIENT_HOST := altrip2
+CLIENT_HOST := altri2
 #SERVER_PREF := /home/dl/root
 SERVER_PREF := /home/dl6
 #SERVER_BASEDIR := vd
