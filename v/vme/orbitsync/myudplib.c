@@ -240,7 +240,7 @@ if(strcmp(argv[1],"c")==0) {         //-------------------------------------- cl
     printf("Server. Starting in blocking mode...\n");
   };
   udpsocks= udpopens(TTCMI_IP); if(udpsocks==-1) diep("udpopens TTCMI_IP");
-  udpsockr= udpopenr(); if(rc==-1) diep("udpopenr()"); 
+  udpsockr= udpopenr(); if(udpsockr==-1) diep("udpopenr()"); 
   while(1) {
     if(unblockingmode==1) {
       rc= udpwait_unblock(udpsockr, bufrec, BUFLEN); 

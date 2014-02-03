@@ -396,6 +396,7 @@ written.
 int fpgainit();
 void setBC_DELAY_ADD(int delay);
 
+int checkSEU();
 void ltuInit(Tltucfg *ltc, int stdalone, int secs);
 void ltuDefaults(Tltucfg *ttcpars);
 

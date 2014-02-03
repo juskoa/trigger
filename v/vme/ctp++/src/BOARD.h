@@ -16,7 +16,10 @@ class BOARD: public BOARDBASIC
 	 void WriteSSM(w32 const word,int const start,int const last) const;
 	 w32 *GetSSM(){return ssm;};
 	 string *GetChannels(string const &mode) const;
+	 w32 getModeChannel(string name,string channel);
+	 w32 getChannel(string const &channel) const;
 	 void PrintChannels(string const &mode) const;
+	 int bit(w32 num,w32 channel){return ((num &(1u<<channel))==(1u<<channel));}
          int SetMode(string const &mode,char const c) const;
 	 int StartSSM() const;
          void StopSSM() const;
@@ -28,6 +31,7 @@ class BOARD: public BOARDBASIC
 	 int parsemode(string const &mode) const;
 	 ifstream modefile;
 	 w32 *ssm;
+	 w32 ssmmode;
          int SetMode(w32 const modecode) const;
 	 int setomvspSSM(w32 const mod) const;
          //

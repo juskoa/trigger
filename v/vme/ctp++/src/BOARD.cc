@@ -3,6 +3,7 @@ BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
 :
         BOARDBASIC(name,boardbase,vsp),
         numofmodes(nofssmmodes),
+	ssmmode(0),
 	SSMcommand(0x19c),
 	SSMstart(0x1a0),
 	SSMstop(0x1a4),
@@ -26,6 +27,14 @@ string *BOARD::GetChannels(string const &mode) const
    if(SSMModes[i].name == mode) return SSMModes[i].channels;
  }
  return 0;
+}
+w32 BOARD::getChannel(string const &channel) const
+{
+ for(int i=0;i<32;i++){
+   if(SSMModes[ssmmode].channels[i]==channel) return i;
+ }
+ cout << "Chennel: " << channel << " not found in mode " << SSMModes[ssmmode].name << endl;
+ return 100;
 }
 //---------------------------------------------------------------------------
 void BOARD::PrintChannels(string const &mode) const
@@ -231,6 +240,7 @@ int BOARD::SetMode(w32 const modecode) const
    rc= setomvspSSM(modecode&3);
  }else
    rc= setomvspSSM(modecode);   //CTP Board
+ //ssmmode=modecode;
  return rc;
 }
 //---------------------------------------------------------------------------
