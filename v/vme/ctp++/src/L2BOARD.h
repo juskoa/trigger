@@ -8,6 +8,7 @@ class L2BOARD: public BOARD
 	void setClass(w32 index,w32 inputs,w32 cluster,w32 vetos,w32 invert);
 	void setClassesToZero();
 	void printClasses();
+	void getL2aList();
  private:
          // vme addresses
          w32 const L2CONDITION;

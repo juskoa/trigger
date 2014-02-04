@@ -10,32 +10,11 @@ INTBOARD::INTBOARD(int vsp)
   this->AddSSMmode("inmon",3); 
 }
 //=================================================================================
-void INTBOARD::clearIRDda(IRDa &i)
-{
- i.error=0;
- i.orbit=0;
- i.issm=0;
- for(int j=0;j<251;j++){
-  i.Inter[j]=0;
-  i.bc[j]=0;
- }
-}
-void INTBOARD::printIRDda(IRDa &i)
-{
- printf("%7i:IR ORBIT:0x%6x\n",i.issm,i.orbit);
- for(int j=0;j<251;j++){
-    if(i.Inter[j])printf("       BCID:0x%3x 0x%1x\n",i.bc[j],i.Inter[j]);
- }
-}
 void INTBOARD::printIRList()
 {
  for(w32 i=0;i<qirda.size();i++)printIRDda(qirda[i]);
 }
 //================================================================================
-void INTBOARD::printCTPR(CTPR& c)
-{
- printf("%7i:CLST:0x%2x CLS:0x%010llx%015llx ID:0x%3x 0x%6x eob/esr/clt/sec:%1i %1i %1i %1i\n",c.issm,c.l2clusters,c.l2classes1,c.l2classes2,c.bcid,c.orbit,c.eob,c.esr,c.clt,c.swc);
-}
 void INTBOARD::printReadOutList()
 {
  //printf("      SSMBC  BCID BCID   ORBIT  L2Clusters  L2Classes ESR ClT SwC \n");
@@ -46,14 +25,6 @@ void INTBOARD::printReadOutList()
  //else 
  //printf("CTP: %7i %4i 0x%3x %8i 0x%2x 0x%13llx  %1i  %1i  %1i\n",qctpro[i].issm,qctpro[i].bcid,qctpro[i].bcid,qctpro[i].orbit,qctpro[i].l2clusters,qctpro[i].l2classes1,qctpro[i].esr,qctpro[i].clt,qctpro[i].swc);
  }
-}
-void INTBOARD::clearCTPR(CTPR &c)
-{
- c.l2clusters=0;
- c.l2classes1=0; c.l2classes2=0;
- c.bcid=0; c.orbit=0;
- c.eob=0;c.esr=0;c.clt=0;c.swc=0;
- c.issm=0;
 }
 void INTBOARD::getCTPReadOutList()
 {
@@ -137,6 +108,7 @@ void INTBOARD::getCTPReadOutList()
         }
         if(iIRDa == 0){
           irda.orbit=(sm[i]&0xfff)<<12;
+          irda.error1=(sm[i]&0x3000)>>12;
           irda.issm=i;
         }else if(iIRDa == 1){
           if(!(sm[i]&0x3000)){
@@ -144,6 +116,7 @@ void INTBOARD::getCTPReadOutList()
            return;
           }
           irda.orbit=irda.orbit+(sm[i]&0xfff);
+          irda.error2=(sm[i]&0x3000)>>12;
         }else if(iIRDa < 253){
          irda.Inter[iIRDa-2] = (sm[i]&0x3000)>>12;
          //irda.Inter[iIRDa-2] = (sm[i]);

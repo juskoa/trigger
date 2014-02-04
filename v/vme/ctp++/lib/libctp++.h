@@ -1,9 +1,10 @@
 #ifndef _libctp_h_
 #define _libctp_h_
 #include <iostream>
+#include <cstdio>
 #include <string>
 #include <vector>
-#include "vmeblib.h"
+#include "vmewrap.h"
 #define Mega (1024*1024)
 using namespace std;
 //typedef unsigned int w32;
@@ -14,6 +15,34 @@ typedef struct SSMmode{
  string channels[32];
 }SSMmode;
 */
+// CTP Read Out used at INt and L2 boards
+typedef struct CTPR{
+ 	int l2clusters;
+ 	w64 l2classes1;
+ 	w64 l2classes2;
+ 	int bcid;
+ 	int orbit;
+ 	int eob;   // used as eob flag, other items shoyld be zero
+ 	int esr;
+ 	int clt;    // calibration trigger
+ 	int swc;    // software class
+ 	int issm;   // position of the first word in ssm
+}CTPR;
+//Interaction Record
+typedef struct IRDda{
+	int error1;
+	int error2;
+	int incomplete;
+	int orbit;
+	int Inter[251];
+	int bc[251];
+	int issm;
+}IRDa;
+void printCTPR(CTPR &ctpr);
+void clearCTPR(CTPR &ctpr);
+void clearIRDda(IRDda &irda);
+void printIRDda(IRDda &irda);
+
 //
 typedef struct Connection{
  string name;
