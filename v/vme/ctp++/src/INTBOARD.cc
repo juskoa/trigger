@@ -137,11 +137,11 @@ void INTBOARD::getCTPReadOutList()
          ctpr.orbit=(sm[i]&0xfff)<<12;
        }else if(iCTPR == 2){
          ctpr.orbit=ctpr.orbit + (sm[i]&0xfff);
-       }else if(iCTPR == 3){
+       }else if(iCTPR == 3){      // clusters
          ctpr.l2clusters=(sm[i]&0xff);
        }else if(iCTPR==4){    //  class word 4 [100..97]
          l2cl=(sm[i]&0xf);
-         ctpr.l2classes1=l2cl<<40;
+         ctpr.l2classes1=l2cl<<36;
        }else if(iCTPR < 8){  // classes words 5,6,7 
          l2cl=sm[i]&0xfff;
          ctpr.l2classes1=ctpr.l2classes1+(l2cl<<(7-iCTPR)*12);

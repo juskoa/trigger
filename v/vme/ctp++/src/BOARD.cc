@@ -33,7 +33,7 @@ w32 BOARD::getChannel(string const &channel) const
  for(int i=0;i<32;i++){
    if(SSMModes[ssmmode].channels[i]==channel) return i;
  }
- cout << "Chennel: " << channel << " not found in mode " << SSMModes[ssmmode].name << endl;
+ cout << "GetChannel: " << channel << " not found in mode " << SSMModes[ssmmode].name << endl;
  return 100;
 }
 //---------------------------------------------------------------------------
@@ -212,17 +212,27 @@ int BOARD::setomvspSSM(w32 const mod) const
 // cont  = 'c' :continous
 //      != 'c': 1 pass
 //      - assuming that modes in files are always 1 pass
-int BOARD::SetMode(string const &mode,char const cont) const
+int BOARD::SetMode(string const &mode,char const cont,w32 &imode) const
 {
+ int rc=1;
  for(int i=0;i<numofmodes;i++){
   if(SSMModes[i].name == mode){
     w32 modecode=SSMModes[i].modecode;
     if((cont == 'c'))modecode=modecode+1;
-    return SetMode(modecode);
+    rc= SetMode(modecode);
+    imode=i;
+    return rc;
   }
  }
  cout << "SetMode: " << mode << " not found." << endl;
- return 1;
+ return rc;
+}
+int BOARD::SetMode(string const &mode,char const cont)
+{
+ w32 imode=0;
+ int rc=SetMode(mode,cont,imode);
+ if(rc==0) ssmmode=imode;
+ return rc;
 }
 //----------------------------------------------------------------------------
 int BOARD::SetMode(w32 const modecode) const

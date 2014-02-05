@@ -20,7 +20,7 @@ class BOARD: public BOARDBASIC
 	 w32 getChannel(string const &channel) const;
 	 void PrintChannels(string const &mode) const;
 	 int bit(w32 num,w32 channel){return ((num &(1u<<channel))==(1u<<channel));}
-         int SetMode(string const &mode,char const c) const;
+         int SetMode(string const &mode,char const c);
 	 int StartSSM() const;
          void StopSSM() const;
          SSMTOOLs ssmtools;
@@ -32,6 +32,7 @@ class BOARD: public BOARDBASIC
 	 ifstream modefile;
 	 w32 *ssm;
 	 w32 ssmmode;
+         int SetMode(string const &mode,char const c,w32 &imode) const;
          int SetMode(w32 const modecode) const;
 	 int setomvspSSM(w32 const mod) const;
          //
