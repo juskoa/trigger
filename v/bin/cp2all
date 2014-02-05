@@ -1,6 +1,18 @@
 #!/bin/bash
 #allvmes="alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 alidcsvme008"
-allvmes="lnxpool33 hmptrg1 ltu4spd lnxpool31 pcald55 altri1 altri2 altrip2"
+#allvmes="lnxpool33 hmptrg1 ltu4spd lnxpool31 pcald55 altri1 altri2 altrip2"
+allvmes="lnxpool33 hmptrg1 ltu4spd pcald55"
+op=$1
+if [ $# -eq 0 ] ;then
+cat - <<-EOF
+allvmes: $allvmes
+1 par expected:
+check 
+cfgslm   init working .slm files: CFG/ltu/SLM/.slm -> WORK/../CFG/ltu/SLM/
+
+EOF
+exit
+fi
 #CLRFS=/data/dl/snapshot  or /home/dl6/snapshot (see setenv)
 CLRFS=/home/dl6/snapshot
 src="$VMECFDIR/CFG/ltu/SLM"
@@ -9,9 +21,13 @@ for hn in $allvmes ;do
  #pwd ; ls vme
  #cat .ssh/id_rsa.pub >>$CLRFS/$hn/home/alice/trigger/.ssh/authorized_keys
  #mv vme vmeDELME
+if [ "$op" = "check" ] ;then
+ echo "pwd: `pwd`"
+elif [ "$op" = "cfgslm" ] ;then
  mkdir -p vme/CFG/ltu/SLM ; mkdir -p vme/CFG/ltu/SLMproxy
- cp -a $src/all.slm $src/l0l2rl2a.slm vme/CFG/ltu/SLM/
- echo "cp -a $src/all.slm $src/l0l2rl2a.slm vme/CFG/ltu/SLM/"
+ cp -a $src/all.slm $src/l0l2rl2a.slm $src/l2a.slm vme/CFG/ltu/SLM/
+ echo "cp -a $src/all.slm l0l2rl2a.slm l2a.slm -> $hn/.../vme/CFG/ltu/SLM/"
+fi
 done
 #
 #name=$1
