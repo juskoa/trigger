@@ -1,4 +1,5 @@
-FILE          = ctpro
+FILE          = ttcit
+#FILE          = ctpro
 #FILE          = ltu
 #FILE          = l0l1l2
 #FILE          = generL1
@@ -11,7 +12,9 @@ GLIBS         = -L/usr/X11R6/lib -lX11 -lm -ldl -rdynamic
 VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/home/dl/root/usr/local/include
 
 FILES = x/BOARDBASIC.cc x/BOARD.cc x/SSMTOOLs.cc x/LTUBOARD.cc x/CTP.cc x/CONNECT.cc \
-x/L0BOARD.cc x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc  
+x/L0BOARD.cc x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
+x/TTCITBOARD.cc 
+
 SRCS=$(subst x/,src/,$(FILES))
 HFILES = $(SRCS:.cc:=.h)
 OBJ = $(subst x/,obj/,$(FILES))
