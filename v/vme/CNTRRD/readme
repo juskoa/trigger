@@ -140,7 +140,9 @@ $VMECFDIR/CNTRRD/rrd.py cnow ltu
 Make sure, ctpdims and ltu_proxies are running:
 startClients.bash    (ctpdim should be running + ltu_proxies)
 The order of daemons starting:
-1. startClients.bash pydim start
+1. startClients.bash pydim start   
+   (not needed for counters, but necessary for ctpproxy)
+
    startClients.bash html start    (or at least cat /tmp/htmlfifo)
 2. ctpproxy start   (initialise ctp hw!)
 3. ctpdims start
@@ -282,6 +284,8 @@ readltu.c   RRDDB IMAGES
 ------------
 rrdtool info rrd/mon.rrd
 rrdtool info rrd/TPCcounters.rrd |grep 'last_update'
+rrdtool last rrd/TPCcounters.rrd
+rrdtool lastupdate rrd/TPCcounters.rrd    -names+values
 
 rra[0].rows = 10080     last week/min 24*60*7
 ds[epochmics].type = "GAUGE"
@@ -322,6 +326,7 @@ attributes:
 VDEF:max=ds0,MAXIMUM
 VDEF:ds1avg=ds1,AVERAGE
 -> see graph.bash
+
 8. analyse
 ----------
 getc,converth2i or strcpy():

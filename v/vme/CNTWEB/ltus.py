@@ -10,22 +10,93 @@ RRDDB= os.path.join(trigdb.VMEWORKDIR, "../../CNTRRD/rrd/")
 LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
   'CPV', 'HMPID', 'MUON_TRK', 'MUON_TRG', 'PMD',
   'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ')
+sigcolors=["660000", "66ff00", "6600ff", "66ffff"]
 
 cfg=None
+
+def DefLine(ri, ix_color, ltuname, cn):
+  """ ri: text file, opened, where rrdtool cmd is prepared
+  ix_color: 0,1,2,...
+  ltuname: ltu name
+  cn: signal name
+  operation: add the DEF,LINE2 chunks of the command in ri file
+  """
+  RRDDBname= RRDDB+ltuname+"counters.rrd"
+  #cn_ix= self.displayname+"%2.2d"%ix_color
+  cn_ix= "ds%2.2d"%ix_color
+  if cn=="dead-busy_ts":
+    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
+    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy_ts", RRDDBname, "busy_ts"))
+    # simplified version:
+    #dead-busy_ts= busy*0.4/(busy_ts+1)
+    #ri.write("CDEF:%s=busy,0.4,*,busy_ts,1,+,/ "%(cn))
+    # right way:
+    #dead-busy_ts= busy*0.4/1           if busy_ts==0
+    #dead-busy_ts= busy*0.4/busy_ts     if busy_ts!=0
+    ri.write("CDEF:%s=busy,0.4,*,busy_ts,0,EQ,1,busy_ts,IF,/ "%(cn_ix))
+  elif cn=="dead-l2a":
+    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
+    ri.write("DEF:%s=%s:%s:AVERAGE "% ("l2a_strobe", RRDDBname, "l2a_strobe"))
+    #dead-busy_l2a= busy*0.4/1           if l2a==0
+    #dead-busy_l2a= busy*0.4/l2a         if l2a!=0
+    ri.write("CDEF:%s=busy,0.4,*,l2a_strobe,0,EQ,1,l2a_strobe,IF,/ "%(cn_ix))
+  elif cn=="busyOverTime":
+    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
+    ri.write("DEF:%s=%s:%s:AVERAGE "% ("time", RRDDBname, "time"))
+    ri.write("CDEF:%s=busy,time,/ "%(cn_ix))
+  else:
+    ri.write("DEF:%s=%s:%s:AVERAGE "% (cn_ix, RRDDBname, cn))
+  ri.write("LINE2:%s#%s:%s "%(cn_ix,sigcolors[ix_color],ltuname+'_'+cn))
+  return
+def MakeImage(ltunames, signames):
+  """ One of ltunames/signames contains only 1 item
+  """
+  rrdinput=cntcom.BASEDIR+"imgs/graph.txt"
+  #ri.write("graph graf.png --start %d -e %d --step 60 -w 600 "%
+  #  (time0, time0+60*60))
+  #ri.write("graph graf.png -s teatime --step 60 -w 600 ")
+  #ri.write("graph graf.png -s 17:55 --step 60 -w 600 ")  # -10 hours max.
+  # time: -s now-10h   -s 1:0 -e 4:0
+  #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
+  fromto,pixwidth= cntcom.getStartEnd(cfg)
+  ri= open(rrdinput,"w")
+  namesname= ""
+  for ltuname in ltunames:
+    namesname= namesname+ ltuname;
+  finame= cntcom.BASEDIR+"imgs/"+namesname+'.png'
+  finame2= cntcom.IMAGES+namesname+'.png'
+  ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
+  ix_color= 0
+  if len(ltunames)>1:
+    signame= signames[0]
+    for ltuname in ltunames:
+      DefLine(ri, ix_color, ltuname, signame)
+      ix_color= ix_color+1
+  else:
+    ltuname= ltunames[0]
+    for signame in signames:
+      DefLine(ri, ix_color, ltuname, signame)
+      ix_color= ix_color+1
+  ri.close()
+  # following allowed only without SElinux:
+  #os.system("rrdtool - <"+rrdinput)
+  pf= os.popen("rrdtool - <"+rrdinput); cmdout=pf.read(); pf.close()
+  coa=string.split(cmdout)
+  if (len(coa) >2) and (coa[1]=='OK'):
+    return "<BR><IMG SRC=%s>\n"%(finame2)
+  else:
+    return "%s<BR><BR>\n"%(cmdout)
 
 class Counter:
   def __init__(self, name, cgt='C', displayname=None):
     self.coname=name
     self.displayname=name
     self.selected=""   # 'y': selected
-  def makeImage(self, ltuname):
+  def makeImage(self, ltunames):
     """period: month week day '10 hours' hour
-    ltuname: one of names in LTUS
+    ltuname: one of names in LTUS  -single graph (in run1)
+             list of names         -multi graph
     """
-    color="660000"
-    RRDDBname= RRDDB+ltuname+"counters.rrd"
-    finame= cntcom.BASEDIR+"imgs/"+ltuname+self.displayname+'.png'
-    finame2= cntcom.IMAGES+ltuname+self.displayname+'.png'
     rrdinput=cntcom.BASEDIR+"imgs/graph.txt"
     #ri.write("graph graf.png --start %d -e %d --step 60 -w 600 "%
     #  (time0, time0+60*60))
@@ -35,31 +106,16 @@ class Counter:
     #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
     fromto,pixwidth= cntcom.getStartEnd(cfg)
     ri= open(rrdinput,"w")
+    ltunamesname= ""
+    for ltuname in ltunames:
+      ltunamesname= ltunamesname+ ltuname;
+    finame= cntcom.BASEDIR+"imgs/"+ltunamesname+self.displayname+'.png'
+    finame2= cntcom.IMAGES+ltunamesname+self.displayname+'.png'
     ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
-    cn= self.displayname
-    if cn=="dead-busy_ts":
-      ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
-      ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy_ts", RRDDBname, "busy_ts"))
-      # simplified version:
-      #dead-busy_ts= busy*0.4/(busy_ts+1)
-      #ri.write("CDEF:%s=busy,0.4,*,busy_ts,1,+,/ "%(cn))
-      # right way:
-      #dead-busy_ts= busy*0.4/1           if busy_ts==0
-      #dead-busy_ts= busy*0.4/busy_ts     if busy_ts!=0
-      ri.write("CDEF:%s=busy,0.4,*,busy_ts,0,EQ,1,busy_ts,IF,/ "%(cn))
-    elif cn=="dead-l2a":
-      ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
-      ri.write("DEF:%s=%s:%s:AVERAGE "% ("l2a_strobe", RRDDBname, "l2a_strobe"))
-      #dead-busy_l2a= busy*0.4/1           if l2a==0
-      #dead-busy_l2a= busy*0.4/l2a         if l2a!=0
-      ri.write("CDEF:%s=busy,0.4,*,l2a_strobe,0,EQ,1,l2a_strobe,IF,/ "%(cn))
-    elif cn=="busyOverTime":
-      ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
-      ri.write("DEF:%s=%s:%s:AVERAGE "% ("time", RRDDBname, "time"))
-      ri.write("CDEF:%s=busy,time,/ "%(cn))
-    else:
-      ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDBname, cn))
-    ri.write("LINE2:%s#%s:%s "%(cn,color,ltuname+'_'+cn))
+    ix_color= 0
+    for ltuname in ltunames:
+      DefLine(ri, ix_color, ltuname, self.displayname)
+      ix_color= ix_color+1
     ri.close()
     # following allowed only without SElinux:
     #os.system("rrdtool - <"+rrdinput)
@@ -122,7 +178,7 @@ class Config:
     self.errs=""
     self.cfginit="just initialised"
     self.allboards= {
-      "ltu":Board("ltu","#cccccc"),
+      "ltu":Board("ltu","#cccccc"),    # better name woud be "signals" (not "ltu")
       "allltus":Board("allltus","#cccccc") }
      # read in counter definiions:
     f= open(CNTfile,"r")
@@ -309,16 +365,34 @@ function testButton (what){
 </ul>
 """
   #html= html + "<TR>"
+  assembly= "ltus"   # ltus or sigs. ltus: more ltus/1 sig
   html= html + cntcom.userrequest(cfg)
-  for ixcnt in range(len(cfg.allboards["ltu"].counters)):
-    cnt= cfg.allboards["ltu"].counters[ixcnt]
-    if cnt.selected:
-      #html=html+' '+cnt.coname
-      for ixltu in range(len(cfg.allboards["allltus"].counters)):
-        ltu= cfg.allboards["allltus"].counters[ixltu]
-        if ltu.selected:
-          #html=html+': '+ltu.coname
-          html= html + cnt.makeImage(ltu.coname)
+  if assembly == "ltus":
+    for ixcnt in range(len(cfg.allboards["ltu"].counters)):   #over signals
+      cnt= cfg.allboards["ltu"].counters[ixcnt]
+      if cnt.selected:
+        #html=html+' '+cnt.coname
+        # assembly all ltus into 1 signal-graph
+        conames= []   # list of LTU names
+        for ixltu in range(len(cfg.allboards["allltus"].counters)):
+          ltu= cfg.allboards["allltus"].counters[ixltu]
+          if ltu.selected:
+            conames.append(ltu.coname)
+        #html= html + cnt.makeImage(conames)
+        html= html + MakeImage(conames, [cnt.coname])
+  elif assembly == "sigs":
+    for ixltu in range(len(cfg.allboards["allltus"].counters)):   # over ltus
+      ltu= cfg.allboards["allltus"].counters[ixltu]
+      if ltu.selected:
+        #html=html+': '+ltu.coname
+        conames= []   # list of CNT names
+        for ixcnt in range(len(cfg.allboards["ltu"].counters)):
+          ltu= cfg.allboards["ltu"].counters[ixcnt]
+          if ltu.selected:
+            conames.append(ltu.coname)
+      #html= html + cnt.makeImage([ltu.coname])
+      html= html + MakeImage([ltu.coname], conames)
+  #else   # 1 signal = 1 png
   html= html +"<BR>\n"
   #pf= os.popen("printenv"); cmdout=pf.read(); pf.close()
   #html= html +cmdout +"<BR>\n"

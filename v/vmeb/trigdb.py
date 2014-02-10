@@ -9,8 +9,8 @@ if os.environ.has_key('VMEWORKDIR'):
   TRGWORKDIR= os.path.join(os.environ['VMEWORKDIR'], "WORK")
 else:
   # apache or validate(for ACT) case: 
-  if HOST=='pcalicebhm05' or HOST=='alidcscom026' or HOST=='pcalicebhm10':
-    VMEWORKDIR="/home/trigger/v/vme/"
+  if HOST=='avmes' or HOST=='pcalicebhm10':
+    VMEWORKDIR="/home/alice/trigger/v/vme/"
   elif HOST=='alidcscom188':
     VMEWORKDIR="/home/alice/trigger/v/vme/"
   else:
@@ -34,8 +34,9 @@ else:
   validate_case=None
   if HOST=='pcalicebhm05':
     os.environ['VMECFDIR']= "/data/ClientCommonRootFs/usr/local/trigger/vd/vme/"
-  elif HOST=='pcalicebhm10':
-    os.environ['VMECFDIR']= "/home/dl/root/usr/local/trigger/devel/v/vme/"
+  elif (HOST=='pcalicebhm10') or (HOST=='avmes'):
+    #os.environ['VMECFDIR']= "/home/dl/root/usr/local/trigger/devel/v/vme/"
+    os.environ['VMECFDIR']= "/home/dl6/local/trigger/v/vme/"
   elif HOST=='alidcscom188':
     os.environ['VMECFDIR']= "/data/dl/root/usr/local/trigger/stable/v/vme/"
   elif HOST=='alidcscom026':

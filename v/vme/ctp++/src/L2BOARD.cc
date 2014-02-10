@@ -71,7 +71,7 @@ void L2BOARD::getL2aList()
   if(bit(sm[i],sl2strobech)){
    L2a.issm=i;
    // L2 clusters -> one integer
-   w32 l2clstt=bit(sm[i],sdata1ch);  // test cluster
+   //w32 l2clstt=bit(sm[i],sdata1ch);  // test cluster
    i++;
    l2clusters=0;
    j=0;
