@@ -62,6 +62,7 @@ export dagw='jusko1@aldaqgw02.cern.ch'
 export lxp='jusko1@lxplus.cern.ch'
 #export PATH="$PATH:$ULT/bin"   is in vmebse.bash
 alias cdult="cd $ULT"
+alias cdulv="cd $ULT/v/vme"
 alias getact="ssh trigger@alidcscom188 getact.bash"
 alias lth="ls -lt |head"
 alias sx="ssh $XY"
