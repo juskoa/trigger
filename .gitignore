@@ -48,13 +48,16 @@ build
 !*/bin
 *.swp
 *.out
+v/scripts/
 v/vme/monscall++/*
 v/vme/monscall*/cnt
 v/*/*/linux*/
+v/*/*/lin64/
 v/*/*/*/linux*/
 v/vme/*/*_cf
 v/vme/*/*_cf.c
 v/vme/*/*_cf.py
+v/vme/ltu/.nfs0*
 v/vme/bobr/bobr.make
 v/vme/ttcmi/ttcmi.make
 v/vme/corde/corde.make

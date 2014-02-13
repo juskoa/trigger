@@ -31,7 +31,10 @@ class RRDgraph:
     #ri.write("graph graf.png -s 17:55 --step 60 -w 600 ")  # -10 hours max.
     # time: -s now-10h   -s 1:0 -e 4:0
     #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
-    self.ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
+    linlog=" "
+    if cfg.yaxis=="log": linlog= " -o "
+    #linlog= cfg.yaxis+cfg.grouping
+    self.ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+linlog)
     # delete old files:
     return finame2
   def rrdtool(self):
@@ -167,6 +170,7 @@ class Config:
   def __init__(self):
     self.period= "default"
     self.grouping= "none"   # trend grouping, used only for LTUs, can be: alls,sigs,ltus,none
+    self.yaxis= "linear"   # or log[arithmic]
     self.customperiod= ""; self.startgraph= ""
     self.errs=""
     self.cfginit="just initialised"
@@ -244,6 +248,9 @@ def show(req):
      if bs=='grouping':
        cfg.grouping= req.form['grouping']
        continue
+     if bs=='yaxis':
+       cfg.yaxis= req.form['yaxis']
+       continue
      if bs=='ltu':
        cnts = req.form.getlist(bs)   # selected counters ??? (deep copy???)
        errmsg=cfg.allboards["ltu"].select(cnts)
@@ -263,7 +270,7 @@ def show(req):
 """
    return s % word
 
-def getddm(assmbling):
+def getddm(assmbling, linlog):
   grhtm= cntcom.MyTemplate(htmstr="""
 &nbsp&nbsp&nbsp Grouping:
 <select name="grouping">
@@ -272,9 +279,15 @@ def getddm(assmbling):
 <option value="sigs" $sigs >Signals -> 1 graph</option>
 <option value="none" $none >None</option>
 </select> 
+&nbsp&nbsp&nbsp Y-axis:
+<select name="yaxis">
+<option value="linear" $linear >linear</option>
+<option value="log" $log >logarithmic</option>
+</select> 
 """)
-  selection= {"alls":"", "ltus":"", "sigs":"", "none":""}
+  selection= {"alls":"", "ltus":"", "sigs":"", "none":"", "linear":"", "log":""}
   selection[assmbling]= "selected"
+  selection[linlog]= "selected"
   return(grhtm.substitute(**selection))
 
 def _makehtml():
@@ -348,8 +361,8 @@ function testButton (what){
 </ul>
 """
   #html= html + "<TR>"
-  assmbling= cfg.grouping
-  html= html + cntcom.userrequest(cfg, getddm(assmbling))
+  assmbling= cfg.grouping ; linlog= cfg.yaxis
+  html= html + cntcom.userrequest(cfg, getddm(assmbling, linlog))
   if assmbling == "none":
     for ixcnt in range(len(cfg.allboards["ltu"].counters)):
       cnt= cfg.allboards["ltu"].counters[ixcnt]
@@ -386,7 +399,6 @@ function testButton (what){
           ltu= cfg.allboards["allltus"].counters[ixltu]
           if ltu.selected:
             conames.append(ltu.coname)
-        #html= html + cnt.makeImage(conames)
         #html= html + ' ' + str(conames) + cnt.coname + "<BR>\n"
         html= html + RRDimg.MakeImage(conames, [cnt.coname])
   elif assmbling == "sigs":
@@ -399,7 +411,6 @@ function testButton (what){
           ltusig= cfg.allboards["ltu"].counters[ixcnt]
           if ltusig.selected:
             conames.append(ltusig.coname)
-        #html= html + cnt.makeImage([ltu.coname])
         #html= html + ltu.coname + ' ' + str(conames) + "<BR>\n"
         html= html + RRDimg.MakeImage([ltu.coname], conames)
   #else   # 1 signal = 1 png

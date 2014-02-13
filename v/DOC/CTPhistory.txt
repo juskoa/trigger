@@ -156,4 +156,13 @@ BUSY_CTPDEADTIME was 60 before 30.1.2014
 From now is 60+50=110 which corresponds to real deadtime (minimal
 distance of 2 L0 in 2 non overlaping clusters) to 112BCs= 2.8us
 todo: measure with scope
+7.2.
+rl@avmes,altri1: git way added. I.e.:
+main development: trigger@avmes,altri1
+Roman: rl@avmes,altri1
+production for CERN public net: trigger@pcalicebhm10,altri2
+12.2.
+CNTWEB/ltus.py -grouping added
+13.3.
+CNTWEB/ltus.py -Yaxis logarithmic/linear added
 
