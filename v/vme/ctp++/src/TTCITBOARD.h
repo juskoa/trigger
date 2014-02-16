@@ -8,8 +8,11 @@ class TTCITBOARD: public BOARD
 	TTCITBOARD(string const name,w32 const boardbase,int vsp);
 	w32 getFPGAversion(){ return vmer(VERSION);}
 	w32 getStatus(){return vmer(STATUS);};
+	void resetSSMAddress(){vmew(RESET_SNAPSHOT_N,0xff);}
 	void start_stopSSM();
         // SSM analysis
+        void AnalyseSSM();
+        void DumptxtSSM();
         void Print();
  private:
 	//
@@ -21,5 +24,6 @@ class TTCITBOARD: public BOARD
 	w32 const READ_SSM_ADDRESS;
         w32 const READ_SSM_WORD;
         w32 const RESET;
+        w32 const RESET_SNAPSHOT_N;
 };
 #endif

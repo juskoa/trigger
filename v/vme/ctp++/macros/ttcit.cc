@@ -2,12 +2,13 @@
 int main(){
  w32 err=0;
  //CTP ctp;
- w32 vmesp=-1;
+ int vmesp=-1;
  string boardname("ttcit");
  TTCITBOARD *ttc= new TTCITBOARD(boardname.c_str(),0x8a0000,vmesp);
+ printf("vsp= %i \n",ttc->getvsp());
  w32 ver= ttc->getFPGAversion();
  printf("Version: 0x%x %i\n",ver,ver);
-// //ttc->start_stopSSM();
+ ttc->start_stopSSM();
  //ttc->ssmtools.dumpSSM("ttcit");
  /*
  //ltu->SetStandalone();

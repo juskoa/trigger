@@ -472,8 +472,9 @@ int readFile(){
  int word;
  size_t nmemb=1,nread; 
  /* f=fopen("/home/alice/rl/boards/vme/WORK/SSM.dump","rb");*/
- //f=fopen("WORK/SSM.dump","rb");
- f=fopen("/home/alice/trigger/v/vme/WORK/SSM.dump","rb");
+ f=fopen("WORK/SSM.dump","rb");
+ //f=fopen("/home/alice/trigger/v/vme/WORK/SSM.dump","rb");
+ //f=fopen("/home/alice/rl/v/vme/WORK/SSM.dump","rb");
  if(f == NULL){
   printf("File WORK/SSM.dump not opened.\n");
   return 2;
@@ -495,6 +496,7 @@ int writeLog()
  FILE *ff;
  ff=fopen("WORK/SSMa.txt","w");
  //ff=fopen("/home/alice/trigger/v/vme/WORK/SSMa.txt","w");
+ //ff=fopen("/home/alice/rl/v/vme/WORK/SSMa.txt","w");
  if(ff==0){
    printf("Cannot open file WORK/SSMa.txt \n");
    return 2;
