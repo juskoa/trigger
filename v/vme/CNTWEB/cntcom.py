@@ -51,7 +51,7 @@ def getStartEnd(cfg):
   else:
     fromto='' 
   return fromto, pixwidth
-def userrequest(cfg):
+def userrequest(cfg, assembling=""):
   if cfg.period=="Show period of":
     cuperiod= cfg.customperiod + ' from:' + cfg.startgraph
   else:
@@ -72,6 +72,7 @@ onMouseOver="window.status='average per hour';return true">
 onMouseOver="window.status='average per hour';return true">
 <INPUT TYPE="submit" NAME="period" VALUE="3months" TITLE="averaged per day"
 onMouseOver="window.status='average per day';return true">
+%s
 <br><br>
 <INPUT TYPE="submit" NAME="period" VALUE="Show period of">
 <INPUT TYPE="text" NAME="customperiod" SIZE="4" VALUE="%s" TITLE="e.g.: 40m (minutes) 3h (hours)"
@@ -81,7 +82,7 @@ onMouseOver="window.status='Examples: 3h (3hours)   50m (50minutes)   40d (40day
 onMouseOver="window.status='Examples: 12:40 17.04.08 (April 17th)      22:30  (1.5 hour before last midnight)'; return true">
 </FORM>
 Rates (signals/sec) over last %s:
-"""%(cfg.customperiod,cfg.startgraph, cuperiod)
+"""%(assembling, cfg.customperiod,cfg.startgraph, cuperiod)
   return usrreq
 def HtmlEditPrint(fn,**args):
   """
@@ -119,4 +120,15 @@ def HtmlEditPrint(fn,**args):
       prn= prn+'\n'+ line
   htmlf.close()
   return prn
+class MyTemplate:
+  def __init__(self, filepath=None, htmstr=None):
+    #Template. __init__(self)
+    if htmstr==None:
+      tf= open(filepath,"r") 
+      self.tmpl= string.Template(tf.read())
+      tf.close()
+    else:
+      self.tmpl= string.Template(htmstr)
+  def substitute(self, **kwargs):
+    return(self.tmpl.substitute(**kwargs))
 

@@ -10,121 +10,113 @@ RRDDB= os.path.join(trigdb.VMEWORKDIR, "../../CNTRRD/rrd/")
 LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
   'CPV', 'HMPID', 'MUON_TRK', 'MUON_TRG', 'PMD',
   'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ')
-sigcolors=["660000", "66ff00", "6600ff", "66ffff"]
+sigcolors=["660000", "66ff00", "6600ff", "66ffff", "ff0000","ff00ff","ffff00", "333333"]
 
 cfg=None
 
-def DefLine(ri, ix_color, ltuname, cn):
-  """ ri: text file, opened, where rrdtool cmd is prepared
-  ix_color: 0,1,2,...
-  ltuname: ltu name
-  cn: signal name
-  operation: add the DEF,LINE2 chunks of the command in ri file
-  """
-  RRDDBname= RRDDB+ltuname+"counters.rrd"
-  #cn_ix= self.displayname+"%2.2d"%ix_color
-  cn_ix= "ds%2.2d"%ix_color
-  if cn=="dead-busy_ts":
-    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
-    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy_ts", RRDDBname, "busy_ts"))
-    # simplified version:
-    #dead-busy_ts= busy*0.4/(busy_ts+1)
-    #ri.write("CDEF:%s=busy,0.4,*,busy_ts,1,+,/ "%(cn))
-    # right way:
-    #dead-busy_ts= busy*0.4/1           if busy_ts==0
-    #dead-busy_ts= busy*0.4/busy_ts     if busy_ts!=0
-    ri.write("CDEF:%s=busy,0.4,*,busy_ts,0,EQ,1,busy_ts,IF,/ "%(cn_ix))
-  elif cn=="dead-l2a":
-    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
-    ri.write("DEF:%s=%s:%s:AVERAGE "% ("l2a_strobe", RRDDBname, "l2a_strobe"))
-    #dead-busy_l2a= busy*0.4/1           if l2a==0
-    #dead-busy_l2a= busy*0.4/l2a         if l2a!=0
-    ri.write("CDEF:%s=busy,0.4,*,l2a_strobe,0,EQ,1,l2a_strobe,IF,/ "%(cn_ix))
-  elif cn=="busyOverTime":
-    ri.write("DEF:%s=%s:%s:AVERAGE "% ("busy", RRDDBname, "busy"))
-    ri.write("DEF:%s=%s:%s:AVERAGE "% ("time", RRDDBname, "time"))
-    ri.write("CDEF:%s=busy,time,/ "%(cn_ix))
-  else:
-    ri.write("DEF:%s=%s:%s:AVERAGE "% (cn_ix, RRDDBname, cn))
-  ri.write("LINE2:%s#%s:%s "%(cn_ix,sigcolors[ix_color],ltuname+'_'+cn))
-  return
-def MakeImage(ltunames, signames):
-  """ One of ltunames/signames contains only 1 item
-  """
-  rrdinput=cntcom.BASEDIR+"imgs/graph.txt"
-  #ri.write("graph graf.png --start %d -e %d --step 60 -w 600 "%
-  #  (time0, time0+60*60))
-  #ri.write("graph graf.png -s teatime --step 60 -w 600 ")
-  #ri.write("graph graf.png -s 17:55 --step 60 -w 600 ")  # -10 hours max.
-  # time: -s now-10h   -s 1:0 -e 4:0
-  #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
-  fromto,pixwidth= cntcom.getStartEnd(cfg)
-  ri= open(rrdinput,"w")
-  namesname= ""
-  for ltuname in ltunames:
-    namesname= namesname+ ltuname;
-  finame= cntcom.BASEDIR+"imgs/"+namesname+'.png'
-  finame2= cntcom.IMAGES+namesname+'.png'
-  ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
-  ix_color= 0
-  if len(ltunames)>1:
-    signame= signames[0]
-    for ltuname in ltunames:
-      DefLine(ri, ix_color, ltuname, signame)
-      ix_color= ix_color+1
-  else:
-    ltuname= ltunames[0]
-    for signame in signames:
-      DefLine(ri, ix_color, ltuname, signame)
-      ix_color= ix_color+1
-  ri.close()
-  # following allowed only without SElinux:
-  #os.system("rrdtool - <"+rrdinput)
-  pf= os.popen("rrdtool - <"+rrdinput); cmdout=pf.read(); pf.close()
-  coa=string.split(cmdout)
-  if (len(coa) >2) and (coa[1]=='OK'):
-    return "<BR><IMG SRC=%s>\n"%(finame2)
-  else:
-    return "%s<BR><BR>\n"%(cmdout)
-
-class Counter:
-  def __init__(self, name, cgt='C', displayname=None):
-    self.coname=name
-    self.displayname=name
-    self.selected=""   # 'y': selected
-  def makeImage(self, ltunames):
-    """period: month week day '10 hours' hour
-    ltuname: one of names in LTUS  -single graph (in run1)
-             list of names         -multi graph
-    """
-    rrdinput=cntcom.BASEDIR+"imgs/graph.txt"
+class RRDgraph:
+  def __init__(self):
+    self.rrdinput=cntcom.BASEDIR+"imgs/graph.txt"
+    self.nimg= 0
+    self.ri= None
+  def newgraph(self):   # open, assign name, delete old files
+    self.ri= open(self.rrdinput,"w")
+    fromto,pixwidth= cntcom.getStartEnd(cfg)
+    namesname= "img%d"%self.nimg ; self.nimg= self.nimg+1
+    finame= cntcom.BASEDIR+"imgs/"+namesname+'.png'
+    finame2= cntcom.IMAGES+namesname+'.png'
     #ri.write("graph graf.png --start %d -e %d --step 60 -w 600 "%
     #  (time0, time0+60*60))
     #ri.write("graph graf.png -s teatime --step 60 -w 600 ")
     #ri.write("graph graf.png -s 17:55 --step 60 -w 600 ")  # -10 hours max.
     # time: -s now-10h   -s 1:0 -e 4:0
     #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
-    fromto,pixwidth= cntcom.getStartEnd(cfg)
-    ri= open(rrdinput,"w")
-    ltunamesname= ""
-    for ltuname in ltunames:
-      ltunamesname= ltunamesname+ ltuname;
-    finame= cntcom.BASEDIR+"imgs/"+ltunamesname+self.displayname+'.png'
-    finame2= cntcom.IMAGES+ltunamesname+self.displayname+'.png'
-    ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
-    ix_color= 0
-    for ltuname in ltunames:
-      DefLine(ri, ix_color, ltuname, self.displayname)
-      ix_color= ix_color+1
-    ri.close()
-    # following allowed only without SElinux:
-    #os.system("rrdtool - <"+rrdinput)
-    pf= os.popen("rrdtool - <"+rrdinput); cmdout=pf.read(); pf.close()
+    self.ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
+    # delete old files:
+    return finame2
+  def rrdtool(self):
+    # following allowed only without SElinux?:
+    pf= os.popen("rrdtool - <"+self.rrdinput); cmdout=pf.read(); pf.close()
+    return cmdout
+  def doDEF(self, RRDDBname, sign):
+    """ purpose: avoid double definition of busy in case
+    of simultaneous graph for calculated trends, i.e.
+    dead-busy_ts/dead-l2a/busyOverTime
+    """
+    if not self.sigsdef.has_key(sign):
+      self.ri.write("DEF:%s=%s:%s:AVERAGE "% (sign, RRDDBname, sign))
+      self.sigsdef[sign]= 1
+  def DefLine(self, ix_color, ltuname, cn):
+    """ ri: text file, opened, where rrdtool cmd is prepared
+    ix_color: 0,1,2,...
+    ltuname: ltu name
+    cn: signal name
+    operation: add the DEF,LINE2 chunks of the command in self.ri file
+    """
+    RRDDBname= RRDDB+ltuname+"counters.rrd"
+    #cn_ix= self.displayname+"%2.2d"%ix_color
+    cn_ix= "ds%2.2d"%ix_color
+    if cn=="dead-busy_ts":
+      self.doDEF(RRDDBname, "busy")
+      self.doDEF(RRDDBname, "busy_ts")
+      # simplified version:
+      #dead-busy_ts= busy*0.4/(busy_ts+1)
+      #ri.write("CDEF:%s=busy,0.4,*,busy_ts,1,+,/ "%(cn))
+      # right way:
+      #dead-busy_ts= busy*0.4/1           if busy_ts==0
+      #dead-busy_ts= busy*0.4/busy_ts     if busy_ts!=0
+      self.ri.write("CDEF:%s=busy,0.4,*,busy_ts,0,EQ,1,busy_ts,IF,/ "%(cn_ix))
+    elif cn=="dead-l2a":
+      self.doDEF(RRDDBname, "busy")
+      self.doDEF(RRDDBname, "l2a_strobe")
+      #dead-busy_l2a= busy*0.4/1           if l2a==0
+      #dead-busy_l2a= busy*0.4/l2a         if l2a!=0
+      self.ri.write("CDEF:%s=busy,0.4,*,l2a_strobe,0,EQ,1,l2a_strobe,IF,/ "%(cn_ix))
+    elif cn=="busyOverTime":
+      self.doDEF(RRDDBname, "busy")
+      self.doDEF(RRDDBname, "time")
+      #self.ri.write("DEF:%s=%s:%s:AVERAGE "% ("time", RRDDBname, "time"))
+      self.ri.write("CDEF:%s=busy,time,/ "%(cn_ix))
+    else:
+      self.ri.write("DEF:%s=%s:%s:AVERAGE "% (cn_ix, RRDDBname, cn))
+    self.ri.write("LINE2:%s#%s:%s "%(cn_ix,sigcolors[ix_color],ltuname+'_'+cn))
+    return
+  def MakeImage(self, ltunames, signames):
+    """ One of ltunames/signames contains only 1 item
+    Operation: create one image 
+    rc: html code
+    """
+    self.sigsdef= {}
+    finame2= RRDimg.newgraph()   # open, assign name, delete old files
+    ix_color= 0; cmdout= ""
+    if len(ltunames)>1:
+        for ltuname in ltunames:
+          for signame in signames:
+            self.DefLine(ix_color, ltuname, signame)
+            ix_color= ix_color+1
+    elif len(ltunames)==1:
+      ltuname= ltunames[0]
+      for signame in signames:
+        self.DefLine(ix_color, ltuname, signame)
+        ix_color= ix_color+1
+    else:
+      cmdout="<BR><BR>Choose at least 1 LTU...\n"
+    self.ri.close() ; self.ri= None
+    if cmdout !="": return cmdout
+    cmdout= RRDimg.rrdtool()
     coa=string.split(cmdout)
     if (len(coa) >2) and (coa[1]=='OK'):
       return "<BR><IMG SRC=%s>\n"%(finame2)
     else:
       return "%s<BR><BR>\n"%(cmdout)
+
+RRDimg= RRDgraph()
+
+class Counter:
+  def __init__(self, name, cgt='C', displayname=None):
+    self.coname=name
+    self.displayname=name
+    self.selected=""   # 'y': selected
 class Board:
   def __init__(self,name, color="#ffffff"):
     self.name=name
@@ -174,6 +166,7 @@ class Board:
 class Config:
   def __init__(self):
     self.period= "default"
+    self.grouping= "none"   # trend grouping, used only for LTUs, can be: alls,sigs,ltus,none
     self.customperiod= ""; self.startgraph= ""
     self.errs=""
     self.cfginit="just initialised"
@@ -209,6 +202,7 @@ def deselectAll():
     cnt= cfg.allboards["ltu"].counters[ixcnt]
     if cnt.selected:
       cnt.selected=''
+  cfg.grouping="none"
 
 def index():
   global cfg
@@ -247,6 +241,9 @@ def show(req):
      #if bs=='deselect':
      #  deselectAll()
      #  break
+     if bs=='grouping':
+       cfg.grouping= req.form['grouping']
+       continue
      if bs=='ltu':
        cnts = req.form.getlist(bs)   # selected counters ??? (deep copy???)
        errmsg=cfg.allboards["ltu"].select(cnts)
@@ -266,33 +263,19 @@ def show(req):
 """
    return s % word
 
-def _makeGraphs(cnames=("cnt","temp"), finame="graf.png"):
-  """not used now (should be if more counters in 1 graph...)
-  cnames: names in RRDDB (not displayname)
-  """
-  colors=["660000","ff0000", "770000"]
-  if len(cnames)==1: finame= cnames[0]+'.png'
-  ri= open("graph.txt","w")
-  #ri.write("graph graf.png --start %d -e %d --step 60 -w 600 "%
-  #  (time0, time0+60*60))
-  #ri.write("graph graf.png -s teatime --step 60 -w 600 ")
-  #ri.write("graph graf.png -s 17:55 --step 60 -w 600 ")  # -10 hours max.
-  # time: -s now-10h   -s 1:0 -e 4:0
-  #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
-  ri.write("graph "+finame+" -s now-2d --step 60 -w 600 ")
-  ix=0
-  while ix<len(cnames):
-    cn=cnames[ix]
-    while ixltu<len(LTUS):
-      ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDB_ctpORltu, cn))
-    ix=ix+1
-  ix=0
-  while ix<len(cnames):
-    cn=cnames[ix]
-    ri.write("LINE1:%s#%s:%s "%(cn,colors[ix],cn))
-    ix=ix+1
-  ri.close()
-  os.system("rrdtool - <graph.txt")
+def getddm(assmbling):
+  grhtm= cntcom.MyTemplate(htmstr="""
+&nbsp&nbsp&nbsp Grouping:
+<select name="grouping">
+<option value="alls" $alls >all -> 1 graph</option>
+<option value="ltus" $ltus >LTUs -> 1 graph</option>
+<option value="sigs" $sigs >Signals -> 1 graph</option>
+<option value="none" $none >None</option>
+</select> 
+""")
+  selection= {"alls":"", "ltus":"", "sigs":"", "none":""}
+  selection[assmbling]= "selected"
+  return(grhtm.substitute(**selection))
 
 def _makehtml():
   global cfg
@@ -304,7 +287,7 @@ def _makehtml():
 <style type="text/css">
   body { color: black; background: white; }
   textarea { background: rgb(204,204,255); font-size:80%;} 
-  input { background: rgb(204,204,255); } 
+  input,select { background: rgb(204,204,255); } 
   TD.busy { background: #ccff00; } 
   TD.l0   { background: #cc9933; } 
   TD.l1   { background: #cc33cc; } 
@@ -343,8 +326,8 @@ function testButton (what){
 <TABLE>
 <TR>
 """
-  #nebavi:
-  #<FORM NAME="testform" METHOD="GET" ACTION="cnt/show">
+  #nebavi dajak:
+  #<FORM NAME="testform" METHOD="GET" ACTION="ltus/show">
   #<FORM NAME="testform" METHOD="GET" ACTION="http://pcalicebhm05.cern.ch/CNTWEB/show">
   for brd in ["allltus", "ltu"]:
   #for brd in ("l0",):
@@ -365,33 +348,60 @@ function testButton (what){
 </ul>
 """
   #html= html + "<TR>"
-  assembly= "ltus"   # ltus or sigs. ltus: more ltus/1 sig
-  html= html + cntcom.userrequest(cfg)
-  if assembly == "ltus":
+  assmbling= cfg.grouping
+  html= html + cntcom.userrequest(cfg, getddm(assmbling))
+  if assmbling == "none":
+    for ixcnt in range(len(cfg.allboards["ltu"].counters)):
+      cnt= cfg.allboards["ltu"].counters[ixcnt]
+      if cnt.selected:
+        #html=html+' '+cnt.coname
+        for ixltu in range(len(cfg.allboards["allltus"].counters)):
+          ltu= cfg.allboards["allltus"].counters[ixltu]
+          if ltu.selected:
+            #html=html+': '+ltu.coname
+            html= html + RRDimg.MakeImage([ltu.coname],[cnt.coname])
+  elif assmbling == "alls":
+    cntnames= []
     for ixcnt in range(len(cfg.allboards["ltu"].counters)):   #over signals
       cnt= cfg.allboards["ltu"].counters[ixcnt]
       if cnt.selected:
         #html=html+' '+cnt.coname
-        # assembly all ltus into 1 signal-graph
+        # assembling all ltus into 1 signal-graph
+        cntnames.append(cnt.coname)
+        ltunames= []   # list of LTU names
+        for ixltu in range(len(cfg.allboards["allltus"].counters)):
+          ltu= cfg.allboards["allltus"].counters[ixltu]
+          if ltu.selected:
+            ltunames.append(ltu.coname)
+    #html= html + ' ' + str(ltunames) + str(cntnames)+ "<BR>\n"
+    html= html + RRDimg.MakeImage(ltunames, cntnames)
+  elif assmbling == "ltus":
+    for ixcnt in range(len(cfg.allboards["ltu"].counters)):   #over signals
+      cnt= cfg.allboards["ltu"].counters[ixcnt]
+      if cnt.selected:
+        #html=html+' '+cnt.coname
+        # assembling all ltus into 1 signal-graph
         conames= []   # list of LTU names
         for ixltu in range(len(cfg.allboards["allltus"].counters)):
           ltu= cfg.allboards["allltus"].counters[ixltu]
           if ltu.selected:
             conames.append(ltu.coname)
         #html= html + cnt.makeImage(conames)
-        html= html + MakeImage(conames, [cnt.coname])
-  elif assembly == "sigs":
+        #html= html + ' ' + str(conames) + cnt.coname + "<BR>\n"
+        html= html + RRDimg.MakeImage(conames, [cnt.coname])
+  elif assmbling == "sigs":
     for ixltu in range(len(cfg.allboards["allltus"].counters)):   # over ltus
       ltu= cfg.allboards["allltus"].counters[ixltu]
       if ltu.selected:
         #html=html+': '+ltu.coname
         conames= []   # list of CNT names
         for ixcnt in range(len(cfg.allboards["ltu"].counters)):
-          ltu= cfg.allboards["ltu"].counters[ixcnt]
-          if ltu.selected:
-            conames.append(ltu.coname)
-      #html= html + cnt.makeImage([ltu.coname])
-      html= html + MakeImage([ltu.coname], conames)
+          ltusig= cfg.allboards["ltu"].counters[ixcnt]
+          if ltusig.selected:
+            conames.append(ltusig.coname)
+        #html= html + cnt.makeImage([ltu.coname])
+        #html= html + ltu.coname + ' ' + str(conames) + "<BR>\n"
+        html= html + RRDimg.MakeImage([ltu.coname], conames)
   #else   # 1 signal = 1 png
   html= html +"<BR>\n"
   #pf= os.popen("printenv"); cmdout=pf.read(); pf.close()
@@ -399,7 +409,7 @@ function testButton (what){
   #html= html +"<img src=graf.png>\n"
   #pf= os.popen("ls"); cmdout=pf.read(); pf.close()
   #html= html +cmdout +"<BR>\n"
-  html= html +"<HR> dbg:" + cfg.cfginit + ':' + cfg.period + ':'
+  #html= html +"<HR> dbg:" + cfg.cfginit + ' period:' + cfg.period + ':'
   html= html + """</BODY>
 </HTML>
 """

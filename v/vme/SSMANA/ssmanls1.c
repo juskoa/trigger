@@ -493,8 +493,8 @@ int readFile(){
 int writeLog()
 {
  FILE *ff;
- //ff=fopen("WORK/SSMa.txt","w");
- ff=fopen("/home/alice/trigger/v/vme/WORK/SSMa.txt","w");
+ ff=fopen("WORK/SSMa.txt","w");
+ //ff=fopen("/home/alice/trigger/v/vme/WORK/SSMa.txt","w");
  if(ff==0){
    printf("Cannot open file WORK/SSMa.txt \n");
    return 2;

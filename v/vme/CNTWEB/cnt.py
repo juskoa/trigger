@@ -136,6 +136,7 @@ class Board:
 class Config:
   def __init__(self):
     self.period= "default"
+    self.grouping= "none"   # trend grouping, used only for LTUs, can be: alls,sigs,ltus,none
     self.dbgmsg= ""
     self.customperiod= ""; self.startgraph= ""
     self.errs=""
