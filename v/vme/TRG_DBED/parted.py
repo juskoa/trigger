@@ -6,56 +6,6 @@ The goal: edit pname.partition file (pname is the name of the partition)
 Operation: load/edit/save pname.partition file
 
 history:
-23.2.2005 P/F protection circuits added
-12.3. parted.py pname   now OK
-16.3. TODO:
- - TrgCTP class (bc1/2 rnd1/2 BCM1-4)
-   DONE. Insteda TrgTCP TrgSHR class created
- - ctp load button (from ctp.py?), or different program for CTP load?
- - better colors (yellow is not working corectly now)
-   DONE. P/F -yellow, Rare -green (new color is kept as long as possible)
- - if partition use shared resource (rnd, bc, l0fun intfun?), 
-   it HAS TO BE DEFINED i.e.:
-   - warning if shrcs defined but not used
-   - error if used but not defined
-   DONE 7.9.2006
-23.4.
- - TrgCLass.clsbut points to button in the list of classes in
-   Cluster window
-24.4.
- - 'show:' button is now MywxMenu (was MywMenuList)
- - RARE has the color assigned
- - full list of class properties implemented in 'show:' button
-27.5. bug bcms fixed, 
- - cluster names added 
- - TrgClass.mycluster points now to cluster wherre class is assigned to
- - top level window for class properties disables Class button
-   (see TrgClass.hideclass)
-28.5. l0prescaler settinag (int) now checked for syntax, better help texts
-11.5. bug 'save partition' fixed (before rnd1,2 was saved as rnd3,4)
-22.5. Menubar added instead of buttons save/cancel/show/quit
-      Class name (initialised to TDS name) added
-      Shared resources now in separate top level window
-23.5. Save/load now valid for shared resources too
-      'Save as' option added
-24.5. Selected cluster: last edited cluster is selected (i.e. for
-      duplicate )
-25.7. cluster deletion (from menu and directly by middle button) now OK
- - VALID.CTPINPUTS supplemented with real CTP inputs connection
-26.9. VALID.LTUS format changed. Now line per LTU=fo#.connector#
- 1. 4. 2006: TRIGDBDIR and TRIGWORKDIR now used
-25.8. .pcfg file created too
-19.8.2008:
-todo:
--do not save if error
--hz,s + baloon window for BC1,2 RND1,2
-11.9.
-Version: 2 now:
-- class mask handled
-- BCM used instead of bcm
-- classgroup attribute added to TrgClass
-4.5.2009
-part.activeclasses dictionary for DAQdb update
 4.9.2011
 Version: 3   L0 firmware AC  (12 BCmasks, 50 inverted L0 inputs, complex l0f)
 23.2.2012
@@ -68,6 +18,7 @@ VERSION: 6 LINDF REPL added
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
+import trgglobs
 import pdb
 sys.path.append("./")
 if hasattr(sys,'version_info'):
@@ -96,10 +47,11 @@ CFGDIR=trigdb.CFGDIR       # .partition & .pcfg files are here
 WORKDIR=trigdb.TRGWORKDIR  # archive (PCFG/...)
 TRGDBDIR=trigdb.TRGDBDIR   # trigger DB files (VALID.PFS,...)
 
-PF_NUMBER=4        # 4 PFs
+PF_NUMBER=4         # 4 PFs
 PF_COMDEFSIX=9
-BCMASKS_START=4    # from here, TrgSHR_BCM starts in global SHRRSRCS[]
+BCMASKS_START=4     # from here, TrgSHR_BCM starts in global SHRRSRCS[]
 BCM_NUMBER=12       # 4 before AC, 12: firmAC
+NCLS= trgglobs.NCLS # 50: run1   100:run2
 if BCM_NUMBER==4:
   L0F_NUMBER=4     # number of inputs in l0f function
   PFS_START=8      # from here, TrgSHR_BCM for PF starts in global SHRRSRCS[]
@@ -403,7 +355,7 @@ class TrgDescriptor:
   """
   name: name of Trigger descriptor
   inps: list of trigger inputs
-        NEGATED inputs (classes 44-50) are prefixed with '*'
+        NEGATED inputs (classes 45-50) are prefixed with '*'
         (i.e. *name)
   return: instance of TrgDescriptor, self.allinputsvalid is True
     In case of error
@@ -1245,7 +1197,7 @@ class TrgClass:
       cluspart= mycluster.name
     self.updateClassName(cluspart,composeName=None) # self.clsnamepart[] only
     cn_name=None
-    self.clanumlog= 0   # 1..50 assigned in TrgPartition.loadfile()
+    self.clanumlog= 0   # 1..NCLS assigned in TrgPartition.loadfile()
     #print "TrgClass:",self.clsname,pars
     #print "TrgClass:", self.clsname," trde:" ; if self.trde: self.trde.prt()
     #VON self.clsl0funs=[None,None]
@@ -1963,8 +1915,8 @@ See VALID.LTUS file for available LTUs.""",
       else:
         self.tdshead.setEntry(modix,0)   # reset check button
       totclasses= self.partition.getRR(None)[0]
-      if totclasses>=50:
-        PrintError("Number of classes in this partition reached maximum (50)")
+      if totclasses>=NCLS:
+        PrintError("Number of classes in this partition reached maximum (%d)",NCLS)
         return
       newcls=TrgClass(mwl.items[modix], self, None)
       #here we should check l0fun (if >2 are used, do not allow new class)
@@ -2432,9 +2384,9 @@ class TrgPartition:
         if cls.classgroup>0: clgrouptx=" %d"%cls.classgroup
         if cls.clanumlog != clanum:
           # see comment in self.loadfile.
-          PrintWarning("Class %s CLA%2.2d != %d (clanumlog)"%\
+          PrintWarning("Class %s CLA%3.3d != %d (clanumlog)"%\
            (cls.getclsname(), clanum, cls.clanumlog))
-        line="CLA.%2.2d 0x%x 0x%x 0x%x %s 0x%x 0x%x 0x%x%s\n"%\
+        line="CLA.%3.3d 0x%x 0x%x 0x%x %s 0x%x 0x%x 0x%x%s\n"%\
           (clanum, l0inps, l0inv, l0vetos, l0scaler, l1def, l1inv, 
           l2def, clgrouptx)
         CLAlines.append(line)
@@ -2550,7 +2502,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     if line=='': just testing  (i.e.: parted PHYSICS_1 r)
     detectorMask: 0x820  -allow just 2 detecors (0x800 + 0x20)
     phys_clusters: 1 2 3 4 5 6
-    phys_classes:  1 2 ... 49 50
+    phys_classes:  1 2 ... 49 NCLS
     INT*lookup: 0x...  -4 hexadigits
     INT*def:    0x...  -5 bits (0x1f= LUT |BC1|BC2|RND1|RND2)
                                  bit:  0    1   2   3    4
@@ -2584,13 +2536,13 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     if len(lixorig)>=3: detmask= eval(lixorig[2])
     lix= string.split(line)
     phclusters=[]
-    cc650=len(lix)   # should be 3+6+50=59
+    cc650=len(lix)   # should be 3+6+NCLS=59 (109)
     for ix in range(6):
       if (ix+3)>= cc650: phclu='0'   #not given = not assigned
       else: phclu=lix[ix+3]
       phclusters.append(phclu)
-    phclasses=[]   #phclasses[logN]= physN, logN:0..49 physN:1:50
-    for ix in range(50):
+    phclasses=[]   #phclasses[logN]= physN, logN:0..49 physN:1:NCLS
+    for ix in range(NCLS):
       if (ix+9)>= cc650: phcla='0'   #not given = not assigned
       else: phcla=lix[ix+9]
       phclasses.append(phcla)
@@ -3084,8 +3036,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       asscls=[]; ltus=[]; 
       for clstring in string.split(cltds):    #-------------TDS
         # clstring: tds(pf1,pf2,...) or tds or tds()
-        if (totclasses+len(asscls))>=50:
-          PrintError(clstring+" -ignored (>50 classes)", self)
+        if (totclasses+len(asscls))>=NCLS:
+          PrintError(clstring+" -ignored (>%d classes)"%NCLS, self)
           continue
         else:
           trgclass=TrgClass(clstring, None, clusname)

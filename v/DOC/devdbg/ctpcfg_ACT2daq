@@ -1,4 +1,6 @@
-Goal: save ACT instance name/ver for each CTP config file
+2 goals (A and B): 
+A: save ACT instance name/ver for each CTP config file
+------------------------------------------------------
 Current status:
 --------------
 act_name/ver updated in DAQlogbook for .partition config only using:
@@ -35,3 +37,11 @@ Note: probably better:
 - 1 file .actinst, with the same date when file downloaded, or
 - consult ACT directly in time of SOR (problem: how to detect file change after
 its downlaod from ACT)?.
+
+B. simplify filter mechanism
+Todo: only 1 set of noV0, noT0,... 
+Now: the filter present in /CTP/filter is valid only for PHYSICS_1 !
+
+Todo: - one for each partition (defined in: /part PHYSICS_?/CTP filter/ ) ? 
+      - should the default one (/CTP/filter) be taken if not 
+        defined for partition?

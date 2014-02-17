@@ -8,3 +8,7 @@ PROTO_ver1 -branch for BPIM (Antonello), crate alidcsvme056
   board modified: scope outputs are normal TTL (3.3V, resistors removed)
 
 PROTO_ver2 -branch ttcit normal
+
+14.2.2014
+TTCit_v23old.ttf   -old v23 used till today
+TTCit_v23.ttf      -new version prepared just now (bug fixed in reading SSM)

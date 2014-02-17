@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from Tkinter import *
 import string
-import myw
+import myw,trgglobs
 
 COLOR_SHARED="#cc66cc"
 class sdg1:
@@ -22,7 +22,7 @@ class TrgSDG:
   err="n% (where 0<n<100) expected"
   def __init__(self):
     self.sdgs={}   # "name":3.4%
-    self.firstclass={}   # 1..50   (i.e. int),  0: if not used
+    self.firstclass={}   # 1..NCLS   (i.e. int),  0: if not used
     self.tlw=None  # not displayed
   def find(self, name):
     if self.sdgs.has_key(name):
@@ -40,7 +40,7 @@ class TrgSDG:
     if self.sdgs.has_key(name):
       return "%s already defined"%name
     else:
-      if len(self.sdgs)>=50:
+      if len(self.sdgs)>=trgglobs.NCLS:
         return "too many definitions of sync. downscaling groups"
     if dsf=="": 
       return TrgSDG.err

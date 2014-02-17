@@ -6,7 +6,7 @@
 
 int prterror=1;   // 0: do not print error messages (too many of them)
 w32 hourcnt=0;    // only first MAXERRSPRINT and then each 1000th error message
-#define MAXERRSPRINT 50
+#define MAXERRSPRINT 40
 /*-------------------------------------------------------- errifallowed */
 void errifallowed(char *msg) {
 hourcnt++;

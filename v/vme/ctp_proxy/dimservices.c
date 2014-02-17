@@ -515,7 +515,7 @@ while(1) {   //run forever
   //if((nlogbst % (60/2/BSTINTSECS))==0) {    // monitor every half minute
   if((nlogbst % (600/BSTINTSECS))==0) {    // monitor every 10 mins
     int rc;
-    char buffer[50];
+    char buffer[60];
     sprintf(buffer, "mon ds003:ds004:ds050 N:%d:%d:%d", 
       bstmsg[iBeamMode], bstmsg[iTurnCount], bstmsg[iTurnCount]);
     //following udpsend crashes dims server (sometimes):

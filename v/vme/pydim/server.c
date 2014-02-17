@@ -14,7 +14,7 @@ Operation:
   where:
   class -keyword
   runN  -run number
-  class* -class number ('1' to '50')
+  class* -class number ('1' to 'NCLASS')
   clg*, clgtime* -timesharing info for this group
   classname* - class name
   cmd   -keyword
@@ -508,7 +508,7 @@ if(stdoutyes==1) {   /*
   pcfg 
     -prepare .pcfg (parted.py)
     - scp .pcfg
-  rcfg partName NNN clu1 clu2 ... clu6 cl1 ... cl50 NewLine
+  rcfg partName NNN clu1 clu2 ... clu6 cl1 ... clNCLASS NewLine
     -prepare .rcfg (parted.py)
     -
   smaqmv
@@ -600,7 +600,7 @@ rc: 0: ok
    !=0: ERROR message printed to stdout
 1: runNumber not found
 2: classname expected
-3: classid 1..50 expected
+3: classid 1..NCLASS expected
 4: DAQDB update call error
 5: bad cg (0..20) allowed (anyhow, ctp_proxy allows only 0..9)
 6: bad dsc factor. Expected: dec. number (32 bits, i.e. unsigned int)
@@ -629,7 +629,7 @@ if(t1==tINTNUM) {
 infolog_SetStream(insver[ixiv].parname, runN);
 updateConfig(runN, insver[ixiv].parname, insver[ixiv].insname, insver[ixiv].insver);
 del_insver(runN);
-for(ixc=0; ixc<50; ixc++) {
+for(ixc=0; ixc<NCLASS; ixc++) {
   unsigned int classN, cg, cgtim; int rcdaq,daqlistpn;
   float cgtime;
   char dsctxt[24];   // (0.xxx% - 100%) or xxxus or xxx.xxxms
@@ -641,7 +641,7 @@ for(ixc=0; ixc<50; ixc++) {
   if(t1==tEOCMD) {rcex=0; break;};
   if(t1==tINTNUM) {
     classN= str2int(value);
-    if( (classN>50) || (classN<1) ) {
+    if( (classN>NCLASS) || (classN<1) ) {
       rcex=3; break;
     };
   } else {
@@ -651,7 +651,7 @@ for(ixc=0; ixc<50; ixc++) {
   if(t1==tEOCMD) break;   
   if(t1==tINTNUM) {
     cg= str2int(value);
-    if( cg>50 ) {
+    if( cg>NCLASS ) {
       rcex=5; break;
     };
       } else {
@@ -788,8 +788,8 @@ printf("INFO DIM service:%s id:%d\n", cmd, CSid);
 dis_start_serving(servername);  
 while(1) {
   char *frc;
-#define MAXLINECS 4000
-  char line[MAXLINECS];   //80 chars per class for 50 classes
+#define MAXLINECS 8000
+  char line[MAXLINECS];   //80 chars per class for NCLASS classes
   //sleep(10);
   frc= fgets(line, MAXLINECS, stdin);
   if(frc==NULL) break;
