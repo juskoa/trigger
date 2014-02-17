@@ -7,6 +7,7 @@
 #include <dic.h>
 #endif
 #include "lexan.h"
+//#include <ctype.h>
  
 #define STATLEN strlen(OCCMD)
 #define MAXINPUTS 24
@@ -92,6 +93,28 @@ if(strcmp(detector,"trigger")==0) {
 return(rc);
 }
 
+/*
+ I: hdnum: 0xhexa 
+ O: rc:0, *num is internal representation of the number
+    rc:2  syntax error 
+int gethexdec(char *hdnum, unsigned int *num) {
+unsigned int nn; int rcs;
+rcs= sscanf(hdnum, "0x%x", &nn);
+//printf("   %s -> 0x%x   rcs:%d\n", hdnum, nn, rcs);
+if(rcs==1) {
+  rcs=0;
+} else {
+  rcs=2;
+};
+return(rcs);
+}
+void UPPER (char *name) {
+char *p;
+p=name;  
+while ( *p != '\0' ) { *p=toupper(*p); p++; };
+} 
+
+*/
 int main(int argc, char **argv) {
 int rc;
 char *environ;

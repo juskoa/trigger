@@ -15,7 +15,7 @@ endif
 ifdef SERVER_LINK
 allEXES=$(EXEDIR)/$(CLNAME)
 else
-@echo VMESITE: $VMESITE
+@echo VMESITE: $(VMESITE)
 ifneq ($(VMESITE), ALICE)
 CFLAGS += -DSIMHW
 endif
@@ -27,7 +27,8 @@ $(EXEDIR):
 $(EXEDIR)/server:server.c $(DIMDIR)/linux/libdim.a
 ifneq ($(VMESITE), ALICE)
 	@echo VMESITE: $(VMESITE)
-	$(CC) -DSIMHW $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
+#	$(CC) -DSIMHW $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
 else
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
 endif

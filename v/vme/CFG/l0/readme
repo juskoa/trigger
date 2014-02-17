@@ -46,3 +46,6 @@ see DOC/devdbg/syncdownscaling
 6.11.2013
 l0_logic_verB0.rbf
 100 classes, vme addresses reorganized 
+18.2.2014
+l0_logic_verB1.rbf
++102 counters implemented for: class[100..51] before/after, and L0FUN3/4 counters
