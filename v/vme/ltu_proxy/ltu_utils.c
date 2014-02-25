@@ -196,6 +196,7 @@ return(rc);
 }
 int SLMloadrun2(char *vcfname) {
 int rc,lng; char vcfname_run1[190];
+char msg[250];
 lng= strlen(vcfname);
 if(!lturun2) {
   // "xxx.seq" -> "xxx_run1.seq"
@@ -203,9 +204,13 @@ if(!lturun2) {
     infolog_trg(LOG_FATAL, (char *)"SLM sequence does not finish with .seq");
     return(10);
   };
-  strncpy(vcfname_run1, vcfname, lng-4);
+  strncpy(vcfname_run1, vcfname, lng-4); vcfname_run1[lng-4]='\0';
   strcat(vcfname_run1, "_run1.seq");
-} 
+} else {
+  strcpy(vcfname_run1, vcfname);
+};
+sprintf(msg, "Loading SLM:%s", vcfname_run1);
+infolog_trgboth(LOG_INFO, msg);
 rc=SLMload(vcfname_run1);
 return(rc);
 };
@@ -228,7 +233,7 @@ if(strcmp(dimservernameCAP,"TPC")==0) waitbusyoff=10000000;
 printf("%s:sodeod:%s WAITBUSYOFF:%d us, loading...\n",
   datetime,seqfile,waitbusyoff);
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); strcat(vcfname, seqfile);
-rc=SLMload(vcfname);
+rc=SLMloadrun2(vcfname);
 if(rc!=0) {
   sprintf(msg, "Can't load file %s SLMload rc:%d", vcfname, rc);
   infolog_trg(LOG_FATAL, msg);
@@ -297,7 +302,7 @@ fflush(stdout);
    from directory: CFG/ltu/SLMproxy */
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); 
 strcat(vcfname, templtucfg->mainEmulationSequence);
-rc= SLMload(vcfname);
+rc= SLMloadrun2(vcfname);
 if(rc!=0) {
   sprintf(msg, "startemu: %s: bad file. SLMload rc:%d", vcfname, rc);
   infolog_trg(LOG_FATAL, msg);
@@ -352,7 +357,7 @@ if(rc!=0) {
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); 
 strcat(vcfname, templtucfg->mainEmulationSequence);
 printf("loading original sequence+start signal:%s\n",vcfname);
-rc1= SLMload(vcfname);
+rc1= SLMloadrun2(vcfname);
 printf("SLMload rc:%d\n",rc1); fflush(stdout);
 if(rc1!=0) {
   infolog_trg(LOG_FATAL, (char *)"LTU SLM not loaded with original sequence after SYNC");
