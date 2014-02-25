@@ -2,16 +2,18 @@
 #define _INTBOARD_h_
 #include "BOARD.h"
 #include <deque>
-class CTPReadOut;
 class INTBOARD: public BOARD
 {
  public:
 	INTBOARD(int vsp);
-
+	void getCTPReadOutList();
+	void printReadOutList();
+	void printIRList();
  private:
          // vme addresses
          // ssm testing
-         deque <CTPReadOut> ctpro;
-	 void getCTPReadOutList();
+         // Add structures herea
+        deque <CTPR> qctpro;
+        deque <IRDa> qirda;
 };
 #endif

@@ -11,7 +11,7 @@ BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
 {
  cout << showbase;
  if((!name.compare(0,3,"ltu")) || (!name.compare(0,3,"LTU")) ){
-   d_vmebasehex= 0x810000;
+   d_vmebasehex= 0x810000; 
    if(vsp != -1){
      d_vsp=vsp;
      vmeopenflag=0;
@@ -21,7 +21,18 @@ BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
      d_vsp=OpenVME(base,length);
      vmeopenflag=1;
    }
- }else{
+ }else if(!name.compare(0,3,"ttc")){
+   d_vmebasehex=0x8a0000;
+   if(vsp != -1){
+     d_vsp=vsp;
+     vmeopenflag=0;
+   }else{
+     char base[]="0x8a0000";
+     char length[]="0xffff";
+     d_vsp=OpenVME(base,length);
+     vmeopenflag=1;
+   }  
+ }else {
    d_vmebasehex=0x820000;
    if(vsp != -1){ 
      d_vsp=vsp;

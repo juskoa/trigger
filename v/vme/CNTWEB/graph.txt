@@ -1,0 +1,13 @@
+assembly="ltus"
+graph /var/www/html/imgs/T0V0temp.png -s now-10h --step 60 -w 600 
+DEF:temp01=/home/alice/trigger/v/vme/../../CNTRRD/rrd/T0counters.rrd:temp:AVERAGE 
+LINE2:temp01#66ff00:T0_temp 
+DEF:temp02=/home/alice/trigger/v/vme/../../CNTRRD/rrd/V0counters.rrd:temp:AVERAGE 
+LINE2:temp02#6600ff:V0_tem
+
+assembly="sigs"
+graph /var/www/html/imgs/l0temp.png -s now-10h --step 60 -w 600 
+DEF:temp01=/home/alice/trigger/v/vme/../../CNTRRD/rrd/T0counters.rrd:temp:AVERAGE 
+LINE2:temp01#66ff00:T0_temp 
+DEF:temp02=/home/alice/trigger/v/vme/../../CNTRRD/rrd/T0counters.rrd:temp:AVERAGE 
+LINE2:temp02#6600ff:V0_tem

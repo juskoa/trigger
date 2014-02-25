@@ -12,18 +12,18 @@ w32 loadFPGA(int board);   //is in vmeblib
 Dump vmeword settings of ctp boards.
 MOst of the words but not all.
 */
-#define NCLASSES 50
+
 void dumpL0(FILE *f){
  //w32 i;
  w32 word,offset=0x9000;
  w32 word1,word2,word3;
- w32 rates[NCLASSES];
+ w32 rates[NCLASS];
 w32 l0invAC; int i, minAC;
 l0invAC=L0_INVERTac; minAC=0;
 /* rates: */
 vmew32(RATE_MODE,1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
-for(i=0;i<NCLASSES;i++){
+for(i=0;i<NCLASS;i++){
   rates[i]= vmer32(RATE_DATA)&RATE_MASK;
 };
 vmew32(RATE_MODE,0);   /* normal mode */
@@ -35,7 +35,7 @@ vmew32(RATE_MODE,0);   /* normal mode */
  word=vmer32(L0_TCSTATUS);
  fprintf(f,"L0_TCSTATUS/TC_STATUS: 0x%x\n",word);
  fprintf(f,"CLASSES:\n");
- for(i=0;i<NCLASSES;i++){
+ for(i=0;i<NCLASS;i++){
   w32 cond,veto,mask,invert; 
   cond=vmer32(L0_CONDITION+4*(i+1));
   veto=vmer32(L0_VETO+4*(i+1));
@@ -78,7 +78,7 @@ void dumpL1(FILE *f){
  // rate mode 
  //
  fprintf(f,"CLASSES:\n");
- for(i=0;i<NCLASSES;i++){
+ for(i=0;i<NCLASS;i++){
   w32 definition,invert;
   definition=vmer32(L1_DEFINITION+4*(i+1));
   if(i>44){
@@ -115,7 +115,7 @@ void dumpL2(FILE *f){
  // rate mode 
  //
  fprintf(f,"CLASSES:\n");
- for(i=0;i<NCLASSES;i++){
+ for(i=0;i<NCLASS;i++){
   w32 definition;
   definition=vmer32(L1_DEFINITION+4*(i+1));
   fprintf(f,"%2i:0x%x",i+1,definition);

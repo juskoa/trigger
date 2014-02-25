@@ -15,11 +15,11 @@ LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
 def readcnames(ri, ctpltu):
   #name="temp"; gaucou="COUNTER"; ri.write("DS:%s:%s:120:U:U "%(name,gaucou))
   #name="cnt"; gaucou="COUNTER"; ri.write("DS:%s:%s:120:U:U "%(name,gaucou))
-  cnames= os.path.join(os.environ['VMECFDIR'], 'dimcdistrib', ltunames)
+  cnames= os.path.join(os.environ['VMECFDIR'], 'CNTWEB/cfgdir', ltunames)
   if ctpltu=="ctp":
-    cnames= os.path.join(os.environ['VMECFDIR'], 'dimcdistrib', ctpnames)
+    cnames= os.path.join(os.environ['VMECFDIR'], 'CNTWEB/cfgdir', ctpnames)
   if ctpltu=="mon":
-    cnames= os.path.join(os.environ['VMECFDIR'], 'dimcdistrib', monnames)
+    cnames= os.path.join(os.environ['VMECFDIR'], 'CNTWEB/cfgdir', monnames)
   cnfi= open(cnames,"r")
   if not cnfi:
     print "Where is %s ?"%cnames

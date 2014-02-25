@@ -35,3 +35,98 @@ void L2BOARD::printClasses()
     if((i+1)%10 == 0)printf("\n");
  }
 }
+//==============================================================================================================
+void L2BOARD::printL2aList()
+{
+ for(w32 i=0;i<ql2a.size();i++)printCTPR(ql2a[i]);
+}
+void L2BOARD::getL2aList()
+{
+ int i=0,j,iorbit=0;
+ int l2clusters,bcid,orbit,esr;
+ int rc=0;
+ w64 l2class1,l2class2;
+ w32 sl2strobech,sdata1ch,sdata2ch;
+ if((sl2strobech=getChannel("l2strobe"))>32)rc=1;
+ if((sdata1ch=getChannel("l2data1"))>32) rc=1;
+ if((sdata2ch=getChannel("l2data2"))>32) rc=1;
+ if(rc){
+   printf("Error in getL2aList: channels not found.\n");
+   return;
+ }
+ printf("compareL2aCTPreadout: l2strobe l2data1 l2data2 channels= %i %i %i\n",sl2strobech,sdata1ch,sdata2ch);
+ CTPR L2a,ORBIT;
+ clearCTPR(L2a);
+ clearCTPR(ORBIT);
+ w32* sm=GetSSM();
+ while(i<Mega){
+  // ORBIT pulse
+  if(bit(sm[i],0)){
+   if(!iorbit){
+    ORBIT.issm=i;
+    qorbit.push_back(ORBIT);
+    iorbit=1;
+   }
+  }else iorbit=0;
+  if(bit(sm[i],sl2strobech)){
+   L2a.issm=i;
+   // L2 clusters -> one integer
+   //w32 l2clstt=bit(sm[i],sdata1ch);  // test cluster
+   i++;
+   l2clusters=0;
+   j=0;
+   while((j<6) && (i+j)<Mega){
+    l2clusters=l2clusters+bit(sm[i+j],sdata1ch)*(1<<(5-j));
+    j++;
+   }
+   i=i+6;
+   // BCID
+   j=0;
+   bcid=0;
+   while((j<12) && (i+j)<Mega){
+    bcid=bcid+bit(sm[i+j],sdata1ch)*(1<<(11-j));
+    j++;
+   }
+   i=i+12;
+   //ORBIT
+   j=0;
+   orbit=0;
+   while((j<24) && (i+j)<Mega){
+    orbit=orbit+bit(sm[i+j],sdata1ch)*(1<<(23-j));
+    j++;
+   }
+   i=i+24;
+   esr=bit(sm[i],sdata1ch);
+   i=i+1+10+2;   // 10 gap
+   // L2class
+   j=0;
+   //100 classes
+   l2class1=0;
+   while((j<40) && (i+j)<Mega){
+    if(bit(sm[i+j],sdata2ch))l2class1=l2class1+(1ull<<(39-j));
+    j++;
+   }
+   i=i+40;
+   j=0;
+   l2class2=0;
+   while((j<60) && (i+j)<Mega){
+    if(bit(sm[i+j],sdata2ch))l2class2=l2class2+(1ull<<(59-j));
+    j++;
+   }
+   L2a.l2clusters=l2clusters;
+   L2a.l2classes1=l2class1;
+   L2a.l2classes2=l2class2;
+   L2a.bcid=bcid;
+   L2a.orbit=orbit; 
+   L2a.esr=esr;
+   L2a.clt=0;  // to be read from hw
+   L2a.swc=0;  // to be read from hw
+   ql2a.push_back(L2a);
+   clearCTPR(L2a);
+   //printf("comparel2aCTPreadout: l2 clusters: 0x%x BCID: %i ORBIT: %i L2class: 0x%llx \n",l2clusters,bcid,orbit,l2class);
+  }else i++;
+ }
+ //printlistN(L2alist);
+ return; 
+}
+

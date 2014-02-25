@@ -1281,7 +1281,7 @@ int addClasses2HW(Tpartition *parray[]){
 if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
  // First loop over 'old' partitions (to keep the same hw for running partitions):
  for(ip=0;ip<MNPART;ip++){           //loop over old partitions
-   char oldclasses[600]="";   // 600> 11*50
+   char oldclasses[1200]="";   // 1200> 11*100
    if(parray[ip] == NULL) continue;
    part=parray[ip]; if((part->hwallocated&0x2)==0) continue;
    if(DBGac2HW) printf("  old Partition %i hwallocated:%x \n",
@@ -1291,10 +1291,10 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
    for(pclass=0; pclass<NCLASS; pclass++) {
      if((klas=part->klas[pclass]) == NULL) continue;
      if(DBGac2HW) printf(" hwallocated. pclass: %i \n",pclass);
-     hwclass= part->klas[pclass]->hwclass;  // 0..49
-     if(hwclass>49) {
+     hwclass= part->klas[pclass]->hwclass;  // 0..49/99
+     if(hwclass >= NCLASS) {
        char errmsg[400];
-       sprintf(errmsg, "addClasses2HW: intError: hwclass>49"); rcode=1;
+       sprintf(errmsg, "addClasses2HW: intError: hwclass>= 50/100"); rcode=1;
        infolog_trgboth(LOG_FATAL, errmsg); goto ERRRET;
      };
      /* If partition cluster (pcluster) is different 
@@ -1313,7 +1313,7 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
  };
  // Now loop over 'new' partitions (to allocate the rest of resources)
  for(ip=0;ip<MNPART;ip++){           //loop over new partitions
-   char newclasses[600]="";
+   char newclasses[1200]="";
    if(parray[ip] == NULL) continue;
    part=parray[ip]; if((part->hwallocated&0x2)==0x2) continue;
    if(DBGac2HW) printf("  new Partition: %i \n",ip);
@@ -1376,7 +1376,7 @@ for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
     if(klas == NULL) continue;
     if(klas->sdg == -1) continue;
     if(klas->sdg == ips) {
-      if(klas->hwclass < firstc) firstc= klas->hwclass+1;   // 0..49-> 1..50
+      if(klas->hwclass < firstc) firstc= klas->hwclass+1;   // 0..49-> 1..50/100
     };
   };
   if(firstc<51) {
@@ -1394,9 +1394,9 @@ for(ip=0;ip<MNPART;ip++){
     if(klas == NULL) continue;
     if(klas->sdg != -1) {
       int hwclass;
-      hwclass= klas->hwclass;  // 0..49
+      hwclass= klas->hwclass;  // 0..49/99
       HW.sdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;
-      printf("addClasses2HW:hwclass0..49:sdgs[%d]:%d\n", 
+      printf("addClasses2HW:hwclass0..49/99:sdgs[%d]:%d\n", 
         hwclass, HW.sdgs[hwclass]);
     };
   };

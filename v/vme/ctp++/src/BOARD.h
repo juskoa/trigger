@@ -16,19 +16,23 @@ class BOARD: public BOARDBASIC
 	 void WriteSSM(w32 const word,int const start,int const last) const;
 	 w32 *GetSSM(){return ssm;};
 	 string *GetChannels(string const &mode) const;
+	 w32 getModeChannel(string name,string channel);
+	 w32 getChannel(string const &channel) const;
 	 void PrintChannels(string const &mode) const;
-         int SetMode(string const &mode,char const c) const;
+	 int bit(w32 num,w32 channel){return ((num &(1u<<channel))==(1u<<channel));}
+         int SetMode(string const &mode,char const c);
 	 int StartSSM() const;
          void StopSSM() const;
          SSMTOOLs ssmtools;
 	 enum {kNClasses=100};
  private:
 	 void SetFile(string const &modename);
-         SSMmode *SSMModes;
          int const numofmodes;
 	 int parsemode(string const &mode) const;
 	 ifstream modefile;
 	 w32 *ssm;
+	 w32 ssmmode;
+         int SetMode(string const &mode,char const c,w32 &imode) const;
          int SetMode(w32 const modecode) const;
 	 int setomvspSSM(w32 const mod) const;
          //
@@ -45,5 +49,13 @@ class BOARD: public BOARDBASIC
 	 w32 const SSMomvmer;
 	 w32 const SSMomvmew;
          w32 SSMbusybit;  // because it is different for ltu and ctp
+	 //
+	 struct SSMmode{
+		string name;
+		w32 modecode;
+		string channels[32];
+	 };
+         SSMmode *SSMModes;
+
 };
 #endif

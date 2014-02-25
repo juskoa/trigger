@@ -1185,7 +1185,7 @@ if(partit==NULL) {
   for(iclass=0; iclass<NCLASS; iclass++) {
     int hwclassn,ixlevel; TKlas *klpo, *klas;
     if((klas=partit->klas[iclass]) == NULL) continue;
-    hwclassn= klas->hwclass;  // 0..49
+    hwclassn= klas->hwclass;  // 0..NCLASS-1
     klpo= HW.klas[hwclassn];
     // *klpo should be checked with *klas (internal consistency)
     for(ixlevel=0; ixlevel<3; ixlevel++) {
@@ -1476,7 +1476,7 @@ for(i=0;i<NCLASS;i++){
  //--------------------------------------------- L0 downscalers
  vmew32(RATE_MODE,1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
- for(i=0; i<50; i++) {
+ for(i=0; i<NCLASS; i++) {
    vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK));
  };
  vmew32(RATE_MODE,0);   /* normal mode */
@@ -1572,7 +1572,7 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
  //--------------------------------------------- L0 downscalers
  vmew32(RATE_MODE,1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
- for(i=0; i<50; i++)hw->klas[i]->scaler=vmer32(RATE_DATA);
+ for(i=0; i<NCLASS; i++)hw->klas[i]->scaler=vmer32(RATE_DATA);
  vmew32(RATE_MODE,0);   /* normal mode */
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){

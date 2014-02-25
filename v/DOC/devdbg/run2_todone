@@ -2,15 +2,30 @@ Content
 -------
 1. modify ctp for 100 classes:
 - new addresses
-- inversion of all L1/L2 inputs allowed (was only for classes 45..50)
+- inversion of all L1/L2 inputs allowed (was only for classes 45..50
+  in run1)
 
 Introduced: NCLASS=100 (ctp.h and ctpcfg.py)
 
 ctpcfg.py, myw.py: problems: 
-- cannot close/open Classes window
+- cannot close/open Classes window -fixed
 - scrollbar in canvas not working well -fixed 1.11.2013
 
 modified:
 ctp.c, ctpcfg.py:  100 classes should be ok
  
+2. parted
+trgglobs.py introduced. NCLS= 100 -to be used in *.py
 
+ctp_proxy
+Tpartition.h (also in ctp/ctp.h): define NCLASS 100
+-modified 13.2. (not tested yet)
+
+ctplib
+- modified 
+
+pydim
+-modified 13.2.
+
+
+4. counters

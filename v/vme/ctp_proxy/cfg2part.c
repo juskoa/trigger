@@ -268,6 +268,9 @@ j=i++;    // i.e. j=i; i=i+1
 CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
        i
       j 
+alco valid for:
+CLA.001 0x
+       ji
 */
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
 /* 

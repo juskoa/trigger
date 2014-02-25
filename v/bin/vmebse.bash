@@ -97,7 +97,7 @@ if [ -z "$DATE_DAQLOGBOOK_DIR" -a -d /opt/libDAQlogbook ] ;then
   export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
 fi
 if [[ $PATH != *$vdir/bin* ]] ;then
-  export PATH="$PATH:$vdir/bin"
+  export PATH="$vdir/bin:$PATH"
 fi
 export PYTHONPATH=$VMEBDIR
 if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then

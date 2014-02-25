@@ -1,13 +1,13 @@
 /*  ctpcounters.h */
 /* the number of counters per 1 CTP board: */
-#define NCOUNTERS_L0 160    //  3 spares
+#define NCOUNTERS_L0 262      //  3 spares. run1:160 run2:262
 #define NCOUNTERS_L0_SP1 15
-//#define NCOUNTERS_L0_SP2 99
-#define NCOUNTERS_L0_SP3 159
-#define NCOUNTERS_L1 160    // 14 spares
+#define NCOUNTERS_L0_SP2 151  // run2: 151. not defined in run1.
+#define NCOUNTERS_L0_SP3 261  // run1: 159
+#define NCOUNTERS_L1 262      // run1: 160,14 spares  run2: 262
 #define NCOUNTERS_L1_SP1 38   // 2 spares
-#define NCOUNTERS_L1_SP2 148  // 12 spares
-#define NCOUNTERS_L2 134    //  1 spare
+#define NCOUNTERS_L1_SP2 258  // 12 spares. run1: 148 run2: 258
+#define NCOUNTERS_L2 134      //  run1: 134   run2:234
 #define NCOUNTERS_L2_SP1 25
 #define NCOUNTERS_FO  48    // there are 6 FO boards (FO1-FO6) (was 34 till 11.11)
 #define NCOUNTERS_FOae  52  // + L2r counter for each connector -stored in spare871..894

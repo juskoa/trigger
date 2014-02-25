@@ -24,8 +24,8 @@ class BOARDBASIC
 	 w32 d_fpgaversion;   
          // VME stuff
 	 int d_vsp;                  // vme space number
-	 w32 const d_boardbase;            // l0: 0x829000,l1:0x02a000
-         w32 d_vmebasehex;           // CTP: 0x820000, ltu:0x810000
+	 w32 const d_boardbase;            // l0: 0x829000,l1:0x02a000, ltus: 0x81n000, ttcit: 0x8an000
+         w32 d_vmebasehex;           // CTP: 0x820000, ltu:0x810000 ttcit: 0x8a0000
          int vmeopenflag;
 	 int OpenVME(char *vmebase,char *size) const;
 	 void CloseVME() const; 

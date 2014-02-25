@@ -7,6 +7,7 @@
 #include "L2BOARD.h"
 #include "INTBOARD.h"
 #include "LTUBOARD.h"
+#include "TTCITBOARD.h"
 #include "DETECTOR.h"
 #include "libctp++.h"
 using namespace std;

@@ -25,7 +25,7 @@ mkln $DIR/v/vme/CFG/ctp/DB fs
 mkln $DIR/v/vme/CFG/ctp/DB fs_auto
 rm -f ltus
 ln -sf $DIR/v/vme/PHPMON ltus
-su - -c 'cd;mkdir -p CNTRRD' trigger
+su - -c 'cd;mkdir -p CNTRRD/rawcnts' trigger
 mkln $hm/CNTRRD htmls
 mkln $hm/CNTRRD rawcnts
 mkln $hm writeups
