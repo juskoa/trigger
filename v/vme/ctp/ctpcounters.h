@@ -1,12 +1,13 @@
 /*  ctpcounters.h */
 /* the number of counters per 1 CTP board: */
-#define NCOUNTERS_L0 262      //  3 spares. run1:160 run2:262
-#define NCOUNTERS_L0_SP1 15
-#define NCOUNTERS_L0_SP2 151  // run2: 151. not defined in run1.
-#define NCOUNTERS_L0_SP3 261  // run1: 159
-#define NCOUNTERS_L1 262      // run1: 160,14 spares  run2: 262
+#define NCOUNTERS_L0 300      //  3 spares. run1:160 run2:262
+#define NCOUNTERS_L0_SP1 17   // run1:15 run2: 17..18 (2 spares)
+#define NCOUNTERS_L0_SP2 178  // run2: 178..186. not defined in run1.
+#define NCOUNTERS_L0_SP3 298  // run2: 298..299 run1: 159
+
+#define NCOUNTERS_L1 160      // run1: 160,14 spares  run2: 262
 #define NCOUNTERS_L1_SP1 38   // 2 spares
-#define NCOUNTERS_L1_SP2 258  // 12 spares. run1: 148 run2: 258
+#define NCOUNTERS_L1_SP2 148  // 12 spares. run1: 148 run2: 248
 #define NCOUNTERS_L2 134      //  run1: 134   run2:234
 #define NCOUNTERS_L2_SP1 25
 #define NCOUNTERS_FO  48    // there are 6 FO boards (FO1-FO6) (was 34 till 11.11)
@@ -33,7 +34,7 @@
 25: 24 words: volts for 24 LTUs
 together: 49 WORDS
 */
-#define NCOUNTERS_MAX 160   // max. number of counters on 1 board
+#define NCOUNTERS_MAX 300   // max. number of counters on 1 board (run1: 160)
 
 #define NCOUNTERS (NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
         NCOUNTERS_BUSY+NCOUNTERS_INT+NCOUNTERS_SPEC)

@@ -44,6 +44,8 @@ endif
 
 ifdef SERVER_LINK
 ODIR = linux_s
+#  all exe on 64 bit machines go to _s:
+EXEDIR= ../linux_s
 CTPLIB= $(VMECFDIR)/ctp/ctplib/linux_s
 LTULIB= $(VMECFDIR)/ltu/ltulib/linux_s
 VMEBLIB= $(VMEBDIR)/vmeblib/linux_s
@@ -73,6 +75,5 @@ DIMLD= -L$(DIMDIR)/linux -ldim
 SMILD= -L$(SMIDIR)/linux -lsmi
 VMEBLD= -L$(VMEBLIB) -lvmeb
 LDFLAGS = -lpthread
-#EXEDIR= ../linux
 
 

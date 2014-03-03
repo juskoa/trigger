@@ -2,13 +2,13 @@
 rc: 0: ok
    !=0 not loaded
 Usage:
-Download ctp configs:
+1. Download ctp configs:
 linux/act.exe                 -download ctp configs
 
-Downlaod partition PHYSICS_*, TEST_*:
+2. Downlaod partition PHYSICS_*, TEST_*:
 linux/act.exe PHYSICS_*
 
-Print to stdout "VALUE anystring" where anystring is from ACT:
+3. Print to stdout "VALUE anystring" where anystring is from ACT:
 linux/act.exe VALUE name
 example:
 ctp_proxy > linux/act.exe VALUE /CTP/filter
@@ -16,27 +16,48 @@ INFO Opening ACT:daq:daq@pcald30/ACT
 INFO ACT opened succesfuly.
 VALUE abcd
 
-Download (active instance of ctp config file:
+4. Download (active instance of ctp config file:
 linux/act.exe VALID.BCMASKS
+
+5. TODO: Print to stdout current FILTER (OR of /CTP/trgInput_ACORDE,... 
+   names which value is OFF or DISABLED )
+ctp_proxy > linux/act.exe FILTER
+FILTER ACORDE SPD    -2 triggering detecors filtered out
+FILTER               - all triggering detectors available
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "vmewrapdefs.h"
 //#include "ctp.h"
+/* toto von
+#include <sys/types.h>
+#include <sys/shm.h>
+#include "shmaccess.h"
+*/
 #define DBMAIN
 #include "Tpartition.h"
 
+int actdb_open();
+int actdb_close();
 int actdb_getdbfiles();
 int actdb_getdbfile_openclose(char *cfgname);
 //int actdb_getPartition(char *partname, char *filter);
 int actdb_getPartition(char *name, char *filterpar, char *actname, char *actversion);
 int actdb_getdbstring(char *fn, int openclose, char *value, int maxl);
+void actdb_getff(char *filter);
 
 int checkproxy() { // done in ctpproxy.py
 return(0);
 }
-/*----------------------------------------*/ int main(int argc, char **argv) {
+
+/*----------------------------------------
+rc: 0: ok
+8: ctpproxy active, no action (not done yet!)
+   incorrect parameters
+7: cannot open ACT
+
+*/ int main(int argc, char **argv) {
 int rc=0;
 if(argc==1) { // get CTP db files
   // check if ctp_proxy is on:
@@ -55,7 +76,7 @@ if(argc==1) { // get CTP db files
     char filter[200]="nothing";
     char actinst[100], actver[100];
     rc= actdb_getPartition(argv[1], filter,actinst, actver);
-    printf("part:%s INSTANCE:%s version:%s", argv[1], actinst,actver);
+    printf("rc:%d part:%s INSTANCE:%s version:%s", rc, argv[1], actinst,actver);
   } else if(strcmp(argv[1],"VALUE")==0) {
     char value[1000]="";
     if(argc==3) {
@@ -64,6 +85,10 @@ if(argc==1) { // get CTP db files
     } else {
       rc=8;
     };
+  } else if(strcmp(argv[1],"FILTER")==0) {
+    char filter[260];
+    actdb_getff(filter);
+    printf("FILTER %s\n", filter);
   } else {
     rc= actdb_getdbfile_openclose(argv[1]);
   };

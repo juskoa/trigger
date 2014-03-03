@@ -24,6 +24,7 @@ extern "C" {
 #define MAXlast_Value 1000
 #ifdef ACT_DB
 ACT_handle handle;
+//ACT_handle *acthandle=NULL;
 ACT_instance *instance;
 char last_Value[MAXlast_Value+1];
 #endif
@@ -48,6 +49,7 @@ if( (actdb=getenv("ACT_DB")) == NULL) {
     rco=2;
   }else{
     printf("INFO ACT opened succesfuly.\n"); rco=0;
+    //acthandle= &handle;
   }
 #else
   printf("INFO actdb_open: no attemt for ACT:  ACT_DB undefined\n");
@@ -60,7 +62,7 @@ return(rco);
 int actdb_close() {
 int rc;
 #ifdef ACT_DB
-rc= ACT_close(handle);
+rc= ACT_close(handle); //acthandle= NULL;
 #else
 rc=0;
 #endif
@@ -143,7 +145,7 @@ ACT_close(handle);
 #endif
 return(rc);
 }
-/*---------------------------------------------- actdb_getdbstring(f,s,l)
+/*---------------------------------------------- actdb_getdbstring(f,openclose,sval,maxl)
 I: 
 fn: 
 1. "CTP instance name"   -i.e. not starting with "/", get "/CTP/"+fn
@@ -246,108 +248,6 @@ if((err= actdb_getdbfile("FillingScheme",actname,actversion)) !=0) {rc= err; got
 //if((err= actdb_getdbfile("ttcparts.cfg")) !=0) {rc= err; goto STP;};
 STP:
 ACT_close(handle);
-#else
-  printf("INFO ACT not read (not compiled/linked)\n");
-  rc=0;
-#endif
-return(rc);
-}
-/*--------------------------------------------------------- actdb_getPartition()
-called from pydim/server.c 
-I: part. name
-Operation:
-- check if partition active: "/part PHYSICS_2/Source of CTP config"
-  (PHYSICS_2 replaced by name)
-- download "/part PHYSICS_2/CTP config"
-O: char filter[2000]: "" if filter not downloaded from ACT
-           "filter value" downloaded from ACT
-   char actname,actversion: "" or ACT instance name+ version
-   rc:0 file name'.partition' created in $VMECFDIR/CFG/ctp/pardefs/
-   rc:1 partition not defined in ACT or marked as 'Local File'
-   rc:<0 another error
-   -1: cannot write to output file
-   -2: problem with ACT_getActiveItem (partition not defined in ACT)
-   -3: cannot open output file
-   -4: cannot open ACT
-*/
-int actdb_getPartition(char *name, char *filterpar, char *actname, char *actversion) {
-int rc=0;
-#ifdef ACT_DB
-int err;
-FILE *f;
-char partitionCtpConfigItem[64];
-char fname[184];
-#define MAXFILTER 2000
-char filter[MAXFILTER]="";
-if((err=actdb_open())!=0) {
-  printf("ERROR actdb_open. RC:%d\n",err);
-  return(-4);
-};
-sprintf(partitionCtpConfigItem, "/part %s/Source of CTP config", name);
-err= actdb_getdbstring(partitionCtpConfigItem, 0, filter, MAXFILTER);
-if((err==0) && (strcmp(filter, "ACT database")==0)) {// or "Local File"
-  if((err= actdb_getdbfile("filter",actname,actversion))!=0) {
-    printf("INFO ACT filter not downloaded \n");
-    filter[0]='\0';
-  } else {
-    int i;
-    sprintf(fname,"%s/CFG/ctp/DB/filter",vmecfdir);
-    i= readfile(fname, filter, 2000);
-  /*  int i,maxi; 
-    maxi= instance[0].size; if(maxi>(200-1)) maxi=200-1;
-    for(i=0;i<maxi;i++) {
-      filter[i]= ((char *)instance[0].value)[i];
-    };
-    filter[maxi]='\0';*/
-    printf("INFO ACT filter downloaded::%d bytes\n", (int) strlen(filter));
-  };
-  strcpy(filterpar, filter);
-  // '/part PHYSICS_1/CTP config'
-  do_partitionCtpConfigItem(name, partitionCtpConfigItem);
-  printf("INFO Act_getActiveItem(%s)\n", partitionCtpConfigItem);
-  err=ACT_getActiveItem(handle,partitionCtpConfigItem, &instance);
-  if( err != 0 ) {
-    printf("ERROR Cannot get partition configuration item. Error code:%d\n",err);
-    rc=1;
-  } else {
-    //snprintf(fname,sizeof(fname),"%s/CFG/ctp/pardefs/%s.partition",vmecfdir,name);
-    sprintf(fname,"%s/CFG/ctp/pardefs/%s.partition",vmecfdir,name);
-    if(instance != NULL) {
-      printf("INFO Opening %s for instance %s ver.:%s.\n",
-        fname,instance[0].instance, instance[0].version);  // OK
-        //fname, "notyet","notyet");  // INVER
-      f=fopen(fname,"w");
-      if(f != NULL) {
-        int i;
-        for(i=0;i<instance[0].size;i++) {
-          if(fputc(((char *)instance[0].value)[i],f) == EOF) {
-            printf("ERROR Cannot write to %s",fname); rc=-1;
-            break;
-          };
-        };
-        fclose(f);
-        cpNameVer(instance, actname, actversion);
-        //strcpy(actname, instance[0].instance);  // INVER "notyet"); strcpy(actversion, instance[0].version);  // INVER "notyet");
-      } else {
-        printf("ERROR Cannot open %s\n",fname); rc=-3;
-      };
-    } else {
-      printf("INFO partition %s not defined in ACT\n",fname); rc=-2;
-    };
-    ACT_destroyInstance(instance);
-  };
-  ACT_close(handle);
-  if(rc==0) {
-    char cmd[200];
-    sprintf(cmd,"ls -l %s >/tmp/actexe.log", fname); system(cmd);
-    sprintf(cmd,"dos2unx.bash %s 2>&1 >/tmp/actexe.log", fname); system(cmd);
-    printf("INFO dos2unx:%s\n", fname);
-  };
-} else {
-  rc=1;
-  printf("INFO %s configured as '%s' in ACT\n",partitionCtpConfigItem, filter);
-  actname[0]='\0'; actversion[0]='\0';
-};
 #else
   printf("INFO ACT not read (not compiled/linked)\n");
   rc=0;

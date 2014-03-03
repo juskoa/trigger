@@ -374,7 +374,7 @@ int brd=1,rc;
 vmew32(L0_TCCLEAR, DUMMYVAL);
 if(ssm==1) {
   rc= setomSSM(brd, 0x102); rc= startSSM1(brd); 
-  setsmssw(1,"l0_outmon");
+  setsmssw(1,(char *)"l0_outmon");
 };
 vmew32(L0_TCSTART, DUMMYVAL);
 usleep(200);
@@ -886,24 +886,32 @@ void clearAllCounters() {
 clearCounters(2);
 }
 /*FGROUP SimpleTests 
-read+print N counters of the board 
+read+print N counters of the board from FROM counter (counting from 0). 
 board (0:busy, 1:L0 2:L1, 3:L2, 4:INT, 5:FO1...)
 N==0: read+print all counters (according to ctpcounters.h) of the board
 */
-void printBoardCounters(int board, int N) {
-int cix,counts;
+void printBoardCounters(int board, int FROM, int N) {
+int cix,counts,cixmod=0;
 w32 mem[NCOUNTERS_MAX];
-if(N==0) {counts= defcounts[board];
-} else { counts= N; };
-printf("reading %d counters from board %d:\n", counts,board);
+if(N==0) {
+  counts= defcounts[board];
+} else if((FROM+N)>defcounts[board] ) {
+  counts= defcounts[board];
+} else { 
+  counts= FROM+N; 
+};   // counts: rel. adres of counters which should not be read
+if(FROM > counts) FROM=0;
+printf("reading counters %d - %d from board %d", FROM, counts,board);
+// always starting from first counter:
 getCountersBoard(board, counts-1, mem, 2);
 //0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs
-for(cix=0; cix<counts; cix++) {
-  if(cix%5==0) {
-    if(cix>0) printf("\n");
-    printf("%3d:",cix);
+for(cix=FROM; cix<counts; cix++) {
+  if((cixmod%5)==0) {
+    //if(cixmod>0) printf("\n");
+    printf("\n%3d:",cix);
   } else {printf(" ");};
-  printf("0x%x",mem[cix]);
+  printf("%8x",mem[cix]);
+  cixmod++;
 }; printf("\n");
 }
 /*FGROUP SimpleTests 

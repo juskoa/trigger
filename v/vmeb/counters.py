@@ -7,16 +7,17 @@ import string,os, types, time,threading #, os.path, glob
 import myw
 
 #following definition must agree with ctp/ctpcounters.h
-NCOUNTERS_L0=160
-NCOUNTERS_L0_SP1=15
-#NCOUNTERS_L0_SP2=99  spare99 becomes l0infun4
-NCOUNTERS_L0_SP3=159
+NCOUNTERS_L0=300
+NCOUNTERS_L0_SP1=17  # 2 spares
+NCOUNTERS_L0_SP2=178 # 9 spares. run1: was commented out (spare99 becomes l0infun4)
+NCOUNTERS_L0_SP3=298 # 2 spares
 L1SH=NCOUNTERS_L0
-NCOUNTERS_L1=160
+#
+NCOUNTERS_L1=160 #262
 NCOUNTERS_L1_SP1=38
-NCOUNTERS_L1_SP2=148
+NCOUNTERS_L1_SP2=148 #248
 L2SH=NCOUNTERS_L0+NCOUNTERS_L1
-NCOUNTERS_L2=134
+NCOUNTERS_L2=134 #234
 NCOUNTERS_L2_SP1=25
 NCOUNTERS_FO=48           # was 34 till 11.11.2008
 NCOUNTERS_FOae=52         # from 5.7.2012
@@ -372,12 +373,20 @@ LVDSTcnts={
 class CTPcnts:
   COLSIZE=10
   c150=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50")
+  c1100=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49",\
+  "50","51","52","53","54","55","56","57","58","59",\
+  "60","61","62","63","64","65","66","67","68","69",\
+  "70","71","72","73","74","75","76","77","78","79",\
+  "80","81","82","83","84","85","86","87","88","89",\
+  "90","91","92","93","94","95","96","97","98","99","100")
   i124=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24")
+  i48=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48")
   i112=("1","2","3","4","5","6","7","8","9","10","11","12")
   i16=("1","2","3","4","5","6")
   iT6=("T", "1","2","3","4","5","6")
   i14=("1","2","3","4")
   t7=("1","2","3","4","5","6","T")
+  t9=("1","2","3","4","5","6","7","8","T")
   pf5=("1","2","3","4","T")
   specfname="spec.py"
   #def __init__(self,tlw=None, vb=None):   #see myw.vbexec
@@ -484,15 +493,16 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     #spares:
     # see: v/DOC/CTPreadme
     lix= 0+NCOUNTERS_L0_SP1
-    #for irp in range(15,16):
-    for irp in range(lix,lix+1):
+    # 2 spares
+    for irp in range(lix,lix+2):
       print "spare%d %d l0 S N"%(irp, irp)
-    #lix= 0+NCOUNTERS_L0_SP2
-    #for irp in range(lix,lix+1):
-    #  print "spare%d %d l0 S N"%(irp, irp)
+    lix= 0+NCOUNTERS_L0_SP2
+    #9 spares
+    for irp in range(lix,lix+9):
+      print "spare%d %d l0 S N"%(irp, irp)
     lix= 0+NCOUNTERS_L0_SP3
-    #for irp in range(159,160):
-    for irp in range(lix,lix+1):
+    #2 spares
+    for irp in range(lix,lix+2):
       print "spare%d %d l0 S N"%(irp, irp)
     lix= L1SH+NCOUNTERS_L1_SP1
     for irp in range(lix,lix+2):
@@ -539,24 +549,24 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     self.boardfs["l0"]=self.l0frame
     l0label= myw.MywLabel(self.l0frame,label="L0 counters",
       bg=myw.VmeBoard.CTPcolors["l0"], side=TOP)
-    self.makeit1("l0","l0byclst", CTPcnts.t7, "Test, 1-6 cluster BUSY")
+    self.makeit1("l0","l0byclst", CTPcnts.t9, "Test, 1-8 cluster BUSY")
     self.makeit1("l0","l0pf", CTPcnts.pf5, "Test, 1-4 P/F output")
     self.makeit1("l0","l0timers", ["allrare","l0time","l0rate28"],
       """allrare, elapsed time and down-scaling veto ON for L0 class28
 in 16BCs intervals""")
     #self.makeit1("l0","l0inp", CTPcnts.i124, "L0 input")
-    self.makeit1("l0","l0classB", CTPcnts.c150, "Class before vetos")
-    self.makeit1("l0","l0classA", CTPcnts.c150, "Class after vetos")
-    self.makeit1("l0","l0inp", CTPcnts.i124, "L0 inputs")
+    self.makeit1("l0","l0classB", CTPcnts.c1100, "Class before vetos")
+    self.makeit1("l0","l0classA", CTPcnts.c1100, "Class after vetos")
+    self.makeit1("l0","l0inp", CTPcnts.i48, "L0 inputs")
     #self.makeit1("l0","l0ifun", ("1","2"), "L0 input functions")
     self.makeit1("l0","l0ifun", ("1","2","3","4"), "L0 input functions")
-    #self.makeit1("l0","l0int", ["1","2","T","A","B", "D"],
-    #  "Interaction signals: 1,2,T and  P/F Interaction signals A,B,D")
-    self.makeit1("l0","l0int", ["1","2","T","A","B"],
-      "Interaction signals: 1,2,T and  P/F Interaction signals A,B")
+    self.makeit1("l0","l0int", ["1","2","T","A","B", "D"],
+      "Interaction signals: 1,2,T and  P/F Interaction signals A,B,D")
+    #self.makeit1("l0","l0int", ["1","2","T","A","B"],
+    #  "Interaction signals: 1,2,T and  P/F Interaction signals A,B")
     self.makeit1("l0","l0counters", ["l0strobe0","prepulse","s_soft"],
       "L0 strobe (ANYCLST), Prepulse and SW trigger counters")
-    self.makeit1("l0","l0clst", CTPcnts.t7, "Test, 1-6 cluster trigger")
+    self.makeit1("l0","l0clst", CTPcnts.t9, "Test, 1-6 cluster trigger")
     #------------------------------------------------------ L1
     self.l1frame= myw.MywFrame(self.addw,side=LEFT); 
     self.boardfs["l1"]=self.l1frame
@@ -743,51 +753,47 @@ orc_error  -Orbit record with error
       else: n= int(c)
     elif string.find(cntlabel,"l0pf")==0:
       board="l0"; c= cntlabel[4]; CGT='T';
-      if c=="T": n= 7
-      else: n= int(c)+7
+      if c=="T": n= 9
+      else: n= int(c)+9
     elif string.find(cntlabel,"allrare")==0:
-      board="l0"; n= 12; CGT='T';
-    elif string.find(cntlabel,"l0time")==0:
-      board="l0"; n= 13; CGT='T';
-    elif string.find(cntlabel,"l0rate28")==0:
       board="l0"; n= 14; CGT='T';
+    elif string.find(cntlabel,"l0time")==0:
+      board="l0"; n= 15; CGT='T';
+    elif string.find(cntlabel,"l0rate28")==0:
+      board="l0"; n= 16; CGT='T';
     elif string.find(cntlabel,"l0classB")==0:
-      board="l0"; n= 15+ int(cntlabel[8:])
-    elif string.find(cntlabel,"l0inp")==0:
-      board="l0"; n= 65+ int(cntlabel[5:])
-    elif string.find(cntlabel,"l0ifun")==0:
+      board="l0"; n= (19-1)+ int(cntlabel[8:])
+    elif string.find(cntlabel,"l0inp")==0:   #l0inp1: 116
+      board="l0"; n= (119-1)+ int(cntlabel[5:])
+    elif string.find(cntlabel,"l0ifun")==0:  # l0ifun1: 140
       board="l0"; 
       c1234= cntlabel[6]
-      if c1234=="1" or c1234=="2":
-        n= 89+ int(cntlabel[6:])
-      elif c1234=="3":
-        n= 97
-      elif c1234=="4":
-        n= 99
+      if c1234>="1" and c1234<="4":   # 140..141
+        n= (167-1)+ int(cntlabel[6:])
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
     elif string.find(cntlabel,"l0int")==0:
       board="l0"; c= cntlabel[5];
-      if c=="1": n= 92
-      elif c=="2": n= 93
-      elif c=="T": n= 94
-      elif c=="A": n= 95
-      elif c=="B": n= 96
-      elif c=="D": n= 97
+      if c=="1": n= 173 #50+92
+      elif c=="2": n= 174 #50+93
+      elif c=="T": n= 172 #50+94
+      elif c=="A": n= 175 #50+95
+      elif c=="B": n= 176 #50+96
+      elif c=="D": n= 177 #50+97
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
-    elif string.find(cntlabel,"l0strobe0")==0:
-      board="l0"; n=98
-    elif string.find(cntlabel,"l0classA")==0:
-      board="l0"; n= 99+ int(cntlabel[8:])
+    elif string.find(cntlabel,"l0strobe0")==0:   # 148
+      board="l0"; n= 171
+    elif string.find(cntlabel,"l0classA")==0:    # run2: l0classA1: 152
+      board="l0"; n= (187-1)+ int(cntlabel[8:])   # run1: 99
     elif string.find(cntlabel,"s_soft")==0:
-      board="l0"; n=150
+      board="l0"; n= 287 #102+150
     elif string.find(cntlabel,"prepulse")==0:
-      board="l0"; n=151
+      board="l0"; n= 288 #102+151
     elif string.find(cntlabel,"l0clst")==0:
       board="l0"; c= cntlabel[6];
-      if c=="T": n= 152
-      else: n= 152+int(c)
+      if c=="T": n= 289 # 102+152
+      else: n= (290-1) + int(c)  #102+152+int(c)
     #------------------------------------------------------ L1
     elif string.find(cntlabel,"l1pf")==0:
       board="l1"; c= cntlabel[4]; CGT='T';
@@ -1264,7 +1270,8 @@ class VMEcnts(CTPcnts):
     vlist=string.split(allvals,'\n'); vll= len(vlist)-1
     if vll != len(self.allregs):
       myw.errorprint(self, "doout: %d != %d"%(vll,len(self.allregs)))
-    #print "allread2:",vll,len(self.allregs),"\n", vlist[706:724]
+      myw.errorprint(self, allvals)
+    #print "allread2:",vll,len(self.allregs),"\n", vlist[152:253]
     for i in range(vll):
       self.allregs[i]= vlist[i]
     for i in range(len(self.regs)):

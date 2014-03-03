@@ -276,7 +276,7 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
     if self.caclstl:
       myw.RiseToplevel(self.caclstl); return
     self.caclstl= myw.NewToplevel("CTP classes",self.classesDestroyed)
-    print "doClasses:", self.caclstl
+    #print "doClasses:", self.caclstl
     self.cmdbuts= myw.MywHButtons(self.caclstl, [
       ("blabla",self.cmdallenabled)
       ],side=TOP, helptext="""

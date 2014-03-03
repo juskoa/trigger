@@ -544,11 +544,11 @@ if(ltuviyes) {
   } else if((del>=18) && (del<=30)) { 
     newttin=0x2; */
   if(((del<=6) && (del>=0)) || ((del >=20) && (del<=31))) {
-    newttin=0x2;
+    newttin=0x2;   // chanA +BC/2
   } else if((del>=8) && (del<=18)) { 
-    newttin=0x1;
+    newttin=0x1;   // chanB +BC/2
   } else if(del==7 ) { 
-    newttin=0x3; 
+    newttin=0x3;   // both TTC chans A/B +BC/2
   } else if(del== 19) { 
     newttin=0x0; 
   } else { newttin=0;

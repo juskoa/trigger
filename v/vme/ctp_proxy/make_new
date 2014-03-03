@@ -10,17 +10,17 @@ include $(VMEBDIR)/daq_defs.make
 #LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS) $(VMERCCLD)
 PROXYLIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(VMERCCLD)
 
-CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/.. -I$(DIMinc) -I$(SMIinc)
+CFLAGS += $(daqCCDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/.. -I$(DIMinc) -I$(SMIinc)
 
 include $(VMEBDIR)/sc.make
 ifdef SERVER_LINK
-allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm \
- $(EXEDIR)/ctpshm.exe
+allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm $(EXEDIR)/ctpshm.exe
 else
 allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
  $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF \
  $(EXEDIR)/bakeryTest.exe
 endif
+$(info SERVER_LINK:$(SERVER_LINK):$(allEXES))
 
 #vonCTPLIBa= $(CTPLD) $(VMEBLD)
 LIBDEP = $(CTPLIB)/libctp.a $(VMEBLIB)/libvmeb.a
@@ -77,7 +77,6 @@ bakeryTest.o:bakeryTest.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
 #	$(CC) $(LDFLAGS) $< $(CTPLD) -o $@
-#	$(CC) $(LDFLAGS) $< $(VMEBLD) $(CTPLD) -o $@
 #	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) -o $@
 	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(VMERCCLD) -o $@
 
@@ -98,7 +97,7 @@ $(EXEDIR)/ctpshm.exe: main_shm.o $(LIBDEP)
 main_act.o:main_act.c Tpartition.h 
 	$(CC) $(CFLAGS) $< -c -o $@
 $(EXEDIR)/act.exe: main_act.o cfg2part.o $(LIBDEP) /opt/act/libACT.a 
-	$(CC) $(LDFLAGS) $< $(VMEBLD) $(actLD) $(MYSQLLIBS) -o $@
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(actLD) $(MYSQLLIBS) -o $@
 #-------------------------------------------- dimc
 dimc.o:dimc.c dimtypes.h
 	$(CC) $(CFLAGS) -c -o $@ $<

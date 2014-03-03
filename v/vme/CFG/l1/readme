@@ -14,3 +14,5 @@ phase measurement option included
 l1_logic_verA5.rbf
 - 100 classes instead of 50 (counters not availbale yet)
 - massive change in VME addresses
+21.2.2014 l1_logic_verA6.rbf
+100 counters implemented

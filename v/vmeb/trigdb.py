@@ -290,8 +290,12 @@ class TrgFilter(Table):
     return None
 
 class TrgCNAMES(Table):
-  def __init__(self):
-    fp= os.path.join(TRGDBDIR, "cnames.sorted2")
+  def __init__(self, conf="run2"):
+    if conf=="run1":
+      cnames= "cnames1.sorted2"
+    else:
+      cnames= "cnames.sorted2"
+    fp= os.path.join(TRGDBDIR, cnames)
     self.readtable(fp) 
     # 0     1                2     3   4 
     # Name  RelPositionFrom0 Board CGT ctp
