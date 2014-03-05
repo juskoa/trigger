@@ -11,6 +11,7 @@ int main(){
  ttc->start_stopSSM();
  //ttc->ssmtools.dumpSSM("ttcit");
  /*
+ //
  //ltu->SetStandalone();
  for(int i=0;i<10000;i++){
    ltu->SetMode("inmon",'a');
