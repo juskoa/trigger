@@ -13,12 +13,15 @@ NCOUNTERS_L0_SP2=178 # 9 spares. run1: was commented out (spare99 becomes l0infu
 NCOUNTERS_L0_SP3=298 # 2 spares
 L1SH=NCOUNTERS_L0
 #
-NCOUNTERS_L1=160 #262
-NCOUNTERS_L1_SP1=38
-NCOUNTERS_L1_SP2=148 #248
+NCOUNTERS_L1=300 #160
+NCOUNTERS_L1_SP1=38 #38   2spares
+NCOUNTERS_L1_SP2=250 #148   run2:50spares
+#
 L2SH=NCOUNTERS_L0+NCOUNTERS_L1
-NCOUNTERS_L2=134 #234
-NCOUNTERS_L2_SP1=25
+NCOUNTERS_L2=300 #134
+NCOUNTERS_L2_SP1=25   # run1/2: 1 spare
+NCOUNTERS_L2_SP2=236  # run2 only: 64 spares
+#
 NCOUNTERS_FO=48           # was 34 till 11.11.2008
 NCOUNTERS_FOae=52         # from 5.7.2012
 NCOUNTERS_BUSY=160
@@ -505,15 +508,19 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     for irp in range(lix,lix+2):
       print "spare%d %d l0 S N"%(irp, irp)
     lix= L1SH+NCOUNTERS_L1_SP1
+    # 2 spares
     for irp in range(lix,lix+2):
       print "spare%d %d l1 S N"%(irp, irp)
     lix= L1SH+NCOUNTERS_L1_SP2
     hix= L1SH+NCOUNTERS_L1
-    #for irp in range(308,320):
+    # run2: 50 spares
     for irp in range(lix,hix):
       print "spare%d %d l1 S N"%(irp, irp)
     lix= L2SH+NCOUNTERS_L2_SP1
-    for irp in range(lix,lix+1):
+    for irp in range(lix,lix+1):   # 1 spare
+      print "spare%d %d l2 S N"%(irp, irp)
+    lix= L2SH+NCOUNTERS_L2_SP1
+    for irp in range(lix,lix+64):   # 64 spares
       print "spare%d %d l2 S N"%(irp, irp)
     #for irp in range(763, 812):
     lix= BYSH+NCOUNTERS_BUSY_SP1
@@ -587,10 +594,10 @@ l0strobeIN  -L0strobe input (any L0 cluster)
 l1strobeOUT -L1strobe output (any L1 cluster)
 esrflag     -Enable Segmented Readout flag
 """)
-    self.makeit1("l1","l1classB", CTPcnts.c150, "Class triggers before vetos")
-    self.makeit1("l1","l1classA", CTPcnts.c150, "Class triggers after vetos")
-    self.makeit1("l1","l1clst", ("1","2","3","4","5","6","T","0"),"""
-1-6   -L1 cluster 1-6 triggers
+    self.makeit1("l1","l1classB", CTPcnts.c1100, "Class triggers before vetos")
+    self.makeit1("l1","l1classA", CTPcnts.c1100, "Class triggers after vetos")
+    self.makeit1("l1","l1clst", ("1","2","3","4","5","6","7","8","T","0"),"""
+1-8   -L1 cluster 1-8 triggers
 T     -L1 test cluster (after vetos)
 0     -L0 test cluster (before vetos)
 """)
@@ -611,12 +618,12 @@ A,B,D: 3 interaction P/F signals
     self.makeit1("l2","Strobes", ["l1strobeIN","l2strobeOUT"],
       """l1strobeIN -any L1 cluster
 l2strobeOUT -any L2 cluster""")
-    self.makeit1("l2","l2classB", CTPcnts.c150, "Class triggers before vetos")
-    self.makeit1("l2","l2classA", CTPcnts.c150, "Class triggers after vetos")
-    self.makeit1("l2","l2clst", ("1","2","3","4","5","6","T","X"),"""
-1-6   -L2 cluster1-6 trigger
-T     -L2 test cluster (after vetos)
-X     -L1 test cluster (before vetos)
+    self.makeit1("l2","l2classB", CTPcnts.c1100, "Class triggers before vetos")
+    self.makeit1("l2","l2classA", CTPcnts.c1100, "Class triggers after vetos")
+    self.makeit1("l2","l2clst", ("1","2","3","4","5","6","7","8","T","X"),"""
+1-8   -l2clst[1-8]. L2 cluster1-8 trigger
+T     -l2clstt.     L2 test cluster (after vetos)
+X     -l1clstt.     L1 test cluster (before vetos)
 """)
     #------------------------------------------------------ FO
     for foix in [1,2,3,4,5,6]:
@@ -821,12 +828,12 @@ orc_error  -Orbit record with error
     elif string.find(cntlabel,"l1classB")==0:
       board="l1"; n= 39+L1SH+ int(cntlabel[8:])
     elif string.find(cntlabel,"l1classA")==0:
-      board="l1"; n= 89+L1SH+ int(cntlabel[8:])
+      board="l1"; n= 139+L1SH+ int(cntlabel[8:])   #run1:89
     elif string.find(cntlabel,"l1clst")==0:
       board="l1"; c= cntlabel[6];
-      if   c=="T": n= 141+L1SH
-      elif c=="0": n= 140+L1SH
-      else: n= 141+L1SH+int(c)
+      if   c=="T": n= 241+L1SH   #141
+      elif c=="0": n= 240+L1SH   #140
+      else: n= 241+L1SH+int(c)   #141/6 or run2:241/8
     #------------------------------------------------------ L2
     elif string.find(cntlabel,"l2pf")==0:
       board="l2"; c= cntlabel[4]; CGT='T';
@@ -852,12 +859,12 @@ orc_error  -Orbit record with error
     elif string.find(cntlabel,"l2classB")==0:
       board="l2"; n= 25+L2SH+ int(cntlabel[8:])
     elif string.find(cntlabel,"l2classA")==0:
-      board="l2"; n= 75+L2SH+ int(cntlabel[8:])
+      board="l2"; n= 125+L2SH+ int(cntlabel[8:])   # run1:75
     elif string.find(cntlabel,"l2clst")==0:
       board="l2"; c= cntlabel[6];
-      if   c=="T": n= 127+L2SH
-      elif c=="X": n= 126+L2SH
-      else: n= 127+L2SH+int(c)
+      if   c=="T": n= 227+L2SH   # 127
+      elif c=="X": n= 226+L2SH   # l1clstt. run1:126
+      else: n= 227+L2SH+int(c)   # 127
     #------------------------------------------------------ BUSY
     # have to be in this order (byin_last checked before byin)
     elif string.find(cntlabel,"byin_end")==0:

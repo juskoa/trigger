@@ -167,3 +167,5 @@ CNTWEB/ltus.py -grouping added
 CNTWEB/ltus.py -Yaxis logarithmic/linear added
 19.2.2014
 vme/fanio/dim  exportsc.bash added
+12.3.
+modifications for l1,l2 counters (300 counters each, 2-bit accumulators for slow counters)

@@ -5,11 +5,14 @@
 #define NCOUNTERS_L0_SP2 178  // run2: 178..186. not defined in run1.
 #define NCOUNTERS_L0_SP3 298  // run2: 298..299 run1: 159
 
-#define NCOUNTERS_L1 160      // run1: 160,14 spares  run2: 262
-#define NCOUNTERS_L1_SP1 38   // 2 spares
-#define NCOUNTERS_L1_SP2 148  // 12 spares. run1: 148 run2: 248
-#define NCOUNTERS_L2 134      //  run1: 134   run2:234
+#define NCOUNTERS_L1 300      // run1: 160,14 spares  run2: 300
+#define NCOUNTERS_L1_SP1 38   // run1/2: 2 spares
+#define NCOUNTERS_L1_SP2 250  // run1: 148, 12spares run2: 250,50spares
+
+#define NCOUNTERS_L2 300      //  run1: 134   run2:300
 #define NCOUNTERS_L2_SP1 25
+#define NCOUNTERS_L2_SP2 236  // run2 only: 64 spares
+
 #define NCOUNTERS_FO  48    // there are 6 FO boards (FO1-FO6) (was 34 till 11.11)
 #define NCOUNTERS_FOae  52  // + L2r counter for each connector -stored in spare871..894
 #define NCOUNTERS_BUSY 160  // 105 +49spares + 6runx
