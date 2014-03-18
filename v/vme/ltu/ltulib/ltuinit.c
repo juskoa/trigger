@@ -666,7 +666,7 @@ rc:  0 ok, no SEU registered from last checkSEU() activation
 int checkSEU() {
 w32 serial, pll;
 pll= vmer32(TEMP_STATUS)&0x2;
-serial= 0x3f&vmer32(SERIAL_NUMBER);
+serial= 0x7f&vmer32(SERIAL_NUMBER);   // 0x7f for ltu2 (bit 0x40 is 0 for ltu1)
 if((serial>=64) || (serial==0)) {
   if(serial==0) {
     printf("Serial number:0 ->this board accounted LTU version 2\n");
