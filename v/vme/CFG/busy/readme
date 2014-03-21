@@ -15,4 +15,9 @@ busy_a7_1.rbf
 recompiled without CRC option, same fpga code
 Thu Aug 28 2008
 busy_logic_a8.rbf
-pahse monitoring included
+phase monitoring included
+13.3.2014 busy_logic_verA9.rbf 
+8 clusters (instead of 6)
+Treba otestovat aj Snapshot memory, najlepsie na vsetkych doskach.
+Pri kompilacii som na niektorych doskach dostal hlasenie, ze nevie umiestnit logiku do miest kde je to specifikovane.
+

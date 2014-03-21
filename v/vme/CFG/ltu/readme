@@ -64,7 +64,7 @@ Differencies:
   are > 63, i.e. 64,65,... (seems it is 0 if not scratched on ltu2 board)
 
 3.12.2013
-ltu2_b7.rbf  -100 classes CTP emulator (15 words/instruction), NEW BORDS ONLY
+ltu2_b7.rbf  -100 classes CTP emulator (15 words/instruction), NEW BOARDS ONLY
 9.1.2013
 mv ltu_logic_vB7.rbf ltu_logic_vB7ver1.rbf
 new version ltu_logic_vB7.rbf from Marian - new way of generating messages due to time problems

@@ -22,15 +22,20 @@ NCOUNTERS_L2=300 #134
 NCOUNTERS_L2_SP1=25   # run1/2: 1 spare
 NCOUNTERS_L2_SP2=236  # run2 only: 64 spares
 #
-NCOUNTERS_FO=48           # was 34 till 11.11.2008
-NCOUNTERS_FOae=52         # from 5.7.2012
+NFOS=6
+FOSH=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2
+NCOUNTERS_FO=72       # was 34 till 11.11.2008 run1:48(+4) run2:72
+#NCOUNTERS_FOae=52    #from 5.7.2012
+NCOUNTERS_FO_SP1=37   # run2:  3 spares
+NCOUNTERS_FO_SP2=63   # run2: 9 spares
+#
 NCOUNTERS_BUSY=160
-NCOUNTERS_BUSY_SP1=105
-NCOUNTERS_BUSY_L2RS=129   # from 5.7.2012
+NCOUNTERS_BUSY_SP1=113    # run1: 105   run2: 113/47
+#NCOUNTERS_BUSY_L2RS=129   # from 5.7.2012, not used in run2
 NCOUNTERS_BUSY_TSGROUP=153
 NCOUNTERS_BUSY_RUNX1=154
+#
 NCOUNTERS_INT=19
-FOSH=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2
 NCOUNTERS_SPEC=49
 # 2 more for epoch_seconds and epoch_micseconds
 # NCOUNTERS: different from ctpcounters.h (does not include NCOUNTERS_SPEC)
@@ -385,8 +390,8 @@ class CTPcnts:
   i124=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24")
   i48=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48")
   i112=("1","2","3","4","5","6","7","8","9","10","11","12")
-  i16=("1","2","3","4","5","6")
-  iT6=("T", "1","2","3","4","5","6")
+  i16=("1","2","3","4","5","6","7","8")
+  iT6=("T", "1","2","3","4","5","6","7","8")
   i14=("1","2","3","4")
   t7=("1","2","3","4","5","6","T")
   t9=("1","2","3","4","5","6","7","8","T")
@@ -519,12 +524,13 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     lix= L2SH+NCOUNTERS_L2_SP1
     for irp in range(lix,lix+1):   # 1 spare
       print "spare%d %d l2 S N"%(irp, irp)
-    lix= L2SH+NCOUNTERS_L2_SP1
+    lix= L2SH+NCOUNTERS_L2_SP2
     for irp in range(lix,lix+64):   # 64 spares
       print "spare%d %d l2 S N"%(irp, irp)
     #for irp in range(763, 812):
     lix= BYSH+NCOUNTERS_BUSY_SP1
-    hix= BYSH+NCOUNTERS_BUSY_L2RS
+    #hix= BYSH+NCOUNTERS_BUSY_L2RS in run1
+    hix= BYSH+NCOUNTERS_BUSY_TSGROUP
     for irp in range(lix, hix):
       print "spare%d %d busy S N"%(irp, irp)
     # 6x4 FO counters:
@@ -541,6 +547,17 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     lix= BYSH+NCOUNTERS_BUSY_RUNX1
     for irp in range(lix, lix+6):
       print "spare%drunx %d busy S N"%(irp, irp)
+    #
+    for foix in range(NFOS):
+      fosh= FOSH + foix*NCOUNTERS_FO
+      lix= fosh+NCOUNTERS_FO_SP1
+      for irp in range(lix,lix+3):   # 3 spares
+        print "spare%d %d fo%d S N"%(irp, irp, foix+1)
+      lix= fosh+NCOUNTERS_FO_SP2
+      hix= fosh+NCOUNTERS_FO
+      # run2: 10 spares
+      for irp in range(lix,hix):
+        print "spare%d %d fo%d S N"%(irp, irp, foix+1)
   def addnewcnt(self):
     if self.addw:
       #return
@@ -573,7 +590,7 @@ in 16BCs intervals""")
     #  "Interaction signals: 1,2,T and  P/F Interaction signals A,B")
     self.makeit1("l0","l0counters", ["l0strobe0","prepulse","s_soft"],
       "L0 strobe (ANYCLST), Prepulse and SW trigger counters")
-    self.makeit1("l0","l0clst", CTPcnts.t9, "Test, 1-6 cluster trigger")
+    self.makeit1("l0","l0clst", CTPcnts.t9, "Test, 1-8 cluster trigger")
     #------------------------------------------------------ L1
     self.l1frame= myw.MywFrame(self.addw,side=LEFT); 
     self.boardfs["l1"]=self.l1frame
@@ -644,10 +661,10 @@ fol2strIN	-L2 strobe input
 foppi		-Prepulse input
 fol0clstt	-L0 test cluster trigger
 fol1clstt	-L1 test cluster trigger""")
-      self.makeit1(fona,fona+"l0clst", CTPcnts.i16, "L0 cluster1-6 trigger")
-      self.makeit1(fona,fona+"l1clst", CTPcnts.i16, "L1 cluster1-6 trigger")
-      self.makeit1(fona,fona+"glitch", CTPcnts.iT6, "Glitch for cluster T,1-6")
-      self.makeit1(fona,fona+"l1spurious", CTPcnts.iT6, "L1spurious cluster T,1-6")
+      self.makeit1(fona,fona+"l0clst", CTPcnts.i16, "L0 cluster1-8 trigger")
+      self.makeit1(fona,fona+"l1clst", CTPcnts.i16, "L1 cluster1-8 trigger")
+      self.makeit1(fona,fona+"glitch", CTPcnts.iT6, "Glitch for cluster T,1-8")
+      self.makeit1(fona,fona+"l1spurious", CTPcnts.iT6, "L1spurious cluster T,1-8")
       self.makeit1(fona,fona+"ppout", CTPcnts.i14, "PP output 1-4")
       self.makeit1(fona,fona+"l0out", CTPcnts.i14, "L0 output 1-4")
       self.makeit1(fona,fona+"l1out", CTPcnts.i14, "L1 output 1-4")
@@ -670,21 +687,21 @@ should be equal to received triggers.
 busy_last signal -number of occurences when this detector was slowest
 in its cluster.
 """)
-    self.makeit1("busy","byout", CTPcnts.t7,
-      "7 Cluster BUSY output timers for Cluster1-6 and Test cluster")
-    self.makeit1("busy","byout_end", CTPcnts.t7,
-      """7 Cluster BUSY output counters for Cluster1-6 and Test cluster.
+    self.makeit1("busy","byout", CTPcnts.t9,
+      "9 Cluster BUSY output timers for Cluster1-8 and Test cluster")
+    self.makeit1("busy","byout_end", CTPcnts.t9,
+      """9 Cluster BUSY output counters for Cluster1-8 and Test cluster.
 The number of 'cluster busy' signals.""")
     self.makeit1("busy","bydaq", CTPcnts.i16,
-      "6 Cluster DAQ BUSY timers")
+      "8 Cluster DAQ BUSY timers")
     self.makeit1("busy","bytimers", ("CTPdeadtime","CTPbusy","bytime"),
       "Other BUSY timers")
     self.makeit1("busy","bycounters", ("byanyclu","byclu1","byclu2",
-      "byclu3","byclu4","byclu5","byclu6","bytestclass",
+      "byclu3","byclu4","byclu5","byclu6","byclu7","byclu8","bytestclass",
       "byendCTPbusy", "bylongbusy"),
       """BUSY counters:
 byanyclu    -Any L0 Cluster trigger
-byclu1-6    -L0 Cluster trigger 1-6
+byclu1-8    -L0 Cluster trigger 1-8
 bytestclass -L0 Test class trigger
 byendCTPbusy-End of CTPbusy (CTPbusy transitions)
 bylongbusy  -Long BUSY (BusyProbe).Counts cases, when busy>MAXIMIM_LIMIT
@@ -869,11 +886,11 @@ orc_error  -Orbit record with error
     # have to be in this order (byin_last checked before byin)
     elif string.find(cntlabel,"byin_end")==0:
       board="busy"; bsyin= int(cntlabel[8:])
-      n= 55+ BYSH+bsyin-1; CGT='C';
+      n= 63+ BYSH+bsyin-1; CGT='C';  #run1:55
       if col5: det5c= self.findLTUbusy(bsyin) 
     elif string.find(cntlabel,"byin_last")==0:
       board="busy"; bsyin= int(cntlabel[9:])
-      n= 79+ BYSH+bsyin-1; CGT='C';
+      n= 87+ BYSH+bsyin-1; CGT='C';  #run1:79
       if col5: det5c= self.findLTUbusy(bsyin) 
     elif string.find(cntlabel,"byin")==0:
       board="busy"; bsyin=int(cntlabel[4:])
@@ -882,96 +899,97 @@ orc_error  -Orbit record with error
     elif string.find(cntlabel,"byout_end")==0:
       board="busy"; CGT='C';
       if cntlabel[9]=='T':
-        n= 54+ BYSH
+        n= 62+ BYSH  #run1: 54
       else:
-        n= 47+ BYSH+int(cntlabel[9])
+        n= 53+ BYSH+int(cntlabel[9])  #run1: 47
     elif string.find(cntlabel,"byout")==0:
       board="busy"; CGT='T';
       if cntlabel[5]=='T':
-        n= 30+ BYSH
+        n= 32+ BYSH   #run1: 30
       else:
-        n= 23+ BYSH+int(cntlabel[5])
+        n= 23+ BYSH+int(cntlabel[5])   #run1/2:23
     elif string.find(cntlabel,"bydaq")==0:
-      board="busy"; n= 30+ BYSH+int(cntlabel[5:]); CGT='T';
+      board="busy"; n= 32+ BYSH+int(cntlabel[5:]); CGT='T';   #run1 30
     elif string.find(cntlabel,"CTPdeadtime")==0:
-      board="busy"; n= 37+ BYSH; CGT='T';
+      board="busy"; n= 41+ BYSH; CGT='T';   #run1: 37
     elif string.find(cntlabel,"CTPbusy")==0:
-      board="busy"; n= 38+ BYSH; CGT='T';
+      board="busy"; n= 42+ BYSH; CGT='T';   #run1: 38
     elif string.find(cntlabel,"bytime")==0:
-      board="busy"; n= 39+ BYSH; CGT='T';
+      board="busy"; n= 43+ BYSH; CGT='T';   #run1: 39
     elif string.find(cntlabel,"byanyclu")==0:
-      board="busy"; n= 40+ BYSH
+      board="busy"; n= 44+ BYSH   #run1: 40
     elif string.find(cntlabel,"byclu")==0:
-      board="busy"; n= 40+ BYSH+ int(cntlabel[5:])
+      board="busy"; n= 44+ BYSH+ int(cntlabel[5:])   #run1: 40
     elif string.find(cntlabel,"bytestclass")==0:
-      board="busy"; n= 47+ BYSH
+      board="busy"; n= 53+ BYSH   #run1: 47
     elif string.find(cntlabel,"byendCTPbusy")==0:
-      board="busy"; n= 103+ BYSH
+      board="busy"; n= 111+ BYSH   #run1: 103
     elif string.find(cntlabel,"bylongbusy")==0:
-      board="busy"; n= 104+ BYSH
+      board="busy"; n= 112+ BYSH   #run1: 104
     #------------------------------------------------------ FO
     elif self.findFO(cntlabel,"time"):
       foix= self.findFO(cntlabel,"time")
       board="fo"; n= 0+FOSH +(foix-1)*NCOUNTERS_FO; CGT='T';
     elif self.findFO(cntlabel,"l1strIN"):
       foix= self.findFO(cntlabel,"l1strIN")
-      board="fo"; n= 13+FOSH+(foix-1)*NCOUNTERS_FO
+      board="fo"; n= 17+FOSH+(foix-1)*NCOUNTERS_FO   #run1:13
     elif self.findFO(cntlabel,"l2strIN"):
       foix= self.findFO(cntlabel,"l2strIN")
-      board="fo"; n= 14+FOSH+(foix-1)*NCOUNTERS_FO
+      board="fo"; n= 18+FOSH+(foix-1)*NCOUNTERS_FO   #run1:14
     elif self.findFO(cntlabel,"glitch"):
       foix=self.findFO(cntlabel,"glitch")
       board="fo"; c= cntlabel[9]; 
       if c=='T': c='0'
-      n= 15 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 19 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:15
     elif self.findFO(cntlabel,"l1spurious"):
       foix=self.findFO(cntlabel,"l1spurious")
       board="fo"; c= cntlabel[13]; 
       if c=='T': c='0'
-      n= 22 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 28 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:22
     elif self.findFO(cntlabel,"ppi"):
       foix= self.findFO(cntlabel,"ppi")
-      board="fo"; n= 15+14+FOSH+(foix-1)*NCOUNTERS_FO
+      board="fo"; n= 40+FOSH+(foix-1)*NCOUNTERS_FO   #run1:29
     elif self.findFO(cntlabel,"l0clstt"):
       foix= self.findFO(cntlabel,"l0clstt")
-      board="fo"; n= 16+14+FOSH+(foix-1)*NCOUNTERS_FO
+      board="fo"; n= 41+FOSH+(foix-1)*NCOUNTERS_FO   #run1:30
     elif self.findFO(cntlabel,"l1clstt"):
       foix= self.findFO(cntlabel,"l1clstt")
-      board="fo"; n= 17+14+FOSH+(foix-1)*NCOUNTERS_FO
+      board="fo"; n= 42+FOSH+(foix-1)*NCOUNTERS_FO   #run1:31
     elif self.findFO(cntlabel,"l0clst"):
       foix=self.findFO(cntlabel,"l0clst")
       board="fo"; c= cntlabel[9]   # foNl0clstX
-      n= 0 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 0 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1/2:0
       #print "foix:",foix, c, n
     elif self.findFO(cntlabel,"l1clst"):
       foix=self.findFO(cntlabel,"l1clst")
       board="fo"; c= cntlabel[9]
-      n= 6 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 8 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:6
     elif self.findFO(cntlabel,"ppout"):
       foix=self.findFO(cntlabel,"ppout")
       board="fo"; c= cntlabel[8]
-      n= 17+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
-      if col5: det5c= self.findLTUfo(foix, int(c)) 
+      n= 42 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:31
+      if col5: det5c= self.findLTUfo(foix, int(c))
     elif self.findFO(cntlabel,"l0out"):
       foix=self.findFO(cntlabel,"l0out")
       board="fo"; c= cntlabel[8]
-      n= 21+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 46 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:35
       if col5: det5c= self.findLTUfo(foix, int(c)) 
     elif self.findFO(cntlabel,"l1out"):
       foix=self.findFO(cntlabel,"l1out")
       board="fo"; c= cntlabel[8]
-      n= 25+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 50 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:39
       if col5: det5c= self.findLTUfo(foix, int(c)) 
     elif self.findFO(cntlabel,"l2stro"):
       foix=self.findFO(cntlabel,"l2stro")
       board="fo"; c= cntlabel[9]
-      n= 29+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
+      n= 54 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO   #run1:43
       if col5: det5c= self.findLTUfo(foix, int(c)) 
     elif self.findFO(cntlabel,"l2rout"):
       foix=self.findFO(cntlabel,"l2rout")
       board="fo"; c= cntlabel[9]
       #n= 29+14 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
-      n= BYSH + NCOUNTERS_BUSY_L2RS -1 + int(c) + (foix-1)*4
+      #n= BYSH + NCOUNTERS_BUSY_L2RS -1 + int(c) + (foix-1)*4 #run1:
+      n= 58 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
       if col5: det5c= self.findLTUfo(foix, int(c)) 
     #------------------------------------------------------ INT
     elif string.find(cntlabel,"intCTPbusy")==0:

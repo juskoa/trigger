@@ -86,8 +86,8 @@ def rrd_create1(strtime0, rrdb):
   ri.write("create %s --start %s --step 60 "% (rrddb,strtime0))
   nofds= readcnames(ri, ctpltu)
   if ctpltu=='mon':
-    ri.write("RRA:LAST:0.5:1:10080 ")  # last 4 weeks (24*7*60)/1min
-    ri.write("RRA:AVERAGE:0.5:60:8760 ")   # last year (365*60)/1hour
+    ri.write("RRA:LAST:0.5:1:10080 ")  # last  week (24*7*60)/1min
+    ri.write("RRA:AVERAGE:0.5:60:8760 ")   # last year (365*24)/1hour
   else:
     #ri.write("RRA:AVERAGE:0.5:1:600 ")   # last 10 hours/1min
     #ri.write("RRA:AVERAGE:0.5:1:1440 ")   # last 24 hours/1min

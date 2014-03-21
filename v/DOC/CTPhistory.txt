@@ -169,3 +169,19 @@ CNTWEB/ltus.py -Yaxis logarithmic/linear added
 vme/fanio/dim  exportsc.bash added
 12.3.
 modifications for l1,l2 counters (300 counters each, 2-bit accumulators for slow counters)
+15.3.
+mod. for busy/fo. cnames.sorted2: 1560 lines, fo: 0xB0 problem with timing
+18.3.
+bug fixed in ltulib/ltuinit.c (did not recognize correctly ltuver2 boards
+with numbers > 64)
+18.3.
+small bug fixed in ssmbrowser.py: now a ssm dump written only once
+when asked to be saved together with signal names
+21.3.
+New rrd db created on avmes (1560 ctp counters). 
+Conversion rrddb->dsiplayname (spare17->l0LMbv) done in CNTRRD/cnt.py.
+Counter.co2rrdname() -changed. Now doing nothing, i.e. cnames.sorted2 names
+are equal to those used in rrddb.
+Prgrams using cnames.sorted2 should:
+- recognize TSGROUP counter by looking for 'spare*TSGROUP'
+- recognize 6 runx counters by looking for 'spare*runx'

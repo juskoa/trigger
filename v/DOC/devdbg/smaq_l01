@@ -11,7 +11,7 @@
      of the file contains the L0-SSM, the L1-SSM is given in 
      2nd half of the file.
 
-2. prepare aplication showing the relative shift of any L1 input 
+2. prepare application showing the relative shift of any L1 input 
    (or simply all?) wrt to choosen L0.
    Is there a chance to prepare it before p-A run?
 

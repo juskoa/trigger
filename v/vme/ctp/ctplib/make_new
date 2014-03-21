@@ -35,7 +35,7 @@ libctp.a: $(S_OBJS)
 
 *.o: ../ctp.h ../ctpcounters.h ctplib.h Tpartition.h
 bobr.o: bobr.c ctplib.h
-readCounters.o: readCounters.c ctplib.h #../ctpcounters.h
+readCounters.o: readCounters.c ctplib.h ../ctpcounters.h
 readBICfile.o: readBICfile.c $(VMECFDIR)/ctp/ctp.h
 swtrigger.o: swtrigger.c $(CTPinc)/Tpartition.h
 #ctpshm.o: ctpshm.c $(VMEBinc)/vmewrapdefs.h $(VMECFDIR)/ctp/ctp.h \

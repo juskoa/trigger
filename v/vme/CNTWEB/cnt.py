@@ -24,12 +24,14 @@ def findInputs(boardname):
 class Counter:
   def __init__(self, name, cgt='C', displayname='N'):
     self.coname=name
-    if displayname=='ctp' or displayname=='N':
+    if name=='spare17':   # run2: LM before vetos
+      self.displayname= "l0LMbv"
+    elif displayname=='ctp' or displayname=='N':
       self.displayname=name
     else:
       self.displayname=displayname+'-'+name
     self.selected=""   # 'y': selected
-  def co2rrdname(self, nm):
+  def run1_co2rrdname(self, nm):
     if nm[:2]=='fo' and nm[3:9]=='l2rout':
       fon= int(nm[2])
       con= int(nm[9])
@@ -41,6 +43,15 @@ class Counter:
       return nm[:8]
     else:
       return nm
+  def co2rrdname(self, nm):
+    """run2: rrdnames == cnames.sorted2 names
+    provision to be made for:
+    - TSGROUP counter (run2: spare1485TSGROUP)
+    - runx cnts (run2: from spare1486runx)
+    Note: 'display name' (seen in web) conversion is taken 
+      into account in __init__
+    """
+    return nm
   def makeImage(self):
     color="660000"
     finame= cntcom.BASEDIR+"imgs/"+self.displayname+'.png'

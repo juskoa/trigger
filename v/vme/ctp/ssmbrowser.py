@@ -444,17 +444,21 @@ the numbers-boardnames of boards with synchronised SSMs.
     if sssfile=='': return
     basenam= os.path.splitext( os.path.basename(sssfile))
     savedsigs=[]
+    savedboards={}
     for nt in range(len(self.sigs)):
       #itm= [self.sigs[nt].ssmix, self.sigs[nt].ssmixbit]
       mode= self.sms[int(self.sigs[nt].ssmix)][1]
-      itm= [self.sigs[nt].ssmix, self.sigs[nt].ssmixbit, mode]
+      brdnum= self.sigs[nt].ssmix
+      itm= [brdnum, self.sigs[nt].ssmixbit, mode]
       savedsigs.append(itm)
       #print "savesigs:",self.sms[int(self.sigs[nt].ssmix)],':', savedsigs[nt]
       print "savesigs_itm:", itm
       if dumpssm:
         #  (ssmixbit, ssmix, self.sms[int(ssmix)][0])
-        ssmname= "%s_%s.ssm"%(basenam[0],itm[0])
-        rc= self.vb.io.execute('dumpSSM(%s,"%s")'%(itm[0],ssmname), applout="<>")
+        if not savedboards.has_key(brdnum):
+          ssmname= "%s_%s.ssm"%(basenam[0],itm[0])
+          rc= self.vb.io.execute('dumpSSM(%s,"%s")'%(itm[0],ssmname), applout="<>")
+          savedboards[brdnum]="dumped"
     sf=shelve.open(sssfile)
     sf['savedsigs']= savedsigs
     #print "savesigs:",savedsigs

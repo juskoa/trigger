@@ -49,15 +49,19 @@ pcalicebhm05:/data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcdistrib
 run2: How to prepare list of CTP counter names (19.2.2014, 3.3.)
 ----------------------------------------------------------
 0. ctpcounters.h, counters.py modified for new L0 (300 conters)
-
+0.5. recompile ctplib, vmecomp ctp, ctp_proxy
 1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
    copy first VALID.LTUS ttcparts.cfg from the pit to $dbctp
+   cp VALID.LTUS.pit VALID.LTUS ; cp ttcparts.cfg.pit ttcparts.cfg
+
    cd $VMEBDIR ; ./counters.py printnames >~/cnames
    remove Error: lines from ~/cnames
    wc ~/cnames
    check number of counters (should be 970):
       1072 with L0 0xb1 fw (970+102 expected) 19.2.2014
       1110 with L0 0xb1 fw (970+140 expected) 19.2.2014
+      1416 L1/2 300 cnts (1110+306  expected) 13.3.2014
+      1560 FO/BUSY  cnts (1416+144  expected) 16.3.2014
 
 Or in lab (we want full version of file from the pit):
 cd $dbctp ; mv VALID.LTUS lab/ ; cp pit/VALID.LTUS .
@@ -69,9 +73,9 @@ cd $dbctp ; cp  lab/ttcparts.cfg .
 2.
 File cnames is OK for PVSS (Jozef). For web interface we need sorted, no holes. 
 sort file by 2nd item (rel. address)
-run1: cd ; sort -n -k 2 -t ' ' cnames >cnames.sorted2
-cd ; sort -n -k 2 -t ' ' cnames >cnames2.sorted2
-usage: cnames2.sorted2
+run1: cd ; sort -n -k 2 -t ' ' cnames >cnames1.sorted2
+run2: cd ; sort -n -k 2 -t ' ' cnames >cnames.sorted2
+usage: cnames.sorted2
 -run1 is called cnames1.sorted2 (trigdb.py can works with both)
 - let's keep cnames1.sorted2 (run1) and cnames.sorted2 (run2) in:
   $dbctp
@@ -123,6 +127,9 @@ TSGROUP counter -replacing BUSY spare just before RUNX counters
 8.2.2012
 l0ifun3 and l0ifun4 added (instead of l0int_d and spare99)
 3.3.2014
-$dbctp/ + $VMECFDIR/dimcdistrib/ cnames1.sorted2   -old run1 format
-$dbctp/ + $VMECFDIR/dimcdistrib/ cnames.sorted2   -new run2 format (now: 1110
-lines)
+$dbctp/ + $VMECFDIR/dimcdistrib/cnames1.sorted2   -old run1 format
+$dbctp/ + $VMECFDIR/dimcdistrib/cnames.sorted2   -new run2 format (now: 1110 lines)
+ls -l $dbctp/cnames1.sorted2 $VMECFDIR/dimcdistrib/cnames1.sorted2
+ls -l $dbctp/cnames.sorted2 $VMECFDIR/dimcdistrib/cnames.sorted2
+13.3.
+l1/2 boards (300 counters each) added, tested, seems ok.

@@ -70,7 +70,8 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
       //mem[cix]= (b123<<12) | cix;
       //countsread++; if(countsread>NCNTStbr) break;
     };
-    if(b123>=5) {   // +read 4 L2r counters (49..51):
+    /*
+    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
       int startix;
       startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
       for(cix= startix; cix< startix+4; cix++) {
@@ -86,20 +87,21 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
         //mem[cix]= 0xff0000 | (b123<<12) | cix;
         //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
       };
-    };
+    }; */
   } else {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       mem[cix]= vmer32(copyread);
       //countsread++; if(countsread>NCNTStbr) break;
     };
-    if(b123>=5) {   // +read 4 L2r counters (49..51):
+    /*
+    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
       int startix;
       startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
       for(cix= startix; cix< startix+4; cix++) {
         mem[cix]= vmer32(copyread);
         //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
       };
-    };
+    }; */
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
   countsread= countsread+ NCNTS;

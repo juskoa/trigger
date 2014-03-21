@@ -11,15 +11,18 @@
 
 #define NCOUNTERS_L2 300      //  run1: 134   run2:300
 #define NCOUNTERS_L2_SP1 25
-#define NCOUNTERS_L2_SP2 236  // run2 only: 64 spares
+#define NCOUNTERS_L2_SP2 236  // run2 only: 236/64 spares
 
-#define NCOUNTERS_FO  48    // there are 6 FO boards (FO1-FO6) (was 34 till 11.11)
-#define NCOUNTERS_FOae  52  // + L2r counter for each connector -stored in spare871..894
-#define NCOUNTERS_BUSY 160  // 105 +49spares + 6runx
-#define NCOUNTERS_BUSY_SP1 105
-#define NCOUNTERS_BUSY_L2RS 129  // 6*4 L2r FO counters (FO1, FO2,...)
+#define NCOUNTERS_FO  72    // FO1-FO6. run1: 48(+4) run2: 72= 63+9spares
+/* not used even in run1:
+#define NCOUNTERS_FOae  52   + L2r counter for each connector -stored in spare871..894
+*/
+#define NCOUNTERS_BUSY 160  // run1:105 +49spares + 6runx  run2: 300, but we read only 160
+#define NCOUNTERS_BUSY_SP1 113 //run1:105 run2:113 (187 spares, we read only 47 of them)
+//#define NCOUNTERS_BUSY_L2RS 129  // run1 only:129. 6*4 L2r FO counters (FO1, FO2,...)
 #define NCOUNTERS_BUSY_TSGROUP 153  // active Time sharing class group
 #define NCOUNTERS_BUSY_RUNX1 154  // 6 RUNX counters from here (see dimcoff,dims)
+
 #define NCOUNTERS_INT 19 
 #define NCOUNTERS_SPEC 49   /* 2 + 1 + 22 + 24
  0: 2 words:server unix time in seconds + micseconds
