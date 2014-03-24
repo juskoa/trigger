@@ -21,3 +21,7 @@ fo_ae.rbf -added 4 counters 48..51 counting L2a only
 21.11.2013
 fo_logic_verAF.rbf
 - new L2a messages with 100 classes
+13.3.2014 fo_logic_verB0.rbf
+8 clusters (instead of 6). problem s casovanim.
+18.3.2014 fo_logic_verB1.rbf
+to be used with l2_logic_verA8.rbf +2 bits for clusters 7,8 in ser. data

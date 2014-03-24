@@ -129,6 +129,8 @@ mkdir rrd
 $VMECFDIR/CNTRRD/rrd.py cnow ctp
 RRD: ctp # of datasets: 1075            (on pcalicebhm05, 26.11.2008)
 OK u:0.02 s:0.09 r:0.11
+RRD: ctp # of datasets: 1665             avmes 20.3.2014
+
 
 [alidcscom188] /home/alice/trigger/CNTRRD > $VMECFDIR/CNTRRD/rrd.py cnow ctp
 RRD: ctp # of datasets: 1075

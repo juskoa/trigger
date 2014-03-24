@@ -27,5 +27,7 @@ ctplib
 pydim
 -modified 13.2.
 
-
 4. counters
+- ok (wc $dbctp/cnames.sorted2: 1560, the run1 list of counters is in cnames1.sorted2)
+
+5. wbe, ctpdims

@@ -79,5 +79,5 @@ ctp_LoadPartition and ctp_StartPartition
         checkBCMASKS(
 
 fixed 15.12.2009: if masks used, they have to be used at the same place
-for different partitions. TESTED 15.12.2009 in lab.
+for different partitions -if mask used in more patitions. TESTED 15.12.2009 in lab.
 

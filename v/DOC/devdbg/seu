@@ -7,7 +7,7 @@ Todo:
   i.e.:
   if SEU:
     ltuInit
-    // no need to configure (anyhow witll be done at SOR)
+    // no need to configure (anyhow will be done at SOR)
     if EOR:
     ltuconfigure // configure also (to get LTU in consistent state
-                 // even between 2 runs 
+                 // even between 2 runs) 

@@ -39,9 +39,39 @@ Note: probably better:
 its downlaod from ACT)?.
 
 B. simplify filter mechanism
+----------------------------
 Todo: only 1 set of noV0, noT0,... 
 Now: the filter present in /CTP/filter is valid only for PHYSICS_1 !
 
-Todo: - one for each partition (defined in: /part PHYSICS_?/CTP filter/ ) ? 
-      - should the default one (/CTP/filter) be taken if not 
-        defined for partition?
+Todo: 
+- one for each partition (defined in: /part PHYSICS_?/CTP filter/ ) ? 
+- should the default one (/CTP/filter) be taken if not defined for partition?
+
+Let's continue with current policy, i.e., default filter
+valid just for PHYSICS_1. Later we can widen it for all partitions.
+run1:
+actdb.c actdb_getPartition() -returns always filterpar:"", because
+filter was not defined for particular partitions
+
+parted.py: -> TrgClass.applyClassFilter(filter)
+              trigdb.TrgFilter()
+seems ACT calls script: getact.bash. All we need to do is to modify:
+
+New items in ACT:
+/CTP/trgInput_ACORDE with instances=values ON, OFF
+/CTP/trgInput_SPD
+...
+
+ctp_proxy/main_act.c   -new parameter "FILTER", going over 
+  all "CTP/trgInput_*" items, returning only list of disabled detectors
+done: 27.2.2014  (new ctplib/actdbctp.c created for ctp-like act accesses)
+
+TRG_DBED/parted.py uses:
+- trigdb.TrgFilter.isExcluded(ltuname) -reading $dbctp/filter
+
+actdb.c actdb_getPartition(), now in ctplib/actdbctp.c -should 
+  read trgInput_* items instead of filter item and create 
+  filter file accordingly. done: 3.3.2014
+
+status 3.3.2014: should be ok -i.e. 'filter' file is created the same
+(as it was in run1), now using /CTP/trgInput_LTUNAME instances in ACT

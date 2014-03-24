@@ -21,7 +21,7 @@ customer:
 4: inputs
 
 Counters are placed in mem in following order:
-L0  160 counters   (check in ctp/ctpcounters.h)
+L0  160/262 counters   (check in ctp/ctpcounters.h)
 L1  160 ...
 L2  134
 FO1  34
@@ -55,7 +55,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
   NCNTS=ctpboards[b123].numcnts;
   memshift=ctpboards[b123].memshift;
   /*printf("readCounters: %d in, board:%s base:%x shift:%d NCNTS:%d\n", 
-    b123, ctpboards[b123].name,bb, memshift, NCNTS); */
+    b123, ctpboards[b123].name,bb, memshift, NCNTS);*/
   if(accrual==1) {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       w32 cur,prev,dif;
@@ -67,9 +67,11 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
         dif= (0xffffffff - prev) + cur +1;
       };
       mem[cix]= dif;
+      //mem[cix]= (b123<<12) | cix;
       //countsread++; if(countsread>NCNTStbr) break;
     };
-    if(b123>=5) {   // +read 4 L2r counters (49..51):
+    /*
+    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
       int startix;
       startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
       for(cix= startix; cix< startix+4; cix++) {
@@ -82,22 +84,24 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
           dif= (0xffffffff - prev) + cur +1;
         };
         mem[cix]= dif;
+        //mem[cix]= 0xff0000 | (b123<<12) | cix;
         //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
       };
-    };
+    }; */
   } else {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       mem[cix]= vmer32(copyread);
       //countsread++; if(countsread>NCNTStbr) break;
     };
-    if(b123>=5) {   // +read 4 L2r counters (49..51):
+    /*
+    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
       int startix;
       startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
       for(cix= startix; cix< startix+4; cix++) {
         mem[cix]= vmer32(copyread);
         //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
       };
-    };
+    }; */
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
   countsread= countsread+ NCNTS;

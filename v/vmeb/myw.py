@@ -342,7 +342,7 @@ class Kanvas(Canvas):
     #self.sbfm= Frame(self.tlw)
     #self.scrollbar = Scrollbar(self.sbfm)
     self.scrollbar.pack(side=RIGHT, fill=Y)
-    print "Kanvasinit:", self.scrollbar, self.tlw
+    #print "Kanvasinit:", self.scrollbar, self.tlw
     #self.create_window((0,0),window=frame,anchor='nw')   # fr_version
     #frame.bind("<Configure>", #   fr_version
     # attach scrollbar to Canvas:

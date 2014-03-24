@@ -38,7 +38,7 @@ extern "C" {
 //von #define L0clstT 152
 #define l2orbit CSTART_SPEC+2
 #define byin1 CSTART_BUSY      // from here 24 CTP busyin timers starts
-#define l0timeix 13
+#define l0timeix 15   // run1:13
 
 FILE *rrdpipe;
 FILE *htmlpipe;
@@ -59,7 +59,7 @@ unsigned int cnts[NCOUNTERS];
 
 #define N24 24
 /* 5th column in cnames.sorted2: */
-char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
+const char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
   "PHOS", "CPV", "PMD", "MUON_TRK", "MUON_TRG",
   "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ",""}; 
 // by RL on TM 1.8.2012: THIS ONE USED FOR L1R CORRECTION
@@ -86,7 +86,7 @@ float l2rusecsClu[N24]={0, 112.0, 265.8, 308.1, 55.0, 6.5, 107.8,
 one of WHATBUSY strings is set in redis.bsy_screen
 */
 #define WHATBUSYS 4
-char *WHATBUSY[]={"bsy/L0[us]", "bsy/L2s[us]", "readout[us]", "totalbsy[%]"};
+const char *WHATBUSY[]={"bsy/L0[us]", "bsy/L2s[us]", "readout[us]", "totalbsy[%]"};
 int avbsyix= 2;  // 0,1, or 2  or 3-> one of items in avbsys[]
 int allreads=0;
 int measnum=1;   // 1..9
@@ -270,24 +270,24 @@ while(1) {
      busy[isdet].reladdr= pl.addr;
      continue;
   };
-  if(isfosignal(pl.cname, "l0out")) {
+  if(isfosignal(pl.cname, (char *)"l0out")) {
      l0s[isdet].reladdr= pl.addr;
      continue;
   };
-  if(isfosignal(pl.cname, "l1out")) {
+  if(isfosignal(pl.cname, (char *)"l1out")) {
      l1s[isdet].reladdr= pl.addr;
      continue;
   };
-  if(isfosignal(pl.cname, "l2stro")) {
+  if(isfosignal(pl.cname, (char *)"l2stro")) {
      l2s[isdet].reladdr= pl.addr;
      l2cal[isdet].reladdr= pl.addr;
      continue;
   };
-  if(isfosignal(pl.cname, "l2rout")) {
+  if(isfosignal(pl.cname, (char *)"l2rout")) {
      l2r[isdet].reladdr= pl.addr;
      continue;
   };
-  if(isfosignal(pl.cname, "ppout")) {
+  if(isfosignal(pl.cname, (char *)"ppout")) {
      ppout[isdet].reladdr= pl.addr;
      continue;
   };
@@ -588,12 +588,12 @@ setlinebuf(htmlpipe);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);
 
-csock_gcalib= udpopens("localhost", 9931);
+csock_gcalib= udpopens((char *)"localhost", 9931);
 if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };
 
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
 //dbgout= fopen("logs/dbgout.log", "w");
-inforc= dic_info_service("CTPDIM/MONCOUNTERS", MONITORED, 0, 
+inforc= dic_info_service((char *)"CTPDIM/MONCOUNTERS", MONITORED, 0, 
   cnts,4*(NCOUNTERS), gotcnts, 137, &cntsFailed, 4); 
 //printf("CTPDIM/MONCOUNTERS service id:%d\n", inforc);
 while(1) {

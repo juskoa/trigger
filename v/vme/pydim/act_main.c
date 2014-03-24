@@ -14,7 +14,8 @@ if(argc>1) {
   printf("filter %d:\n%s\n", (int)strlen(filter),filter);
   };
 } else {
-  grc= actdb_getInstances("/CTP/ctp.cfg");
+  //grc= actdb_getInstances("/CTP/ctp.cfg");
+  grc= actdb_getInstances("/CTP");
 };
 return(grc);
 }

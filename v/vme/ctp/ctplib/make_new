@@ -8,14 +8,14 @@ WHICHSETUP = CAVERN_SETUP
 else
 WHICHSETUP = CERNLAB_SETUP
 endif
-CFLAGS= $(COMMONCFLAGS) -D$(WHICHSETUP) -D$(VMEDRIVER) \
- -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp -I$(VMECFDIR)/ctp_proxy 
+CFLAGS= $(COMMONCFLAGS) $(daqCCDEFS) -D$(WHICHSETUP) -D$(VMEDRIVER) \
+ $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp -I$(VMECFDIR)/ctp_proxy 
 
 include $(VMEBDIR)/sc.make
 
 S_OBJSCOM = fileManip.o readTables.o ctpshm.o
 ifdef SERVER_LINK
-S_OBJS = $(S_OBJSCOM)
+S_OBJS = $(S_OBJSCOM) actdbctp.o
 else
 #compiled/linked on client:
 # Partition.o ttcmisubs.o: moved to vme/ttcmi
@@ -33,9 +33,9 @@ libctp.a: $(S_OBJS)
 	-rm -f libctp.a
 	ar rs libctp.a *.o
 
-.o: .c 
+*.o: ../ctp.h ../ctpcounters.h ctplib.h Tpartition.h
 bobr.o: bobr.c ctplib.h
-readCounters.o: readCounters.c ctplib.h
+readCounters.o: readCounters.c ctplib.h ../ctpcounters.h
 readBICfile.o: readBICfile.c $(VMECFDIR)/ctp/ctp.h
 swtrigger.o: swtrigger.c $(CTPinc)/Tpartition.h
 #ctpshm.o: ctpshm.c $(VMEBinc)/vmewrapdefs.h $(VMECFDIR)/ctp/ctp.h \

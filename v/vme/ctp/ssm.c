@@ -78,7 +78,7 @@ for(ix=NCTPBOARDS; ix<NSSMBOARDS; ix++) {
 /*--------------------------- routines for LTU */
 int Openvsp(char *bba) {
 int vsp,rc;
-vsp=-1; rc= vmxopen(&vsp, bba,"0x300");
+vsp=-1; rc= vmxopen(&vsp, bba,(char *) "0x300");
 /*printf("Openvsp: vmxopen rc:%d\n", rc); */
 if(rc==0) rc=vsp;
 else rc=-1;
