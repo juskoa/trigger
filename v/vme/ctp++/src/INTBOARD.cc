@@ -12,12 +12,14 @@ INTBOARD::INTBOARD(int vsp)
 //=================================================================================
 void INTBOARD::printIRList()
 {
+ cout << "INTBOARD: Printing IR list, size: " << qirda.size() << endl;
  for(w32 i=0;i<qirda.size();i++)printIRDda(qirda[i]);
 }
 //================================================================================
 void INTBOARD::printReadOutList()
 {
  //printf("      SSMBC  BCID BCID   ORBIT  L2Clusters  L2Classes ESR ClT SwC \n");
+ cout << "INTBOARD: Printing ReadOut List, size: " << qctpro.size() << endl; 
  for(w32 i=0;i<qctpro.size();i++){
    if(qctpro[i].eob)printf("%7i:EOB \n",qctpro[i].issm);
    else printCTPR(qctpro[i]);

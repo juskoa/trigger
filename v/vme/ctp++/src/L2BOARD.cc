@@ -38,6 +38,7 @@ void L2BOARD::printClasses()
 //==============================================================================================================
 void L2BOARD::printL2aList()
 {
+ cout << "L2BOARD: Printing L2 list - decoded backplane serial L2 data,  size: " << ql2a.size() << endl;
  for(w32 i=0;i<ql2a.size();i++)printCTPR(ql2a[i]);
 }
 void L2BOARD::getL2aList()
@@ -75,11 +76,13 @@ void L2BOARD::getL2aList()
    i++;
    l2clusters=0;
    j=0;
-   while((j<6) && (i+j)<Mega){
-    l2clusters=l2clusters+bit(sm[i+j],sdata1ch)*(1<<(5-j));
+   //while((j<6) && (i+j)<Mega){    // 6 clusters
+   while((j<8) && (i+j)<Mega){      // 8 clusters
+    //l2clusters=l2clusters+bit(sm[i+j],sdata1ch)*(1<<(5-j));
+    l2clusters=l2clusters+bit(sm[i+j],sdata1ch)*(1<<(7-j));
     j++;
    }
-   i=i+6;
+   i=i+8;
    // BCID
    j=0;
    bcid=0;
@@ -97,7 +100,7 @@ void L2BOARD::getL2aList()
    }
    i=i+24;
    esr=bit(sm[i],sdata1ch);
-   i=i+1+10+2;   // 10 gap
+   i=i+1+10;   // 10 gap
    // L2class
    j=0;
    //100 classes

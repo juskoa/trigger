@@ -19,12 +19,12 @@ void INTBread(CTP* ctp)
  l2->StopSSM();
  cout << "Reading" << endl;
  intb->ReadSSM();
- intb->ssmtools.dumpSSM("intboard");
+ //intb->ssmtools.dumpSSM("intboard");
  intb->getCTPReadOutList();
  intb->printReadOutList();
  //intb->printIRList();
  l2->ReadSSM();
- l2->ssmtools.dumpSSM("l2board");
+ //l2->ssmtools.dumpSSM("l2board");
  l2->getL2aList();
  l2->printL2aList();
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;

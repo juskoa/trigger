@@ -144,10 +144,14 @@ void CTP::readBICfile()
 void CTP::readDBVALIDLTUS()
 {
  ifstream file;
- string const DBfile = "../CFG/ctp/DB/VALID.LTUS";
- file.open(DBfile.c_str());
+ //string const DBfile = "../CFG/ctp/DB/VALID.LTUS";
+ char* DBfile;
+ DBfile=getenv("dbctp");
+ string DBfilestr(DBfile);
+ DBfilestr=DBfilestr+"/VALID.LTUS";
+ file.open(DBfilestr.c_str());
   if(! file){
-  cout << "File "<< DBfile  << " cannot be opened, exiting." << endl;
+  cout << "File "<< DBfilestr  << " cannot be opened, exiting." << endl;
   exit(1);
  }
  //cout << "File "<< bicfile << " opened." << endl;
