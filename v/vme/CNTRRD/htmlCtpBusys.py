@@ -109,7 +109,8 @@ class ActivePartitions:
     self.parts={}    # self.parts['runnumber']
     self.mesdti= ['1.1.2008','0:0:0', 'minute']  # [date, time, interval]:20.05.2008 23:09:34 minute
     #self.getRuns()
-    self.whatbusy="???"
+    #self.whatbusy="???"
+    self.updatebusyLink("???")
   def printparts(self):
     for pn in self.parts.keys():
       self.parts[pn].printpart()
@@ -183,6 +184,10 @@ class ActivePartitions:
     print "procRcfg: %s %s"%(runname, runn)
     #part.printpart()
     return part
+  def updatebusyLink(self, newbusy):
+    self.whatbusyLink= """<a href="http://%s:8080/setbsy"> %s</a><br>
+<A href="bsyhelp.html">help</A>
+"""%(hostname,newbusy)
   def updateBusys(self, busyl0s):
     """busyl0s: list of 26 strings:
     busyL0 date time minute usecs1 usecs2...
@@ -205,9 +210,7 @@ class ActivePartitions:
       return "Bad line"
     print "line:", ll
     whatbusy= ll[0]
-    self.whatbusyLink= """<a href="http://%s:8080/setbsy"> %s</a><br>
-<A href="bsyhelp.html">help</A>
-"""%(hostname,whatbusy)
+    self.updatebusyLink(whatbusy)
     self.mesdti= ll[1:4]   # [date, time, interval]:20.05.2008 23:09:34 minute
     busys= ll[4:]
     #print "updateBusys:parts",self.parts 
@@ -530,6 +533,7 @@ def main():
     p1=sys.argv[1];
     if p1=='htmlfifo':
       htmlf=open("/tmp/htmlfifo", "r")
+      print "/tmp/htmlfifo opened, now reading..."
       while 1:
         if htmlf==None:
           print "error reading input, stopping..."

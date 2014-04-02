@@ -185,3 +185,7 @@ are equal to those used in rrddb.
 Prgrams using cnames.sorted2 should:
 - recognize TSGROUP counter by looking for 'spare*TSGROUP'
 - recognize 6 runx counters by looking for 'spare*runx'
+1.4.2013
+vme/fanio/dim/server.c -modified. 
+-now it works together with PVSS SSD client.
+-STATUS service automatically updated (no polling required from dim client)

@@ -30,6 +30,7 @@ Dynamic:
   -GUI for manual tuning won't be needed (was said on TM!)
   -lumi does not need to be considered for new df calculation
   implementation: very probably after LS1
+
 ------------------
 Obsolete notes:
 .partition syntax:

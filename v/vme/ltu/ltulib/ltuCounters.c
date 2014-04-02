@@ -13,7 +13,7 @@ w32 *curprev[2]={bufc1,bufc2};
 /* read counters to memory mem[]. 
 Input:    
 mem        pointer to w32 array
-NCNTS      # of counters to be read (LVDST or LTU)
+NCNTS      # of counters to be read (LVDST or for LTU:LTUNCOUNTERS)
 accrual:== 1 -return accruals (i.e. difference between this and last read)
            ! ONLY 1 process can use 'accrual' feature at 1 time !
         != 1 -return current values

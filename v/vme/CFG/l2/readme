@@ -19,3 +19,6 @@ l2_logic_verA7.rbf
 100 counters: 300 cuonters, 2bit accumulators for slow counters
 18.3.2014 l2_logic_verA8new.rbf
 to be used with fo_logic_verB1.rbf +2 bits for clusters 7,8 in ser. data
+27.3.2014 l2_logic_verA8.rbf
+3rd ver. of A8 (both previous A8 removed!)
+

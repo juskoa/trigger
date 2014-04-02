@@ -44,18 +44,19 @@ typedef struct {
   char name[16];  // detname
   char base[16];  // VME base address 
   w32 defenable;  // default for BUSY_MASK regiser
+  unsigned int dimserid;
   char io;        // 'i' or 'o'
 } Tfanin;
 #define Nfanios 7   // all fan in/outs
 #define Nfanis 4    // only fanins
 Tfanin fanis[Nfanios]= {
-  {"ssd",  "0xe00000", 0x6cf00, 'i'},
-  {"daq",  "0x980000", 0x1,'i'},
-  {"fmd",  "0xa80000", 0,'i'},
-  {"hmpid","0x200000", 0x03fff,'i'},
-  {"ssd",  "0xf00000", 0,'o'},
-  {"fmd",  "0x680000", 0,'o'},
-  {"hmpid","0x100000", 0,'o'}
+  {"ssd",  "0xe00000", 0x6cf00, 0, 'i'},
+  {"daq",  "0x980000", 0x1, 0, 'i'},
+  {"fmd",  "0xa80000", 0, 0, 'i'},
+  {"hmpid","0x200000", 0x03fff, 0, 'i'},
+  {"ssd",  "0xf00000", 0, 0, 'o'},
+  {"fmd",  "0x680000", 0, 0, 'o'},
+  {"hmpid","0x100000", 0, 0, 'o'}
 };
 
 /*----------------------------------- start of DETECTOR specific code */
@@ -123,15 +124,17 @@ if(rc!=0) { printf("vmeclose rc:%d base:%s\n", rc, base); };
 }
 /*----------------------------------- end of DETECTOR specific code */
 
-void findbase(char *name, char *base) {
+int findbase(char *name, char *base) {
 /* find base of FANIN */
 int ix;
 strcpy(base, "error");
 for(ix=0; ix<Nfanios; ix++) {
   if( (strcmp(fanis[ix].name,name)==0) && (fanis[ix].io=='i') ) {
     strcpy(base, fanis[ix].base);
+    return(ix);
   };
 };
+return(-1);
 }
 
 /*-----------------*/ void set_save(void *tag, void *msgv, int *size)  {  
@@ -149,15 +152,17 @@ fflush(stdout);
 }
 /*------------------*/ void set_oc(void *tag, void *msgv, int *size)  {  
 Tenablemsg *msg= (Tenablemsg *)msgv;
-char base[12];
-printf("set_oc: name:%s mask:%x size:%d\n", msg->name, msg->mask, *size);
-findbase(msg->name, base);
+int nclients,ixt; char base[12];
+ixt= findbase(msg->name, base);
 HW_enable(base, msg->mask);
+nclients= dis_update_service(fanis[ixt].dimserid);
+printf("set_oc: name:%s mask:%x size:%d updated clients:%d\n", msg->name, msg->mask, *size, nclients);
 fflush(stdout);
 }  
 
 /*----------*/ void get_oc(void *tag,  void **msgv, int *size, int *blabla) {
 Tstatusmsg **msg= (Tstatusmsg **)msgv;
+printf("get_oc: tag:%d\n", *(int *)tag);
 int itag; itag= *(int *)tag;
 printf("get_oc: tag:%d det:%s\n", itag, fanis[itag].name);
 *msg= &statusmsg;
@@ -176,9 +181,11 @@ printf("Commands/services:   SIMHW mode.\n");
 printf("Commands/services:\n");
 #endif
 strcpy(command, "ENABLE");
-dis_add_cmnd(command,NULL, set_oc, 18);  printf("%s\n", command);
+//dis_add_cmnd(command,NULL, set_oc, 18);  printf("%s\n", command);
+dis_add_cmnd(command,"C:16;I:1", set_oc, 18);  printf("%s\n", command);
 strcpy(command, "SAVE");
-dis_add_cmnd(command,NULL, set_save, 18);  printf("%s\n", command);
+//dis_add_cmnd(command,NULL set_save, 18);  printf("%s\n", command);
+dis_add_cmnd(command,"C:16;I:1", set_save, 18);  printf("%s\n", command);
 fflush(stdout);
 for(ix=0; ix<Nfanios; ix++) {
   w32 defaultenable;
@@ -193,7 +200,8 @@ for(ix=0; ix<Nfanios; ix++) {
   defaultenable= fanis[ix].defenable;
   HW_init_in(fanis[ix].base, defaultenable);
   strcpy(command, fanis[ix].name); strcat(command, "/STATUS");
-  dis_add_service(command,NULL, &statusmsg, sizeof(statusmsg), get_oc, ix);  
+  //dis_add_service(command,NULL, &statusmsg, sizeof(statusmsg), get_oc, ix);  
+  fanis[ix].dimserid= dis_add_service(command,"I:1;I:1", &statusmsg, sizeof(statusmsg), get_oc, ix);  
   printf("%s\n", command);
 }
 rc= dis_start_serving("fanio");

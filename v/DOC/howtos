@@ -29,4 +29,12 @@ CTRL-D
 - type nice passwd 4x
 - use /mnt/alidcsfs001/Scratch/tri for our backups
 
-6. python ecompile: python -m compileall .    (bin/pyrecomp)
+6. python recompile: python -m compileall .    (see bin/pyrecomp)
+
+7. CTP readout in lab
+trigger@pcaldctp2
+
+ctpro >/dev/null
+which ctpro
+alias ctpro='cd /date/trigger/Linux; ./ctpServer'
+

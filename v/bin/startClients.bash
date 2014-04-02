@@ -19,9 +19,9 @@ function status_pydim() {
 echo '----- pydim status (2 processes), HAS TO BE STARTED BEFORE ctpproxy!:'
 ps -C pydimserver.py -C server -o"%p %a"
 pids=`ps -C pydimserver.py -C server -o"%p %a" --no-headers |colrm 6`
-if [ "$pids" != "" ] ;then
-  echo "pid: $pids"
-fi
+#if [ "$pids" != "" ] ;then
+#  echo "pid: $pids"
+#fi
 }
 function status_html() {
 echo '----- html status (1 process):'
@@ -244,6 +244,7 @@ if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
       nohup python $VMECFDIR/pydim/masksServer.py >/dev/null &
     fi
   elif [ "$sss" = "status" ] ;then
+    echo '----- masksServer status:'
     if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
       echo '----- masksServer status (1 process):'
       echo "pid: `cat $VMEWORKDIR/WORK/masksServer.pid`"
@@ -330,7 +331,7 @@ END {printf "%s", pids}
 fi
 if [ $dmn = "udpmon" -o "$dmn" = 'all' ] ;then #-------------------- udpmon
   #st3 udpmon udpmon.sh trigger@$server $sss  -we are already on server!
-  #echo '----- udpmon status (1 process):'
+  echo '----- udpmon status (1 process):'
   udpmon.sh $sss
   retc=$?
   [ $dmn = "udpmon" ] && exit $retc

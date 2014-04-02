@@ -31,7 +31,7 @@ class dofile:
       l=l+1
 class hex2seq:
   def __init__(self):
-    
+    pass
 def main():
   import sys
   if len(sys.argv) < 2:

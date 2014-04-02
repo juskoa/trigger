@@ -262,8 +262,10 @@ Value 0 has special meaning: - generate START signal as fast as possible""")
       #
       self.f23res= myw.MywFrame(self.f2, relief=FLAT) # repetitive emulation 
       self.repetitions= myw.MywEntry(self.f23res,
-        label="# of repetitive emulation starts:",defvalue="1", width=5,
-        helptext="""Number of 'Start emulation' repetitions.
+        label="# of emulation starts:",defvalue="1", width=5,
+        helptext="""Number of 'emulation starts'. E.g.:
+ 1 corresponds to an emulation started by a mouse click. 
+10 corresponds to one 'mouse click' emu-start + 9 automatically started emu-starts
 NOTE:
 the loaded sequence should not have 'Restart' flag (very likely,
 you want to have new sequence started, after the previous one finished) 
@@ -273,20 +275,24 @@ you want to have new sequence started, after the previous one finished)
         helptext="""The time in miliseconds between 2 repetitions of
 the emulation start. Minimal value is 1.""")
       #
-      repbreaks="""self.f23reb= myw.MywFrame(self.f2, relief=FLAT) # repetitive breaks 
+      #repbreaks=
+      self.f23reb= myw.MywFrame(self.f2, relief=FLAT) # repetitive breaks 
       self.repbreaks= myw.MywEntry(self.f23reb,
-        label="# of repetitive emulation breaks:",defvalue="1", width=5,
-        helptext="Number of 'Emulation break' repetitions.
-NOTE:
-the loaded sequence should have  2 'Restart' flags denoting
-2 instruction loops. The inner one finishes with break command,
-the outer one loops forewer.
-")
+        label="# of repetitive breaks:",defvalue="0", width=5,
+        helptext="""Number of 'Emulation break' repetitions.
+NOTE1:
+The loaded sequence should have  2 'Restart' flags denoting
+2 instruction loops. When the inner one finishes with an automatic break command,
+the outer loop after restarting from 1st sequence enters the inner loop again.
+
+NOTE2:
+A thread is started, in time of Emulation start, executing break command in loop.
+It is finished automatically, when emulation stops.
+""")
       self.breakspacing= myw.MywEntry(self.f23reb,
         label="interval [ms]:",defvalue="1", width=5,
-        helptext="The time in miliseconds between 2 breaks.
-Minimal value is 1.")
-"""   #
+        helptext="The time in miliseconds between 2 breaks. Min. value: 1")
+      ###
       self.f24= myw.MywFrame(self.f2,side=BOTTOM,relief=FLAT) # cmds frame
       self.butquit=myw.MywButton(self.f24, label="Quit\nemulation",
         helptext="Generate QUIT command", state=DISABLED,
@@ -665,7 +671,24 @@ interval""")
     def startCmd(self):
       rc= self.vb.io.execute("SLMstart()",applout="<>")
       #print "rc[]:",rc
-      rs=self.repetitions.getEntry()
+      if len(rc)<1:
+        print "startCmd rc:", rc 
+        return
+      else:
+        if rc[0] == "0":   #self.checkemuCmd()
+          afterid=self.f1.after(100, self.checkemuCmd)
+        else:
+          print "startCmd rc:", rc 
+          return
+      # Break loop:
+      irs= self.repbreaks.getEntryBin(0)
+      self.breaksp= self.breakspacing.getEntryBin(1)
+      #print "breakloop:",irs,self.breaksp
+      if irs >= 1:
+        #plan next Break:
+        afterid= self.f1.after(self.breaksp, self.checkbreakCmd)
+      # Emu start loop:
+      rs= self.repetitions.getEntry()
       try: #if rs.isdigit():
         irs= int(rs) #eval(rs)
       except:
@@ -678,13 +701,10 @@ interval""")
         self.vb.io.thds[0].write("Incorrect spacing number:"+srs+"\n")
         isrs=1
       if irs > 1:
+        #plan next Emulation start:
         afterid= self.f1.after(self.isrs, self.checkstartCmd)
       else:
-        if len(rc)<1:
-          print "startCmd rc:", rc 
-        else:
-          if rc[0] == "0":   #self.checkemuCmd()
-            afterid=self.f1.after(100, self.checkemuCmd)
+        afterid=self.f1.after(100, self.checkemuCmd)
     def checkstartCmd(self):
       #print "checkemuCmd:"
       irs= eval(self.repetitions.getEntry())
@@ -707,6 +727,19 @@ interval""")
           self.buttonsEmuNotActive()
           msg="emulation not active.\n"
       self.vb.io.thds[0].write(msg)
+    def checkbreakCmd(self):
+      brs= self.repbreaks.getEntryBin(0)
+      #print "checkbreakCmd:",brs
+      if brs>0:
+        rcl= self.vb.io.execute("SLMbreak()",applout="<>")
+        #print rcl, "type:", type(rcl)
+        brs= brs-1
+        self.repbreaks.setEntry(str(brs))
+        if (eval(rcl[0]) & 0x1)!=0x1:
+          msg="emulation not active, break thread stopped.\n"
+          self.vb.io.thds[0].write(msg)
+        else:
+          afterid= self.f1.after(self.breaksp, self.checkbreakCmd)
     def buttonsEmuActive(self):
       self.butstart.disable(); self.lsb.disable(); self.lsbex.disable()
       self.butquit.enable()

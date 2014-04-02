@@ -899,14 +899,14 @@ class MywEntry(Frame,MywHelp):
   def getEntry(self):
     tx= self.entry.get()
     return(tx)
-  def getEntryBin(self):
+  def getEntryBin(self, defbin=0xdeadbeaf):
     tx= self.entry.get()
     if tx=='': tx='0'
     try:
       txbin= eval(tx)
     except:
       print "Bad value (int or 0x... expected). Using: 0xdeadbed"
-      txbin=0xdeadbed
+      txbin= defbin
     return(txbin)
   def getEntryHex(self):
     tx= self.entry.get()

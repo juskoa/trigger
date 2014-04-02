@@ -179,3 +179,8 @@ of L1 classes
 16.1.
 checkSEU() added in ltu_proxy.c. See also devdbg/seu
 ltusw-5.0 published on web
+1.4.2014
+ltu_u.py: CTP emulator allows automatic break execution when emulation active
+2.4.
+ltu_proxy/printcounters.c -print LTU counters to stdout (vme access)
+

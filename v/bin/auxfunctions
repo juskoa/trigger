@@ -61,3 +61,12 @@ else
   return 0
 fi
 }
+function onlyserver() {
+hname=`hostname`
+if [ "$hname" != "avmes" -a "$hname" != "alidcscom188" -a "$hname" != "pcalicebhm10" ] ;then
+  return 8
+else
+  #echo 'can be started only from trigger@alidcscom188 or pcalicebhm10/avmes'
+  return 0
+fi
+}

@@ -441,10 +441,10 @@ for(ix=0; ix<N24; ix++) {
         l2rs= dodif32(l2r[ix].prevcs, l2r[ix].currcs);
         busy_L2r= l2rusecs[ix]*l2rs;
         avbusy= (int)round((totbusy-busy_L1r-busy_L2r)/trigsdif);
-        //if(ix==0) {
+        if(ix==0) {
           printf("cix:%d %d=%s:totb:%f L1rb:%f L2rb:%f trgs:%d avb:%d\n", 
             cix,ix,LTUORDER[ix], totbusy, busy_L1r, busy_L2r,trigsdif,avbusy);
-        //};
+        };
         if(avbusy<0) avbusy=0;
       } else if(cix==3) {    // totbusy [%]
         avbusy= (int)round(100*totbusy/(timedelta*0.4));
@@ -577,13 +577,14 @@ if(rrdpipe==NULL) {
 };
 //htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
 //htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
-printf("%s rrdpipe opened, opening /tmp/htmlfifo... Is htmlCtpBusy daemon running?\n", hname);
+printf("%s rrdpipe opened. Opening /tmp/htmlfifo (will wait for htmlCtpBusy daemon running)...\n", hname);
 htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
-// waiting on above open until htmlCtpBusy is not started
+// waiting on the above open until htmlCtpBusy is not started
 if(htmlpipe==NULL) {
   printf("Cannot open /tmp/htmlfifo \n");
   exit(8);
 };
+printf("/tmp/htmlfifo opened, i.e. htmlCtpBusy daemon is running.setlinebuf()...\n");
 setlinebuf(htmlpipe);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);

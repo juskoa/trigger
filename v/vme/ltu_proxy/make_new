@@ -16,13 +16,16 @@ ifdef SERVER_LINK
 allEXES = notarget
 else
 #all: ${TRG_BIN}/ltudimserver ${TRG_BIN}/ltu_proxy 
-allEXES = ${EXEDIR}/ltu_proxy 
+allEXES = ${EXEDIR}/ltu_proxy ${EXEDIR}/printcounters
 endif
 all: $(allEXES)
         
 $(EXEDIR)/ltu_proxy: ltu_proxy.o $(LTUOBJS) $(LTULIB)/libltu.a
 	$(CC) $(LDFLAGS) $< $(LTUOBJS) $(LTULD) $(VMEBLD) \
  $(DIMLD) $(SMILD) -l smiui $(daqLD) $(VMERCCLD) $(MYSQLLIBS) -o $@
+$(EXEDIR)/printcounters: printcounters.o $(LTULIB)/libltu.a ${VMEBLIB}/libvmeb.a
+	$(CC) $(LDFLAGS) $< $(LTULD) $(VMEBLD) \
+ $(VMERCCLD) -o $@
 
 popen2.o: popen2.c 
 	${CC} -c $(CFLAGS) $< -o $@
@@ -34,6 +37,9 @@ ltu_proxy.o: ltu_proxy.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/vmeblib.h
 #	@echo $<
 	${CC} -c $(CFLAGS) -I${SMIinc} -I${DIMinc} -I$(VMEBinc) \
  -I${LTUDIR} $< -o $@
+printcounters.o: printcounters.c $(LTUDIR)/ltu.h $(VMEBDIR)/vmeblib/vmewrap.h
+#	@echo $<
+	${CC} -c $(CFLAGS) -I$(VMEBinc) -I${LTUDIR} $< -o $@
 clean:
 	/bin/rm -f $(EXEDIR)/*.o
 notarget: ;
