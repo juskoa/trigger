@@ -125,4 +125,6 @@ INT_DDL_EMU word in normal mode (i.e. DAQ active):
 0x70:      1         1         1  data not sent (backpressure)
 */
 void DAQonoff(int daqon);
-
+/*FGROUP */
+int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, 
+              int customer);

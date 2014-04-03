@@ -172,7 +172,7 @@ will be rejected at L0 level.
     #print "moddetectors_hex:",hex(self.detectors)
     #self.vb.io.execute("setTCSET("+hex(self.tcset)+','+str(self.detectors)+")")
   def gensw1(self,ssm=None):
-    cmd="GenSwtrg(1, '%s', %d, %d, 0x%x, 2)"%(self.trigtype,
+    cmd="GenSwtrg_op(1, '%s', %d, %d, 0x%x, 2)"%(self.trigtype,
       self.roc, self.bcmask, self.detectors)
     status=self.vb.io.execute(cmd, log="out",applout='<>')
     #status=1; print "gensw:",cmd
@@ -210,7 +210,7 @@ will be rejected at L0 level.
     self.ntrigs_ok= 0
     if self.t2tms==0:
       self.vb.io.write("WARNING: other sw triggers (i.e. SOD/EOD too) not allowed")
-      cmd="GenSwtrg(%d, '%s', %d, %d, 0x%x, 2)"%(self.ntrigs,self.trigtype,
+      cmd="GenSwtrg_op(%d, '%s', %d, %d, 0x%x, 2)"%(self.ntrigs,self.trigtype,
         self.roc, self.bcmask, self.detectors)
       status=self.vb.io.execute(cmd, log="out",applout='<>')
       if status[0]=="12345678": 

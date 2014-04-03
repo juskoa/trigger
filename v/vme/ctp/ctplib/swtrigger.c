@@ -499,6 +499,13 @@ TRIGTYPE='.';
 // return i;
 return l2a;
 }
+
+int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, 
+              int customer) {
+w32 orbitn;
+return(  GenSwtrg(ntriggers,trigtype, roc, BC,detectors, 
+              customer, &orbitn ));
+}
 /* called only in case of problem with gcalib. Idea: print
 out (vmew32f()) all vme access */
 int GenSwtrg2(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
