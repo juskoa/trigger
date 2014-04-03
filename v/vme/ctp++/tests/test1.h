@@ -1,13 +1,12 @@
 #include <iostream>
 using namespace std;
-class test1
+class base
 {
  public:
-	test1();
-	void Printt();
+	void mmm();
+};
+class test1:public base
+{
+ public:
  private:
- struct tt{
-	int a;
- };
- tt *A;
 };

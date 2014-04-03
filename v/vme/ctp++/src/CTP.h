@@ -6,6 +6,7 @@
 #include "L1BOARD.h"
 #include "L2BOARD.h"
 #include "INTBOARD.h"
+#include "FOBOARD.h"
 #include "LTUBOARD.h"
 #include "TTCITBOARD.h"
 #include "DETECTOR.h"
@@ -24,7 +25,7 @@ class CTP
 	 L1BOARD *l1;     // otherwise compiler crashes probably due to the memory
          L2BOARD *l2;
          INTBOARD *inter;
-	 BOARD *fo[NUMOFFO];
+	 FOBOARD *fo[NUMOFFO];
          LTUBOARD *ltu[NUMOFFO*NUMOFCON];
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
 	 int readCFG(string const &name);

@@ -4,7 +4,8 @@
 class FOBOARD: public BOARD
 {
  public:
-	FOBOARD(int vsp,w32 basehex);
+	FOBOARD(w32 basehex,int vsp);
+	void AnalSSMinmonl2();
  private:
 };
 #endif

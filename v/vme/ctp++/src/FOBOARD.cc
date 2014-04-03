@@ -1,5 +1,5 @@
 #include "FOBOARD.h"
-FOBOARD::FOBOARD(int vsp,w32 bashex)
+FOBOARD::FOBOARD(w32 bashex,int vsp)
 :
 	BOARD("fo",bashex,vsp,6)
 {
@@ -9,5 +9,9 @@ FOBOARD::FOBOARD(int vsp,w32 bashex)
  this->AddSSMmode("igl0l1",3); 
  this->AddSSMmode("igl2",4); 
  this->AddSSMmode("outgen",5); 
+}
+void FOBOARD::AnalSSMinmonl2()
+{
+ 
 }
 
