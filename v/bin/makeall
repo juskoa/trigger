@@ -54,7 +54,7 @@ fi
 # to be modified for g++:
 #cleancmp ctpt
 #
-OTHERSmake=': ctp_proxy smaq ltu/ltulib SSMANA ltu_proxy ltudim tinproxy orbitsync dimcdistrib dimsc MORELTUS pydim CNTRRD ttcmidaemons filling dimcoff monscal++ fanio/dim :'
+OTHERSmake=': ctp_proxy smaq ltu/ltulib SSMANA ltu_proxy ltudim tinproxy orbitsync dimcdistrib dimsc MORELTUS pydim CNTRRD ttcmidaemons filling dimcoff fanio/dim monscal++:'
 OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
 #
 

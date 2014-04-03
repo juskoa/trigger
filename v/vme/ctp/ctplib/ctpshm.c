@@ -9,7 +9,10 @@
 #include "Tpartition.h"
 
 /*-------------------------------------------------------*/ void cshmInit() {
-// invoked from: ctp_proxy.c test.c main_shm.c
+/* invoked from: 
+altri1: ctp_proxy/ctp_proxy.c test.c main_shm.c
+alitri: pydim/server.c 
+*/
 int i; Tpartitionshm *shmpart;
 // 1 of the following 2 lines:
 ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);

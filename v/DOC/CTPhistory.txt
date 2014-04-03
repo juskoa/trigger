@@ -189,3 +189,18 @@ Prgrams using cnames.sorted2 should:
 vme/fanio/dim/server.c -modified. 
 -now it works together with PVSS SSD client.
 -STATUS service automatically updated (no polling required from dim client)
+3.4.2013
+pydim/act_main.c ok now (using shm on server)
+3.4.2013
+ctpproxy start problem:
+03.04.2014 14:34:22: timestamp:TAGctprestart: rcfgdel useDAQLOGBOOK
+rc from "CTPRCFG/RCFG rcfgdel ignore/useDAQLOGBOOK":1 (1 is OK,but check callback)
+PID 25131 - Thu Apr  3 14:34:22 2014 - (ERROR) Client Connecting to CTPRCFG on avmes.cern.ch: No route to host
+03.04.2014 14:34:22: ***  Error:timestamp:callback:DIM command CTPRCFG/RCFG delete(testifpydimON) failed.
+03.04.2014 14:34:23: timestamp:prepareRunConfig1: rcfgdel ALL 0
+is casued by firewall preventing DIM servcie on avmes!
+fixed by adding 2 lines to /etc/sysconfig/iptables:
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 2505 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 5100:5200 -j ACCEPT
+
+

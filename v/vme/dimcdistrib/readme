@@ -55,6 +55,9 @@ Makefile              -makefile
 
 allrare_client.c, allrare.make -example of client requesting ALL/RARE
                                 from DAQ
+[trigger@avmes dimcdistrib]$ linux/dimccounters CTPDIM
+- test ctpdims service is running on altri1, test runx servcie PRINTRUNS
+
 
 The description of CTP counters can be found
 at ALICE trigger web page (http://www.ep.ph.bham.ac.uk/user/pedja/alice/
@@ -65,7 +68,9 @@ at ALICE trigger web page (http://www.ep.ph.bham.ac.uk/user/pedja/alice/
 The lines of this file contain:
 counter_name relative_position_from_0 board_name GTC detector
 ...
-for all the CTP counters.
+for all the CTP counters. Following 2 files are also in $dbctp directory:
+cnames1.sorted2  -valid for run1 (before 2014)
+cnames.sorted2   -valid for run2 (from 2014)
 
 Similar file ltunames.sorted2 is supplied for LTU counters, 
 published by LTU DIM servers. This file does not contain 5th column

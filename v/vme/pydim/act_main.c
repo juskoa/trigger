@@ -1,6 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "vmeblib.h"
+// get globals ctpsegid, ctpshmbase declared
+#define DBMAIN
+#include "Tpartition.h"
 
 int actdb_getInstances(char *itemname);
 int actdb_getPartition(char *name, char *filterpar, char *a, char *b);

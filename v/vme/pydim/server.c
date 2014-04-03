@@ -747,7 +747,7 @@ reset_insver();
 cs= readCS();
 rc= readAliases(); 
 cshmInit();
-readTables();   // + in time of rcfgdel 0 ALL
+readTables();   // + when ctpprxy restaretd, i.e. in time of rcfgdel 0 ALL
 if(rc==-1) {
   char emsg[200];
   strcpy(emsg,"aliases info from aliases.txt not updated correctly");
