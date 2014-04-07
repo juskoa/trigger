@@ -1,5 +1,7 @@
+
+FILE          = l2fo
 #FILE          = ttcit
-FILE          = ctpro
+#FILE          = ctpro
 #FILE          = ltu
 #FILE          = l0l1l2
 #FILE          = generL1
@@ -13,7 +15,7 @@ VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/usr/local/include
 
 FILES = x/BOARDBASIC.cc x/BOARD.cc x/SSMTOOLs.cc x/LTUBOARD.cc x/CTP.cc x/CONNECT.cc \
 x/L0BOARD.cc x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
-x/TTCITBOARD.cc 
+x/FOBOARD.cc x/TTCITBOARD.cc 
 
 SRCS=$(subst x/,src/,$(FILES))
 HFILES = $(SRCS:.cc:=.h)
@@ -23,8 +25,8 @@ OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
 $(FILE).e: obj/$(FILE).o $(OBJFILES)
 	g++ obj/$(FILE).o $(OBJFILES) $(LDFLAGS) $(GLIBS) lib/libctp++.a -o $(FILE).e
 
-obj/$(FILE).o:  macros/$(FILE).cc 
-	$(CXX) $(CXXFLAGS) -c macros/$(FILE).cc -o obj/$(FILE).o
+obj/$(FILE).o:  macros/$(FILE).C
+	$(CXX) $(CXXFLAGS) -c macros/$(FILE).C -o obj/$(FILE).o
 obj/vmewrap.o: $(VMEBDIR)/vmeblib/vmewrap.c
 	g++ -c $(VMERCCCXX) $(VMEBDIR)/vmeblib/vmewrap.c -o obj/vmewrap.o
 
