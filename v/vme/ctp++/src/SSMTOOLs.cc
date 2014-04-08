@@ -305,17 +305,20 @@ int SSMTOOLs::findOffset() const
  return i;
 }
 //----------------------------------------------------------------------------
-int SSMTOOLs::CompSSM(w32 *ssm2){
+int SSMTOOLs::CompSSM(w32 *ssm2) const
+{
  int i;
  while(i<Mega && ssm2[i] == ssm[i])i++;
  return (i<Mega);
 }
-int SSMTOOLs::CompSSM(w32 *ssm2,int start){
+int SSMTOOLs::CompSSM(w32 *ssm2,int start) const
+{
  int i=start;
  while(i<Mega && ssm2[i] == ssm[i])i++;
  return (i<Mega);
 }
-int SSMTOOLs::CompSSMch(w32 *ssm2,int offset,int channel){
+int SSMTOOLs::CompSSMch(w32 *ssm2,int offset,int channel) const
+{
  int i=offset;
  w32 mask=1<<channel;
  while(i<Mega && (ssm2[i]&mask) == (ssm[i-offset]&mask))i++;
@@ -370,13 +373,15 @@ int SSMTOOLs::CompSSMch(w32 *ssm2,w32 const mask1,w32 const mask2) const
  return (i<Mega);
 }
 //----------------------------------------------------------------------------
-int SSMTOOLs::find0(){
+int SSMTOOLs::find0() const
+{
  int i=0;
  while((i<Mega) && (ssm[i] == 0))i++;
  return i; 
 }
 //----------------------------------------------------------------------------
-int SSMTOOLs::dumpSSM(const char *name){
+int SSMTOOLs::dumpSSM(const char *name) const
+{
  char filename[200];
  char *environ;
  char fnpath[1024];
@@ -399,4 +404,3 @@ int SSMTOOLs::dumpSSM(const char *name){
  printf("Dump written in fnpath %s\n", fnpath);
  return 0;
 }
-
