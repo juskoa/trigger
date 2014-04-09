@@ -15,19 +15,22 @@ typedef struct SSMmode{
  string channels[32];
 }SSMmode;
 */
-// CTP Read Out used at INt and L2 boards
-typedef struct CTPR{
+// MOre genarally used for
+// - l2data on backplane
+// - l2data serial data
+// - ctp readout
+typedef struct L2Data{
  	int l2clusters;
  	w64 l2classes1;
  	w64 l2classes2;
  	int bcid;
  	int orbit;
- 	int eob;   // used as eob flag, other items shoyld be zero
+ 	int eob;   // used as eob flag, other items shooud be zero
  	int esr;
  	int clt;    // calibration trigger
  	int swc;    // software class
  	int issm;   // position of the first word in ssm
-}CTPR;
+}L2Data;
 //Interaction Record
 typedef struct IRDda{
 	int error1;
@@ -38,8 +41,8 @@ typedef struct IRDda{
 	int bc[251];
 	int issm;
 }IRDa;
-void printCTPR(CTPR &ctpr);
-void clearCTPR(CTPR &ctpr);
+void printL2Data(L2Data &ctpr);
+void clearL2Data(L2Data &ctpr);
 void clearIRDda(IRDda &irda);
 void printIRDda(IRDda &irda);
 
