@@ -14,9 +14,10 @@ class BOARDBASIC
 	 int getvsp() const;
          w32 getboardbase() const;
          w32 getBCstatus() const;
+         void printboardinfo(string const &option) const;
+ protected:
 	 string const d_name;        // l0,l1,l2,fo,busy,ltu
          string error_status;    // "ok" = no error
-         void printboardinfo(string const &option) const;
  private:
          w32 d_codeaddress;
          w32 d_serialnumber;

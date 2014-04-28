@@ -3,7 +3,7 @@
 // read INT inmon
 void INTBread(CTP* ctp)
 {
- BOARD *fo1=ctp->fo[0];
+ FOBOARD *fo1=ctp->fo[0];
  L2BOARD *l2=ctp->l2;
  //intb->StopSSM();
  l2->StopSSM();
@@ -24,9 +24,11 @@ void INTBread(CTP* ctp)
  //intb->printReadOutList();
  //intb->printIRList();
  l2->ReadSSM();
- //l2->ssmtools.dumpSSM("l2board");
- l2->getL2aList();
- l2->printL2aList();
+ l2->ssmtools.dumpSSM("l2board");
+ l2->L2DataBackplane();
+ l2->printL2DataBackplane();
+ cout << "l2 offset: " << l2->ssmtools.findOffset() << endl;
+ cout << "fo offset: " << fo1->ssmtools.findOffset() << endl;
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;
 }
 int main(){

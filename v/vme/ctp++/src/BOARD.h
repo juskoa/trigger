@@ -3,6 +3,7 @@
 #include <fstream>
 #include "BOARDBASIC.h"
 #include "SSMTOOLs.h"
+#include <deque>
 class BOARD: public BOARDBASIC
 {
  public:
@@ -25,6 +26,9 @@ class BOARD: public BOARDBASIC
          void StopSSM() const;
          SSMTOOLs ssmtools;
 	 enum {kNClasses=100};
+	 void L2DataBackplane();
+	 void printL2DataBackplane();
+	 deque<CTPR>& getL2DataBackplaneList(){return ql2a;};
  private:
 	 void SetFile(string const &modename);
          int const numofmodes;
@@ -56,6 +60,8 @@ class BOARD: public BOARDBASIC
 		string channels[32];
 	 };
          SSMmode *SSMModes;
-
+         //
+         deque<CTPR> ql2a;
+	 deque<CTPR> qorbit;
 };
 #endif
