@@ -272,7 +272,8 @@ bit0: 1: the class is disabled */
 /* bits: 23..0: 0: original polarity, 1: corresponding input is inverted
 */
 //#define ROIP_BUSY      0xa600
-#define ROIP_BUSY      0xa5bc /* RoI Processor BUSY flag */
+#define ROIP_BUSY      0xa5bc /* RoI Processor BUSY flag. Should be set to 1,
+  unless RoI is implemented */
 
 /* L2 board */
 #define L2_DEFINITION  0xb400    /* +4*n n=1,2,...,50 */

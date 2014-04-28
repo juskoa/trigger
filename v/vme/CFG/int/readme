@@ -24,3 +24,5 @@ int_logic_aa.rbf. Now only 1024-2047 BCids are used for INT/L2 sync.
 int_logic_verAB.rbf   -first version for run2 (100 classes, new readout)
 1.4.2014 int_logic_verAC.rbf
 CTP readout -> word 4 bit 11 is always 1 in run2 (was 0 in run1)
+9.4.2014 int_logic_verAC.rbf
+another AC version word4/bit12 is run2-flag, ctp readout is ok now

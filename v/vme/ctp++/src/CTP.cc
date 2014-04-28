@@ -104,14 +104,8 @@ void CTP::getboard(string const &line)
     string base=line.substr(line.length()-8,line.length());
     w32 basehex;
     convertS2H(basehex,base);
-    fo[num] = new BOARD(name,basehex,vspctp,6);
+    fo[num] = new FOBOARD(basehex,vspctp);
     vspctp=fo[num]->getvsp();
-    fo[num]->AddSSMmode("inmonl0",0); 
-    fo[num]->AddSSMmode("inmonl1",1); 
-    fo[num]->AddSSMmode("inmonl2",2); 
-    fo[num]->AddSSMmode("igl0l1",3); 
-    fo[num]->AddSSMmode("igl2",4); 
-    fo[num]->AddSSMmode("outgen",5); 
     boards.push_back(fo[num]);
     //name.append(fonum);   fo name is 'fo', fo are recognised by vmebaseaddress
     //fo[num]->SetName(name);

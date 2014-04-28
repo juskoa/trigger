@@ -62,7 +62,9 @@ pid=`ps --columns 120 -C ltu_proxy o user,pid,args | awk '{if($4==detname) {prin
 if [ -z "$pid" ] ;then
   #export DIM_DNS_NODE=10.161.37.8
   #echo "starting $proxyname"
-  declare -a doexist=(`$SMIBIN/proxyExists $proxyname`)
+  #declare -a doexist=(`$SMIBIN/proxyExists $proxyname`)
+  linemsg=`$SMIBIN/proxyExists $proxyname`
+  declare -a doexist=($linemsg)
   proxyon=${doexist[2]}
   #proxyon=`ProxyOn $proxyname`
   echo "$proxyname proxyon:$proxyon doexist:$doexist"
@@ -89,6 +91,12 @@ if [ -z "$pid" ] ;then
     nohup $VMECFDIR/ltu_proxy/linux/ltu_proxy  $proxyname \
      -address=$ltubase </dev/null 2>&1 >WORK/LTU-$DTN.log & 
     echo "nohup rc:$?"
+  elif [ "$proxyon" = "-" ] ;then
+    # seems the case:
+    #[acorde@aco-vme WORK]$ /opt/smi/linux/proxyExists  TRIGGER::LTU-ACORDE
+    # PID 11411 - Mon Apr 28 03:55:52 2014 - (ERROR) Client Connecting to DIM_DNS on acordetest: Connection refused
+    echo "Error: $linemsg"
+    echo "Server not started"
   else
     echo "$proxyname is already running (pid:$pid proxyon:$proxyon). Server not started"
     return

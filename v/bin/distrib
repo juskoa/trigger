@@ -169,9 +169,12 @@ for pn in $names ;do
 done
 version=`grep '^#define LTU_SW_VER' $VMECFDIR/ltu/ltu.h`
 version=${version:20:3}
-cd ~ ; mv vmebltu.tar ltusw-$version.src.tar
+cd ~ 
+cp vmebltu.tar ltusw-$version.src.tar
+mv vmebltu.tar ltusw-$version.tar ; gzip ltusw-$version.tar
 gzip ltusw-$version.src.tar ; mv ltusw-$version.src.tar.gz ~/rpmbuild/SOURCES/
 cat - <<-EOF
+see ~/ltusw-$version.tar.gz
 ltusw-$version.src.tar.gz is in  ~/rpmbuild/SOURCES:
 EOF
 ls -lt ~/rpmbuild/SOURCES

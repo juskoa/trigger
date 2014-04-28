@@ -13,13 +13,13 @@ import pylog
 
 def main(action):
   rc=0
-  #mylog= pylog.Pylog("",tty='yes')   # no info, only tty
-  mylog= pylog.Pylog("getfsdip",info='yes')
+  mylog= pylog.Pylog("",tty='yes')   # no info, only tty
+  #mylog= pylog.Pylog("getfsdip",info='yes')
   sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
   #print os.environ["PYTHONPATH"]
   os.chdir(os.path.join(os.environ["dbctp"], "fs_auto"))
   if action=="act":   # consult act (auto/bcmasks/notavailable)
-    cmd= os.path.join(os.environ["VMECFDIR"], "ctp_proxy/linux/act.exe")
+    cmd= os.path.join(os.environ["VMECFDIR"], "ctp_proxy/linux_s/act.exe")
     cmd= cmd+" VALUE FillingScheme"
     line= string.split(pylog.iopipe(cmd, "VALUE "))
     #print "line:",line

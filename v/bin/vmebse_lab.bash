@@ -43,9 +43,9 @@ export dbctp=$VMECFDIR/CFG/ctp/DB
 # VMERCC, CAENVME, SIMVME, TSI148
 [ -z "$VMEDRIVER" ] && export VMEDRIVER=VMERCC
 [ -z "$VMEINCS" ] && export VMEINCS=/usr/local/inlude
-[ -z "$VMELIBS" ] && export VMELIBS=/lib/modules/daq
-[ -z "$DIMDIR" ] && export DIMDIR=/opt/dim
-[ -z "$SMIDIR" ] && export SMIDIR=/opt/smi
+[ -z "$VMELIBS" -a -d /lib/modules/daq ] && export VMELIBS=/lib/modules/daq
+[ -z "$DIMDIR" -a -d /opt/dim ] && export DIMDIR=/opt/dim
+[ -z "$SMIDIR" -a -d /opt/smi ] && export SMIDIR=/opt/smi
 [ -z "$DATE_DAQLOGBOOK_DIR" -a -d /opt/libDAQlogbook ] && export DATE_DAQLOGBOOK_DIR=/opt/libDAQlogbook
 [ -z "$DATE_INFOLOGGER_DIR" -a -d /opt/infoLogger ] && export DATE_INFOLOGGER_DIR=/opt/infoLogger
 if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then

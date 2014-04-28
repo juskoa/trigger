@@ -11,6 +11,13 @@
 #define TTC_IT_BIG_U_NR    9999999
 
 /*
+  New L2a and L1M messages are longer, we must keep dimensions large 
+  enough
+ */
+#define TTC_IT_L1M_MAX 10
+#define TTC_IT_L2A_MAX 20
+
+/*
   Define signals and internal states of the trigger logic simulator
  */
 
@@ -232,7 +239,7 @@ struct ttc_it_L1m {
   int l1h_l1swc;         /*              L1swC            */
   int l1h_l1class;       /*              L1Class[50,49]   */
 
-  int l1w_l1class[4];    /* L1M : L1Class[]               */
+  int l1w_l1class[TTC_IT_L1M_MAX];    /* L1M : L1Class[]               */
 };
 
 struct ttc_it_L2a {
@@ -251,7 +258,7 @@ struct ttc_it_L2a {
   int l2w3_l2clust;      /*               L2Cluster[6..1]  */
   int l2w3_l2class;      /*               L2Class[50,49]   */
 
-  int l2w_l2class[4];    /* L2a Words :   L2Class[...]     */
+  int l2w_l2class[TTC_IT_L2A_MAX];    /* L2a Words :   L2Class[...]     */
 };
 
 struct ttc_it_L2r {
@@ -406,6 +413,10 @@ enum ttc_it_B_ferrors { FER_L2F, FER_L1F, FER_ROIF };
 void ttc_it_clear_counters(struct ttc_it_counters *c);
 void ttc_it_clear_errors(struct ttc_it_errors *e);
 void ttc_it_clear_timing(struct ttc_it_times *t);
+void ttc_it_clear_oldmes();
+void ttc_it_clear_newmes();
+void ttc_it_clear_printmes();
+void ttc_it_clear_zeroos();
 
 void ttc_it_add_counters(struct ttc_it_counters *src, 
 			 struct ttc_it_counters *dest);

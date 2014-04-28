@@ -10,6 +10,8 @@
 #   - calculate new VALID.BCMASK (at the start of FLAT TOP?)
 # - follows user input (in man or in auto mode)
 #   - clock change
+# 10.4.2014 mkfifo /tmp/micfifo   miclock.py fifo
+#
 import sys,os,os.path,string,pylog
 import signal,time,popen2,threading
 
@@ -256,7 +258,7 @@ def callback_bm(bm):
       mylog.logm("changing clock to %s. Wait 3 half-minutes please..."%(expclock))
       WEB.newclock= expclock; WEB.save()
       res= pydim.dic_cmnd_service("TTCMI/MICLOCK_SET", (expclock,), "C")
-      mylog.logm("cmnd sent: TTCMI/MICLOCK_SET")
+      mylog.logm("cmnd sent: TTCMI/MICLOCK_SET %s"%expclock)
       mininf=""
       if expclock=="LOCAL":
         mininf= "MIN"
@@ -309,9 +311,13 @@ Than start miclock again.
   else:
     print "can be started only from trigger account..."
     return
-  ##mylog.logm("## vesion -i.e. miclock_shift.py")
-  mylog.logm("miclock.py started...")
-  time.sleep(2)   # 1sec was enough
+  micfifo= None
+  if len(sys.argv)>1 and sys.argv[1]=="fifo":
+    micfifo= open("/tmp/micfifo", "r")
+    mylog.logm("/tmp/micfifo input...")
+  else:
+    mylog.logm("miclock.py started from cmdline...")
+  time.sleep(1)   # 1sec was enough
   WEB=web()
   res = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback1)
   restran = pydim.dic_info_service("TTCMI/MICLOCK_TRANSITION", "C", cbtran)
@@ -323,9 +329,22 @@ Than start miclock again.
     sys.exit(1)
   while True:
     #time.sleep(10)
-    try:
-      #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
-      a= raw_input("""
+    if micfifo:
+      a= micfifo.readline()
+      if a=="":
+        if (sleeploop%10)==0:
+          mylog.logm("micfifo closed, sleeping %d..."%(sleeploop*10))
+        time.sleep(1)
+        sleeploop= sleeploop+1
+        continue
+      else:
+        sleeploop=0
+        a= string.strip(a)
+    #else:
+    elif False:
+      try:
+        #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
+        a= raw_input("""
    enter:
    BEAM1       	-change the ALICE clock to BEAM1
    LOCAL       	-change the ALICE clock to LOCAL
@@ -334,26 +353,36 @@ Than start miclock again.
    reset       	-reset current clock shift to 0
    q            -quit this script
 """%\
-        WEB.clockchangemode)
-    except:
-      a='q'
-      mylog.logm("exception:"+str(sys.exc_info()[0]))
-    if string.find("getshift",a)==0: a="getshift"
+          WEB.clockchangemode)
+      except:
+        a='q'
+        mylog.logm("exception:"+str(sys.exc_info()[0]))
+    else:
+      print "micfifo: None"
+      break
+    if string.find("getshift",a)==0: 
+      #print "getshift:%s:"%a
+      a="getshift"
     if (a!='q') and (a!='') and \
       (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
       (a!='getshift') and (a!='reset') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
       mylog.logm('bad input:%s'%a) ; continue
-    if a=='q': break
+    if a=='q':
+      mylog.logm("quit.")
+      break
     if a=='': continue
     if a=='auto':
       WEB.clockchangemode='auto'
       WEB.save()
+      mylog.logm("Clock change mode: %s"%a)
     elif a=='man':
       WEB.clockchangemode='man'
       WEB.save()
+      mylog.logm("Clock change mode: %s"%a)
     elif a=='show':
       WEB.show()
+      mylog.logm("Clock change mode: %s"%WEB.clockchangemode)
     elif (a=='getshift'):
       cshift= getShift()
       if cshift != "old":
@@ -378,6 +407,7 @@ Than start miclock again.
       mylog.flush()
       time.sleep(1)
   ##os.remove(MICLOCKID)
+  if micfifo: micfifo.close()
   os.remove(MICLOCKID)
   #pydim.dic_release_service(resbm)    -Segmentation fault when 'q'
   #pydim.dic_release_service(res)

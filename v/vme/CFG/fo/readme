@@ -23,5 +23,7 @@ fo_logic_verAF.rbf
 - new L2a messages with 100 classes
 13.3.2014 fo_logic_verB0.rbf
 8 clusters (instead of 6). problem s casovanim.
-18.3.2014 fo_logic_verB1.rbf
+18.3.2014 fo_logic_verB1.rbf  is fo_logic_ver_B1_1803.rbf
 to be used with l2_logic_verA8.rbf +2 bits for clusters 7,8 in ser. data
+7.4.2014 fo_logic_verB1.rbf
+2 bits shift in class data...

@@ -5,6 +5,7 @@
 #include "L0BOARD.h"
 #include "L1BOARD.h"
 #include "L2BOARD.h"
+#include "FOBOARD.h"
 #include "INTBOARD.h"
 #include "LTUBOARD.h"
 #include "TTCITBOARD.h"
