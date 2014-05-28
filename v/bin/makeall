@@ -60,7 +60,7 @@ OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
 
 HOSTNAME=`hostname`
 if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' \
-  -o  $HOSTNAME = 'avmes' ] ;then
+  -o  $HOSTNAME = 'alidcscom835' -o  $HOSTNAME = 'avmes' ] ;then
   SERVER=$HOSTNAME
 else
   unset SERVER
@@ -93,8 +93,12 @@ else
   CLEAN=""
 fi
 if [ "$1" = "allctp" ] ;then
-echo "=======================### make package vmeb clean ====================================="
+echo "=======================### make package vmeb clean ONLY on vme client ======================"
+if [ -n "$SERVER"  ;then
+  echo "--- vmeb not done (this is client)"
+else
 cd $VMEBDIR ; make -f makefile_vmeb clean ; make -f makefile_vmeb
+fi
 echo "=======================### make package vmeblib clean ====================================="
 cd $VMEBDIR/vmeblib ; make clean ; make
 cleanmake s ctp/ctplib $CLEAN
