@@ -5,31 +5,29 @@
 #include "vmeaistd.h"
 
 char BoardName[]="simple";
-char BoardBaseAddress[11]="0x0";
-char BoardSpaceLength[11]="0x1000";
+char BoardBaseAddress[11]="0x829000";
+char BoardSpaceLength[11]="0xd000";
 char BoardSpaceAddmod[11]="A24";
-Tpardesc example_parameters[3]={
-{"n", 1},
-{"strg", 3| 0x80000000},
-{"c", 3}};
-char example_usagehelp[]="int example(int n, char *string, char c)\n\
-int: only >=0\n\
-string: \"abc\"\n\
-char: 'c'\n\
-float: not supported as parameter\n\
+Tpardesc vmeloop_parameters[4]={
+{"address", 2},
+{"loops", 1},
+{"value", 2},
+{"mics", 1}};
+char vmeloop_usagehelp[]="address: rel. adress (4, 8, 12,... for 32 bits words readings)\n\
+loops: 0: endless loop\n\
+value: 0: read + print\n\
+       1: read only\n\
+      >1: write, no print\n\
+mics: mics between vme reads/writes. 0: do not wait between vme r/w\n\
 ";
 
-Tpardesc fexa_parameters[1]={
-{"ifpn", 1}};
-char fexa_usagehelp[]="float not suported neither in function result\n\
-";
+void vmeloop(w32 address, int loops, w32 value, int mics);
 
-int example(int n, char *strg, char c);
-float fexa(int ifpn);
-
-int nnames=4;
+int nnames=6;
 Tname allnames[MAXNAMES]={
-{"", tSYMNAME, NULL, (w32)BoardSpaceLength, 0.0, NULL, (w32)BoardBaseAddress, NULL},
-{"REGA", tVMEADR, NULL, 0, 0.0, NULL, 0x20, NULL},
-{"example", tFUN+0x200, (funcall)example, 0xdead, 0.0, example_parameters, 3, example_usagehelp},
-{"fexa", tFUN+0x300, (funcall)fexa, 0xdead, 0.0, fexa_parameters, 1, fexa_usagehelp}};
+{"simple", tSYMNAME, NULL, {0}, 0.0, NULL, {0}, NULL},
+{"CODE_ADD", tVMEADR, NULL, {0}, 0.0, NULL, {0x4}, NULL},
+{"SERIAL_NUMBER", tVMEADR, NULL, {0}, 0.0, NULL, {0x8}, NULL},
+{"VMEVERSION_ADD", tVMEADR, NULL, {0}, 0.0, NULL, {0xc}, NULL},
+{"FPGAVERSION_ADD", tVMEADR, NULL, {0}, 0.0, NULL, {0x80}, NULL},
+{"vmeloop", tFUN+0x400, (funcall)vmeloop, {0xdead}, 0.0, vmeloop_parameters, {4}, vmeloop_usagehelp}};
