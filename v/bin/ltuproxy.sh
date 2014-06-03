@@ -29,6 +29,14 @@ fi
 #    ln -sf "$ABSEFI/L2a.seq" L2a.seq
 #    ln -sf "$ABSEFI/sync.seq" sync.seq
 #}
+function makedirs() {
+echo "$VMEWORKDIR does not exist, creating..."
+mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
+mkdir -p $VMEWORKDIR/CFG/ltu/SLM
+cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
+cp -a $VMECFDIR/CFG/ltu/SLM/*.slm $VMEWORKDIR/CFG/ltu/SLM/
+mkdir -p $VMEWORKDIR/WORK
+}
 function mvfile() {
 # $1: relative path of the log file NO SUFFIX, i.e.: WORK/ctpproxy
 # operation: WORK/ctpproxy.log -> WORK/ctpproxyYYMMDDhhmm.log
@@ -50,9 +58,8 @@ function StartProxy() {
 # $pid -should be empty
 export VMEWORKDIR=~/v/$1      # started from trigger or triad account
 if [ ! -d $VMEWORKDIR ] ; then
-  echo $1 
-  echo "$VMEWORKDIR does not exist, nothing started"
-  return
+  echo "making working dirs for $1 ..."
+  makedirs
 fi
 cd $VMEWORKDIR
 curpwd=`pwd`; echo "StartProxy:pwd:$curpwd"
@@ -143,7 +150,7 @@ if [ $# -eq 2 ] ;then
 else
   if [ "$1" = "startall" ] ;then
     #echo "dbg: $HOSTNAME $cfgfile"
-    for dtn1 in `awk '{if($2==host) {print $1}}' host=$HOSTNAME $cfgfile` ;do
+    for dtn1 in `awk '{if(($2==host) && ($3!="0")) {print $1}}' host=$HOSTNAME $cfgfile` ;do
       #echo "----------------------starting $dtn1"
       StartProxy $dtn1
     done
@@ -154,7 +161,7 @@ else
         echo "killing $pid" ; kill $pid
       fi
     done
-    for dtn1 in `awk '{if($2==host) {print $1}}' host=$HOSTNAME $cfgfile` ;do
+    for dtn1 in `awk '{if(($2==host) && ($3!="0")) {print $1}}' host=$HOSTNAME $cfgfile` ;do
       ipcremove $dtn1
     done
     exit
@@ -176,12 +183,7 @@ dtn=$1
 export VMEWORKDIR=~/v/$dtn      # started from trigger account
 if [ ! -d $VMEWORKDIR ] ; then
   if [ "$2" = "start" ] ; then
-     echo "$VMEWORKDIR does not exist, creating..."
-     mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
-     mkdir -p $VMEWORKDIR/CFG/ltu/SLM
-     cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
-     cp -a $VMECFDIR/CFG/ltu/SLM/*.slm $VMEWORKDIR/CFG/ltu/SLM/
-     mkdir -p $VMEWORKDIR/WORK
+     makedirs
      #makelinks
      makeSLMproxylinks.bash $dtn
   elif [ "$2" = "status" ] ;then
