@@ -30,12 +30,13 @@ fi
 #    ln -sf "$ABSEFI/sync.seq" sync.seq
 #}
 function makedirs() {
-echo "$VMEWORKDIR does not exist, creating..."
+echo "$VMEWORKDIR does not exist, creating, also SLMproxy links for $1..."
 mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
 mkdir -p $VMEWORKDIR/CFG/ltu/SLM
 cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
 cp -a $VMECFDIR/CFG/ltu/SLM/*.slm $VMEWORKDIR/CFG/ltu/SLM/
 mkdir -p $VMEWORKDIR/WORK
+makeSLMproxylinks.bash $1
 }
 function mvfile() {
 # $1: relative path of the log file NO SUFFIX, i.e.: WORK/ctpproxy
@@ -59,7 +60,7 @@ function StartProxy() {
 export VMEWORKDIR=~/v/$1      # started from trigger or triad account
 if [ ! -d $VMEWORKDIR ] ; then
   echo "making working dirs for $1 ..."
-  makedirs
+  makedirs $1
 fi
 cd $VMEWORKDIR
 curpwd=`pwd`; echo "StartProxy:pwd:$curpwd"
@@ -89,6 +90,9 @@ if [ -z "$pid" ] ;then
     # -mode=$trigger 
     # -BCrate=$rate -L0=$l0 -busy=$busy -orbitbc=$orbitbc $nosodeod $nodim 
     ltubase=`awk '{if($1==detname) {print $3}}' detname=$1 $cfgfile`
+    if [ -z "$ltubase" ] ;then
+      echo "Bad name:$1" ; exit
+    fi
     echo "DATE_INFOLOGGER_LOGHOST: $DATE_INFOLOGGER_LOGHOST proxy:$proxyname $ltubase"
     mvfile WORK/LTU-$DTN
     # gdb $VMECFDIR/ltu_proxy/linux/ltu_proxy
@@ -181,11 +185,18 @@ else
 fi
 dtn=$1
 export VMEWORKDIR=~/v/$dtn      # started from trigger account
-if [ ! -d $VMEWORKDIR ] ; then
+# find base and right hostname for this detector:
+ltubase=`awk '{if($1==detname) {print $3}}' detname=$dtn $cfgfile`
+hn=`awk '{if($1==detname) {print $2}}' detname=$dtn $cfgfile`
+if [ `hostname` != "$hn" ] ;then
+  echo "On this host only:"
+  grep `hostname` $cfgfile
+  echo
+elif [ ! -d $VMEWORKDIR ] ; then
   if [ "$2" = "start" ] ; then
-     makedirs
+     makedirs $dtn
      #makelinks
-     makeSLMproxylinks.bash $dtn
+     #makeSLMproxylinks.bash $dtn
   elif [ "$2" = "status" ] ;then
     echo 2
     exit
@@ -197,9 +208,6 @@ if [ ! -d $VMEWORKDIR ] ; then
 fi
 cd $VMEWORKDIR
 #
-# find base and right hostname for this detector:
-ltubase=`awk '{if($1==detname) {print $3}}' detname=$dtn $cfgfile`
-hn=`awk '{if($1==detname) {print $2}}' detname=$dtn $cfgfile`
 if [ -z "$ltubase" -o "$action" = "error" ] ;then
   cat - <<-EOF
 Usage:
