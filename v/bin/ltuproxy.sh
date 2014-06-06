@@ -33,7 +33,12 @@ function makedirs() {
 echo "$VMEWORKDIR does not exist, creating, also SLMproxy links for $1..."
 mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
 mkdir -p $VMEWORKDIR/CFG/ltu/SLM
-cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
+if [ -e $VMEWORKDIR/CFG/ltu/ltuttc.cfg ]   ;then
+  echo "ltuttc.cfg already exists, not overwritten"
+else
+  cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
+  echo "default ltuttc.cfg created"
+fi
 cp -a $VMECFDIR/CFG/ltu/SLM/*.slm $VMEWORKDIR/CFG/ltu/SLM/
 mkdir -p $VMEWORKDIR/WORK
 makeSLMproxylinks.bash $1
@@ -58,7 +63,7 @@ function StartProxy() {
 # $1 -dtn (ssd, acorde, spd,...)
 # $pid -should be empty
 export VMEWORKDIR=~/v/$1      # started from trigger or triad account
-if [ ! -d $VMEWORKDIR ] ; then
+if [ ! -d $VMEWORKDIR/WORK ] ; then
   echo "making working dirs for $1 ..."
   makedirs $1
 fi
@@ -192,7 +197,7 @@ if [ `hostname` != "$hn" ] ;then
   echo "On this host only:"
   grep `hostname` $cfgfile
   echo
-elif [ ! -d $VMEWORKDIR ] ; then
+elif [ ! -d $VMEWORKDIR/WORK ] ; then
   if [ "$2" = "start" ] ; then
      makedirs $dtn
      #makelinks
