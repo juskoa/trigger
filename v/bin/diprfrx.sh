@@ -16,7 +16,7 @@ cd ~/v/vme/WORK
 # out to /dev/null
 #nohup $VMECFDIR/../../rf2ttc/page1_server/dipAlice/dipPubTest 2>&1>/dev/null &
 #pgrep -l dipPubTest
-daemoncom.sh diprfrx ../../rf2ttc/page1_server/dipAlice/dipPubTest nolog $sss
+daemoncom.sh diprfrx ../../../rf2ttc/page1_server/dipAlice/dipPubTest log $sss
 #
 #cd $VMECFDIR/../../rf2ttc/page1_server
 #dipAlice/dipPubTest

@@ -8,6 +8,7 @@ fi
 }
 #allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 alidcsvme008 alidcsvme017'
 allvmes='alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
+allvmes='alidcsvme002 alidcsvme003 10.160.130.23 alidcsvme005 alidcsvme006 alidcsvme007'
 #allvmes='alidcsvme002 alidcsvme003 alidcsvme005 alidcsvme006 alidcsvme007'
 if [ $# -eq 0 ] ;then
   cat - <<-EOF

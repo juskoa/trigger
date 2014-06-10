@@ -116,15 +116,15 @@ ssh -2 trigger@$ttcmivme "$sshcmd"
 }
 #--------------------------------------------------
 hname=`hostname`
-if [ "$hname" != 'tp' -a "$hname" != 'avmes' \
-     -a "$hname" != 'alidcscom188' -a "$hname" != 'pcalicebhm10' ] ;then
-echo 'This script can be started only on trigger@alidcscom026/188 or trigger@pcalicebhm05/10'
+if [ "$hname" != 'tp' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
+     -a "$hname" != 'alidcscom188' -a "$hname" != 'alidcscom835' ] ;then
+echo 'This script can be started only on trigger@alidcscom835/188 or trigger@pcalicebhm10/avmes'
 exit 8
 fi
 if [ "$VMESITE" = 'ALICE' ] ;then
   ctpvme=alidcsvme001
   ttcmivme=alidcsvme017
-  server=alidcscom188   # alidcscom026  alitri
+  server=alidcscom835   # alidcscom188  alitri
   server27=alidcscom707 # alitrir   see also alidcscom521
 elif [ "$VMESITE" = 'SERVER' ] ;then
   ctpvme=altri1

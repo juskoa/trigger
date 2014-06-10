@@ -169,6 +169,12 @@ void ttc_it_set_prt_suppress(){
 }
 #endif
 
+static int TTC_WORDS_L1M;
+static int TTC_WORDS_L2A;
+static int TTC_WORDS_L2R;
+static int TTC_WORDS_ROI;
+static int TTC_WORDS_RES;
+
 void ttc_it_clear_counters(struct ttc_it_counters *c){
 
   c->l0 = 0;
@@ -613,6 +619,42 @@ void ttc_it_reset_options(){
 
   ttc_it_clear_timing(&timing);
   ttc_it_clear_timing(&sum_time);
+
+  /*
+    Default message formats are OLD - may change in the future
+   */
+  ttc_it_clear_oldmes();
+}
+
+void ttc_it_clear_zeroos(){
+  ttc_it_clear_errors(&errores);
+  ttc_it_clear_errors(&sum_err);
+  ttc_it_clear_timing(&timing);
+  ttc_it_clear_timing(&sum_time);
+  ttc_it_clear_counters(&counters);
+  ttc_it_clear_counters(&sum_count);
+}
+
+void ttc_it_clear_oldmes(){
+  TTC_WORDS_L1M = TTC_WORDS_L1M_O;
+  TTC_WORDS_L2A = TTC_WORDS_L2A_O;
+  TTC_WORDS_L2R = TTC_WORDS_L2R_O;
+  TTC_WORDS_RES = TTC_WORDS_RES_O;
+}
+
+void ttc_it_clear_newmes(){
+  TTC_WORDS_L1M = TTC_WORDS_L1M_N;
+  TTC_WORDS_L2A = TTC_WORDS_L2A_N;
+  TTC_WORDS_L2R = TTC_WORDS_L2R_N;
+  TTC_WORDS_RES = TTC_WORDS_RES_N;
+}
+
+void ttc_it_clear_printmes(){
+  printf("L1M data words = %d\n",TTC_WORDS_L1M);
+  printf("L2A data words = %d\n",TTC_WORDS_L2A);
+  printf("L2R data words = %d\n",TTC_WORDS_L2R);
+  printf("RoI data words = %d\n",TTC_WORDS_ROI);
+  printf("Res data words = %d\n",TTC_WORDS_RES);
 }
 
 void ttc_it_set_opt_wins(int l0l1wind, int l0l1width,

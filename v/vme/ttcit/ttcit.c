@@ -765,7 +765,7 @@ int OM_GetDelayedSSMstop(){
   return dt;
 }
 
-/*xxFGROUP SnapShot
+/*FGROUP SnapShot
   Reads address counter - nr. of words in Snap Shot memory
  */
 int ReadAddressSSM(){
@@ -879,7 +879,7 @@ int ReadLastSSM(){
   return retval;
 }
 
-/*xxxFGROUP SnapShot
+/*FGROUP SnapShot
   Fetch the contents of the SSM into a software buffer
 */
 int FetchSSM(){
@@ -898,7 +898,7 @@ int FetchSSM(){
   return retval;
 }
 
-/*xxxFGROUP SnapShot
+/*FGROUP SnapShot
   Dump the Snap Shot memory buffer (after being read from the VME)
   nw = nr. of words to be dumped (0 == all)
  */
@@ -915,7 +915,7 @@ int xxxWriteSSMbuffer(){
   return retval;
 }
 
-/*xxxFGROUP SnapShot
+/*FGROUP SnapShot
   Combnation of several actions for faster inspection of SSM and BC FIFO
   
   Performs the following actions: 1) ResetTTCit
@@ -1020,7 +1020,7 @@ int GetModeSSM(){
   return retval;
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Hexadecimal and binary dump of the SSM contents. Starts from the 1-st
   recorded event and dumps as many events as set by SelDumpN(n)
  */
@@ -1035,7 +1035,7 @@ void HexBinDump(){
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Hexadecimal and binary dumo of the SSM contents. Starts where the last
   dump via HexBinDump() or HexBinDumpNext() ended. Continuation print.
  */
@@ -1051,7 +1051,7 @@ void HexBinDumpNext(){
 
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Human readable dump (works only with firmware version >= 24). What to
   print can be selected using SelDumpOptions(...), how many events to print
   is set by SelDumpN(n).
@@ -1065,7 +1065,7 @@ int SelDump(){
   return retval;
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Resets TTCit, waits till SSM is full, fetches data and prints 
   the first N words in hex/binary form
  */
@@ -1078,7 +1078,7 @@ int SelFetchHexBinDump(){
   return retval;
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Resets TTCit, waits until the SSM is full, fetches SSM from TTCit board,
   and prints the first N recorded events (selected print available using
   SelDumOptions(...)).
@@ -1092,7 +1092,7 @@ int SelFetchDump(){
   return retval;
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Continuation dump. Prints next N (set by SelDumpN()) events from SSM,
   starting where the last print using SelDump(), SelDumpNext(), 
   or SelFetchDump() stopped.
@@ -1106,7 +1106,7 @@ int SelDumpNext(){
   return retval;
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Set SSM dumping options. 0 = disable option
                            1 = enable it
   Orbit     : print Orbit reset commands
@@ -1135,7 +1135,7 @@ void SelDumpOptions(int Orbit, int TTC_A,
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Prints options for the SelDump, SelDumpNext, SelFetchDump, HexBinDump,
   HexBinDumpNext.
  */
@@ -1181,7 +1181,7 @@ void SelPrintDumpOpt(){
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Set how many events stored in the SSM are to be printed at the same time
   (the number of SSM events is quite large so set this number not too high,
   otherwise the output became unmanageable)
@@ -1197,7 +1197,7 @@ int SelDumpN(int howmany){
   return retval;
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Set the max allowed timeout in seconds for combined fetch_and_dumps
 
   Time_s   = max allowed timeout in seconds
@@ -1208,7 +1208,7 @@ void SelDumpTimeouts(int Time_s){
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Allows to set the first event in the dump, where you want to start your 
   print. The Sel mask is to be given as OR for all events that are to be used
   as a starting point.
@@ -1232,7 +1232,7 @@ void SelDump1stEvent(int Sel){
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Set the first dumped event type mask in a more user friendly way.
 
   Nonzero value = select
@@ -1259,7 +1259,7 @@ void SelDump1stMenu(int L0, int L0_LVDS, int L1, int Orbit, int L1m,
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Sets L0 signal source - cable or fibre. Proper knowledge of this
   is needed to interpret the signals in TTC A channel (L0/L1)
 
@@ -1273,14 +1273,14 @@ void SelDumpL0(int OverFibre){
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Resests the default values (Print all, start at any event
  */
 void SelDumpDefaults(){
   ttcit1_init();
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
  */
 void SelDumpCountSSM(){
   int irc;
@@ -1321,7 +1321,7 @@ void SelDumpCountSSM(){
   }while(0);
 }
 
-/*FGROUP SelectDump
+/*xxxFGROUP SelectDump
   Select the position of the 1-st event to be printed
 
   The N-th event matching the 1-st event mask wil be printed in the 
@@ -1584,6 +1584,37 @@ void ResetSSManalyzer(){
 }
 
 /*FGROUP SSM_analyz
+  Sets the L1M, L2A messages to old format (short messages)
+ */
+void SetL12MesOld(){
+  ttc_it_clear_oldmes();
+  ttc_it_clear_printmes();
+}
+
+/*FGROUP SSM_analyz
+  Sets the L1M, L2A messages to new format (long messages)
+ */
+void SetL12MesNew(){
+  ttc_it_clear_newmes();
+  ttc_it_clear_printmes();
+}
+
+/*FGROUP SSM_analyz
+  Clears all counters, timings etc...
+ */
+void ClearStat(){
+  ttc_it_clear_zeroos();
+}
+
+/*FGROUP SSM_analyz
+  Prints the numbers of words for L1M, L2A, L2R, RoI and Res messages
+  expected
+ */
+void PrintL12Mes(){
+  ttc_it_clear_printmes();
+}
+
+/*FGROUP SSM_analyz
   Shows the contents of the trigger counters (as seen by SSM analyzer)
  */
 void ShowCounters(){
@@ -1685,14 +1716,14 @@ void AnalyzeOneSnapShot(){
   soft_monitor_single_ssm(TRUE);
 }
 
-/*FGROUP SSM_analyz
+/*xxxFGROUP SSM_analyz
   Analyze N snap shots, stop at 1-st error
  */
 void AnalyzeN(int n){
   soft_monitor_N_ssm(n);
 }
 
-/*FGROUP SSM_analyz
+/*xxxFGROUP SSM_analyz
   Tries to analyze SSM snapshots and in those where NO ERRORS are present
   the BCID differences are evaluated and histogrammed. Snapshots with errors
   are ignored.

@@ -9,7 +9,7 @@
 1. How to prepare ltusw distribution
 ------------------------------------
 Goal:
-- prepare ltusw.rpm ( vmebltu.tar file)
+- prepare ltusw.rpm ( + vmebltu.tar file)
 
 In trigger@pcalicebhm10:...v/
 A. Prepare indexnew.html (according to DOC/history.txt)
@@ -44,6 +44,7 @@ yum install tkinter
 dim, smi:/home/dl/root/usr/local/trigger/root/Addons_32 
 
   scp ~/vmebltu.tar aj@eprexa.ph.bham.ac.uk:public_web/ltu/08092009/
+  scp ~/vmebltu.tar.gz juskoa@lxplus:
 
 cd ~rpmbuild
 scp RPMS/ltusw-5.0-1.i686.rpm SOURCES/ltusw-5.0.src.tar.gz juskoa@lxplus:www/ltu/28012014/

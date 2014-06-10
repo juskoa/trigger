@@ -42,7 +42,7 @@ ttcit/*.csh
 # echo "PASSWORD for trigger@altrip2.cern.ch"
 if ( $nosend == 'y' ) then
     echo "Sending file to kralik@lxplus.cern.ch:~/alice/trigger/."
-    scp ttcit_${dt}.tar kralik@lxplus.cern.ch:~/alice/trigger/.
+    scp ttcit_${dt}.tar kralik@lxplus.cern.ch:~/public/alice/ttcit/.
 else
     echo "Tar file created, sending not requested"
     set noke = 'y'

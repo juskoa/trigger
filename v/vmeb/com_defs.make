@@ -7,6 +7,8 @@ COMMONCFLAGS +=-DCPLUSPLUS
 endif
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
+SERVER_BASEDIR := 
+odl64 := /opt/dip/lib64
 HOSTNAME:=$(shell hostname)
 ifeq ($(HOSTNAME), alidcscom188)
 SERVER_LINK := yes
@@ -15,24 +17,22 @@ CLIENT_HOST := alidcsvme008
 #SERVER_PREF := /data/dl/root/usr/local/trigger/...
 # provided, theres is a link: /usr/local/trigger ->...
 SERVER_PREF :=
-SERVER_BASEDIR := 
 odl64 := /opt/dip/lib
+endif
+ifeq ($(HOSTNAME), alidcscom835)
+SERVER_LINK := yes
+CLIENT_HOST := alidcsvme006
+SERVER_PREF := /home/dl6
 endif
 ifeq ($(HOSTNAME), pcalicebhm10)
 SERVER_LINK := yes
 CLIENT_HOST := altri2
-#SERVER_PREF := /home/dl/root
 SERVER_PREF := /home/dl6
-#SERVER_BASEDIR := vd
-SERVER_BASEDIR :=
-odl64 := /opt/dip/lib64
 endif
 ifeq ($(HOSTNAME), avmes)
 SERVER_LINK := yes
 CLIENT_HOST := altri1
 SERVER_PREF := /home/dl6
-SERVER_BASEDIR := 
-odl64 := /opt/dip/lib64
 endif
 
 EXEDIR= ../linux

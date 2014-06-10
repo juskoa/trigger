@@ -203,4 +203,13 @@ fixed by adding 2 lines to /etc/sysconfig/iptables:
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 2505 -j ACCEPT
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 5100:5200 -j ACCEPT
 
+7.4.2014
+local/trigger_run1 -cloned from github on bhm10. I.e. from now:
+run1@altri1   -running run1 sw with new firmware
+run1@altri2   -running run1 sw with old firmware -problematic, 
+  only makeall allctp done, todo: better environment set...
+10.4.2014
+miclock_fifo.py -takes inputs from /tmp/micfifo instead of stdin. I.e. 
+  prepared now to be driven from httpd and html intrface.
+
 

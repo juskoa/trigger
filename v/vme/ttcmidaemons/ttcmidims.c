@@ -231,6 +231,7 @@ for(ix=0; ix<80; ix++) {
   };
 };
 if(( strncmp(hname,"alidcscom188",12)==0) 
+   || ( strncmp(hname,"avmes",12)==0)
    || ( strncmp(hname,"pcalicebhm10",12)==0)) {
   rc=0; goto OK;    // clock shift also from pydimserver!
 };
@@ -301,6 +302,7 @@ if(cosh>1023) {
   sprintf(errmsg,"TTCMI/SHIFT updated for %d clients\n", rc); prtLog(errmsg); 
   pol= i2cread_delay(BC_DELAY25_BCMAIN); halfns= pol-0x140;
   // update $dbctp/clockshift
+  // run1 last values (12.2.201): 29 973 960
   sprintf(line, "%d %d %d", halfns, cosh, origshift);
   writedbfile((char *)"/home/alice/trigger/v/vme/CFG/clockshift", line);
   shiftCommentInDAQ((int)halfns, origshift, 
@@ -339,15 +341,20 @@ msg[*size]='\0';   // with python client ok
 //if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
 };
 */
-rc= authenticate(""); rc2= authenticate("oerjan/");
+rc= authenticate(""); rc2=1; //rc2= authenticate("oerjan/");
 if((rc!=0) and (rc2!=0) ) {
-  sprintf(errmsg, "Only trigger/oerjan user can change the clock"); prtLog(errmsg); 
+  //sprintf(errmsg, "Only trigger/oerjan user can change the clock"); prtLog(errmsg); 
+  sprintf(errmsg, "Only trigger user can change the clock"); prtLog(errmsg); 
   return;  
 };
 if(strncmp(msg,"qq", 2)==0) ds_stop();
 if(clocktran!=0)  {
+  /* run1 way:
   sprintf(errmsg, "MICLOCK_SET: newclock thread already started! exiting..."); prtLog(errmsg); 
   quit=1;   // better quit, and restart (monitor.py should be active !)
+  */
+  /* run2: just ignore a command setting new clock, if pevious one no finished yet: */
+  sprintf(errmsg, "MICLOCK_SET: newclock thread already started, cmd ignored..."); prtLog(errmsg); 
   return;  
 };
 if(strncmp(msg,"BEAM1", 5)==0) { newclocktag=1;
