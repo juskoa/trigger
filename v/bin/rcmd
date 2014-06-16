@@ -7,14 +7,14 @@ else
 fi
 }
 #allvmes='alidcsvme001 alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 alidcsvme008 alidcsvme017'
-allvmes='alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007'
-allvmes='alidcsvme002 alidcsvme003 10.160.130.23 alidcsvme005 alidcsvme006 alidcsvme007'
-#allvmes='alidcsvme002 alidcsvme003 alidcsvme005 alidcsvme006 alidcsvme007'
+allvmes='alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007 altri2 altri1'
+#
 if [ $# -eq 0 ] ;then
   cat - <<-EOF
 Usage:
 rcmd N 'command' [d]
      N       : 1..8 or 17 (alidcsvme00? 1:ctp 8:fanio 17:ttcmi)
+               0 -all up, i.e. check using ping -c1 -W1 before issuing cmd
      command : to be executed
      d       ; use for commands, which starts daemon (they use nohup, &)
 Examples:
@@ -25,10 +25,15 @@ $allvmes
 EOF
 exit
 fi
+pingbefore=""
 if [ $# -ge 2 ] ;then
-  gethn $1
+  if [ "$1" != "0" ] ;then
+    gethn $1
+    allvmes=$hname
+  else
+    pingbefore="pingbefore"
+  fi
   remcmd=$2
-  allvmes=$hname
   #ssh -2 "trigger@$hname" $remcmd 2>&1 |grep -v -e Scientific
   #exit
 else
@@ -41,12 +46,21 @@ for hn in $allvmes ;do
     nohup ssh -2 -f "trigger@$hn" $remcmd </dev/null &
     echo 'see nohup.out'
   else
-    prxs=`ssh -2 "trigger@$hn" $remcmd 2>&1 |grep -v -e Scientific`
-    #ssh -2 "root@$hn" $remcmd
-    if [ -n "$prxs" ] ;then
-      echo "$hn:"
-      echo "$prxs"
+    if [ -n "$pingbefore" ] ;then
+      ping -c1 -W1 -q $hn >/dev/null
+      if [ $? -eq 1 ] ;then
+        echo "$hn down"
+        continue
+      fi
     fi
+    echo "$hn:"
+    # run1 (slc5 ?):
+    #prxs=`ssh -2 "trigger@$hn" $remcmd 2>&1 |grep -v -e Scientific`
+    #if [ -n "$prxs" ] ;then
+    #  echo "$prxs"
+    #fi
+    # run2: seems thsi is fine
+    ssh -2 "trigger@$hn" $remcmd
   fi
 done
 

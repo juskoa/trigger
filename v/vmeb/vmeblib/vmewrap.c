@@ -191,7 +191,7 @@ int getCaenVmeConf(int *type, int *link, int *num)
     //    printf("CANVME config file %s",stconf);
     if (strncmp(stconf,"#",1) != 0) {
       (void)sscanf(stconf,"%d %d %d",type,link,num);
-      printf("CAENVME Setup on %s bridge: Card #: %d Link #: %d\n",
+      printf("CAENVME Setup for %s bridge: Card #: %d Link #: %d\n",
 	     LinkTypeDesc[*type],*link,*num);
     }
   }
@@ -615,13 +615,15 @@ printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
   cv.status=0;
   rccret=0;
   rccret= CAENVME_Init(cv.BdType, cv.Link, cv.BdNum, (int32_t*)&(cv.handle));
-  printf( "CAENVME_Init: %d, %d %d %d %d \n", rccret, cv.BdType, cv.Link, cv.BdNum, cv.handle );   
+  printf("Opening CAENVME link via vmxopenam...\n");
+  printf("CAENVME_Init: Status: %d, [Board Type %d Link %d Board %d]\n", rccret, cv.BdType, cv.Link, cv.BdNum);   
   if (rccret<0){
-    printf( "CAENVME_Init: %d \n", rccret );    
+    printf( "CAENVME_Init: ERROR! %d \n", rccret );    
     goto EXIT8;
   }
-  printf( "CAENVME_Init: %d, %d %d %d %d \n", rccret, cv.BdType, cv.Link, cv.BdNum, cv.handle ); 
- cv.BaseAddr=BoBaAd;
+  cv.BaseAddr=BoBaAd;
+  printf("CAENVME_Init: BaseAddr registered at 0x%lx\n",cv.BaseAddr);
+  printf("Completed initialization of CAENVME link\n");
 #endif
 
 #ifdef TSI148
@@ -669,6 +671,7 @@ printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
   printf("TSI148 successfully opened and configured\n");
   rccret = status;
 #endif
+
 RCRET:
 //printf("vmxopen rccret:%d vsp: %d\n", rccret, *vsp);
 return(rccret);
@@ -710,19 +713,25 @@ vmeptr= vxsp[0].vmeptr;
 #endif
 #ifdef CAENVME
   int type,link,num;
+  w32 BoBaAd;
+  BoBaAd=hex2ui(&BoardBaseAddress[2]);
   rc=getCaenVmeConf(&type,&link,&num); 
   cv.status=0;
   cv.BdType=(CVBoardTypes)type; 
   cv.Link=(short)link;              
   cv.BdNum=(short)num;
-  cv.handle=0; 
+  cv.handle=0;
+  cv.BaseAddr=BoBaAd;
+  printf("Opening CAENVME link via vmxopen...\n");
+  printf("CAENVME_Init: Board Type %d Link %d Board %d \n", cv.BdType, cv.Link, cv.BdNum);
   rc= CAENVME_Init(cv.BdType, cv.Link, cv.BdNum, (int32_t*)&(cv.handle));
+  printf( "CAENVME_Init status: %d | Base Addr registered at: 0x%lx\n", rc , cv.BaseAddr );
   if(rc<0){
-    printf( "CAENVME_Init: %d \n", rc );    
+    printf( "CAENVME_Init: ERROR! %d \n", rc );    
     //    goto EXIT8;
     return(rc);
   }
-  printf( "CAENVME_Init: %d, %d %d %d %d \n", rc, cv.BdType, cv.Link, cv.BdNum, cv.handle ); 
+  printf("Completed initialization of CAENVME link\n");
 #endif
 return(rc);
 }
@@ -733,6 +742,7 @@ int rccret=0;
 w8 *locvmeptr;
 int i, lsi_fd;
 #endif
+#ifndef CAENVME
 if(vsp>(MAXVMESPACES-1)) {
   printf("vmxclose(vsp,...), vsp>%d\n",MAXVMESPACES-1);
   rccret= 16; goto RCRET;
@@ -741,6 +751,7 @@ if(vxsp[vsp].vmeptr == 0) {
   printf("vmxclose(vsp,...), vsp:%d was not open.\n",vsp);
   rccret= 16; goto RCRET;
 };
+#endif
 #ifdef SIMVME
 if( (rccret= vmesimClose(vsp))!=0) {
   printf("vmesimClose() error: %d\n",rccret);
@@ -800,11 +811,12 @@ vme_closeDevice( lsi_fd );
 
 #ifdef CAENVME
  rccret=CAENVME_End(cv.handle);
- if(rccret<0)printf("CAENVME_End ret %d \n",rccret);
- else printf("CAENVME_End ret %d \n",rccret);
-#endif
-
+ printf("Closing connection with CAENVME link...\n");
+ if(rccret<0)printf("CAENVME_End ERROR: %d \n",rccret);
+ else printf("CAENVME_End: closed connection (status: %d)\n",rccret);
+#else    // this second part just to avoid a compilation warning if CAENVME is defined
 RCRET:
+#endif
 vxsp[vsp].baseaddr= 0;
 vxsp[vsp].vmeptr=0;
 /*printf("vmxclose rccret:%d vsp: %d\n", rccret, vsp); */

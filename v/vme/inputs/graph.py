@@ -59,7 +59,7 @@ class Mycanvas(Canvas):
   b2w=self.grf2win(b2)
   self.create_rectangle(b1w,b2w,fill="red")
  def create_box(self,b1):
-  b1w=self.grf2win(b1(self,b1):
+  b1w=self.grf2win(b1)
   b1w=self.grf2win(b1w[1]-self.yoff/10.) # 10 -size of symbol
   b2w=(b1w[0]+self.xoff/10.,b1w[1]+self.yoff/10.)
   self.create_rectangle(b1p,b2w,fill="red")

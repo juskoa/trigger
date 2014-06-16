@@ -30,4 +30,7 @@ pydim
 4. counters
 - ok (wc $dbctp/cnames.sorted2: 1560, the run1 list of counters is in cnames1.sorted2)
 
-5. wbe, ctpdims
+5. web, ctpdims
+
+6. ctpinputs.cfg -joined CTP.SWITCH, VALID.CTPINPUTS, L0.INPUTS
+   see devdbg/ctpinputs_cfg

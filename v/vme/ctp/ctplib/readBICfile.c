@@ -72,6 +72,9 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     vmever= 0xff&vmer32(VERSION_ADD+adshift);
     sernum= 0xff&vmer32(SERIAL_NUMBER+adshift);
     boardver= 0xff&vmer32(FPGAVERSION_ADD+adshift);
+    if((code==0x50) && (boardver>=0xc0)) {
+      vmever=0xa0;   // LM0 board, force vmever to the standard one
+    };
     ctpboards[ix].vmever= vmever;
     /*
       printf("--->%s (code:0x%x base:0x82%1x000) vmeFPGA:0x%x boardFPGA:0x%x SN:0x%x\n",

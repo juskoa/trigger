@@ -567,6 +567,59 @@ class TrgMasks(Table):
         return self.ents[ix][1]
     return ""
     
+class TrgInp:
+  def __init__(self, VCI=None, LI=None):
+    # ctpinputs.cfg:
+    #InName = Det Level Signature Inpnum Dimnum Configured Edge Delay DeltaMin  
+    #0      1 2   3     4         5      6      7          8    9     10
+    #DeltaMax ppn nameweb eq dimdns dimservice #anycomment
+    # 11      12  13      14   15      16       17
+    self.inp= []
+    if (VCI==None) and (LI=None):
+      for i in range(len(16)): self.inp.append("NA")
+    elif VCI!=None:
+      if len(VCI.ents)==12:
+        for i in range(len(11)): self.inp.append(VCI.ents[i])
+      else:
+        print "Error: TrgInp VCIlen:",len(VCI.ents)
+    else:   # adding LI, i.e. not found in VALID.CTPINPUTS
+      if len(LI.ents)=>12:
+        self.inp[0]= LI.ents[3]   # InName
+        self.inp[1]= "="
+        self.inp[2]= LI.ents[1]   # Det
+        self.inp[3]= "0"          # Level
+        self.inp[4]= LI.ents[5]   # Signature
+        self.inp[5]= "0"          # Inpnum
+        self.inp[6]= LI.ents[6]   # Dimnum
+        self.inp[7]= LI.ents[0]   # Configured todo: set 0 if >48
+        self.inp[8]= LI.ents[7]   # Edge
+        self.inp[9]= LI.ents[8]   # Delay 
+        self.inp[10]= LI.ents[10]   # DeltaMin
+        self.inp[11]= LI.ents[11]   # DeltaMax
+        self.inp[12]= "NA"         # ppn   
+        self.inp[13]= LI.ents[2]   # nameweb
+        self.inp[14]= LI.ents[4]   # eq
+        self.inp[15]= "NA"         # dimdns
+        self.inp[16]= "NA"         # dimservice
+        self.inp[17]= LI.ents[12]   # anycomment
+      else:
+        print "Error: TrgInp LIlen:",len(LI.ents)
+      
+class TrgInputs:
+  def __init__(self):
+    inps= []   # array of TrgInp objects
+  def addVCI(ent):
+    inps.append(TrgInp(VCI=ent))
+  def modifyVCI(ent):
+    # add info from L0.INPUTS to existing info from VALID.CTPINPUTS:
+  def addLI(ent):
+    inps.append(TrgInp(LI=ent))
+  def find(self, det, inpname):
+    for ix in range(len(inps)): 
+      if (inps[ix][1]==det) && (inps[ix][0]==inpname):
+        return ix
+    return None
+    
 #------------------ following classes used from TRG_DBED/scanrcfg.py
 class TrgRcfgVals:
   def __init__(self):
@@ -665,6 +718,7 @@ def main(argv):
   trigdb.py log2tab 'logical expression from L0inputs'
   trigdb.py prtinps     source: VALID.CTPINPUTS taken
   trigdb.py cables      source: L0.INPUTS (L0) + VALID.CTPINPUTS (L1+L2) 
+  trigdb.py joininputs  L0.INPUTS+VALID.CTPINPUTS -> ctpinputs.cfg
 """
     return
   if argv[1]=='log2tab':
@@ -685,7 +739,22 @@ def main(argv):
     print # print allds
     for det in allds.keys():
       print "%s: %s"%(det, allds[det])
-    
+  elif argv[1]=='joininputs':
+    vci= TrgVALIDINPUTS()
+    l0i= TrgL0INPUTS()
+    # first add all VALID.CTPINPUTS
+    cis= TrgInputs()
+    for ent in vci.ents:
+      cis.addVCI(ent)
+    # add L0.INPUTS (modifying already existing inputs in ci:
+    for ent in l0i.ents:
+      ixi= cis.find(ent[1], ent[3])   # check if already in ci:
+      if ixi:
+        cis.modifyVCI(ixi, ent)
+      else:
+        cis.addLI(ent)
+    # check if CTP.SWITCH consistent
+    print "rewriting ctpinputs.cfg..."
 if __name__ == "__main__":
     main(sys.argv)
 

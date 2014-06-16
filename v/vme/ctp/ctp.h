@@ -88,7 +88,7 @@ typedef struct {
 
 /* common for L0/L1/L2/FO (busy,int) boards: */
 #define ADC_START       0xcc   /* ADC (not for FO) */
-#define ADC_DATA        0xd0 
+#define ADC_DATA        0xd0   /* 0x10: busy flag   0xff: ADC data */
 #define SOFT_LED        0x15c  /* soft LED (busy board too)*/
 #define COPYCOUNT      0x1d4   /*dummy wr. copy counters CMD */
 #define COPYBUSY       0x1d8   /*ro [0] copy-busy status */
@@ -106,18 +106,40 @@ L0 board: increased length (max. adr 0x1ff*4 -> 0x2ff*4) implemented earlier.
 #define SCOPE_SELECT   0x5b0  /* groupB: 0x1e0 groupA: 0x01f */
                                /* 0x17+0x17-not selected                */
                                /* 0x800: enableB, 0x400: enableA        */
+#define SCOPE_SELECTbfi 0x4f8  /* BSY,FO,INT: different address */
 #define ADC_SELECT     0x5b4 /*ADC mode, ADC input selector. 0x100:ADCmode */
   /* not FOs, only L0/1/2.      0x100 GND (before A2 version: Orbit (toggle))
                                 0x1NN NN:01-18 i: Input1-Input24
                                 0x119: Vhigh
                                 0x11a: (Vhigh-Vlow)/2 
                                 0x11b: ADC test -new way (ver. A2 from 14.12)
-                                0x11c: Vlow   */
+                                0x11c: Vlow   
+LM0 board:
+[5..0] selector code:
+1..48  ADC input 1..48
+49     Vcc
+50     ORBIT
+51     ORBIT & !TEST
+52     ADC Test input (local phase)
+53     spare input
+*/
 /*#define TEST_ADD        0xc0  was till 12.3.2008 */
 /*#define TEST_ADD        0x7e0 was till  6.11.2013 */
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO*/
+#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
+0x804:inp1,..., 0x860:inp24
+LM0:
+ 3.. 0   Input delay for inputs 1..24
+ 4       Edge Selector flag inputs 1..24
+11.. 8   Input delay for inputs 25..48
+12       Edge Selector flag inputs 25..48
+21..16   Selection of the input: 0:not connected 1..48 connected to this one
+
+L0, L1, L2:
+ 8       Edge Selector flag inputs 1..24
+ 3.. 0   Input delay for inputs 1..24 (12 for L2)
+*/
 
 //#define PF_COMMON      0x564
 #define PF_COMMON      0x864  /* 1 word per L0/L1/L2 board */
@@ -406,8 +428,9 @@ w32 i2cread(int channel, int branch);
 int i2cgetaddr(int board0_34, int *channel, int *branch);
 
 int getEdgeDelayDB(int level, int input, int *edge, int *delay);
-void setEdge(int board,w32 input,w32 edge);
 int getedge(int board,w32 input,w32 *del);
+int getedgerun1(int board,w32 input,w32 *del);
+int getedgerun2(int board,w32 input,w32 *del);
 
 void loadBCmasks(w16 *bcmasks);
 
@@ -571,6 +594,8 @@ edge: 0:Positive 1:Negative
 Edge: choose negative (for delay:0) if unstability is found around delay 0.
 */
 void setEdge(int board,w32 input,w32 edge);
+void setEdgerun1(int board,w32 input,w32 edge);
+void setEdgerun2(int board,w32 input,w32 edge);
 /*FGROUP inputsTools
 set Edge/Delay 
 Inputs:
@@ -579,6 +604,8 @@ input: 1..24 (1..12 for L2)
 edge:  0:positive 1:negative
 delay: 0..15*/
 void setEdgeDelay(int board, int input, int edge, int delay);
+void setEdgeDelayrun1(int board, int input, int edge, int delay);
+void setEdgeDelayrun2(int board, int input, int edge, int delay);
 
 /*FGROUP inputsTools
 Read edge/delay info from hw for all the inputs (clk edge for ORbit
@@ -592,6 +619,8 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
 
 */
 void printEdgeDelay(int board);
+void printEdgeDelayrun1(int board);
+//void printEdgeDelayrun2(int board);
 
 // bcmask.c
 /*FGROUP L0
