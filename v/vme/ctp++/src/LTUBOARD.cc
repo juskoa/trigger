@@ -145,7 +145,9 @@ int LTUBOARD::lxdata(w32 NLxdat,w32 &l2sflag,w32 bit,w32 issm,w32 &icount,w32* d
 	    if(bit){
              // error
              //lxprint(i,1,NLxdat,LxDATA,name);
-             printf("Error lxdata \n");		                 
+             char level='1';
+             if(NLxdat==NL2dat)level='2';
+             printf("Error l%c data: outside strobe i.e.: shifted or longer\n",level);		                 
 	     return 1;	     
 	    }	    
            }		
@@ -241,12 +243,12 @@ int LTUBOARD::CheckLx(int level){
  ///printf("ttcb : %i\n",qttcb.size());
  for(w32 i=0;i<qstr.size();i++){
   if(i>=qdat.size()){
-   printf("i=%i, qdat: %i qstr: %i \n",i,qdat.size(),qstr.size());
+   printf("Warning: More data than strobes i=%i, qdat: %i qstr: %i \n",i,qdat.size(),qstr.size());
    break;
   }
   w8* sdata=qdat[i]->sdata;
   w16 dwords[NLxwords];
-  // Serial data
+  // Serial data bits to words
   for(w32 j=0;j<NLxwords;j++)dwords[j]=0;
   for(w32 j=datstart;j<NLxdat;j++){
     w32 j12=(j-datstart)/12;
@@ -266,14 +268,17 @@ int LTUBOARD::CheckLx(int level){
        //printf("ttcb: %i 0x%x \n",qttcb[j]->issm,qttcb[j]->tdata);
        if(qttcb[j]->tdata != dwords[0]){
         ierror++;
-        //printf("Error \n");
+        printf("Check L%1i Error: serial data different from ttc: 0x%x 0x%x \n",level, dwords[0],qttcb[j]->tdata);
        }
        w32 iword=1;
        while(j<qttcb.size() && iword<NLxwords){
          //printf("ttcode= %i \n",qttcb[j]->ttcode);
     	 if(qttcb[j]->ttcode == (ttchead+1)){
            //printf("ttcb: %i %i 0x%x 0x%x \n",iword,qttcb[j]->issm,qttcb[j]->tdata,dwords[iword]);
-           if(qttcb[j]->tdata != dwords[iword])ierror++;
+           if(qttcb[j]->tdata != dwords[iword]){
+             ierror++;
+             printf("Check L%1i Error: serial data different from ttc: 0x%x 0x%x\n",level,dwords[iword],qttcb[j]->tdata);
+	   }
 	   iword++;
          }
 	j++;
