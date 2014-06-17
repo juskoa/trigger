@@ -55,3 +55,8 @@ another version of 0xB1, considering longer inspection (262 counters)
 28.2.2014
 l0_logic_verB1.rbf
 another version of 0xB1, 2bits acumulatro for slow counters, 300 counters
+May 2014:
+FPGA_VERSION for LM0 board starts from 0xc0 ->the way for sw to recognize
+the board (L0 or LM0)
+
+

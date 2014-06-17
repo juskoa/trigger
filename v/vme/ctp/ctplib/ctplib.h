@@ -52,6 +52,11 @@ rc: 0: if L0 borad firmware >0xAB
     boardversion if firmware <=0xAB 
 */
 int l0AB();
+/*FGROUP SimpleTests 
+rc: 0: if L0 board
+    boardversion if LM0  (i.e. >=0xc0)
+*/
+int l0C0();
 
 // pfp.c
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT);

@@ -30,7 +30,7 @@ class Detectors2Choose:
   self.window=Toplevel(vb.master)
   dets=' '
   self.dets=myw.MywEntry(self.window, side=LEFT, width=30,defvalue=dets,
-      expandentry='no',label='Detectors', 
+      expandentry='no',label='Detectors',bind='r',cmdlabel=self.getDetectors, 
       helptext="List of detectors separated by commas")
   myw.MywButton(self.window,side=LEFT,label='OK',
            cmd=self.getDetectors,helptext='Values read')
@@ -38,7 +38,7 @@ class Detectors2Choose:
   self.window.grab_set()
   self.window.protocol("WM_DELETE_WINDOW", self.window.destroy)
   self.window.wait_window(self.window)
- def getDetectors(self):
+ def getDetectors(self, fromdetsentry=None):
   inp=self.dets.getEntry()
   for i in inp.split(','):
       det=i.replace(" ","")
@@ -1039,9 +1039,17 @@ class Measure:
    """
    #def __init__(self,vb,board,input,name):
    def __init__(self,input):
-    #print "Measuring ",board,input
+    print "Measuring board:", input.board
     self.vb=input.vb
-    self.board=input.board
+    self.board=input.board   # 1:L0  2:L1  3:L2
+    self.lm0board= None      # FPGA version of LM0 board in case of LM0 board
+    if self.board=='1':
+      cmd='vmeopr32(0x9080)'   # FPGAVERSION_ADD
+      output= string.strip(self.vb.io.execute(cmd,log="out"))
+      print "Measure:l0C0:", output,":"
+      if output >= "0xc0":
+        self.lm0board= output
+        print "Measure:lm0board:", output
     self.input=input.inpnum
     self.name=input.name
     self.inp=input
@@ -1059,16 +1067,19 @@ class Measure:
     boardhelp="""
 0 = BUSY board: measures phase of the input ORBIT
     wrt to BC clock by edge mechanism (see busy board doc)     
-1 = L0 board: measures the phases of the input signal
-    wrt to BC closck
+1 = L0 or LM0 board: measures the phases of the input signal
+    wrt to BC clock
 2 = L1 board
 3 = l2 board"""
     inputhelp="""
-(1-24) = input number to scan
-  0    = ground
-  25   = Vcc ~ 255
-  26   = 20 MHz ~ 126
-  27   = ADC test input ~  /|/"""         
+                                L0        LM0
+  input number to scan         1..24      1-48
+  ground                        0         0
+  Vcc ~ 255                     25       49
+  20 MHz ~ 126                  26       50
+  ADC test input                27       -
+  OBIT & !TEST                  -        51
+"""         
 ##########################################################
     if(self.checkbcclock(0)):
      self.f1=MywFrame(self.tl,side=TOP)
@@ -1079,7 +1090,7 @@ class Measure:
      self.c1.pack()
      f2=MywFrame(self.tl)
      b0=MywButton(f2,label='Cancel',cmd=self.tl.destroy,side=LEFT,
-        helptext='Close the window without accepteng the value.')
+        helptext='Close the window without accepting the value.')
      b2=MywButton(f2,label="Measure",cmd=self.measure,side=LEFT,
         helptext="""Measure points again.
 Edge: choose negative (for delay:0) if unstability is found around delay 0.
@@ -1103,9 +1114,10 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
     output=self.vb.io.execute(cmd,log="out",applout="<>")
     #print "output=",output,' ',output[0]
     if (output[0] != '0x2'):
-       MywError(errmsg="BC clock is not present, staus="+output[0])
-       self.tl.destroy()
-       return 0
+       #MywError(errmsg="BC clock is not present, staus="+output[0])
+       print("BC clock is not present, staus="+output[0])
+       #self.tl.destroy()
+       return 1
     return 1
    def saveauto(self):
     """
@@ -1137,7 +1149,7 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
       self.c1=None
     if(self.checkbcclock(0)):
      output=self.vb.io.execute(self.cmd,log="out",applout="<>")
-     #print 'output=',output
+     print 'output=',output
      if output[len(output)-1] != '0':
         self.vb.io.write('Error in measurephase.c')
      xy=self.xy(output)

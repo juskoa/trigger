@@ -163,7 +163,7 @@ void scanDel(int micseconds,int board)
    usleep(micseconds);
   while(1) {
     w32 bcs;
-    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS);
+    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS); bcs=0x2;
     if(bcs & BC_STATUSpll) break;
   };
    val=readadc(board);
@@ -215,7 +215,7 @@ void rndtest(int board)
   /* PLL_RESET always after dealy change then wait for PLL_LOCK: */
   GetMicSec(&seconds1, &micseconds1);
   //vmew32(BSP*ctpboards[0].dial+PLLreset, DUMMYVAL);
-  vmew32(BSP*ctpboards[board].dial+PLLreset, DUMMYVAL);
+  //vmew32(BSP*ctpboards[board].dial+PLLreset, DUMMYVAL);
   /* first wait for 'unlocked' at least 300 milsecs 
   while(1) {
     w32 bcs;
@@ -228,7 +228,7 @@ void rndtest(int board)
   all0mics=all0mics+diff; */ 
   while(1) {
     w32 bcs;
-    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS);
+    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS); bcs=0x2;
     if(bcs & BC_STATUSpll) break;
   };
   GetMicSec(&seconds2, &micseconds2);
@@ -264,12 +264,39 @@ rc: 2 BC_STATUS low bits: [BC_STATUSpll, BC_STATUSerr] */
 w32 getbcstatus(int board) {
  w32 boardoffset;
  boardoffset=BSP*ctpboards[board].dial;
- return 3&vmer32(boardoffset + BC_STATUS);
+ return 0x2; //return 3&vmer32(boardoffset + BC_STATUS);
 }
-/*FGROUP ADCtools
-  Inputs are counted from 1 to 24(12) as in hardware.
-*/
-int setinput(int board,w32 input){
+/*
+ * run2 is same as run1 at the moment one has to think
+ * what to do
+ */
+int setinputrun2(int board,w32 input){
+  w32 boardoffset;
+ int ret=0;
+ boardoffset=BSP*ctpboards[board].dial;
+ if(input > 53 || input < 0) {
+   ret=2;
+   goto RET;
+ }
+ if(board == 1 || board == 2){
+ }else if(board == 3){
+  if(input == 27)      input = 15;
+  else if(input == 26) input = 14;
+  else if(input == 25) input = 13;
+  else if(input > 12){
+   ret=1;
+   goto RET;
+  }
+ }else{
+  ret=3;
+  goto RET;
+ }
+ vmew32(boardoffset+ADC_SELECT,input);
+ RET:
+ printf("board=%i input =%i ret=%i\n",board,input,ret);
+ return ret;
+}
+int setinputrun1(int board,w32 input){
  w32 boardoffset;
  int ret=0;
  boardoffset=BSP*ctpboards[board].dial;
@@ -293,6 +320,18 @@ int setinput(int board,w32 input){
  vmew32(boardoffset+ADC_SELECT,input);
  RET:
  printf("board=%i input =%i ret=%i\n",board,input,ret);
+ return ret;
+}
+/*FGROUP ADCtools
+  Inputs are counted from 1 to 24(12) as in hardware.
+*/
+int setinput(int board,w32 input){
+ int ret=0;
+ if(l0C0()==0){
+   ret=setinputrun1(board,input);
+ }else{
+   ret=setinputrun2(board,input);
+ }
  return ret;
 }
 /*FGROUP EDGEtools
@@ -352,11 +391,11 @@ int measurephase(int board,int input){
  int edge;
  w32 dum;
  if(setinput(board,input)) return 1;
- edge=getedge(board,input,&dum);
- if(edge>3) return 2;
- setEdge(board,input,0);
+ //edge=getedge(board,input,&dum);
+ //if(edge>3) return 2;
+ //setEdge(board,input,0);
  rndtest(board);  
- setEdge(board,input,edge); 
+ //setEdge(board,input,edge); 
  return 0;
 }
 

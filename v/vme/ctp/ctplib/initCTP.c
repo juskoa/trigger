@@ -174,6 +174,18 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //cfg vmew32(L0_BCOFFSET,calcL0_BCOFFSET());
     //cfg vmew32(PF_COMMON+BSP*ctpboards[ix].dial, calcPFisd(0)<<12);
     //setEdge(1,6,0);   // acorde single needs Positive edge
+    if(l0C0()) {
+      // init CTP LM0 switch to 1->1, 2->2,...
+      int lminp=1; w32 lminpadr;
+      lminpadr= SYNCH_ADD + BSP*ctpboards[ix].dial;
+      for(lminp=1; lminp<=24; lminp++) {
+        w32 val,adr;
+        val= lminp<<16;   // positive edge(s), delay(s): 0
+        adr= lminpadr+ 4*(lminp-1);
+        vmew32(adr, val);
+      }
+      infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
+    }
     vmew32(ALL_RARE_FLAG , 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     setEdgesDelays(1);
     //printf("RND1/2 synchronised\n"); RNDsync(3);

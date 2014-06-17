@@ -2210,8 +2210,9 @@ class PFwholecircuit:
     self.pfwidget=None   # not shown
     self.levels=[]   # 3 pointers to PFcircuit objects (for 3 levels)
     self.pfinbc= None 
-    for ix in range(3):
-      #print "PFwholecircuit:", ix, self.circuit
+    #for ix in range(3):
+    for ix in range(len(self.ctp.pfbs)):
+      print "PFwholecircuit:", ix, self.circuit, len(self.ctp.pfbs)
       self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
   def setpfinbc(self, pfinbc):
     """ set corresponding fields in PFboard objects, 

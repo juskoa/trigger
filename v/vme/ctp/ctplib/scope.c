@@ -3,6 +3,14 @@
 #include "ctp.h"
 
 /*---------------------------------------------------------------- scope  */
+w32 getSCOPE_SEL(int ix) {
+w32 adr;
+if((ix==0) || (ix==4) || ((ix>=5) && (ix<=10))) {
+  adr= SCOPE_SELECTbfi;   // BUSY, INT, FO1-6
+} else {
+  adr= SCOPE_SELECT;
+}; return(adr);
+}
 /*FGROUP DbgScopeCalls
 rc: the number of the board (0-10) which has its ab output enabled
     -1 if there is no enabled board
@@ -21,7 +29,7 @@ if(enmask==0) {
 };
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
-  status=vmer32(SCOPE_SELECT+BSP*ctpboards[ix].dial);
+  status=vmer32(getSCOPE_SEL(ix)+BSP*ctpboards[ix].dial);
   if(status & enmask) {
     if(rc==-1) {
       rc=ix;   /* this board enabled */ 
@@ -31,7 +39,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       w32 disst;
       printf("checkScopeBoard%c:enabled->disable:%d\n",ab,ix);
       disst= status & ~enmask;
-      vmew32(SCOPE_SELECT+BSP*ctpboards[ix].dial, disst);
+      vmew32(getSCOPE_SEL(ix)+BSP*ctpboards[ix].dial, disst);
     };
   };
 };
@@ -56,14 +64,14 @@ if(enmask==0) {
 };
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
-  status=vmer32(SCOPE_SELECT+BSP*ctpboards[ix].dial);
+  status=vmer32(getSCOPE_SEL(ix)+BSP*ctpboards[ix].dial);
   if(ix==board) {
     status= status | enmask;
     rc=ix;
   } else {
     status= status & ~enmask;
   };
-  vmew32(SCOPE_SELECT+BSP*ctpboards[ix].dial, status);
+  vmew32(getSCOPE_SEL(ix)+BSP*ctpboards[ix].dial, status);
 };
 return(rc);
 }
@@ -79,7 +87,7 @@ if(notInCrate(board)) {
   printf("%d not in crate\n",board);
   return(-1);
 };
-status=vmer32(SCOPE_SELECT+BSP*ctpboards[board].dial);
+status=vmer32(getSCOPE_SEL(board)+BSP*ctpboards[board].dial);
 if(ab=='A') {
 /*  smask=0x01f; */
   smask=0x101f;            /* 0x1000 -Abis bit */
@@ -105,7 +113,7 @@ int setScopeSignal(int board, char ab, int signal) {
 int rc=-1;
 w32 newstatus,status,smask=0;
 if(notInCrate(board)) return(-1);
-status=vmer32(SCOPE_SELECT+BSP*ctpboards[board].dial);
+status=vmer32(getSCOPE_SEL(board)+BSP*ctpboards[board].dial);
 if(ab=='A') {
   smask=0x101f;
   newstatus= (status & ~smask) | (signal &smask);
@@ -118,7 +126,7 @@ if(ab=='A') {
   printf("internal error in getScopeSignal\n");
   return(rc);
 };
-vmew32(SCOPE_SELECT+BSP*ctpboards[board].dial, newstatus);
+vmew32(getSCOPE_SEL(board)+BSP*ctpboards[board].dial, newstatus);
 return(rc);
 }
 

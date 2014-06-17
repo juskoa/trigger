@@ -211,5 +211,24 @@ run1@altri2   -running run1 sw with old firmware -problematic,
 10.4.2014
 miclock_fifo.py -takes inputs from /tmp/micfifo instead of stdin. I.e. 
   prepared now to be driven from httpd and html intrface.
-
-
+6.6.2014
+ctplib/notInCrate.c/l0C0()    0: L0 board   >0: LM0 board
+10.6.
+altri2 crate: all baords fy loaded as in altri1 crate:
+       run1  un2:10.6.2014
+busy   a8    a9
+l0     ae    b1
+l1     a4    a6
+l2     a7    a8
+int    a8    ac
+fo     ac    b1
+10.6.
+vmecrate inputs
+- modified for LM0 (works also with old L0)
+12.6.
+caenvme.setup added to bin/distrib, vmewrap.c modified for caenvme (Pietro's request)
+12.6.
+ctplib/initCTP.c: LM0 ctp switch defaults to: 1->1 2->2 ...
+12.6.
+ctplib/scopeab.c
+SCOPE_SELECT is different (SCOPE_SELECTbfi) for BSY,FO, INT boards
