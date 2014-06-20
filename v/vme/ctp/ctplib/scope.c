@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
 
 /*---------------------------------------------------------------- scope  */
 w32 getSCOPE_SEL(int ix) {
@@ -8,7 +9,11 @@ w32 adr;
 if((ix==0) || (ix==4) || ((ix>=5) && (ix<=10))) {
   adr= SCOPE_SELECTbfi;   // BUSY, INT, FO1-6
 } else {
-  adr= SCOPE_SELECT;
+  if((ix==1) && (l0C0())) {
+    adr= SCOPE_SELECTlm0;
+  } else {
+    adr= SCOPE_SELECT;
+  };
 }; return(adr);
 }
 /*FGROUP DbgScopeCalls

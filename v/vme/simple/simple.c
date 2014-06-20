@@ -5,6 +5,9 @@
 #define SERIAL_NUMBER 0x8     /* unique serial number  of the board */
 #define VMEVERSION_ADD   0xc
 #define FPGAVERSION_ADD 0x80 /* board's FPGA version */
+#define L0_CONDITIONr2 0x400
+#define L0_INVERTr2 0x600
+#define L0_VETOr2 0x800
 /*REGEND */
 
 extern int quit;
@@ -12,6 +15,7 @@ extern int quit;
 #include <stdio.h>
 #include <unistd.h>   //usleep
 #include "vmewrap.h"
+#include "vmeblib.h"
 //#include "vmeblib.h"
 extern char BoardName[];
 extern char BoardBaseAddress[];
@@ -68,6 +72,37 @@ while(1) {
   };
   if(mics>0) micwait(mics);
 };
+}
+/*FGROUP
+Write/read random value into array of registers
+
+fromaddr: first address to be tested
+Nregs:    number of consecutive addresses to be tested
+bitmask:  e.g. 0xff -> test only bits 7..0
+loops:    number of loops over the array of registers
+*/
+void rndtest(w32 fromaddr, int Nregs, w32 bitmask, int loops) {
+int nn=0, nerrors=0;
+setseeds(7,3);
+while(1) {
+  int ixreg; w32 address, val, val2;
+  for(ixreg=0; ixreg<Nregs; ixreg++) {
+    val= rounddown(bitmask* rnlx()); val= bitmask&val;
+    address= fromaddr+(ixreg*4);
+    vmew32(address, val);
+    val2= vmer32(address)&bitmask;
+    if((val!= val2) || (loops==(nn+1))) { // print last loop
+      printf("Addr:0x%x Written:0x%x Read:0x%x\n", address, val, val2);
+      if(val!=val2) nerrors++;
+    }; 
+    if(nerrors>10) goto STOPTEST;
+  };
+  nn++;
+  if(nn>=loops) break;
+};
+STOPTEST: 
+printf("Loops:%d errors:%d\n", nn, nerrors);
+return;
 }
 void initmain() {
 printf("Here initmain. BoardName:%s\n\

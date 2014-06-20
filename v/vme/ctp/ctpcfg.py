@@ -70,8 +70,11 @@ def InvertBit(w32,bit):   # bit: 0..31
 vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
 Gl0AB= int(l0abtxt[0])
+l0c0txt= vbexec.get2("l0C0()")
+Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
-print "Gl0AB:",Gl0AB
+if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0
+print "Gl0AB/C0:",Gl0AB,'/',Gl0C0
 
 class Genhw:
   def __init__(self,attrs=None):
@@ -976,7 +979,7 @@ class Klas(Genhw):
     c5= map(eval, c5txt)
     self.l0inputs= c5[0]    #30 bits (32 for firmAC)
     self.l0inverted= c5[1]  #24 bits
-    self.l0vetos= c5[2]     #16 bits. bit16:CLassMask,bit0-12->see hw
+    self.l0vetos= c5[2]     #16 bits. bit16:CLassMask,bit0-12->see hw. not for LM0
     self.scaler= c5[3]
     if len(c5)<=4:   #old format -before L1.L2
       vbexec.printmsg("class%d:: L1,L2 definitions missing, taking defaults\n"%self.clnumber)

@@ -51,6 +51,7 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
 //#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
 #define LTU_SW_VER "5.0 17.01.2014"    // run2:100 classes
+#define LTU_SW_VER "5.1 17.06.2014"    // SEUbit not checked for fpgaver<0xb8
 
 /*REGSTART32 */
 /* VME FPGA: */

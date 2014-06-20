@@ -3,6 +3,7 @@
 #include "vmewrap.h"
 #include "vmeblib.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 /*---------------------------------------------------------------- L0-Shared */
 /* FGROUP DbgNewFW
@@ -88,18 +89,18 @@ An example of output:
 void getShared() {
 w32 w;
 if(notInCrate(1)) return;
-w= vmer32(RANDOM_1); printf("0x%x\n", w);
-w= vmer32(RANDOM_2); printf("0x%x\n", w);
-w= vmer32(SCALED_1); printf("0x%x\n", w);
-w= vmer32(SCALED_2); printf("0x%x\n", w);
-w= vmer32(L0_INTERACT1); printf("0x%x\n", w);
-w= vmer32(L0_INTERACT2); printf("0x%x\n", w);
-w= vmer32(L0_INTERACTT); printf("0x%x\n", w);
-w= vmer32(L0_FUNCTION1); printf("0x%x\n", w);
-w= vmer32(L0_FUNCTION2); printf("0x%x\n", w);
-w= vmer32(L0_INTERACTSEL); 
+w= vmer32(getLM0addr(RANDOM_1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(RANDOM_2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(SCALED_1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(SCALED_2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACT1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACT2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACTT)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_FUNCTION1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_FUNCTION2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACTSEL)); 
 printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
-w= vmer32(ALL_RARE_FLAG); printf("0x%x\n", w&0x1);
+w= vmer32(getLM0addr(ALL_RARE_FLAG)); printf("0x%x\n", w&0x1);
 }
 /*
 Read 4 LUTs LUT31/2 LUT41/2 from shared memory (they are not accessible
@@ -181,23 +182,23 @@ set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2,
                w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2) {
 if(notInCrate(1)) return;
-vmew32(RANDOM_1, r1);
-vmew32(RANDOM_2, r2);
-vmew32(SCALED_1, bs1);
-vmew32(SCALED_2, bs2);
-vmew32(L0_INTERACT1, int1);
-vmew32(L0_INTERACT2, int2);
-vmew32(L0_INTERACTT, intt);
-vmew32(L0_FUNCTION1, l0fun1);
-vmew32(L0_FUNCTION2, l0fun2);
+vmew32(getLM0addr(RANDOM_1), r1);
+vmew32(getLM0addr(RANDOM_2), r2);
+vmew32(getLM0addr(SCALED_1), bs1);
+vmew32(getLM0addr(SCALED_2), bs2);
+vmew32(getLM0addr(L0_INTERACT1), int1);
+vmew32(getLM0addr(L0_INTERACT2), int2);
+vmew32(getLM0addr(L0_INTERACTT), intt);
+vmew32(getLM0addr(L0_FUNCTION1), l0fun1);
+vmew32(getLM0addr(L0_FUNCTION2), l0fun2);
 }
 /*FGROUP L0
 set INTERACTSEL ALL_RARE_FLAG
 */
 void setShared2(w32 intsel, w32 allrare) {
 if(notInCrate(1)) return;
-vmew32(L0_INTERACTSEL, intsel);
-vmew32(ALL_RARE_FLAG , allrare);
+vmew32(getLM0addr(L0_INTERACTSEL), intsel);
+vmew32(getLM0addr(ALL_RARE_FLAG) , allrare);
 }
 /* set L0f34 in hw. 
 Input:

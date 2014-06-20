@@ -232,3 +232,10 @@ ctplib/initCTP.c: LM0 ctp switch defaults to: 1->1 2->2 ...
 12.6.
 ctplib/scopeab.c
 SCOPE_SELECT is different (SCOPE_SELECTbfi) for BSY,FO, INT boards
+19.6.
+vme/simple/  -rndtest testing an array of VME regs in a loop
+ctp.h:
+L0_VETOr2 -used for LM0, L0_VETO -to be used with L0 board
+L0_MASK   -use ONLY for L0
+L0_INVERTac -the same for L0/LM0
+L0_CONDIION -the same for L0/LM0

@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iostream>
 
+w32 getLM0addr(w32 addr);    // is in ctplib
+
 ///////////////////////////////////////////////////////////////////////
 // New classes for testing new fw
 ///////////////////////////////////////////////////////////////////////
@@ -333,10 +335,10 @@ w32* CTPHardware::ClustersInRuns=0;
 // Shared resources
 VMEaddress CTPHardware::L0FUNCTION_1("L0FUNCTION_1",0x9000+4*0x137,1);
 VMEaddress CTPHardware::L0FUNCTION_2("L0FUNCTION_2",0x9000+4*0x138,1);
-VMEaddress CTPHardware::RND1("RANDOM_1",0x9000+4*0x139,1);
-VMEaddress CTPHardware::RND2("RANDOM_2",0x9000+4*0x13a,1);
-VMEaddress CTPHardware::BC1("SCALED_1",0x9000+4*0x13b,1);
-VMEaddress CTPHardware::BC2("SCALED_2",0x9000+4*0x13c,1);
+VMEaddress CTPHardware::RND1("RANDOM_1",getLM0addr(0x9000+4*0x139),1);
+VMEaddress CTPHardware::RND2("RANDOM_2",getLM0addr(0x9000+4*0x13a),1);
+VMEaddress CTPHardware::BC1("SCALED_1",getLM0addr(0x9000+4*0x13b),1);
+VMEaddress CTPHardware::BC2("SCALED_2",getLM0addr(0x9000+4*0x13c),1);
 VMEaddressL0fun CTPHardware::L0FUNCTION_34("L0FUNCTION_3",0x9000+4*0x1fb);
 // Classes
 VMEaddress* CTPHardware::L0CONDITION[NCLASS];
@@ -358,9 +360,13 @@ CTPHardware::CTPHardware()
  Addresses.push_back(&L0FUNCTION_34);
  for(w32 i=0;i<NCLASS;i++){
    L0CONDITION[i] = new VMEaddress("L0_CONDITION",0x9000+4*(0x101+i),0);
-   L0VETO[i]      = new VMEaddress("L0_VETO",     0x9000+4*(0x181+i),0);
+   if(l0C0()) {
+     L0VETO[i]      = new VMEaddress("L0_VETOr2",     0x9000+4*(0x201+i),0);
+     L0MASK[i]      = new VMEaddress("L0_MASK",     0x9000+4*(0x1c1+i),0);
+   } else {
+     L0VETO[i]      = new VMEaddress("L0_VETO",     0x9000+4*(0x181+i),0);
+   };
    L0INVERT[i]    = new VMEaddress("L0_INVERT",   0x9000+4*(0x16d+i),0);
-   L0MASK[i]      = new VMEaddress("L0_MASK",     0x9000+4*(0x1c1+i),0);
    Addresses.push_back(L0CONDITION[i]);  
    Addresses.push_back(L0VETO[i]);  
    Addresses.push_back(L0INVERT[i]);  

@@ -13,6 +13,7 @@ See  cfg2part.c clg_defaults[MAXCLASSGROUPS]= {0,1,1,3,4,5,6,7,8,9999}; */
 #include "vmeblib.h"
 #include "vmeblib.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 #include "ctp_proxy.h"
 
@@ -61,6 +62,7 @@ int iclass, rc=0, pcfgn=0; w32 mskCLAMASK;
 char msg[900];
 if(l0AB()==0) {   //firmAC
   mskCLAMASK=0x80000000;
+  if(l0C0()) mskCLAMASK= 0x800000;   // and use L0_VETOr2
 } else {
   mskCLAMASK=0x10000;
 };
@@ -91,7 +93,16 @@ for(iclass=0; iclass<NCLASS; iclass++) {
     // deactivate (1: class is not active)
     mskbit= 1; 
   };
-  vmew32(L0_MASK+bb, mskbit);
+  setClaMask(hwclass+1, mskbit);
+  /*if(l0C0()) {
+    w32 val; 
+    val= vmer32(L0_VETOr2+bb); 
+    val= val & (~mskCLAMASK); val= val | (mskbit<<23);
+    vmew32(L0_VETOr2+bb, val);
+  } else {
+    vmew32(L0_MASK+bb, mskbit);
+  }
+  */
 };
 if(DBGCLGROUPS) {
   sprintf(msg, "%s: allclasses:%d activated:%d", part->name, pcfgn, rc);
@@ -112,8 +123,8 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   if(part->classgroups[clgroup] == CG_NEVERACTIVE) {
     int hwclass,bb;
     hwclass= part->klas[iclass]->hwclass;  // 0..49
-    bb=4*(hwclass+1);
-    vmew32(L0_MASK+bb, 1);
+    setClaMask(hwclass+1, 1);
+    //bb=4*(hwclass+1); vmew32(L0_MASK+bb, 1);
     sprintf(msg2,"%s %d", msg2, hwclass+1);
     nacs++;
   };

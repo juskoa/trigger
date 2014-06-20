@@ -1168,7 +1168,9 @@ and create human readable file""", state=NORMAL,
         #get ltu version
         output=self.vb.io.execute("getgltuver()",applout='<>')
         ltuver=hex(int(output[0]))
-        #print ltuver
+        #print ltuver, os.getcwd()
+        #os.chdir(os.environ['VMEWORKDIR'])
+        #print "after chdir:", os.getcwd()
         if ltuver >= '0xb7':
           plog= os.popen(os.path.join(os.environ['VMECFDIR'],"SSMANA",lindir,"ssmanls1.exe"),"r")
         else:

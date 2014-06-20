@@ -4,6 +4,7 @@
 #include <unistd.h>    /* usleep */
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 #define bit0_7 (1+2+4+8+16+32+64+128)
 #define stable 10
@@ -52,7 +53,11 @@ int readadc_s(int board)
 int phaseLx(int board){
  w32 offset,value;
  offset=BSP*ctpboards[board].dial;
- vmew32(offset+ADC_SELECT,28);
+ if((board==1) && (l0C0())) {
+   vmew32(offset+ADC_SELECTlm0,28);
+ }else {
+   vmew32(offset+ADC_SELECT,28);
+ };
  value = readadc_s(board);
  //printf("BOARD L%i: adc=%i \n",board-1,value);
  return(value);
@@ -63,7 +68,11 @@ int phaseBUSY(){
  vmew32(BUSY_CLUSTER,1<<24);
  // measure adc on L0 board
  offset=BSP*ctpboards[1].dial;
- vmew32(offset+ADC_SELECT,29);
+ if(l0C0()) {
+   vmew32(offset+ADC_SELECTlm0,29);
+ } else {
+   vmew32(offset+ADC_SELECT,29);
+ };
  value = readadc_s(1);
  //printf("BOARD BUSY: adc=%i \n",value);
  // toggle off
@@ -80,7 +89,11 @@ int phaseINT(){
  vmew32(BUSY_CLUSTER,2<<24);
  // measure adc on L0 board
  offset=BSP*ctpboards[1].dial;
- vmew32(offset+ADC_SELECT,29);
+ if(l0C0()) {
+   vmew32(offset+ADC_SELECTlm0,29);
+ } else {
+   vmew32(offset+ADC_SELECT,29);
+ };
  value = readadc_s(1);
  //printf("BOARD INT: adc=%i \n",value);
  // toggle off on busy 

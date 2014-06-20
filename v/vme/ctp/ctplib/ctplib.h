@@ -61,7 +61,7 @@ int l0C0();
 // pfp.c
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT);
 
-// moved from ctp.c:
+// ctpTools.c, moved from ctp.c:
 /*FGROUP INT
 daqon:0       ->daq active
 daqon:0xb     ->daq off (i.e. produce triggers in spite of DDL red diode 
@@ -82,6 +82,27 @@ INT_DDL_EMU word in normal mode (i.e. DAQ active):
 0x70:      1         1         1  data not sent (backpressure)
 */
 void DAQonoff(int daqon);
+// classn:1..100  mskbit: 1: disable 0: enable
+void setClaMask(int classn, int mskbit);
+w32 getRATE_MODE();
+/*FGROUP SimpleTests
+Input: address (e.g. 0x95bc) from range 0x95bc..0x95e4.
+L0_INTERACT1   0x95bc    16 bits thruth table
+L0_INTERACT2   0x95c0
+L0_INTERACTT   0x95c4
+L0_INTERACTSEL 0x95c8    [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1
+                         [5..9]-> ... for INTERACT2 
+L0_FUNCTION1   0x95cc
+L0_FUNCTION2   0x95d0
+RANDOM_1       0x95d4    bit31: 1: Enable filter
+RANDOM_2       0x95d8
+SCALED_1       0x95dc
+SCALED_2       0x95e0
+ALL_RARE_FLAG  0x95e4
+
+rc: corresponding L0 or LM0 address
+*/
+w32 getLM0addr(w32 l0addr);
 
 /*FGROUP DebCon
 Generate n software trigger sequences

@@ -239,13 +239,18 @@ overlap= calcOverlap(bsy); vmew32(BUSY_OVERLAP, overlap);
 Set daqbsy, T,1,2,3,4,5,6 SET_CLUSTER word on the BUSY board
 */
 void setClusters(w32 daqbsy, w32 tc,w32 c1,w32 c2,w32 c3,w32 c4,w32 c5,w32 c6) {
-w32 overlap; w32 bsy[7];
+w32 overlap,adr; w32 bsy[7];
 int iclu;
 vmew32(BUSY_DAQBUSY, daqbsy);
-if(daqbsy !=0) {
-  vmew32(DAQ_LED, 1);
+if(l0C0()) {
+  adr= DAQ_LEDlm0;
 } else {
-  vmew32(DAQ_LED, 0);
+  adr= DAQ_LED;
+};
+if(daqbsy !=0) {
+  vmew32(adr, 1);
+} else {
+  vmew32(adr, 0);
 };
 /*VON vmew32(BUSY_CLUSTER, tc);
 vmew32(BUSY_CLUSTER+4, c1);
@@ -449,11 +454,15 @@ if(notInCrate(1)) {
   }else {
     Klas[klasix].regs[1]= 0;
   };
-  mskbit1= vmer32(L0_MASK+bb)&0x1;
-  if(l0AB()==0) {   //firmAC
-    mskbit2= (vmer32(L0_VETO+bb)&0x1fffff) | (mskbit1<<31);
+  if(l0C0()==0) {
+    mskbit1= vmer32(L0_MASK+bb)&0x1;
+    if(l0AB()==0) {   //firmAC
+      mskbit2= (vmer32(L0_VETO+bb)&0x1fffff) | (mskbit1<<31);
+    } else {
+      mskbit2= (vmer32(L0_VETO+bb)&0xffff) | (mskbit1<<16);
+    };
   } else {
-    mskbit2= (vmer32(L0_VETO+bb)&0xffff) | (mskbit1<<16);
+    mskbit2= (vmer32(L0_VETOr2+bb)&0x7fffffff);
   };
   Klas[klasix].regs[2]= mskbit2;
   /* scalers are updated in 1 pass (see hw2rates)
@@ -497,6 +506,7 @@ words for klas (1..NCLASS)
 ATTENTION: 
 1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
    bit31 for firmAC
+   LM0: bit23 (as in hw)
 2. invert,l1invert -valid only for class>=45
 */
 void setClass(int klas,w32 condition, w32 invert, w32 veto, w32 scaler,
@@ -511,8 +521,12 @@ if(notInCrate(1)==0) {   // L0 board
     Klas[klasix].regs[1]= invert; vmew32(l0invAC+bb, invert);
   };
   if(l0AB()==0) { //firmAC
-    Klas[klasix].regs[2]= veto; vmew32(L0_VETO+bb, veto&0x1fffff); 
-    mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+    if(l0C0()) {
+      Klas[klasix].regs[2]= veto; vmew32(L0_VETOr2+bb, veto&0x7fffffff); 
+    } else {
+      Klas[klasix].regs[2]= veto; vmew32(L0_VETO+bb, veto&0x1fffff); 
+      mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+    };
   } else {
     Klas[klasix].regs[2]= veto; vmew32(L0_VETO+bb, veto&0xffff); 
     /* 1st L0 version (A0): vmew32(L0_MASK+bb, veto&0x10000); */
@@ -535,16 +549,18 @@ if(notInCrate(3)==0) {
 disable all NCLASS classes, i.e.:
 - set all inputs,vetos as dontcare for all NCLASS classes i.e.:
 L0_CONDITION = 0xffffffff
-L0_VETO      = 0xfffffff0   (cluster0) bit31:1-> class is disabled
+L0_VETO      = 0xfffffff0 (cluster0) bit31:1-> class is disabled
+L0_VETOr2    = 0x00fffff0 (cluster0) DSCG: 0
 and 0x0 in:
 L0_INVERT   =0
 L0_PRESCALER=0
 */
 void disableClasses() {
-int klas;
+int klas; w32 veto=0xfffffff0;
 if(notInCrate(1)) return;
+if(l0C0()) veto=0x00fffff0;
 for(klas=1; klas<=NCLASS; klas++) {
-  setClass(klas, 0xffffffff, 0, 0xfffffff0, 0, 0x0fffffff, 0,0x0f000fff);
+  setClass(klas, 0xffffffff, 0, veto, 0, 0x0fffffff, 0,0x0f000fff);
 };
 }
 
@@ -553,12 +569,12 @@ read all rates (scalers) from hw to Klas structure
 */
 void hw2rates() {
 int ix;
-vmew32(RATE_MODE,1);   /* vme mode */
+vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
   Klas[ix].regs[3]= vmer32(RATE_DATA) & RATE_MASK;
 };
-vmew32(RATE_MODE,0);   /* normal mode */
+vmew32(getRATE_MODE(),0);   /* normal mode */
 /*printf("hw2rates.\n"); */
 }
 /*FGROUP L0
@@ -566,12 +582,12 @@ write all rates (scalers) from Klas structure to hw
 */
 void rates2hw() {
 int ix;
-vmew32(RATE_MODE,1);   /* vme mode */
+vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
   vmew32(RATE_DATA, Klas[ix].regs[3] & RATE_MASK);
 };
-vmew32(RATE_MODE,0);   /* normal mode */
+vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 
 /*FGROUP L0
@@ -618,8 +634,8 @@ void setRates4HLTtest(int rate) {
 w32 r1,r2; float r1f,r2f;
 r2f= rate*3564/12.; r2= (w32)(r2f*0x7fffffff/40./1000000);
 r1f= r2f+1; r1= (w32)(r1f*0x7fffffff/40./1000000.);
-vmew32(RANDOM_1, r1);
-vmew32(RANDOM_2, r2);
+vmew32(getLM0addr(RANDOM_1), r1);
+vmew32(getLM0addr(RANDOM_2), r2);
 printf("rate:%dhz: rnd1:%6.2fhz =%d   rnd2:%6.2fhz =%d was set in CTP\n",\
   rate, r1f, r1, r2f, r2);
 }
@@ -656,7 +672,11 @@ rc= setomSSM(brd, 0x20d); rc= startSSM1(brd);
 /*rc= setomSSM(brd, 0x20c); */
 for(sync=0; sync<=15; sync++) {
   for(ix1=0; ix1<24; ix1++) {
+   if(l0C0()) {
+    sadr= bb+SYNCH_ADDr2+4*ix1;
+   } else {
     sadr= bb+SYNCH_ADD+4*ix1;
+   };
     vmew32(sadr, sync);
   };
 /*  rc= startSSM1(brd); */
