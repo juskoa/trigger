@@ -409,8 +409,9 @@ Bits:
 20   L2_TC_SET bit24 (P/F/veto)
 */
 w32 getTCSET() {
-w32 status,st;
-status= vmer32(L0_TCSET)&0x7ffff;
+w32 status,st,l0_tcset;
+if(l0C0()) { l0_tcset= L0_TCSETr2; } else { l0_tcset= L0_TCSET; };
+status= vmer32(l0_tcset)&0x7ffff;
 st= (vmer32(L1_TCSET)&0x40000)<<1; status= status | st;
 st= (vmer32(L2_TCSET)&0x1000000)>>4; status= status | st;
 return(status);
@@ -419,8 +420,9 @@ return(status);
 tcset012 -extended mening (bits 18,19 -see getTCSET() )
 */
 void setTCSET(w32 tcset012, w32 dets) {
-w32 tcs2;
-vmew32(L0_TCSET, tcset012&0x7ffff);
+w32 tcs2,l0_tcset;
+if(l0C0()) { l0_tcset= L0_TCSETr2; } else { l0_tcset= L0_TCSET; };
+vmew32(l0_tcset, tcset012&0x7ffff);
 vmew32(L1_TCSET, (tcset012>>1)&0x40000);
 tcs2= (tcset012<<4)&0x1000000;
 vmew32(L2_TCSET, (tcs2| (dets&0xffffff)) );
@@ -462,7 +464,7 @@ if(notInCrate(1)) {
       mskbit2= (vmer32(L0_VETO+bb)&0xffff) | (mskbit1<<16);
     };
   } else {
-    mskbit2= (vmer32(L0_VETOr2+bb)&0x7fffffff);
+    mskbit2= vmer32(L0_VETOr2+bb);
   };
   Klas[klasix].regs[2]= mskbit2;
   /* scalers are updated in 1 pass (see hw2rates)
@@ -522,7 +524,7 @@ if(notInCrate(1)==0) {   // L0 board
   };
   if(l0AB()==0) { //firmAC
     if(l0C0()) {
-      Klas[klasix].regs[2]= veto; vmew32(L0_VETOr2+bb, veto&0x7fffffff); 
+      Klas[klasix].regs[2]= veto; vmew32(L0_VETOr2+bb, veto);
     } else {
       Klas[klasix].regs[2]= veto; vmew32(L0_VETO+bb, veto&0x1fffff); 
       mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
@@ -550,7 +552,7 @@ disable all NCLASS classes, i.e.:
 - set all inputs,vetos as dontcare for all NCLASS classes i.e.:
 L0_CONDITION = 0xffffffff
 L0_VETO      = 0xfffffff0 (cluster0) bit31:1-> class is disabled
-L0_VETOr2    = 0x00fffff0 (cluster0) DSCG: 0
+L0_VETOr2    = 0xXX9ffff0 (cluster0) DSCG: XX (low 7 bits)
 and 0x0 in:
 L0_INVERT   =0
 L0_PRESCALER=0
@@ -558,9 +560,9 @@ L0_PRESCALER=0
 void disableClasses() {
 int klas; w32 veto=0xfffffff0;
 if(notInCrate(1)) return;
-if(l0C0()) veto=0x00fffff0;
+if(l0C0()) veto=0x009ffff0;
 for(klas=1; klas<=NCLASS; klas++) {
-  setClass(klas, 0xffffffff, 0, veto, 0, 0x0fffffff, 0,0x0f000fff);
+  setClass(klas, 0xffffffff, 0, veto|((klas-1)<<24), 0, 0x0fffffff, 0,0x0f000fff);
 };
 }
 
@@ -569,10 +571,16 @@ read all rates (scalers) from hw to Klas structure
 */
 void hw2rates() {
 int ix;
+w32 rate_mask;
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
 vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
-  Klas[ix].regs[3]= vmer32(RATE_DATA) & RATE_MASK;
+  Klas[ix].regs[3]= vmer32(RATE_DATA) & rate_mask;
 };
 vmew32(getRATE_MODE(),0);   /* normal mode */
 /*printf("hw2rates.\n"); */
@@ -582,10 +590,16 @@ write all rates (scalers) from Klas structure to hw
 */
 void rates2hw() {
 int ix;
+w32 rate_mask;
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
 vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
-  vmew32(RATE_DATA, Klas[ix].regs[3] & RATE_MASK);
+  vmew32(RATE_DATA, Klas[ix].regs[3] & rate_mask);
 };
 vmew32(getRATE_MODE(),0);   /* normal mode */
 }
@@ -684,6 +698,17 @@ for(sync=0; sync<=15; sync++) {
 };
 }
 
+w32 getSDSGr2(int cls) {
+w32 adr;
+adr= L0_VETOr2+4*cls;
+return( (vmer32(adr)>>24)&0x7f );
+}
+void putSDSGr2(int cls, int grp) {
+w32 adr;
+adr= L0_VETOr2+4*cls;
+vmew32(adr, (vmer32(adr)&0x80ffffff) | (grp<<24)) ;
+return;
+}
 /*FGROUP SimpleTests
 clas:
 0: print L0_SDSCG+4,8,...
@@ -692,32 +717,51 @@ clas:
 952: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,99
 group: Set class' group to group
        Should be : 1,2,3,...,NCLASS
+LM0: works with L0_VETOSr2[30..24]
 */
 void printsetSDSCG(int clas, int group) {
 if(clas==0) {
   int ixc;
-  for(ixc=1; ixc<=NCLASS; ixc++) {
-    w32 adr,val;
-    adr= L0_SDSCG + ixc*4;
-    val= vmer32(adr);
-    printf("%2d:%2d ", ixc, val);
-    if((ixc%10)==0) printf("\n");
-  };
+  if(l0C0()) {
+    for(ixc=1; ixc<=NCLASS; ixc++) {
+      w32 val;
+      val= getSDSGr2(ixc);
+      printf("%2d:%2d ", ixc, val);
+      if((ixc%10)==0) printf("\n");
+    };
+  } else {
+    for(ixc=1; ixc<=NCLASS; ixc++) {
+      w32 adr,val;
+      adr= L0_SDSCG + ixc*4; val= vmer32(adr);
+      printf("%2d:%2d ", ixc, val);
+      if((ixc%10)==0) printf("\n");
+    };
+  }
 } else if(clas==951) {
   printf("setting SDSCG for all classes to %d...\n",group);
   int ixc;
-  for(ixc=1; ixc<=NCLASS; ixc++) {
-    w32 adr;
-    adr= L0_SDSCG + ixc*4;
-    vmew32(adr, group);
+  if(l0C0()) {
+    for(ixc=1; ixc<=NCLASS; ixc++) {
+      putSDSGr2(ixc, group);
+    };
+  } else {
+    for(ixc=1; ixc<=NCLASS; ixc++) {
+      w32 adr;
+      adr= L0_SDSCG + ixc*4; vmew32(adr, group);
+    };
   };
 } else if(clas==952) {
   printf("setting SDSCG for all classes to default: 0,1,...,99\n");
   int ixc;
-  for(ixc=1; ixc<=NCLASS; ixc++) {
-    w32 adr;
-    adr= L0_SDSCG + ixc*4;
-    vmew32(adr, ixc-1);
+  if(l0C0()) {
+    for(ixc=1; ixc<=NCLASS; ixc++) {
+      putSDSGr2(ixc, ixc-1);
+    };
+  } else {
+    for(ixc=1; ixc<=NCLASS; ixc++) {
+      w32 adr;
+      adr= L0_SDSCG + ixc*4; vmew32(adr, ixc-1);
+    };
   };
 } else if(clas>NCLASS) {
   printf("clas: 0..100 allowed\n");
@@ -728,8 +772,11 @@ if(clas==0) {
     w32 adr;
     if(group==0) {
       printf("Warning: group 0 allowed but should not be used!\n");
-    adr= L0_SDSCG + clas*4;
-    vmew32(adr, group);
+    if(l0C0()) {
+      putSDSGr2(clas, group);
+    } else {
+      adr= L0_SDSCG + clas*4; vmew32(adr, group);
+    };
   };
 };
 };
@@ -984,7 +1031,11 @@ int ix;
 w32 status, va;
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
-  va= TEST_ADD+BSP*ctpboards[ix].dial;
+  if((ix==1) && (l0C0())) {
+    va= TEST_ADDr2;
+  } else {
+    va= TEST_ADD+BSP*ctpboards[ix].dial;
+  };
   if(ix==0) va= va + 0x400;    // busy is special (1nn)
   status=vmer32(va); status=~status; vmew32(va, status);
 };

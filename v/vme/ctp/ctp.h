@@ -128,9 +128,10 @@ LM0 board:
 */
 /*#define TEST_ADD        0xc0  was till 12.3.2008 */
 /*#define TEST_ADD        0x7e0 was till  6.11.2013 */
+#define TEST_ADDr2      0x93f8
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADDr2    0x344 /*Synch/delay adds for LM0 board */
+#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board */
 #define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
 0x344:inp1,...
 0x804:inp1,..., 0x860:inp24
@@ -216,13 +217,19 @@ L0, L1, L2:
 bit31=0: 21bits data pseudo-random pattern-repetition period
          bits 24..21 read 0 if 0 was written
 bit31=1: 25bits for L0-class busy time in steps of 10micsecs
-         i.e. max. busy time: is  cca 5.58 minutes */
+         i.e. max. busy time: is  cca 5.58 minutes
+LM0: bit25 (not 31) -see RATE_DATABTMr2
+ */
 #define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
                                 /*   fy>=0xAC           4Kwordxx12bits*/
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
+#define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
+#define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
                                    11..0: BCnumber (valid for Synch. trigger)*/
+#define L0_TCSETr2     0x93fc
+
 #define L0_CONDITION   0x9400    /* +4*n n=1,2,...,100
 bits    newMeaning (>=AC)            meaning before AC
 ----    ----------                   --------------
@@ -237,7 +244,7 @@ bit23..0: 1: invert L0 input   0: use original polarity
 firmAC:
 all classes can use inverted inputs, use L0_INVERTac symbol.
 */
-/* see PFCOMMON... */
+/* see PF_COMMON... */
 #define MASK_MODE      0x95a4 /* BCMask memory mode 1:vme 0:normal */
 #define MASK_MODEr2    0x91ec /* BCMask memory mode 1:vme 0:normal */
 #define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
@@ -288,9 +295,6 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 #define L0_INVERTac    0x9600    /* +4*n n=1,....,100, 0x9604..0x9790 */ 
 /* bit23..0: 1: invert L0 input   0: use original polarity */
 //#define L0_VETO        0x9600
-#define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
-//#define L0_FUNCTION3  0x97ec
-//#define L0_FUNCTION4  0x97f0
 #define L0_VETO        0x9900    /* +4*n n=1,2,...,100
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
@@ -300,24 +304,29 @@ bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
  2..0: Cluster code (1-6)         2..0: the same
 Note: in ctp.c getClass L0_VETO[bit31] is set according to L0_MASK[0] bit
 */
-#define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100  on LM0 board
+#define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
+                                LM0 note
 31     spare
-30..24 DSCG group (7bits)
-23     class mask
+30..24 DSCG group (7bits)       new
+23     class mask (1:disabled)  new
 22..21 spare
-20     1:Select All/Rare input
-19..8: Select BCmask[12..1]
- 7..4: Select PFprot[4..1]
- 2..0: Cluster code (1-6)
+20     1:Select All/Rare input  the same
+19..8: Select BCmask[12..1]     the same
+ 7..4: Select PFprot[4..1]      the same
+ 2..0: Cluster code (1-6)       the same
 
 Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
 L0_VETOr2[23] bit is used. L0_MASK is not used in LM0 board!
 
 */
 #define L0_MASK        0x9b00    /* +4*n n=1,2,...,100   NOT used in LM0
-bit0: 1: the class is disabled */
+bit0: 1: the class is disabled 
+LM0: this word dos not exist (bit is in L0_VETOr2 now) 
+*/
 //#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
-#define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90*/ 
+#define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
+LM0: does not exist (is in L0_VETOr2)
+*/
 
 /* L1 board */
 #define L1_TCSTATUS    0xa1c0   /*R/O*/
@@ -391,9 +400,16 @@ read:
                                 /* 06:r0EnaCIT,CIT, EnaRoC,RoC for TestCntr1*/
 #define INT_BCOFFSET  0xc5a8
 /*REGEND */
+#define L0_FUNCTION34    0x97ec
+#define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs.
+deliberately after REGEND becasue it is different for L0/LM0*/ 
 #define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
+#define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
 #define DUMMYVAL 0xffffffff   /* recommended for DUMMY writes */
 #define RATE_MASK 0x81ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
+#define RATE_MASKr2 0x03ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
+#define RATE_DATABTM    0x80000000
+#define RATE_DATABTMr2  0x2000000
 
 #define MAXL0REGS 7
 typedef struct{

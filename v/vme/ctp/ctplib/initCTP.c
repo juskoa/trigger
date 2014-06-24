@@ -91,7 +91,7 @@ int ix;
 vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
-  vmew32(RATE_DATA, ix<<25);
+  vmew32(RATE_DATA, 0);    // 0: from 23.6.2014  (ix<<25): before
 };
 vmew32(getRATE_MODE(),0);   /* normal mode */
 }
@@ -130,7 +130,7 @@ for(ix=1; ix<=NCLASS; ix++) {
   //            w32 l1def, w32 l1invert, w32 l2def
   //setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
   if(l0C0()){
-    setClassInit(ix,0xffffffff,0x0,0x00fffff0, 0, 0x8fffffff, 0x0, 0xf000fff);
+    setClassInit(ix,0xffffffff,0x0,0x009ffff0 | (ix-1)<<24, 0, 0x8fffffff, 0x0, 0xf000fff);
   }else {
     setClassInit(ix,0xffffffff,0x0,0x801ffff0, 0, 0x8fffffff, 0x0, 0xf000fff);
   };
@@ -187,7 +187,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //cfg vmew32(getLM0addr(L0_INTERACT2), 0); //cfg vmew32(getLM0addr(L0_INTERACTT), 0);
     //cfg vmew32(getLM0addr(L0_INTERACTSEL), 0);
     //cfg vmew32(L0_BCOFFSET[r2],calcL0_BCOFFSET());
-    //cfg vmew32(PF_COMMON+BSP*ctpboards[ix].dial, calcPFisd(0)<<12);
+    //cfg vmew32(getLM0PFad(PF_COMMON)+BSP*ctpboards[ix].dial, calcPFisd(0)<<12);
     //setEdge(1,6,0);   // acorde single needs Positive edge
     if(l0C0()) {
       // init CTP LM0 switch to 1->1, 2->2,...

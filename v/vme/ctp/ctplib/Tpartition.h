@@ -258,7 +258,8 @@ typedef struct Hardware{
  TFO fo[NFO];           // clust. is free if there is no bit ON in fo[0-5]
  TBUSY busy;
  int sdgs[NCLASS];   // Default: 0..49. Different in case if SDG active 
-     // for given class used to fill L0_SDSCG registers
+     // for given class used to fill L0_SDSCG registers. VALID also for LM0
+     // (i.e. here, not in klas[]->l0vetos
 }Hardware;
 // Clean existing HW structure
 void cleanHardware(Hardware *hw, int leaveint);

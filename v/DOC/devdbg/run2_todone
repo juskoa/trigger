@@ -15,6 +15,7 @@ modified:
 ctp.c, ctpcfg.py:  100 classes should be ok
  
 2. parted
+---------
 trgglobs.py introduced. NCLS= 100 -to be used in *.py
 
 ctp_proxy

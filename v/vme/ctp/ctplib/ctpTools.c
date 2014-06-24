@@ -49,4 +49,16 @@ if((addr>=L0_INTERACT1) && (addr<=ALL_RARE_FLAG)) {
   return(0);
 }
 }
+w32 getLM0PFad(w32 addr) {
+if((addr>=PF_COMMON) && (addr<=PFLUT)) {
+  if(l0C0()) {
+    return(addr-L0LM0PFDIFF);
+  } else {
+    return(addr);
+  };
+} else {
+  printf("getLM0PFad: internal error for addr:0x%x\n", addr);
+  return(0);
+}
+}
 

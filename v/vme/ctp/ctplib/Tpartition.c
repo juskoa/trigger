@@ -1340,8 +1340,14 @@ w32 i,isp,bb, overlap,flag,bcmaskn;
 TKlas *klas;
 TRBIF *rbif;
 w32 l0invAC, minAC;
+w32 rate_mask;
 int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
 char skipped[200]="";
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
 
 l0invAC=L0_INVERTac; minAC=0;
 // find out TIMESHARING classes, using StartedPartitions:
@@ -1441,7 +1447,7 @@ for(i=0;i<NCLASS;i++){
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
   if(l0AB()==0) {   //firmAC
     if(l0C0()) {
-      vmew32(L0_VETOr2+bb,(klas->l0vetos)&0x7fffffff);
+      vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
     } else {
       vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
     };
@@ -1470,14 +1476,19 @@ for(i=0;i<NCLASS;i++){
   };
 };
 printf("loadHW:skipped:%s\n", skipped);
+if(l0C0()==0) {
 for(i=0;i<NCLASS;i++){
   vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
+};
 };
  //--------------------------------------------- L0 downscalers
  vmew32(getRATE_MODE(),1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
  for(i=0; i<NCLASS; i++) {
-   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK));
+   /* 23.6.2014: no reason to set 0..49 in bits 30..25,
+      although see note in ctp.h at RATE_MASK). From now, put 0 in 30..25.
+   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK)); */
+   vmew32(RATE_DATA, (hw->klas[i]->scaler & rate_mask));
  };
  vmew32(getRATE_MODE(),0);   /* normal mode */
  //--------------------------------------------- FOs

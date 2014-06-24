@@ -145,7 +145,11 @@ int ix;
 w32 status,rc=0, va;
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
-  va= TEST_ADD+BSP*ctpboards[ix].dial;
+  if((ix==1) && (l0C0())) {
+    va= TEST_ADDr2;
+  } else {
+    va= TEST_ADD+BSP*ctpboards[ix].dial;
+  };
   if(ix==0) va= va + 0x400;  // busy board is special (1nn)
   status=vmer32(va) & 0x2;   /* VMERW-Scope bit */
   if(status!=0) {

@@ -103,6 +103,7 @@ ALL_RARE_FLAG  0x95e4
 rc: corresponding L0 or LM0 address
 */
 w32 getLM0addr(w32 l0addr);
+w32 getLM0PFad(w32 l0addr);
 
 /*FGROUP DebCon
 Generate n software trigger sequences

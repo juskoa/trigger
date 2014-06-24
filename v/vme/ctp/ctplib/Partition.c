@@ -335,10 +335,14 @@ w32* CTPHardware::ClustersInRuns=0;
 // Shared resources
 VMEaddress CTPHardware::L0FUNCTION_1("L0FUNCTION_1",0x9000+4*0x137,1);
 VMEaddress CTPHardware::L0FUNCTION_2("L0FUNCTION_2",0x9000+4*0x138,1);
+
+getLM0addr -probably not working (it uses global var. ctpboards[]...)
 VMEaddress CTPHardware::RND1("RANDOM_1",getLM0addr(0x9000+4*0x139),1);
 VMEaddress CTPHardware::RND2("RANDOM_2",getLM0addr(0x9000+4*0x13a),1);
 VMEaddress CTPHardware::BC1("SCALED_1",getLM0addr(0x9000+4*0x13b),1);
 VMEaddress CTPHardware::BC2("SCALED_2",getLM0addr(0x9000+4*0x13c),1);
+
+LM0: 0x90 while old L0: 0x1fb
 VMEaddressL0fun CTPHardware::L0FUNCTION_34("L0FUNCTION_3",0x9000+4*0x1fb);
 // Classes
 VMEaddress* CTPHardware::L0CONDITION[NCLASS];

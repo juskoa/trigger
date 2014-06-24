@@ -27,19 +27,29 @@ void dumpL0(FILE *f){
  w32 word1,word2,word3;
  w32 rates[NCLASS];
 w32 l0invAC; int i, minAC;
+w32 rate_mask;
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
 l0invAC=L0_INVERTac; minAC=0;
 /* rates: */
 vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(i=0;i<NCLASS;i++){
-  rates[i]= vmer32(RATE_DATA)&RATE_MASK;
+  rates[i]= vmer32(RATE_DATA)&rate_mask;
 };
 vmew32(getRATE_MODE(),0);   /* normal mode */
  word=vmer32(offset+FPGAVERSION_ADD);
  fprintf(f,"L0 BOARD= 0x%x =======================================\n", word);
  word=vmer32(offset+getADC_SELECT());
  fprintf(f,"ADC_SELECT: 0x%x\n",word);
+if(l0C0()) {
+ word=vmer32(L0_TCSETr2);
+} else {
  word=vmer32(L0_TCSET);
+};
  fprintf(f,"L0_TCSET/TC_SET: 0x%x\n",word);
  word=vmer32(L0_TCSTATUS);
  fprintf(f,"L0_TCSTATUS/TC_STATUS: 0x%x\n",word);

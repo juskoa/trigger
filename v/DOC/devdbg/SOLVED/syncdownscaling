@@ -116,3 +116,7 @@ parted now copes with SDG (.partition, .pcfg, .rcfg, gui)
 See mails/bug1912. 
 Bug fixed: deletePartitions(part); added for 2 cases (after checkResources() and applyMask() in ctp_proxy.c
 
+23.6.2014
+RATE_MASK (ctp.h, bits 30..25) -this field in RATE_DATA was till now 
+set to 0..49 (see Tpartition.c), from now, these bits are set to 0.
+but not used. From now it is

@@ -3,6 +3,7 @@
 #include <string.h>
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
 
 typedef struct {
   w32 pPF_COMMON;
@@ -29,7 +30,12 @@ int bb,ixa; w32 val;
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
-val= vmer32(PF_COMMON+bb); PF[ixa].pPF_COMMON= val;
+if(ix==1) {
+  val= vmer32(getLM0PFad(PF_COMMON)+bb); 
+} else {
+  val= vmer32(PF_COMMON+bb); 
+};
+PF[ixa].pPF_COMMON= val;
 printf("0x%x\n", PF[ixa].pPF_COMMON);
 }
 void getprtPF(int ix) {
@@ -37,7 +43,12 @@ int bb,ixa; w32 val,INTa,INTb,dINT,delay;
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
-val= vmer32(PF_COMMON+bb); PF[ixa].pPF_COMMON= val;
+if(ix==1) {
+  val= vmer32(getLM0PFad(PF_COMMON)+bb); 
+} else {
+  val= vmer32(PF_COMMON+bb); 
+};
+PF[ixa].pPF_COMMON= val;
 //printf("0x%x\n", PF[ixa].pPF_COMMON);
 INTa= val & 0xf; INTb= (val>>4) & 0xf;
 dINT= (val>>8) & 0xf;
@@ -52,7 +63,12 @@ char os[80]="";
 
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
-ixa=ix-1; ixc=circ-1; adr0= PFBLOCK_A+bb+(ixc*12);
+ixa=ix-1; ixc=circ-1;
+if(ix==1) {
+  adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+} else {
+  adr0= PFBLOCK_A+bb+(ixc*12);
+};
   /* instead get from memory for dbg: 
   vals[0]=PF[ixa].pPFBLOCK_A[ixc];
   vals[1]=PF[ixa].pPFBLOCK_B[ixc];
@@ -75,7 +91,12 @@ char os[120]="";
 
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
-ixa=ix-1; ixc=circ-1; adr0= PFBLOCK_A+bb+(ixc*12);
+ixa=ix-1; ixc=circ-1;
+if(ix==1) {
+  adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+} else {
+  adr0= PFBLOCK_A+bb+(ixc*12);
+};
   /* instead get from memory for dbg: 
   vals[0]=PF[ixa].pPFBLOCK_A[ixc];
   vals[1]=PF[ixa].pPFBLOCK_B[ixc];
@@ -119,7 +140,11 @@ ixa=ix-1;
 /*if(pfc != PF[ixa].pPF_COMMON ) { */
 /*  printf("POZOR\n"); */
   PF[ixa].pPF_COMMON= pfc;
-  vmew32(PF_COMMON+bb, pfc);
+  if(ix==1) {
+    vmew32(getLM0PFad(PF_COMMON)+bb, pfc);
+  } else {
+    vmew32(PF_COMMON+bb, pfc);
+  };
 /*}; */
 }
 
@@ -130,7 +155,12 @@ w32 *vala[3];
 
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
-ixa=ix-1; ixc=circ-1; adr0= PFBLOCK_A+bb+(ixc*12);
+ixa=ix-1; ixc=circ-1;
+if(ix==1) {
+  adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+} else {
+  adr0= PFBLOCK_A+bb+(ixc*12);
+};
 vals[0]= A; vals[1]= B; vals[2]= LUT;
 vala[0]= PF[ixa].pPFBLOCK_A;
 vala[1]= PF[ixa].pPFBLOCK_B; 
@@ -195,7 +225,12 @@ for(ix=1; ix<=3; ix++) {
   int i;
   if(notInCrate(ix)) return;
   bb= BSP*ctpboards[ix].dial;
-  ixa=ix-1; ixc=circuit-1; adr0= PFBLOCK_A+bb+(ixc*12);
+  ixa=ix-1; ixc=circuit-1; 
+  if(ix==1) {
+    adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+  } else {
+    adr0= PFBLOCK_A+bb+(ixc*12);
+  };
   for(i=0; i<3; i++) {
     vals[i]= vmer32(adr0); 
     adr0= adr0+4;
@@ -206,7 +241,11 @@ for(ix=1; ix<=3; ix++) {
 // common
 for(ix=1; ix<=3; ix++) {
   bb= BSP*ctpboards[ix].dial;
-  val= vmer32(PF_COMMON+bb);
+  if(ix==1) {
+    val= vmer32(getLM0PFad(PF_COMMON)+bb);
+  } else {
+    val= vmer32(PF_COMMON+bb);
+  };
   sprintf(os,"%s0x%x ", os, val);
 };
 strcpy(line, os);

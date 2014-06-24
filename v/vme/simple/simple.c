@@ -87,7 +87,7 @@ setseeds(7,3);
 while(1) {
   int ixreg; w32 address, val, val2;
   for(ixreg=0; ixreg<Nregs; ixreg++) {
-    val= rounddown(bitmask* rnlx()); val= bitmask&val;
+    val= rounddown(bitmask * rnlx()); val= bitmask&val;
     address= fromaddr+(ixreg*4);
     vmew32(address, val);
     val2= vmer32(address)&bitmask;

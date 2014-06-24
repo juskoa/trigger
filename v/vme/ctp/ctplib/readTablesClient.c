@@ -220,14 +220,19 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
       };
     };
     for(ixx=0; ixx<3; ixx++) {
-      w32 pfc;
+      w32 pfc, pfcadr;
       pfc= calcPFisd(ixx)<<12;
       if(a3[ixx] != pfc) {
         sprintf(emsg, "ctp.cfg %s(%d) written: 0x%x calculated:0x%x\n",
           parname,ixx,a3[ixx],pfc); prtWarning(emsg);
       };
       if(notInCrate(ixx+1)) continue;
-      vmew32(PF_COMMON+BSP*ctpboards[ixx+1].dial, a3[ixx]);
+      if(ixx=0) {
+        pfcadr= getLM0PFad(PF_COMMON);
+      }else {
+        pfcadr= PF_COMMON;
+      };
+      vmew32(pfcadr+BSP*ctpboards[ixx+1].dial, a3[ixx]);
     };
     printf("PF_COMMON:%d 0x%x 0x%x\n",a3[0], a3[1], a3[2]);
     goto CONT;

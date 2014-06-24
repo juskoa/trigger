@@ -33,7 +33,7 @@ unsigned char l0f34stat[LEN_l0f34] ={0xd,0xe,0xa,0xd};
 void getL0FUN34(w32* lut){
  w32 i;
  // toto je zle (write only!, L0FUN34 LUTs cannot be read)
- //for(i=0;i<0xfff+1;i++)lut[i]=vmer32(L0_FUNCTION34+4*i)&0xf000;
+ //for(i=0;i<0xfff+1;i++)lut[i]=vmer32(l0_fun34+4*i)&0xf000;
  for(i=0;i<LEN_l0f34;i++)lut[i]= l0f34stat[i];
 } 
 /*FGROUP DbgNewFW    
@@ -44,9 +44,9 @@ void setL0FUN34(w32* lut){
  if(!lut)printf("setL0FUN34: writing dummy falues.\n");
  for(i=0;i<0xfff+1;i++){
     if(lut){
-      vmew32(L0_FUNCTION34,i+lut[i]<<11+1<<12);
+      vmew32(l0_fun34,i+lut[i]<<11+1<<12);
     }else{
-      vmew32(L0_FUNCTION34,(0x3)<<11+i);
+      vmew32(l0_fun34,(0x3)<<11+i);
     }
  }
 }
@@ -143,7 +143,7 @@ if( (l0f34stat[0]==0xd) &&
   };
 }; */
 //read hw: no way (cannot be read out).
-//for(is=0;is<LEN_l0f34;is++)l0f34stat[i]= (vmer32(L0_FUNCTION34)&0xf000)>>12;
+//for(is=0;is<LEN_l0f34;is++)l0f34stat[i]= (vmer32(l0_fun34)&0xf000)>>12;
 l0f34= l0f34stat;
 if(lutout==1) {
   printf("0x");
@@ -215,14 +215,19 @@ in shared memory +hw
 
 rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
 int setL0f34c(int lutn, char *m4) {
-int is;
+int is; w32 l0_fun34;
+if(l0C0()) {
+  l0_fun34= L0_FUNCTION34r2;
+} else {
+  l0_fun34= L0_FUNCTION34;
+};
 if(lutn==0) {   // all 4 LUTs operations:
   if((strcmp(m4,"0")==0) || (strcmp(m4,"f")==0)) {
     w8 bits;
     bits=  hex12int(m4[0]);
     for(is=0;is<LEN_l0f34;is++){
       l0f34stat[is]= bits;
-      vmew32(L0_FUNCTION34, ((bits<<12) | is));
+      vmew32(l0_fun34, ((bits<<12) | is));
       //vmew32(L0_FUNCTION3, (((bits&0x3)<<12) | is));
       //vmew32(L0_FUNCTION4, (((bits&0xc)<<10) | is));
     };
@@ -233,7 +238,7 @@ if(lutn==0) {   // all 4 LUTs operations:
       bits= hex12int(m4[is]);
       if(bits>0xf) return(255);
       l0f34stat[is]= bits;
-      vmew32(L0_FUNCTION34, ((bits<<12) | is));
+      vmew32(l0_fun34, ((bits<<12) | is));
       //vmew32(L0_FUNCTION3, (((bits&0x3)<<12) | is));
       //vmew32(L0_FUNCTION4, (((bits&0xc)<<10) | is));
     };
@@ -260,7 +265,7 @@ if(lutn==0) {   // all 4 LUTs operations:
         //change=1;
         newval= (shmval & (~rowbitmask)) | bitval;
         l0f34stat[isxbase+isx]= newval;
-        vmew32(L0_FUNCTION34, (((isxbase+isx)<<12) | newval));
+        vmew32(l0_fun34, (((isxbase+isx)<<12) | newval));
         //vmew32(L0_FUNCTION3, (((bits&0x3)<<12) | is));
         //vmew32(L0_FUNCTION4, (((bits&0xc)<<10) | is));
       };
