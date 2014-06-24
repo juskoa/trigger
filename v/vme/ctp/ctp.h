@@ -88,13 +88,14 @@ typedef struct {
 
 /* common for L0/L1/L2/FO (busy,int) boards: */
 #define ADC_START       0xcc   /* ADC (not for FO) */
-#define ADC_DATA        0xd0 
+#define ADC_DATA        0xd0   /* 0x10: busy flag   0xff: ADC data */
 #define SOFT_LED        0x15c  /* soft LED (busy board too)*/
 #define COPYCOUNT      0x1d4   /*dummy wr. copy counters CMD */
 #define COPYBUSY       0x1d8   /*ro [0] copy-busy status */
 #define COPYCLEARADD   0x1dc   /*dummy wr. clear copy mem. add. */
 #define COPYREAD       0x1e0   /*ro copy memory data */
-#define CLEARCOUNTER   0x5ac /* clear counters CMD */
+#define CLEARCOUNTER   0x5ac /* clear counters CMD NOT FOR LM0!*/
+#define CLEARCOUNTER_lm0   0x91f4 /* clear counters CMD ONLY FOR LM!*/
 
 #define SPY_MEMORY     0x400  /* spy memory length: 
 L1/2 boards: (0x100 - 0x2ff)*4 from November 2013.
@@ -106,18 +107,44 @@ L0 board: increased length (max. adr 0x1ff*4 -> 0x2ff*4) implemented earlier.
 #define SCOPE_SELECT   0x5b0  /* groupB: 0x1e0 groupA: 0x01f */
                                /* 0x17+0x17-not selected                */
                                /* 0x800: enableB, 0x400: enableA        */
+#define SCOPE_SELECTbfi 0x4f8  /* BSY,FO,INT: different address */
+#define SCOPE_SELECTlm0 0x1f8  /* LM0       : different address */
+#define ADC_SELECTlm0  0x1fc /*ADC mode, ADC input selector. 0x100:ADCmode */
 #define ADC_SELECT     0x5b4 /*ADC mode, ADC input selector. 0x100:ADCmode */
   /* not FOs, only L0/1/2.      0x100 GND (before A2 version: Orbit (toggle))
                                 0x1NN NN:01-18 i: Input1-Input24
                                 0x119: Vhigh
                                 0x11a: (Vhigh-Vlow)/2 
                                 0x11b: ADC test -new way (ver. A2 from 14.12)
-                                0x11c: Vlow   */
+                                0x11c: Vlow   
+LM0 board:
+[5..0] selector code:
+1..48  ADC input 1..48
+49     Vcc
+50     ORBIT
+51     ORBIT & !TEST
+52     ADC Test input (local phase)
+53     spare input
+*/
 /*#define TEST_ADD        0xc0  was till 12.3.2008 */
 /*#define TEST_ADD        0x7e0 was till  6.11.2013 */
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO*/
+#define SYNCH_ADDr2    0x344 /*Synch/delay adds for LM0 board */
+#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
+0x344:inp1,...
+0x804:inp1,..., 0x860:inp24
+LM0:
+ 3.. 0   Input delay for inputs 1..24
+ 4       Edge Selector flag inputs 1..24
+11.. 8   Input delay for inputs 25..48
+12       Edge Selector flag inputs 25..48
+21..16   Selection of the input: 0:not connected 1..48 connected to this one
+
+L0, L1, L2:
+ 8       Edge Selector flag inputs 1..24
+ 3.. 0   Input delay for inputs 1..24 (12 for L2)
+*/
 
 //#define PF_COMMON      0x564
 #define PF_COMMON      0x864  /* 1 word per L0/L1/L2 board */
@@ -203,9 +230,7 @@ bits    newMeaning (>=AC)            meaning before AC
 29..28  Select Random RND2..1        Select Scaled-down BC2..1
 27..24  Select L0F4..1               Select Rnd2..1 + L0f2..1
 23..0   Select L0 input 24..1        Select L0 input 24..1
-
 */
-#define DAQ_LED        0x9600    /* reserved for SW use */
 
 /*von #define L0_INVERT      0x9500     old (before AC) +4*n n=45,....,50 
 bit23..0: 1: invert L0 input   0: use original polarity
@@ -214,10 +239,15 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 */
 /* see PFCOMMON... */
 #define MASK_MODE      0x95a4 /* BCMask memory mode 1:vme 0:normal */
+#define MASK_MODEr2    0x91ec /* BCMask memory mode 1:vme 0:normal */
 #define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
+#define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
 //#define L0_ENA_CRND    0x94fc
 #define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
+#define L0_ENA_CRNDlm0 0x9200 /* detto for LM0. In fy called:  ENABLE_CLEAR */
 //#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
+//
+//----------------- L0. The block of LM0 addresses below...
 #define L0_INTERACT1   0x95bc    /* 16 bits thruth table */
 #define L0_INTERACT2   0x95c0
 #define L0_INTERACTT   0x95c4
@@ -230,16 +260,37 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 #define SCALED_1       0x95dc
 #define SCALED_2       0x95e0
 #define ALL_RARE_FLAG  0x95e4
+//----------------- 
+
+/*----------------- LM0. The block of L0 addresses see above...
+#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
+#define L0_INTERACT2   0x95c0
+#define L0_INTERACTT   0x95c4
+#define L0_INTERACTSEL 0x95c8
+                            
+#define L0_FUNCTION1   0x95cc
+#define L0_FUNCTION2   0x95d0
+#define RANDOM_1       0x95d4
+#define RANDOM_2       0x95d8
+#define SCALED_1       0x95dc
+#define SCALED_2       0x95e0
+#define ALL_RARE_FLAG  0x95e4
+*/
+//----------------- 
+//
 /*   L0_SCOPE_SELECT   0x94f8 see SCOPE_SELECT*/
-#define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
-//#define L0_FUNCTION3  0x97ec
-//#define L0_FUNCTION4  0x97f0
 //#define RATE_MODE      0x9700
 #define RATE_MODE      0x95fc /* Rate mem. mode 1:vme 0:normal */
+#define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal */
 //#define L0_INVERTac    0x9800
+#define DAQ_LED        0x9600    /* reserved for SW use */
+#define DAQ_LEDlm0     0x9234
 #define L0_INVERTac    0x9600    /* +4*n n=1,....,100, 0x9604..0x9790 */ 
 /* bit23..0: 1: invert L0 input   0: use original polarity */
 //#define L0_VETO        0x9600
+#define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
+//#define L0_FUNCTION3  0x97ec
+//#define L0_FUNCTION4  0x97f0
 #define L0_VETO        0x9900    /* +4*n n=1,2,...,100
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
@@ -249,7 +300,21 @@ bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
  2..0: Cluster code (1-6)         2..0: the same
 Note: in ctp.c getClass L0_VETO[bit31] is set according to L0_MASK[0] bit
 */
-#define L0_MASK        0x9b00    /* +4*n n=1,2,...,100
+#define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100  on LM0 board
+31     spare
+30..24 DSCG group (7bits)
+23     class mask
+22..21 spare
+20     1:Select All/Rare input
+19..8: Select BCmask[12..1]
+ 7..4: Select PFprot[4..1]
+ 2..0: Cluster code (1-6)
+
+Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
+L0_VETOr2[23] bit is used. L0_MASK is not used in LM0 board!
+
+*/
+#define L0_MASK        0x9b00    /* +4*n n=1,2,...,100   NOT used in LM0
 bit0: 1: the class is disabled */
 //#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
 #define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90*/ 
@@ -326,6 +391,7 @@ read:
                                 /* 06:r0EnaCIT,CIT, EnaRoC,RoC for TestCntr1*/
 #define INT_BCOFFSET  0xc5a8
 /*REGEND */
+#define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
 #define DUMMYVAL 0xffffffff   /* recommended for DUMMY writes */
 #define RATE_MASK 0x81ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
 
@@ -333,7 +399,8 @@ read:
 typedef struct{
   w32 regs[MAXL0REGS];   /* 7 regs: condition invert veto prescaler
 			            L1definition L1invert L2definition */
-                         /* veto[16/31] -> bit0 copied from L0_MASK word */
+ /* L0: veto[16/31] -> bit0 copied from L0_MASK word
+   LM0: veto[23] is classmask, L0_MASK word not used */
 } Tklas;
 typedef struct{
   w32 cluster;
@@ -406,8 +473,9 @@ w32 i2cread(int channel, int branch);
 int i2cgetaddr(int board0_34, int *channel, int *branch);
 
 int getEdgeDelayDB(int level, int input, int *edge, int *delay);
-void setEdge(int board,w32 input,w32 edge);
 int getedge(int board,w32 input,w32 *del);
+int getedgerun1(int board,w32 input,w32 *del);
+int getedgerun2(int board,w32 input,w32 *del);
 
 void loadBCmasks(w16 *bcmasks);
 
@@ -571,6 +639,8 @@ edge: 0:Positive 1:Negative
 Edge: choose negative (for delay:0) if unstability is found around delay 0.
 */
 void setEdge(int board,w32 input,w32 edge);
+void setEdgerun1(int board,w32 input,w32 edge);
+void setEdgerun2(int board,w32 input,w32 edge);
 /*FGROUP inputsTools
 set Edge/Delay 
 Inputs:
@@ -579,6 +649,8 @@ input: 1..24 (1..12 for L2)
 edge:  0:positive 1:negative
 delay: 0..15*/
 void setEdgeDelay(int board, int input, int edge, int delay);
+void setEdgeDelayrun1(int board, int input, int edge, int delay);
+void setEdgeDelayrun2(int board, int input, int edge, int delay);
 
 /*FGROUP inputsTools
 Read edge/delay info from hw for all the inputs (clk edge for ORbit
@@ -592,6 +664,8 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
 
 */
 void printEdgeDelay(int board);
+void printEdgeDelayrun1(int board);
+//void printEdgeDelayrun2(int board);
 
 // bcmask.c
 /*FGROUP L0

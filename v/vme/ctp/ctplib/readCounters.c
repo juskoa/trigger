@@ -2,6 +2,7 @@
 #include <unistd.h>    /* usleep() */
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 
 /*---------------------------------------------------------------- Counters */
@@ -187,13 +188,21 @@ lockBakery(&ctpshmbase->ccread, customer);
 for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
-  vmew32(bb+CLEARCOUNTER,1); 
+  if((b123==1) && (l0C0())) {
+    vmew32(CLEARCOUNTER_lm0,1); 
+  } else {
+    vmew32(bb+CLEARCOUNTER,1); 
+  };
 };
 usleep(4);
 for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
-  vmew32(bb+CLEARCOUNTER,0);
+  if((b123==1) && (l0C0())) {
+    vmew32(CLEARCOUNTER_lm0,1); 
+  } else {
+    vmew32(bb+CLEARCOUNTER,0);
+  };
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 printf("Counters cleared.\n");

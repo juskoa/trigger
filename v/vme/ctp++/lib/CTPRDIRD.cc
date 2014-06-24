@@ -18,11 +18,11 @@ void printIRDda(IRDa &i)
     if(i.Inter[j])printf("       %03i BCID:0x%3x 0x%1x Errs: 0x%1x 0x%1x\n",j,i.bc[j],i.Inter[j],i.error1,i.error2);
  }
 }
-void printCTPR(CTPR& c)
+void printL2Data(L2Data& c)
 {
  printf("%7i:CLST:0x%02x CLS:0x%010llx%015llx ID:0x%3x 0x%6x eob/esr/clt/sec:%1i %1i %1i %1i\n",c.issm,c.l2clusters,c.l2classes1,c.l2classes2,c.bcid,c.orbit,c.eob,c.esr,c.clt,c.swc);
 }
-void clearCTPR(CTPR &c)
+void clearL2Data(L2Data &c)
 {
  c.l2clusters=0;
  c.l2classes1=0; c.l2classes2=0;

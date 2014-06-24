@@ -124,7 +124,7 @@ for pn in $names ;do
     cd `dirname $VMEBDIR`
     #ls vmeb/*.c vmeb/*.py vmeb/vmeai.make* vmeb/*.h vmeb/*.bash
     tar --no-recursion -cvf $distrfile vmeb/*.c vmeb/*.py \
- vmeb/vmeai.make* vmeb/*.h \
+ vmeb/vmeai.make* vmeb/*.h vmeb/caenvme.setup \
  vmeb/vmeblib/*.[ch] vmeb/vmeblib/Makefile vmeb/vmeblib/make_new \
  vmeb/com_defs.make vmeb/lib_stuff.make \
  vmeb/daq_defs.make vmeb/sc.make \

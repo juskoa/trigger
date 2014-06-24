@@ -22,7 +22,7 @@ void INTBOARD::printReadOutList()
  cout << "INTBOARD: Printing ReadOut List, size: " << qctpro.size() << endl; 
  for(w32 i=0;i<qctpro.size();i++){
    if(qctpro[i].eob)printf("%7i:EOB \n",qctpro[i].issm);
-   else printCTPR(qctpro[i]);
+   else printL2Data(qctpro[i]);
  //else if(!qctpro[i].l2classes1 && !qctpro[i].l2classes2) printf("ORBIT: %7i \n",qctpro[i].issm);
  //else 
  //printf("CTP: %7i %4i 0x%3x %8i 0x%2x 0x%13llx  %1i  %1i  %1i\n",qctpro[i].issm,qctpro[i].bcid,qctpro[i].bcid,qctpro[i].orbit,qctpro[i].l2clusters,qctpro[i].l2classes1,qctpro[i].esr,qctpro[i].clt,qctpro[i].swc);
@@ -39,8 +39,8 @@ void INTBOARD::getCTPReadOutList()
  w64 l2cl;
  IRDa irda;
  clearIRDda(irda);
- CTPR ctpr;
- clearCTPR(ctpr);
+ L2Data ctpr;
+ clearL2Data(ctpr);
  w32 sctrl,sten,sblockid;
  if((sctrl=getChannel("ddl.fb_ctrl"))>32) rc=1;
  if((sten=getChannel("ddl.fb_ten"))>32) rc=2;;
@@ -80,7 +80,7 @@ void INTBOARD::getCTPReadOutList()
      if(iCTPR){
       if(iCTPR == (13+5) ){   // Inputs in CTP readout
        qctpro.push_back(ctpr);
-       clearCTPR(ctpr);
+       clearL2Data(ctpr);
        iCTPR=0;
        nCTPR++;
       }else{
@@ -91,7 +91,7 @@ void INTBOARD::getCTPReadOutList()
      ctpr.eob=1;
      ctpr.issm=i;
      qctpro.push_back(ctpr);
-     clearCTPR(ctpr);
+     clearL2Data(ctpr);
      i++;
    }else{
     if(bit(sm[i],sten)){

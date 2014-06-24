@@ -28,7 +28,10 @@ class BOARD: public BOARDBASIC
 	 enum {kNClasses=100};
 	 void L2DataBackplane();
 	 void printL2DataBackplane();
-	 deque<CTPR>& getL2DataBackplaneList(){return ql2a;};
+	 deque<L2Data>& getL2DataBackplaneList(){return ql2backplane;};
+	 void L2DataSerial(int ch1,int ch2);
+	 void printL2Serial();
+	 deque<L2Data>& getL2SerialList(){return ql2backplane;};
  private:
 	 void SetFile(string const &modename);
          int const numofmodes;
@@ -61,7 +64,8 @@ class BOARD: public BOARDBASIC
 	 };
          SSMmode *SSMModes;
          //
-         deque<CTPR> ql2a;
-	 deque<CTPR> qorbit;
+         deque<L2Data> ql2backplane;
+	 deque<L2Data> qorbit;
+         deque<L2Data> ql2serial;
 };
 #endif

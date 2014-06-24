@@ -1,0 +1,76 @@
+1. Goal 
+-------
+replace VALID.CTPINPUTS, CTP.SWITCH, L0.INPUTS by ctpinputs.cfg
+
+ctpfunctions.cfg  -not yet clear if we move l0f* defs to separate file.
+                   For the time being, it is kept at the end of ctpinputs.cfg.
+
+2. run1 formats
+---------------
+VALID.CTPINPUTS
+#InName         = Det                 Level   Signature    Inpnum    Dimnum  Configured      Edge     Delay  DeltaMin  DeltaMax
+0VBA            = V0                      0        52         1         1           1         0         3      1000      1000
+0VBC            = DAQ                     0        53         2         2           1         0         3         0         0
+0SMB            = SPD                     0        20         3         1           1         0         1        -3         0
+l0fINT1         = 0SMB | 0VBA | 0VBC
+l0fVBOR         = 0VBA | 0VBC
+l0fNOTV0        = (~0VBA) & (~0VBC)
+l0AVGOR         = 0VGA | 0VGC
+l0BT0OR         = 0T0A | 0T0C
+l0fTEST         = 0SMB & 0SM2
+l0Aanycosmic    = 0OB3 | 0ASL | 0AMU
+
+L0.INPUTS
+#sin detector nameweb namectp eq signature dimnum edge delay configured deltamin deltamax #comments
+1 SPD spdl0_8 0SMB 0 20 1 0 1 1 -3 0 #smb
+#2 SPD spdl0_6 0SX1 0 26 7 0 1 1 1000 1000 #OLD:SPD6 - spd bkgnd
+2 SPD spdl0_6 0SLT 0 36 7 0 1 1 1000 1000 #OLD:SPD6 - spd bkgnd
+
+CTP.SWITCH
+#nameweb InName eq sin Inpnum+1
+V0_1 0VBA 1 30 2
+V0_2 0VBC 1 29 3
+spdl0_8 0SMB 0 1 4
+
+3. used by
+----------
+                        L0   LM0
+  ctp_proxy        ro   old  new
+  switched         rw   old  new
+  vmecrate inputs  ro   old  new
+
+old: old way, i.e. 3 files
+new: new way, i.e. use only ctpinputs.cfg
+  
+4. New ctpinputs.cfg format
+---------------------------
+InName = Det Level Signature Inpnum Dimnum Configured Edge Delay DeltaMin  DeltaMax ppn nameweb eq dimdns dimservice #anycomment
+
+- Keep the same format (VALID.CTPINPUTS) as far as possible:
+- Use old files with L0, use this file with LM0
+- ctpinputs.cfg will be sorted by level -i.e. connected inputs first, i.e.
+  - connected l(M)/0/1/2
+  - disconnected
+
+5. Modified/added (with regard to the old format of VALID.CTPINPUTS file):
+-----------------
+Modified columns:
+Level:        probably we allow also 'M'. Currently valid 0,1,2
+Configured:   0: not connected to ctp switch, 1..48: LM0 switch input number
+InpNum:       0: not connected (still can be connected to switch)
+                 InName: the name used last time or NA (Not Assigned) 
+
+Added columns:
+ppn:          PatchPanel number: T|B A|B n   e.g.: TA1 -> EMCAL L1
+nameweb:      cable name/number -whatever is written on cable or on our web 'Installation'
+eq:           1: with equalizer 0: no equalizer
+dimdns:       aldaqecs or alidcsdimdns
+dimservice:   name of DIM service (dimsevice/STATUS_OPTIONCODE...)
+#anycomment:  any comment starting with #
+
+6. History of software modifications
+------------------------------------
+18.6.2014
+vmeb/trigdb.py joininputs    -join L0.INPUTS+VALID.CTPINPUTS ->ctpinputs.cfg
+- to be used in the pit in the time when we exchange L0 to LM0
+

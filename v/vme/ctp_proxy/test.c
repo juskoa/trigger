@@ -7,6 +7,7 @@
 #include "vmeblib.h"
 #include "infolog.h"
 #include "ctp.h"
+#include "ctplib.h"
 #define DBMAIN
 #include "Tpartition.h"
 #include "ctp_proxy.h"
@@ -22,11 +23,11 @@ void ctp_Disablernd1(int usecs) {
 //w32 l2anow,l2abefore,dif;
 setALLDAQBusy();
 //l2abefore= readCTPcnts();
-vmew32(RANDOM_1, 0xffffffff);
+vmew32(getLM0addr(RANDOM_1), 0xffffffff);
 unsetALLDAQBusy();
 usleep(usecs);
 setALLDAQBusy(); 
-vmew32(RANDOM_1, 0);
+vmew32(getLM0addr(RANDOM_1), 0);
 //l2anow= readCTPcnts();
 unsetALLDAQBusy();
 }

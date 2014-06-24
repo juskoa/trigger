@@ -13,7 +13,7 @@ class INTBOARD: public BOARD
          // vme addresses
          // ssm testing
          // Add structures herea
-        deque <CTPR> qctpro;
+        deque <L2Data> qctpro;
         deque <IRDa> qirda;
 };
 #endif

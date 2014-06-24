@@ -567,6 +567,164 @@ class TrgMasks(Table):
         return self.ents[ix][1]
     return ""
     
+class TrgInp:
+  MAXITEMS=18
+  VALCILEN=12  # without comment
+  def __init__(self, VCI=None, LI=None):
+    # ctpinputs.cfg:
+    #InName = Det Level Signature Inpnum Dimnum Configured Edge Delay DeltaMin  
+    #0      1 2   3     4         5      6      7          8    9     10
+    #DeltaMax ppn nameweb eq dimdns dimservice #anycomment
+    # 11      12  13      14   15      16       17
+    self.inp= []
+    if (VCI==None) and (LI==None):   # default without comment
+      for i in range(len(TrgInp.MAXITEMS-1)): self.inp.append("NA")
+    elif VCI!=None:
+      if len(VCI)==TrgInp.VALCILEN:
+        for i in range(TrgInp.VALCILEN): self.inp.append(VCI[i])
+      else:
+        print "Ignoring line in VALID.CTPINPUTS:", VCI
+    else:   # adding LI, i.e. not found in VALID.CTPINPUTS
+      if (len(LI)==12)or(len(LI)==13):
+        self.inp.append(LI[3])      # InName
+        self.inp.append( "=" )
+        self.inp.append( LI[1] )    # Det
+        self.inp.append( "0" )      # Level
+        self.inp.append( LI[5] )    # Signature
+        self.inp.append( "0" )      # Inpnum
+        self.inp.append( LI[6] )    # Dimnum
+        self.inp.append( LI[0] )    # Configured
+        if LI[0]>48:
+          self.inp[7]= "0"    # not connected to ctpinp
+        self.inp.append( LI[7] )    # Edge
+        self.inp.append( LI[8] )    # Delay 
+        self.inp.append( LI[10] )   # DeltaMin
+        self.inp.append( LI[11] )   # DeltaMax
+        self.inp.append( "NA" )     # ppn   
+        self.inp.append( LI[2] )    # nameweb
+        self.inp.append( LI[4] )    # eq
+        self.inp.append( "NA" )     # dimdns
+        self.inp.append( "NA" )     # dimservice
+        self.inp.append( "" )       # anycomment
+        if len(LI)==13:
+          # L0.INPUTS entry with comment at the end
+          self.inp[17]= string.strip(LI[12])   # anycomment
+      else:
+        print "Error: TrgInp Ignoring L0.INPUTS entry:",LI
+    # finishing here with self.inp==[] in case of error
+  def modifyVCI(self, LI):
+    # 1. add items ppn, nameweb,...
+    if len(self.inp)==12:
+      if (len(LI)==12)or(len(LI)==13):
+        self.inp.append( "NA" )    # ppn   
+        self.inp.append( LI[2] )   # nameweb
+        self.inp.append( LI[4] )   # eq
+        self.inp.append( "NA" )    # dimdns
+        self.inp.append( "NA" )    # dimservice
+        self.inp.append( "" )      # any comment
+        if len(LI)==13:
+          # L0.INPUTS entry with comment at the end
+          self.inp[17]= string.strip(LI[12])   # anycomment
+        # 2. check already existing items (from VALID.CTPINPUTS):
+        if self.inp[4]!= LI[5]:   # Signature
+          print "Error: Signature %s taken (but L0.INPUTS is:%s"%\
+            (self.inp[4], LI[5])
+        if self.inp[6]!= LI[6]:   # Dimnum
+          print "Error: dimnum %s taken (but L0.INPUTS is:%s"%\
+            (self.inp[6], LI[6])
+        self.inp[7]= LI[0]   # Configured
+        if LI[0]>48:
+          self.inp[7]= "0"    # not connected to ctpinp
+        if self.inp[8]!= LI[7]:  # Edge
+          print "Error: Edge %s taken (but L0.INPUTS is:%s"%\
+            (self.inp[8], LI[7])
+        if self.inp[9]!= LI[8]:   # Delay 
+          print "Error: Delay %s taken (but L0.INPUTS is:%s"%\
+            (self.inp[9], LI[8])
+        if self.inp[10]!= LI[10]:   # DeltaMin
+          print "Error: DeltaMin %s taken (but L0.INPUTS is:%s"%\
+            (self.inp[10], LI[10])
+        if self.inp[11]!= LI[11]:   # DeltaMax
+          print "Error: DeltaMax %s taken (but L0.INPUTS is:%s"%\
+            (self.inp[11], LI[11])
+      else:
+        print "Error: modifyVCI defaults added, ignoring L0.INPUTS entry:",\
+          LI
+        self.adddefaults()
+    else:
+        print "Error: ctpinputs record full, ignoring L0.INPUTS entry:",\
+          LI
+  def adddefaults(self):
+    self.inp.append( "NA" )         # ppn   
+    self.inp.append( "NA" )         # nameweb
+    self.inp.append( "NA" )         # eq
+    self.inp.append( "NA" )         # dimdns
+    self.inp.append( "NA" )         # dimservice
+    self.inp.append( "" )            # anycomment
+class TrgInputs:
+  def __init__(self, vci=None):
+    # vci: LM0 board: None
+    #      L0 board: instance of TrgVALIDCTPINPUTS
+    self.inps= []   # array of TrgInp objects
+    self.l0fs= []   # l0f* entries
+    if vci!=None:
+      for ix in range(len(vci.ents)):
+        if vci.isL0f(vci.ents[ix]):
+          #print "l0f entry:", vci.ents[ix]
+          self.l0fs.append(vci.ents[ix])
+        else:
+          self.addVCI(vci.ents[ix])
+  def addVCI(self, ent):
+    self.inps.append(TrgInp(VCI=ent))
+    if len(self.inps[-1].inp)==0: del self.inps[-1]
+  def modifyVCI(self, ixi, LIent):
+    # add info from L0.INPUTS to existing info from VALID.CTPINPUTS:
+    self.inps[ixi].modifyVCI(LIent)
+  def addLI(self, ent):
+    self.inps.append(TrgInp(LI=ent))
+    if len(self.inps[-1].inp)==0: del self.inps[-1]
+  def find(self, det, inpname):
+    for ix in range(len(self.inps)): 
+      #print "dbg4:%s:%s"%(self.inps[ix].inp[2],self.inps[ix].inp[0])
+      if (self.inps[ix].inp[2]==det) and (self.inps[ix].inp[0]==inpname):
+        return ix
+    return None
+  def adddefaults(self):
+    for ix in range(len(self.inps)): 
+      if len(self.inps[ix].inp)== TrgInp.VALCILEN:
+        self.inps[ix].adddefaults()
+  def prtall(self):
+    clengths= [0]*TrgInp.MAXITEMS
+    #find max. width of each column:
+    for ix in range(len(self.inps)): 
+      #print "dbg:", self.inps[ix].inp
+      for ixinp in range(len(self.inps[ix].inp)): 
+        #print "dbg2:", self.inps[ix].inp[ixinp]
+        cl= len(self.inps[ix].inp[ixinp])
+        if cl > clengths[ixinp]:
+          clengths[ixinp]= cl
+    #hdr=("#InName", "=", "Det", "Level", "Signature", "Inpnum", "Dimnum", "Cfg", "Edge", "Delay", "DeltaMin", "DeltaMax", "ppn", "nameweb", "eq", "dimdns", "dimservice", "#anycomment")
+    #print "Col. lengths:", clengths
+    fmt1= ""   # format string:
+    for ix in range(len(clengths)-1):   # without comment
+      fmt1= fmt1+"%%%ds "%clengths[ix]      # aligned right
+    comfmt="%s"
+    fp= os.path.join(TRGDBDIR, "ctpinputs.cfg")
+    f= open(fp, "w")
+    for ix in range(len(self.inps)): 
+      #print "dbg3:", self.inps[ix].inp
+      if len(self.inps[ix].inp)==TrgInp.MAXITEMS:
+        fmt= fmt1 + comfmt
+      elif len(self.inps[ix].inp)==1:
+        fmt="%s"
+      else:
+        fmt= fmt1
+      #print "fmt:",fmt
+      f.write((fmt+"\n")%tuple(self.inps[ix].inp))
+    for ix in range(len(self.l0fs)): 
+      f.write("%s\n"%string.join(self.l0fs[ix]))
+    f.close()
+
 #------------------ following classes used from TRG_DBED/scanrcfg.py
 class TrgRcfgVals:
   def __init__(self):
@@ -665,6 +823,7 @@ def main(argv):
   trigdb.py log2tab 'logical expression from L0inputs'
   trigdb.py prtinps     source: VALID.CTPINPUTS taken
   trigdb.py cables      source: L0.INPUTS (L0) + VALID.CTPINPUTS (L1+L2) 
+  trigdb.py joininputs  L0.INPUTS+VALID.CTPINPUTS -> ctpinputs.cfg
 """
     return
   if argv[1]=='log2tab':
@@ -676,7 +835,6 @@ def main(argv):
     print a.getL012inputs('0')
     print a.getL012inputs('1')
   elif argv[1]=='cables':
-    #print "todo..."
     a=TrgL0INPUTS()
     allds= a.prtnames()
     #print allds
@@ -685,7 +843,27 @@ def main(argv):
     print # print allds
     for det in allds.keys():
       print "%s: %s"%(det, allds[det])
-    
+  elif argv[1]=='joininputs':
+    # see DOC/devdbg/ctpinputs_cfg 
+    vci= TrgVALIDINPUTS()
+    # first add all VALID.CTPINPUTS
+    cis= TrgInputs(vci)
+    # add L0.INPUTS (modifying already existing inputs in ci if already in):
+    l0i= TrgL0INPUTS()
+    for ent in l0i.ents:
+      if len(ent)==1:
+        print "Ignoring comment in L0.INPUTS:", ent[0]
+        continue
+      ixi= cis.find(ent[1], ent[3])   # check if det.ctpinp already in ci:
+      #print "dbg5:", ixi, ent[1], ent[3]
+      if ixi!=None:
+        cis.modifyVCI(ixi, ent)
+      else:
+        cis.addLI(ent)
+    cis.adddefaults()
+    # check if CTP.SWITCH consistent
+    print "rewriting $dbctp/ctpinputs.cfg..."
+    cis.prtall()
 if __name__ == "__main__":
     main(sys.argv)
 

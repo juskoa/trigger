@@ -269,8 +269,8 @@ void BOARD::StopSSM() const
 //--------------------------------------------------------------------------------------------
 void BOARD::printL2DataBackplane()
 {
- cout << d_name << " BOARD: Printing L2 list - decoded backplane serial L2 data,  size: " << ql2a.size() << endl;
- for(w32 i=0;i<ql2a.size();i++)printCTPR(ql2a[i]);
+ cout << d_name << " BOARD: Printing L2 list - decoded backplane serial L2 data,  size: " << ql2backplane.size() << endl;
+ for(w32 i=0;i<ql2backplane.size();i++)printL2Data(ql2backplane[i]);
 }
 //--------------------------------------------------------------------------------------------
 void BOARD::L2DataBackplane()
@@ -288,9 +288,9 @@ void BOARD::L2DataBackplane()
    return;
  }
  printf("compareL2aCTPreadout: l2strobe l2data1 l2data2 channels= %i %i %i\n",sl2strobech,sdata1ch,sdata2ch);
- CTPR L2a,ORBIT;
- clearCTPR(L2a);
- clearCTPR(ORBIT);
+ L2Data L2a,ORBIT;
+ clearL2Data(L2a);
+ clearL2Data(ORBIT);
  w32* sm=GetSSM();
  while(i<Mega){
   // ORBIT pulse
@@ -356,8 +356,8 @@ void BOARD::L2DataBackplane()
    L2a.esr=esr;
    L2a.clt=0;  // to be read from hw
    L2a.swc=0;  // to be read from hw
-   ql2a.push_back(L2a);
-   clearCTPR(L2a);
+   ql2backplane.push_back(L2a);
+   clearL2Data(L2a);
    //printf("comparel2aCTPreadout: l2 clusters: 0x%x BCID: %i ORBIT: %i L2class: 0x%llx \n",l2clusters,bcid,orbit,l2class);
   }else i++;
  }

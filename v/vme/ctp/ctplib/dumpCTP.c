@@ -8,11 +8,19 @@
 
 void getdatetime(char *);
 w32 loadFPGA(int board);   //is in vmeblib
+
+w32 getADC_SELECT() {
+w32 adr;
+if(l0C0()) {
+  adr= ADC_SELECTlm0;
+} else {
+  adr= ADC_SELECT;
+};return(adr);
+}
 /*
 Dump vmeword settings of ctp boards.
 MOst of the words but not all.
 */
-
 void dumpL0(FILE *f){
  //w32 i;
  w32 word,offset=0x9000;
@@ -21,14 +29,15 @@ void dumpL0(FILE *f){
 w32 l0invAC; int i, minAC;
 l0invAC=L0_INVERTac; minAC=0;
 /* rates: */
-vmew32(RATE_MODE,1);   /* vme mode */
+vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
 for(i=0;i<NCLASS;i++){
   rates[i]= vmer32(RATE_DATA)&RATE_MASK;
 };
-vmew32(RATE_MODE,0);   /* normal mode */
- fprintf(f,"L0 BOARD====================================================\n");
- word=vmer32(offset+ADC_SELECT);
+vmew32(getRATE_MODE(),0);   /* normal mode */
+ word=vmer32(offset+FPGAVERSION_ADD);
+ fprintf(f,"L0 BOARD= 0x%x =======================================\n", word);
+ word=vmer32(offset+getADC_SELECT());
  fprintf(f,"ADC_SELECT: 0x%x\n",word);
  word=vmer32(L0_TCSET);
  fprintf(f,"L0_TCSET/TC_SET: 0x%x\n",word);
@@ -39,7 +48,11 @@ vmew32(RATE_MODE,0);   /* normal mode */
   w32 cond,veto,mask,invert; 
   cond=vmer32(L0_CONDITION+4*(i+1));
   veto=vmer32(L0_VETO+4*(i+1));
-  mask=vmer32(L0_MASK+4*(i+1));
+  if(l0C0()==0) {
+    mask=vmer32(L0_MASK+4*(i+1));
+  } else {
+    mask=0xdeadbeaf;
+  };
   fprintf(f,"%2i:0x%x  0x%x 0x%x 0x%x ",i+1,cond,veto,rates[i], mask);
   if((i+1)>minAC){
    invert=vmer32(l0invAC+4*(i+1));
@@ -48,13 +61,13 @@ vmew32(RATE_MODE,0);   /* normal mode */
    fprintf(f,"\n");
   }
  }
- word1=vmer32(L0_INTERACT1);
- word2=vmer32(L0_INTERACT2);
- word3=vmer32(L0_INTERACTT);
- word=vmer32(L0_INTERACTSEL);
+ word1=getLM0addr(L0_INTERACT1);
+ word2=getLM0addr(L0_INTERACT2);
+ word3=getLM0addr(L0_INTERACTT);
+ word=getLM0addr(L0_INTERACTSEL);
  fprintf(f,"INTERACT1 INTERACT2 INTERACTT INTERACTSEL: 0x%x 0x%x 0x%x 0x%x\n",word1,word2,word3,word);
- word1=vmer32(L0_FUNCTION1);
- word2=vmer32(L0_FUNCTION2);
+ word1=getLM0addr(L0_FUNCTION1);
+ word2=getLM0addr(L0_FUNCTION2);
  fprintf(f,"L0FUNCTION1 L0FUNCTION2: 0x%x 0x%x \n",word1,word2);
  fprintf(f,"SYNCAL (inputs delay and edge selector)\n");
  for(i=0;i<24;i++){

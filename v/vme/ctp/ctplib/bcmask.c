@@ -8,11 +8,18 @@
 #include "ctplib.h"
 #include "Tpartition.h"
 #include "infolog.h"
+w32 getMASK_MODE() {
+if(l0C0()) {
+  return MASK_MODEr2;
+} else {
+  return MASK_MODE;
+};
+}
 /* read BC masks from HW and print out 3564 4 (or 12)bits words
 */
 void getBCmasks() {
 int ix, hchars; w32 m4_12; char m4[3*ORBITLENGTH+1];
-vmew32(MASK_MODE,1);   /* vme mode */
+vmew32(getMASK_MODE(),1);   /* vme mode */
 vmew32(MASK_CLEARADD,DUMMYVAL);
 if(l0AB()==0) {   //firmAC
   m4_12= 0xfff; hchars= 3*ORBITLENGTH;
@@ -38,7 +45,7 @@ if(l0AB()==0) {   //firmAC
     if(c>=10) m4[ix]= c-10+'a'; else m4[ix]= c+'0';
   };
 };
-vmew32(MASK_MODE,0);   /* normal mode */
+vmew32(getMASK_MODE(),0);   /* normal mode */
 m4[hchars]='\0';
 printf("%s\n",m4);
 }
@@ -68,7 +75,7 @@ if(strl!= hchars) {
     infolog_trgboth(LOG_ERROR, emsg);
   };
 }; */
-vmew32(MASK_MODE,1);   /* vme mode */
+vmew32(getMASK_MODE(),1);   /* vme mode */
 vmew32(MASK_CLEARADD,DUMMYVAL);
 /* this is shifted by 2. Correct programming of BCmask memory is:
 3562, 3563, 0, 1,...
@@ -91,7 +98,7 @@ for(ix=0; ix<ORBITLENGTH; ix++) {
   };*/
   vmew32(MASK_DATA,val);
 };
-vmew32(MASK_MODE,0);   /* normal mode */
+vmew32(getMASK_MODE(),0);   /* normal mode */
 //if(DBGmask) printf("loadBCmasks:written to hw:%d words\n",ORBITLENGTH);
 if(DBGmask) {
   printf("loadBCmasks:written to hw:%d words\n",ORBITLENGTH);
@@ -132,7 +139,7 @@ loadBCmasks(bytes);
 words: if 0 than checj whole BCmask memory (3564)
 */
 void checkBCmasks(int ntimes, int words) {
-w32 val,m4_12;
+w32 val,m4_12,mask_mode;
 int ix,strl, cycles; //char m4[ORBITLENGTH+3];
 if(words==0)
   strl=ORBITLENGTH;
@@ -143,18 +150,19 @@ if(l0AB()==0) {   //firmAC
 } else {
   m4_12=0xf;
 };
+mask_mode=getMASK_MODE();
 for(cycles=0; cycles<ntimes; cycles++) {
-  vmew32(MASK_MODE,1);   /* vme mode */
+  vmew32(mask_mode,1);   /* vme mode */
   vmew32(MASK_CLEARADD,DUMMYVAL);
   for(ix=0; ix<strl; ix++) {
     val=ix&m4_12;
     vmew32(MASK_DATA,val);
     /*  printf("%x",vmer32(MASK_DATA)&0xf); */
   };
-  vmew32(MASK_MODE,0);   /* normal mode */
+  vmew32(mask_mode,0);   /* normal mode */
   /*  printf("written to hw:%d\n",strl); */
   /* read and check; */
-  vmew32(MASK_MODE,1);   /* vme mode */
+  vmew32(mask_mode,1);   /* vme mode */
   vmew32(MASK_CLEARADD,DUMMYVAL);
   for(ix=0; ix<strl; ix++) {
     w32 valr;
@@ -164,7 +172,7 @@ for(cycles=0; cycles<ntimes; cycles++) {
       printf("Error at %d exp:%x got:%x\n",ix,val,valr);
     };
   };
-  vmew32(MASK_MODE,0);   /* normal mode */
+  vmew32(mask_mode,0);   /* normal mode */
   printf("read/checked:%d\n",strl);
 };
 }

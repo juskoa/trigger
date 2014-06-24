@@ -45,7 +45,7 @@ Tsimplepars simplepars[MAXSIMPLEPARS]= {
 //{"L0_INTERACT1", L0_INTERACT1},
 //{"L0_INTERACT2", L0_INTERACT2},
 //{"L0_INTERACTT", L0_INTERACTT},
-{"L0_INTERACTSEL", L0_INTERACTSEL},
+{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take car L0/LM0  (see below)!
 {"INT_DDL_EMU", INT_DDL_EMU},
 {"", 0}
 };
@@ -59,7 +59,11 @@ for(ix=0; ix<MAXSIMPLEPARS; ix++ ) {
   if(simplepars[ix].name[0]=='\0') break;
   if(strcmp(parname, simplepars[ix].name)==0) {
     if((rc=getival(parval, parname, &ival))==0) {
-      vmew32(simplepars[ix].address, ival); return(ret);
+      w32 adr;
+      adr=simplepars[ix].address;
+      if(adr==L0_INTERACTSEL) adr= getLM0addr(L0_INTERACTSEL);
+      vmew32(adr, ival); 
+      return(ret);
     } else { return(2); };
   };
 };
@@ -189,9 +193,9 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     } else {
       //save in HW structure
       w32 ltv,vmeadr; int ixx;
-      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= L0_INTERACT1;
-      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr= L0_INTERACT2;
-      } else {ixx= ixintfunt;vmeadr= L0_INTERACTT;};
+      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= getLM0addr(L0_INTERACT1);
+      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr= getLM0addr(L0_INTERACT2);
+      } else {ixx= ixintfunt;vmeadr= getLM0addr(L0_INTERACTT);};
       ltv= hex2int(&lookupt[2]);
       //printf("lookupt:%s ltv:%x\n", lookupt, ltv);
       HW.rbif->rbif[ixx]= ltv;
@@ -264,7 +268,13 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     if( setcheckParErr(parname, &line[ix], BUSY_L0L1DEADTIME, calcBUSY_L0L1DEADTIME )!=0) {
     goto ERRfatal; };
   } else if(strcmp(parname,"L0_BCOFFSET")==0) {
-    if( setcheckParErr(parname, &line[ix], L0_BCOFFSET, calcL0_BCOFFSET )!=0) {
+    w32 l0_bcoffset;
+    if(l0C0()) {
+    l0_bcoffset= L0_BCOFFSETr2;
+    } else {
+    l0_bcoffset= L0_BCOFFSET;
+    };
+    if( setcheckParErr(parname, &line[ix], l0_bcoffset, calcL0_BCOFFSET )!=0) {
     goto ERRfatal; };
   } else if(strcmp(parname,"L1_DELAY_L0")==0) {
     if( setcheckParErr(parname, &line[ix], L1_DELAY_L0, calcL1_DELAY_L0 )!=0) {
