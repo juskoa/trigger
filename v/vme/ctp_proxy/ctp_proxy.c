@@ -1021,7 +1021,8 @@ prtProfTime("got inps2daq");
   //sprintf(name,"WORK/RCFG/r%d.rcfg", partit->run_number);
   //getruncfgname(partit->run_number, name);
   sprintf(name, "/tmp/r%d.rcfg", partit->run_number);
-  len=0; //len= detectfile(name, 8);    // wait max. 8 (was 25 before LS1) secs for file
+  len= detectfile(name, 8);    // wait max. 8 (was 25 before LS1) secs for file
+  // len=0;
   /*sprintf(emsg, "updateDAQClusters: Run: %d file:%s len:%d",
     partit->run_number, name, len); prtLog(emsg); */
   /*if(len<=0) {
@@ -2576,7 +2577,7 @@ sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);
 prtProfTime("get pcfg");
 preparepcfg(name2, run_number, ACT_CONFIG);
 sprintf(msg, "/tmp/%s.pcfg", name2);
-ret= detectfile(msg, 39);  // wait max. 19 (was 9) secs for file
+ret= detectfile(msg, 3);  // wait max. 3 (was 39 at the end of run1) secs for file
 sprintf(msg,"timestamp:pcfg2: name2:%s name:%s...", name2, name); prtLog(msg);
 if(ret<=0) {
   sprintf(msg, "Wrong partition definition (cannot create .pcfg file) ret:%d",ret);

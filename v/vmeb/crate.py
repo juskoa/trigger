@@ -97,14 +97,14 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       f1.addBoard(vmeboard)
       syspadd= os.path.join(cfdir, board[0])
     sys.path.append(syspadd)   # to find user gui routines
-    print "crate.py: myw.vbexec:", myw.vbexec
+    #print "crate.py: myw.vbexec:", myw.vbexec
     if myw.vbexec==None:   # nbi LTU could open it
       try:
         vmeboard.openCmd(); myw.vbinit(vmeboard)
       except:
         print sys.exc_info()[0]
         sys.exit(0)
-    print "crate.py2: myw.vbexec:", myw.vbexec
+    #print "crate.py2: myw.vbexec:", myw.vbexec
     if board[0]=='ctp': 
       import ctp_u,ctpcfg
       if not ctp_u.ctpmem: 

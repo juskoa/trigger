@@ -76,11 +76,12 @@ Commands: l(init) s(start) f(stop) p(pause) r(resume) y(sync) N:runN++\n\
 };
 //-------------------------------------------
 int main(int argc, char **argv){
- int rc;
- char c;
- char pname[64],mask[64]="0";
- Tpartition *part;
- char ACT_CONFIG[8]="YES"; // or "NO"
+int rc;
+char c;
+char pname[64],mask[64]="0";
+Tpartition *part;
+char ACT_CONFIG[8]="NO"; // "YES" or "NO"
+char *dbgargv[]= {"pgname","NODAQLOGBOOK","NODAQRO"}; int dbgargc=3;
 char DETECTORS[200];
  //setlinebuf(stdout);   // see swtrcheck.py
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
@@ -93,7 +94,8 @@ printf("ctp_proxy TESTER, ACT_CONFIG:%s \n", ACT_CONFIG);
 partmode[0]='\0';
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 cshmInit();
-setglobalflags(argc, argv);
+//setglobalflags(argc, argv);
+setglobalflags(dbgargc, dbgargv);
 if((rc=ctp_Initproxy())!=0) exit(8);
 while(1) {
   int detectors;

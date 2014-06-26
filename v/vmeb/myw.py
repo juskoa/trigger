@@ -1724,7 +1724,7 @@ class VmeBoard:
       else:
         cm= os.path.join(bdir, self.boardName, self.boardName)
         cm= cm+'.exe '+self.baseAddr
-      #print ":",cm,":"
+      #print "openCmd:",cm,":"
       self.io= cmdlin2.cmdlint(cmd=cm, board=self)
       if self.io.thds[0].pidexe==None:
         #raise "exiting..."

@@ -604,6 +604,32 @@ for(ix=0; ix<NCLASS; ix++) {
 vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 
+/*FGROUP SimpleTests
+write 1..100 rates (scalers) to RATE_DATA, read back and print
+*/
+void testrates() {
+int ix;
+w32 rate_mask;
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
+vmew32(getRATE_MODE(),1);   /* vme mode */
+vmew32(RATE_CLEARADD,DUMMYVAL);
+printf("writing 1..100 -> RATE_DATA...\n");
+for(ix=0; ix<NCLASS; ix++) {
+  vmew32(RATE_DATA, (ix+1) & rate_mask);
+};
+//read back
+vmew32(RATE_CLEARADD,DUMMYVAL);
+printf("RATE_DATA reading...\n");
+for(ix=0; ix<NCLASS; ix++) {
+  printf("%2d: %d\n", ix+1, (vmer32(RATE_DATA) & rate_mask));
+};
+vmew32(getRATE_MODE(),0);   /* normal mode */
+}
+
 /*FGROUP L0
 check spy memory (256 words from 0x9400 on L0 board )
 Operation: 
@@ -711,11 +737,11 @@ return;
 }
 /*FGROUP SimpleTests
 clas:
-0: print L0_SDSCG+4,8,...
-1,2,3,...: class number
+0:         print L0_SDSCG+4,8,...  ('group' par. has no sense in this case)
+1,2,3,...: class number of class to be set in group 'group'
 951: set all classes to 'group'
 952: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,99
-group: Set class' group to group
+group: Set class' group to group (meaningfull only for classes 1..100)
        Should be : 1,2,3,...,NCLASS
 LM0: works with L0_VETOSr2[30..24]
 */
@@ -766,19 +792,19 @@ if(clas==0) {
 } else if(clas>NCLASS) {
   printf("clas: 0..100 allowed\n");
 } else {
-  if((group<0) && (group>99)) {
+  if((group<0) || (group>99)) {
     printf("group: 0..100 allowed (0: allowed but should not be used)\n");
   } else {
     w32 adr;
     if(group==0) {
       printf("Warning: group 0 allowed but should not be used!\n");
+    };
     if(l0C0()) {
       putSDSGr2(clas, group);
     } else {
       adr= L0_SDSCG + clas*4; vmew32(adr, group);
     };
   };
-};
 };
 }
 

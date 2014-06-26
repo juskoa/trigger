@@ -1465,10 +1465,11 @@ while(1) {
     /* rc= cctopen(); */
     /* rc= vmeopen(BoardBaseAddress,BoardSpaceLength); */
     strcpy(line,"init()\n");
+    //printf("init.mac execution...\n");
   } else {
     if( actmac != NULL) {
       fgets(line, MAXLILE, actmac->macfile);
-      /*printf("maccalline:%s=\n",line); */
+      //printf("maccalline:%s=\n",line);
     } else {
       if(noprompt==0) printf(":\n"); 
       #if defined(WIN32)

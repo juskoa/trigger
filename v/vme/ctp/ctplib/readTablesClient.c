@@ -180,10 +180,14 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     if(value[0]=='\0') {
       printf("%s is empty in ctp.cfg\n", parname); goto CONT;
     };
+    /* nebavi:
+    sprintf(cmd, "sh -c ""python $VMEBDIR/trigdb.py log2tab '%s'"" ", value);
+    */
     sprintf(cmd, "python $VMEBDIR/trigdb.py log2tab '%s'", value);
     //printf("loadctpcfg:%s:%s:\n", parname, cmd);
     // ! following fails when used with ctp.exe started with
     // redirected in/out through cmdlin2.py...
+    // REASON: ctp.cfg is in dos format (CR+LF), convert it with dow2unix!
     lookupt[0]= '\0'; rc= popenread(cmd, lookupt, LOOKUPTLEN);
     //printf("loadctpcfg.lookupt:%s:\n", lookupt);
     if(strncmp(lookupt,"0x", 2)!=0) {
@@ -227,7 +231,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
           parname,ixx,a3[ixx],pfc); prtWarning(emsg);
       };
       if(notInCrate(ixx+1)) continue;
-      if(ixx=0) {
+      if(ixx==0) {  // L0 or LM0 board
         pfcadr= getLM0PFad(PF_COMMON);
       }else {
         pfcadr= PF_COMMON;

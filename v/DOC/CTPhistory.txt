@@ -239,3 +239,15 @@ L0_VETOr2 -used for LM0, L0_VETO -to be used with L0 board
 L0_MASK   -use ONLY for L0
 L0_INVERTac -the same for L0/LM0
 L0_CONDIION -the same for L0/LM0
+24.6.
+ctp.printsetDSCG() -works for L0 + LM0
+-> git push -> pit
+25.6
+ctp.cfg reading in 'vmecrate ctp': sometimes not ok -seems
+  this happens when dos format of ctp.cfg (use dos2unix to convert it to unix
+  format)
+vmeb/cmdlin2 -deprecated popen2 replaced by subprocess
+ctp.printsetDSCG() -bug fixed (never worked in run1)
+25.6.
+simple.partition -started using 'ctpproxy startest' (class1 only)
+
