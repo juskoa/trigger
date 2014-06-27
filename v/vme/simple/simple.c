@@ -8,6 +8,9 @@
 #define L0_CONDITIONr2 0x400
 #define L0_INVERTr2 0x600
 #define L0_VETOr2 0x800
+#define SCOPE_A_FRONT_PANEL 0x244  /* LM0 only */
+#define SCOPE_B_FRONT_PANEL 0x248  /* LM0 only */
+
 /*REGEND */
 
 extern int quit;

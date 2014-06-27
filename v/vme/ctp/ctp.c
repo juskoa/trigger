@@ -605,29 +605,55 @@ vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 
 /*FGROUP SimpleTests
-write 1..100 rates (scalers) to RATE_DATA, read back and print
+what: 0: test RATE_MODE  (100 words, 25 bits)
+      1: test MASK_DATA  (3564 words, 12 bits)
+write 1.. 100/3564,read back and print if not as expected
 */
-void testrates() {
+void testrates(int what) {
 int ix;
-w32 rate_mask;
-if(l0C0()) {
-  rate_mask= RATE_MASKr2;
+w32 rate_mask,vmemode,clearad,datad;
+int MAXIX, okn;
+if(what==0) {
+  if(l0C0()) {
+    rate_mask= RATE_MASKr2;
+  } else {
+    rate_mask= RATE_MASK;
+  };
+  MAXIX=NCLASS;
+  vmemode= getRATE_MODE();
+  clearad= RATE_CLEARADD;
+  datad= RATE_DATA;
 } else {
-  rate_mask= RATE_MASK;
+  if(l0C0()) {
+    vmemode= MASK_MODEr2;
+  } else {
+    vmemode= MASK_MODE;
+  };
+  datad= MASK_DATA;
+  rate_mask= 0xfff;
+  MAXIX=ORBITLENGTH;
+  clearad= MASK_CLEARADD;
 };
-vmew32(getRATE_MODE(),1);   /* vme mode */
-vmew32(RATE_CLEARADD,DUMMYVAL);
-printf("writing 1..100 -> RATE_DATA...\n");
-for(ix=0; ix<NCLASS; ix++) {
-  vmew32(RATE_DATA, (ix+1) & rate_mask);
+vmew32(vmemode,1);   /* vme mode */
+vmew32(clearad,DUMMYVAL);
+printf("writing 1..%d ...\n",MAXIX);
+for(ix=0; ix<MAXIX; ix++) {
+  vmew32(datad, (ix+1) & rate_mask);
 };
 //read back
-vmew32(RATE_CLEARADD,DUMMYVAL);
-printf("RATE_DATA reading...\n");
-for(ix=0; ix<NCLASS; ix++) {
-  printf("%2d: %d\n", ix+1, (vmer32(RATE_DATA) & rate_mask));
-};
-vmew32(getRATE_MODE(),0);   /* normal mode */
+vmew32(clearad,DUMMYVAL); okn=0;
+printf("reading...\n");
+for(ix=0; ix<MAXIX; ix++) {
+  w32 da;
+  da= vmer32(datad) & rate_mask;
+  if (da!= ((ix+1) & rate_mask)) {
+    printf("%2d: %d\n", ix+1, (vmer32(datad) & rate_mask));
+  } else {
+    okn++;
+  };
+}; 
+vmew32(vmemode,0);   /* normal mode */
+printf("ok: %d words\n", okn);
 }
 
 /*FGROUP L0

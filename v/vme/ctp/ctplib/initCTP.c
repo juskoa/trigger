@@ -145,7 +145,6 @@ rc= setL0f34c(0, (char *)"0");
 };
 ix= loadcheckctpcfg();
 //dbgssm("after loadcheckctpcfg");
-return;
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
   if(ctpboards[ix].code==FOcode) { 

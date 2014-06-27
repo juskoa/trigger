@@ -224,6 +224,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
                                 /*   fy>=0xAC           4Kwordxx12bits*/
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
+#define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
 #define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
@@ -245,8 +246,7 @@ firmAC:
 all classes can use inverted inputs, use L0_INVERTac symbol.
 */
 /* see PF_COMMON... */
-#define MASK_MODE      0x95a4 /* BCMask memory mode 1:vme 0:normal */
-#define MASK_MODEr2    0x91ec /* BCMask memory mode 1:vme 0:normal */
+#define MASK_MODE      0x95a4 /* L0: BCMask memory mode 1:vme 0:normal */
 #define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
 #define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
 //#define L0_ENA_CRND    0x94fc
