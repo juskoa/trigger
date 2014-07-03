@@ -4,7 +4,7 @@
 cd $VMECFDIR ; cd fanio/dim
 if [ `uname -i` = 'x86_64' ] ;then
   #client=~trigger/v/linux64/client
-  client='linux/client_64'
+  client='linux_s/client_64'
 else
   client='linux/client'
 fi
