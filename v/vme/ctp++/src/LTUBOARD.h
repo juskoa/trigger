@@ -11,6 +11,7 @@ class LTUBOARD: public BOARD
 	void SetStandalone(){vmew(STANDALONE_MODE,0x1);};
         // SSM analysis
 	int AnalSSM();
+	int AnalTotalSSM();
 	int CheckLx(int level);
 	w32 GetErrors(){return ierror;};
         void Print();
@@ -24,20 +25,22 @@ class LTUBOARD: public BOARD
 	// emulation working variables
 	w32 ierror;
         deque<ssmrecord*> qorbit;
-	deque<w8> ql0strobe;
-	deque<w8> ql1strobe;
-	deque<w8> ql2strobe;
+	deque<w32> ql0strobe;
+	deque<w32> ql1strobe;
+	deque<w32> ql2strobe;
         deque<ssmrecord*> ql1data;
         deque<ssmrecord*> ql2data;
         deque<ssmrecord*> qttcb;
 
 	void ClearQueues();	
 	int CreateRecordSSM();
+	int CreateRecordSSM(bool first);
 	int shortsignal(w32 level,w32 bit,w32 issm);
 	int longsignal(w32 &lsigflag,w32 bit,w32 issm,w32 &icount);
 	int activesignal(w32 level,w32 &ssigflag,w32 bit,w32 issm,w32 &icount);
 	int lxdata(w32 NLxdata,w32 &l2daflag,w32 bit,w32 issm,w32 &icount,w32 *data);
 	int channelB(w32 &flag,w32 bit,w32 issm,w32 &icount,w32 &datab,w32* data);
 	void txprint(int i,w32 *TXS);
+	w16* L1Serial2Words();
 };
 #endif

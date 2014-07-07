@@ -98,6 +98,9 @@ int LTUBOARD::longsignal(w32 &lsigflag,w32 bit,w32 issm,w32 &icount)
 	 //dump=addlist(dump,i-*icount-1,text);
 	 ssmrecord *orb = new ssmrecord(issm-icount,icount);
 	 //ql2strobe.push(issm);
+	 if(icount != 39){
+          printf("Warning: Longsignal: ORBIT length != 39 instead %i \n",icount);
+         }
          qorbit.push_back(orb);
 	 icount=0;
 	 lsigflag=0;
@@ -108,7 +111,10 @@ int LTUBOARD::longsignal(w32 &lsigflag,w32 bit,w32 issm,w32 &icount)
 }
 int LTUBOARD::shortsignal(w32 level,w32 bit,w32 issm)
 {
- if(bit)ql0strobe.push_back(issm);
+ if(bit){
+   //printf("issm= %i \n",issm);
+   ql0strobe.push_back(issm);
+ }
  return 0;	
 }
 int LTUBOARD::activesignal(w32 level,w32 &asigflag,w32 bit,w32 issm,w32 &icount)
@@ -120,7 +126,7 @@ int LTUBOARD::activesignal(w32 level,w32 &asigflag,w32 bit,w32 issm,w32 &icount)
      else ql2strobe.push_back(issm);
      asigflag=1;
      }else{
-      printf("Error: xy arrives while data active. \n");
+      printf("Error: L%1i arrives while data active. BC=%i \n",level,issm);
       return 1;
   }		
  }
@@ -147,7 +153,7 @@ int LTUBOARD::lxdata(w32 NLxdat,w32 &l2sflag,w32 bit,w32 issm,w32 &icount,w32* d
              //lxprint(i,1,NLxdat,LxDATA,name);
              char level='1';
              if(NLxdat==NL2dat)level='2';
-             printf("Error l%c data: outside strobe i.e.: shifted or longer\n",level);		                 
+             printf("Error l%c data: outside strobe i.e.: shifted or longer, BC= %i\n",level,issm);		                 
 	     return 1;	     
 	    }	    
            }		
@@ -210,18 +216,71 @@ void LTUBOARD::txprint(int i,w32 *TXS)
  qttcb.push_back(ss);
 }
 int LTUBOARD::AnalSSM()
+/*
+ Compares L1 and L2data serial data with TTC messages
+*/
 {
  CreateRecordSSM();
  CheckLx(1);
  CheckLx(2);
  return 0;
 }
+int LTUBOARD::AnalTotalSSM()
+/*
+ Full analysis like in detector fron end.
+*/ 
+{
+ CreateRecordSSM(0);
+ w32 jorbit=0;
+ w32 jl1=0;
+ for(w32 i=0;i<ql0strobe.size();i++){
+  w32 il0=ql0strobe[i];
+  w32 bcidssm=0;
+  printf("L0: %i \n", il0);
+  // find ssm BC
+  bool orbitfound=0;
+  for(w32 j=jorbit;j<qorbit.size();j++){
+    ssmrecord* orbit=qorbit[j];
+    if((il0-orbit->issm)<3564){
+      printf("Orbit: %i %i \n",il0-orbit->issm,orbit->data);
+      jorbit=j;
+      orbitfound=1;
+      bcidssm=il0-orbit->issm;
+      break;
+    } 
+  }
+  if(!orbitfound){
+    printf("Orbit not found for L0 at %i \n",il0);
+    return 1;
+  }
+  // Find L1
+  w32 j=jl1;
+  while((ql1strobe[j] < il0) && (j<ql1strobe.size())){
+    printf("Warning: L1 without L0 at %i %i \n",j,ql1strobe[j]);
+    j++;
+  }
+  if(j>=ql1strobe.size()){
+    printf("L1 not found for L0 at %i \n",il0);
+    return 2;
+  }else{
+    printf("L1: %i \n",ql1strobe[j]-il0);
+    if((ql1strobe[j]-il0) != 260){
+     printf("Error: L0-L1 time violation \n");
+     return 3;
+    }
+    jl1=++j;
+  }
+ }
+ return 0;
+}
 int LTUBOARD::CheckLx(int level){
+// Analyses Lx data. No L1/L2 interleaving assumed.
+// Requires to start from first L0
  w32 NLxdat;
  w32 NLxwords;
  w8 ttchead;
  w32 datstart;
- deque<w8> qstr;
+ deque<w32> qstr;
  deque<ssmrecord *> qdat;
  if(level==2){
   NLxdat=NL2dat;
@@ -241,6 +300,7 @@ int LTUBOARD::CheckLx(int level){
  ///printf("l2strobe: %i %i\n",ql2strobe.size(),ql2data.size());
  ///printf("l1strobe: %i %i\n",ql1strobe.size(),ql1data.size());
  ///printf("ttcb : %i\n",qttcb.size());
+ int count=0;
  for(w32 i=0;i<qstr.size();i++){
   if(i>=qdat.size()){
    printf("Warning: More data than strobes i=%i, qdat: %i qstr: %i \n",i,qdat.size(),qstr.size());
@@ -268,7 +328,7 @@ int LTUBOARD::CheckLx(int level){
        //printf("ttcb: %i 0x%x \n",qttcb[j]->issm,qttcb[j]->tdata);
        if(qttcb[j]->tdata != dwords[0]){
         ierror++;
-        printf("Check L%1i Error: serial data different from ttc: 0x%x 0x%x \n",level, dwords[0],qttcb[j]->tdata);
+        printf("Check L%1i Error: serial data different from ttc: 0x%x 0x%x  BC=%i\n",level, dwords[0],qttcb[j]->tdata,issm);
        }
        w32 iword=1;
        while(j<qttcb.size() && iword<NLxwords){
@@ -277,7 +337,7 @@ int LTUBOARD::CheckLx(int level){
            //printf("ttcb: %i %i 0x%x 0x%x \n",iword,qttcb[j]->issm,qttcb[j]->tdata,dwords[iword]);
            if(qttcb[j]->tdata != dwords[iword]){
              ierror++;
-             printf("Check L%1i Error: serial data different from ttc: 0x%x 0x%x\n",level,dwords[iword],qttcb[j]->tdata);
+             printf("Check L%1i Error: serial data different from ttc: 0x%x 0x%x  BC=%i \n",level,dwords[iword],qttcb[j]->tdata,issm);
 	   }
 	   iword++;
          }
@@ -286,11 +346,17 @@ int LTUBOARD::CheckLx(int level){
        break;
     }
     j++;
-  }  
+  }
+  count++;  
  }
+ printf("Number of checked L%1i: %i \n",level,count);
  return 0;
 }
 int LTUBOARD::CreateRecordSSM()
+{
+ return CreateRecordSSM(1);
+}
+int LTUBOARD::CreateRecordSSM(bool first)
 /*
  * Assuming no fifo busy - low rate
  */
@@ -306,13 +372,16 @@ int LTUBOARD::CreateRecordSSM()
  w32 *ss=GetSSM();
  // search first L0
  w32 ifirst=0;
- for(int i=0;i<Mega;i++){
+ // to keep compatibility with old version
+ if(first){
+  for(int i=0;i<Mega;i++){
     word=ss[i];
     bit= ( (word & (1<<2)) == (1<<2));
     if(bit){
      ifirst=i;
      break;
     }
+  }
  }
  //printf("ifirst= %i \n",ifirst);
  // Continue from first
