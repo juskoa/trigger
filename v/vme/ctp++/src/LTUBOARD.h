@@ -25,6 +25,7 @@ class LTUBOARD: public BOARD
 	// emulation working variables
 	w32 ierror;
         deque<ssmrecord*> qorbit;
+        deque<w32> qorbit0;
 	deque<w32> ql0strobe;
 	deque<w32> ql1strobe;
 	deque<w32> ql2strobe;
@@ -34,13 +35,14 @@ class LTUBOARD: public BOARD
 
 	void ClearQueues();	
 	int CreateRecordSSM();
-	int CreateRecordSSM(bool first);
 	int shortsignal(w32 level,w32 bit,w32 issm);
 	int longsignal(w32 &lsigflag,w32 bit,w32 issm,w32 &icount);
 	int activesignal(w32 level,w32 &ssigflag,w32 bit,w32 issm,w32 &icount);
 	int lxdata(w32 NLxdata,w32 &l2daflag,w32 bit,w32 issm,w32 &icount,w32 *data);
 	int channelB(w32 &flag,w32 bit,w32 issm,w32 &icount,w32 &datab,w32* data);
 	void txprint(int i,w32 *TXS);
-	w16* L1Serial2Words();
+	void L1Serial2Words(w32 i,w16* dwords);
+	void L2Serial2Words(w32 i,w16* dwords);
+ 	void FindOrbits();
 };
 #endif
