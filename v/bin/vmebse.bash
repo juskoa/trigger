@@ -69,8 +69,8 @@ if [ "$ix" = '6' ] ;then   #pit
   export VMESITE=ALICE
   export SMAQ_C=alidcscom707
   export VMEGCC=g++ #export VMEGCC=gcc
-  #export DIM_DNS_NODE=aldaqecs
-  export DIM_DNS_NODE=alidcscom188
+  export DIM_DNS_NODE=aldaqecs
+  #export DIM_DNS_NODE=alidcscom188
   #export ACT_DB=daq:daq@aldaqdb/ACT
   if [ -d /opt/act ] ;then   # only on server needed
     export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT

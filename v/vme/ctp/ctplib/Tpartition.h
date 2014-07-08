@@ -105,7 +105,7 @@ bit12      All/Rare flag (1: All  0: Rare)
 typedef struct TKlas{
  w32 l0inputs;
  w32 l0inverted;
- w32 l0vetos;      // bit17: 1:class not choosen  
+ w32 l0vetos;      // bit17: 1:class not choosen  LM0: use bit23
                    //bit[2:0] hwcluster (1-6) ONLY IN HW variable
  w32 scaler;
  w32 l1definition;
@@ -258,7 +258,8 @@ typedef struct Hardware{
  TFO fo[NFO];           // clust. is free if there is no bit ON in fo[0-5]
  TBUSY busy;
  int sdgs[NCLASS];   // Default: 0..49. Different in case if SDG active 
-     // for given class used to fill L0_SDSCG registers
+     // for given class used to fill L0_SDSCG registers. VALID also for LM0
+     // (i.e. here, not in klas[]->l0vetos
 }Hardware;
 // Clean existing HW structure
 void cleanHardware(Hardware *hw, int leaveint);

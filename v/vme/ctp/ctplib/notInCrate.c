@@ -24,7 +24,7 @@ if(ctpboards[1].boardver<=0xab) {
 }
 int l0C0() {
 if(ctpboards[1].boardver>=0xc0) {
-  //return(0);   // forcing AC (for debugging sw with old board)
+  //return(0);
   return(ctpboards[1].boardver);  // LM0 board
 } else {
   return(0);   // old L0 board (run1, can be with 100 or 50 classes!)

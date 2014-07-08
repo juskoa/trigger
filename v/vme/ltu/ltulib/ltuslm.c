@@ -52,11 +52,17 @@ return(vmer32(START_SET)&0x0f);
 Generate start signal by SW
 n       -number of SW triggers (0-endless loop)
 milsecs -time interval, in miliseconds, between triggers 
+         if > 1000000: interval betwenn triggers is: (milsecs-1000000)us
 return  -number of generated SW triggers 
 */
 int SLMswstart(int n, int milsecs) {
 int i,micsecs;
-i=0; micsecs=milsecs*1000;
+i=0; 
+if(milsecs>1000000) {
+  micsecs=milsecs-1000000;
+} else {
+  micsecs=milsecs*1000;
+};
 if((SSMSCHEDULER>=2) & (SSMSCHEDULER<=3)) {
   w32 opmo;
   opmo= SSMSCHEDULER; 

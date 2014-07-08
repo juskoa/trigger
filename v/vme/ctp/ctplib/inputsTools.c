@@ -3,6 +3,13 @@
 #include "vmewrap.h"
 #include "ctp.h"
 #include "ctplib.h"
+w32 getSYNCH_ADD() {
+if(l0C0()) {
+  return(SYNCH_ADDr2);
+} else {
+  return(SYNCH_ADD);
+};
+}
 /* 
   Find selection of input 24(ctp)->48(lm)
   Returns position of CTP input at Lm connector.
@@ -13,7 +20,7 @@ int getl0selected(int input){
    printf("Input number out of range %i <E>\n",input);
    return 0;
  }
- selected=vmer32(BSP*ctpboards[1].dial+SYNCH_ADD+4*(input-1));
+ selected=vmer32(BSP*ctpboards[1].dial+getSYNCH_ADD()+4*(input-1));
  return selected;
 }
 /*
@@ -47,7 +54,7 @@ void setEdgerun2(int board,w32 input,w32 edge){
   w32 lminput=getl0selected(input);
   w32 lowhigh =  lminput > 24;
   w32 index   = (lminput-1) % 24; 
-  word=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*index);
+  word=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*index);
   if(lowhigh){
     word=word & 0xffffefff;
     if(edge) word |= 0x1000;
@@ -55,12 +62,12 @@ void setEdgerun2(int board,w32 input,w32 edge){
     word=word & 0xffffffef;
     if(edge) word |= 0x10;
   }
-  vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*index,word);
+  vmew32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*index,word);
  }else{
-   word=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+   word=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
    word=word&0xfffffeff;
    if(edge)word=word+0x100;
-   vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1),word);
+   vmew32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1),word);
  } 
 }
 void setEdgerun1(int board,w32 input,w32 edge){
@@ -71,10 +78,10 @@ void setEdgerun1(int board,w32 input,w32 edge){
   if(edge) word=word | 0x1000;
   vmew32(BUSY_ORBIT_SELECT,word);
  }else{
-  word=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+  word=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
   word=word&0xfffffeff;
   if(edge)word=word+0x100;
-  vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1),word);
+  vmew32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1),word);
  } 
 }
 /* Read edge/delay info from hw
@@ -109,7 +116,7 @@ int getl0edgedel(int input,w32*del){
  w32 lminput=getl0selected(input);
  int lowhigh =  lminput > 24;
  int index   = (lminput-1) % 24; 
- edge=vmer32(BSP*ctpboards[1].dial+SYNCH_ADD+4*index);
+ edge=vmer32(BSP*ctpboards[1].dial+getSYNCH_ADD()+4*index);
  if(lowhigh){
    edge=(edge&0x1f00)>>8;
  }else{
@@ -134,7 +141,7 @@ int getedgerun2(int board,w32 input,w32 *del){
    printf("Input number out of range %i <E>\n",input);
    return 4;
   }
-  edge=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+  edge=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
   *del=(edge&0xf);
   edge=(edge&0x100)==0x100;
  }else if(board==1){
@@ -142,7 +149,7 @@ int getedgerun2(int board,w32 input,w32 *del){
    printf("Input number out of range %i <E>\n",input);
    return 5;
   }
-  edge=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+  edge=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
   *del=(edge&0xf);
   edge=(edge&0x100)==0x100;
  }else{
@@ -160,7 +167,7 @@ int getedgerun1(int board,w32 input,w32 *del){
    printf("Input number out of range %i <E>\n",input);
    return 4;
   }
-  edge=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+  edge=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
   *del=(edge&0xf);
   edge=(edge&0x100)==0x100;
  }else if(board == 3){   
@@ -168,7 +175,7 @@ int getedgerun1(int board,w32 input,w32 *del){
    printf("Input number out of range %i <E>\n",input);
    return 5;
   }
-  edge=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+  edge=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
   *del=(edge&0xf);
   edge=(edge&0x100)==0x100;
  }else{
@@ -199,7 +206,7 @@ void setEdgeDelayrun2(int board, int input, int edge, int delay){
   w32 lminput=getl0selected(input);
   w32 lowhigh =  lminput > 24;
   w32 index   = (lminput-1) % 24; 
-  synch=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*index);
+  synch=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*index);
   if(lowhigh){
     synch=synch & 0xffffe0ff;
     synch |= (edge<<12) | (delay<<8);
@@ -207,18 +214,18 @@ void setEdgeDelayrun2(int board, int input, int edge, int delay){
     synch=synch & 0xffffffe0;
     synch |= (edge<<4) | delay;
   }
-  vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*index,synch);
+  vmew32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*index,synch);
  }else{
-   synch=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+   synch=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
    synch= (synch&0xfffffef0) | ((edge & 0x1)<<8) | (delay&0xf);
-   vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1),synch);
+   vmew32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1),synch);
  }
 }
 void setEdgeDelayrun1(int board, int input, int edge, int delay){
  w32 synch;
- synch=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+ synch=vmer32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1));
  synch= (synch&0xfffffef0) | ((edge & 0x1)<<8) | (delay&0xf);
- vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1),synch);
+ vmew32(BSP*ctpboards[board].dial+getSYNCH_ADD()+4*(input-1),synch);
  //printf("setEdgeDelay2: %d i:%d: %d %d=0x%x\n", board, input,edge,delay, synch);
 }
 /*------------------------------------------------ printEdgeDelay()

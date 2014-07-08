@@ -671,12 +671,17 @@ if((serial>=64) || (serial==0)) {
   if(serial==0) {
     printf("Serial number:0 ->this board accounted LTU version 2\n");
   };
-  if(pll==0x2) {
-    printf("CRC error bit set, reconfigure LTU!\n");
-    vmew32(TEMP_STATUS, 0);    // is needed here?
-    return(1);
+  // check only from fpgaver 0xb8
+  if(Gltuver>=0xb8) {
+    if(pll==0x2) {
+      printf("CRC error bit set, reconfigure LTU!\n");
+      vmew32(TEMP_STATUS, 0);    // is needed here?
+      return(1);
+    } else {
+      printf("CRC bit ok\n");
+    };
   } else {
-    printf("CRC bit ok\n");
+    printf("CRC bit not checked (LTU version 2, but FPGAver <0xb8 )\n");
   };
 } else {
   printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");

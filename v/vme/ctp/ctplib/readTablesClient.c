@@ -45,7 +45,7 @@ Tsimplepars simplepars[MAXSIMPLEPARS]= {
 //{"L0_INTERACT1", L0_INTERACT1},
 //{"L0_INTERACT2", L0_INTERACT2},
 //{"L0_INTERACTT", L0_INTERACTT},
-{"L0_INTERACTSEL", L0_INTERACTSEL},
+{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take car L0/LM0  (see below)!
 {"INT_DDL_EMU", INT_DDL_EMU},
 {"", 0}
 };
@@ -59,7 +59,11 @@ for(ix=0; ix<MAXSIMPLEPARS; ix++ ) {
   if(simplepars[ix].name[0]=='\0') break;
   if(strcmp(parname, simplepars[ix].name)==0) {
     if((rc=getival(parval, parname, &ival))==0) {
-      vmew32(simplepars[ix].address, ival); return(ret);
+      w32 adr;
+      adr=simplepars[ix].address;
+      if(adr==L0_INTERACTSEL) adr= getLM0addr(L0_INTERACTSEL);
+      vmew32(adr, ival); 
+      return(ret);
     } else { return(2); };
   };
 };
@@ -176,10 +180,14 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     if(value[0]=='\0') {
       printf("%s is empty in ctp.cfg\n", parname); goto CONT;
     };
+    /* nebavi:
+    sprintf(cmd, "sh -c ""python $VMEBDIR/trigdb.py log2tab '%s'"" ", value);
+    */
     sprintf(cmd, "python $VMEBDIR/trigdb.py log2tab '%s'", value);
     //printf("loadctpcfg:%s:%s:\n", parname, cmd);
     // ! following fails when used with ctp.exe started with
     // redirected in/out through cmdlin2.py...
+    // REASON: ctp.cfg is in dos format (CR+LF), convert it with dow2unix!
     lookupt[0]= '\0'; rc= popenread(cmd, lookupt, LOOKUPTLEN);
     //printf("loadctpcfg.lookupt:%s:\n", lookupt);
     if(strncmp(lookupt,"0x", 2)!=0) {
@@ -189,9 +197,9 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     } else {
       //save in HW structure
       w32 ltv,vmeadr; int ixx;
-      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= L0_INTERACT1;
-      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr= L0_INTERACT2;
-      } else {ixx= ixintfunt;vmeadr= L0_INTERACTT;};
+      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= getLM0addr(L0_INTERACT1);
+      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr= getLM0addr(L0_INTERACT2);
+      } else {ixx= ixintfunt;vmeadr= getLM0addr(L0_INTERACTT);};
       ltv= hex2int(&lookupt[2]);
       //printf("lookupt:%s ltv:%x\n", lookupt, ltv);
       HW.rbif->rbif[ixx]= ltv;
@@ -216,14 +224,19 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
       };
     };
     for(ixx=0; ixx<3; ixx++) {
-      w32 pfc;
+      w32 pfc, pfcadr;
       pfc= calcPFisd(ixx)<<12;
       if(a3[ixx] != pfc) {
         sprintf(emsg, "ctp.cfg %s(%d) written: 0x%x calculated:0x%x\n",
           parname,ixx,a3[ixx],pfc); prtWarning(emsg);
       };
       if(notInCrate(ixx+1)) continue;
-      vmew32(PF_COMMON+BSP*ctpboards[ixx+1].dial, a3[ixx]);
+      if(ixx==0) {  // L0 or LM0 board
+        pfcadr= getLM0PFad(PF_COMMON);
+      }else {
+        pfcadr= PF_COMMON;
+      };
+      vmew32(pfcadr+BSP*ctpboards[ixx+1].dial, a3[ixx]);
     };
     printf("PF_COMMON:%d 0x%x 0x%x\n",a3[0], a3[1], a3[2]);
     goto CONT;
@@ -264,7 +277,13 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     if( setcheckParErr(parname, &line[ix], BUSY_L0L1DEADTIME, calcBUSY_L0L1DEADTIME )!=0) {
     goto ERRfatal; };
   } else if(strcmp(parname,"L0_BCOFFSET")==0) {
-    if( setcheckParErr(parname, &line[ix], L0_BCOFFSET, calcL0_BCOFFSET )!=0) {
+    w32 l0_bcoffset;
+    if(l0C0()) {
+    l0_bcoffset= L0_BCOFFSETr2;
+    } else {
+    l0_bcoffset= L0_BCOFFSET;
+    };
+    if( setcheckParErr(parname, &line[ix], l0_bcoffset, calcL0_BCOFFSET )!=0) {
     goto ERRfatal; };
   } else if(strcmp(parname,"L1_DELAY_L0")==0) {
     if( setcheckParErr(parname, &line[ix], L1_DELAY_L0, calcL1_DELAY_L0 )!=0) {

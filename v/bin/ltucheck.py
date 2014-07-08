@@ -103,7 +103,7 @@ class iopipe:
   def __init__(self, ltu):
     self.ltu=ltu
     os.chdir(os.environ['VMEWORKDIR'])
-    clientcmd= os.path.join(os.getenv('VMECFDIR'),'ltudim/linux/ltuclient')+' '
+    clientcmd= os.path.join(os.getenv('VMECFDIR'),'ltudim/lin64/ltuclient')+' '
     #print "popen2("+clientcmd+ltu+")"
     self.iop= popen2.popen2(clientcmd+ltu, 1) #0- unbuffered, 1-line buffered
     #print "iopipe.iop:",self.iop

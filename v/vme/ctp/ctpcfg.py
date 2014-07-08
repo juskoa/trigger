@@ -70,8 +70,11 @@ def InvertBit(w32,bit):   # bit: 0..31
 vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
 Gl0AB= int(l0abtxt[0])
+l0c0txt= vbexec.get2("l0C0()")
+Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
-print "Gl0AB:",Gl0AB
+if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0
+print "Gl0AB/C0:",Gl0AB,'/',Gl0C0
 
 class Genhw:
   def __init__(self,attrs=None):
@@ -131,8 +134,11 @@ class Ctpconfig:
     lastshrgrp2= firstshrgrp2+12
     grp3start= lastshrgrp1+4
     dbgbits=12 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
-    mskCLAMASK=0x80000000
     BCMASKN=12
+    if Gl0C0==None:
+      mskCLAMASK=0x80000000
+    else:
+      mskCLAMASK=0x00800000
   else:
     firstshrgrp2= lastshrgrp1+4
     lastshrgrp2= firstshrgrp2+4
@@ -294,6 +300,7 @@ All/Enabled -show all or only enabled classes. This button becomes red
       for k in self.klasses:
         if (k.l0vetos & Ctpconfig.mskCLAMASK)==0:   #class enabled
           nclines= nclines+1
+        #print "doCanvas:%d %d: 0x%x 0x%x"%(k.clnumber, nclines,k.l0inputs, k.l0vetos)
     self.cmdbuts.buttons[0].setLabel(aetx)
     self.cmdbuts.buttons[0].setColor(myw.COLOR_BGDEFAULT)
     if nclines>30: nclines=30   #show max. 30 classes (with scrollbar)
@@ -475,7 +482,7 @@ Middle-> modify the invert bit (only for classes 45-50)
         kl= self.findKlass(clnmb)
         kl.readhw(rest)
         if kl.linenumber==0:     # not displayed
-          if (kl.l0vetos&Ctpconfig.mskCLAMASK)==0:
+          if (kl.l0vetos & Ctpconfig.mskCLAMASK)==0:
             newcanvas=1          # but choosen
         else:
           kl.refreshClass();
@@ -927,7 +934,10 @@ class Klas(Genhw):
     #iinvetos[i] -> position of bit in self.l0vetos
     #         4567 PF14, 8..11 BCmask1..4, 12:All/Rare 16:Classmask
     # firmAC: 4567 PF14, 8..19 BCmask1..12, 20:All/Rare 31:Classmask
-    iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
+    if Gl0C0==None:
+      iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
+    else:
+      iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
     MININVL0_45= 1
   else:
     l0allinputs=30   # numb. of valid bits in L0_CONDITION_n word for old versions
@@ -972,12 +982,12 @@ class Klas(Genhw):
     else:
       c5txt= vbexec.get1("getClass("+str(self.clnumber)+")")
       self.hwwritten(1)
-    #print "c5:",c5, self.clnumber
     c5= map(eval, c5txt)
     self.l0inputs= c5[0]    #30 bits (32 for firmAC)
     self.l0inverted= c5[1]  #24 bits
-    self.l0vetos= c5[2]     #16 bits. bit16:CLassMask,bit0-12->see hw
+    self.l0vetos= c5[2]     #16 bits. bit16:CLassMask,bit0-12->see hw. not for LM0
     self.scaler= c5[3]
+    #print "readhw:%d: 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0vetos)
     if len(c5)<=4:   #old format -before L1.L2
       vbexec.printmsg("class%d:: L1,L2 definitions missing, taking defaults\n"%self.clnumber)
       self.l1definition= 0xfffffff

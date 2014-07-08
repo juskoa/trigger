@@ -291,7 +291,11 @@ int setinputrun2(int board,w32 input){
   ret=3;
   goto RET;
  }
+if((board==1) && (l0C0())) {
+ vmew32(boardoffset+ADC_SELECTlm0,input);
+} else {
  vmew32(boardoffset+ADC_SELECT,input);
+};
  RET:
  printf("board=%i input =%i ret=%i\n",board,input,ret);
  return ret;
@@ -317,7 +321,11 @@ int setinputrun1(int board,w32 input){
   ret=3;
   goto RET;
  }
+if((board==1) && (l0C0())) {
+ vmew32(boardoffset+ADC_SELECTlm0,input);
+} else {
  vmew32(boardoffset+ADC_SELECT,input);
+};
  RET:
  printf("board=%i input =%i ret=%i\n",board,input,ret);
  return ret;
@@ -355,14 +363,19 @@ void measureedge(){
 /*FGROUP ALItools
 */
 void setDelay(int board,w32 input,w32 delay){
- w32 word;
+ w32 word, synch_add;
  if(delay>15){
    printf("Too big delay %i \n",delay);
    return;
  }
- word=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+if(l0C0()) {
+  synch_add= SYNCH_ADDr2;
+} else {
+  synch_add= SYNCH_ADD;
+};
+ word=vmer32(BSP*ctpboards[board].dial+synch_add+4*(input-1));
  word=(word&0xfffffff0)+delay;
- vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1),word); 
+ vmew32(BSP*ctpboards[board].dial+synch_add+4*(input-1),word); 
 }
 /* FGROUP EDGEtools 
 moved to ctp/ctplib/inputsTools.c

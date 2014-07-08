@@ -7,6 +7,7 @@
 #include "vmeblib.h"
 #include "infolog.h"
 #include "ctp.h"
+#include "ctplib.h"
 #define DBMAIN
 #include "Tpartition.h"
 #include "ctp_proxy.h"
@@ -22,11 +23,11 @@ void ctp_Disablernd1(int usecs) {
 //w32 l2anow,l2abefore,dif;
 setALLDAQBusy();
 //l2abefore= readCTPcnts();
-vmew32(RANDOM_1, 0xffffffff);
+vmew32(getLM0addr(RANDOM_1), 0xffffffff);
 unsetALLDAQBusy();
 usleep(usecs);
 setALLDAQBusy(); 
-vmew32(RANDOM_1, 0);
+vmew32(getLM0addr(RANDOM_1), 0);
 //l2anow= readCTPcnts();
 unsetALLDAQBusy();
 }
@@ -75,11 +76,12 @@ Commands: l(init) s(start) f(stop) p(pause) r(resume) y(sync) N:runN++\n\
 };
 //-------------------------------------------
 int main(int argc, char **argv){
- int rc;
- char c;
- char pname[64],mask[64]="0";
- Tpartition *part;
- char ACT_CONFIG[8]="YES"; // or "NO"
+int rc;
+char c;
+char pname[64],mask[64]="0";
+Tpartition *part;
+char ACT_CONFIG[8]="NO"; // "YES" or "NO"
+char *dbgargv[]= {"pgname","NODAQLOGBOOK","NODAQRO"}; int dbgargc=3;
 char DETECTORS[200];
  //setlinebuf(stdout);   // see swtrcheck.py
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
@@ -92,7 +94,8 @@ printf("ctp_proxy TESTER, ACT_CONFIG:%s \n", ACT_CONFIG);
 partmode[0]='\0';
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 cshmInit();
-setglobalflags(argc, argv);
+//setglobalflags(argc, argv);
+setglobalflags(dbgargc, dbgargv);
 if((rc=ctp_Initproxy())!=0) exit(8);
 while(1) {
   int detectors;

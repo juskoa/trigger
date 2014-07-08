@@ -21,7 +21,7 @@ odl64 := /opt/dip/lib
 endif
 ifeq ($(HOSTNAME), alidcscom835)
 SERVER_LINK := yes
-CLIENT_HOST := alidcsvme006
+CLIENT_HOST := alidcsvme008
 SERVER_PREF := /home/dl6
 endif
 ifeq ($(HOSTNAME), pcalicebhm10)

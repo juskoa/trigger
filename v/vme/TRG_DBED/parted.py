@@ -15,6 +15,8 @@ Version: 4 (.partition) just to be the same with .rcfg
 VERSION: 5 (both .rcfg .partition): sync downscaling
 22.10.
 VERSION: 6 LINDF REPL added
+25.6.2014
+VERSION: 7 >=7 from now
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -29,7 +31,7 @@ if hasattr(sys,'version_info'):
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
 import myw, txtproc, trigdb, syncdg, preproc
-VERSION="6"
+VERSION="7"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
 COLOR_NORMAL="#d9d9d9"
@@ -2023,12 +2025,12 @@ class TrgPartition:
     Create partition object from file 'name.partition'
     if relname=='empty_partition', file is not read, but empty part. object
     is created.
-    strict: strict: luminosity DIM service (see preproc.py) has to be available
+    strict: luminosity DIM service (see preproc.py) has to be available
     """
     self.strict= strict
     if strict=="strict":
       preproc.getlumi()
-    print "initPartition:", strict, preproc.lumi_source
+    print "initPartition:", strict, preproc.lumi_source,":"
     self.version='0'
     self.loaderrors=''   # ok if ''
     self.loadwarnings=''   # ok if ''
@@ -2053,11 +2055,11 @@ class TrgPartition:
     self.activeclasses= {}  # filled in self.savercfg (for DAQ sqldb)
     self.sdgs= syncdg.TrgSDG()
     fname=self.name+".partition" ; fname=os.path.join(CFGDIR,self.relpath,fname)
-    #if self.name=="empty_partition" or (not os.path.exists(fname)):
-    if self.name=="empty_partition":
+    print "NAME:%s"%fname
+    if self.name=="empty_partition" or (not os.path.exists(fname)):
+    #if self.name=="empty_partition":
       self.clusters.append(TrgCluster(None, partition=self))
     else:
-     print "NAME:%s:"%fname
      try:
       infile= open(fname, "r")
       if infile: 
@@ -2522,7 +2524,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line="%s 1234 0xffffff 6 5 4 3 2 1"%(self.name)
       #line="%s 1234 0x2008 1 2 3 4 5 6"%self.name
       #line="%s 1234 0xffffff 0 0 1 2 0 0"%self.name
-      for i in range(1,51,1):
+      for i in range(1,NCLS+1,1):
         line= line+" "+str(i)
       # INT1: 0x1234 LUT|BC1    INT2: 0x1234 LUT|BC2
       line= line+" 0x1234 0x3 0x1234 0x5"
@@ -2616,6 +2618,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         #
         #---------------------------------- prepare classes section: 
         ixclasses= cla.clanumlog-1
+        #print "clanumlog:", cla.clanumlog, phcla, ixclasses, len(phclasses)
         phcla= phclasses[ixclasses]
         #print "cla.trde.name:",cla.trde.name,phcla ; cla.trde.trdprt()
         desname,oins=cla.getrcfgdesname()
@@ -3303,6 +3306,7 @@ Cluster -add new/delete active cluster
     ["empty_partition","empty_partition", self.loadPartition]]
     #pnames= getNames(); print "pnames:",pnames
     for basen in getNames():
+      print "doNames:", basen
       self.itn.append([basen,basen+'.partition',self.loadPartition])
     #xx
     self.partsbut= myw.MywxMenu(self.clusfr, label="Load partition:",
@@ -3354,7 +3358,7 @@ The window will be closed after saving current configuration.
     self.part.name= newname
     self.lsmaster.title(self.part.name)
   def loadPartition(self,partname=None):
-    #print "loadPartititon:"
+    print "loadPartititon:",partname
     if partname==None:
       ix= self.partsbut.getIndex()
       partname=self.itn[ix][0]
@@ -3461,7 +3465,8 @@ def main():
     f= Tk()
     partw= TrgLoadSave(f,partname)
     # print load errors + info what was loaded:
-    partw.part.prt()
+    if partw.part:
+      partw.part.prt()
   #P1.show(f)
   #P2.show(f)
   f.mainloop()

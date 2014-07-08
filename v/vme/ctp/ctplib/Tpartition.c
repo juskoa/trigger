@@ -1340,8 +1340,14 @@ w32 i,isp,bb, overlap,flag,bcmaskn;
 TKlas *klas;
 TRBIF *rbif;
 w32 l0invAC, minAC;
+w32 rate_mask;
 int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
 char skipped[200]="";
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
 
 l0invAC=L0_INVERTac; minAC=0;
 // find out TIMESHARING classes, using StartedPartitions:
@@ -1366,19 +1372,12 @@ for(isp=0;isp<MNPART;isp++){
 };
  //------------------------------------------- RBIF
  rbif=hw->rbif;
- vmew32(RANDOM_1, rbif->rbif[ixrnd1]);
- vmew32(RANDOM_2, rbif->rbif[ixrnd2]);
- vmew32(SCALED_1, rbif->rbif[ixbc1]);
- vmew32(SCALED_2, rbif->rbif[ixbc2]);
- vmew32(L0_FUNCTION1, rbif->rbif[ixl0fun1]);
- vmew32(L0_FUNCTION2, rbif->rbif[ixl0fun2]);
- /*
- vmew32(L0_INTERACT1, rbif->rbif[ixintfun1]);  // INT* loaded only at ctp_proxy restart
- vmew32(L0_INTERACT2, rbif->rbif[ixintfun2]);  // see laodcheckctpcfg() in readTables.c
- vmew32(L0_INTERACTT, rbif->rbif[ixintfunt]);
- vmew32(L0_INTERACTSEL, rbif->intsel);
- vmew32(ALL_RARE_FLAG , rbif->rare);
-  */
+ vmew32(getLM0addr(RANDOM_1), rbif->rbif[ixrnd1]);
+ vmew32(getLM0addr(RANDOM_2), rbif->rbif[ixrnd2]);
+ vmew32(getLM0addr(SCALED_1), rbif->rbif[ixbc1]);
+ vmew32(getLM0addr(SCALED_2), rbif->rbif[ixbc2]);
+ vmew32(getLM0addr(L0_FUNCTION1), rbif->rbif[ixl0fun1]);
+ vmew32(getLM0addr(L0_FUNCTION2), rbif->rbif[ixl0fun2]);
 //------------------------------------------- L0f34 + BCmasks
 //todo:
 flag=0;
@@ -1447,7 +1446,11 @@ for(i=0;i<NCLASS;i++){
   vmew32(L0_CONDITION+bb,klas->l0inputs);
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
   if(l0AB()==0) {   //firmAC
-    vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
+    if(l0C0()) {
+      vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
+    } else {
+      vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
+    };
   } else {
     vmew32(L0_VETO+bb,(klas->l0vetos)&0xffff);
   };
@@ -1462,24 +1465,32 @@ for(i=0;i<NCLASS;i++){
   if(skip==1) {
     sprintf(skipped,"%s %d", skipped, i);
   } else {
-    if(l0AB()==0) {  //firmAC
-     mskbit= (klas->l0vetos)>>31; vmew32(L0_MASK+bb, mskbit);
+    if(l0AB()==0) {  //firmAC and 
+      if(l0C0()==0) {  // L0 (not LM0) board
+        mskbit= (klas->l0vetos)>>31; vmew32(L0_MASK+bb, mskbit);
+      };
+      // no need for LM0 (done above)
     } else {
      mskbit= ((klas->l0vetos)&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
     };
   };
 };
 printf("loadHW:skipped:%s\n", skipped);
+if(l0C0()==0) {
 for(i=0;i<NCLASS;i++){
   vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
 };
+};
  //--------------------------------------------- L0 downscalers
- vmew32(RATE_MODE,1);   /* vme mode */
+ vmew32(getRATE_MODE(),1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
  for(i=0; i<NCLASS; i++) {
-   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK));
+   /* 23.6.2014: no reason to set 0..49 in bits 30..25,
+      although see note in ctp.h at RATE_MASK). From now, put 0 in 30..25.
+   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK)); */
+   vmew32(RATE_DATA, (hw->klas[i]->scaler & rate_mask));
  };
- vmew32(RATE_MODE,0);   /* normal mode */
+ vmew32(getRATE_MODE(),0);   /* normal mode */
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {
@@ -1516,31 +1527,17 @@ int readHW(Hardware *hw){
 w32 l0invAC, minAC;
 //if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
 l0invAC=L0_INVERTac; minAC=0;
-/* we keep interactin definition as SYSTEM PARAMETER (i.e. like L0L1delay...)
-   see initCTP.c -these are set there and left untouched
-hw->int12tdef.interact1= vmer32(L0_INTERACT1); 
-hw->int12tdef.interact2= vmer32(L0_INTERACT2); 
-hw->int12tdef.interactt= vmer32(L0_INTERACTT); 
-hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL); 
-*/
  //------------------------------------------- RBIF
  rbif=hw->rbif;
- rbif->rbif[ixrnd1]=vmer32(RANDOM_1);
- rbif->rbif[ixrnd2]=vmer32(RANDOM_2);
- rbif->rbif[ixbc1]=vmer32(SCALED_1);
- rbif->rbif[ixbc2]=vmer32(SCALED_2);
- rbif->rbif[ixl0fun1]=vmer32(L0_FUNCTION1);
- rbif->rbif[ixl0fun2]=vmer32(L0_FUNCTION2);
- /*
- vmew32(L0_INTERACT1, rbif->rbif[ixintfun1]);
- vmew32(L0_INTERACT2, rbif->rbif[ixintfun2]);
- vmew32(L0_INTERACTT, rbif->rbif[ixintfunt]);
- vmew32(L0_INTERACTSEL, rbif->intsel);
- vmew32(ALL_RARE_FLAG , rbif->rare);
-  */
+ rbif->rbif[ixrnd1]=vmer32(getLM0addr(RANDOM_1));
+ rbif->rbif[ixrnd2]=vmer32(getLM0addr(RANDOM_2));
+ rbif->rbif[ixbc1]=vmer32(getLM0addr(SCALED_1));
+ rbif->rbif[ixbc2]=vmer32(getLM0addr(SCALED_2));
+ rbif->rbif[ixl0fun1]=vmer32(getLM0addr(L0_FUNCTION1));
+ rbif->rbif[ixl0fun2]=vmer32(getLM0addr(L0_FUNCTION2));
  //------------------------------------------- classes
  for(i=0;i<NCLASS;i++){
-    w32 mskbit,l0vetos;
+    w32 l0vetos;
     if(hw->klas[i] == NULL){
      char msg[200];
      sprintf(msg,"readHW sw error: unexpected hw.klas[%i]=NULL \n",i);
@@ -1554,13 +1551,15 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
     klas->l0inputs=vmer32(L0_CONDITION+bb);
     if(i>=minAC)klas->l0inverted=vmer32(l0invAC+bb);
     else klas->l0inverted=0;
-    l0vetos=vmer32(L0_VETO+bb);
-    mskbit=vmer32(L0_MASK+bb);
-  //if(l0AB()==0) {   //firmAC
-  l0vetos= (l0vetos&0x1fffff) | ((mskbit&0x1)<<31);
-  //} else { l0vetos= (l0vetos&0xffff ) | ((mskbit&0x1)<<16); };
+    if(l0C0()) {
+      l0vetos=vmer32(L0_VETOr2+bb);
+    } else {
+      w32 mskbit;
+      l0vetos=vmer32(L0_VETO+bb);
+      mskbit=vmer32(L0_MASK+bb);
+      l0vetos= (l0vetos&0x1fffff) | ((mskbit&0x1)<<31);
+    };
     klas->l0vetos=l0vetos;
-    //mskbit= (l0vetos&0x10000)>>16; 
     //L0 scaler done separately to keep vme access low
     //L1
     klas->l1definition=vmer32(L1_DEFINITION+bb);
@@ -1570,10 +1569,10 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
     klas->l2definition=vmer32(L2_DEFINITION+bb);
  }
  //--------------------------------------------- L0 downscalers
- vmew32(RATE_MODE,1);   /* vme mode */
+ vmew32(getRATE_MODE(),1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
  for(i=0; i<NCLASS; i++)hw->klas[i]->scaler=vmer32(RATE_DATA);
- vmew32(RATE_MODE,0);   /* normal mode */
+ vmew32(getRATE_MODE(),0);   /* normal mode */
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {

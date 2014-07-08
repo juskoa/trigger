@@ -184,4 +184,10 @@ ltu_u.py: CTP emulator allows automatic break execution when emulation active
 2.4.
 ltu_proxy/printcounters.c -print LTU counters to stdout (vme access)
 28.4.2014
-ltuproxy.sh -gives betetr error in case DIM_DNS_NODE not available
+ltuproxy.sh -gives better error in case DIM_DNS_NODE not available
+17.6.
+LTU2, fpga ver<0xb8: SEU bit not checked
+19.6.
+lu/ltu_u.py: before calling SSMANA/ssmanls... chdir to WORKDIR added:
+        os.chdir(os.environ['VMEWORKDIR'])
+

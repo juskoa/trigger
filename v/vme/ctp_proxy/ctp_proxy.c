@@ -196,9 +196,9 @@ if(dodel==1) {
   };
   // int1lookup int1def int2lookup int2def
   //int2lookupdef bug
-  int1lookup= vmer32(L0_INTERACT1);
-  int2lookup= vmer32(L0_INTERACT2);
-  int2def= vmer32(L0_INTERACTSEL);
+  int1lookup= getLM0addr(L0_INTERACT1);
+  int2lookup= getLM0addr(L0_INTERACT2);
+  int2def= getLM0addr(L0_INTERACTSEL);
   int1def= int2def & 0x1f; int2def= int2def >> 5;
   sprintf(cmd, "%s 0x%x 0x%x 0x%x 0x%x", cmd, int1lookup, int1def, int2lookup, int2def);
   strcat(cmd,"\n");
@@ -1021,7 +1021,8 @@ prtProfTime("got inps2daq");
   //sprintf(name,"WORK/RCFG/r%d.rcfg", partit->run_number);
   //getruncfgname(partit->run_number, name);
   sprintf(name, "/tmp/r%d.rcfg", partit->run_number);
-  len=0; //len= detectfile(name, 8);    // wait max. 8 (was 25 before LS1) secs for file
+  len= detectfile(name, 8);    // wait max. 8 (was 25 before LS1) secs for file
+  // len=0;
   /*sprintf(emsg, "updateDAQClusters: Run: %d file:%s len:%d",
     partit->run_number, name, len); prtLog(emsg); */
   /*if(len<=0) {
@@ -2576,7 +2577,7 @@ sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);
 prtProfTime("get pcfg");
 preparepcfg(name2, run_number, ACT_CONFIG);
 sprintf(msg, "/tmp/%s.pcfg", name2);
-ret= detectfile(msg, 39);  // wait max. 19 (was 9) secs for file
+ret= detectfile(msg, 3);  // wait max. 3 (was 39 at the end of run1) secs for file
 sprintf(msg,"timestamp:pcfg2: name2:%s name:%s...", name2, name); prtLog(msg);
 if(ret<=0) {
   sprintf(msg, "Wrong partition definition (cannot create .pcfg file) ret:%d",ret);
