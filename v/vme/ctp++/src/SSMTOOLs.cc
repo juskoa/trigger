@@ -379,28 +379,4 @@ int SSMTOOLs::find0() const
  while((i<Mega) && (ssm[i] == 0))i++;
  return i; 
 }
-//----------------------------------------------------------------------------
-int SSMTOOLs::dumpSSM(const char *name) const
-{
- char filename[200];
- char *environ;
- char fnpath[1024];
- FILE *dump;
- sprintf(filename,"%s",name);
-  // Open file
- environ= getenv("VMEWORKDIR"); strcpy(fnpath, environ);
- strcat(fnpath,"/"); strcat(fnpath,"WORK/"); 
- strcat(fnpath, filename); strcat(fnpath, ".dump");
- dump=fopen(fnpath,"w");
- if(dump == NULL){
-  printf("Cannot open file: fnpath: %s\n", fnpath);
-  exit(1);
- }
- for(int i=0; i<Mega; i++) {
-    w32 d=ssm[i]&0x3ffff;
-    fwrite(&d, sizeof(w32), 1, dump);
-  };
- fclose(dump); 
- printf("Dump written in fnpath %s\n", fnpath);
- return 0;
-}
+
