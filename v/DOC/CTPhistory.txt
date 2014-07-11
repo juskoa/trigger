@@ -151,6 +151,7 @@ now: when the button pressed, 'HW not updated' indicator
      goes red and BUSY_CLUSTER word is than reprogrammed when HW written.
      This happens even if BUSY_CLUSTER words were not changed (but
      we are sure the displayed info agrees with HW).
+23.1.2014 trigger@avmes:~/rpmbuild/RPMS/ltuclient-2.10-1.x86_64.rpm preapred
 30.1.2014
 BUSY_CTPDEADTIME was 60 before 30.1.2014
 From now is 60+50=110 which corresponds to real deadtime (minimal
@@ -250,4 +251,9 @@ vmeb/cmdlin2 -deprecated popen2 replaced by subprocess
 ctp.printsetDSCG() -bug fixed (never worked in run1)
 25.6.
 simple.partition -started using 'ctpproxy startest' (class1 only)
-
+30.6.
+http://cern.ch/juskoa/ltu/ltuclient-2.10-1.x86_64.rpm published to
+alice-daq-support
+6.7.
+1st start of run with satrttest+LM0 seems ok:
+- 1 class: BC1 50% downscale (simple.partition)

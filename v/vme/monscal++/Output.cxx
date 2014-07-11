@@ -3,8 +3,8 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
-#include <string.h>   # system()
-#include <stdlib.h>   # system()
+#include <string.h>   // system()
+#include <stdlib.h>   // system()
 #include "vmeblib.h"
 #define NWIDE 133
 

@@ -506,8 +506,9 @@ while(1) {
 return(rc);
 }
 /*------------------------------------------------------------findBUSYINP()
+This is used only fom ctpcfg.py.
 fo:1-6, foc:1-4
-Ret: 1-24, 0: not connected
+Ret: 1-24, 0: not connected (
 */
 int findBUSYINP(int fo, int foc) {
 int ix;

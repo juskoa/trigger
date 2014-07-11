@@ -12,3 +12,9 @@ PROTO_ver2 -branch ttcit normal
 14.2.2014
 TTCit_v23old.ttf   -old v23 used till today
 TTCit_v23.ttf      -new version prepared just now (bug fixed in reading SSM)
+
+2.7.2014
+TTCit_v223.ttf  -older version of ttcit, which should have better firmware
+checking correctness of trigger sequences. Tested, and it does not seem
+it copes better with overlapping/50 classes/ sequences than normal v23.
+

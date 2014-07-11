@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os,sys, popen2,time, string
+import os,sys, subprocess,time, string
 from socket import *  
 """
 see: /home/ref/ctp_proxy:
@@ -14,7 +14,10 @@ class iopipe:
   def __init__(self, nbcmd):
     self.nbcmd=nbcmd
     print "popen2("+nbcmd+")"
-    self.iop= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
+    #self.iop= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
+    p= subprocess.Popen(string.split(nbcmd), bufsize=1,
+      stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+    self.iop= (p.stdout, p.stdin)
     self.printstdout()
   def printstdout(self, catch=None):
     iline=0; rc=None

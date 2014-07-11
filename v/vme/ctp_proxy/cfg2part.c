@@ -7,6 +7,7 @@
 #include "daqlogbook.h"
 #include "infolog.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 #include "lexan.h"
 
@@ -256,7 +257,7 @@ char clsnum[3];
  *error=1;
  i=0;
 if(l0AB()==0) {   //firmAC
-  mskCLAMASK=0x80000000;
+  mskCLAMASK=getCLAMASK();
 } else {
   mskCLAMASK=0x10000;
 }
