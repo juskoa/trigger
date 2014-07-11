@@ -302,8 +302,8 @@ class ioWindow:
       #iow self.lockexe= Lock()
       #von self.lockexe.acquire()
       if (sys.platform == "win32"):
-        print "popen2..."
-        self.io= popen2.popen2(nbcmd, -1)
+        print "popen2 win32 not in..."
+        #self.io= popen2.popen2(nbcmd, -1)
         #self.io= os.popen2(nbcmd, -1)
       else:    # linux, cygwin:
         #self.io= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
@@ -347,7 +347,7 @@ class cmdlint:
   1. start:
   cli= cmdlint(command)
        - creates control window (for command input/output)
-       - starts command through popen2
+       - starts command through subprocess.Popen (was popen2 in run1)
   This should be started only once. 
   In BOARD_u.py, user routine is called with just 1 parameter (vb) 
   which is the instance of corresponding Myw.VmeBoard class.

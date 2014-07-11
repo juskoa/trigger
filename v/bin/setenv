@@ -16,6 +16,10 @@ if [ $HN = 'alidcscom835' -o $HN = 'alidcscom027' ] ;then
   export tr26='trigger@alidcscom026.cern.ch'
   export tr188='trigger@alidcscom188.cern.ch'
   export tr521='trigger@alidcscom521.cern.ch'
+  alias ctp="ssh -q -2 -f trigger@alidcsvme001 vmecrate nbi ctp"
+  alias fanin=$ULT/bin/fanin
+  alias dcson='rdesktop -g1280x1024 alitrion001'
+  alias miclockold="$VMECFDIR/ttcmidaemons/miclock.py"
 elif [ $HN = 'pcalicebhm10' -o $HN = 'avmes' ] ;then
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
   #export ULT=$CCRFS/usr/local/trigger
@@ -41,6 +45,9 @@ elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
   export CCRFS=''
   export CLRFS=''
   #export ULT=/usr/local/trigger
+elif [ $HN = 'altri2' -o $HN = 'alidcsvme001' ] ;then
+  alias ctp="vmecrate nbi ctp"
+  cd ~/v/vme/WORK
 else
   #export ULT=/usr/local/trigger
   export CCRFS=''

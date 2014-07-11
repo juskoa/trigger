@@ -131,7 +131,8 @@ LM0 board:
 #define TEST_ADDr2      0x93f8
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board */
+#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board
+ shifted (i.e. 0x340 for 1st input) */
 #define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
 0x344:inp1,...
 0x804:inp1,..., 0x860:inp24
@@ -205,7 +206,7 @@ L0, L1, L2:
 #define BUSY_L0L1DEADTIME 0x8620  /* [8..0] -L0L1 deadtime is (N+2) BCs.
                                      default: 202 */
 #define BUSY_CTPDEADTIME 0x8624   /* [6..0] -ctp deadtime is (N+2) BCs.
-                         default: 52. 60. 110 from 30.1.2014 */
+                         default: 52. 60.:run1, 110 from 30.1.2014 */
 #define BUSY_OVERLAP     0x8640   /* [20..0] bits.1:overlap 0: not overlap for
                                      12 13 14 15 16 1T 23 24 ... 6T */
 /* L0 board: */
@@ -407,8 +408,8 @@ deliberately after REGEND becasue it is different for L0/LM0*/
 #define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
 #define DUMMYVAL 0xffffffff   /* recommended for DUMMY writes */
 #define RATE_MASK 0x81ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
-#define RATE_MASKr2 0x03ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
-#define RATE_DATABTM    0x80000000
+#define RATE_MASKr2 0x03ffffff   /* firmware C0: bit25:0 rnddownscale */
+#define RATE_DATABTM    0x80000000   // where class mask is 
 #define RATE_DATABTMr2  0x2000000
 
 #define MAXL0REGS 7

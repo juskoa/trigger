@@ -20,6 +20,9 @@ can be invoked togethether with physics triggers being active)
 #define DBGswtrg2 1
 #define DBGswtrg3 1
 #define DBGswtrg4 1
+
+int l0C0();
+
 w32 ifoglob[NFO];
 /* read CALIBRATION_BC from ltuproxy. Return -1 if more detectors
 involved or unknow detector
@@ -146,7 +149,8 @@ switch(trigtype){
        printf("Error: setswtrig: unknown type of trigger %c \n",trigtype);
        return 1;
 }; TRIGTYPE= trigtype;
-vmew32(L0_TCSET,word);        // L0 board -p/f prot. off
+// L0 board -p/f prot. off
+if(l0C0()) { vmew32(L0_TCSETr2,word); } else { vmew32(L0_TCSET,word); };
 word=(1<<18);
 vmew32(L1_TCSET,word);        // L1 board p/f prot. off
 word=(1<<24)+ctprodets;
@@ -248,7 +252,9 @@ switch(trigtype){
        printf("setswtrig2: unknown type of trigger %c \n",trigtype);
        return 1;
 }; TRIGTYPE= trigtype;
-vmew32f(L0_TCSET,word);        // L0 board -p/f prot. off
+// L0 board -p/f prot. off
+if(l0C0()) { vmew32f(L0_TCSETr2,word); } else { vmew32f(L0_TCSET,word); };
+
 word=(1<<18);
 vmew32f(L1_TCSET,word);        // L1 board p/f prot. off
 word=(1<<24)+ctprodets;
@@ -440,6 +446,7 @@ if(detectors & 0x20000) {
 };
 if(trigtype=='c') {
   status= cshmGlobalDets();
+  status= detectors; printf("Presence of dets in glob. run not checked!!!\n");
   if((status & detectors)!=detectors) {
     printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
       detectors,status);

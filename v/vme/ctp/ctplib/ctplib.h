@@ -38,7 +38,11 @@ customer:
 */
 void readCounters(w32 *mem, int N, int accrual, int customer);
 void getCountersBoard(int board, int reladr,w32 *mem, int customer);
-/*FGROUP L012 */
+/*FGROUP L012 
+I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...,10(INT)
+   reladr: from 0...reladr  (i.e. 3 means reading first 4 counters)
+   customer: 2 (for ctp exp. sw)
+*/
 w32 getCounter(int board, int reladr, int customer);
 /*FGROUP L012 */
 void getCounters(int N, int accrual, int customer);
@@ -104,6 +108,7 @@ rc: corresponding L0 or LM0 address
 */
 w32 getLM0addr(w32 l0addr);
 w32 getLM0PFad(w32 l0addr);
+w32 getCLAMASK();
 
 /*FGROUP DebCon
 Generate n software trigger sequences

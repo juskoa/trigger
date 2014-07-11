@@ -41,7 +41,7 @@ create ctp_config file (with each run?)
 #import os, os.path
 #PYTHONPATH=os.environ['VMEBDIR']+':'+\
 #  os.path.join(os.environ['VMECFDIR'],'TRG_DBED')
-import popen2, os, os.path, string, sys, time, parted, pylog, miclock,threading
+import os, os.path, string, sys, time, parted, pylog, miclock,threading, subprocess
 miclock.mylog= pylog.Pylog("pydim_shift")
 mylog= pylog.Pylog(info="info")
 
@@ -69,11 +69,14 @@ def main():
       strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'],"alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
     elif os.environ['VMESITE'] == 'SERVER':
-      copyit=True ; acchost='trigger@altri1'
+      copyit=True ; acchost='trigger@altri2'
       strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
   executable= os.path.join( os.environ['VMECFDIR'],"pydim","linux","server")
-  io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
+  #io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
+  p= subprocess.Popen(string.split(executable+" CTPRCFG RCFG"), bufsize=1,
+    stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+  io= (p.stdout, p.stdin)
   #try:
   line= io[0].readline()   #ignore 1st line: DIM server:ctprcfg cmd:rcfg
   print "%s 1st line from ./dimserver:\n%s"%(tasc(), line)

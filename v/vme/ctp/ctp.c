@@ -60,7 +60,7 @@ Tfanout FOs[6];   /* place for 6 fanouts, see getFO(), setFO() */
 int ReadTemp(int ix);
 
 /* HIDDEN Common dbghw ConfiguratioH DbgScopeCalls DebCon L012 DbgSSMBROWSERcalls */
-/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon L012 DebugSSMcalls DbgSSMBROWSERcalls */
+/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
 /*FGROUP TOP GUI CTP_Classes "Classes"
 The Classes definition, i.e. for each (1-NCLASS) class: 
  -enabling/disabling
@@ -125,6 +125,8 @@ setAB(23,23) -no output selected
 void setAB(w32 A, w32 B);
 */
 
+/*FGROUP LM0 */
+void initCTP();
 /*---------------------------------------------------------------- INT  */
 /*FGROUP INT
 read/print 2 counters: L2_ORBIT_READ and INT_ORBIT_READ */
@@ -605,55 +607,110 @@ vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 
 /*FGROUP SimpleTests
-what: 0: test RATE_MODE  (100 words, 25 bits)
-      1: test MASK_DATA  (3564 words, 12 bits)
-write 1.. 100/3564,read back and print if not as expected
+what: 0: set RATE_DATA  (100 words, 25 bits)
+      1: set MASK_DATA  (3564 words, 12 bits)
+value: to be written
+Notes:
+RATE_DATA: rnd: 21 bits     busy: 0x2000000 | 25bits (1 step: 10us)
+MASK_DATA: 0xfff -disbable all bits
+write 1.. 100/3564 words
 */
-void testrates(int what) {
+void setrates(int what, w32 value) {
 int ix;
 w32 rate_mask,vmemode,clearad,datad;
-int MAXIX, okn;
-if(what==0) {
+int MAXIX;
+if((what%10)==0) {              // RATE_DATA
+  vmemode= getRATE_MODE();
   if(l0C0()) {
     rate_mask= RATE_MASKr2;
   } else {
     rate_mask= RATE_MASK;
   };
   MAXIX=NCLASS;
-  vmemode= getRATE_MODE();
   clearad= RATE_CLEARADD;
   datad= RATE_DATA;
-} else {
+} else {                   // MASK_DATA
   if(l0C0()) {
     vmemode= MASK_MODEr2;
   } else {
     vmemode= MASK_MODE;
   };
-  datad= MASK_DATA;
   rate_mask= 0xfff;
   MAXIX=ORBITLENGTH;
   clearad= MASK_CLEARADD;
+  datad= MASK_DATA;
 };
 vmew32(vmemode,1);   /* vme mode */
-vmew32(clearad,DUMMYVAL);
-printf("writing 1..%d ...\n",MAXIX);
-for(ix=0; ix<MAXIX; ix++) {
-  vmew32(datad, (ix+1) & rate_mask);
+if(what<10) {
+  vmew32(clearad,DUMMYVAL);
+  printf("writing 0x%x 1..%d ...\n",value, MAXIX);
+  for(ix=0; ix<MAXIX; ix++) {
+    vmew32(datad, value);
+  };
+};
+vmew32(vmemode,0);   /* normal mode */
+}
+/*FGROUP SimpleTests
+what: 0: test RATE_DATA  (100 words, 25 bits)
+      1: test MASK_DATA  (3564 words, 12 bits)
+     10: just read RATE_DATA
+     11: just read MASK_DATA
+write 1.. 100/3564,read back and print if not as expected
+*/
+void testrates(int what) {
+int ix;
+w32 rate_mask,vmemode,clearad,datad;
+int MAXIX, okn;
+if((what%10)==0) {              // RATE_DATA
+  vmemode= getRATE_MODE();
+  if(l0C0()) {
+    rate_mask= RATE_MASKr2;
+  } else {
+    rate_mask= RATE_MASK;
+  };
+  MAXIX=NCLASS;
+  clearad= RATE_CLEARADD;
+  datad= RATE_DATA;
+} else {                   // MASK_DATA
+  if(l0C0()) {
+    vmemode= MASK_MODEr2;
+  } else {
+    vmemode= MASK_MODE;
+  };
+  rate_mask= 0xfff;
+  MAXIX=ORBITLENGTH;
+  clearad= MASK_CLEARADD;
+  datad= MASK_DATA;
+};
+vmew32(vmemode,1);   /* vme mode */
+if(what<10) {
+  vmew32(clearad,DUMMYVAL);
+  printf("writing 1..%d ...\n",MAXIX);
+  for(ix=0; ix<MAXIX; ix++) {
+    vmew32(datad, (ix+1) & rate_mask);
+  };
 };
 //read back
 vmew32(clearad,DUMMYVAL); okn=0;
-printf("reading...\n");
+printf("reading..., printing out (errors only)...\n");
 for(ix=0; ix<MAXIX; ix++) {
   w32 da;
   da= vmer32(datad) & rate_mask;
-  if (da!= ((ix+1) & rate_mask)) {
-    printf("%2d: %d\n", ix+1, (vmer32(datad) & rate_mask));
+  if(what<10) {
+    if (da!= ((ix+1) & rate_mask)) {
+      printf("%2d: %d expected:%d=0x%x\n", ix+1, da, ((ix+1) & rate_mask),
+        ((ix+1) & rate_mask));
+    } else {
+      okn++;
+    };
   } else {
-    okn++;
+    printf("%2d: %d=0x%x\n", ix+1, da, da);
   };
 }; 
 vmew32(vmemode,0);   /* normal mode */
-printf("ok: %d words\n", okn);
+if(what<10) {
+  printf("tested words:%d, ok: %d words\n", MAXIX, okn);
+};
 }
 
 /*FGROUP L0
@@ -944,12 +1001,13 @@ mics:  sleep time in micsecs between reads
 ring:    32 do not ring, 0..31 -altrenate this bit in address 
 */
 void rwvmeloop(w32 address, int loops, w32 value, int mics, int ring) {
-w32 data; int forever=0; int prt=0; w32 vadd; int ringbit;
+w32 data; int forever=0; int prt=0; w32 vadd; int ringbit, loopsdone=0;
 //w32 altern=0xffffffff;
 w32 altern=0xaaaaaaaa;
 w32 ctpc[NCOUNTERS];
 vadd= address; ringbit= 1<<ring;
 if(loops==0) forever=1;
+printf("Break loop: kilme %d from cmdline, starting vme loop...\n",getpid());
 while(1) {
   if(address<=2) {
     w32 l2orbit;   // let's do the same VME operation as in ctdims
@@ -982,18 +1040,17 @@ while(1) {
         vmew32(vadd, value);
       };
     };
+  }; loopsdone++;
+  if(quit !=0) {
+    printf("SIGUSR1 received, finishing loop...\n"); quit=0;
+    break;
   };
-  if(forever==1) {
-   if(quit !=0) {
-     printf("SIGUSR1 received, finishing loop...\n");
-     break;
-   } else {
-     goto CONT;
-   };
+  if(forever==0) {
+    loops--; if(loops==0) break;
   };
-  loops--; if(loops==0) break;
-  CONT: if(mics>0) usleep(mics);
+  if(mics>0) usleep(mics);
 };
+printf("vme loops:%d\n", loopsdone);
 }
 int defcounts[]={NCOUNTERS_BUSY, NCOUNTERS_L0, NCOUNTERS_L1, NCOUNTERS_L2,
   NCOUNTERS_INT, NCOUNTERS_FO, NCOUNTERS_FO, NCOUNTERS_FO, 
@@ -1020,7 +1077,7 @@ if(N==0) {
   counts= FROM+N; 
 };   // counts: rel. adres of counters which should not be read
 if(FROM > counts) FROM=0;
-printf("reading counters %d - %d from board %d", FROM, counts,board);
+printf("reading counters %d - %d from board %d", FROM, counts-1,board);
 // always starting from first counter:
 getCountersBoard(board, counts-1, mem, 2);
 //0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs
@@ -1135,6 +1192,7 @@ ctpshmbase= (Tctpshm *)malloc(sizeof(Tctpshm));
 validCTPINPUTs= &ctpshmbase->validCTPINPUTs[0];
 validLTUs= &ctpshmbase->validLTUs[0];
 */
+printf("initmain()...\n");
 cshmInit(); ix= initHW(&HW);  // HW: partialy used in loadcheckctpcfg
 for(ix=0; ix<6; ix++) { 
   FOs[ix].cluster= 0;
@@ -1151,6 +1209,7 @@ gettableSSM();
 void endmain() {
 }
 void boardInit() {
+printf("boardInit()...\n");
 /*int ix;
 for(ix=0; ix<6; ix++) {    moved to initmain (2.2.2007)
   FOs[ix].cluster= 0;

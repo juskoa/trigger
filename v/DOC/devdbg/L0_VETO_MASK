@@ -9,7 +9,7 @@ L1_DEF: RoI bit (31) -not yet changed but very probably will be...
 
 implications for .cfg (TRG_DBED/
                  .pcfg
-CLA.* lines in .cfg, .pcfg:
+CLA.* lines in .cfg, .pcfg:  see ctp_proxy/readme
 
 
 2. some addresses changed (i.e. not the same shift as on L1/2 boards)

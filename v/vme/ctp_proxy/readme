@@ -78,7 +78,10 @@ means, .pcfg should be recreated if there was change in TRGDB.
 The .pcfg file is text file consisting of the RBIF, BCMASK, CLA, FO lines:
 
 RBIF line:
-RBIF random1:random2:bcdown1:bcdown2:l0fun1:l0fun2
+RBIF random1:random2:bcdown1:bcdown2:l0fun1:l0fun2:
+
+VER 0xc0
+If omitted, old version (i.e. L0 board)
 
 BCMASK line: 
 1 line defines 4/12 BCmasks (the usage of BCmasks by class is indicated
@@ -137,6 +140,11 @@ has to be allocated in physical classes 45..50 (not valid for >AC)
          <AC                      >=AC
 l0vetos: 0xM....rAAAAFFFF.CCC          0xM..........rAAAAAAAAAAAAFFFF.CCC
           16    11   7   3              31          19           7   3
+                                  >=C0  (LM0 board):
+l0vetos:                               0x.DDDDDDDM..rAAAAAAAAAAAAFFFF.CCC
+                                        31          19           7   3
+
+DDDDDDD DSCG group (7 bits 30..24): only for LM0 board, L0_SDSCG reg. does not exist
 r     All/rare flag (bit12, 20 for >=AC)
 AAAA  BCmask4..1   (i.e. BCM1 veto active is coded as: 0xe, BCM2:0xd BCM3:0xb
       BCmask12..1 for >AC
@@ -150,14 +158,31 @@ bit16 (0x10000) is CLASSMASK (bit to be placed in L0_MASK reg).
       It means such line shouldn't be present in .pcfg file.
       >=AC:
 bit31 (0x80000000)  -> goes to L0_MASK register bit0
+      >=C0:
+bit23 (0x00800000)  -> L0_MASK does not exist, mask bit is here
 
 l0scaler:
 0xhexa  -in case of busy or rnd downscaling, starting with 0x 
          (0x0 no downscaling)
-Class busy (bit31:1, 25 least significant bits valid):
-Rate reduction (bit31:0, 21 LSB bits are valid):
+Class busy:     bitXX:1, 25 least significant bits valid:
+Rate reduction: bitXX:0, 21 LSB bits are valid
+XX: 31 for L0 board
+    25 for LM0 board
 
-ident   -in case of synchronous downscaling (not starting with 0x)
+identifier   -in case of synchronous downscaling (not starting with 0x)
+
+Summary of differencies between .cfg and .cfg-LM0
+- VER line added   (not present with L0 board!)
+- Two words differ in each CLA line:
+l0scaler     bit25 (was 31)
+l0vetos      added:DDDDDDD   changed: M: bit23 (was bit31)
+
+I.e. conversion LM0-> L0:
+- skip VER line
+- CLA lines:
+  l0scaler: bit25->31 (25 becomes: do n't care
+  l0vetos:  bit23->31 (23 becomes: do n't care
+
 -------------------------
 l1def, 
 31:    C      RoI flag
