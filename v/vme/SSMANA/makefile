@@ -1,6 +1,7 @@
 CC = $(VMEGCC)
 #CFLAGS=-Wall -g
-CFLAGS=-Wall -g -Wno-write-strings
+#CFLAGS=-Wall -g -Wno-write-strings
+CFLAGS=-Wall -O3 -Wno-write-strings
 HW := $(shell uname -i)
 ifeq ($(HW), x86_64)
 EXEDIR = lin64
