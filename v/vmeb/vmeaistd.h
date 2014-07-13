@@ -1,5 +1,5 @@
 #define MAXNAMELENGTH 81
-#define MAXNAMES 600
+#define MAXNAMES 1200
 
 #define funcall w32 (*)(w32, w32, w32, w32, w32, w32, w32, w32, w32, w32)
 

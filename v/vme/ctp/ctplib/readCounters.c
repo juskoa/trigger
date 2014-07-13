@@ -111,9 +111,10 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
 unlockBakery(&ctpshmbase->ccread, customer);
 /*printf("cnts 13 165:%d %d\n", mem[13], mem[165]); */
 }
-/*FGROUP L012
-I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...
-   reladr: from 0...
+/* in .h FGROUP L012
+I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...,10(INT)
+   reladr: from 0...reladr  (i.e. 3 means reading first 4 counters)
+   customer: 2 (for ctp exp. sw)
 */
 w32 getCounter(int board, int reladr, int customer) {
 int bb,cix; w32 copyread;

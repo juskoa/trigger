@@ -464,14 +464,17 @@ toklas->l0vetos= l0veto;
 toklas->l1definition= l1def;      
 toklas->l2definition= l2def;      
 }
+/*---------------------------------------- getCLAMASK() */
+w32 getCLAMASK() {
+if(l0C0()) { return(0x800000); } else {return(0x80000000);};
+}
 /*----------------------------------------------------------cleanTKlas()
 */
 void cleanTKlas(TKlas *klas){
-if(klas != NULL){ w32 mskCLAMASK;
+if(klas != NULL){
   klas->l0inputs=0;
   klas->l0inverted=0;
-  mskCLAMASK=0x80000000;
-  klas->l0vetos=mskCLAMASK;// disbale klas by default
+  klas->l0vetos=getCLAMASK();// disabale klas by default
   klas->scaler=0;
   klas->l1definition=0;
   klas->l1inverted=0;
@@ -1270,8 +1273,7 @@ void printHardware(Hardware *hwpart, char *dbgtext){
  }
  if(hwpart->name == NULL)printf("%s Hardware name=NULL \n", dbgtext);
  else printf("%s Hardware name: %s -----------\n", dbgtext,hwpart->name);
- printTRBIF(hwpart->rbif);
-  mskCLAMASK=0x80000000;
+ printTRBIF(hwpart->rbif); mskCLAMASK=getCLAMASK();
  for(i=0;i<NCLASS;i++){
   TKlas *klas;
   if((klas=hwpart->klas[i])) {
@@ -1445,7 +1447,7 @@ for(i=0;i<NCLASS;i++){
   //printTKlas(klas, i);
   vmew32(L0_CONDITION+bb,klas->l0inputs);
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
-  if(l0AB()==0) {   //firmAC
+  if(l0AB()==0) {   //firmAC or >C0
     if(l0C0()) {
       vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
     } else {
@@ -1480,13 +1482,15 @@ if(l0C0()==0) {
 for(i=0;i<NCLASS;i++){
   vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
 };
+} else {
+ ; //see L0-VETOs
 };
  //--------------------------------------------- L0 downscalers
  vmew32(getRATE_MODE(),1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
  for(i=0; i<NCLASS; i++) {
    /* 23.6.2014: no reason to set 0..49 in bits 30..25,
-      although see note in ctp.h at RATE_MASK). From now, put 0 in 30..25.
+      although see note in ctp.h at RATE_MASK). From now, put 0 above bit 25
    vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK)); */
    vmew32(RATE_DATA, (hw->klas[i]->scaler & rate_mask));
  };

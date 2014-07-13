@@ -1117,7 +1117,7 @@ l. The list of possible trigger descriptor names - one of them has
       if line[0] == "\n": continue
       (bcm_name, bcm_definition) = string.split(line)
       #print "load_BCMs:",bcm_name, bcm_definition
-      bm=txtproc.BCmask(bcm_definition) ; 
+      bm=txtproc.BCmask(bcm_definition,bcm_name) ; 
       #print "prtBits bm:", bm
       errmsg= bm.checkSyntax()
       if errmsg!= None:
@@ -1237,6 +1237,10 @@ class TrgClass:
         PrintWarning("bcm in .partition file converted to BCM (valid from 11.9.2008)")
         k= 'BCM'+ k[3:]
       if k[:3]=='BCM':
+        if k[3:]=="":
+          PrintError("BCMXXX, XXX non-empty, expected in:"+clstring)
+          self.trde= None
+          break
         bcmix= int(k[3:])   # 1..12
         if (bcmix>=1) and (bcmix<=12):
           self.bcms[bcmix-1]= 1
@@ -2171,7 +2175,7 @@ class TrgPartition:
     return (len(allcls),negcls,len(allpfs),len(allbcms),len(self.clusters),len(alloutdets), len(allindets))
     #return (allcls,allpfs,self.clusters,alloutdets,allindets)
   def save(self, partname):
-    """ savepcfg() has to be called before save()
+    """ savepcfg() has to be called before invoking [shrr,cluster].save() 
     """
     rc=0
     fnw=os.path.join(self.relpath, partname)
@@ -2293,10 +2297,13 @@ class TrgPartition:
               (cluster.name, cls.trde.name)
             continue
         l0inv=0
-        if BCM_NUMBER==4:
-          l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
+        if trgglobs.L0VER>=0xc0:
+          l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
         else:
-          l0vetos=0x7ffffff0 | clunum
+          if BCM_NUMBER==4:
+            l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
+          else:
+            l0vetos=0x7ffffff0 | clunum
         # see ctp_proxy/readme
         if cls.allrare==0: 
           if BCM_NUMBER==4:
@@ -3459,7 +3466,7 @@ def main():
         #part.savercfg("a 115812 0x5008a 1 0 2 0 0 0 1 45 2 46 3 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0x0 0x0 0x0 0x0")
       return
     else:                 # srgv[2]: source directory with .partition/.pcfg)
-      print "bad argv[2]:",argv[2]
+      print "bad argv[2]:",sys.argv[2]
       return
   else:     # edit partition
     f= Tk()

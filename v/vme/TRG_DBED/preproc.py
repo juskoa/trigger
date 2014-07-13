@@ -31,9 +31,9 @@ def getlumi():
         lumi_source= "default"
         lumi= DEFLUMI
     else:
-      print "preproc.getlumi: IR_MONITOR/CTP/Luminosity not available."
       lumi_source= "default"
       lumi= DEFLUMI
+      print "preproc.getlumi: IR_MONITOR/CTP/Luminosity not available, default:%f taken."%lumi
   except:
     print "Except: in dic_sync_info_service(IR_MONITOR/CTP/Luminosity)"
     lumi_source= "default"

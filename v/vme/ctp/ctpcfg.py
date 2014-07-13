@@ -66,6 +66,13 @@ def InvertBit(w32,bit):   # bit: 0..31
     iw32= w32 | (1<<bit)
   #print "InverBit %d: 0x%x -> 0x%x"%(bit,w32,iw32)
   return iw32
+def CopyBit(data, mfrom, mto):
+  if (data & mfrom) != 0:
+    datao= data | mto   # 1
+  else:
+    datao= data & (~mto)   # 0
+  print "CopyBit: 0x%x  %x -> %x result:0x%x"%(data, mfrom, mto, datao)
+  return datao
 
 vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
@@ -242,6 +249,8 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
       self.readShared()
       #dbgssmo= vbexec.get1("gettableSSM()")
       #print "dbgssm: before getClass",dbgssmo
+      # get rates into mmemory before reading class definitions:
+      vbexec.get1("hw2rates()")# has to be before following cycle:
       self.klasses=[]
       for ix in range(1,Ctpconfig.NCLASS+1):   #keep this order ! 
         k=Klas(self,ix)
@@ -449,10 +458,31 @@ Middle-> modify the invert bit (only for classes 45-50)
       llongs= ORBITLENGTH*3
     else:
       llongs= ORBITLENGTH
+    fversion= None    # lm0-l0, any combination (i.e. l0-lm0...)
     for line in cf.readlines():
       lab,rest= string.split(line,None,1)
       rest= rest[:-1]
-      #print lab,':',rest,':'
+      #print "loadfile:", lab,':',rest,':', fversion
+      if fversion==None:   # 1st line has to be VER (if present)
+        if lab=='VER': 
+          if Gl0C0==None:
+            PrintError("LM0 cfg file: %s, but old L0 board"%(string.strip(line)))
+            vbexec.printmsg("LM0 cfg file, will be modified for L0 board\n")
+            fversion="lm0-l0"
+            #break
+          else:
+            print "ok: VER with LM0 board %s"%(line)
+            fversion="lm0-lm0"
+        else:
+          if Gl0C0==None:
+            fversion="l0-l0"
+            print "ok: no VER line with L0 board"
+          else:
+            fversion="l0-lm0"
+            PrintError("bad cfg file: LM0 board, old .cfg file (1st line is not VER)")
+            vbexec.printmsg("bad cfg file: LM0 board, old .cfg file\n")
+            break
+        continue
       if lab=='RBIF': 
         self.readSharedline(rest,0, Ctpconfig.lastshrgrp1,sep=':')
       elif lab=='INTSEL': 
@@ -480,7 +510,7 @@ Middle-> modify the invert bit (only for classes 45-50)
           PrintError("bad line: %s"%(line))   
           continue
         kl= self.findKlass(clnmb)
-        kl.readhw(rest)
+        kl.readhw(rest, fversion=fversion)
         if kl.linenumber==0:     # not displayed
           if (kl.l0vetos & Ctpconfig.mskCLAMASK)==0:
             newcanvas=1          # but choosen
@@ -646,6 +676,10 @@ Middle-> modify the invert bit (only for classes 45-50)
     else:
       lut34= None
     if cf:
+      if Gl0C0:
+        cmd="VER %s\n"%Gl0C0
+        print "writeShared:",cmd
+        cf.write(cmd)
       #writeit=1   # write always to file
       cmd="RBIF "
       #for ishr in range(len(self.sharedrs)):
@@ -934,6 +968,7 @@ class Klas(Genhw):
     #iinvetos[i] -> position of bit in self.l0vetos
     #         4567 PF14, 8..11 BCmask1..4, 12:All/Rare 16:Classmask
     # firmAC: 4567 PF14, 8..19 BCmask1..12, 20:All/Rare 31:Classmask
+    # firmC0: 4567 PF14, 8..19 BCmask1..12, 20:All/Rare 23:Classmask
     if Gl0C0==None:
       iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
     else:
@@ -975,17 +1010,26 @@ class Klas(Genhw):
     self.l2definition=0
     self.scaler=0
     self.clusbitid=None       # cluster bit id (canvas item)
-  def readhw(self, line=None):
+  def readhw(self, line=None, fversion="l0"):
     if line:
       c5txt= string.split(line)
       self.hwwritten(0)
+      c5= map(eval, c5txt)
+      if fversion=="lm0-l0":
+        print "readhw before: %8x %8x"%(c5[2], c5[3])
+        # l0veto  : copy bit23 -> 31
+        c5[2]= CopyBit(c5[2], 0x800000, 0x80000000)
+        # l0scaler: copy bit25 -> 31
+        c5[3]= CopyBit(c5[3], 0x2000000, 0x80000000)
+        print "readhw after: %8x %8x"%(c5[2], c5[3])
     else:
       c5txt= vbexec.get1("getClass("+str(self.clnumber)+")")
       self.hwwritten(1)
-    c5= map(eval, c5txt)
+      c5= map(eval, c5txt)
     self.l0inputs= c5[0]    #30 bits (32 for firmAC)
     self.l0inverted= c5[1]  #24 bits
-    self.l0vetos= c5[2]     #16 bits. bit16:CLassMask,bit0-12->see hw. not for LM0
+    self.l0vetos= c5[2]     #16 bits. , 31 bits for lm0
+    # bit16:CLassMask,bit0-12->see hw. not for LM0
     self.scaler= c5[3]
     #print "readhw:%d: 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0vetos)
     if len(c5)<=4:   #old format -before L1.L2
@@ -1280,6 +1324,7 @@ green:0 -killed if AllRare is Rare"""
     #if klasbit==9:   #Class mask
     #print "modVetohandler:",event,canvbit, event.keycode
     # VME L0_MASK word will be updated according to self.l0vetos[31] bit
+    # or l0vetos[23] bit in LM0 case
     if canvbit>=200:
       self.l2definition=InvertBit(self.l2definition, self.canv2hwveto(canvbit) )
     elif canvbit>=100:
@@ -1544,18 +1589,22 @@ If at least 1 cluster is in DAQBUSY state, DAQ LED on L0 board should be ON.
       #cmd= self.detscmd, defval= self.dets,
       helptext="""CLUSTER word as programmed on BUSY board. 
 You can see LTU names or numbers.
-The numbers represents NOT CONNECTED busy inputs (1-24) 
-belonging to this cluster -i.e. something is wrong (all busy inputs
-used should be CONNECTED!).
 Always when cluster is choosen for a FO output connector (upper part of
 the widget), the corresponding registers on FO boards are modified, BUT
 BUSY BOARD IS LEFT UNTOUCHED.
 
-That is the reason why numbers(1-24) of this button,
-corresponding to bits in CLUSTER word on BUSY board, are 'read only'.
-The right value can be obtained by pressing 'FOs-->BUSY' button.
-(if you want to play with BUSY board setting independently,
-remove allro='yes' option for self.db button in ctpcfg.py file)
+That is the reason why numbers(1-24), corresponding to 
+the bits in BUSY_CLUSTER+4*N (N=1,2,...) register, are 'read only'.
+The right value can be obtained by pressing 'FOs-->BUSY' button (and
+written to BUSY board by File->Write2hw button).
+BUSY inputs are taken from shared memory, updated ONLY with ctp_proxy start -
+i.e. if VALID.LTUS is changed, restart ctp_proxy to get them visible
+also in ctp expert sw.
+
+If you want to play with BUSY_CLUSTER register independently on shared
+memory using this button, remove allro='yes' option for self.db 
+button in ctpcfg.py file.
+
 """)
   def daqbsycmd(self):
     if self.cluster==0:return   # no DAQBUSY for Test cluster
@@ -2222,7 +2271,7 @@ class PFwholecircuit:
     self.pfinbc= None 
     #for ix in range(3):
     for ix in range(len(self.ctp.pfbs)):
-      print "PFwholecircuit:", ix, self.circuit, len(self.ctp.pfbs)
+      #print "PFwholecircuit:", ix, self.circuit, len(self.ctp.pfbs)
       self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
   def setpfinbc(self, pfinbc):
     """ set corresponding fields in PFboard objects, 

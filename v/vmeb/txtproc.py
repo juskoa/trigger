@@ -58,7 +58,7 @@ class ST:
       PrintError(" bad string:"+ text)
     #print "ST:", self.type, self.length, "val=",self.value
 class BCmask:
-  def __init__(self,bcmexp):
+  def __init__(self,bcmexp, name=""):
     """
     bcmexp: "25L 25(2H2LH 3(23HL))"
           - H/h -> 1  L/l -> 0
@@ -68,6 +68,7 @@ class BCmask:
     output: list of XXX words, 32 bits per word
     """
     self.bcmstr=bcmexp
+    self.name=name
     #print "BCmask2input:",bcmexp
     self.level=0
     #bcm=self.bcm2bits(0)
@@ -143,7 +144,8 @@ class BCmask:
       #print "setbits2:",lst[0][0:9]
       if len(bcm)<ORBITLENGTH:
         if ErrorMessage=='':
-          return "Warning: %d: short BCmask definition (bits above %d not touched)\n"%(len(bcm),len(bcm))
+          return "Warning: %d: short BCmask definition for %s (bits above %d not touched)\n"%(
+            len(bcm), self.name, len(bcm))
         else:
           return ErrorMessage
       else:

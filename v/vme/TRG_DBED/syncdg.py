@@ -45,7 +45,7 @@ class TrgSDG:
     if dsf=="": 
       return TrgSDG.err
     if dsf[-1]!="%": 
-      return TrgSDG.err+ ':'+dsf
+      return TrgSDG.err+ ' instead of:'+dsf+' in SDG named:'+name
     try:
       fn= float(dsf[:-1])
     except:

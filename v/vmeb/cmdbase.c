@@ -320,8 +320,9 @@ printf("%s\n", msg);
 }
 /*------------------------------------------*/ void errexit(const char *msg) {
 prerr(msg);
-printop(); printarg();
-exit(8);
+printop(); printarg(); 
+//fflush(stdout); usleep(2000000);  // did not help (stdout not seen...)
+// exit(8);    was exit till 2.6.2014
 }
 /*------------------------------------------*/ void prerr1(char *msg, int i) {
 printf("%s %d\n", msg, i);
@@ -489,8 +490,8 @@ if(nnames<MAXNAMES){
 } else {
   char msg[100];
   sprintf(msg, 
-          "Too many symbols (>(MAXNAMES=%d),see MAXNAMES in vmeaistd.h)", 
-          MAXNAMES);
+    "Too many symbols (>(MAXNAMES=%d) adding:%s,see MAXNAMES in vmeaistd.h)", 
+    MAXNAMES, name);
   errexit(msg); /*return(NULL); */
 };
 EMPTYFOUND:

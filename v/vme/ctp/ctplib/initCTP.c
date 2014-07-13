@@ -18,7 +18,7 @@ w32 adr;
 if(l0C0()) {
   adr= L0_ENA_CRNDlm0;
 } else {
-  adr= L0_ENA_CRNDlm0;
+  adr= L0_ENA_CRND;
 };
 if((mask != 3) and (mask != 1)) {
   w32 w;
@@ -47,6 +47,7 @@ l0invAC=L0_INVERTac; minAC=0;
 bb= klas*4; klasix=klas-1;
 if(notInCrate(1)==0) {   // L0 board
   w32 mskbit;
+  printf("setClassInit:%d:%x %x %x %x\n", klas, condition,invert,veto,scaler);
   //Klas[klasix].regs[0]= condition; 
   vmew32(L0_CONDITION+bb, condition);
   if(klas>minAC) {  /* only for inverted klasses ! */
@@ -54,12 +55,17 @@ if(notInCrate(1)==0) {   // L0 board
     vmew32(l0invAC+bb, invert);
   };
   //Klas[klasix].regs[2]= veto; 
-  if(l0AB()==0) {   //firmAC
+  if(l0AB()==0) {   //firm AC or higher
     if(l0C0()) {
       vmew32(L0_VETOr2+bb, veto);
     } else {
       vmew32(L0_VETO+bb, veto&0x1fffff); 
       mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+      if(ctpboards[1].boardver>=0xaf) {  // sync. downscaling
+        //printf("boardver:%x klas:%d sdg:%d\n", ctpboards[1].boardver, klas, klas-1);
+        vmew32(L0_SDSCG+bb, klas-1); 
+        //printf("initCTP%x+ %d <- %d\n", L0_SDSCG, bb, klas-1);
+      };
     };
   } else {
     vmew32(L0_VETO+bb, veto&0xffff); 
@@ -67,11 +73,6 @@ if(notInCrate(1)==0) {   // L0 board
     mskbit= (veto&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
   };
   /*Klas[klasix].regs[3]= scaler;  update is done in 1 pass in rates2hwInit */
-  if(ctpboards[1].boardver>=0xaf) {  // sync. downscaling
-    //printf("boardver:%x klas:%d sdg:%d\n", ctpboards[1].boardver, klas, klas-1);
-    vmew32(L0_SDSCG+bb, klas-1); 
-    //printf("initCTP%x+ %d <- %d\n", L0_SDSCG, bb, klas-1);
-  };
 };
 if(notInCrate(2)==0) {   // L1 board
   //Klas[klasix].regs[4]= l1def; 
@@ -101,8 +102,14 @@ void setEdgesDelays(int board) {
 int ix, ixinp, ninp, edge, delay;
 if(board==3) {
   ninp=12;
+} else if(board==2) {
+  ninp=24;
 } else {
   ninp=24;
+  if(l0C0()) {
+    printf(" ERROR: setEdgesDelays: does not work for LM0 board!\n");
+    return;
+  };
 };
 for(ixinp=0; ixinp<ninp; ixinp++) {
   ix= getEdgeDelayDB(board-1, ixinp+1, &edge, &delay);
@@ -111,19 +118,15 @@ for(ixinp=0; ixinp<ninp; ixinp++) {
   setEdgeDelay(board,ixinp+1,edge,delay);
 };
 }
-//void gettableSSM();
-//void dbgssm(const char *msg) {
-//printf("dbgssm:%s\n", msg);
-//gettableSSM();
-//}
-/* init CTP. Should be called only once. 
-   ! Another instance of vmecrate ctp calls this routine too! 
+/*FGROUP LM0
+init CTP. Should be called only once. 
+   ! Another instance of 'vmecrate ctp' calls this routine too! 
    -> i.e. use: 'vmecrate nbi ctp' for expert (ctp) sw.
    ctp_proxy, when restarted, calls this routine.
    Only 'system parameters' should be set here (i.e. timing...)
 */
 void initCTP() {
-int ix,rc;
+int ix,rc=0;
 resetPLLS();
 for(ix=1; ix<=NCLASS; ix++) {
   //klas,w32 condition, w32 invert, w32 veto, w32 scaler,
@@ -137,11 +140,18 @@ for(ix=1; ix<=NCLASS; ix++) {
 }; 
 rates2hwInit();
 //dbgssm("classes set");
+printf("omitting init IR, L0F12 on L0/LM0 board.\n");
+/*
 vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
 vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
 vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
+*/
 if(l0AB()==0) {   //firmAC
-rc= setL0f34c(0, (char *)"0");
+  if(l0C0()) {
+    printf("omitting setL0f34c() on LM0 board.\n");
+  } else {
+    rc= setL0f34c(0, (char *)"0");
+  };
 };
 ix= loadcheckctpcfg();
 //dbgssm("after loadcheckctpcfg");
@@ -190,7 +200,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //setEdge(1,6,0);   // acorde single needs Positive edge
     if(l0C0()) {
       // init CTP LM0 switch to 1->1, 2->2,...
-      int lminp=1; w32 lminpadr;
+    /*int lminp=1; w32 lminpadr;
       lminpadr= SYNCH_ADDr2 + BSP*ctpboards[ix].dial;
       for(lminp=1; lminp<=24; lminp++) {
         w32 val,adr;
@@ -199,9 +209,12 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         vmew32(adr, val);
       }
       infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
-    }
+    */
+      infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
+    } else {
+      setEdgesDelays(1);
+    };
     vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
-    setEdgesDelays(1);
     //printf("RND1/2 synchronised\n"); RNDsync(3);
     printf("RND1/2 desynchronised\n"); RNDsync(1);
   };

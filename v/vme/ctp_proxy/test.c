@@ -189,7 +189,7 @@ while(1) {
         printf("Going to send SYNC %d times\n", reps);
         for(i=0; i<reps; i++) {
           int rc; w32 orbitn;
-          ctp_SyncPartition(pname, errorReason, &orbitn);
+          rc= ctp_SyncPartition(pname, errorReason, &orbitn);
           printf("rc:%d errorReason:%s orbitn:%d\n",rc, errorReason, orbitn);
           usleep(1000000);
         };

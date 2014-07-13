@@ -45,6 +45,7 @@ fi
 #  rdir=$ult/$vdir
 #fi
 # pit or lab:
+export OS=Linux
 export DIMDIR=/opt/dim
 export SMIDIR=/opt/smi
 if [ -e /dev/vme_rcc ] ;then
@@ -84,7 +85,8 @@ else
   #fi
   export VMESITE=SERVER
   export VMEGCC=g++
-  export DIM_DNS_NODE=pcald30
+  #export DIM_DNS_NODE=pcald30
+  export DIM_DNS_NODE=avmes
   #export DIM_DNS_NODE=128.141.139.225   #slc6 dbg (Fraco's setup)
   if [ -d /opt/act ] ;then
     export ACT_DB=daq:daq@pcald30/ACT
