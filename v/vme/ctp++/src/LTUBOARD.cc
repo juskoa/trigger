@@ -229,9 +229,12 @@ int LTUBOARD::AnalTotalSSM2()
  // Constants
  w32 L0L1=260;
  //w32 L0L2=4150;  // LTU
- int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
  w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
- //int L2dSSMOffset=44; // Offset between bc from SSM and from L2data
+ //int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
+ //int L2dSSMOffset=44; // LTU
+ int L2dSSMOffset;
+ if(GetStatus())L2dSSMOffset=92;
+ else L2dSSMOffset=44; 
  // Ques sizes
  w32 l0size=ql0strobe.size();
  w32 l1size=ql1strobe.size();
@@ -239,9 +242,9 @@ int LTUBOARD::AnalTotalSSM2()
  w32 l2size=ql2strobe.size();
  w32 l2dize=ql2data.size();
  w32 l2ttcsize=qttcL2.size();
- // First L0 after orbit
+ // First L0 after orbit, use 2nd orbit since first can be incomplete
  w32 l0first=0;
- while(l0first < l0size && (ql0strobe[l0first] < qorbit[0]->issm))l0first++;
+ while(l0first < l0size && (ql0strobe[l0first] < qorbit[1]->issm))l0first++;
  if(l0first==l0size){
   printf("L0 strobe not found \n");
   ierror++;
@@ -795,7 +798,7 @@ int LTUBOARD::CreateRecordSSM()
  w32 *ss=GetSSM();
  analTTCB();
  printf("analTTCB finished \n");
- for(int i=0;i<Mega;i++){
+ for(int i=1;i<Mega;i++){
     word=ss[i];
     for(w32 j=0;j<18;j++){
     	bit= ( (word & (1<<j)) == (1<<j));

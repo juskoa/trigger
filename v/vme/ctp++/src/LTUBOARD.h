@@ -9,6 +9,7 @@ class LTUBOARD: public BOARD
 	LTUBOARD(string const name,w32 const boardbase,int vsp);
 	void SetGlobal(){vmew(STANDALONE_MODE,0x0);};
 	void SetStandalone(){vmew(STANDALONE_MODE,0x1);};
+        w32 GetStatus(){return vmer(STANDALONE_MODE);};
         // SSM analysis
         w32 GetSSMBC(w32 issm);
 	int AnalSSM();
