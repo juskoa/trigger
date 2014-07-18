@@ -128,6 +128,57 @@ void BOARD::WriteSSM(w32 const word,int const start,int const last) const
  cout << Mega <<" WriteSSM: "<< (i%Mega) << endl;
  }
 }
+//----------------------------------------------------------------------------
+int BOARD::DumpSSM(const char *name) const
+{
+ char filename[200];
+ char *environ;
+ char fnpath[1024];
+ FILE *dump;
+ sprintf(filename,"%s",name);
+  // Open file
+ environ= getenv("VMEWORKDIR"); strcpy(fnpath, environ);
+ strcat(fnpath,"/"); strcat(fnpath,"WORK/"); 
+ strcat(fnpath, filename); strcat(fnpath, ".dump");
+ dump=fopen(fnpath,"w");
+ if(dump == NULL){
+  printf("Cannot open file: fnpath: %s\n", fnpath);
+  exit(1);
+ }
+ for(int i=0; i<Mega; i++) {
+    w32 d=ssm[i]&0x3ffff;
+    fwrite(&d, sizeof(w32), 1, dump);
+  };
+ fclose(dump); 
+ printf("Dump written in fnpath %s\n", fnpath);
+ return 0;
+}
+//-----------------------------------------------------------------------------
+int BOARD::ReadSSMDump(const char *name) const
+{
+  int i,nwords;
+  w32 word; 
+  char filename[200];
+  char *environ;
+  char fnpath[1024];
+  FILE *dump;
+  sprintf(filename,"%s",name);
+  environ= getenv("VMEWORKDIR"); strcpy(fnpath, environ);
+  strcat(fnpath,"/"); strcat(fnpath,"WORK/"); 
+  strcat(fnpath, filename); strcat(fnpath, ".dump");
+  dump = fopen(fnpath,"rb");
+   if(dump==NULL) {
+    printf("cannot open file %s\n",filename);
+    return(1);
+  };
+  for(i=0;i<Mega;i++){
+    nwords=fread(&word,sizeof(w32),1,dump);
+    //printf("%i 0x%x %i\n",i,word,nwords);
+    ssm[i]=word;
+  }
+
+ return 0;
+}
 //-----------------------------------------------------------------------------
 int BOARD::ReadSSM() const
 {

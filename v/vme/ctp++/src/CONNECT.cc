@@ -90,7 +90,7 @@ int CONNECT::CheckConnections(BOARD *b1,BOARD *b2,string const &mode){
 		cout << " ----------------------------------> Error detected." << endl;
                 char error[1024]="";
                 sprintf(error,"%sto%s_%i_%i_%i",b1->getName().c_str(),b2->getName().c_str(),error_count,ch,p);
-                b2->ssmtools.dumpSSM(error);
+                b2->DumpSSM(error);
                 //sprintf(error,"%s_%i_%i_%i",b1->getName().c_str(),error_count,ch,p);
                 //b1->ssmtools.dumpSSM(error);
                 error_count=error_count+1;

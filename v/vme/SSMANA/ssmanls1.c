@@ -32,7 +32,8 @@ int quit=0;
 static int SSMem[Mega];
 struct list *dump;
 int ttcboffset=0;
-int TTCLX=0;
+int TTCL1=0;
+int TTCL2=0;
 /*********************************************************************/
 /*FGROUP SSM_VME_Access ReadSSM
 Analyze SSM memory - like AS python + check of serial versus TTC
@@ -49,15 +50,17 @@ int analyze(){
  int COUNTl[18]={0,0,-DISTL0,-DISTL1,0,-DISTL2,0,0,0,0,0,0,0,0,0,0,0,0}; /* How close they can be ? */
  int COUNTa[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /* Is signal active ? */
  int DIST[18]={0,0,DISTL0,DISTL1,0,DISTL2,0,0,0,0,0,0,0,0,0,0,1,0}; /* How close the signals can be ? */
- int L1DATA[NL1dat],L2DATA[NL2dat],TT[64];
- int iL1d=0,iL2d=0,ivmes=0,ichb=0;
+ int L1DATA[NL1dat],L2DATA[NL2dat];
+ int iL1d=0,iL2d=0,ivmes=0;
  int iorbi=0,ipp=0,ialls=0;
  int isdb=0,iltb=0,il1fi=0,il2fi=0,icha=0,ittcbusy=0,ippt=0;
  if(readFile()!=0) exit(9);
  dump=NULL;
  analTTCB();
- //ttcboffset=1;
+ printf("analTTCB finished \n");
+ ttcboffset=1;
  for(i=ttcboffset;i<Mega;i++){
+   //if(i %10000 ==0)printf("%i \n",i);
    word=SSMem[i];
    // start only after first L0
    //bit= ( (word & 4) == 4);
@@ -103,7 +106,7 @@ int analyze(){
 	   lsig(11,bit,i,COUNT,COUNTa,&icha,"ChanA");
            break;
      case 12:    /*  Channel B */
-           channelB(12,bit,i,COUNT,COUNTa,&ichb,TT,"ChanB");
+           //channelB(12,bit,i,COUNT,COUNTa,&ichb,TT,"ChanB");
            break;
      case 13:   /* TTC  BUSY */
            lsig(13,bit,i,COUNT,COUNTa,&ittcbusy,"TTCBUSY"); 
@@ -115,7 +118,7 @@ int analyze(){
 	   lsig(15,bit,i,COUNT,COUNTa,&ivmes,"VMES");
            break;
      case 16:   /* START ALL - emulator */
-	   lsig(16,bit,i,COUNT,COUNTa,&ialls,"ALLSTART");
+	   //lsig(16,bit,i,COUNT,COUNTa,&ialls,"ALLSTART");
 	   break;
      case 17: /* ANY ERROR */
 	   ssig(17,bit,i,COUNT,COUNTa,COUNTl,COUNTe,DIST,"ANYERR");
@@ -143,19 +146,32 @@ int analyze(){
  return 0;
 }
 /*------------------------------------------------------------------------------
- * analyse only channel B because you dont know where to start
- * you have 42 options
+ * analyse TTCB seprately, find the beginning using TTC Busy
  */
 void analTTCB(){
- int i,ioff,word,bit;
- int success;
- for(ioff=0;ioff<42;ioff++){
-  printf("%i \n",ioff);
-  int data[64];
-  int active=0,icount=0;
-  int datab=3;
-  success=1;
-  for(i=ioff;i<Mega;i++){
+ int i,ioff,word;
+ int bit,bitb,bit0,bitb0;
+ int data[64];
+ int active=0,icount=0;
+ int datab=3;
+ // Find begining using also TTC busy
+ bool start=0;
+ ioff=1;
+ word=SSMem[0];
+ bit0  = (word & (1<<12)) == (1<<12);
+ bitb0 = (word & (1<<13)) == (1<<13);
+ while(ioff<Mega && !start){
+   word=SSMem[ioff];  
+   bit  = (word & (1<<12)) == (1<<12);
+   bitb = (word & (1<<13)) == (1<<13);
+   start = (bit0==1) && (bitb0==0) && (bit==1) && (bitb==1);
+   bit0=bit;
+   bitb0=bitb;
+   ioff++;
+ }
+ printf("Start of TTC data: %i \n",ioff);
+ // Analyse full ssm
+ for(i=ioff;i<Mega;i++){
    word=SSMem[i];
    bit= (word & (1<<12)) == (1<<12);
    if(active){
@@ -167,14 +183,15 @@ void analTTCB(){
     }
     //printf("datab=%i \n",datab);
     if(icount == 14 && datab == 0){
-      //txprintOP(i,data,name);
+      txprintOP(i,data,"ChanB");
       //printf("Orbit \n");
       active=0;
       continue ;
     }
     if(icount == 41 && datab == 1){
       //printf("Data \n");
-      if(txprintOff(data))success=0;
+      //if(txprintOff(data))success=0;
+      txprint(i,data,"ChanB");
       active=0;
       continue ;
     }
@@ -187,19 +204,12 @@ void analTTCB(){
      icount=0;
     } 
    }
-  }
-  printf("ioff=%i success=%i \n",ioff,success);
-  if(success) break;  
- }
- if(success){
-  ttcboffset=ioff; 
- }else{
-  printf("Error in Channel B\n");
  }
 }
 /*------------------------------------------------------------------------------*/
 void channelB(int canal, int bit, int i, int *COUNT,int *COUNTa, int *icount, int *data,char *name){
  static int com;
+ //printf("%i %i %i %i\n",bit,i,com,COUNTa[canal]);
  if(COUNTa[canal]){
   if(*icount == 0){
     if(bit == 0) com= 0;  //orbit and pp
@@ -378,8 +388,21 @@ void txprint(int i,int *TXS, char *name)
   exit(2);
  }
  // Counting TTC words for L1 and L2 messages
- if(code==1 || code==3) TTCLX=0;
- TTCLX++;
+ int TTCLX=1;
+ if(code==1) TTCL1=1;
+ if(code==3) TTCL2=1;
+ if(code==2) {
+   TTCL1++;TTCLX=TTCL1;
+   if(TTCL1>9){
+     printf("Error: # L1 TTC words %i \n",TTCL1);
+   }
+ }
+ if(code==4) {
+   TTCL2++;TTCLX=TTCL2;
+   if(TTCL2>13){
+     printf("Error: # L2 TTC words %i \n",TTCL2);
+   }
+ }
  //sprintf(text,"%s %s:0x%04x %x 0x%x 0x%03x 0x%02x ",name,ttcadl[code],ttcadd,e,code,data,chck);
  sprintf(text,"%s %s%02i:0x%04x %x 0x%x 0x%03x 0x%02x ",name,ttcadl[code],TTCLX,ttcadd,e,code,data,chck);
  dump=addlist(dump,i-39,text);

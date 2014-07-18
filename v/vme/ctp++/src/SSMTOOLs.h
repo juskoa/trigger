@@ -28,7 +28,6 @@ public:
          int CompSSMch(w32 *ssm2,int const offset,list<Connection> &Connections,int *channel,int *position) const;
 	 int genSignatureAll();
          int checkSignatureCon(list<Connection> &Connections);
-         int dumpSSM(const char *name) const;
 	 int GetL2dataBackplane();
 private:
         w32 *ssm;

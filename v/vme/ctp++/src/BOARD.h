@@ -11,6 +11,8 @@ class BOARD: public BOARDBASIC
          int AddSSMmode(string const modename,int const imode);
          string getName() const {return d_name;};
 	 int ReadSSM() const;
+         int DumpSSM(const char *name) const;
+	 int ReadSSMDump(const char *name) const;
 	 int WritehwSSM() const;
 	 void PrintSSM(int const start,int const n) const;
 	 void WriteSSM(w32 const word) const;
