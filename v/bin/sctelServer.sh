@@ -8,7 +8,7 @@ echo "ps --columns 130 aux|grep sctelServer.py..."
 ps --columns 130 aux |grep sctelServer.py
 exit
 # $1: start stop or status
-onlyhost='alidcscom188'
+onlyhost='alidcscom835'
 hname=`hostname`
 if [ "$hname" != "$onlyhost" ] ;then
   echo "This script can be started only on $onlyhost "

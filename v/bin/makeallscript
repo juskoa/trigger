@@ -1,0 +1,37 @@
+#!/bin/bash
+function runlog() {
+logname="makeall_$1.log"
+echo "logname: $logname"
+if [ -w ~/logs/$logname ] ;then
+  mv ~/logs/$logname ~/logs/$logname.old
+fi
+script -c "makeall $1 $2" ~/logs/makeall_$1.log
+dos2unix ~/logs/$logname
+#following: does not save warnings/errors  found by make 
+#makeall $1 $2 2>&1> ~/logs/makeall_$1.log
+echo -e "\ngrepping error+warning lines:"
+grep -i 'error\|warning' ~/logs/$logname |grep -v 'lrcc_error\|prtError.o'
+
+}
+if [ "$1" = "allctp" -o "$1" = "allltu" -o "$1" = "others" ] ;then
+  runlog $1 $2
+elif [ "$1" = "allall" ] ;then
+  runlog allctp $2
+  runlog allltu $2
+  runlog others $2
+else
+cat - <<-EOF
+Usage:
+makeallscript allctp [clean]
+              allltu
+              others
+              allall
+
+Operation:
+- rename old logggfile in ~/logs
+- start using script
+- unix2dos logfile
+
+EOF
+fi
+

@@ -86,7 +86,7 @@ else
 fi
 }
 function showpids() {
-s_dnames="pydimserver.py htmlCtpBusys.py readctpc readltuc udpmon irdim xcounters gmonscal monscal masksServer ctpwsgi"
+s_dnames="pydimserver.py htmlCtpBusys.py readctpc readltuc udpmon irdim xcounters gmonscal masksServer ctpwsgi"
 c_dnames="ctpproxy dims gcalib.exe gdb test"
 mi_dnames="ttcmidims"
 #echo "dnames:$dnames"
@@ -146,7 +146,6 @@ startClients pydim stop | start | status
              ctpproxy 
              ctpdim 
              gcalib
-             monscal
              masksServer
 
 Available only in P2:
@@ -170,16 +169,13 @@ ttcmidim:  DIM server monitoring/changing global clock (warning when
            miclock: the client controlling ttcmidim server
 irdim:     running on alitrir. DIM server processing Interaction records
 xcounters: creating xcounters files and posting them to DCS XFS
-           updating counters in DAQlogbook
+           updating counters in DAQlogbook.    RUNS in tri account
            see ~tri/readme for more info about compile/start/stop
 diprfrx    DIP service publishing the LHC TTCmi RF -see http://cern.ch/ttcpage1
 gcalib     sending cal. triggers to the detectores during global run
 gmonscal   running on alitrir. Creating: 
            $server:v/vme/WORK/MONSCAL/inputs.png
            $server:v/vme/WORK/MONSCAL/RUNNUMBER_CLUSTER.png
-monscal    running on alitri. Creating:
-           $server:v/vme/WORK/MONSCAL/monscal.log
-           $server:v/vme/WORK/MONSCAL/display.log
 masksServer running on alitri. Commands: start/stop/status/update
            See v/vme/WORK/masksServer.log,.pid 
            DIM publications of CTPBCM/A,C,S,SA,... -masks available 
@@ -199,7 +195,7 @@ Problems: see corresponding files in:
 EOF
 exit
 fi
-dnames="pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer ctpwsgi diprfrx"
+dnames="pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
 cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
@@ -380,9 +376,9 @@ if [ $dmn = "diprfrx" -o "$dmn" = 'all' ] ;then #------------------- diprfrx
     st3 diprfrx diprfrx.sh trigger@$ttcmivme $sss
   fi
 fi
-if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
-  st3 monscal monscal.sh trigger@$server $sss
-fi
+#if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
+#  st3 monscal monscal.sh trigger@$server $sss
+#fi
 if [ $dmn = "gmonscal" -o "$dmn" = 'all' ] ;then #-------------------- gmonscal
   st3 gmonscal gmonscal.sh trigger@$server27 $sss
 fi

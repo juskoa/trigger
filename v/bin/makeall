@@ -84,6 +84,9 @@ $OTHERSmake
 $OTHERScmp
 
 makeall package [clean]     -compile/link only 1 package (see above for names)
+
+See makeallscript   -calling this one using script and saving old logs in ~/logs
+
 EOF
 exit
 fi
@@ -94,7 +97,7 @@ else
 fi
 if [ "$1" = "allctp" ] ;then
 echo "=======================### make package vmeb clean ONLY on vme client ======================"
-if [ -n "$SERVER"  ;then
+if [ -n "$SERVER" ] ;then
   echo "--- vmeb not done (this is client)"
 else
 cd $VMEBDIR ; make -f makefile_vmeb clean ; make -f makefile_vmeb

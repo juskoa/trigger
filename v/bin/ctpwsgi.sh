@@ -1,6 +1,6 @@
 #!/bin/bash
 # $1: start stop or status
-onlyhost='alidcscom188'
+onlyhost='alidcscom835'
 hname=`hostname`
 if [ "$hname" != "$onlyhost" -a "$hname" != "pcalicebhm10" ] ;then
   echo "This script can be started only on $onlyhost or pcalicebhm10"

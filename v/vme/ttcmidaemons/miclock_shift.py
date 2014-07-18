@@ -19,12 +19,14 @@ import pydim
 mylog= None
 VMECFDIR= os.environ["VMECFDIR"]
 if os.environ['VMESITE']=='ALICE':
-  MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+  #MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+  MICLOCKID="/home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
 else:
   #print "VMESITE:", os.environ['VMESITE']
   if os.environ["USER"]=="oerjan":
     MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/oerjan/miclockid"
   else:
+    #MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
     MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
 
 def signal_handler(signal, stack):

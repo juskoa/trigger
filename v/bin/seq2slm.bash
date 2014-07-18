@@ -3,6 +3,8 @@ if [ $# -eq 0 ] ;then
 cat - <<-EOF
 Start: from directory where seq file is:
  seq2slm.bash file [-run1] (file: without .seq sufix)
+Operation: print .slm to stdout
+
 EOF
 exit
 fi

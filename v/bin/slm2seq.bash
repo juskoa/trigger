@@ -3,6 +3,11 @@ if [ $# == 0 ] ;then
 cat - <<-EOF
 Start: from directory where slm file is:
  slm2seq.bash file [-run1] (file: without .slm sufix)
+Operation:
+cp ./XXX.slm -> VMEWORKDIR/WORK/
+create VMEWORKDIR/WORK/.seq
+cp VMEWORKDIR/WORK/.seq -> ./XXX.seq
+ 
 EOF
 exit
 fi

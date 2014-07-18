@@ -257,3 +257,14 @@ alice-daq-support
 6.7.
 1st start of run with satrttest+LM0 seems ok:
 - 1 class: BC1 50% downscale (simple.partition)
+11.7.
+diprfrx
+[trigger@alidcsvme017 WORK]$ diprfrx.sh start
+[trigger@alidcsvme017 WORK]$ cat diprfrx.log
+log4cxx: No appender could be found for logger (dip.system.factory).
+log4cxx: Please initialize the log4cxx system properly.
+
+14.7.
+ctpwsgi: 
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
+
