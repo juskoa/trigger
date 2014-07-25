@@ -53,6 +53,13 @@ def checkShift():
   cshift= miclock.getShift()
   print tasc()+" resetclock: check after 5secs:"+ cshift
 
+class CNSO:
+  def __init__(self, starts):
+    self.starts= starts
+  def getpos(self, typeix, ordnum):
+    # typeix: 0-8 for l[0-2]inp*, l[0-2]classB*, l[0-2]classA*
+    return self.starts[startpos]+ordnum-1
+
 def main():
   if hasattr(sys,'version_info'):
     if sys.version_info >= (2, 3):

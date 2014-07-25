@@ -1,4 +1,5 @@
 #!/bin/bash
+. $VMECFDIR/../bin/auxfunctions
 function runlog() {
 logname="makeall_$1.log"
 echo "logname: $logname"
@@ -6,13 +7,19 @@ if [ -w ~/logs/$logname ] ;then
   mv ~/logs/$logname ~/logs/$logname.old
 fi
 script -c "makeall $1 $2" ~/logs/makeall_$1.log
+echo
 dos2unix ~/logs/$logname
 #following: does not save warnings/errors  found by make 
 #makeall $1 $2 2>&1> ~/logs/makeall_$1.log
-echo -e "\ngrepping error+warning lines:"
+echo -e "================================= grepping error+warning lines:"
 grep -i 'error\|warning' ~/logs/$logname |grep -v 'lrcc_error\|prtError.o'
-
+if [ "$VMEDRIVER" = "SIMVME" ] ;then
+echo
+echo "starting the same on $cmpvme: makeallscript $1 $2"
+ssh -2 trigger@$cmpvme "makeallscript $1 $2"
+fi
 }
+getcpunames
 if [ "$1" = "allctp" -o "$1" = "allltu" -o "$1" = "others" ] ;then
   runlog $1 $2
 elif [ "$1" = "allall" ] ;then
@@ -25,13 +32,14 @@ Usage:
 makeallscript allctp [clean]
               allltu
               others
-              allall
+              allall             (i.e. ctp+ltu+others)
 
 Operation:
 - rename old logggfile in ~/logs
 - start using script
 - unix2dos logfile
-
+- grep error + warning lines
+- starting(i.e. ssh) the same on client (only if this started on server)
 EOF
 fi
 

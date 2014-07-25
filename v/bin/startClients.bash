@@ -173,7 +173,7 @@ xcounters: creating xcounters files and posting them to DCS XFS
            see ~tri/readme for more info about compile/start/stop
 diprfrx    DIP service publishing the LHC TTCmi RF -see http://cern.ch/ttcpage1
 gcalib     sending cal. triggers to the detectores during global run
-gmonscal   running on alitrir. Creating: 
+gmonscal   running on trigger@alitrir. Creating: 
            $server:v/vme/WORK/MONSCAL/inputs.png
            $server:v/vme/WORK/MONSCAL/RUNNUMBER_CLUSTER.png
 masksServer running on alitri. Commands: start/stop/status/update
@@ -254,7 +254,7 @@ if [ $dmn = "pydim" -o "$dmn" = "all" ] ;then
   if [ "$sss" = "stop" ] ;then
     echo "stopping pydim..."
     cd $VMECFDIR/pydim 
-    linux/client CTPRCFG/RCFG stop
+    linux_s/client CTPRCFG/RCFG stop
   elif [ "$sss" = "start" ] ;then
     savelog pydimserver
     #is in vmebse.bash export ACT_DB=daq:daq@aldaqdb/ACT

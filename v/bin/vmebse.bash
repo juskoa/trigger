@@ -74,7 +74,7 @@ if [ "$ix" = '6' ] ;then   #pit
   #export DIM_DNS_NODE=alidcscom188
   #export ACT_DB=daq:daq@aldaqdb/ACT
   if [ -d /opt/act ] ;then   # only on server needed
-    export ACT_DB=acttrg:CBNRR2be@aldaqdb/ACT
+    export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
   fi
 else
   # lab environment:

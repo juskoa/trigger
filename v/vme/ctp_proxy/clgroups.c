@@ -94,15 +94,6 @@ for(iclass=0; iclass<NCLASS; iclass++) {
     mskbit= 1; 
   };
   setClaMask(hwclass+1, mskbit);
-  /*if(l0C0()) {
-    w32 val; 
-    val= vmer32(L0_VETOr2+bb); 
-    val= val & (~mskCLAMASK); val= val | (mskbit<<23);
-    vmew32(L0_VETOr2+bb, val);
-  } else {
-    vmew32(L0_MASK+bb, mskbit);
-  }
-  */
 };
 if(DBGCLGROUPS) {
   sprintf(msg, "%s: allclasses:%d activated:%d", part->name, pcfgn, rc);
@@ -121,10 +112,9 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   if((klas=part->klas[iclass]) == NULL) continue;
   clgroup=part->klas[iclass]->classgroup;
   if(part->classgroups[clgroup] == CG_NEVERACTIVE) {
-    int hwclass,bb;
-    hwclass= part->klas[iclass]->hwclass;  // 0..49
+    int hwclass;
+    hwclass= part->klas[iclass]->hwclass;  // 0..99
     setClaMask(hwclass+1, 1);
-    //bb=4*(hwclass+1); vmew32(L0_MASK+bb, 1);
     sprintf(msg2,"%s %d", msg2, hwclass+1);
     nacs++;
   };

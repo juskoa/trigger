@@ -24,7 +24,7 @@ and it is produced by monscal++/makefile started in directory monscal++.
 MonScal copy linux/monscalnow is called from script monscal.sh with argument 1.
 MonScal copy /home/tri/xcountersdaq is called from xcounters.sh with argument 6.
 To copy MonScal to tri do:
-[alidcscom188] /home/tri > cp -a /data/dl/root/usr/local/trigger/v/vme/monscal++/linux/MonScal xcountersdaq
+[alidcscom188] /home/tri > cp -a /home/dl6/rootfs/usr/local/trigger/v/vme/monscal++/linux/MonScal xcountersdaq
 
 Some older version of MonScal classes are used in
 amore by evgenij to interface ctp config and counters to amore.

@@ -336,6 +336,13 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
 /* pcfg RUNNUMBER partname    -try ACT download
    Ncfg RUNNUMBER partname    -NO ACT, change: Ncfg -> pcfg
    \n               -stop this server
+   rcfgdel
+   csupdate
+   aliasesupdate
+   intupdate
+   clockshift
+   rcfg  -OBSOLETE!
+   resetclock   -just write out
 */
   char c; unsigned int rundec=0;
   int rc, infoerr, ix=0, runnactive=0;
@@ -396,7 +403,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   infolog_trg(infoerr, emsg);
   rc= add_insver(rundec, pname, instname, version);
   if(rc==-1) {
-    sprintf(emsg,"run:%d, instance/ver not stored in ACT", rundec);
+    sprintf(emsg,"run:%d, instance/ver will not be stored in ACT", rundec);
     infolog_trg(LOG_FATAL, emsg);
     printf("ERROR %s", emsg);
   };
@@ -619,15 +626,16 @@ if(t1==tINTNUM) {
   runN= str2int(value);
   ixiv= find_insver(runN);
   if(ixiv == -1) {
-    printf("ERROR bad line (runn not found (pcfg req. missing?) ):%s",line);
+    printf("ERROR bad line (runN not found (pcfg req. missing?) ):%s",line);
     rcex=1; return(rcex);
   };
 } else {
-  printf("ERROR bad line (runn expected after class ):%s",line);
+  printf("ERROR bad line (runN expected after class ):%s",line);
   rcex=1; return(rcex);
 };
 infolog_SetStream(insver[ixiv].parname, runN);
-updateConfig(runN, insver[ixiv].parname, insver[ixiv].insname, insver[ixiv].insver);
+updateConfig(runN, insver[ixiv].parname, insver[ixiv].insname,
+  insver[ixiv].insver);
 del_insver(runN);
 for(ixc=0; ixc<NCLASS; ixc++) {
   unsigned int classN, cg, cgtim; int rcdaq,daqlistpn;

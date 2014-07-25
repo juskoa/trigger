@@ -310,6 +310,16 @@ class TrgCNAMES(Table):
       p= self.getRelPosition(names[ix])
       positions.append(p)
     return positions
+  def getStartPositions(self):
+    # l[0-2]inp1, l[0-2]classB1, l[0-2]classA1
+    rc= [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+    for ent in self.ents:
+      if ent[0][0]=='#': continue
+      if ent[0]=="l0inp1": rc[0]= int(ent[1])
+      elif ent[0]=="l1inp1": rc[1]= int(ent[1])
+      elif ent[0]=="l2inp1": rc[2]= int(ent[1])
+      else: pass
+    return rc
 
 class TrgVALIDINPUTS(Table):
   def __init__(self):

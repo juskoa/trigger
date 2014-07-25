@@ -427,7 +427,7 @@ void printversion() {
 w32 serial, code,vmever,ltuver,pll;
 code= 0xff&vmer32(CODE_ADD);
 vmever= 0xff&vmer32(VERSION_ADD);
-serial= 0x3f&vmer32(SERIAL_NUMBER);
+serial= 0x7f&vmer32(SERIAL_NUMBER);  // 7 bits for ltu2 (6 for ltu1)
 ltuver= Gltuver;
 printf("LTUcode:0x%x serial#:0x%x VME ver:0x%x LTUfpga:0x%x\n",
   code, serial, vmever, ltuver);

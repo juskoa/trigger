@@ -85,7 +85,10 @@ $OTHERScmp
 
 makeall package [clean]     -compile/link only 1 package (see above for names)
 
-See makeallscript   -calling this one using script and saving old logs in ~/logs
+See makeallscript, which is:
+- renaming old logs to .old in ~/logs  
+- calling this script using script 
+- unix2dos logfile
 
 EOF
 exit

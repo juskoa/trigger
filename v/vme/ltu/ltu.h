@@ -166,7 +166,8 @@ LTUf3:
                                /* bit8: enable logic analyser oututs */
 #define MINIMAX_SELECT  0x570
 #define MINIMAX_LIMIT   0x578
-#define FIFO_MAX        0x158  /* 15-8:L2max  7-0:L1max */
+#define FIFO_MAX        0x158  /* <=0xb8: 15-8:L2max  7-0:L1max */
+                               /* >=0xb9: 17-9:L2max  8-0:L1max */
 /* COUNTERS: */
 #define SOFT_LED        0x15c  /* soft LED */
 #define BUSYMAX_DATA    0x168

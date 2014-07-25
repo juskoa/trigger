@@ -24,7 +24,7 @@ elif [ "$sss" == 'start' ] ;then    #----------------------- start
   if [ -n "$spid" ] ;then
     echo "$dname already running: $spid, not started"
   else
-    cd /home/alice/trigger//monscal_root/
+    cd /home/alice/trigger/monscal_root/
     #mvfile WORK/gmonscal
     savelog WORK/gmonscal
     nohup $executable > WORK/gmonscal.log </dev/null &

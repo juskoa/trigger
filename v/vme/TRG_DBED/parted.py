@@ -2504,6 +2504,39 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     outfile.close()
     print outfilename," written"
     return ""
+  def prtinputs(self):
+    fname=os.path.join(WORKDIR, "usedinputs")
+    of= open(fname,"w")
+    usedinputs={} #; optinputs={}
+    l0defs=[]
+    for ixclu in range(len(self.clusters)):
+      cluster= self.clusters[ixclu]
+      #if phclusters[ixclu] =='0': continue   # masked out
+      if len(cluster.outdets)==0:continue #empty cluster,do not take its classes
+      #print "Classes preparation:" ; cluster.prt()
+      for cla in cluster.cls:
+        for inpname in cla.trde.inputs:
+          inp= TDLTUS.findInput(inpname)
+          #note: inpname is [*]name, inp.name is: name
+          if usedinputs.has_key(inp.name): continue
+          usedinputs[inp.name]= 'ok'
+          if inp.ctpinp==None:            # l0f definition
+            if inp.l0fdefinition:
+              l0defs.append("%s %s\n"%(inpname, inp.l0fdefinition))
+              ok,l0funvars= txtproc.varsInExpr(inp.l0fdefinition)
+              for inpname2 in l0funvars:
+                inp2= TDLTUS.findInput(inpname2)
+                if usedinputs.has_key(inpname2): continue
+                usedinputs[inpname2]= 'ok'
+                if inp2==None:
+                  IntErr("prtinputs: %s input used in %s not found"%(inp2,inpname))
+                  continue
+                self.prtinput1(inp2, of)
+            else:
+              PrintError("%s is not CTPinput neither L0 definition:"%inpname)
+            continue
+          self.prtinput1(inp, of)
+    of.close()
   def savercfg(self, line=""):
     """line: info from ctp_proxy. Format:
     partitionName runNumber detectorMask phys_clusters phys_classes
@@ -2701,7 +2734,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #print "usedbcmasks:", name
         #
         #--------------------------------- create INPUTS: section
-        takewholevalidctpinputs="""
+        takewholevalidctpinputs="""   -see prtinputs()
         for inpname in cla.trde.inputs:
           inp= TDLTUS.findInput(inpname)
           #note: inpname is [*]name, inp.name is: name
@@ -2743,7 +2776,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
                 if inp2==None:
                   IntErr("savercfg: %s input used in %s not found"%(inp2,inpname))
                   continue
-                self.prtinput1(inp2, of)
+                #self.prtinput1(inp2, of)   anyhow all put into .rcfg
             else:
               PrintError("%s is not CTPinput neither L0 definition:"%inpname)
             continue
@@ -2836,6 +2869,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     for ix in range(len(usedclasses)):
       of.write(usedclasses[ix])
     of.close()
+    #self.prtinputs() 
     if rcfg=='debug': return
     srcname=os.path.join(CFGDIR,self.relpath,self.name+".partition")
     desname= os.path.join(WORKDIR, "PCFG/r%s.%s"%(runnumber,'partition'))
@@ -2846,9 +2880,11 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     shutil.copyfile(srcname,desname)
     print outfilename," written. .partition and .pcfg files copied to PCFG/"
   def prtinput1(self, inp, of):
-    """not used, instead  trigdb.TrgVALIDINPUTS.prtall() is used
+    """not used in run1 from some time, instead  trigdb.TrgVALIDINPUTS.prtall() is used
+    run2: called from prtinputs() -needed for CTPRCFG/CNAMES service
+    """
     if inp==None:
-      IntErr("savercfg: %s input not found"%inpname)
+      IntErr("prtinput1: None")
       return
     #fix:
     if inp.detectorname=='DAQ':
@@ -2861,7 +2897,6 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       inp.ctpinp[0], inp.signature, inp.ctpinp[1])
     #  inp.ctpinp[0], inp.signature, inp.signature)
     of.write(line)
-    """
   def allocShared(self, pl0funs, lf34=None):
     """
     pl0funs: list of l0funcs ([16bitsvalue,inp_ref] or 

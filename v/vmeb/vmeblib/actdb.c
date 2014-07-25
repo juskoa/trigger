@@ -93,7 +93,7 @@ if( err != 0 ) {
   //snprintf(fname,sizeof(fname),"%s/CFG/ctp/pardefs/%s.partition",vmecfdir,name);
   sprintf(fname,"%s/CFG/ctp/DB/%s",vmecfdir,finame);
   if(instance != NULL) {
-    printf("INFO Opening %s\n",fname);
+    printf("INFO Writing to %s\n",fname);
     f=fopen(fname,"w"); last_Value[0]='\0';
     if(f != NULL) {
       int i,lng;
