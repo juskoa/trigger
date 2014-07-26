@@ -49,6 +49,24 @@ for(i=0;i<NDETEC;i++){
 };
 printf("%s\n",line);
 }
+/*------------------------------------------------------------isTrigDet(char *name)
+see ACT: /CTP/trgInput_DETECTOR
+*/
+int isTrigDet(char *name) {
+int rc;
+if((strcmp(name,"SDD")==0) ||
+   (strcmp(name,"SSD")==0) ||
+   (strcmp(name,"HMPID")==0) ||
+   (strcmp(name,"MUON_TRK")==0) ||
+   (strcmp(name,"FMD")==0) ||
+   (strcmp(name,"PMD")==0) ||
+   (strcmp(name,"CPV")==0) ||
+   (strcmp(name,"DAQ")==0)) {
+  rc=0;
+} else {
+  rc=1;   // triggering detector
+}; return(rc);
+}
 /*------------------------------------------------------------readTables()
 read files: VALID.LTUS into validLTUs[]
             VALID.CTPINPUTS into validCTPINPUTs[]
