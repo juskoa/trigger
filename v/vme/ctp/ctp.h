@@ -1,5 +1,5 @@
 /*  ctp.h */
-#define CTP_SW_VER "2.0 30.09.2013"
+#define CTP_SW_VER "3.0 23.07.2014"
 
 /* CTP boards in ctpboards[] table (ix):
       base        +     code ix I2Caddr

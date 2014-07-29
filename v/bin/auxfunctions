@@ -1,5 +1,8 @@
 # auxiliary functions used from $CCRFS/usr/local/trigger/bin scipts
 function getpid() {
+#usage: getpid
+#       if [ -n "$spid" ] ;then
+#
 #pidcmd1=`ps --columns 150 ax -o'%p %u %a' |grep $1`
 #pidcmd=`echo $pidcmd1 |grep -v '<defunct>' |grep -v grep`
 #echo $pidcmd1
@@ -17,7 +20,7 @@ else
   fi
 #echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
   declare -a dl=($pidcmd)
-echo "auxfunctions:pidcmd:$pidcmd dl:$dl"
+#echo "auxfunctions:pidcmd:$pidcmd dl:$dl"
 # correct for python starts:
 # i.e.:
 #24899 trigger  /usr/bin/python /data/dl/root/usr/.../wsgi/ctpwsgi.py
@@ -63,10 +66,29 @@ fi
 }
 function onlyserver() {
 hname=`hostname`
-if [ "$hname" != "avmes" -a "$hname" != "alidcscom188" -a "$hname" != "pcalicebhm10" ] ;then
+if [ "$hname" != "avmes" -a "$hname" != "alidcscom835" -a "$hname" != "pcalicebhm10" ] ;then
   return 8
 else
-  #echo 'can be started only from trigger@alidcscom188 or pcalicebhm10/avmes'
+  #echo 'can be started only from trigger@alidcscom835 or pcalicebhm10/avmes'
   return 0
+fi
+}
+function getcpunames() {
+#usage: getcpunames     sets these variables:
+#       ctpvme ttcmivme server server27 cmpvme
+#Note: this code is also used in vmebse.bash
+if [ "$VMESITE" = 'ALICE' ] ;then
+  ctpvme=alidcsvme001
+  cmpvme=alidcsvme008
+  ttcmivme=alidcsvme017
+  server=alidcscom835   # alidcscom188  alitri
+  server27=alidcscom707 # alitrir   see also alidcscom521
+elif [ "$VMESITE" = 'SERVER' ] ;then
+  # here we should test for bhm10 ?
+  ctpvme=altri1
+  cmpvme=altri1
+  ttcmivme=altri1
+  server=$hname
+  server27=NONE
 fi
 }

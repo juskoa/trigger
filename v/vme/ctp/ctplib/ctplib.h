@@ -27,6 +27,7 @@ void nextBSTdcs(int vspbobr, w32 *bstmsg, int bstn);
 void getlhc2ctpOrbit(int vspbobr, w32 *bst2ctp, w32 *bst3124);
 
 //readtables.c:
+int isTrigDet(char *name);
 FILE *openFile(char *fname, char *rw);
 int readdbfile(char *fname, char *mem, int maxlen);
 int writedbfile(char *fname, char *mem);

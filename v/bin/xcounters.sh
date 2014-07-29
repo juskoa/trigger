@@ -27,8 +27,8 @@ fi
 }
 #-------------------------------------
 hname=`hostname`
-if [ "$hname" != 'xxxxxxxxxxxx' -a "$hname" != 'alidcscom188' ] ;then
-  echo 'This script can be started only from tri@alidcscom188'
+if [ "$hname" != 'xxxxxxxxxxxx' -a "$hname" != 'alidcscom835' ] ;then
+  echo 'This script can be started only from tri@alidcscom835'
   exit
 fi
 getpid

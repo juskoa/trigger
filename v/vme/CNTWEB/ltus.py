@@ -10,7 +10,7 @@ RRDDB= os.path.join(trigdb.VMEWORKDIR, "../../CNTRRD/rrd/")
 LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
   'CPV', 'HMPID', 'MUON_TRK', 'MUON_TRG', 'PMD',
   'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ')
-sigcolors=["660000", "66ff00", "6600ff", "66ffff", "ff0000","ff00ff","ffff00", "333333"]
+sigcolors=["660000", "66ff00", "6600ff", "66ffff", "ff0000","ff00ff","ffff00", "333333","cccccc","cccc00"]
 
 cfg=None
 
@@ -95,8 +95,12 @@ class RRDgraph:
     if len(ltunames)>1:
         for ltuname in ltunames:
           for signame in signames:
+            if ix_color>(len(sigcolors)-1):
+              cmdout="<BR><BR>Too many ltus/signals in one graph.\n"
+              break
             self.DefLine(ix_color, ltuname, signame)
             ix_color= ix_color+1
+          if cmdout!="": break
     elif len(ltunames)==1:
       ltuname= ltunames[0]
       for signame in signames:

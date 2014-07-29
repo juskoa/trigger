@@ -23,3 +23,6 @@ http://www.html5rocks.com/en/tutorials/websockets/basics/
 http://www.tutorialspoint.com/html5/html5_websocket.htm
 see ~aj/h/ws
 
+firewall:
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
+

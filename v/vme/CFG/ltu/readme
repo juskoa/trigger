@@ -76,3 +76,6 @@ B7 -seems better timing in FPGA for SSM, but SEU bit (TEMP_STATUS&0x2)
 is always set to 1
 21.1.2014
 ltu2_b8.rbf =ltu2_b7.rbf with functional SEU bit
+25.8.2014
+ltu2_b9.rbf, ltu_b9.rbf -longer FIFOs, 512 instead of 256 words, and
+nearly full condition is set to 208

@@ -23,10 +23,11 @@ trgglobs.py introduced. NCLS= 100 -to be used in *.py
 3.  ctp_proxy, ctplib, pydim
 ----------------------------
 Tpartition.h (also in ctp/ctp.h): define NCLASS 100
--modified 13.2. (not tested yet)
+-modified 13.2. (tested with ctpproxy starttest)
 
 pydim
 -modified 13.2.
+todo: add CTPDIM/CNAMES service
 
 4. counters
 -----------
@@ -40,4 +41,6 @@ pydim
 
 7. L0 board 100 classes version todo:
 ------------------------------------
-- RATE_DATA -there is a bug in L0 fi 0xb1: only 50 words allocated (see:SimpleTests/testrates)
+- RATE_DATA -there is a bug in L0 fi 0xb1: only 50 words allocated (see:SimpleTests/testrates), i.e. writing 1..100 results in 51..100 for first 50 classes.
+
+8. CTPDIM/CNAMES -see mails/lhcint_cnames

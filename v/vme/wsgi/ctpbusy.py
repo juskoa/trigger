@@ -41,6 +41,7 @@ def application(environ, start_response):
     (environ["PATH_INFO"], environ["REMOTE_HOST"])
   resp="???"
   if (environ["REMOTE_HOST"]=="pcalicebhm11.cern.ch") or \
+     (environ["REMOTE_HOST"]=="alidcscom512.cern.ch") or \
      (environ["REMOTE_HOST"]=="aldaqacr07.cern.ch"):
     if environ["PATH_INFO"]=="/":
       resp= "form definititon with CTP controls here"
@@ -56,7 +57,7 @@ def application(environ, start_response):
     else:
       resp= "uknown action:"+environ["PATH_INFO"]
   else:
-    resp= "required action can be done only from trigger desktop machine"
+    resp= "required action can be done only from trigger desktop machine (%s)"%(environ["REMOTE_HOST"])
   #
   if resp==None:
     body= prtenv(environ)

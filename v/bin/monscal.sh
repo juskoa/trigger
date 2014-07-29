@@ -1,7 +1,7 @@
 #!/bin/bash
 sss=$1
 . $VMECFDIR/../bin/auxfunctions
-onlyhost alidcscom188
+onlyhost alidcscom835
 executable='monscalnow'
 getpid $executable
 

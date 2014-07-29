@@ -765,6 +765,9 @@ if(strcmp(msg,"logon\n")==0) {
      (strncmp(msg, "SLMsetstart(", 12)!=0) &&
      (strncmp(msg, "TTCinit(", 8)!=0) &&
      (strncmp(msg, "ERenadis(", 9)!=0) &&
+     (strncmp(msg, "ERgetselector(", 14)!=0) &&
+     (strncmp(msg, "ERsetselector(", 14)!=0) &&
+     (strncmp(msg, "SLMbreak(", 9)!=0) &&
      (strncmp(msg, "ERdemand(", 9)!=0) && 
      (strcmp(msg, "qs\n")!=0)
     )) {  /* setBC_DELAY_ADD  allowed -we may use it when run active to find

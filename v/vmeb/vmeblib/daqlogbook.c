@@ -45,7 +45,8 @@ if(vmesite !=NULL) {
   if(strcmp(vmesite,"ALICE")==0) {
     //DAQ_DB_LOGBOOK=trigger:trigger123@10.161.36.8/LOGBOOK
     //strcpy(DAQlogbookDB, "daq:daq@aldaqdb/LOGBOOK");   // was till 12.9.2010
-    strcpy(DAQlogbookDB, "trigger:trigger123@10.161.36.8/LOGBOOK");
+    //strcpy(DAQlogbookDB, "trigger:trigger123@10.161.36.8/LOGBOOK");   // run1
+    strcpy(DAQlogbookDB, "logbooktrg:ts0G9ce2@aldaqdb/LOGBOOK");
   } else if(strcmp(vmesite,"SERVER")==0) {
     strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_CTP");
     //strcpy(DAQlogbookDB, "daq:daq@137.138.143.230/LOGBOOK_CTP");   //pcald30's ip

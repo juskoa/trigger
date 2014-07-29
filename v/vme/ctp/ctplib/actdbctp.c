@@ -4,6 +4,7 @@
 
 #include "vmewrap.h"
 #include "vmeblib.h"
+#include "ctplib.h"     // isTrigDet
 //#define ACT_DB
 #ifdef CPLUSPLUS
 extern "C" {
@@ -48,6 +49,7 @@ for(ix=0; ix<NDETEC; ix++) {     // fo all /CTP/trgInput_* items
   int rc; char value[24]=""; char tiname[32]; char *ltuname; 
   ltuname= ctpshmbase->validLTUs[ix].name;
   if(ltuname[0]=='\0') continue;
+  if(isTrigDet(ltuname)==0) continue;  // only triggering dets
   sprintf(tiname,"trgInput_%s", ltuname);
   rc= actdb_getdbstring(tiname, 0, value, 24);
   if(rc!=0) continue;
@@ -105,6 +107,7 @@ if((err=actdb_open())!=0) {
 };
 sprintf(partitionCtpConfigItem, "/part %s/Source of CTP config", name);
 err= actdb_getdbstring(partitionCtpConfigItem, 0, filter, MAXFILTER);
+printf("INFO filterlen:%d filter:%s err:%d\n",int(strlen(filter)), filter, err);
 if((err==0) && (strcmp(filter, "ACT database")==0)) {// or "Local File"
 /*--------------- following
   if((err= actdb_getdbfile("filter",actname,actversion))!=0) {
