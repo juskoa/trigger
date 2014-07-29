@@ -1,8 +1,9 @@
 #ifndef _LTUBOARD_h_
 #define _LTUBOARD_h_
 #include "BOARD.h"
+#include "ssmrecord.h"
 #include <deque>
-class ssmrecord;
+//class ssmrecord;
 class LTUBOARD: public BOARD
 {
  public:
@@ -17,6 +18,8 @@ class LTUBOARD: public BOARD
 	int AnalTotalSSM2();
 	int CheckLx(int level);
 	int CheckL2TTC(w32 bc,w32 orbit1,w32 orbit2,w32 issm);
+	int CheckL2TTC(w16* dataser,w32 issm);
+	int CheckL2TTC(w32 ittc,w16* dataser,w32 issm);
 	int CheckOrbits();
 	w32 GetErrors(){return ierror;};
         void Print();

@@ -55,11 +55,40 @@ void TTCITBOARD::start_stopSSM()
   ssm[i]=vmer(READ_SSM_WORD);
   //usleep(100000);
  }
- DumptxtSSM();
 }
 void TTCITBOARD::AnalyseSSM()
 {
- 
+ int notactive=Mega+10;
+ int achan=notactive;
+ for(int i =Mega-1;i>=0;i--){
+   int j=Mega-1-i;
+   if(ssm[i] & 0x20000){
+     printf("%7i A chanel \n",j);
+     if(achan==notactive){
+       // L0 or L1
+       achan=i;
+       //printf("First A %i \n",j);
+     }else if(achan==i+1){
+      //L1 
+      printf("L1 at %i \n",j-1);
+      achan=notactive;
+     }else{
+      printf("Error \n");
+     }
+   }else{
+      if(achan != notactive){
+        printf("L0 at %i \n",j);
+        achan=notactive;
+      }
+   }
+   if(ssm[i] & 0x10000){
+     w32 header=(ssm[i]&0xf000)>>12;
+     w32 data=ssm[i]&0xfff;
+     //printf("%7i Data 0x%1x 0x%3x \n", j,ssm[i]&0xf000,data);
+     //string dd=ttcadl[header];
+     //printf("%7i %s 0x%1x 0x%3x \n",j,dd.c_str(),header,data);
+   }
+ } 
 }
 void TTCITBOARD::DumptxtSSM()
 {

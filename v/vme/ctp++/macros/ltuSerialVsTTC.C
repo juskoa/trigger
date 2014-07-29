@@ -1,17 +1,10 @@
 #include "CTP.h"
-int main(int argc,char **argv){
- if(argc != 2){
-   printf("Expected number of arguments 1 \n");
-   return 1;
- }
- //printf("%s \n",argv[1]);
- w32 add=0x812000;
- if(argv[1][0]=='1')add=0x811000;
+int main(){
  w32 err=0;
  //CTP ctp;
  w32 vmesp=-1;
  string ltuname("ltu");
- LTUBOARD *ltu= new LTUBOARD(ltuname.c_str(),add,vmesp);
+ LTUBOARD *ltu= new LTUBOARD(ltuname.c_str(),0x811000,vmesp);
  ltu->Print();
  //ltu->SetStandalone();
  string filename="ssm";
@@ -22,9 +15,7 @@ int main(int argc,char **argv){
    ltu->StopSSM();
    ltu->ReadSSM();
    ///ltu->ReadSSMDump(filename.c_str());
-   //ltu->AnalSSM();
-   //ltu->AnalTotalSSM();
-   ltu->AnalTotalSSM2();
+   ltu->AnalSSM();
    err += ltu->GetErrors();
    if(ltu->GetErrors()){
     ltu->DumpSSM(filename.c_str());
