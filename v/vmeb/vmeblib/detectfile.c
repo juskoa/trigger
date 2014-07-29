@@ -22,6 +22,15 @@ file is (see pydimserver.py scp) put to /tmp directory too,
 so we can get it from there (detectfile is called once more)
 15.6. opendir/closedir commented out -perhaps not needed with scp
       (we do not use nfs more)
+26.7.2014: the problem is in SMI: DIM cmds do not get execute
+sometimes (seems more often just after restarting ctp_proxy),
+when invoked from SMI service routine -i.e. 
+from inside SMI_handle_command() in main_ctp.c.
+Fix: one possobility (Franco suggested):
+move ctpproxy call to endless while loop,
+- set EXECUTING_FOR in SMI_handle
+- set it back to 'RUNNING' in main endless loop after excution
+  of the corresponding ctpproxy action
 */
 int rc,secs=0;
 struct stat buf;
@@ -44,9 +53,11 @@ while(1) {
       break;
     };
   };
+  if((secs%1000)==0) {
+    printf("waiting %d secs rc:%d\n", secs, rc); fflush(stdout);
+  };
   rc=-1;
   if(secs>=maxsecs*1000) break; //if(secs>=maxsecs) break;
-  //printf("waiting %d secs\n", secs);
   usleep(1000); secs=secs+1; //sleep(1); secs++;
   /* fopen does not refresh.
   opf= fopen(name,"r"); 

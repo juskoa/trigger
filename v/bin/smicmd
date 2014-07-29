@@ -1,0 +1,15 @@
+#!/bin/bash
+pname="PHYSICS_1"
+if [ "$1" = 'init' ] ;then
+  if [ -z "$2" ] ;then
+    echo "runnumber ?"
+  else
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 65536 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
+  fi
+elif [ "$1" = "stop" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION $pname
+elif [ "$1" = "ack" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP ACKNOWLEDGE -ps PARTITION $pname
+elif [ "$1" = "reset" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP RESET -ps PARTITION $pname
+fi

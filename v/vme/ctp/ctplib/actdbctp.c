@@ -107,6 +107,7 @@ if((err=actdb_open())!=0) {
 };
 sprintf(partitionCtpConfigItem, "/part %s/Source of CTP config", name);
 err= actdb_getdbstring(partitionCtpConfigItem, 0, filter, MAXFILTER);
+printf("INFO filterlen:%d filter:%s err:%d\n",int(strlen(filter)), filter, err);
 if((err==0) && (strcmp(filter, "ACT database")==0)) {// or "Local File"
 /*--------------- following
   if((err= actdb_getdbfile("filter",actname,actversion))!=0) {
