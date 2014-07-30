@@ -173,7 +173,8 @@ int LTUBOARD::AnalTotalSSM2()
  }
  // Constants
  w32 L0L1=260;
- w32 L0L2=4150;  // LTU
+ w32 L0L2=4149;  // LTU
+ //w32 L0L2=4150;  // LTU
  //w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
  //int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
  //int L2dSSMOffset=44; // LTU
@@ -181,6 +182,7 @@ int LTUBOARD::AnalTotalSSM2()
  //if(GetStatus())L2dSSMOffset=92;
  if(GetStatus())L2dSSMOffset=3561;
  else L2dSSMOffset=44; 
+ L2dSSMOffset=92; 
  // Ques sizes
  w32 l0size=ql0strobe.size();
  w32 l1size=ql1strobe.size();

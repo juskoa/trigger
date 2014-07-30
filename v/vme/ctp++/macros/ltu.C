@@ -2,11 +2,18 @@
 int main(int argc,char **argv){
  if(argc != 2){
    printf("Expected number of arguments 1 \n");
+   printf("Please, use one argiment x={0,1 ,2} for 0x81x000 \n");
    return 1;
  }
  //printf("%s \n",argv[1]);
  w32 add=0x812000;
- if(argv[1][0]=='1')add=0x811000;
+ if(argv[1][0]=='0')add=0x810000;
+ else if(argv[1][0]=='1')add=0x811000;
+ else if(argv[1][0]=='2')add=0x812000;
+ else{
+  printf("Unknown ltu, please, use x={0,1 ,2} for 0x81x000 \n");
+  return 1;
+ }
  w32 err=0;
  //CTP ctp;
  w32 vmesp=-1;
