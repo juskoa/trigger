@@ -2,6 +2,7 @@
 #FILE          = ttcit
 #FILE          = ctpro
 FILE          = ltu
+#FILE          = ltuSerialVsTTC
 #FILE          = l0l1l2
 #FILE          = generL1
 
@@ -14,7 +15,7 @@ VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/usr/local/include
 
 FILES = x/BOARDBASIC.cc x/BOARD.cc x/SSMTOOLs.cc x/LTUBOARD.cc x/CTP.cc x/CONNECT.cc \
 x/L0BOARD.cc x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
-x/FOBOARD.cc x/TTCITBOARD.cc 
+x/FOBOARD.cc x/TTCITBOARD.cc x/ssmrecord.cc
 
 SRCS=$(subst x/,src/,$(FILES))
 HFILES = $(SRCS:.cc:=.h)
