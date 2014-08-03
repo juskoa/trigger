@@ -35,30 +35,41 @@ int actdb_getdbstring(char *fn, int openclose, char *value, int maxl);
 void cpNameVer(ACT_instance *instance, char *actname, char *actversion);
 
 /*--------------------------------------------------------- actdb_getff()
- * get filter to file
+Get filter to file and also return it in filter 
+actopcls: 1: open/close act   0: already opened
 */
-void actdb_getff(char *filter) {
+void actdb_getff(char *filter, int actopcls) {
 #ifdef ACT_DB
 int err,ix; FILE *f; char fname[120];
 ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);
+if(actopcls==1) {
 if((err=actdb_open())!=0) {
-  //printf("ERROR actdb_open. RC:%d\n",err);
+  printf("ERROR actdb_getff actdb_open. RC:%d\n",err);
   return;
-}; filter[0]='\0';
+};};
+filter[0]='\0';
 for(ix=0; ix<NDETEC; ix++) {     // fo all /CTP/trgInput_* items
   int rc; char value[24]=""; char tiname[32]; char *ltuname; 
   ltuname= ctpshmbase->validLTUs[ix].name;
+  // printf("INFO ltuname:%d:%s %d\n",ix,ltuname, isTrigDet(ltuname));
   if(ltuname[0]=='\0') continue;
   if(isTrigDet(ltuname)==0) continue;  // only triggering dets
   sprintf(tiname,"trgInput_%s", ltuname);
   rc= actdb_getdbstring(tiname, 0, value, 24);
+  // rc=0; strcpy(value,"ON");
   if(rc!=0) continue;
   if(strcmp(value,"ON")==0) {
     strcat(filter, ltuname); strcat(filter, " "); 
+    //break;  //ajDBG
   };
-  printf("INFO dbg %s value:%s rc:%d\n", tiname, value, rc);
+  // printf("INFO dbg %s value:%s rc:%d\n", tiname, value, rc);
 };
-err=actdb_close();
+if(actopcls==1) {
+  err=actdb_close();
+  if(err!=0) {
+    printf("ERROR actdb_getff actdb_close. RC:%d\n",err);
+  };
+};
 shmdt(ctpshmbase);
 ix= strlen(filter); if(ix>0) filter[ix-1]='\0'; // remove trailing space
 sprintf(fname,"%s/CFG/ctp/DB/filter",vmecfdir); f=fopen(fname,"w");
@@ -128,7 +139,9 @@ if((err==0) && (strcmp(filter, "ACT database")==0)) {// or "Local File"
 -----------------
 replaced by:
 */
-  actdb_getff(filter);   // readfilter to file and return in filter
+  actdb_getff(filter, 0);   // readfilter to file and return in filter
+  //strcpy(filter, "SPD TPC TRD TOF PHOS MUON_TRG T0 V0 ZDC EMCAL");
+
   strcpy(filterpar, filter);
   // '/part PHYSICS_1/CTP config'
   do_partitionCtpConfigItem(name, partitionCtpConfigItem);
@@ -164,7 +177,7 @@ replaced by:
     };
     ACT_destroyInstance(instance);
   };
-  ACT_close(handle);
+  // nomoz -vid dole zavretie. ACT_close(handle);
   if(rc==0) {
     char cmd[200];
     sprintf(cmd,"ls -l %s >/tmp/actexe.log", fname); system(cmd);
@@ -176,6 +189,7 @@ replaced by:
   printf("INFO %s configured as '%s' in ACT\n",partitionCtpConfigItem, filter);
   actname[0]='\0'; actversion[0]='\0';
 };
+actdb_close();
 #else
   printf("INFO ACT not read (not compiled/linked)\n");
   rc=0;

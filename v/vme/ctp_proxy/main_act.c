@@ -45,7 +45,7 @@ int actdb_getdbfile_openclose(char *cfgname);
 //int actdb_getPartition(char *partname, char *filter);
 int actdb_getPartition(char *name, char *filterpar, char *actname, char *actversion);
 int actdb_getdbstring(char *fn, int openclose, char *value, int maxl);
-void actdb_getff(char *filter);
+void actdb_getff(char *filter, int actopcls);
 
 int checkproxy() { // done in ctpproxy.py
 return(0);
@@ -74,7 +74,7 @@ if(argc==1) { // get CTP db files
 } else { // get .partition file
   if((strncmp(argv[1],"PHYSICS_",8)==0) || (strncmp(argv[1],"TEST_",5)==0)) {
     char filter[200]="nothing";
-    char actinst[100], actver[100];
+    char actinst[200]="blablainst", actver[200]="blablaver";
     rc= actdb_getPartition(argv[1], filter,actinst, actver);
     printf("rc:%d part:%s INSTANCE:%s version:%s", rc, argv[1], actinst,actver);
   } else if(strcmp(argv[1],"VALUE")==0) {
@@ -87,7 +87,7 @@ if(argc==1) { // get CTP db files
     };
   } else if(strcmp(argv[1],"FILTER")==0) {
     char filter[260];
-    actdb_getff(filter);
+    actdb_getff(filter, 1);
     printf("FILTER %s\n", filter);
   } else {
     rc= actdb_getdbfile_openclose(argv[1]);

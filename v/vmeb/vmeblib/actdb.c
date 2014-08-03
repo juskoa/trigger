@@ -166,6 +166,7 @@ int actdb_getdbstring(char *fn, int openclose, char *value, int maxl) {
 int rc=0;
 #ifdef ACT_DB
 int err; char CtpConfigItem[164];
+ACT_instance *instance;
 if(openclose==1) {
   if((err=actdb_open())!=0) {
     printf("ERROR actdb_open. RC:%d\n",err);
