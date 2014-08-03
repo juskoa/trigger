@@ -1,59 +1,4 @@
 #include "LTUBOARD.h"
-class ssmrecord
-{
-  public:
-    ssmrecord(w32 issm,w32 data);
-    ssmrecord(w32 issm,w16* data,w32 Ndata);
-    ssmrecord(w32 issm,w8 ttcode,w8 e,w16 address, w16 tdata, w8 chck);
-    ssmrecord(const ssmrecord &obj);
-    ssmrecord& operator=(const ssmrecord& rec);
-    ~ssmrecord();
-    w32 issm; // position in ssm
-    w32 data; // orbit
-    w16 *sdata;
-    w8 ttcode,e;
-    w16 address,tdata;
-    w8 chck;
-  //string name;
-};
-ssmrecord::ssmrecord(w32 issm,w32 data)
-:issm(issm),data(data),sdata(0),
-ttcode(0),e(0),address(0),tdata(0),chck(0){}
-ssmrecord::ssmrecord(w32 issm,w8 ttcode,w8 e,w16 address, w16 tdata, w8 chck)
-:issm(issm),data(0),sdata(0),
-ttcode(ttcode),e(e),address(address),tdata(tdata),chck(chck){}
-ssmrecord::ssmrecord(w32 issm,w16* data,w32 Ndata)
-:issm(issm),data(Ndata),sdata(data),
-ttcode(0),e(0),address(0),tdata(0),chck(0){}
-ssmrecord::~ssmrecord()
-{
- if(sdata) delete sdata;
-}
-ssmrecord::ssmrecord(const ssmrecord &obj)
-{
- issm=obj.issm;
- data=obj.data;
- sdata=obj.sdata;
- ttcode=obj.ttcode;
- e=obj.e;
- address=obj.address;
- tdata=obj.tdata;
- chck=obj.chck;
-}
-ssmrecord& ssmrecord::operator=(const ssmrecord& rec)
-{
- if(this != &rec){
-  issm=rec.issm;
-  data=rec.data;
-  sdata=rec.sdata;
-  ttcode=rec.ttcode;
-  e=rec.e;
-  address=rec.address;
-  tdata=rec.tdata;
-  chck=rec.chck;
- }
- return *this;
-}
 //---------------------------------------------------------------------
 LTUBOARD::LTUBOARD(string const name,w32 const boardbase,int vsp)
 :
@@ -228,10 +173,16 @@ int LTUBOARD::AnalTotalSSM2()
  }
  // Constants
  w32 L0L1=260;
+ w32 L0L2=4149;  // LTU
  //w32 L0L2=4150;  // LTU
- int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
- w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
- //int L2dSSMOffset=44; // Offset between bc from SSM and from L2data
+ //w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
+ //int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
+ //int L2dSSMOffset=44; // LTU
+ int L2dSSMOffset;
+ //if(GetStatus())L2dSSMOffset=92;
+ if(GetStatus())L2dSSMOffset=3561;
+ else L2dSSMOffset=44; 
+ L2dSSMOffset=92; 
  // Ques sizes
  w32 l0size=ql0strobe.size();
  w32 l1size=ql1strobe.size();
@@ -239,9 +190,9 @@ int LTUBOARD::AnalTotalSSM2()
  w32 l2size=ql2strobe.size();
  w32 l2dize=ql2data.size();
  w32 l2ttcsize=qttcL2.size();
- // First L0 after orbit
+ // First L0 after orbit, use 2nd orbit since first can be incomplete
  w32 l0first=0;
- while(l0first < l0size && (ql0strobe[l0first] < qorbit[0]->issm))l0first++;
+ while(l0first < l0size && (ql0strobe[l0first] < qorbit[1]->issm))l0first++;
  if(l0first==l0size){
   printf("L0 strobe not found \n");
   ierror++;
@@ -261,7 +212,10 @@ int LTUBOARD::AnalTotalSSM2()
  }
  // First L2 after first L0
  w32 l2first=0;
- while(l2first < l2size && (ql2strobe[l2first] - ql0strobe[l0first]) != L0L2)l2first++;
+ while(l2first < l2size && (ql2strobe[l2first] - ql0strobe[l0first]) != L0L2){
+     //printf("%i \n",ql2strobe[l2first] - ql0strobe[l0first]);
+     l2first++;
+ }
  if(l2first==l2size){
   printf("Error: First L2 strobe not found. \n");
   ierror++;
@@ -305,7 +259,7 @@ int LTUBOARD::AnalTotalSSM2()
   }
  }
  if(l2ttcfirst==l2ttcsize){
-   printf("Error: L2 TTC message not found \n");
+   printf("Error: L2 TTC message not found 0x%x 0x%x%x\n",bc1,orbit11,orbit21);
    ierror++;
    return 1;
  }else{
@@ -348,7 +302,9 @@ int LTUBOARD::AnalTotalSSM2()
     ierror++;
   }
   //w32 orbitl2=(dwords2[1]<<12)+dwords2[2];
-  CheckL2TTC(bcl2da,dwords2[1],dwords2[2],l2bc);
+  //CheckL2TTC(bcl2da,dwords2[1],dwords2[2],l2bc);
+  //CheckL2TTC(dwords2,l2bc);
+  CheckL2TTC(il2t,dwords2,l2bc);
   il0++;il1++,il2++;il1d++;il2d++;il2t++;
  }
  printf("# of L0 strobe: %i \n",l0size);
@@ -454,6 +410,8 @@ int LTUBOARD::CreateTTCL12()
  }
  return 0;
 }
+// Compares bcid and orbit
+// Searched whole que
 int LTUBOARD::CheckL2TTC(w32 bcid,w32 orbit1,w32 orbit2,w32 issm)
 {
  //printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",bcid,orbit1,orbit2);
@@ -471,6 +429,47 @@ int LTUBOARD::CheckL2TTC(w32 bcid,w32 orbit1,w32 orbit2,w32 issm)
    printf("Error: TTC L2a message not found  at issm=%i  \n",issm);
    printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",bcid,orbit1,orbit2);
    ierror++;
+ }
+ return 0;
+}
+// May compare all data
+// searched all que
+int LTUBOARD::CheckL2TTC(w16* dataser,w32 issm)
+{
+ //printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",bcid,orbit1,orbit2);
+ w32 i=0;
+ while(i<qttcL2.size()){
+   w16* data=qttcL2[i]->sdata;
+   if(data[0] == dataser[0] && data[1]==dataser[1] && data[2]==dataser[2]){
+    //for(w32 k=0;k<NL2words;k++)printf("%x ",data[k]);
+    //printf("\n");
+    break;
+   }
+   i++;
+ }
+ if(i==qttcL2.size()){
+   printf("Error: TTC L2a message not found  at issm=%i  \n",issm);
+   printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",dataser[0],dataser[1],dataser[2]);
+   ierror++;
+ }
+ return 0;
+}
+// Compares only one message, so missing or extra is detected
+int LTUBOARD::CheckL2TTC(w32 ittc,w16* dataser,w32 issm)
+{
+ //printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",bcid,orbit1,orbit2);
+ w16* data=qttcL2[ittc]->sdata;
+ bool err=0;
+ for(w32 i=0;i<NL2words;i++){
+   err |= (dataser[i] != data[i]);
+   if(err){
+    printf("Error: TTC and serial data diff: i=%i ",i);
+    for(w32 k=0;k<NL2words;k++)printf("%x %x :",dataser[k],data[k]);
+    printf("\n");
+    //printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",dataser[0],dataser[1],dataser[2]);
+    ierror++;
+    return 1;
+   }
  }
  return 0;
 }
@@ -795,7 +794,7 @@ int LTUBOARD::CreateRecordSSM()
  w32 *ss=GetSSM();
  analTTCB();
  printf("analTTCB finished \n");
- for(int i=0;i<Mega;i++){
+ for(int i=1;i<Mega;i++){
     word=ss[i];
     for(w32 j=0;j<18;j++){
     	bit= ( (word & (1<<j)) == (1<<j));

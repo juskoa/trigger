@@ -1,14 +1,16 @@
 #ifndef _LTUBOARD_h_
 #define _LTUBOARD_h_
 #include "BOARD.h"
+#include "ssmrecord.h"
 #include <deque>
-class ssmrecord;
+//class ssmrecord;
 class LTUBOARD: public BOARD
 {
  public:
 	LTUBOARD(string const name,w32 const boardbase,int vsp);
 	void SetGlobal(){vmew(STANDALONE_MODE,0x0);};
 	void SetStandalone(){vmew(STANDALONE_MODE,0x1);};
+        w32 GetStatus(){return vmer(STANDALONE_MODE);};
         // SSM analysis
         w32 GetSSMBC(w32 issm);
 	int AnalSSM();
@@ -16,6 +18,8 @@ class LTUBOARD: public BOARD
 	int AnalTotalSSM2();
 	int CheckLx(int level);
 	int CheckL2TTC(w32 bc,w32 orbit1,w32 orbit2,w32 issm);
+	int CheckL2TTC(w16* dataser,w32 issm);
+	int CheckL2TTC(w32 ittc,w16* dataser,w32 issm);
 	int CheckOrbits();
 	w32 GetErrors(){return ierror;};
         void Print();

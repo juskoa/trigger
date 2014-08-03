@@ -25,8 +25,8 @@ void INTBread(CTP* ctp)
  //intb->printIRList();
  l2->ReadSSM();
  //l2->ssmtools.dumpSSM("l2board");
- l2->getL2aList();
- l2->printL2aList();
+ l2->L2DataBackplane();
+ l2->printL2DataBackplane();
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;
 }
 int main(){
