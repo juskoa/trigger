@@ -133,7 +133,7 @@ void LTUBOARD::txprint(int i,w32 *TXS)
  ssmrecord *ss = new ssmrecord(i-39,code,e,ttcadd,data,chck);
  qttcb.push_back(ss);
 }
-int LTUBOARD::AnalSSM()
+int LTUBOARD::AnalSSMoldRL()
 /*
  Compares L1 and L2data serial data with TTC messages
 */
@@ -890,4 +890,241 @@ vmew(QUIT_SET, DUMMYVAL);
 usleep(100);
 st= vmer(EMU_STATUS); return(st);
 }
+// Didier
+
+int LTUBOARD::ObtainROCfromTTCB(int j) {
+  int ROC        = (qttcb[j]->tdata & 0x3c0) >> 6;
+  return ROC;
+}
+
+void LTUBOARD::ObtainL1ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L1Classes1, unsigned long long &L1Classes2, bool &gotL1fully) {
+
+  if (gotL1fully == 0) {
+
+   if (wordnumber == 0)  L1Classes1 =  (unsigned long long) (qttcb[j]->tdata & 0xf) << 60 ;	    
+   if (wordnumber == 1)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 48 ;
+   if (wordnumber == 2)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 36 ;
+   if (wordnumber == 3)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 24 ;
+   if (wordnumber == 4)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 12 ;
+   if (wordnumber == 5)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    )  ;
+   
+   if (wordnumber == 6)  L1Classes2 += (unsigned long long) (qttcb[j]->tdata    ) << 24 ;
+   if (wordnumber == 7)  L1Classes2 += (unsigned long long) (qttcb[j]->tdata    ) << 12 ;
+   if (wordnumber == 8)  {
+     L1Classes2 += (unsigned long long) (qttcb[j]->tdata    )  ;
+     gotL1fully=1;
+   }
+
+  }
+
+}
+
+int LTUBOARD::ObtainClusterFromTTCB(int j) {
+  int cluster =0;
+  cluster = (qttcb[j]->tdata) & 0x0f;
+  return cluster;
+}
+
+void LTUBOARD::ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L2Classes1, unsigned long long &L2Classes2, bool &gotL2fully) {
+
+
+  gotL2fully =0;
+  //for (int word=j; (unsigned int) j<qttcb.size(); j++) {
+    if (!gotL2fully) {
+
+    if (wordnumber == 4) L2Classes1 = (unsigned long long)   (qttcb[j]->tdata         ) << 52 ;
+    if (wordnumber == 5) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 40 ;
+    if (wordnumber == 6) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 28 ;
+    if (wordnumber == 7) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 16 ;
+    if (wordnumber == 8) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 4 ;
+
+    if (wordnumber == 9) {
+      L2Classes1 += (unsigned long long)  (qttcb[j]->tdata & 0xf   )  ;
+      L2Classes2 = (unsigned long long) (qttcb[j]->tdata & 0xff0 ) << 28 ;
+    }
+
+    if (wordnumber == 10)  L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 16 ;
+    if (wordnumber == 11)  L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 4 ;
+
+    if (wordnumber == 12) {
+      L2Classes2 += (unsigned long long)  (qttcb[j]->tdata & 0xf00 ) >> 8 ;
+      gotL2fully =1;
+    }
+    }
+
+  return;
+
+}
+
+
+void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx) {
+
+  bool IsInTable =0;
+
+  for (int i=0; i<15; i++) {
+    if ( ((unsigned long long) indexLx) == TableLx[2][i]) {
+      IsInTable = 1;
+    }
+  }
+
+  if (!IsInTable) {
+    // printf("filling L%i-table with index %llu \n", level, indexLx);
+    TableLx[0][indexLx-1] = LxClasses1;
+    TableLx[1][indexLx-1] = LxClasses2;
+    TableLx[2][indexLx-1] = indexLx;
+  }
+
+  bool ClassPatternCorrect =1;
+
+  if (IsInTable) {
+    // printf("Testing TTCB L%i class pattern with SLM \n", level);
+    if (TableLx[0][indexLx-1] != LxClasses1) {ClassPatternCorrect = 0; printf("problem with L%iclass \n", level);
+      //  printf("table pattern 1st part : 0x%llu; ttc pattern 1st part : 0x%llu \n", TableLx[0][indexLx-1], LxClasses1);
+    }
+    if (TableLx[1][indexLx-1] != LxClasses2) {ClassPatternCorrect = 0; printf("problem with L%iclass \n", level);
+      // printf("index: 0x%llu; table pattern 2nd part : 0x%llu; ttc pattern 2nd part : 0x%llu \n", indexLx, TableLx[1][indexLx-1], LxClasses2);
+    }
+    //  if (ClassPatternCorrect) printf("OK! \n");
+  }
+
+  if (!ClassPatternCorrect) {
+    printf("Error: L%i Class pattern in TTCB does not match the one in SLM \n", level);
+  }
+
+}
+
+
+int LTUBOARD::AnalSSM()
+{
+  int ROC=0;
+  int Cluster =0;
+  unsigned long long L1Classes1=0, L2Classes1=0;
+  unsigned long long L1Classes2=0, L2Classes2=0;
+  
+  // declaration of table for class pattern [slm <-> ttcb] consistency tests
+  unsigned long long **TableL1 = new unsigned long long *[3];
+  for(int i = 0; i < 3; ++i) {
+    TableL1[i] = new unsigned long long[15];
+  }
+
+  unsigned long long **TableL2 = new unsigned long long *[3];
+  for(int i = 0; i < 3; ++i) {
+    TableL2[i] = new unsigned long long[15];
+  }
+
+  for (int i=0; i< 3; i++) {
+    for (int j=0; j<15; j++) {
+      TableL1[i][j] = 0;
+      TableL2[i][j] = 0;
+    }
+  }
+
+  CreateRecordSSM();
+  // CheckLx(1);  
+  // CheckLx(2); 
+
+
+  // obtain ttcb info
+
+  unsigned int firstL1headerWord =0;
+  bool foundFirstL1Header =0;
+  for (unsigned int j=0; j<qttcb.size(); j++) {
+    if (qttcb[j]->ttcode == 1) {
+      firstL1headerWord = j;
+      foundFirstL1Header =1;
+    }
+    if (foundFirstL1Header) break;
+  }
+
+  int L1SerialDataWord = 0;
+  int jnumber=0;
+  
+  bool GotL1 =0; bool GotL2 =0;
+  for (unsigned int j=firstL1headerWord; j<qttcb.size(); j++) {
+    if (!GotL1){
+    if (qttcb[j]->ttcode == 1)  { 
+      jnumber++;
+      ROC = ObtainROCfromTTCB(j);
+      ObtainL1ClassPatternFromTTCB(j, L1SerialDataWord, L1Classes1, L1Classes2, GotL1);
+    }
+    if (qttcb[j]->ttcode == 2)  {
+      jnumber++;
+      L1SerialDataWord ++;
+      ObtainL1ClassPatternFromTTCB(j, L1SerialDataWord, L1Classes1, L1Classes2, GotL1); 
+    }
+ 
+    if (GotL1) {
+      if (jnumber != 9) {
+	printf("Error: the 9 L1 words were intercepted (SSM word: %i) \n", qttcb[j]->issm);
+	ierror++;
+      }
+      unsigned long long indexROC= ROC;
+      FillLxTable(1, L1Classes1, L1Classes2, indexROC, TableL1);
+      jnumber = 0;
+      GotL1 = 0;
+      L1SerialDataWord =0;
+      L1Classes1 =0; L1Classes2 =0; ROC =0;
+    }
+
+    }
+    
+  }
+
+  //find 1st L2 header (ttcb code=3)
+  unsigned int firstL2headerWord =0;
+  bool foundFirstL2Header =0;
+  for (unsigned int j=0; j<qttcb.size(); j++) {
+    if (qttcb[j]->ttcode == 3) {
+      firstL2headerWord = j;
+      foundFirstL2Header =1;
+    }
+    if (foundFirstL2Header) break;
+  }
+
+  int L2SerialDataWord = 0;
+  bool L2Header =0;
+
+  for (unsigned int j=firstL2headerWord; j<qttcb.size(); j++) {
+    if (!GotL2) {
+      if (qttcb[j]->ttcode == 3) L2Header = 1;
+      if ((qttcb[j]->ttcode == 4) && (L2Header))  {
+      L2SerialDataWord ++;
+      if (L2SerialDataWord == 3) { 
+	Cluster = ObtainClusterFromTTCB(j); 
+      }
+      if ((L2SerialDataWord >3) && (L2SerialDataWord <13)) {
+	ObtainL2ClassPatternFromTTCB(j, L2SerialDataWord, L2Classes1, L2Classes2, GotL2);
+      }
+      }
+
+    // test if L2 message is complete
+    if ((L2SerialDataWord != 0) && (qttcb[j]->ttcode == 3)) {
+      ierror++;
+      printf("ERROR: L2 message was not complete (SSM word %i) \n", qttcb[j]->issm);
+      printf("L2 header after L2 message word %i \n", L2SerialDataWord+1);
+      GotL2 =1;
+      L2Header = 1;
+    }
+    
+
+    if (GotL2) {
+      // printf("L2Classes1, L2Classes2, Cls: 0x%llx 0x%llx 0x%x \n", L2Classes1, L2Classes2, Cluster);
+      unsigned long long indexCluster= Cluster & 0x0f;
+      if (L2SerialDataWord == 12) {
+	FillLxTable(2, L2Classes1, L2Classes2, indexCluster, TableL2);
+	L2Header = 0;
+      }
+      L2SerialDataWord =0;
+      L2Classes1 =0; L2Classes2 =0; Cluster =0;
+      GotL2 = 0;
+    }
+
+    }
+  }
+
+
+  return 0;
+}
+
+
 

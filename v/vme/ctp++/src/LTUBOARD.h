@@ -14,9 +14,17 @@ class LTUBOARD: public BOARD
         w32 GetEmuStatus(){return vmer(EMU_STATUS);};
         int SLMstart();
         int SLMquit();
+	// Didier
+        int ObtainROCfromTTCB(int j);
+	void ObtainL1ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L1Classes1, unsigned long long &L1Classes2, bool &gotL1fully);
+	int ObtainClusterFromTTCB(int j);
+	void ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L2Classes1, unsigned long long &L2Classes2, bool &gotL2fully);
+	void FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx) ;
+
         // SSM analysis
         w32 GetSSMBC(w32 issm);
 	int AnalSSM();
+	int AnalSSMoldRL();
 	int AnalTotalSSM();
 	int AnalTotalSSM2();
 	int CheckLx(int level);
