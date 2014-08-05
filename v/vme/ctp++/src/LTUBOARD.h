@@ -11,6 +11,9 @@ class LTUBOARD: public BOARD
 	void SetGlobal(){vmew(STANDALONE_MODE,0x0);};
 	void SetStandalone(){vmew(STANDALONE_MODE,0x1);};
         w32 GetStatus(){return vmer(STANDALONE_MODE);};
+        w32 GetEmuStatus(){return vmer(EMU_STATUS);};
+        int SLMstart();
+        int SLMquit();
         // SSM analysis
         w32 GetSSMBC(w32 issm);
 	int AnalSSM();
@@ -30,6 +33,10 @@ class LTUBOARD: public BOARD
         w32 const NL2dat;
         // vme addresses
         w32 const STANDALONE_MODE;
+	w32 const EMU_STATUS;
+	w32 const PIPELINE_CLEAR;
+	w32 const EMULATION_START;
+	w32 const QUIT_SET;
 	// emulation working variables
 	w32 ierror;
         deque<ssmrecord*> qorbit;

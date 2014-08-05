@@ -2,6 +2,7 @@
 #define _TTCITBOARD_h_
 #include "BOARD.h"
 #include <deque>
+#include "LTUBOARD.h"
 class TTCITBOARD: public BOARD
 {
  public:
@@ -10,8 +11,11 @@ class TTCITBOARD: public BOARD
 	w32 getStatus(){return vmer(STATUS);};
 	void resetSSMAddress(){vmew(RESET_SNAPSHOT_N,0xff);}
 	void start_stopSSM();
+	int start_stopSSM(LTUBOARD* ltu);
         // SSM analysis
+        void ClearQueues();
         void AnalyseSSM();
+        void Dump2quSSM();
         void DumptxtSSM();
         void Print();
  private:
@@ -25,5 +29,6 @@ class TTCITBOARD: public BOARD
         w32 const READ_SSM_WORD;
         w32 const RESET;
         w32 const RESET_SNAPSHOT_N;
+	deque<ssmrecord*> qttcab;
 };
 #endif

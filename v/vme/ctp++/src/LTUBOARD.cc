@@ -5,7 +5,8 @@ LTUBOARD::LTUBOARD(string const name,w32 const boardbase,int vsp)
 BOARD(name,boardbase,vsp,1),
 ltuname(""),
 NL1dat(108),NL2dat(149),
-STANDALONE_MODE(0x534)
+STANDALONE_MODE(0x534),
+EMU_STATUS(0x11c),PIPELINE_CLEAR(0x198),EMULATION_START(0xec),QUIT_SET(0xf0)
 {
  ltuname=d_name+int2char((boardbase/0x1000) % 0x810);
  this->AddSSMmode("inmon",0);
@@ -173,8 +174,8 @@ int LTUBOARD::AnalTotalSSM2()
  }
  // Constants
  w32 L0L1=260;
- w32 L0L2=4149;  // LTU
- //w32 L0L2=4150;  // LTU
+ //w32 L0L2=4149;  // LTU
+ w32 L0L2=4150;  // LTU
  //w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
  //int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
  //int L2dSSMOffset=44; // LTU
@@ -182,7 +183,7 @@ int LTUBOARD::AnalTotalSSM2()
  //if(GetStatus())L2dSSMOffset=92;
  if(GetStatus())L2dSSMOffset=3561;
  else L2dSSMOffset=44; 
- L2dSSMOffset=92; 
+ //L2dSSMOffset=92; 
  // Ques sizes
  w32 l0size=ql0strobe.size();
  w32 l1size=ql1strobe.size();
@@ -826,3 +827,67 @@ int LTUBOARD::CreateRecordSSM()
  }
  return 0;
 }
+/*
+ * FGROUP SLM
+   Start emulation. Operation:
+1. check if BC present
+2. check if emulation is active
+3. clear pipeline
+4. start emulation (i.e. write DUMMY data to EMULATION_START register)
+rc: 0 -> emulation started
+From ltuslm.c
+*/
+
+int LTUBOARD::SLMstart() {
+w32 st;
+int rc=0,ip;
+/* wait at least 120micsec before start/stop global/stdalone: */
+/*usleep(GLBSTDDELAY); */
+/* check if emulation is active, BC present: */
+if((GetStatus()&0x1)==0) {
+  printf("ERROR: GLOBAL mode active (emulation not started)\n");
+  rc=4; goto ERRRET;
+};
+if((getBCstatus()&0x2) == 0) {
+  printf("ERROR: BC not present\n");
+  rc=2; goto ERRRET;
+};
+/* usleep(1000000); read from non existent register returns
+ * last read value (even after 10milsec) */
+/*st= vmer32(EMU_STATUS); printf("%x\n",st); */
+if(GetEmuStatus()&0x1) {
+  printf("WARNING: emulation active, doing nothing.:\n");
+  //printf("ERROR: emulation active, quitting it before starting:\n");
+  //SLMquit(); usleep(2000000); /* rc=3; goto ERRRET; */
+  rc=3; goto ERRRET;
+};
+vmew(PIPELINE_CLEAR, DUMMYVAL);
+for(ip=0; ip<500; ip++) {
+  st= vmer(EMU_STATUS)&0x2;   /* pipeline busy */
+  if(st==0) break;
+};
+if(ip >499) {
+  printf("problem when pipeline clearing, loops:%d\n",ip);
+};
+vmew(EMULATION_START, DUMMYVAL);
+ERRRET: 
+/*printf("<%d>\n",rc); */
+return(rc);
+}
+/* 
+ * quit emulation. RC: EMU_STATUS after quit
+ * From ltuslm.c
+*/
+int LTUBOARD::SLMquit() {
+w32 st;
+vmew(QUIT_SET, DUMMYVAL);
+//if((SSMSCHEDULER>=3) & (SSMSCHEDULER<=3)) {
+//  w32 opmo;
+//  opmo= SSMSCHEDULER; 
+//  printf("Stoppping SSM-BEFORE recording %s\n",getAB(opmo));
+//  SSMstoprec();
+//}; 
+usleep(100);
+st= vmer(EMU_STATUS); return(st);
+}
+
