@@ -6,6 +6,8 @@ if [ "$1" = 'init' ] ;then
   else
     /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 65536 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
   fi
+elif [ "$1" = "start" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP START_PARTITION -ps PARTITION $pname
 elif [ "$1" = "stop" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION $pname
 elif [ "$1" = "ack" ] ;then

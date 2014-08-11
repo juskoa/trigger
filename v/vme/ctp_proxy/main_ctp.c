@@ -91,14 +91,17 @@ void smi_set_parEF(char *pname) {
 smi_set_par("EXECUTING_FOR",pname,STRING); smi_setState("EXECUTING");
 }
 
-void executectp(char *cmd) {
+void executectp(char *sendcmd) {
 int rc, errorway=0;
+char cmd[100];
 #ifdef PQWAY
-if(strcmp(cmd,"wait")==0) {
+if(strcmp(sendcmd,"wait")==0) {
   pq_receive(mq_rec, cmd);
+  printf("executectp received:%s.\n", cmd);
 } else {
-  pq_send(mq_sendmsg, cmd);
-  return;
+  printf("executectp send:%s.\n", sendcmd);
+  pq_send(mq_sendmsg, sendcmd);
+  fflush(stdout); return;
 };
 #endif
 if(strcmp(cmd,"LOAD")==0) {
@@ -130,7 +133,7 @@ if(strcmp(cmd,"LOAD")==0) {
   }
 } else {
   printf("executectp cmd ignored: %s\n", cmd);
-  return;
+  fflush(stdout); return;
 };
 if(rc){
   if(errorway) { // i.e. errorReason set already in smi
@@ -143,6 +146,7 @@ if(rc){
 }else{
   sleep (1); smi_setState("RUNNING");
 };
+fflush(stdout);
 }
 /*--------------------------------------------------- SMI_handle_command()
 */
@@ -265,6 +269,7 @@ return;
 int rc;
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 #ifdef PQWAY
+printf("main_ctp: opening rec/send queues...\n");
 mq_rec= pq_open();
 if(mq_rec==(mqd_t)-1) {
   infolog_trgboth(LOG_FATAL, "posix mq_rec not created");

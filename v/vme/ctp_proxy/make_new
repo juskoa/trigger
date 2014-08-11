@@ -34,7 +34,7 @@ $(EXEDIR):
 	mkdir $(EXEDIR)
 #------------------------------------------ ctp_proxy
 $(EXEDIR)/ctp_proxy: main_ctp.o $(proxyOBJS) $(LIBDEP)
-	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) $(SMILD) -o $@ 
+	$(CC) $(LDFLAGS) -lrt $< $(proxyOBJS) $(PROXYLIBS) $(SMILD) -o $@ 
 
 $(EXEDIR)/main_fixedcnts: main_fixedcnts.c fixedcnts.o
 	$(CC) $(LDFLAGS) $< fixedcnts.o $(DIMLD) $(VMEBLD) -o $@
