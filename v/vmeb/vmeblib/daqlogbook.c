@@ -331,18 +331,17 @@ for(iclu=0;iclu<NCLUST;iclu++) {
   if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
     daqi->masks[iclu]= daqi->masks[iclu] | (1<<17);
   };
-  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class1/class33 mask:0x:%x %x %x %x\n", 
-    iclu+1, daqi->masks[iclu], daqi->inpmasks[iclu], daqi->classmasks01_32[iclu],
-    daqi->classmasks33_64[iclu]);
+  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx\n", 
+    iclu+1, daqi->masks[iclu], daqi->inpmasks[iclu], daqi->classmasks00_063[iclu],
+    daqi->classmasks64_100[iclu]);
 #ifdef DAQLOGBOOK
   if(ignoredaqlog!=0) { rc=0;
   } else { 
-    unsigned long long classmasks_l;
-    classmasks_l=  daqi->classmasks33_64[iclu];
-    classmasks_l= classmasks_l<<32;
-    classmasks_l= classmasks_l | daqi->classmasks01_32[iclu];
+    logbook_triggerClassMask_t classmask;
+    classmask[0]=daqi->classmasks00_063[iclu];
+    classmask[1]=daqi->classmasks64_100[iclu];
     rc=DAQlogbook_update_cluster(runn, iclu+1, daqi->masks[iclu], 
-      pname, daqi->inpmasks[iclu], classmasks_l);
+      pname, daqi->inpmasks[iclu], classmask);
     if(rc!=0) {
       printf("ERROR DAQlogbook_update_cluster failed. rc:%d", rc);
       break;
@@ -353,4 +352,17 @@ for(iclu=0;iclu<NCLUST;iclu++) {
 };
 return(rc);
 }
-
+void printTDAQInfo(TDAQInfo *tdaq)
+{
+ printf("TDAQInfo: daqoonoff= %i \n",tdaq->daqonoff);
+ printf("Clusters detector masks: \n");
+ for(int i=0;i<NCLUST;i++)printf("%i=0x%x ",i,tdaq->masks[i]);
+ printf("\n");
+ printf("Input detector masks: \n");
+ for(int i=0;i<NCLUST;i++)printf("%i=0x%x ",i,tdaq->inpmasks[i]);
+ printf("\n");
+ printf("Classmasks: \n");
+ for(int i=0;i<NCLUST;i++)printf("%i=0x%llx 0x%llx \n",i,tdaq->classmasks00_063[i],tdaq->classmasks64_100[i]);
+ printf("\n");
+ printf("run1msg: %s \n",tdaq->run1msg);
+}

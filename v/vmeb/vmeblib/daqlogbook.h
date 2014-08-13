@@ -1,17 +1,21 @@
+//#include "DAQlogbook.h"
 #define NCLUST 6
 /* info for DAQlogbook gathered [mostly] in ctpproxy and passed to the server
 and consequently to daq db */
-#define MAXRUN1MSG 500
+#define MAXRUN1MSG 1020
 typedef struct TDAQInfo {
+// Order of variables and size of arrays is important
+// because of 32-64 bit conversion. Think when you want to change it !
 w32 daqonoff;           // 0: CTP readout active
+char run1msg[MAXRUN1MSG]; // orig. rcfg msg, as used before LS1
 w32 masks[NCLUST];      // detectors in each CLUSTER
 w32 inpmasks[NCLUST];   // input detectors feeding each CLUSTER
 /*unsigned long long classmasks[NCLUST];  // classes for each CLUSTER
 does not sent correctly to 64 bits. But w32 ok, i.e.:
 */
-w32 classmasks01_32[NCLUST];
-w32 classmasks33_64[NCLUST];
-char run1msg[MAXRUN1MSG]; // orig. rcfg msg, as used before LS1
+unsigned long long classmasks00_063[NCLUST];
+unsigned long long classmasks64_100[NCLUST];
+//logbook_triggerClassMask_t classmask[NCLUST];
 } TDAQInfo;
 
 //daqlogbook.c:
@@ -45,4 +49,4 @@ int daqlogbook_update_cs(unsigned int runn, char *cs_string);
 int daqlogbook_update_ACTConfig(unsigned int rundec, char *itemname,char *instname,char *version);
 int daqlogbook_update_clusters(unsigned int runn, char *pname,
   TDAQInfo *daqi, unsigned int ignoredaqlog);
-
+void printTDAQInfo(TDAQInfo *tdaq);

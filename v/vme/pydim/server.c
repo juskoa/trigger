@@ -242,12 +242,21 @@ return(rc);
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
-printf("INFO Dorcfg len:%d\n", *size); 
+printf("INFO Dorcfg len:%d %i\n", *size,sizeof(TDAQInfo));
+if(*size != sizeof(TDAQInfo)){
+ char emsg[ERRMSGL];
+ sprintf(emsg, "DOrcfg: Structure dim size different from command size.");
+ infolog_trg(LOG_FATAL, emsg);
+ printf("ERROR %s\n", emsg);
+ return ;
+} 
 dain= (TDAQInfo *)bmsg;
+//printTDAQInfo(dain);
 printf("INFO Dorcfg msg:%s\n", dain->run1msg); 
 rc= getname_rn(dain->run1msg, pname, &rundec);
 if(rc==0) {
   rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK);
+  printf("INFO Dorcfg rc=%i \n",rc);
   //printf("%s",dain->run1msg); fflush(stdout);  moved down
   if(rc==0) { // inputs -> DAQ
     int level,maxinp,ix,ind,rcu;

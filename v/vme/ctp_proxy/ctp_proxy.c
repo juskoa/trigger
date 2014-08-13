@@ -218,6 +218,7 @@ if(dodel==1) {
 sprintf(msg,"timestamp:prepareRunConfig1: %s", cmd); prtLog(msg);
 if(dodel==1) {
   // new way for rcfg command:
+  //
   strncpy(daqi.run1msg, cmd, MAXRUN1MSG);
   rcdic= dic_cmnd_service("CTPRCFG", (void *)&daqi, sizeof(TDAQInfo));
 } else {

@@ -1127,7 +1127,7 @@ return(allinpdets);
 /*------------------------------------------------------- getDAQClusterInfo()
 */
 int getDAQClusterInfo(Tpartition *partit, TDAQInfo *daqi) {
-unsigned long long ULL1=1,classmasks_l[NCLUST];
+unsigned long long ULL1=1,classmasks_l[NCLUST],classmasks_u[NCLUST];
 int idet, iclu, iclass, rcdaqlog=0;
 w32 l0finputs=0;// L0 inputs referenced by l0functions 
 w32 l0finputs1; // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
@@ -1138,6 +1138,7 @@ for(iclu=0;iclu<NCLUST;iclu++){
   daqi->inpmasks[iclu]=0;
   //daqi->classmasks01_32[iclu]=0; daqi->classmasks33_64[iclu]=0;
   classmasks_l[iclu]=0;
+  classmasks_u[iclu]=0;
 };
 //--------------------- masks:
 for(idet=0;idet<NDETEC;idet++){
@@ -1167,12 +1168,19 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   int hwclass; int indets; TKlas *klas;
   if((klas=partit->klas[iclass]) == NULL) continue;
   hwclass= partit->klas[iclass]->hwclass;  // 0..49
-  if(hwclass>49) {
+  //if(hwclass>49) {
+  if(hwclass>99) {
     intError("getDAQClustersInfo: hwclass>49"); rcdaqlog=10;
   };
   iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
   //daqi->classmasks[iclu]= daqi->classmasks[iclu] | (ULL1<<hwclass);
-  classmasks_l[iclu]= classmasks_l[iclu] | (ULL1<<hwclass);
+  // 100 classes: see DAQlogbook.h
+  if(hwclass<64){
+    classmasks_l[iclu]= classmasks_l[iclu] | (ULL1<<hwclass);
+  }else{
+    classmasks_u[iclu]= classmasks_u[iclu] | (ULL1<<(hwclass-64));
+  }
+  //
   indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
   l0finputs= l0finputs|l0finputs1;
   // l0finputs will be usd later when ctp_alignment called
@@ -1182,8 +1190,10 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   daqi->inpmasks[iclu]= daqi->inpmasks[iclu] | indets;
 };
 for(iclu=0;iclu<NCLUST;iclu++){
-  daqi->classmasks01_32[iclu]= classmasks_l[iclu];
-  daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;
+  //daqi->classmasks01_32[iclu]= classmasks_l[iclu];
+  //daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;
+  daqi->classmasks00_063[iclu]=classmasks_l[iclu];
+  daqi->classmasks64_100[iclu]=classmasks_u[iclu];
 };
 return(rcdaqlog);
 }
