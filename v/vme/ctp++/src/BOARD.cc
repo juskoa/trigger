@@ -348,7 +348,7 @@ void BOARD::L2DataBackplane()
   if(bit(sm[i],0)){
    if(!iorbit){
     ORBIT.issm=i;
-    qorbit.push_back(ORBIT);
+    qorbitl2data.push_back(ORBIT);
     iorbit=1;
    }
   }else iorbit=0;

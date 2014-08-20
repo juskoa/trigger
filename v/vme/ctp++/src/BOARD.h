@@ -3,6 +3,7 @@
 #include <fstream>
 #include "BOARDBASIC.h"
 #include "SSMTOOLs.h"
+#include "ssmrecord.h"
 #include <deque>
 class BOARD: public BOARDBASIC
 {
@@ -34,6 +35,7 @@ class BOARD: public BOARDBASIC
 	 void L2DataSerial(int ch1,int ch2);
 	 void printL2Serial();
 	 deque<L2Data>& getL2SerialList(){return ql2backplane;};
+         //deque<qorbit>& getSSMorbit(){return qorbit;};
  private:
 	 void SetFile(string const &modename);
          int const numofmodes;
@@ -67,7 +69,8 @@ class BOARD: public BOARDBASIC
          SSMmode *SSMModes;
          //
          deque<L2Data> ql2backplane;
-	 deque<L2Data> qorbit;
+	 deque<L2Data> qorbitl2data;
+	 deque<ssmrecord> qorbit;
          deque<L2Data> ql2serial;
 };
 #endif

@@ -6,7 +6,8 @@ BOARD(name,boardbase,vsp,1),
 ltuname(""),
 NL1dat(108),NL2dat(149),
 STANDALONE_MODE(0x534),
-EMU_STATUS(0x11c),PIPELINE_CLEAR(0x198),EMULATION_START(0xec),QUIT_SET(0xf0)
+EMU_STATUS(0x11c),PIPELINE_CLEAR(0x198),EMULATION_START(0xec),QUIT_SET(0xf0),
+L1MAX_CLEAR(0x148),L2MAX_CLEAR(0x14c),FIFO_MAX(0x158)
 {
  ltuname=d_name+int2char((boardbase/0x1000) % 0x810);
  this->AddSSMmode("inmon",0);

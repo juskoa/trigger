@@ -1,10 +1,11 @@
-FILE          = test1
+FILE          = test7
 #FILE          = l0l1l2
 #FILE          = generL1
 
 CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -I$(VMEBDIR)/../vme/ctp++/src
-LDFLAGS       = -g -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc
+#LDFLAGS       = -g -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc
+LDFLAGS       = -g -L/lib/modules/daq
 LIBS          = -lg++ -lm -ldl -rdynamic
 GLIBS         = -L/usr/X11R6/lib -lX11 -lm -ldl -rdynamic
 VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/home/dl/root/usr/local/include

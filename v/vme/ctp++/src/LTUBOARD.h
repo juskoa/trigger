@@ -1,7 +1,6 @@
 #ifndef _LTUBOARD_h_
 #define _LTUBOARD_h_
 #include "BOARD.h"
-#include "ssmrecord.h"
 #include <deque>
 //class ssmrecord;
 class LTUBOARD: public BOARD
@@ -12,8 +11,10 @@ class LTUBOARD: public BOARD
 	void SetStandalone(){vmew(STANDALONE_MODE,0x1);};
         w32 GetStatus(){return vmer(STANDALONE_MODE);};
         w32 GetEmuStatus(){return vmer(EMU_STATUS);};
+	w32 GetFIFOMAX(){return vmer(FIFO_MAX);};
         int SLMstart();
         int SLMquit();
+	void ClearFIFOs(){vmew(L1MAX_CLEAR,0);vmew(L2MAX_CLEAR,0);};
 	// Didier
         int ObtainROCfromTTCB(int j);
 	void ObtainL1ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L1Classes1, unsigned long long &L1Classes2, bool &gotL1fully);
@@ -45,6 +46,9 @@ class LTUBOARD: public BOARD
 	w32 const PIPELINE_CLEAR;
 	w32 const EMULATION_START;
 	w32 const QUIT_SET;
+	w32 const L1MAX_CLEAR;
+	w32 const L2MAX_CLEAR;
+	w32 const FIFO_MAX;
 	// emulation working variables
 	w32 ierror;
         deque<ssmrecord*> qorbit;

@@ -23,6 +23,7 @@ int main(int argc,char **argv){
  //ltu->SetStandalone();
  string filename="ssm";
  for(int i=0;i<100000;i++){
+   ltu->ClearFIFOs();
    ltu->SetMode("inmon",'a');
    ltu->StartSSM();
    usleep(50000);
@@ -32,6 +33,7 @@ int main(int argc,char **argv){
    //ltu->AnalSSM();
    //ltu->AnalTotalSSM();
    ltu->AnalTotalSSM2();
+   printf("FIFO MAX: 0x%x \n",ltu->GetFIFOMAX());
    err += ltu->GetErrors();
    if(ltu->GetErrors()){
     ltu->DumpSSM(filename.c_str());

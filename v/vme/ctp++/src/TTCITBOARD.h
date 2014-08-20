@@ -19,6 +19,7 @@ class TTCITBOARD: public BOARD
         void DumptxtSSM();
         void Print();
  private:
+	enum{NL1words=9,NL2words=13};
 	//
 	w32 *ssm;
         // vme addresses
