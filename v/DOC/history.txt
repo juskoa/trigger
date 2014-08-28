@@ -190,4 +190,12 @@ LTU2, fpga ver<0xb8: SEU bit not checked
 19.6.
 lu/ltu_u.py: before calling SSMANA/ssmanls... chdir to WORKDIR added:
         os.chdir(os.environ['VMEWORKDIR'])
+25.7.
+0xb9 (ltu+ltu2) -longer fifos
+24.8.
+5.3 version of ltusw prepared for lnxpool33-disk (see
+mails/virtualmm/lnxpool33). to be redone and put on web
+28.8
+cern.ch/juskoa/ltu modified -0xb9 is included in .tar.gz file and
+possible to download from the page
 

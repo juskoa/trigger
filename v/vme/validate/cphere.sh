@@ -11,8 +11,8 @@ fi
 mkdir ~/validate ; cp MANIFEST setup.py ~/validate/ ; cd ~/validate
 p1="$VMEBDIR/myw.py $VMEBDIR/trigdb.py $VMEBDIR/txtproc.py $VMEBDIR/downscaling.py"
 p2="$VMECFDIR/TRG_DBED/parted.py $VMECFDIR/TRG_DBED/validate.py \
-$VMECFDIR/TRG_DBED/syncdg.py $VMECFDIR/TRG_DBED/preproc.py"
-pyfiles="myw.py trigdb.py txtproc.py parted.py syncdg.py validate.py downscaling.py preproc.py"
+$VMECFDIR/TRG_DBED/syncdg.py $VMECFDIR/TRG_DBED/preproc.py $VMECFDIR/TRG_DBED/trgglobs.py"
+pyfiles="myw.py trigdb.py txtproc.py parted.py syncdg.py validate.py downscaling.py preproc.py trgglobs.py"
 #echo $pyfiles
 cp $p1 ./
 cp $p2 ./
@@ -32,9 +32,10 @@ echo "pwd:`pwd` Do:"
 #echo 'scp dist/validate-1.0.tar.gz $aj11:'
 #echo 'scp ~/validate/dist/validate-2.3-1.noarch.rpm $lxp:t/'
 # 2.5: strict validation added (pydim needed then)!
-echo 'scp ~/validate/dist/validate-2.8-1.noarch.rpm $lxp:t/'
+echo
+echo '(no tkinter dependance) scp ~/validate/dist/validate-3.0-1.noarch.rpm $lxp:t/'
 read -p "remove $pyfiles in pwd:`pwd` ? (y/n):" yn
-if [ $yn = 'y' ] ;then
+if [ "$yn" = 'y' ] ;then
   rm $pyfiles
 fi
 

@@ -52,7 +52,8 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
 //#define LTU_SW_VER "5.0 17.01.2014"    // run2:100 classes
 //#define LTU_SW_VER "5.1 17.06.2014"    // SEUbit not checked for fpgaver<0xb8
-#define LTU_SW_VER "5.2 23.06.2014"    // CTPemu: spacing in us possible
+//#define LTU_SW_VER "5.2 23.06.2014"    // CTPemu: spacing in us possible
+#define LTU_SW_VER "5.3 22.08.2014"    // 0xb9
 
 /*REGSTART32 */
 /* VME FPGA: */

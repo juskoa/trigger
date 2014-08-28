@@ -22,6 +22,7 @@ B. Modify: version in vme/ltu/ltu.h SPECS/ltusw.spec
 check:
 cd $VMECFDIR
 grep -e '^#define LTU_SW_VER' -e 'VERSION=' -e 'Version:' ltu/ltu.h ../SPECS/ltusw.spec
+-> should be the same
 note: bin/distrib script extracts current version from ltu.h
 C. 
   make sure VMECFDIR, VMEBDIR are set. Execute on pcalicebhm10 (altri1!):

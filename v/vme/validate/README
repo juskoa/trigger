@@ -1,8 +1,16 @@
+Contents:
+1. Prepare .rpm
+1A. check .rpm
+2. History
+3. Problems
+
+1. Prepare .rpm
+---------------
 modify setup.py:
   - change version, description 
 modify cphere.sh   
   -change comment at the end (echo version...)
-  -add new files if needed (2x: p1/p2 + pyfiles !)
+  -add new files if needed (3x: p1/p2 + pyfiles  + MANIFEST!)
 modify MANIFEST
   -add new files if needed
 
@@ -10,8 +18,32 @@ and start ./cphere.sh
 - answer 'y' when asked about removing files in pwd
 
 .noarch.rmp is left in ~/validate/dist directory
+Adding tkinter dependance:
+modify ~/validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
+adding 2 lines after 'Vendor:' line:
+Requires: tkinter
+%define _topdir /home/alice/trigger/validate/build/bdist.linux-x86_64/rpm
 
-history
+rpmbuild -bb validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
+rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-3.0-1.noarch.rpm
+i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
+
+1A. check .rpm
+--------------
+avmes:
+validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-3.0-1.noarch.rpm aj@pcalicebhm11:Downloads
+
+cd $dbctp
+scp ttcparts.cfg VALID.CTPINPUTS L0.INPUTS VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMASKS VALID.LTUS ttcparts.cfg  gcalib.cfg filter clockshift aj@pcalicebhm11:/home/aj/git/trigger/v/vme/CFG/ctp/DB/
+
+install on 11:
+rpm -ivh ~aj/Downloads/validate-3.0-1.noarch.rpm
+export dbctp_pardefs=~/git/trigger/v/vme/CFG/ctp/pardefs
+export dbctp=~/git/trigger/v/vme/CFG/ctp/DB
+python /usr/lib/python2.6/site-packages/validate/validate.py simple3
+
+2. History
+----------
 1.6. correct filtering (only for PHYSICS_1) of classes using unconnected inputs
 1.7. 26.10.2011 PF possible, firmware L0 >0xAB possible 
 2.0  2.3.2012 vmeb/donscaling.py added
@@ -32,9 +64,13 @@ history
 - FIXPOWER added for automatic downscaling
 27.6.2013
 - build on SLC6 trigger@pcaldctp2, ver. 2.8.1 for python 2.6
+25.8.2014
+- added trgglobs.py, dependance on tkinter: setup_requires does not work!
+- build on avmes, ver. 3.0 (100 classes) for python 2.6
 
+3. Problems
+-----------
 Problem with SLC5:
------------------
 Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot
 error: Installed (but unpackaged) file(s) found:
    /usr/lib/python2.4/site-packages/validate/myw.pyo

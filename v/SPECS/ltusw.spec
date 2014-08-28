@@ -2,7 +2,7 @@
 
 Summary: ltusw - Alice TRIGGER software for LTU operation in test setup
 Name: ltusw
-Version: 5.0
+Version: 5.3
 Release: 1
 #Copyright: Alice_TRG
 License: Alice_TRG

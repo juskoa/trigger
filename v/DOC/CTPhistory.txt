@@ -269,4 +269,11 @@ ctpwsgi:
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
 3.8.2014
 act.exe: bug fixed (actdb_close() was called prematurelly
+4.8.2014 (around)
+posix queues introduced in ctp_proxy/main_ctp.c
+14.8 (around)
+TDAQInfo in vmeblib/daqlogbook.h... adjusted for 100 classes (was 50)
+(2x unsigned long long instead of 2x w32)
+26.8.
+validate.rpm -now for 100 classes (implemented in the pit)
 

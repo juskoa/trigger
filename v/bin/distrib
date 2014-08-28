@@ -118,7 +118,7 @@ for pn in $names ;do
     echo " copying some scripts into $VMECFDIR/../scripts..."
     cp -a vmebse_lab.bash $VMECFDIR/../scripts/vmebse.bash
     cp -a setup_lab.sh $VMECFDIR/../scripts/setup.sh
-    cp -a distrib ltuproxy.sh loadLTUfpga seq2slm.bash \
+    cp -a distrib ltuproxy.sh loadLTUfpga slm2seq.bash seq2slm.bash \
       doRightSeqs.bash makeSLMproxylinks.bash \
       $VMECFDIR/../scripts/
     cd `dirname $VMEBDIR`
@@ -143,7 +143,7 @@ for pn in $names ;do
  $ltd/ltulib/*.c $ltd/ltulib/Makefile $ltd/ltulib/make_new \
  $ltd/ltulib/linux_c/ \
  vme/CFG/ltu/ltu_b6.rbf vme/CFG/ltu/ltu2_b6.rbf \
- vme/CFG/ltu/ltu_b8.rbf vme/CFG/ltu/ltu2_b8.rbf \
+ vme/CFG/ltu/ltu_b9.rbf vme/CFG/ltu/ltu2_b9.rbf \
  vme/CFG/ltu/readme \
  vme/CFG/ltu/init.mac vme/CFG/ltu/run.mac vme/CFG/ltu/ltuttc.cfgall \
  vme/CFG/ltu/ltuttc.cfg vme/CFG/ltu/ttcparts_lab.cfg \
