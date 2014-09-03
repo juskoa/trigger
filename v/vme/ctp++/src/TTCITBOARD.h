@@ -3,6 +3,7 @@
 #include "BOARD.h"
 #include <deque>
 #include "LTUBOARD.h"
+#include "BUSYBOARD.h"
 class TTCITBOARD: public BOARD
 {
  public:
@@ -12,9 +13,10 @@ class TTCITBOARD: public BOARD
 	void resetSSMAddress(){vmew(RESET_SNAPSHOT_N,0xff);}
 	void start_stopSSM();
 	int start_stopSSM(LTUBOARD* ltu);
+	int start_stopSSM(BUSYBOARD* bb);
         // SSM analysis
         void ClearQueues();
-        void AnalyseSSM();
+        int AnalyseSSM();
         void Dump2quSSM();
         void DumptxtSSM();
         void Print();

@@ -8,6 +8,7 @@
 #include "FOBOARD.h"
 #include "INTBOARD.h"
 #include "FOBOARD.h"
+#include "BUSYBOARD.h"
 #include "LTUBOARD.h"
 #include "TTCITBOARD.h"
 #include "DETECTOR.h"
@@ -21,7 +22,7 @@ class CTP
  public:
 	 CTP();
          ~CTP();
-         BOARD *busy;
+         BUSYBOARD *busy;
          L0BOARD *l0;     //Here should be pointers instead objects
 	 L1BOARD *l1;     // otherwise compiler crashes probably due to the memory
          L2BOARD *l2;

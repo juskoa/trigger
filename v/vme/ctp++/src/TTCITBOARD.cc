@@ -12,11 +12,11 @@ READ_SSM_WORD(0x18),
 RESET(0x28),
 RESET_SNAPSHOT_N(0x8c)
 {
- for(w32 i=0;i<qttcab.size();i++) delete qttcab[i];
- qttcab.clear();
 }
 void TTCITBOARD::ClearQueues()
 {
+ for(w32 i=0;i<qttcab.size();i++) delete qttcab[i];
+ qttcab.clear();
 }
 void TTCITBOARD::Print()
 {
@@ -65,7 +65,46 @@ void TTCITBOARD::start_stopSSM()
  }
 }
 /*
- * Modified routine
+ * Modified routine : CTP (BUSY board) start/stop
+ */ 
+int TTCITBOARD::start_stopSSM(BUSYBOARD* bb)
+{
+ ssm=GetSSM();
+ // reset address
+ resetSSMAddress();
+ for(w32 i=0;i<Mega;i++){
+  ssm[i]=0;
+  vmew(READ_SSM_WORD,0);
+ }
+ bb->SetDAQBUSY(0xff);
+ usleep(20000);
+ //printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ //
+ // reset again - this makes ttc wait for input
+ resetSSMAddress();
+ bb->SetDAQBUSY(0x0);
+ usleep(22000);
+ bb->SetDAQBUSY(0xff);
+ usleep(8000);
+ while(vmer(READ_SSM_ADDRESS)==0)continue; 
+ usleep(50000);
+ //printf("after reset status: 0x%x\n",getStatus());
+ usleep(100000);
+ //printf("after usleep and control 2 status: 0x%x\n",getStatus());
+ //printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ //w32 stat=getStatus();
+ //printf("after usleep and control 3 status: 0x%x\n",stat);
+
+ //resetSSMAddress(); 
+ for(int i=0;i<Mega;i++){
+  ssm[i]=vmer(READ_SSM_WORD);
+  //usleep(100000);
+ }
+ bb->SetDAQBUSY(0x0);
+ return 0;
+}
+/*
+ * Modified routine : LTU start/stop
  */ 
 int TTCITBOARD::start_stopSSM(LTUBOARD* ltu)
 {
@@ -102,21 +141,24 @@ int TTCITBOARD::start_stopSSM(LTUBOARD* ltu)
  return 0;
 }
 /*
- * Analyse que dump
+ * Analyse que dump.
  * Assume that TTC sequence start from beginning
  *
 */
-void TTCITBOARD::AnalyseSSM()
+int TTCITBOARD::AnalyseSSM()
 {
  if(qttcab.size() ==  0){
    printf("Empty ssm memory \n");
-   return;
+   return 0;
  }
  w32 issm0=qttcab[0]->issm;
- if((issm0 != 262) && (issm0 != 266) && (issm0 != 265)){
-   printf("Error: first L1 expected at 262,266  but found at %i \n",qttcab[0]->issm);
-   return ;
+ if((issm0 != 262)){
+ //if((issm0 != 262) && (issm0 != 266) && (issm0 != 265)){
+   //printf("Error: first L1 expected at 262,266  but found at %i \n",qttcab[0]->issm);
+   printf("Warning: first L1 expected at 262  but found at %i \n",qttcab[0]->issm);
+   return 1;
  }
+ w32 cl0=1,cl1=0,cl1m=0,cl2a=0,cl2r=0;
  deque<w32> L1;
  deque<w32*> L1m;
  deque<w32*> L2m;
@@ -134,32 +176,35 @@ void TTCITBOARD::AnalyseSSM()
       // L0 received 
       if((issm-l0)<L0L1time){
         printf("L0L1 time violation - two L0 closer then %i:  %i \n",L0L1time,issm-l0);
-        return;
+        return 1;
       }
       l0=issm;
+      cl0++;
      } else {
       // L1 received
       if((issm-l0) != L0L1time){
-        printf("L0L1 time violation - L1 arrived not in time: %i \n",issm-l0);
-        return ;
+        printf("L0L1 time violation - L1 arrived not in time: %i %i %i \n",issm-l0,issm,l0);
+        return 1;
       }
       L1.push_back(issm);
+      cl1++;
      }
    } else if(ss->ttcode == 1){
      // L1h
      if(l1mes[0]){
        printf("Error: L1 shorter than 9 issm=%i \n",issm);
-       return ;
+       return 1;
      }else{
        l1mes[0]=1;
        l1mes[1]=ss->tdata;
        il1=2;
+       cl1m++;
      }
    } else if(ss->ttcode == 2){
      //L1 data
      if(l1mes[0]==0){
        printf("Error: L1 data without header issm=%i \n", issm);
-       return ;
+       return 1;
      }
      l1mes[il1]=ss->tdata;
      //printf("il1= %i \n",il1);
@@ -178,17 +223,18 @@ void TTCITBOARD::AnalyseSSM()
        //L2h
        if(l2mes[0]){
          printf("Error: L2 shorter than 13 issm= %i \n",issm);
-         return;
+         return 1;
        }else{
          l2mes[0]=1;
          l2mes[1]=ss->tdata;
          il2=2;
+	 cl2a++;
        }
    } else if(ss->ttcode == 4){
        // L2 data
        if(l2mes[0]==0){
          printf("Error: L2 data without header issm=%i\n",issm);
-         return ;
+         return 1;
        }
        l2mes[il2]=ss->tdata;
        if(il2==NL2words){
@@ -207,22 +253,26 @@ void TTCITBOARD::AnalyseSSM()
          pp[0]=issm;
          pp[1]=ss->tdata;
          for(int ii=2;ii<NL2words+1;ii++)pp[ii]=0;
-         L2m.push_back(pp); 
+         L2m.push_back(pp);
+         cl2r++; 
    }else{ 
     printf("Error: unexpected code %i at %i \n",ss->ttcode,issm);
-    return ;
+    return 1;
    }   
  }
+ printf("No error detected: L0: %i L1: %i L1m: %i L2a: %i L2r: %i \n",cl0,cl1,cl1m,cl2a,cl2r);
+ //return 0;
  // Measurement of timeout due to the fifos
  //printf("###### of L1: %i , # if L1 mess: %i , # of L2 mess: %i \n",L1.size(),L1m.size(),L2m.size());
  if(L1.size() == 0){
    printf("No L1 \n");
-   return ;
+   return 0;
  }
  if(L1.size() != L2m.size()){
-   printf("Error: different # of L1 and L1m \n");
-   return ;
+   printf("Error: different # of L1 and L2m : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
+   return 1;
  }
+ // Looking for max delays for L1 and L2messages
  w32 delmaxL2=0;
  w32 delmaxL1=0;
  w32 bcl1=L1[0]%3564;
@@ -243,13 +293,14 @@ void TTCITBOARD::AnalyseSSM()
     //printf("L1 issm: %7i  L1 bc: %4i L2m issm: %7i L2m bc: %4i delta: %i delay: %i\n",issml1,bcl1,issml2m,bcl2m,delta,delay2);
     if(delta0 != delta){
       printf("Error: delta0= %i \n",delta0);
-      return ;
+      return 1;
     }
  }
  printf("Max L2 delay: %i Max L1 delay: %i \n",delmaxL2,delmaxL1);
+ return 0;
 }
 /*
- * SSM dump as ssmrecord que
+ * SSM dump as ssmrecord que used for AnalyseSSM
  * ttchead = 0  data=1  l0
  * ttchead = 0  data=2  l1
  * ttchead = 1  L1 head
@@ -300,6 +351,9 @@ void TTCITBOARD::Dump2quSSM()
    }
  } 
 }
+/*============================================================================
+ * Text dump for visual debuging
+ */
 void TTCITBOARD::DumptxtSSM()
 {
  //char *ttcadl[]={"ZERO","L1h","L1d","L2h","L2d","L2r ","RoIh","RoId"};

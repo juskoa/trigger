@@ -70,12 +70,8 @@ void CTP::getboard(string const &line)
     //cout << "ttc found " << endl;
  }else if(!line.compare(0,4,"busy")){
     //cout << " busy board found " << endl;
-    busy = new BOARD("busy",0x828000,vspctp,4);
+    busy = new BUSYBOARD(vspctp);
     vspctp=busy->getvsp();
-    busy->AddSSMmode("inmon",0);
-    busy->AddSSMmode("outmon",1);
-    busy->AddSSMmode("ingen",2);
-    busy->AddSSMmode("outgen",3);
     boards.push_back(busy);    
  }else if(!line.compare(0,2,"l0")){
     //cout << " l0 board found " << endl;
