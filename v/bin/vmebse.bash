@@ -24,74 +24,26 @@ if [ -n "$1" ] ;then
     vdir=$1
   fi
 fi
-# let's abandon ult,rdir (not use below!) . vdir: stable/v or dvlp/v (in lab)
-if [ "$hname" = 'pcalicebhm10' -o "$hname" = 'avmes' ] ;then
+#defaults:
+export VMESITE=SERVER
+export OS=Linux
+export DIMDIR=/opt/dim
+export SMIDIR=/opt/smi
+export VMEGCC=g++ #export VMEGCC=gcc
+# let's abandon ult -i.e. not used below! Use insted: 
+# cd trgdist (where v is) ; . bin/vmebse.bash ; cd
+if [ "$hname" = 'pcalicebhm10' ] ;then
+  ult=/home/dl6/local/trigger
+elif [ "$hname" = 'avmes' ] ;then
   ult=/home/dl6/local/trigger
 elif [ "$hname" = 'alidcscom188' ] ;then
   ult=/data/dl/root/usr/local/trigger
 elif [ "$hname" = 'alidcscom835' ] ;then
   ult=/home/dl6/local/trigger
-#elif [ "$hname" = 'altri1' ] ;then
-#  ult=/mnt/trigger
 else
   ult=/usr/local/trigger
 fi
-#first=`echo $vdir |cut -b 1`
-#cannot be here if .bashrc invokes this! echo "hname:$hname vdir:$vdir"
-#if [ "$first" = '/' ] ;then
-#  rdir=$vdir
-#  ult=$vdir
-#else 
-#  rdir=$ult/$vdir
-#fi
-# pit or lab:
-export OS=Linux
-export DIMDIR=/opt/dim
-export SMIDIR=/opt/smi
-if [ -e /dev/vme_rcc ] ;then
- export VMEDRIVER=VMERCC     # VMERCC, SIMVME
- if [[ -z $VMELIBS ]] ;then
-  export VMELIBS=/lib/modules/daq
-  export VMEINCS=/usr/local/include
-  DIPLIB=/opt/dip/lib
-  if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VMELIBS:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
-  fi
- fi
-else
- export VMEDRIVER=SIMVME
- DIPLIB=/opt/dip/lib64
- if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
- fi
-fi
-ix=`expr match "$hname" 'alidcs'`
-if [ "$ix" = '6' ] ;then   #pit
-  export VMESITE=ALICE
-  export SMAQ_C=alidcscom707
-  export VMEGCC=g++ #export VMEGCC=gcc
-  export DIM_DNS_NODE=aldaqecs
-  #export DIM_DNS_NODE=alidcscom188
-  #export ACT_DB=daq:daq@aldaqdb/ACT
-  if [ -d /opt/act ] ;then   # only on server needed
-    export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
-  fi
-else
-  # lab environment:
-  #if [ `uname -r` == "2.6.18-194.26.1.el5" ] ;then
-  #  export SMAQ_C=pcalicebhm10
-  #else
-    export SMAQ_C=avmes
-  #fi
-  export VMESITE=SERVER
-  export VMEGCC=g++
-  #export DIM_DNS_NODE=pcald30
-  export DIM_DNS_NODE=avmes
-  #export DIM_DNS_NODE=128.141.139.225   #slc6 dbg (Fraco's setup)
-  if [ -d /opt/act ] ;then
-    export ACT_DB=daq:daq@pcald30/ACT
-  fi
-fi
+
 export VMEBDIR=$vdir/vmeb
 export VMECFDIR=$vdir/vme
 export VMEWORKDIR=~/v/vme
@@ -104,10 +56,79 @@ if [[ $PATH != *$vdir/bin* ]] ;then
 fi
 export PYTHONPATH=$VMEBDIR
 if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then
-. /opt/infoLogger/infoLoggerStandalone.sh
-export DATE_INFOLOGGER_DIR=/opt/infoLogger
-export DATE_INFOLOGGER_SYSTEM=TRG
+  . /opt/infoLogger/infoLoggerStandalone.sh
+  export DATE_INFOLOGGER_DIR=/opt/infoLogger
+  export DATE_INFOLOGGER_SYSTEM=TRG
 fi
+#
+#first=`echo $vdir |cut -b 1`
+if [ -e /dev/vme_rcc ] ;then
+  export VMEDRIVER=VMERCC     # VMERCC, SIMVME
+  if [[ -z $VMELIBS ]] ;then
+    export VMELIBS=/lib/modules/daq
+    export VMEINCS=/usr/local/include
+  fi
+  DIPLIB=/opt/dip/lib
+  if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VMELIBS:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
+  fi
+  ix=`expr match "$hname" 'alidcs'`
+  if [ "$ix" = '6' ] ;then   #pit
+    export VMESITE=ALICE
+    export SMAQ_C=alidcscom707
+    export DIM_DNS_NODE=aldaqecs
+    #export DIM_DNS_NODE=alidcscom188
+    #export ACT_DB=daq:daq@aldaqdb/ACT
+    if [ -d /opt/act ] ;then   # only on server needed
+      export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
+    fi
+  elif [ "$hname" = "altri1" ] ;then   # development
+    export SMAQ_C=avmes
+    export VMESITE=SERVER
+    #export DIM_DNS_NODE=pcald30
+    export DIM_DNS_NODE=avmes
+    if [ -d /opt/act ] ;then
+      export ACT_DB=daq:daq@pcald30/ACT
+    fi
+  elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
+    export SMAQ_C=pcalicebhm10
+    export VMESITE=SERVER2
+    export DIM_DNS_NODE=pcald30
+    #export DIM_DNS_NODE=avmes
+    if [ -d /opt/act ] ;then
+      export ACT_DB=daq:daq@pcald30/ACT
+    fi
+  else
+    export VMESITE=PRIVATE
+    export DIM_DNS_NODE=pcald30
+  fi
+else
+ export VMEDRIVER=SIMVME
+ DIPLIB=/opt/dip/lib64
+ if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
+ fi
+  if [ "$hname" = "avmes" ] ;then   # development
+    export SMAQ_C=avmes
+    export VMESITE=SERVER
+    export DIM_DNS_NODE=avmes
+  elif [ "$hname" = 'alidcscom188' ] ;then
+    export VMESITE=ALICE
+    export SMAQ_C=alidcscom707
+    export DIM_DNS_NODE=aldaqecs
+  elif [ "$hname" = 'alidcscom835' ] ;then
+    export VMESITE=ALICE
+    export SMAQ_C=alidcscom707
+    export DIM_DNS_NODE=aldaqecs
+  elif [ "$hname" = "pcalicebhm10" ] ;then   # stabel + daqecs
+    export SMAQ_C=avmes
+    export VMESITE=SERVER2
+    export DIM_DNS_NODE=pcald30
+  else
+    export VMESITE=PRIVATE
+  fi
+fi
+#
 #aliases:
 alias ssh="ssh -2"
 alias vmecomp=$VMEBDIR/comp.py

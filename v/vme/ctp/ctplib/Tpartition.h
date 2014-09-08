@@ -1,5 +1,5 @@
 #define MAXNAMELENGTH 80        // paths
-#define MAXCTPINPUTLENGTH 40    // ctp input name length
+#define MAXCTPINPUTLENGTH 16    // ctp input name length (was 40 in run1)
 #define MAXPARTNAME 12
 #define MAXDETNAME 12
 #define ERRMSGL 300
@@ -293,17 +293,9 @@ Tpartitionshm startedParts[MNPART];
 w8 lut34s[LEN_l0f34];
 }Tctpshm;
 
-/* info for DAQlogbook gathered [mostly] in ctpproxy and passed to the server
-and consequently to daq db    MOVED TO daqlogbook.h !
-#define MAXRUN1MSG 500
-typedef struct TDAQInfo { MOVED TO daqlogbook.h !
-w32 daqonoff;           // 0: CTP readout active
-w32 masks[NCLUST];      // detectors in each CLUSTER
-w32 inpmasks[NCLUST];   // input detectors feeding each CLUSTER
-unsigned long long classmasks[NCLUST];  // classes for each CLUSTER
-char run1msg[MAXRUN1MSG];  // orig. rcfg msg (as used before LS1)
-} TDAQInfo;
-*/
+/* TDAQInfo for DAQlogbook gathered [mostly] in ctpproxy and passed to the server
+and consequently to daq db    MOVED TO daqlogbook.h ! */
+
 /*--------------------------- fixed counters for MONLUMCNTS service 
 typedef struct Tfixed_cnts{
 int a970pos;  // position in array970 for counter 0,1,2,...

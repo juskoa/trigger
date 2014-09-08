@@ -35,9 +35,10 @@ stop      -ask ctpproxy to stop. ctpproxy will wait for the stop of all
 kill      -stop ctpproxy immediately. This option should not be used!
 restart =  kill + start (preferred way is: 'ctpproxy [stop status start]')
 
-starttest -debugging: start interactive session without DAQLOGBOOK/readout
+starttest -debugging: start interactive session without DAQLOGBOOK/readout/SMI
+           i.e. SMI even not linked. Obsolete: use startnd + smicmd cmdline interface.
 startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
-           (interface to be written sending SMI cmds to ctpproxy)
+           (Use smicmd to send SMI cmds to ctpproxy)
 startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS)
 EOF
 }
@@ -46,7 +47,7 @@ pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detnam
 if [ -z $pid ] ;then
   echo "TRIGGER::CTP not running"
   if [ -z $1 ] ;then
-    echo "start, status or starttest expected"
+    echo "start, startnd, startnr or status or sexpected (starttest: obsolete)"
   elif [ "$1" = "status" ] ;then
     exit 8
   elif [ "$1" = "start" ] ;then

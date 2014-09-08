@@ -1080,6 +1080,7 @@ if(detectors==0) {
 */
   locdetectors= detectors;
 };
+printf("getBusyMaskPartition: detectors:0x%x %s\n", detectors, part->name);
 for(idet=0;idet<NDETEC;idet++){
   int pclu, pclust, hwclust;
   if((locdetectors & (1<<idet)) == 0 ) continue;

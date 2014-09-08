@@ -1,5 +1,6 @@
 /* server.c
-Start: linux/server servername command
+Start: linux/server servername command, i.e.
+                    CTPRCFG    RCFG
 Operation:
 - print to stdout any DIM message (each message is finished by NL):
   received with command 'servername/command'   i.e. dis_add_cmd
@@ -53,6 +54,13 @@ int readAliases();
 void getClassAliases(char *cname, char **daqlist);
 void printalist(char **daqlist);
 
+// ctpcnames.c subroutines:
+void ctpc_clear();
+void ctpc_addclass(int classN, char *clname, int runn);
+void ctpc_addinp(int inn, int runn);
+void ctpc_delrun(int runn);
+void ctpc_print(char *dimpublication);
+
 typedef struct Tinstver {
   int runn;
   char parname[20];
@@ -65,13 +73,14 @@ int ignoreDAQLOGBOOK=0;
 
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
-int INT1id, INT2id, CSid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did;
+int INT1id, INT2id, CSid, CNAMESid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did;
 char INT1String[MAXINT12LINE]="int1 source";
 char INT2String[MAXINT12LINE]="int2 source";
 #define MAXCSString 80000
 char CSString[MAXCSString]="collisions schedule";
+#define MAXCNAMESString (100*6 + 60 + 5)*80  //100 classes, 60 inps, 5: epoch...
+char CNAMESString[MAXCNAMESString]="CNAMES string";
 /* nclients= dis_update_service(INT1id); */
-
 
 //int QUIT=0;
 void getdatetime(char *);
@@ -199,8 +208,9 @@ for(ix=0; ix<rl; ix++) {
 printf("INFO readCS:%s\n", csname);
 return(rcstr);
 }
-/*--------------------------------------------------- getname_rc()
+/*--------------------------------------------------- getname_rn()
 rc: 0 ok
+   !=0 error, "ERROR msg\" printed to stdout
 */
 int getname_rn(char *mymsg, char *pname, unsigned int *runn) {
 char c; unsigned int rundec=0;
@@ -239,10 +249,17 @@ if(runnactive!=1) {
 return(rc);
 }
 
+void updateCNAMES() {
+int nclients;
+ctpc_print(CNAMESString);
+nclients= dis_update_service(CNAMESid);
+printf("INFO CNAMES update for %d clients\n", nclients);
+}
+
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
-printf("INFO Dorcfg len:%d %i\n", *size,sizeof(TDAQInfo));
+printf("INFO Dorcfg len:%d %ld\n", *size,sizeof(TDAQInfo));
 if(*size != sizeof(TDAQInfo)){
  char emsg[ERRMSGL];
  sprintf(emsg, "DOrcfg: Structure dim size different from command size.");
@@ -342,10 +359,13 @@ int stdoutyes=1;
 strncpy(mymsg, (char *)msg, 400); 
 mymsg[398]='\n'; mymsg[399]='\0';   // force \n (if not given)
 if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
-/* pcfg RUNNUMBER partname    -try ACT download
+/* pcfg RUNNUMBER partname    -try ACT download (ECS INIT)
    Ncfg RUNNUMBER partname    -NO ACT, change: Ncfg -> pcfg
    \n               -stop this server
-   rcfgdel
+   rcfgdel useDAQLOGBOOK
+   rcfgdel ignoreDAQLOGBOOK
+   rcfgdel ALL 0            -ctpproxy restart
+   rcfgdel PARTNAME RUNN    -process in .py, (ECS STOP)
    csupdate
    aliasesupdate
    intupdate
@@ -360,7 +380,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   char pname[60]="";
   char runc[16]="";
   char emsg[500];
-  //rc= getname_rn(mymsg, pname, rundec);
+  //rc= getname_rn(mymsg, pname, rundec);   moved to DOrcfg()
   while(1) {
     int cix;
     c=(mymsg)[5+ix];
@@ -462,6 +482,27 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
 } else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {
   reset_insver();
   readTables();
+  ctpc_clear(); updateCNAMES();
+} else if((strncmp(mymsg,"rcfgdel ",8)==0)) {   // rcfgdel partname runn
+  enum Ttokentype t1; int ixl, runn; char pname[16]; char intval[16];;
+  char emsg[200];
+  emsg[0]='\0';
+  ixl=8; t1= nxtoken(mymsg, pname, &ixl);   // runNumber
+  if(t1==tSYMNAME) {
+    t1= nxtoken(mymsg, intval, &ixl);   // runNumber
+    if(t1==tINTNUM) {
+      runn= str2int(intval);
+    } else {
+      sprintf(emsg,"pydimserver: bad run number in rcfgdel %s cmd", pname);
+    };
+  } else {
+    sprintf(emsg,"pydimserver: bad part. name in %s cmd", mymsg);
+  };
+  if(emsg[0]=='\0') {
+    ctpc_delrun(runn); updateCNAMES();
+  } else {
+    infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
+  };
 } else if((strncmp(mymsg,"csupdate",8)==0)) {
   int csclients; char *cs;
   cs= readCS();
@@ -508,7 +549,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     printf("INFO set clockshift %s. rc(=chars):%d \n", halfns, rc);
   };
   stdoutyes=0;
-} else if((strncmp(mymsg,"rcfg ",5)==0)) {
+} else if((strncmp(mymsg,"rcfg ",5)==0)) {   // moved to DOrcfg()
   printf("ERROR rcfg cmd ignored (processed by CTPRCFG cmd\n");
   stdoutyes=0;
 } else if((strncmp(mymsg,"resetclock",9)==0)) {
@@ -552,8 +593,27 @@ if(cs==NULL) {
 printf("INFO CScaba cid:%d client:%s size:%d\n", cid, cidname, *size);
 // free(cs)
 }
+/*----------------------------------------------------------- CNAMEScaba
+*/
+void CNAMEScaba(void *tag, void **msgpv, int *size, int *blabla) {
+char **msgp= (char **)msgpv;
+int cid; char cidname[MAXCIDAT];
+char *cs;
+//char msg[100];
+//sprintf(msg,"INFO CNAMEScaba size:%d msg:%20.20s\n",*size, *msgp ); prtLog(msg); 
+//updateNMCclients(&......); we do not keep track of CS clients
+cid=dis_get_client(cidname);
+cs= CNAMESString; // cs= readCS();
+if(cs==NULL) {
+  *msgp= CNAMESString; *size=0;
+} else {
+  *msgp= cs; *size= strlen(cs);
+};
+//printf("INFO CNAMEScaba size:%d cs:%30.30s \n", *size, cs); cannot (NLs!)
+printf("INFO CNAMEScaba cid:%d client:%s size:%d\n", cid, cidname, *size);
+// free(cs)
+}
 /*--------------------------------------------------- updateConfig
-Code moved from ctp_proxy (end of June 2001).
 update following info in DAQlogbook::
 - .rcfg + alignment
 - col. schedule
@@ -603,6 +663,40 @@ if(rl < 10) {
 rc= daqlogbook_update_cs(runn, CSString);
 do_partitionCtpConfigItem(pname, itemname);
 rc= daqlogbook_update_ACTConfig(runn, itemname,instname,instver);
+}
+/* line: inpupd runn ix1 ix2 ...
+ * ix1: 1..60  (24+24+12)
+*/
+void update_ctpins(char *line) {
+unsigned int runn; 
+int ixc, ixl;
+char value[16];
+enum Ttokentype t1;
+char emsg[100];
+emsg[0]='\0';
+ixl= 7; t1= nxtoken(line, value, &ixl);   // runn
+if(t1==tINTNUM) {
+  runn= str2int(value);
+} else {
+  sprintf(emsg,"pydim update_ctpins: bad line:%60s",line);
+  infolog_trg(LOG_ERROR, emsg); printf("%s\n",emsg);
+  return;
+};
+for(ixc=0; ixc<NCTPINPUTS; ixc++) {
+  t1= nxtoken(line, value, &ixl);   // 1..60
+  if(t1==tEOCMD) {break;};
+  if(t1==tINTNUM) {
+    int ixin;
+    ixin= str2int(value);
+    ctpc_addinp(ixin, runn);
+  } else {
+    sprintf(emsg,"pydim update_ctpins: bad line:%60s",line);
+    infolog_trg(LOG_ERROR, emsg); printf("%s\n",emsg);
+    ctpc_delrun(runn);
+    break;
+  };
+};
+updateCNAMES();
 }
 
 /* Input: class runNumber clid1 classname1 clid2 classname2 ... \n
@@ -674,7 +768,7 @@ for(ixc=0; ixc<NCLASS; ixc++) {
       } else {
     rcex=5; break;
   };
-  t1= nxtoken(line, value, &ixl);   // class group time
+  t1= nxtoken(line, value, &ixl);   // class time group
   if(t1==tEOCMD) break;   
   if(t1==tINTNUM) {
     cgtim= str2int(value);
@@ -735,8 +829,13 @@ for(ixc=0; ixc<NCLASS; ixc++) {
     // ??? Possible reason: cannot print 2 consequtive INFO lines?
     if(daqlistpn>0) printalist(daqlistp);
   };
+  ctpc_addclass(classN, value, runN);
   fflush(stdout);
 };
+if(rcex!=0) {
+  ctpc_delrun(runN);
+};
+updateCNAMES();
 infolog_SetStream("",0);
 return(rcex);
 }
@@ -770,6 +869,8 @@ if(rc==-1) {
   strcpy(emsg,"aliases info from aliases.txt not updated correctly");
   infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
 };
+ctpc_clear(); ctpc_print(CNAMESString);
+//updateCNAMES();
 rc= getINT12fromcfg(INT1String, INT2String, MAXINT12LINE);
 printf("INFO rc:%d INT1:%s INT2:%s\n", rc, INT1String, INT2String);
 
@@ -801,6 +902,9 @@ printf("INFO DIM service:%s id:%d\n", cmd, INT2id);
 sprintf(cmd, "%s/CS", servername);   // CTPRCFG/CS
 CSid=dis_add_service(cmd,"C", CSString, MAXCSString, CScaba, 4569);
 printf("INFO DIM service:%s id:%d\n", cmd, CSid);
+sprintf(cmd, "%s/CNAMES", servername);   // CTPRCFG/CNAMES
+CNAMESid=dis_add_service(cmd,"C", CNAMESString, MAXCNAMESString, CNAMEScaba, 4570);
+printf("INFO DIM service:%s id:%d\n", cmd, CNAMESid);
 
 dis_start_serving(servername);  
 while(1) {
@@ -837,6 +941,8 @@ while(1) {
         printf("ERROR updateDAQLOGBOOK failed. rc=%d\n", rcdaq);
       };
     };
+  } else if(strncmp(line,"inpupd ",7)==0) {
+    update_ctpins(line);
   } else if(strncmp(line,"cmd ",4)==0) {
     int unsigned ix,rcsystem;
     for(ix=0; ix<strlen(line); ix++) {

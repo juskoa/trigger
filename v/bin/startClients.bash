@@ -62,7 +62,7 @@ if [ "$action" = "stop" ] ;then
     ssh -2 -q  $remlogin "$script stop"
   fi
   return $?
-elif [ "$action" = "start" ] ;then
+elif [ "$action" = "start" -o "$action" = "startnd" -o  "$action" = "startnr" ] ;then
   #echo "ssh -2 -q -f $remlogin $script start"
   if [ "$remlogin" == 'LOCAL' -o "$remlogin" == "trigger@$hname"  ] ;then
     $script start

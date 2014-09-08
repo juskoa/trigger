@@ -76,14 +76,16 @@ int TTCITBOARD::start_stopSSM(BUSYBOARD* bb)
   ssm[i]=0;
   vmew(READ_SSM_WORD,0);
  }
+ // switch off triggers
  bb->SetDAQBUSY(0xff);
+ // wait to clean buffers
  usleep(20000);
- //printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
- //
  // reset again - this makes ttc wait for input
  resetSSMAddress();
+ // start triggers
  bb->SetDAQBUSY(0x0);
  usleep(22000);
+ // stop triggers
  bb->SetDAQBUSY(0xff);
  usleep(8000);
  while(vmer(READ_SSM_ADDRESS)==0)continue; 
@@ -156,7 +158,7 @@ int TTCITBOARD::AnalyseSSM()
  //if((issm0 != 262) && (issm0 != 266) && (issm0 != 265)){
    //printf("Error: first L1 expected at 262,266  but found at %i \n",qttcab[0]->issm);
    printf("Warning: first L1 expected at 262  but found at %i \n",qttcab[0]->issm);
-   return 1;
+   return 2;
  }
  w32 cl0=1,cl1=0,cl1m=0,cl2a=0,cl2r=0;
  deque<w32> L1;

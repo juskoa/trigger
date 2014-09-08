@@ -26,6 +26,7 @@ char cmd[80];
 char message[MAXMESSAGE];
 
 char StatusString[MAXSTATUS]="blabla";   
+char StatusCNString[MAXSTATUS]="CNAMESblabla";   
 char StatusFailed[MAXSTATUS]="Status failed";   /* /STATUS service failed */
 
 void printhelp() {
@@ -36,6 +37,7 @@ int1       -test INT1  (or 2 with int2)\n\
 clockshift ttcmi corde last_shift    (3 dec numbers see $dbctp/clockshift)\n\
 cs         -test CTPRCFG/CS\n\
 csupdate   -test CTPRCFG/CS update\n\
+cnames     -test CTPRCFG/CNAMES\n\
 intupdate  -test CTPRCFG/INT1,2 update\n\
 rcfg partname runNumber 0xmask clu1 clu2 ... clu6 cla1 ... cla50\n\
 STATUS     -to demonstrate DIM response when service used for command\n\
@@ -57,9 +59,14 @@ char *buf= ( char *)buffer;
 printf("CScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
 //printf("CScallback:%s\n",StatusString); //not changed (callback)
 }
+void CNAMEScallback(void *tag, void *buffer, int *size) {
+char *buf= ( char *)buffer;
+printf("CNAMEScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
+//printf("CNAMEScallback:%s\n",StatusString); //not changed (callback)
+}
 
 int main(int argc, char **argv) {
-int rc=0, csinfo;
+int rc=0, csinfo, cnamesinfo;
 if((argc<2) || (argc>3)) {
   printf("Usage:    linux/client servername/command\n");
   printf("  i.e.      linux/client CTPRCFG/RCFG\n");
@@ -91,6 +98,10 @@ csinfo= dic_info_service("CTPRCFG/CS", MONITORED, 0,
   NULL,MAXSTATUS+1, 
   CScallback, 3488, StatusFailed, strlen(StatusFailed)+1);
 printf("CTPRCFG/CS MONITORED started:%d:%s:\n", csinfo, StatusString);
+cnamesinfo= dic_info_service("CTPRCFG/CNAMES", MONITORED, 0, 
+  NULL,MAXSTATUS+1, 
+  CNAMEScallback, 3488, StatusFailed, strlen(StatusFailed)+1);
+printf("CTPRCFG/CNAMES MONITORED started:%d:%s:\n", cnamesinfo, StatusCNString);
 
 setlinebuf(stdout);
 printhelp();
@@ -134,6 +145,12 @@ while(1) {
       NULL, 3488, StatusFailed, strlen(StatusFailed)+1);
     usleep(1000000);
     printf("%s CS:%s:\n",cmd, StatusString);
+  } else if(strcmp(message,"cnames\n")==0) {
+    rc= dic_info_service("CTPRCFG/CNAMES", ONCE_ONLY, 1, 
+      StatusString,MAXSTATUS+1, 
+      NULL, 3488, StatusFailed, strlen(StatusFailed)+1);
+    usleep(1000000);
+    printf("%s CNAMES:%s:\n",cmd, StatusString);
   } else {                           // send command
     // command:
     // clockshift ttcmi_halfns cordedelPS/10 last_measuredshiftPS*10

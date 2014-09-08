@@ -5,7 +5,7 @@ cd pydim ; ./dimserver.py
 Operation:
 waits following messages on CTPRCFG/RCFG:
 1.
-rcfg partName NNN clu1 clu2 ... clu6 cl1 ... cl50 NewLine
+rcfg partName NNN clu1 clu2 ... clu6 cl1 ... cl50 0xA 0xB 0xC 0xD NewLine
 -> creates $VMEWORKDIR/WORK/RCFG/rNNN.rcfg
    and its copy in $CLRFS/alidcsvme001/home/alie/trigger/v/vme/WORK/RCFG/
    (this copy is used by ctp_proxy for DAQlogbook + it allows SOD generation)
@@ -76,7 +76,7 @@ def main():
       strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'],"alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
     elif os.environ['VMESITE'] == 'SERVER':
-      copyit=True ; acchost='trigger@altri2'
+      copyit=True ; acchost='trigger@altri1'
       strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
   executable= os.path.join( os.environ['VMECFDIR'],"pydim","linux_s","server")

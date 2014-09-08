@@ -1,17 +1,56 @@
 #!/bin/bash
-pname="PHYSICS_1"
+#pname="PHYSICS_1"
+pname="c100"
 if [ "$1" = 'init' ] ;then
   if [ -z "$2" ] ;then
     echo "runnumber ?"
   else
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 65536 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
+# ACO 65536 PHOS: 128   HMPID:64
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 128 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
   fi
 elif [ "$1" = "start" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP START_PARTITION -ps PARTITION $pname
+elif [ "$1" = "pause" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP PAUSE_PARTITION -ps PARTITION $pname
+elif [ "$1" = "resume" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP RESUME_PARTITION -ps PARTITION $pname
+elif [ "$1" = "sync" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP SYNC -ps PARTITION $pname
 elif [ "$1" = "stop" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION $pname
 elif [ "$1" = "ack" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP ACKNOWLEDGE -ps PARTITION $pname
 elif [ "$1" = "reset" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP RESET -ps PARTITION $pname
+elif [ "$1" = "TRIGGER" ] ;then
+# /opt/smi/linux/smiPreproc TRIGGER.smipp TRIGGER.smi
+# /opt/smi/linux/smiTrans TRIGGER.smi TRIGGER.sobj
+# following cmd takes .sobj as input
+    /opt/smi/linux/smiSM TRIGGER $dbctp/TRIGGER &
+else
+cat - <<-EOF
+Partition name: $pname
+smicmd init RUNN
+smicmd start/stop/pause/resume/sync/ack/reset
+smicmd TRIGGER      -start private TRIGGER domain
+EOF
+fi
+elif [ "$1" = "stop" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION $pname
+elif [ "$1" = "ack" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP ACKNOWLEDGE -ps PARTITION $pname
+elif [ "$1" = "reset" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP RESET -ps PARTITION $pname
+elif [ "$1" = "TRIGGER" ] ;then
+# /opt/smi/linux/smiPreproc TRIGGER.smipp TRIGGER.smi
+# /opt/smi/linux/smiTrans TRIGGER.smi TRIGGER.sobj
+# following cmd takes .sobj as input
+    /opt/smi/linux/smiSM TRIGGER $dbctp/TRIGGER &
+else
+cat - <<-EOF
+Partition name: $pname
+smicmd init RUNN
+smicmd start/stop/ack/reset
+smicmd TRIGGER      -start private TRIGGER domain
+EOF
 fi

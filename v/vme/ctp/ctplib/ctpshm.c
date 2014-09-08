@@ -97,8 +97,9 @@ shmpart= &ctpshmbase->startedParts[0];
 printf("VALID.LTUS:\n");
 for(i=0;i<NDETEC;i++){ 
   if(ctpshmbase->validLTUs[i].name[0] != '\0'){
-    printf("%d:%s fo:%d:%d\n", i, ctpshmbase->validLTUs[i].name,
-      ctpshmbase->validLTUs[i].fo, ctpshmbase->validLTUs[i].foc);
+    printf("%d:%s fo:%d:%d %d %s\n", i, ctpshmbase->validLTUs[i].name,
+      ctpshmbase->validLTUs[i].fo, ctpshmbase->validLTUs[i].foc,
+      ctpshmbase->validLTUs[i].busyinp, ctpshmbase->validLTUs[i].ltubasea);
   };
 };
 printf("GlobalFlags:%x active_cg:%d\n", ctpshmbase->GlobalFlags,

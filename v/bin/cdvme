@@ -40,6 +40,8 @@ if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' -o \
   if [ "$vdir" = 'ctp' ] ;then
     dhost='alidcsvme001'
     if [ "$hname" = 'pcalicebhm10' ] ;then
+      dhost='altri2'
+    elif [ "$hname" = 'avmes' ] ;then
       dhost='altri1'
     fi
     rdir=$CLRFS/$dhost/home/alice/trigger/v/vme/WORK

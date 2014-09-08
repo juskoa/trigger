@@ -2505,6 +2505,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     print outfilename," written"
     return ""
   def prtinputs(self):
+    """ output: WORKDIR/usedinputs
+    """
     fname=os.path.join(WORKDIR, "usedinputs")
     of= open(fname,"w")
     usedinputs={} #; optinputs={}
@@ -2734,7 +2736,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #print "usedbcmasks:", name
         #
         #--------------------------------- create INPUTS: section
-        takewholevalidctpinputs="""   -see prtinputs()
+        takewholevalidctpinputs="""   -see prtinputs(), seems this code is there, i.e. can be thrown out from here
         for inpname in cla.trde.inputs:
           inp= TDLTUS.findInput(inpname)
           #note: inpname is [*]name, inp.name is: name

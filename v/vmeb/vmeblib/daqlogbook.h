@@ -7,7 +7,9 @@ typedef struct TDAQInfo {
 // Order of variables and size of arrays is important
 // because of 32-64 bit conversion. Think when you want to change it !
 w32 daqonoff;           // 0: CTP readout active
-char run1msg[MAXRUN1MSG]; // orig. rcfg msg, as used before LS1
+char run1msg[MAXRUN1MSG]; /* orig. rcfg msg, as used before LS1, i.e.:
+  rcfg PHYSICS_1 1 0x80000 1 0 0 0 0 0 c1 ... c100 0x1 0x2 0x3 0x4
+*/
 w32 masks[NCLUST];      // detectors in each CLUSTER
 w32 inpmasks[NCLUST];   // input detectors feeding each CLUSTER
 /*unsigned long long classmasks[NCLUST];  // classes for each CLUSTER

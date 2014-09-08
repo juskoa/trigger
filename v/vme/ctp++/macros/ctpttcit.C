@@ -3,6 +3,7 @@
 #include <cmath>
 int main()
 {
+  int ret=0;
   CTP* ctp = new CTP;
   printf("DAQ_BUSY before: 0x%x \n",ctp->busy->GetDAQBUSY());
   int vmesp=-1;
@@ -13,7 +14,8 @@ int main()
      if(ttc->start_stopSSM(ctp->busy)) return 1;
      ttc->Dump2quSSM();
      //ttc->DumptxtSSM();
-     if(ttc->AnalyseSSM()){
+     ret=ttc->AnalyseSSM();
+     if(ret){
        ttc->DumptxtSSM();
        return 1;
      }

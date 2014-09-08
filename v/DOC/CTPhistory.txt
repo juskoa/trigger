@@ -276,4 +276,26 @@ TDAQInfo in vmeblib/daqlogbook.h... adjusted for 100 classes (was 50)
 (2x unsigned long long instead of 2x w32)
 26.8.
 validate.rpm -now for 100 classes (implemented in the pit)
+1.9.2014
+pydim/ctpcnames.c added. 
+ATTENTION! Tpartition.h MAXCTPINPUTLENGTH 16 (was 40) -> i.e.
+recompile all + reload SHM . shm length (ipcs -m) changed from 12300 -> 10860
+2.9.2014
+CTPRCFG/CNAMES service is included in pydim. 
+todo: Does not supply runN for inputs (parted.py contains code finding
+      the inputs used by given partition)
+5.9.
+test:
+[trigger@avmes pydim]$ linux_s/client CTPRCFG/RCFG
+todo: ALICE, SERVER, SERVER2 -3 CTP setups in pit altri1, altri2
+5.9.
+bin/smicmd
+8.9.
+VMESITE:
+        where, DIM_DNS_NODE
+ALICE    p2, aldaqecs
+SERVER   avmes+altri1, avmes
+SERVER2  bhm10+altri2/p2, pcald30
+PRIVATE  other comps
+8.9. --->p2
 
