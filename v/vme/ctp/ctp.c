@@ -607,6 +607,23 @@ vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 
 /*FGROUP SimpleTests
+*/
+void printBC_STATUSes() {
+int ix;
+printf("   board code ser# base     vmeV boardV BCstatus\n");
+for(ix=0; ix<NCTPBOARDS; ix++) {
+  w32 bcst; int adshift;
+  char errnote[80]="";
+  if(notInCrate(ix)) continue;
+  adshift=BSP*ctpboards[ix].dial;
+  bcst= vmer32(adshift+BC_STATUS)&0x7;
+  printf("%2d:%5s 0x%x %4d 0x82%1x000 0x%x 0x%x   %x     %s\n",
+    ix, ctpboards[ix].name,ctpboards[ix].code, ctpboards[ix].serial, 
+    ctpboards[ix].dial, ctpboards[ix].vmever, ctpboards[ix].boardver,bcst,
+    errnote);
+};
+}
+/*FGROUP SimpleTests
 what: 0: set RATE_DATA  (100 words, 25 bits)
       1: set MASK_DATA  (3564 words, 12 bits)
 value: to be written

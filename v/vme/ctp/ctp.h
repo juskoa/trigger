@@ -123,8 +123,8 @@ LM0 board:
 49     Vcc
 50     ORBIT
 51     ORBIT & !TEST
-52     ADC Test input (local phase)
-53     spare input
+52     ADC Test input (local phase)  (28 on old L0 board)
+53     BUSY/INT clock phase input
 */
 /*#define TEST_ADD        0xc0  was till 12.3.2008 */
 /*#define TEST_ADD        0x7e0 was till  6.11.2013 */
@@ -700,6 +700,10 @@ words: if 0 than check whole BCmask memory (3564)
 void checkBCmasks(int ntimes, int words);
 /*FGROUP SimpleTests
 return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT
+9.9.2014 in lab: 
+38 113 117 123 126   -with LM0 board in altri1 crate
+114 114 116 120 123  -with L0  board in altri2 crate
+
 */
 void checkPhasesPrint();
 /* Find out toggling FO connectors.

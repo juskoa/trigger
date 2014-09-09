@@ -35,22 +35,3 @@ smicmd start/stop/pause/resume/sync/ack/reset
 smicmd TRIGGER      -start private TRIGGER domain
 EOF
 fi
-elif [ "$1" = "stop" ] ;then
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION $pname
-elif [ "$1" = "ack" ] ;then
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP ACKNOWLEDGE -ps PARTITION $pname
-elif [ "$1" = "reset" ] ;then
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP RESET -ps PARTITION $pname
-elif [ "$1" = "TRIGGER" ] ;then
-# /opt/smi/linux/smiPreproc TRIGGER.smipp TRIGGER.smi
-# /opt/smi/linux/smiTrans TRIGGER.smi TRIGGER.sobj
-# following cmd takes .sobj as input
-    /opt/smi/linux/smiSM TRIGGER $dbctp/TRIGGER &
-else
-cat - <<-EOF
-Partition name: $pname
-smicmd init RUNN
-smicmd start/stop/ack/reset
-smicmd TRIGGER      -start private TRIGGER domain
-EOF
-fi

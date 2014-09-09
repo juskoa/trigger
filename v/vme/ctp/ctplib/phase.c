@@ -54,7 +54,7 @@ int phaseLx(int board){
  w32 offset,value;
  offset=BSP*ctpboards[board].dial;
  if((board==1) && (l0C0())) {
-   vmew32(offset+ADC_SELECTlm0,28);
+   vmew32(offset+ADC_SELECTlm0,52);   // was 28 on L0 board
  }else {
    vmew32(offset+ADC_SELECT,28);
  };
@@ -69,7 +69,7 @@ int phaseBUSY(){
  // measure adc on L0 board
  offset=BSP*ctpboards[1].dial;
  if(l0C0()) {
-   vmew32(offset+ADC_SELECTlm0,29);
+   vmew32(offset+ADC_SELECTlm0,53);   // was 29 on L0 board
  } else {
    vmew32(offset+ADC_SELECT,29);
  };
@@ -81,7 +81,7 @@ int phaseBUSY(){
 }
 int phaseINT(){
  w32 offset,value,valueb;
- // set toggle generation on int board via ctp_pbusy line
+ // set toggle generation on int board via ctp_busy line
  valueb=vmer32(INT_DISB_CTP_BUSY);
  valueb =  valueb | 0x10;
  vmew32(INT_DISB_CTP_BUSY,valueb);
@@ -90,7 +90,7 @@ int phaseINT(){
  // measure adc on L0 board
  offset=BSP*ctpboards[1].dial;
  if(l0C0()) {
-   vmew32(offset+ADC_SELECTlm0,29);
+   vmew32(offset+ADC_SELECTlm0,53);
  } else {
    vmew32(offset+ADC_SELECT,29);
  };
