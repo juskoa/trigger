@@ -81,6 +81,11 @@ if(quit>9) {
 }
 
 void smi_setState(char *newstate) {
+if(strcmp(newstate, "RUNNING")==0) {
+  // this probably (UNKNOWN) should be set for any newstate
+  // (never called with "EXECUTING_FOR" anyhow)
+  strcpy(pname,"UNKNOWN"); smi_set_par("EXECUTING_FOR",pname,STRING);
+};
 strcpy(state, newstate); smi_set_state(state);
 }
 void smi_set_parER() {
@@ -311,7 +316,6 @@ smi_volatile();
 */
 strcpy(errorReason,"not set"); smi_set_parER();
 strcpy(ORBIT_NUMBER,""); smi_set_par("ORBIT_NUMBER",ORBIT_NUMBER,STRING);
-strcpy(pname,"UNKNOWN"); smi_set_par("EXECUTING_FOR",pname,STRING);
 smi_setState("RUNNING");
 while(1) {
 #ifdef PQWAY

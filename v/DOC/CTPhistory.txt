@@ -298,4 +298,6 @@ SERVER   avmes+altri1, avmes
 SERVER2  bhm10+altri2/p2, pcald30
 PRIVATE  other comps
 8.9. --->p2
+13.9.
+bug L1_INVERT fixed (still checks, sometimes bad, for classes >=44/45)
 

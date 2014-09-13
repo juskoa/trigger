@@ -333,7 +333,7 @@ LM0: does not exist (is in L0_VETOr2)
 #define L1_TCSTATUS    0xa1c0   /*R/O*/
 #define L1_TCCLEAR     0xa1c8   /*dummy wr. */
 #define L1_TCSET       0xa400   /* 18: P/F */
-#define L1_DEFINITION  0xa400    /* +4*n n=1,2,...,50 */
+#define L1_DEFINITION  0xa400    /* +4*n n=1,2,...,100 */
 /* bits:
 31 RoI Veto Flag. 1: segmented readout (RoI) is suspended if class triggered
 30..28 Cluster code
@@ -701,7 +701,7 @@ void checkBCmasks(int ntimes, int words);
 /*FGROUP SimpleTests
 return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT
 9.9.2014 in lab: 
-38 113 117 123 126   -with LM0 board in altri1 crate
+38 113 117 123 126   -with LM0 board in altri1 crate, also in P2
 114 114 116 120 123  -with L0  board in altri2 crate
 
 */

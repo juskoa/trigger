@@ -43,6 +43,13 @@ logs    -logs
 rawcnts -raw counters data (1 file per day)
 rrd     -rrd databases data
 
+cnames.sorted2 -actual list of counter names (cnames1.sorted2: run1)
+Seems there need to be 2 copies of it:
+$dbctp/cnames.sorted2
+dimcdistrib/cnames.sorted2 (/var/www/html/cnames.sorted2 link pointing here)
+
+ltunames.sorted2: only in v/vme/dimcdistrib/ -the same valid for run1/2
+
 2. Daemons
 ----------
 On alidcscom026:
@@ -258,7 +265,7 @@ rm -f /home/alice/*/v/vme/WORK/ltuclient_*.log
 /var/www/html/CNTWEB/doc   -some doc
 /var/www/html/CNTWEB/cnt.py -script responding to http requests
 /var/www/html/CNTWEB/ltus.py -script responding to http requests
-/var/www/html/CNTWEB/cnames.sorted2, ltunames.sorted2 -links to dimcdistrib
+/var/www/html/cnames.sorted2 -link to dimcdistrib
 /var/www/html/htmls/       -link to ~CNTRRD/htmls (directory)
 /var/www/html/ex/        -some examps
 /var/www/html/publisher/ -some examps
@@ -271,7 +278,7 @@ cd CNTRRD
 ln -sf /dimcdistrib/ctpcounters.h
 cd /var/www/html
 ln -sf ~trigger/dimcdistrib/cnames.sorted2 cnames.sorted2 
-ln -sf ~trigger/dimcdistrib/ltunames.sorted2 ltunames.sorted2 
+# this not needed ? ln -sf ~trigger/dimcdistrib/ltunames.sorted2 ltunames.sorted2 
 ! if not x for everybody, 'ERROR: Permission denied'
 [root@pcalicebhm05 home]# ls -ld trigger
 drwxr-x--x  25 trigger alice 4096 Nov 26 15:33 trigger

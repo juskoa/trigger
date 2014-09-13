@@ -1235,7 +1235,7 @@ class Klas(Genhw):
   def modL0handler(self,event, eventkeycode, klasbit):
     """klasbit: 0..
     """
-    #print "modL0handler1:", klasbit,hex(self.l0inputs), eventkeycode
+    print "modL0handler1:", klasbit,eventkeycode, hex(self.l0inputs), hex(self.l1definition), hex(self.l1inverted)
     #print "modL0handler2:", event, dir(event)
     #print "modL0handler3:", event.keycode, event.keysym,event.keysym_num, eventkeycode
     #print "modL0handler4:", type(event.keycode)

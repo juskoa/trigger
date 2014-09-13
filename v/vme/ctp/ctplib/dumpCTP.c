@@ -104,7 +104,7 @@ void dumpL1(FILE *f){
  for(i=0;i<NCLASS;i++){
   w32 definition,invert;
   definition=vmer32(L1_DEFINITION+4*(i+1));
-  if(i>44){
+  if(i>=0){   // was >44 (bug) before 13.9.2014
    invert=vmer32(L1_INVERT+4*(i+1));
    fprintf(f,"%2i:0x%x 0x%x",i+1,definition,invert);
   }else{

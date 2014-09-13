@@ -1458,7 +1458,7 @@ for(i=0;i<NCLASS;i++){
     vmew32(L0_VETO+bb,(klas->l0vetos)&0xffff);
   };
   vmew32(L1_DEFINITION+bb, klas->l1definition);
-  if(i>=44)vmew32(L1_INVERT+bb, klas->l1inverted);
+  if(i>=1)vmew32(L1_INVERT+bb, klas->l1inverted);   // was 44 (bug) before 13.9.2014
   vmew32(L2_DEFINITION+bb, klas->l2definition);
   // check part. name (do not reprogram TSpartitions) + classgroup
   if(tsname[0]=='\0') {skip=0;               // no TS or TS just being started
@@ -1568,7 +1568,7 @@ l0invAC=L0_INVERTac; minAC=0;
     //L0 scaler done separately to keep vme access low
     //L1
     klas->l1definition=vmer32(L1_DEFINITION+bb);
-    if(i>=44)klas->l1inverted=vmer32(L1_INVERT+bb);
+    if(i>=1)klas->l1inverted=vmer32(L1_INVERT+bb);   // was 44 (bug) before 13.9.2014
     else klas->l1inverted=0;
     //L2
     klas->l2definition=vmer32(L2_DEFINITION+bb);

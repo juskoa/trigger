@@ -32,15 +32,17 @@ def signal_handler(signal, stack):
   if signal==10:
     updateAll()
 
-class service:
+class Service:
   def __init__(self, name, tag):
     self.name= name   # "A", "E",...
     servicename= "CTPBCM/" + self.name
     self.tag= tag
-    mylog.logm("Adding service "+self.name)
+    #mylog.logm("Adding service "+self.name)
     self.sid = pydim.dis_add_service(servicename, "C", scope_cb, tag)
+    mylog.logm("%s: %d"%(servicename, self.sid))
     # A service must be updated before using it.
-    pydim.dis_update_service(self.sid,(" ",))
+    #pydim.dis_update_service(self.sid,(" ",))  -leads to error
+    pydim.dis_update_service(self.sid)
     pass
   def update(self, value=None):
     if value==None or value=="":
@@ -99,7 +101,7 @@ def main():
   signal.signal(signal.SIGINT, signal_handler)   # 2 CTRL C
   mtall= ['B','A','C','S','SA','SC','D','E','I']
   for mtag in range(len(mtall)):
-    services.append(service(mtall[mtag], mtag))
+    services.append(Service(mtall[mtag], mtag))
   updateAll()
   pydim.dis_start_serving("CTPBCM")
   mylog.logm("Starting the server ...")

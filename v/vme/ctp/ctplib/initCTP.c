@@ -77,7 +77,7 @@ if(notInCrate(1)==0) {   // L0 board
 if(notInCrate(2)==0) {   // L1 board
   //Klas[klasix].regs[4]= l1def; 
   vmew32(L1_DEFINITION+bb, l1def);
-  if(klas>=45) {  /* only for inverted klasses ! */
+  if(klas>=1) {  /* was 45 before 13.9.2014 (bug) */
     //Klas[klasix].regs[5]= l1invert; 
     vmew32(L1_INVERT+bb, l1invert);
   };
