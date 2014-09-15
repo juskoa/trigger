@@ -9,4 +9,5 @@ DAQ_BUSY(0x61c)
  this->AddSSMmode("outmon",1);
  this->AddSSMmode("ingen",2);
  this->AddSSMmode("outgen",3);
+ this->SetNumofCounters(160);
 }

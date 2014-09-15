@@ -9,6 +9,9 @@ class BOARD: public BOARDBASIC
 {
  public:
 	 BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes);
+	 ~BOARD();
+	 int readCounters();
+	 void SetNumofCounters(int nc){NCounters=nc;};
          int AddSSMmode(string const modename,int const imode);
          string getName() const {return d_name;};
 	 int ReadSSM() const;
@@ -28,7 +31,6 @@ class BOARD: public BOARDBASIC
 	 int StartSSM() const;
          void StopSSM() const;
          SSMTOOLs ssmtools;
-	 enum {kNClasses=100};
 	 void L2DataBackplane();
 	 void printL2DataBackplane();
 	 deque<L2Data>& getL2DataBackplaneList(){return ql2backplane;};
@@ -36,6 +38,8 @@ class BOARD: public BOARDBASIC
 	 void printL2Serial();
 	 deque<L2Data>& getL2SerialList(){return ql2backplane;};
          //deque<qorbit>& getSSMorbit(){return qorbit;};
+	 enum {kNClasses=100};
+         enum {NCOUNTERS_MAX=300};
  private:
 	 void SetFile(string const &modename);
          int const numofmodes;
@@ -56,6 +60,10 @@ class BOARD: public BOARDBASIC
 	 w32 const SSMdata;
 	 w32 const SSMstatus;
 	 w32 const SSMenable;
+	 w32 const COPYCOUNT;
+	 w32 const COPYBUSY;
+	 w32 const COPYCLEARADD;
+	 w32 const COPYREAD;
 	 // constants
 	 w32 const SSMomvmer;
 	 w32 const SSMomvmew;
@@ -67,6 +75,10 @@ class BOARD: public BOARDBASIC
 		string channels[32];
 	 };
          SSMmode *SSMModes;
+         //
+         int NCounters;
+         w32* counters1;
+         w32* counters2;
          //
          deque<L2Data> ql2backplane;
 	 deque<L2Data> qorbitl2data;

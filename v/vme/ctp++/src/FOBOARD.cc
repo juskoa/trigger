@@ -8,7 +8,8 @@ FOBOARD::FOBOARD(w32 bashex,int vsp)
  this->AddSSMmode("inmonl2",2); 
  this->AddSSMmode("igl0l1",3); 
  this->AddSSMmode("igl2",4); 
- this->AddSSMmode("outgen",5); 
+ this->AddSSMmode("outgen",5);
+ this->SetNumofCounters(72); 
 }
 void FOBOARD::AnalSSMinmonl2()
 {

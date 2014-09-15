@@ -4,21 +4,45 @@ BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
         BOARDBASIC(name,boardbase,vsp),
         numofmodes(nofssmmodes),
 	ssmmode(0),
-	SSMcommand(0x19c),
-	SSMstart(0x1a0),
-	SSMstop(0x1a4),
-	SSMaddress(0x1a8),
-	SSMdata(0x1ac),
-	SSMstatus(0x1b0),
-	SSMenable(0x1b4),
-	SSMomvmer(0),
-	SSMomvmew(1)
+	SSMcommand(0x19c),SSMstart(0x1a0),SSMstop(0x1a4),SSMaddress(0x1a8),SSMdata(0x1ac),SSMstatus(0x1b0),SSMenable(0x1b4),
+	COPYCOUNT(0x1d4),COPYBUSY(0x1d8),COPYCLEARADD(0x1dc),COPYREAD(0x1e0),
+	SSMomvmer(0),SSMomvmew(1),SSMbusybit(0),
+	SSMModes(0),NCounters(NCOUNTERS_MAX),counters1(0),counters2(0)
 {
  if(d_name == "ltu")SSMbusybit=0x04; else SSMbusybit=0x100;
  //cout << d_name << " BOARD done"<<endl;
  ssm = new w32[Mega];
  SSMModes = new SSMmode[numofmodes];
  ssmtools.setssm(ssm);
+ counters1 =  new w32[NCOUNTERS_MAX];
+ counters2 =  new w32[NCOUNTERS_MAX];
+}
+BOARD::~BOARD()
+{
+ delete [] SSMModes;
+ delete [] counters1;
+ delete [] counters2;
+}
+//---------------------------------------------------------------------------
+int BOARD::readCounters()
+{
+ w32 loop=0;;
+ while(vmer(COPYBUSY) && loop<10 ){
+   usleep(10);
+   loop++;
+ }
+ if(loop==10){
+   printf("readCounters: cannot read , counters busy after 10 attempts \n");
+   return 1;
+ }
+ vmew(COPYCOUNT,0x0);
+ usleep(10);
+ vmew(COPYCLEARADD,0x0);
+ for(int i=0;i<NCounters;i++){
+    counters1[i]=counters2[i];
+    counters2[i]=vmer(COPYREAD);
+ }
+ return 0;
 }
 //---------------------------------------------------------------------------
 string *BOARD::GetChannels(string const &mode) const

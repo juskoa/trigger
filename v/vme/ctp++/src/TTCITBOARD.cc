@@ -102,7 +102,7 @@ int TTCITBOARD::start_stopSSM(BUSYBOARD* bb)
   ssm[i]=vmer(READ_SSM_WORD);
   //usleep(100000);
  }
- bb->SetDAQBUSY(0x0);
+ //bb->SetDAQBUSY(0x0);
  return 0;
 }
 /*
@@ -158,7 +158,7 @@ int TTCITBOARD::AnalyseSSM()
  //if((issm0 != 262) && (issm0 != 266) && (issm0 != 265)){
    //printf("Error: first L1 expected at 262,266  but found at %i \n",qttcab[0]->issm);
    printf("Warning: first L1 expected at 262  but found at %i \n",qttcab[0]->issm);
-   return 2;
+   //return 2;
  }
  w32 cl0=1,cl1=0,cl1m=0,cl2a=0,cl2r=0;
  deque<w32> L1;
@@ -262,13 +262,17 @@ int TTCITBOARD::AnalyseSSM()
     return 1;
    }   
  }
- printf("No error detected: L0: %i L1: %i L1m: %i L2a: %i L2r: %i \n",cl0,cl1,cl1m,cl2a,cl2r);
- //return 0;
+ printf("# counts  : L0: %i L1: %i L1m: %i L2a: %i L2r: %i \n",cl0,cl1,cl1m,cl2a,cl2r);
+ printf("# fifo sizes : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
+ if(cl0 != cl1){
+   printf("Warning: different number of L0 and L1 detected. \n");
+   //return 1;
+ } 
  // Measurement of timeout due to the fifos
  //printf("###### of L1: %i , # if L1 mess: %i , # of L2 mess: %i \n",L1.size(),L1m.size(),L2m.size());
  if(L1.size() == 0){
    printf("No L1 \n");
-   return 0;
+   return 1;
  }
  if(L1.size() != L2m.size()){
    printf("Error: different # of L1 and L2m : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());

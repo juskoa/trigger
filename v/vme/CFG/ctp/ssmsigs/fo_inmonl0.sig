@@ -7,5 +7,13 @@
 6 l0clst5
 7 l0clst6
 8 pp
+10 pp1
+11 pp2
+12 pp3
+13 pp4
+14 l0_1
+15 l0_2
+16 l0_3
+17 l0_4
 32 01000000
 33 mopicsoi

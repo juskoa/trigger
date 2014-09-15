@@ -18,3 +18,14 @@ l1_logic_verA5.rbf
 100 counters implemented
 13.3.2014 l1_logic_verA6.rbf
 100 counters: 300 cuonters, 2bit accumulators for slow counters
+15.9.2014 l1_logic_verA6.rbf
+orig. .rbf renamed to  l1_logic_verA6before15sep.rbf.
+15.9.2014 l1_logic_verA6.rbf
+The new one should not produce l1classB100 spurious (the sum of
+all l1classB* counters) signals, because it has adjusted
+timing for lm0 (l0data+l0strobe) signals coming.
+This on called: l1_logic_verA6delayed.rbf
+15.9.2014 l1_logic_verA6.rbf
+version without delays (minor changesd against l1_logic_verA6before15sep.rbf)
+
+

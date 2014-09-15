@@ -8,6 +8,7 @@ INTBOARD::INTBOARD(int vsp)
   this->AddSSMmode("ddllog",1); 
   this->AddSSMmode("i2c",2); 
   this->AddSSMmode("inmon",3); 
+  this->SetNumofCounters(19);
 }
 //=================================================================================
 void INTBOARD::printIRList()
