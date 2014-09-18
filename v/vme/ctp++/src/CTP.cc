@@ -29,7 +29,37 @@ CTP::~CTP(){
           //cout << (*from)->getName() << " is being deleted." << endl;
           delete (*from);
          }
- //cout<< "~CTP: " << boards.size() << endl;
+ cout<< "~CTP: " << boards.size() << endl;
+}
+void CTP::readBCStatus(int n)
+{
+ cout<< "#boards " << boards.size() << endl;
+ int nb=boards.size();
+ int bcstat[nb][4];
+ for(int i=0;i<nb;i++){
+    for(int j=0;j<4;j++){
+       bcstat[i][j]=0;
+    }
+ }
+ for(int i=0;i<n;i++){
+    int j=0;
+    for (list<BOARD*>::iterator from = boards.begin();
+        from != boards.end();++from)
+   {
+     w32 bcstatus = (*from)->getBCstatus();
+     bcstatus=bcstatus & 0x3; // why ltu stat can be > 3 ?
+     bcstat[j][bcstatus]++;
+     j++;
+   }
+  }
+  int j=0;
+  for (list<BOARD*>::iterator from = boards.begin();
+        from != boards.end();++from)
+  {
+   string name=(*from)->getName();
+   printf("%5s: BCSTASTUSES: 0: %5i 1: %5i 2: %5i 3: %5i \n",name.c_str(),bcstat[j][0],bcstat[j][1],bcstat[j][2],bcstat[j][3]);
+   j++;
+  }
 }
 void CTP::printboards() 
 {

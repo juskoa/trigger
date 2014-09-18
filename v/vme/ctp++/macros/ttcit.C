@@ -9,7 +9,8 @@ int main(){
  w32 ver= ttc->getFPGAversion();
  printf("Version: 0x%x %i\n",ver,ver);
  ttc->start_stopSSM();
- //ttc->DumptxtSSM();
+ ttc->DumptxtSSM();
+ ttc->Dump2quSSM();
  ttc->AnalyseSSM();
  return 0;
 }

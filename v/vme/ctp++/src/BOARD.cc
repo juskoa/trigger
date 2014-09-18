@@ -44,6 +44,11 @@ int BOARD::readCounters()
  }
  return 0;
 }
+void BOARD::printCounters()
+{
+ printf("Board %s counters:\n",getName().c_str());
+ for(int i=0;i<NCounters;i++)printf("%i %i \n",i,counters2[i]);
+}
 //---------------------------------------------------------------------------
 string *BOARD::GetChannels(string const &mode) const
 {

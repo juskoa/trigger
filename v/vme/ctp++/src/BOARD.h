@@ -10,10 +10,14 @@ class BOARD: public BOARDBASIC
  public:
 	 BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes);
 	 ~BOARD();
-	 int readCounters();
-	 void SetNumofCounters(int nc){NCounters=nc;};
-         int AddSSMmode(string const modename,int const imode);
          string getName() const {return d_name;};
+         // Counters
+         int readcnames();
+	 int readCounters();
+	 void printCounters();
+	 void SetNumofCounters(int nc){NCounters=nc;}
+         // SSM
+         int AddSSMmode(string const modename,int const imode);
 	 int ReadSSM() const;
          int DumpSSM(const char *name) const;
 	 int ReadSSMDump(const char *name) const;
@@ -31,6 +35,7 @@ class BOARD: public BOARDBASIC
 	 int StartSSM() const;
          void StopSSM() const;
          SSMTOOLs ssmtools;
+         // SSM analysis
 	 void L2DataBackplane();
 	 void printL2DataBackplane();
 	 deque<L2Data>& getL2DataBackplaneList(){return ql2backplane;};
