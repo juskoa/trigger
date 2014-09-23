@@ -120,6 +120,9 @@ else
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
     export DIM_DNS_NODE=aldaqecs
+    if [ -d /opt/act ] ;then   # only on server needed
+      export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
+    fi
   elif [ "$hname" = "pcalicebhm10" ] ;then   # stabel + daqecs
     export SMAQ_C=avmes
     export VMESITE=SERVER2

@@ -125,7 +125,7 @@ if(strcmp(cmd,"LOAD")==0) {
   rc= ctp_PausePartition(pname, detectors); errorway= 1;
 } else if(strcmp(cmd,"RESUME_PARTITION")==0) {
   rc= ctp_ResumePartition(pname, detectors); errorway= 1;
-} else if(strcmp(cmd,"RESUME_PARTITION")==0) {
+} else if(strcmp(cmd,"SYNC")==0) {
   w32 orbitn;
   rc= ctp_SyncPartition(pname, errorReason, &orbitn);
   if(rc!=0) {
@@ -234,7 +234,7 @@ if (strcmp(state,"RUNNING") == 0 ) {
   } else if (strcmp(action,"PAUSE_PARTITION") == 0) {
     smi_set_parEF(pname);
     executectp(action);
-  } else if (strncmp(action,"SYNC",4) == 0) {   // correct: strcmp("SYNC")
+  } else if (strcmp(action,"SYNC") == 0) {   // correct: strcmp("SYNC")
     smi_set_parEF(pname);
     executectp(action);
   } else if (strcmp(action,"RESUME_PARTITION") == 0) {

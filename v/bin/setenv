@@ -14,6 +14,7 @@ if [ $HN = 'alidcscom835' -o $HN = 'alidcscom027' ] ;then
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
   #export ULT=$CCRFS/usr/local/trigger
   export tr26='trigger@alidcscom026.cern.ch'
+  export trarc='trg@alarcews27.cern.ch'
   export tr188='trigger@alidcscom188.cern.ch'
   export tr521='trigger@alidcscom521.cern.ch'
   alias ctp="ssh -q -2 -f trigger@alidcsvme001 vmecrate nbi ctp"

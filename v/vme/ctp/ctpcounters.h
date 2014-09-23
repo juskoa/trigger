@@ -60,8 +60,12 @@ together: 49 WORDS
 #define CSTART_RUNX (CSTART_BUSY+NCOUNTERS_BUSY_RUNX1)
 #define CSTART_TSGROUP (CSTART_BUSY+NCOUNTERS_BUSY_TSGROUP)
 
-// following defined for ctp_proxy.c:
+/* following defined for ctp_proxy.c:
 #define SODEODfol0out1 36
 #define SODEODfol1out1 40
-#define SODEODfol2stro1 44
+#define SODEODfol2stro1 44 */
+// run2:
+#define SODEODfol0out1 47
+#define SODEODfol1out1 51
+#define SODEODfol2stro1 55
 

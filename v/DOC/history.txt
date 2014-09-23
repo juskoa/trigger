@@ -198,4 +198,7 @@ mails/virtualmm/lnxpool33). to be redone and put on web
 28.8
 cern.ch/juskoa/ltu modified -0xb9 is included in .tar.gz file and
 possible to download from the page
+22.9.2014
+ltudimservices.c changed: "TTCinit()" checked (before: "TTCinit(" -
+this caused ltuproxy crash in case DIM DO command send without NL)
 

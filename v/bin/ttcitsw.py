@@ -26,7 +26,7 @@ ttcitsw.py r       -reset TTCit optical switch (*RST command)
 ttcitsw.py N       -connect channel N (1..24) to TTCit
 ttcitsw.py detname -connect LTU detname to TTCit
 
-Notes:
+Notes (example of operation):
 chmod a+rwx /dev/ttyS2
 ls -l /dev/ttyS2
 crwxrwxrwx 1 root uucp 4, 66 Feb 17  2012 /dev/ttyS2

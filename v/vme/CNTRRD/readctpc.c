@@ -189,7 +189,7 @@ int rad;
 //w32 *bufw32= (w32 *)buffer;
 rad= cntstr[ix].reladdr;
 // debug: change bufw32 if busy according to avbsyix:
-if(strcmp(hname, "alidcscom188")!=0) {
+if(strcmp(hname, "alidcscom835")!=0) {
   if(cntstr==busy) {
     bufw32[rad]= debugbusy;
     if(ix==0) {

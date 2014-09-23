@@ -315,11 +315,17 @@ monitor.py stop
   #allds={"udpmon":Daemon("udpmon"), 
   #  "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
   #  "pydim":Daemon("pydim"), "html":Daemon("html")}
+  # in lab:
+  #allds={"udpmon":Daemon("udpmon"), 
+  #  "gcalib":Daemon("gcalib"),
+  #  "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
+  #  "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+  #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   allds={"udpmon":Daemon("udpmon"), 
-    "gcalib":Daemon("gcalib"),
     "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
-    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
-    "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
+    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
+  #  "gcalib":Daemon("gcalib"),
+  #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "

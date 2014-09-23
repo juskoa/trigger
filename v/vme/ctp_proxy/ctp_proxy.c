@@ -1916,7 +1916,7 @@ if(xse2=='P') {
   infolog_trg(LOG_INFO, msg);
   if( msgmism[0]!='\0') {
     sprintf(msg, "L0/L1/L2 mismatch for %s", msgmism);
-    infolog_trg(LOG_ERROR, msg);
+    infolog_trgboth(LOG_ERROR, msg);
   };
 };
 }

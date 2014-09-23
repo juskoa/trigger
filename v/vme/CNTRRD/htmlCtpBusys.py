@@ -496,6 +496,11 @@ var refint="refinterval is %d";
 </table>
 </td>
 """%(busybar, height)
+          partltu="""
+<td bgcolor="#ffffff" valign="top">
+ <img src="pngs/%s.png" height=%s width="100%%" />
+</td>
+"""%(busybar, height)
       else:
         # print ltuname," -is not in this partition,", part.name
         partltu='<td></td>\n'

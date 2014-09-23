@@ -1,8 +1,5 @@
-1st RF board:  BCref BC1 ORB1
-2nd RF board: Spare BC2 ORB2
-
 b3: 0x300000 A24
-b4: 0x400000 A24
+b3: 0x400000 A24
 b3 and b4 to be initialised:
 0x12:0x05
 0x16:0x70
@@ -21,3 +18,68 @@ done for all *.tcl
 [alidcsvme017] /usr/local/trigger/v/vme/ttcmi/rf2ttc/tcltk > wish rf2ttc.tcl
 
 vme_peek
+---------------- 17.9.2014   -cize ked dava LHC clock:
+readall()
+PROGRAM_ID:25062009
+RFRX:0x300000 ch1/2/3_ref:0x5 0x5 0x70
+    frekvch1/2/3: 702=40.113960MHz 702=40.113960MHz 2504101=0.011246MHz 
+RFRX:0x400000 ch1/2/3_ref:0x5 0x5 0x70
+    frekvch1/2/3: 440672=0.063902MHz 703=40.056900MHz 2504103=0.011246MHz 
+polarity0: 0x7fae0:0x1   0x7fad8 0x26 delay:dec
+polarity1: 0x7fb20:0x1   0x7fb18 0x26 delay:0
+polarity2: 0x7fb60:0x1   0x7fb58 0x26 delay:dec
+WORKING_MODE (bits 0..6 (0:man,1:auto)for: BC1/2/r/main Orb1/2/m:0 
+BST_Machine_Mode:15
+   BC_DELAY25_BCMAIN/BC1 0x140=0/0x140=0 halfsns 
+
+ORBmain_COARSE_DELAY/ORB1_ 3564/3564 bcs 
+
+BC 1/2/ref selection (Int/Ext):EEE
+BC/ORB main_MAN_SELECT: 0 2
+BCmain_MAN_SELECT:
+0:40.078MHz int clock, 1: BCref, 2: BC2in, 3: BC1in
+ORBmain_MAN_SELECT:
+0:Orbit1, 1:Orbit2, 2:int BCmain sync. orbit generator
+CORDE reg7: 512(0x200)
+
+17.9.2014
+beamref clock(BC/ORB main_MAN_SELECT: 3 0), BC1 delay on corde: 0ps
+17.09 12:23 measured: 1410949428.577 4.3422E-09 4.581E-10 -5.2180E-09
+17.09 12:23 measured: 1410949438.591 4.2840E-09 4.475E-10 -5.2354E-09
+17.09 12:24 measured: 1410949448.805 4.3020E-09 4.374E-10 -5.1992E-09
+17.09 12:24 measured: 1410949458.825 4.3022E-09 4.579E-10 -5.1954E-09
+17.09 12:24 measured: 1410949468.986 4.2842E-09 3.800E-10 -5.2418E-09
+not closing telnet...
+after BC1 delay on corde set to 1000ps:
+17.09 12:25 measured: 1410949529.057 4.2650E-09 4.730E-10 -5.2206E-09
+17.09 12:25 measured: 1410949539.077 4.3206E-09 4.614E-10 -5.2414E-09
+17.09 12:25 measured: 1410949549.127 4.3017E-09 4.412E-10 -5.2371E-09
+17.09 12:25 measured: 1410949559.148 4.2557E-09 4.358E-10 -5.2253E-09
+17.09 12:26 measured: 1410949569.157 4.2811E-09 4.030E-10 -5.2274E-09
+
+BC/ORB main_MAN_SELECT: 2 1
+17.09 12:30 measured: 1410949830.162 -1.58413E-08 -1.96843E-08 -5.2477E-09
+17.09 12:30 measured: 1410949840.250 -1.58353E-08 -1.97220E-08 -5.1542E-09
+17.09 12:30 measured: 1410949850.270 -1.57925E-08 -1.96859E-08 -5.2354E-09
+17.09 12:31 measured: 1410949860.288 -1.58453E-08 -1.96346E-08 -5.2044E-09
+
+What clock do we use BC1 or BC2? : BC1
+
+17.09 14:10 measured: 1410955842.982 4.2361E-09 4.839E-10 -5.2552E-09
+17.09 14:10 measured: 1410955853.020 4.2764E-09 4.428E-10 -5.1980E-09
+17.09 14:11 measured: 1410955863.042 4.2738E-09 3.778E-10 -5.2885E-09
+17.09 14:11 measured: 1410955873.050 4.2329E-09 4.111E-10 -5.2392E-09
+17.09 14:11 measured: 1410955883.071 4.3085E-09 4.398E-10 -5.1717E-09
+
+after reset:
+17.09 14:14 measured: 1410956073.725 4.3307E-09 4.052E-10 -5.2492E-09
+17.09 14:14 measured: 1410956083.752 4.2897E-09 4.334E-10 -5.2548E-09
+
+ps:1000, ie:set( 7, 1000)
+BC1 set to 100(0x64) (read back:64): i.e. diff for BC1 should be:
+(0x200-0x64)*10ps ... NO -CORDE is connected AFTER  (i.e. we do not see shift)!
+17.09 14:59 measured: 1410958750.409 4.3664E-09 4.626E-10 -5.2564E-09
+17.09 14:59 measured: 1410958760.431 4.3401E-09 4.303E-10 -5.2357E-09
+17.09 14:59 measured: 1410958770.451 4.3242E-09 4.851E-10 -5.2128E-09
+17.09 14:59 measured: 1410958780.469 4.3052E-09 4.197E-10 -5.1784E-09
+17.09 14:59 measured: 1410958790.525 4.2624E-09 3.917E-10 -5.2145E-09

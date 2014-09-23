@@ -109,4 +109,9 @@ hddtemp added:
 - sms in case of high temperature, but 
 - not when it comes back to normal- should be done with some hysteresis
 16.7.
-hddtemp improved -hysteresis when hddtemp higk/ok
+hddtemp improved -hysteresis when hddtemp high/ok
+19.9.2014
+hddtemp -no sense on alidcscom835:
+[trigger@alidcscom835 NOTES]$ hddtemp /dev/sda
+/dev/sda: Dell VIRTUAL DISK: S.M.A.R.T. not available
+

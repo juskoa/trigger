@@ -68,7 +68,6 @@ return(mem[reladr]);
 }
 
 /* Print all counters to stdout (1 per line)
-getCounters() 
 NCNTS: number of counters to be read + 1 (rel. position of last counter)
 if accrual==1, than print accruals
 bakery_customer: has to be 2 when reading from GUI (2
@@ -77,9 +76,21 @@ BUT NOT USED YET for ltu, here it is just for compatibility
 with vmeb/counters.py call: getCounters(...
 */
 void getCounters(int NCNTS, int accrual, int bakery_customer) {
-int cix;
+int cix; Tltushm *ltushm;
 w32 buffer[NCNTS];
-readCounters(buffer, NCNTS, accrual);
+/*if(ltushm != NULL) {
+  w32 *ltucs;
+  if(accrual==0) {
+    ltucs= ltushm->ltucnts;
+  } else {
+    ltucs= ltushm->ltucnts;
+  };
+  for(cix=0; cix<NCNTS; cix++) {
+    buffer[cix]= ltucs[cix];
+  };
+} else { */
+  readCounters(buffer, NCNTS, accrual);
+/* }; */
 for(cix=0; cix<NCNTS; cix++) {
   //printf("0x%x\n",curprev[1][cix]);
   printf("0x%x\n",buffer[cix]);

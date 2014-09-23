@@ -4,13 +4,14 @@ class TN:
   scpi="SCPI> "
   def __init__(self):
     try:
-      self.tn = telnetlib.Telnet('alidcsaux008.cern.ch', 5024)    # ,timout_insec from 2.6
+      self.tn = telnetlib.Telnet('alidcsaux009.cern.ch', 5024)    # ,timout_insec from 2.6
+      # will be: alictpclockmon
       #time.sleep(2)
       self.tn.write("\n")
       #time.sleep(1)
       rep=self.tn.read_until(self.scpi)
     except:
-      print "ERROR:cannot open telnet to alidcsaux008"
+      print "ERROR:cannot open telnet to alidcsaux009"
       #print sys.exc_info()
       rep=""
     print "sctel.prompt1:%s"%rep

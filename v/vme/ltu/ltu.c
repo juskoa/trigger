@@ -173,6 +173,8 @@ w32 *shmcnts=NULL;
 /*FGROUP SHM
 rc: 0: ok
     1: error reading counters
+Operation:
+action: read all counters + temperature
 */
 int readCNTS2SHM() {
 w32 secs, mics;

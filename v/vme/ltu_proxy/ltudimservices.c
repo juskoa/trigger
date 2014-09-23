@@ -763,7 +763,7 @@ if(strcmp(msg,"logon\n")==0) {
      (strncmp(msg, "vmeopw", 6)!=0) &&
      (strncmp(msg, "setBC_DELAY_ADD(", 16)!=0) &&
      (strncmp(msg, "SLMsetstart(", 12)!=0) &&
-     (strncmp(msg, "TTCinit(", 8)!=0) &&
+     (strncmp(msg, "TTCinit()", 9)!=0) &&
      (strncmp(msg, "ERenadis(", 9)!=0) &&
      (strncmp(msg, "ERgetselector(", 14)!=0) &&
      (strncmp(msg, "ERsetselector(", 14)!=0) &&
@@ -775,7 +775,7 @@ if(strcmp(msg,"logon\n")==0) {
 TTCinit() -allowed for MUON_TRK (always busy) -to test TTCrxreset protocol
 ERenadis/ERdemand -for tests with detectors (to be disabled later)
 */
-    strcpy(ResultString,"Error: LTU is not in STANDALONE_STOPPED\n:\n");
+    sprintf(ResultString,"Error: LTU is not in STANDALONE_STOPPED, or bad cmd:\"%s\"\n:\n", msg);
     updateservice();
   } else {              // STDALONE_STOPPED
     if(strcmp(msg,"qs\n")==0) strcpy(msg,"q\n");
@@ -805,6 +805,9 @@ int oldnclients=0;
 /*-------------------------------------------------------- readltucounters()
 clientid: 0: update all subscribing clients
         !=0: update only clientcid client (forced counters read)
+Operation:
+- read counters from LTU into shm
+- 
 */
 void readltucounters(int clientid) {
 int nclients; 
