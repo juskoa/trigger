@@ -32,6 +32,8 @@ class CTP
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
 	 int readCFG(string const &name);
 	 void readBCStatus(int n);
+	 int readCounters();
+	 void printCounters();
 	 list<BOARD*> boards;
  private:
 	 int numofltus;  //Number of ltus in crate, up to 4

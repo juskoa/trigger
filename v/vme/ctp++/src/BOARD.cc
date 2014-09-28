@@ -1,13 +1,16 @@
 #include "BOARD.h"
+std::vector<string> BOARD::AllCounterNames;
+
 BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
 :
         BOARDBASIC(name,boardbase,vsp),
+	NCounters(NCOUNTERS_MAX),NCountersfromcnames(0),
         numofmodes(nofssmmodes),
 	ssmmode(0),
 	SSMcommand(0x19c),SSMstart(0x1a0),SSMstop(0x1a4),SSMaddress(0x1a8),SSMdata(0x1ac),SSMstatus(0x1b0),SSMenable(0x1b4),
 	COPYCOUNT(0x1d4),COPYBUSY(0x1d8),COPYCLEARADD(0x1dc),COPYREAD(0x1e0),
 	SSMomvmer(0),SSMomvmew(1),SSMbusybit(0),
-	SSMModes(0),NCounters(NCOUNTERS_MAX),counters1(0),counters2(0)
+	SSMModes(0)
 {
  if(d_name == "ltu")SSMbusybit=0x04; else SSMbusybit=0x100;
  //cout << d_name << " BOARD done"<<endl;
@@ -16,15 +19,85 @@ BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
  ssmtools.setssm(ssm);
  counters1 =  new w32[NCOUNTERS_MAX];
  counters2 =  new w32[NCOUNTERS_MAX];
+ countdiff =  new w32[NCOUNTERS_MAX];
+ getCounterNames(name);
 }
 BOARD::~BOARD()
 {
  delete [] SSMModes;
  delete [] counters1;
+ delete [] countdiff;
  delete [] counters2;
 }
 //---------------------------------------------------------------------------
+int BOARD::readAllCountersNames()
+{
+ ifstream counternamesfile;
+ char *environ;
+ environ= getenv("VMECFDIR");
+ if(environ==0){
+   printf(" VMECFDIR does not exist \n");
+   return 1;
+ }
+ string envi(environ);
+ string file("/CFG/ctp/DB/cnames.sorted2");
+ file=envi+file;
+ printf("Reading file %s \n",file.c_str());
+ counternamesfile.open(file.c_str());
+ if(!counternamesfile.is_open()){
+   printf("Cannot open file %s \n",file.c_str());
+   return 1;
+ }
+ while(! counternamesfile.eof()){
+  string buffer;
+  getline(counternamesfile,buffer);
+  AllCounterNames.push_back(buffer);
+ }
+ printf("# of lines in cnames: %i \n",AllCounterNames.size());
+ return 0;
+}
+int BOARD::getCounterNames(const string& board)
+{
+ printf("%s: Getting counter names \n",getName().c_str());
+ if(AllCounterNames.empty()){
+   readAllCountersNames();
+ }
+ int nc=0;
+ for(w32 i=0;i<AllCounterNames.size();i++){
+   if(i==1511) break;
+   vector<string> items;
+   splitstring(AllCounterNames[i],items," ");
+   if(items.size() == 0) continue;
+   if(items.size() != 5){
+     printf("Error: wrong syntax CounterNames: %i %s \n",items.size(),AllCounterNames[i].c_str());
+     return 1;	
+   }
+   //cout << "#"<<items[2] << "#board:#" << board << "#compare: " << stripstring(items[2]).compare(0,2,board) << endl;
+   if((items[2][0] == board[0]) && (items[2][1] == board[1])){
+     // fo has to be treated specially
+     if((board[0]=='f') && (items[2][2]==board[2])){
+       CounterNames.push_back(items[0]);
+       nc++;
+     }else if(board[0] != 'f'){
+       CounterNames.push_back(items[0]);
+       nc++;
+     }
+   }
+ }
+ NCountersfromcnames=nc;
+ printf("%s Number of counters from cnames: %i \n",d_name.c_str(),nc);
+ return 0;
+}
 int BOARD::readCounters()
+{
+ vmew(COPYCLEARADD,0x0);
+ for(int i=0;i<NCounters;i++){
+    counters1[i]=counters2[i];
+    counters2[i]=vmer(COPYREAD);
+ }
+ return 0;
+}
+int BOARD::readcopyCounters()
 {
  w32 loop=0;;
  while(vmer(COPYBUSY) && loop<10 ){
@@ -44,10 +117,41 @@ int BOARD::readCounters()
  }
  return 0;
 }
+int BOARD::readCountersDiff()
+{
+ for(int i=0;i<NCounters;i++){
+    w32 cur=counters2[i];
+    w32 prev=counters1[i];
+    w32 dif;
+    if(cur >= prev) {
+        dif= cur-prev;
+    } else {
+        dif= (0xffffffff - prev) + cur +1;
+    };
+    countdiff[i]=dif;
+ }
+ return 0;
+}
 void BOARD::printCounters()
 {
  printf("Board %s counters:\n",getName().c_str());
- for(int i=0;i<NCounters;i++)printf("%i %i \n",i,counters2[i]);
+ for(int i=0;i<NCounters;i++)printf("%s %i %x \n",CounterNames[i].c_str(),i,counters2[i]);
+}
+void BOARD::printCountersDiff()
+{
+ for(int i=0;i<NCounters;i++){
+    w32 cur=counters2[i];
+    w32 prev=counters1[i];
+    w32 dif;
+    if(cur >= prev) {
+        dif= cur-prev;
+    } else {
+        dif= (0xffffffff - prev) + cur +1;
+    };
+    countdiff[i]=dif;
+ }
+ printf("Board %s counters:\n",getName().c_str());
+ for(int i=0;i<NCounters;i++)printf("%s %i %u \n",CounterNames[i].c_str(),i,countdiff[i]);
 }
 //---------------------------------------------------------------------------
 string *BOARD::GetChannels(string const &mode) const

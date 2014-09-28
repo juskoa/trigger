@@ -1,7 +1,9 @@
 #FILE          = l2fo
 #FILE          = ttcit
-FILE          = ltuttcit
-FILE          = ctpttcit
+#FILE          = ltuttcit
+#FILE          = ctpttcit
+#FILE          = readCTPcounters
+#FILE          = readBCstatus
 #FILE          = ctpro
 #FILE          = ltu
 #FILE          = ltuSerialVsTTC
@@ -23,17 +25,21 @@ SRCS=$(subst x/,src/,$(FILES))
 HFILES = $(SRCS:.cc:=.h)
 OBJ = $(subst x/,obj/,$(FILES))
 OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
+.SECONDARY: $(OBJFILES)
 
-$(FILE).e: obj/$(FILE).o $(OBJFILES)
-	g++ obj/$(FILE).o $(OBJFILES) $(LDFLAGS) $(GLIBS) lib/libctp++.a -o $(FILE).e
+all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e
 
-obj/$(FILE).o:  macros/$(FILE).C
-	$(CXX) $(CXXFLAGS) -c macros/$(FILE).C -o obj/$(FILE).o
+%.e: obj/%.o $(OBJFILES)
+	g++ $< $(OBJFILES) $(LDFLAGS) $(GLIBS) lib/libctp++.a -o $@
+
+obj/%.o:  macros/%.C
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 obj/vmewrap.o: $(VMEBDIR)/vmeblib/vmewrap.c
 	g++ -c $(VMERCCCXX) $(VMEBDIR)/vmeblib/vmewrap.c -o obj/vmewrap.o
 
 obj/%.o: src/%.cc src/%.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 
 clean:
 	rm obj/*.o

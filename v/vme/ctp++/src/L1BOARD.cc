@@ -12,6 +12,43 @@ L1BOARD::L1BOARD(int vsp)
   this->AddSSMmode("outgen",3); 
 }
 //----------------------------------------------------------------------------
+/* 
+ * Check counters assuming classes are not configured
+ */
+int L1BOARD::CheckCountersNoTriggers()
+{
+ int ret=0;
+ //w32 time = countdiff[CL1TIME]; 
+
+ if(countdiff[CL1STRIN] != 0){
+   printf("L1 strobe IN!= 0 %u \n",countdiff[CL1STRIN] );
+   ret=1;
+ }
+ if(countdiff[CL1STROUT] != 0){
+   printf("L1 strobe OUT != 0 %u \n",countdiff[CL1STROUT] );
+   ret=1;
+ }
+ for(int i=0;i<100;i++){
+  if(countdiff[i+CL1CLSB] != 0){
+    printf("L1classB%02i != 0 %u \n",i,countdiff[i+CL1CLSB]);
+    ret=1;
+  }
+  if(countdiff[i+CL1CLSA] != 0){
+    printf("L1classA%02i != 0 %u \n",i,countdiff[i+CL1CLSA] );
+    ret=1;
+  }
+ }
+ for(int i=0;i<7;i++){
+    if(countdiff[i+CL1CLST] != 0){
+      printf("l1clst%1i != 0 %u \n",i,countdiff[i+CL1CLST]);
+      ret=1;
+    }
+ }
+ if(ret==0)printf("L1  CheckCountersNoTriggers: NO ERROR detected.\n");
+ return ret;
+} 
+
+//----------------------------------------------------------------------------
 // set single class at index, with input mask inputs and cluster
 void L1BOARD::setClass(w32 index,w32 inputs,w32 cluster,w32 vetos)
 {

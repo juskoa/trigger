@@ -11,6 +11,20 @@ INTBOARD::INTBOARD(int vsp)
   this->SetNumofCounters(19);
 }
 //=================================================================================
+int INTBOARD::CheckCountersNoTriggers()
+{
+ int ret=0;
+ for(int i=0;i<3;i++){
+   if(countdiff[i+5] != 0){
+      printf("Counter %s != 0 \n",CounterNames[i].c_str());
+      ret=1;
+    }
+ }
+ if(ret==0)printf("%s CheckCountersNoTriggers: NO ERROR detected. \n",getName().c_str());
+
+ return ret;
+}
+//=================================================================================
 void INTBOARD::printIRList()
 {
  cout << "INTBOARD: Printing IR list, size: " << qirda.size() << endl;

@@ -33,7 +33,7 @@ CTP::~CTP(){
 }
 void CTP::readBCStatus(int n)
 {
- cout<< "#boards " << boards.size() << endl;
+ printf("#boards %i \n",boards.size());
  int nb=boards.size();
  int bcstat[nb][4];
  for(int i=0;i<nb;i++){
@@ -61,6 +61,21 @@ void CTP::readBCStatus(int n)
    j++;
   }
 }
+int CTP::readCounters()
+{
+ for (list<BOARD*>::iterator from = boards.begin();
+        from != boards.end();++from) (*from)->copyCounters();
+ usleep(10); 
+ printf("CTP: read counters: ");
+ for (list<BOARD*>::iterator from = boards.begin();
+        from != boards.end();++from){
+    printf("%s ",(*from)->getName().c_str());
+    (*from)->readCounters();
+    (*from)->readCountersDiff();
+ }
+ printf("\n");
+ return 0;
+}
 void CTP::printboards() 
 {
  for
@@ -86,6 +101,10 @@ void CTP::getboard(string const &line)
  if(line.length() < 8) return ;
  //if(!line.compare(line.length()-8,4,"0x81")){
  if(!line.compare(0,3,"ltu")){
+    // LTU BOARD
+    // ltus should not be CTP ?
+    printf("WARNING: LTU  ignored ! \n");
+    return ;
     string name = "ltu";
     //name=name+int2char(numofltus+1);
     string base=line.substr(line.length()-8,line.length());
@@ -99,38 +118,47 @@ void CTP::getboard(string const &line)
  }else if(!line.compare(line.length()-8,4,"0x80")){
     //cout << "ttc found " << endl;
  }else if(!line.compare(0,4,"busy")){
+    // BUSY board
     //cout << " busy board found " << endl;
     busy = new BUSYBOARD(vspctp);
     vspctp=busy->getvsp();
     boards.push_back(busy);    
  }else if(!line.compare(0,2,"l0")){
+    // L0 board
+    //printf("WARNING: L0 ignored ! \n");
+    //return ;
     //cout << " l0 board found " << endl;
     l0 = new L0BOARD(vspctp);
     vspctp=l0->getvsp();
     boards.push_back(l0);    
  }else if(!line.compare(0,2,"l1")){
+    // L1 board
     //cout << " l1 board found " << endl;
     l1 = new L1BOARD(vspctp);
     vspctp=l1->getvsp();
     boards.push_back(l1);    
  }else if(!line.compare(0,2,"l2")){
+    //L2 board
     //cout << " l2 board found " << endl;
     l2 = new L2BOARD(vspctp);
     vspctp=l2->getvsp();
     boards.push_back(l2);
  }else if(!line.compare(0,3,"int")){
+    // INT board
     inter = new INTBOARD(vspctp);
     vspctp=inter->getvsp();
     boards.push_back(inter); 
  }else  if(!line.compare(0,2,"fo")){
+    // FO board
     //cout << "fo found "<< endl;
     const char *fonum=&line[7];
     int num=char2int(*fonum)-1;   //-1 since fo are now from 1
     string name= "fo";
     string base=line.substr(line.length()-8,line.length());
+    name = name+base[4];
     w32 basehex;
     convertS2H(basehex,base);
-    fo[num] = new FOBOARD(basehex,vspctp);
+    fo[num] = new FOBOARD(basehex,vspctp,name);
     vspctp=fo[num]->getvsp();
     boards.push_back(fo[num]);
     //name.append(fonum);   fo name is 'fo', fo are recognised by vmebaseaddress

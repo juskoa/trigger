@@ -12,6 +12,8 @@ class L0BOARD: public BOARD
 	void setClassVetoes(w32 index,w32 cluster);
 	void setClassesToZero();
 	void printClasses();
+	int CheckCountersNoTriggers();
+	enum{CL0TIME=15,CL0CLSB=19,CL0STR=171,CL0CLSA=187,CL0CLST=289};
 
  private:
          // vme addresses

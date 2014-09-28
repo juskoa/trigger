@@ -14,6 +14,38 @@ L0BOARD::L0BOARD(int vsp)
 }
 //----------------------------------------------------------------------------
 /* 
+ * Check counters assuming classes are not configured
+ */
+int L0BOARD::CheckCountersNoTriggers()
+{
+ int ret=0;
+ w32 time = countdiff[CL0TIME]; 
+
+ if(countdiff[CL0STR] != 0){
+   printf("L0 strobe != 0 %u \n",countdiff[CL0STR]);
+   ret=1;
+ }
+ for(int i=0;i<100;i++){
+  if(countdiff[i+CL0CLSB] != time){
+    printf("L0classB%02i != time \n",i);
+    ret=1;
+  }
+  if(countdiff[i+CL0CLSA] != 0){
+    printf("L0classA%02i != 0 %u \n",i,countdiff[i+CL0CLSA]);
+    ret=1;
+  }
+ }
+ for(int i=0;i<7;i++){
+    if(countdiff[i+CL0CLST] != 0){
+      printf("l0clst%1i != 0 %u \n",i, countdiff[i+CL0CLST]);
+      ret=1;
+    }
+ }
+ if(ret==0)printf("L0  CheckCountersNoTriggers: NO ERROR detected.\n");
+ return ret;
+} 
+//----------------------------------------------------------------------------
+/* 
  * set single class at index, with input mask, l0function and rnd and bc
  * index can be mask, that is bit pattern of chosen classes
 */

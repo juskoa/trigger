@@ -3,7 +3,7 @@
 LTUBOARD::LTUBOARD(string const name,w32 const boardbase,int vsp)
 :
 BOARD(name,boardbase,vsp,1),
-ltuname(""),
+ltuname("name"),
 NL1dat(108),NL2dat(149),
 STANDALONE_MODE(0x534),
 EMU_STATUS(0x11c),PIPELINE_CLEAR(0x198),EMULATION_START(0xec),QUIT_SET(0xf0),

@@ -12,10 +12,16 @@ class BOARD: public BOARDBASIC
 	 ~BOARD();
          string getName() const {return d_name;};
          // Counters
-         int readcnames();
+         static int readAllCountersNames();
+	 int getCounterNames(const string& board);
+	 int readcopyCounters();
 	 int readCounters();
+	 void copyCounters(){vmew(COPYCOUNT,0x0);};
+	 int readCountersDiff();
 	 void printCounters();
+	 void printCountersDiff();
 	 void SetNumofCounters(int nc){NCounters=nc;}
+	 virtual int CheckCountersNoTriggers(){return 0;};
          // SSM
          int AddSSMmode(string const modename,int const imode);
 	 int ReadSSM() const;
@@ -45,11 +51,16 @@ class BOARD: public BOARDBASIC
          //deque<qorbit>& getSSMorbit(){return qorbit;};
 	 enum {kNClasses=100};
          enum {NCOUNTERS_MAX=300};
+ protected:
+	 ifstream modefile;
+         int NCounters;
+         int NCountersfromcnames;
+         w32* countdiff;
+ 	 vector<string> CounterNames;
  private:
-	 void SetFile(string const &modename);
+	 virtual void SetFile(string const &modename);
          int const numofmodes;
 	 int parsemode(string const &mode) const;
-	 ifstream modefile;
 	 w32 *ssm;
 	 w32 ssmmode;
          int SetMode(string const &mode,char const c,w32 &imode) const;
@@ -81,9 +92,9 @@ class BOARD: public BOARDBASIC
 	 };
          SSMmode *SSMModes;
          //
-         int NCounters;
          w32* counters1;
          w32* counters2;
+	 static vector<string> AllCounterNames;
          //
          deque<L2Data> ql2backplane;
 	 deque<L2Data> qorbitl2data;
