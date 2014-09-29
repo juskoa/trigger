@@ -197,6 +197,7 @@ int TTCITBOARD::AnalyseSSM()
        printf("Error: L1 shorter than 9 issm=%i \n",issm);
        return 1;
      }else{
+       // new L1 message
        l1mes[0]=1;
        l1mes[1]=ss->tdata;
        il1=2;
@@ -211,7 +212,7 @@ int TTCITBOARD::AnalyseSSM()
      l1mes[il1]=ss->tdata;
      //printf("il1= %i \n",il1);
      if(il1==NL1words){
-       // last word of mess
+       // last word of L1 mess
        il1=0;
        l1mes[0]=0;      
        //L1m.push_back(issm);
@@ -251,6 +252,7 @@ int TTCITBOARD::AnalyseSSM()
        }
        il2++;
    }else if(ss->ttcode == 5){
+         // L2r
          w32* pp = new w32[NL2words+1];
          pp[0]=issm;
          pp[1]=ss->tdata;
@@ -278,13 +280,14 @@ int TTCITBOARD::AnalyseSSM()
    printf("Error: different # of L1 and L2m : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
    return 1;
  }
- // Looking for max delays for L1 and L2messages
+ // 1.) Looking for max delays for L1 and L2messages
+ // 2.) comparing bcid from L2 message with 'local' bcid (from ssm) - variable delta
  w32 delmaxL2=0;
  w32 delmaxL1=0;
- w32 bcl1=L1[0]%3564;
+ w32 bcl1=L1[0]%3564;  // BC from ssm position of first L1 
  int delta0 = L2m[0][1] - bcl1;
  //printf("%i %i %i \n", L1[0],bcl1,delta0);
- if(delta0<0) delta0=delta0+3564;
+ if(delta0<0) delta0=delta0+3564;   // L2m - L1 distance
  for(w32 i=0;i<L2m.size();i++){
     w32 issml1=L1[i];
     w32 issml2m=L2m[i][0];
@@ -301,8 +304,47 @@ int TTCITBOARD::AnalyseSSM()
       printf("Error: delta0= %i \n",delta0);
       return 1;
     }
+    CompareL1L2Data(L1m[i],L2m[i]);
  }
  printf("Max L2 delay: %i Max L1 delay: %i \n",delmaxL2,delmaxL1);
+ printf("NO Error detected. \n");
+ return 0;
+}
+int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
+{
+    w32 l1[27],l2[27];
+    for(int i=0;i<9;i++){
+     l1[3*i]=L1m[NL1words-i] & 0xf;
+     l1[3*i+1]=(L1m[NL1words-i] & 0xf0)>>4;
+     l1[3*i+2]=(L1m[NL1words-i] & 0xf00)>>8;
+     l2[3*i]=L2m[NL2words-i] & 0xf;
+     l2[3*i+1]=(L2m[NL2words-i] & 0xf0)>>4;
+     l2[3*i+2]=(L2m[NL2words-i] & 0xf00)>>8;
+    }
+    int flag=0;
+    for(int i=0;i<25;i++){
+       if(l1[i] != l2[i+2]){
+         flag=1;
+         printf("Warning: l1 classes different from l2 classes \n");
+       }
+    }
+    if(flag){
+      for(int i=0;i<27;i++)printf("%1x",l1[i]);
+      printf(" l1\n");
+      for(int i=0;i<27;i++)printf("%1x",l2[i]);
+      printf(" l2\n");
+      return 1; // to be removed when L2r
+    }
+    /*
+    for(int im=0;im<NL1words+1;im++){
+     printf(" %03x ", L1m[im]);
+    }
+    printf("                 l1 mess=  \n");
+    for(int im=0;im<NL2words+1;im++){
+     printf(" %03x ", L2m[im]);
+    }
+    printf("                 l2 mess=  \n");
+    */
  return 0;
 }
 /*

@@ -19,6 +19,7 @@ class TTCITBOARD: public BOARD
         int AnalyseSSM();
         void Dump2quSSM();
         void DumptxtSSM();
+	int CompareL1L2Data(w32* l1m,w32* l2m);
         void Print();
  private:
 	enum{NL1words=9,NL2words=13};

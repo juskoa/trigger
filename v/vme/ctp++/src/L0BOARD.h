@@ -1,6 +1,7 @@
 #ifndef _L0BOARD_h_
 #define _L0BOARD_h_
 #include "BOARD.h"
+#include <cmath>
 class L0BOARD: public BOARD
 {
  public:

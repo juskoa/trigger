@@ -22,12 +22,15 @@ x/L0BOARD.cc x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
 x/FOBOARD.cc x/TTCITBOARD.cc x/BUSYBOARD.cc x/ssmrecord.cc
 
 SRCS=$(subst x/,src/,$(FILES))
-HFILES = $(SRCS:.cc:=.h)
 OBJ = $(subst x/,obj/,$(FILES))
 OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
+HFILES =   $(SRCS:.cc=.h)
 .SECONDARY: $(OBJFILES)
 
 all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e
+#	@echo SRCS    : $(SRCS)
+#	@echo HFILES  : $(HFILES)
+#	@echo OBJFILES: $(OBJFILES)
 
 %.e: obj/%.o $(OBJFILES)
 	g++ $< $(OBJFILES) $(LDFLAGS) $(GLIBS) lib/libctp++.a -o $@
@@ -39,7 +42,6 @@ obj/vmewrap.o: $(VMEBDIR)/vmeblib/vmewrap.c
 
 obj/%.o: src/%.cc src/%.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
 
 clean:
 	rm obj/*.o

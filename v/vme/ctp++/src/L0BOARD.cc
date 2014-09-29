@@ -26,8 +26,12 @@ int L0BOARD::CheckCountersNoTriggers()
    ret=1;
  }
  for(int i=0;i<100;i++){
-  if(countdiff[i+CL0CLSB] != time){
-    printf("L0classB%02i != time \n",i);
+  w32 tt=time*0.4/0.025;
+  w32 diff;
+  if(tt>countdiff[i+CL0CLSB]) diff  = tt-countdiff[i+CL0CLSB];
+  else diff = countdiff[i+CL0CLSB]-tt;
+  if( diff > 16){
+    printf("L0classB%02i != time  %u %u\n",i,countdiff[i+CL0CLSB] ,tt);
     ret=1;
   }
   if(countdiff[i+CL0CLSA] != 0){
