@@ -149,6 +149,7 @@ int TTCITBOARD::start_stopSSM(LTUBOARD* ltu)
 */
 int TTCITBOARD::AnalyseSSM()
 {
+ int ret=0;
  if(qttcab.size() ==  0){
    printf("Empty ssm memory \n");
    return 0;
@@ -282,20 +283,26 @@ int TTCITBOARD::AnalyseSSM()
  }
  // 1.) Looking for max delays for L1 and L2messages
  // 2.) comparing bcid from L2 message with 'local' bcid (from ssm) - variable delta
+ // 3.) comparing bcid+orbit woth local bcid
  w32 delmaxL2=0;
  w32 delmaxL1=0;
  w32 bcl1=L1[0]%3564;  // BC from ssm position of first L1 
  int delta0 = L2m[0][1] - bcl1;
+ w32 issml10 = L1[0];
+ w32 orbit0    = (L2m[0][2]<<12)+L2m[0][3];
+ w32 bc0 = L2m[0][1];
  //printf("%i %i %i \n", L1[0],bcl1,delta0);
  if(delta0<0) delta0=delta0+3564;   // L2m - L1 distance
  for(w32 i=0;i<L2m.size();i++){
     w32 issml1=L1[i];
     w32 issml2m=L2m[i][0];
     w32 bcl2m=L2m[i][1];
+    // delay
     w32 delay1=L1m[i][0]-issml1;
     w32 delay2=issml2m-issml1;
     if(delmaxL2<delay2)delmaxL2=delay2;
     if(delmaxL1<delay1)delmaxL1=delay1;
+    // bcoffset
     w32 bcl1=issml1%3564;
     int delta=bcl2m-bcl1;
     if(delta<0) delta = delta+3564;
@@ -304,11 +311,26 @@ int TTCITBOARD::AnalyseSSM()
       printf("Error: delta0= %i \n",delta0);
       return 1;
     }
+    // bc and orbit offset
+    w32 orbit=(L2m[i][2]<<12)+L2m[i][3];
+    w32 delissm = issml1-issml10;
+    w32 newbc = ((delissm % 3564) + bc0);
+    w32 neworb = orbit0 + delissm / 3564 + newbc / 3564;
+    newbc = newbc % 3564;
+    if(neworb >= 0xffffff) neworb=neworb-0xffffff;
+    if((neworb != orbit) || (newbc != bcl2m)){
+      printf("Error: bc and orbit offset from L2m and local wrong %x %x %x,%x %x \n",issml1,orbit,bcl2m,neworb,newbc);
+      //return 1;
+      ret=1;
+    }
+    issml10=issml1;
+    orbit0=orbit;
+    bc0=bcl2m;
     CompareL1L2Data(L1m[i],L2m[i]);
  }
  printf("Max L2 delay: %i Max L1 delay: %i \n",delmaxL2,delmaxL1);
  printf("NO Error detected. \n");
- return 0;
+ return ret;
 }
 int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
 {
