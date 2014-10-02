@@ -214,6 +214,7 @@ void vmew32f(w32 adr, w32 data) {
 printf("vmew32f:%8x = %x\n", adr, data);
 }
 
+/*von
 int setswtrig2(char trigtype, int roc, w32 BC, w32 ctprodets){
 w32 daqonoff, word, INTtcset, busyclusterT, overlap, bsysc[NCLUST+1];
 int i, idet, ifo, iconnector;
@@ -270,12 +271,13 @@ word=(1<<24)+ctprodets;
 vmew32f(L2_TCSET,word);        // L2 board p/f off
 if(DBGswtrg2) printf("setswtrig2:L2_TCSET set to:%x\n", word);
 vmew32f(INT_TCSET,INTtcset);   // INT board
-/* set BUSY_CLUSTER word (bits 23..0 for detectors 24..1 connected to BUSY)
-*/
+
+// set BUSY_CLUSTER word (bits 23..0 for detectors 24..1 connected to BUSY)
 busyclusterT= findBUSYinputs(ctprodets);   //no bit17!
 vmew32f(BUSY_CLUSTER, busyclusterT);
-/* we should update BUSY_OVERLAP word (at least bits corresponding
-to combinations 1T 2T 3T 4T 5T 6T should be updated: */
+
+// we should update BUSY_OVERLAP word (at least bits corresponding
+// to combinations 1T 2T 3T 4T 5T 6T should be updated: 
 bsysc[0]= busyclusterT;
 for(i=1;i<NCLUST+1;i++){
   bsysc[i]=vmer32(BUSY_CLUSTER+i*4);
@@ -285,7 +287,7 @@ if(DBGswtrg2) {
   printf("setswtrig2: BUSY/SET_CLUSTER: 0x%x BUSY_OVERLAP:0x%x ctprodets:0x%x\n", 
     busyclusterT, overlap, ctprodets);
 };
-/* set corresponding FO boards: */
+// set corresponding FO boards:
 for(i=0;i<NFO;i++){testclust[i]=0;rocs[i]=0;}
 for(idet=0;idet<NDETEC;idet++){
   if((ctprodets & (1<<idet))!=0) {   // no bit17!
@@ -313,10 +315,17 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
 };
 return 0;
 }
+*/
 /*---------------------------------------------------------getlxackn
 */
 w32 getl0ackn(){
- return (vmer32(L0_TCSTATUS)&0x8)/0x8;
+return (vmer32(L0_TCSTATUS)&0x8)/0x8;
+/*w32 rc;
+if(l0C0()) {
+ rc= vmer32(L0_TCSTATUSr2)&0x8)/0x8;
+} else {
+ rc= vmer32(L0_TCSTATUS)&0x8)/0x8;
+}; return(rc); */
 }
 w32 getl1ackn(){
  return (vmer32(L1_TCSTATUS)&0x8)/0x8;
@@ -326,10 +335,22 @@ w32 getl2ackn(){
 }
 
 w32 getPPrqst(){
- return (vmer32(L0_TCSTATUS)&0x2)/0x2;
+return (vmer32(L0_TCSTATUS)&0x2)/0x2;
+/*w32 rc;
+if(l0C0()) {
+ rc= vmer32(L0_TCSTATUSr2)&0x2)/0x2;
+} else {
+ rc= vmer32(L0_TCSTATUS)&0x2)/0x2;
+}; return(rc); */
 }
 w32 getL0rqst(){
- return (vmer32(L0_TCSTATUS)&0x4)/0x4;
+return (vmer32(L0_TCSTATUS)&0x4)/0x4;
+/* w32 rc;
+if(l0C0()) {
+ rc= vmer32(L0_TCSTATUSr2)&0x4)/0x4;
+} else {
+ rc= vmer32(L0_TCSTATUS)&0x4)/0x4;
+}; return(rc); */
 }
 /*---------------------------------------------------------startswtrig
 Operation:
@@ -379,7 +400,11 @@ i=0; while(!getl0ackn() && (i<TIMEOUT))i++;
  //time[itime++]=CountTime();
 if(i>=TIMEOUT){
   w32 l0status;
-  l0status=vmer32(L0_TCSTATUS);
+  if(l0C0()) {
+    l0status=vmer32(L0_TCSTATUSr2);
+  } else {
+    l0status=vmer32(L0_TCSTATUS);
+  };
   //printf("startswtrig: L0 TC_STATUS:0x%x\n", l0status);
   ret= 1; goto RETERR;
 };
@@ -435,7 +460,11 @@ int  GenSwtrg(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors,
 int flag,itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
 w32 status, orbitnloc;
-status=vmer32(L0_TCSTATUS);
+if(l0C0()) {
+  status=vmer32(L0_TCSTATUSr2);
+} else {
+  status=vmer32(L0_TCSTATUS);
+};
 if((status&0x10)==0x10){
   printf(" GenSwtrg: TC busy. L0 TC_STATUS:0x%x\n", status);
   return 0;
@@ -502,6 +531,7 @@ return(GenSwtrg(ntriggers, trigtype, roc, BC, detectors, 2, &orbitn ));
 }
 /* called only in case of problem with gcalib. Idea: print
 out (vmew32f()) all vme access */
+/*von
 int GenSwtrg2(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
 int itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
@@ -527,19 +557,6 @@ lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig2(trigtype,roc,BC,detectors)!=0) {
   l2a=0; goto RELEASERET; //return 0;
 };
-/* { int flag;
-while(((itr<ntriggers) && ((flag=startswtrig())))){
-  if(flag == 1)l0++;
-  else if(flag == 2)l1++;
-  else if(flag == 3)l2r++;
-  else if(flag == 4)l2a++;
-  else {
-    printf(" GenSwtrg: unexpected flag %i \n",flag);
-    goto RELEASERET; //return l2a;
-  }
-  itr++;
-  //usleep(60000000);
-};}; */
 RELEASERET:
 unlockBakery(&ctpshmbase->swtriggers, customer);
 if(DBGswtrg2) {
@@ -551,3 +568,4 @@ TRIGTYPE='.';
 // return i;
 return l2a;
 }
+*/

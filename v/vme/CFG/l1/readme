@@ -26,6 +26,6 @@ all l1classB* counters) signals, because it has adjusted
 timing for lm0 (l0data+l0strobe) signals coming.
 This on called: l1_logic_verA6delayed.rbf
 15.9.2014 l1_logic_verA6.rbf
-version without delays (minor changesd against l1_logic_verA6before15sep.rbf)
+version without delays (minor changes against l1_logic_verA6before15sep.rbf)
 
 

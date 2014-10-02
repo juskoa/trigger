@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "vmewrap.h"
+
+#define LTUMAIN
 #include "ltu.h"
 int main(int argc, char **argv) {
 int rccret;

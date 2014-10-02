@@ -302,3 +302,28 @@ PRIVATE  other comps
 bug L1_INVERT fixed (still checks, sometimes bad, for classes >=44/45)
 23.9.
 git p2->lab
+26.9.
+vmeb/counters.py changed. 
+Goal: 
+ctp counters: 
+no modification (i.e. accruals done in c code in 
+ctplib/readCounters.c/readCounters. dims.exe -counters read 1/min for RRD.
+ltu counters: 
+1. accruals calculation is now in vmeb/counters.py
+Before: in ltulib/... -i.e. in ltu.exe started from ltuproxy over popen -not
+correct when interactive usage from 2 clients.
+2. counters readings done 1/sec into shared memory -i.e. only 
+every 60th reading used for rrd.
+1/sec reading used for new dim service det/MONBUSY signaling
+a detector busy time as a float number 0 - 100.
+3. getCounters(), in ltulib/ltuCounters.c: 2nd, accr. parameter 
+is not meaningfull.
+getCounters(), does'not read real LTU counters -
+they are taken from shared memory, if available. Consequence:
+2 readings, i.e. calling getCounters(), less than 1 sec apart are the same.
+2.10.2014
+still finish updateMONBUSY in ltu_proxy/dimservices.c
+2.10.2014
+avmes ->github ->bhm10
+
+

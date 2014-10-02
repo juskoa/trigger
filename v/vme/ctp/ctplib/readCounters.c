@@ -200,7 +200,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
   if((b123==1) && (l0C0())) {
-    vmew32(CLEARCOUNTER_lm0,1); 
+    vmew32(CLEARCOUNTER_lm0,0); 
   } else {
     vmew32(bb+CLEARCOUNTER,0);
   };

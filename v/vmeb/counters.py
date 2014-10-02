@@ -463,6 +463,9 @@ class CTPcnts:
       cmdbuttons , helptext="""
 Read           -read counters from hw and update fields of all the counters
                 (i.e. counters not shown are read too)
+                NOTE about LTU counters: minimum time between 2 clicks
+                is 1sec (if shorter, the same reading is returned,
+                in case the same ltuproxy time slot hit)
 Increments     -showing increments
 Abs. values    -showing absolute counter values 
 Periodic read  -repeat updating once per second (roughly) 10 times
@@ -1285,10 +1288,11 @@ class VMEcnts(CTPcnts):
     #  addr= self.regs[i][1]
     #  cmd2=cmd2+','+str(addr)
     #print 'allread  :', self.ctpltu, self.numberofcounters
+    # sep2014 change: getCounters returns always abs. values. Calculate increments here.
     cmd="getCounters("+str(self.numberofcounters)+","+str(self.showaccrual)+",2)"
     thdrn=myw.vbexec.vbinst.io.execute(cmd,ff=self.doout)
     #print 'CTPcounters.cmd:',cmd,thdrn
-    myw.vbexec.vbinst.io.thds[thdrn].waitcmdw()
+    # doing nothing: myw.vbexec.vbinst.io.thds[thdrn].waitcmdw()
     #print "allread finished"
   def doout(self,allvals):
     #print "allread3:",allvals,':'
@@ -1300,16 +1304,42 @@ class VMEcnts(CTPcnts):
     for i in range(vll):
       self.allregs[i]= vlist[i]
     for i in range(len(self.regs)):
-      prevval= self.regs[i].cntentry.getEntryHex()
+      #prevent= self.regs[i].cntentry.getEntryHex()
+      prevent= self.regs[i].cntentry.getEntry()
       cntnum= self.regs[i].cntaddr
-      newval= self.allregs[cntnum]
-      #print "allread:",prevval,type(prevval),vlist[i],cntnum
-      #print "allread:%d"%i,prevval,type(prevval), newval, type(newval), cntnum
-      if prevval != newval:
-        self.regs[i].cntentry.setColor(myw.COLOR_VALCHANGED)
+      if prevent==" " or prevent=="": 
+        newval= self.allregs[cntnum]
+        #print "allread4:",prevent,type(prevent),cntnum, newval
         self.regs[i].cntentry.setEntry(newval)
+        self.regs[i].prevbin= eval(newval)
       else:
-        self.regs[i].cntentry.setColor()
+        if self.ctpltu!=None:   # LTU; accrual not valid
+          if self.showaccrual==1:
+            prevbin= self.regs[i].prevbin; newbin= eval(self.allregs[cntnum])
+            newval= "%d"%(self.dodif32(prevbin, newbin))
+          else:
+            newval= "%d"%(eval(self.allregs[cntnum]))
+            newbin= eval(self.allregs[cntnum])
+          #print "allread:",prevval,type(prevval),vlist[i],cntnum
+          #print "allread:%d"%i,prevval,type(prevval), newval, type(newval), cntnum
+          #print "allread5:%s:%s:"%(prevent, newval)
+        else:                   # CTP: accrual valid
+          newval= self.allregs[cntnum]
+          newbin= eval(self.allregs[cntnum])
+        if prevent != newval:
+          self.regs[i].cntentry.setColor(myw.COLOR_VALCHANGED)
+          self.regs[i].cntentry.setEntry(newval)
+        else:
+          self.regs[i].cntentry.setColor()
+        self.regs[i].prevbin= newbin
+  def dodif32(self, before, now):
+    if now >= before: 
+      dif= now-before
+    else: 
+      dif= now+ (0xffffffff-before) +1
+    #if(DBGcnts) printf("dodif32:%d\n", dif)
+    return dif
+
 
 class SHMcnts(CTPcnts):
   FIFONAME="/tmp/dataready"

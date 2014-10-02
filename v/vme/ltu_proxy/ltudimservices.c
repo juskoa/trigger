@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <sys/shm.h>
 #include "vmewrap.h"
+#include "vmeblib.h"   // dodif32
 #include "lexan.h"
 #include "ltu.h"
 
@@ -39,7 +40,8 @@ unsigned int CALIBBCid;
 
 // counters reading:
 unsigned int COUNTERSid;
-w32 *buf1=NULL;
+w32 *buf1=NULL;     // shm
+w32 prevcnts[LTUNCOUNTERSall];   // counters 1sec before
 
 int actcid=0;         /* active client id. 0: nobody active */
 FILE *PUTFILE;   // !=NULL upload active
@@ -262,17 +264,17 @@ for(ix=0; ix<MAXMCclients; ix++) {
     ixfree=ix; break;
   };
 };
-sprintf(msg,"ixfreemsg:%d\n",ixfree);
+sprintf(msg,"ixfreemsg:%d",ixfree);
 dimlogprt("ixfree",msg);
 if(ixfree == -1) {
   sprintf(msg,"Table not large enough:now %d nclients, maximum.\n", NMCclients);
   dimlogprt("MCclients",msg);
 } else {                // new client, or 'new replacing' client
   if(MCclients[ixfree].cidat[0]=='\0') {
-    sprintf(msg,"new client:%c:%d %s\n", type, cid, cidname);
+    sprintf(msg,"new client:%c:%d %s", type, cid, cidname);
     NMCclients++;
   } else {
-    sprintf(msg,"%c:%d replacement: %s -> %c:%s\n",
+    sprintf(msg,"%c:%d replacement: %s -> %c:%s",
       MCclients[ix].type, cid, MCclients[ix].cidat, type, cidname);
   }; firstcaba=1;
   dimlogprt("updateNMCclients",msg);
@@ -803,14 +805,10 @@ actcid= 0;
 }
 int oldnclients=0;
 /*-------------------------------------------------------- readltucounters()
-clientid: 0: update all subscribing clients
-        !=0: update only clientcid client (forced counters read)
 Operation:
 - read counters from LTU into shm
-- 
 */
-void readltucounters(int clientid) {
-int nclients; 
+void readltucounters() {
 w32 ix;
 w32 *ResultStringBin= (w32 *)ResultString;
 char msg[ERRMSGL];
@@ -818,6 +816,9 @@ char msg[ERRMSGL];
 if(buf1==NULL) {
   prerr("shared memory alloc problem in readltucounters");
   return;
+};
+for(ix=0; ix<LTUNCOUNTERSall; ix++) {
+  prevcnts[ix]=buf1[ix];
 };
 strcpy(msg,"readCNTS2SHM()\n");
 writepipe(msg, strlen(msg));   //NO TRAILING '\0'!
@@ -828,6 +829,14 @@ for(ix=0; ix<LTUNCOUNTERSall; ix++) {
 };
 /*  sprintf(msg, "readltucounters: %d %d %d\n", buf1[23],buf1[24], buf1[25]); 
     dimlogprt("readltucounters",msg);*/
+}
+/*----------------------------------------------------- updateMONCOUNTERSservice 
+clientid: 0: update all subscribing clients
+        !=0: update only clientcid client (forced counters read)
+*/
+void updateMONCOUNTERSservice(int clientid) {
+int nclients; 
+char msg[ERRMSGL];
 if(clientid==0) {
   nclients= dis_update_service(COUNTERSid);
   /*printf("readltucounters: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
@@ -853,13 +862,26 @@ if(clientid==0) {
   dimlogprt("readltucounters",msg);
 };
 }
+void updateMONBUSY() {
+float deltatime,deltasbusy,sbusy;
+deltatime= dodif32(prevcnts[LTU_TIMErp], buf1[LTU_TIMErp]);
+deltasbusy= dodif32(prevcnts[SUBBUSY_TIMERrp], buf1[SUBBUSY_TIMERrp]);
+sbusy= deltasbusy/deltatime;
+}
 /*-------------------------------------------------------- cthread
 running as thread (started once, with dim server)
 */
 void cthread( void *blabla) {
+int isecs;
+readltucounters(); isecs=59;
 while(1) {   //run forever
-  readltucounters(0);
-  dtq_sleep(60);
+  if(isecs>=60) {
+    updateMONCOUNTERSservice(0);    // update DIM service 1/min
+    isecs= 0;
+  };
+  dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
+  readltucounters();    // update shm 1/sec
+  updateMONBUSY();
   if(QUIT==1) {
     // freeShared(buf1,...);     -for SSM yes, but not for counters
     buf1=NULL;
@@ -885,7 +907,8 @@ if(DBGCMDS) {
  printf("cmdGETCOUNTERS:cid:%d cidat:%s\n", cid, cidat);
 };
 */
-readltucounters(actcid);
+//readltucounters(actcid);
+updateMONCOUNTERSservice(actcid);
 }
 /* -----------------------following routines used from outside (ltu_proxy) */
 /*----------------------------------------------------- setRWMODE(char rwmode)
@@ -1022,7 +1045,7 @@ dis_start_serving(MYDETNAME);
 environ= getenv("VMESITE"); 
 if((strcmp(environ,"ALICE")==0) ||
    (strcmp(environ,"SERVER")==0)) {
-  dimlogprt("ds_register", "Starting the LTUcounters reading thread...\n");
+  dimlogprt("ds_register", "Starting the LTUcounters reading thread...");
   dim_start_thread(cthread, (void *)TAGcthread);
 } else {
   sprintf(logmsg, "LTUcounters reading thread not started:VMESITE:%s\n", environ);

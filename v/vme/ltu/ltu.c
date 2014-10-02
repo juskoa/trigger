@@ -14,7 +14,6 @@
 #include "vmewrap.h"
 
 #define LTUMAIN
-
 #include "ltu.h"
 
 void *mallocShared(w32, int, int *);

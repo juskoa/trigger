@@ -250,6 +250,7 @@ LTUf3:
 /*LTUMAIN id defined ONLY in: 
 ltu/ltu.c
 ltu_proxy/ltu_proxy.c
+ltu_proxy/printcounters.c
 */
 #ifdef LTUMAIN
 #define EXTRN
@@ -348,7 +349,11 @@ typedef struct {
 } Tpardesc;
 */
 
-EXTRN Tltushm *ltushm;
+#ifdef LTUMAIN
+Tltushm *ltushm=NULL;
+#else
+extern Tltushm *ltushm;
+#endif
 
 //#define ltuvino ((Gltuver&0xf0)!=0xb0)
 //#define ltuviyes ((Gltuver&0xf0)==0xb0)

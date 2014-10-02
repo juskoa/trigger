@@ -94,6 +94,7 @@ typedef struct {
 #define COPYBUSY       0x1d8   /*ro [0] copy-busy status */
 #define COPYCLEARADD   0x1dc   /*dummy wr. clear copy mem. add. */
 #define COPYREAD       0x1e0   /*ro copy memory data */
+/* clear counters: write 1, usleep(4us), write 0 */
 #define CLEARCOUNTER   0x5ac /* clear counters CMD NOT FOR LM0!*/
 #define CLEARCOUNTER_lm0   0x91f4 /* clear counters CMD ONLY FOR LM!*/
 
@@ -211,7 +212,13 @@ L0, L1, L2:
                                      12 13 14 15 16 1T 23 24 ... 6T */
 /* L0 board: */
 #define L0_CLEAR_RND   0x90c8 /*dummywr: clear RND1/2 (according to L0_ENA_CRND)*/
-#define L0_TCSTATUS    0x91c0   /*R/O*/
+#define L0_TCSTATUS    0x91c0   /*R/O: bits:
+0: Test Class Cluster BUSY flag
+1: Test Class PP Request flag
+2: Test Class L0 Request flag
+3: Test Class L0 Acknowledge flag
+4: Test Class BUSY flag: goes ON with L0_TCSTART
+ */
 #define L0_TCSTART     0x91c4   /*dummy wr. */
 #define L0_TCCLEAR     0x91c8   /*dummy wr. */
 #define RATE_DATA      0x91cc   /*w/r L0 rate data word:
@@ -383,9 +390,12 @@ set:
 read:
      0x30: ok, DAQ active, link not full */
 
-#define INT_DISB_CTP_BUSY 0xc150 /* 1: SW generated CTPbusy output, 
-                                    0:normal operation.
-                               Bit1(ro): reflects CTPreadout NEARLYFULL */
+#define INT_DISB_CTP_BUSY 0xc150 /* 
+bit0:
+1: SW generated CTPbusy output, 0:normal operation.
+bit1(ro): reflects CTPreadout NEARLYFULL
+bit4: phase enable
+*/
 #define I2C_MUXWR      0xc154   /* dummy wr */
 #define I2C_MUXRD      0xc158
 #define I2C_ADCWR      0xc174  /* 0xc15c from version A5 */

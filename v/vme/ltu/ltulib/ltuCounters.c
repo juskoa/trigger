@@ -74,23 +74,32 @@ bakery_customer: has to be 2 when reading from GUI (2
 is shared with ctp-counters vmeb/counters.py).
 BUT NOT USED YET for ltu, here it is just for compatibility
 with vmeb/counters.py call: getCounters(...
+24.9.2014:
+- use shm for reading if available (in the same time ltuproxy's cthred
+  arranged to read counters every second, i.e. getCounters cannot
+  return fresh value within shiorter interval)
+- accrual is not valid any more, always abs. values returned
 */
 void getCounters(int NCNTS, int accrual, int bakery_customer) {
-int cix; Tltushm *ltushm;
+int cix; // Tltushm *ltushm;  is in ltu.h (EXTERN)
 w32 buffer[NCNTS];
-/*if(ltushm != NULL) {
-  w32 *ltucs;
-  if(accrual==0) {
+accrual=0;   // return ALWAYS ABSOLUTE values
+if(ltushm != NULL) {
+  if(ltushm->ltucnts[LTU_TIMErp] != 0) { 
+    w32 *ltucs;
     ltucs= ltushm->ltucnts;
+    for(cix=0; cix<NCNTS; cix++) {
+      buffer[cix]= ltucs[cix];
+    };
   } else {
-    ltucs= ltushm->ltucnts;
+    // shm found, but seems counters not being read by ltuproxy
+    readCounters(buffer, NCNTS, accrual);
   };
-  for(cix=0; cix<NCNTS; cix++) {
-    buffer[cix]= ltucs[cix];
-  };
-} else { */
+} else {
+  // shm not available (should never happen!)
+  printf("ERROR: getCounters(): shm not available for ltu, reading ltu\n");
   readCounters(buffer, NCNTS, accrual);
-/* }; */
+};
 for(cix=0; cix<NCNTS; cix++) {
   //printf("0x%x\n",curprev[1][cix]);
   printf("0x%x\n",buffer[cix]);
