@@ -401,7 +401,7 @@ i=0; while(!getl0ackn() && (i<TIMEOUT))i++;
 if(i>=TIMEOUT){
   w32 l0status;
   if(l0C0()) {
-    l0status=vmer32(L0_TCSTATUSr2);
+    l0status=vmer32(L0_TCSTATUS);
   } else {
     l0status=vmer32(L0_TCSTATUS);
   };
@@ -461,7 +461,7 @@ int flag,itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
 w32 status, orbitnloc;
 if(l0C0()) {
-  status=vmer32(L0_TCSTATUSr2);
+  status=vmer32(L0_TCSTATUS);
 } else {
   status=vmer32(L0_TCSTATUS);
 };
