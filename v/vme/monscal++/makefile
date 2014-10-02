@@ -22,6 +22,12 @@ $(ODIR)/MonScal: $(ODIR)/MonScal.o $(ODIR)/Dim.o $(ODIR)/TrigConf.o \
 	$(EXTRALIBS) -o $(ODIR)/MonScal
 #	rm -f $(ODIR)/*.o
 
+$(ODIR)/test: $(ODIR)/test.o
+	$(CC) $(LDFLAGS) $(EXTRALIBS) $(ODIR)/test.o -o $(ODIR)/test
+
+$(ODIR)/test.o:$(SDIR)/test.cxx
+	$(CC) $(CFLAGS) -c -o $(ODIR)/test.o test.$(SFX)
+
 $(ODIR)/MonScal.o:$(SDIR)/MonScal.h $(SDIR)/MonScal.cxx
 	$(CC) $(CFLAGS) -c -o $(ODIR)/MonScal.o MonScal.$(SFX)
 

@@ -75,8 +75,9 @@ fi
 }
 function getcpunames() {
 #usage: getcpunames     sets these variables:
-#       ctpvme ttcmivme server server27 cmpvme
+#       ctpvme cmpvme ttcmivme server server27
 #Note: this code is also used in vmebse.bash
+hname=`hostname`
 if [ "$VMESITE" = 'ALICE' ] ;then
   ctpvme=alidcsvme001
   cmpvme=alidcsvme008
@@ -84,11 +85,20 @@ if [ "$VMESITE" = 'ALICE' ] ;then
   server=alidcscom835   # alidcscom188  alitri
   server27=alidcscom707 # alitrir   see also alidcscom521
 elif [ "$VMESITE" = 'SERVER' ] ;then
-  # here we should test for bhm10 ?
+  # avmes
   ctpvme=altri1
   cmpvme=altri1
   ttcmivme=altri1
   server=$hname
   server27=NONE
+elif [ "$VMESITE" = 'SERVER2' ] ;then
+  # bhm10
+  ctpvme=altri2
+  export cmpvme=altri2
+  ttcmivme=altri2
+  server=$hname
+  server27=NONE
+else
+  echo "auxfunctions.getcpunames: bad VMESITE:$VMESITE"
 fi
 }
