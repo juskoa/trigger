@@ -11,6 +11,8 @@ class TTCITBOARD: public BOARD
 	w32 getFPGAversion(){ return vmer(VERSION);}
 	w32 getStatus(){return vmer(STATUS);};
 	void resetSSMAddress(){vmew(RESET_SNAPSHOT_N,0xff);}
+        int readSSM();
+	int startSSM();
 	void start_stopSSM();
 	int start_stopSSM(LTUBOARD* ltu);
 	int start_stopSSM(BUSYBOARD* bb);

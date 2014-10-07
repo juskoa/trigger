@@ -223,9 +223,10 @@ int BOARD::AddSSMmode(string const modename,int const imode)
 //-----------------------------------------------------------------------------
 void BOARD::SetFile(string const &modename) 
 {
- // this should be done via $VME???
- //string name="CFG/ctp/ssmsigs/"+d_name+"_"+modename+".sig";
- string name="../CFG/ctp/ssmsigs/"+d_name+"_"+modename+".sig";
+ char *environ;
+ environ= getenv("VMECFDIR"); 
+ string cfgdir(environ);
+ string name=cfgdir+"/CFG/ctp/ssmsigs/"+d_name+"_"+modename+".sig";
  //cout << "Mode file:"<< name << endl;
  modefile.open(name.c_str());
  if(!modefile.is_open()){

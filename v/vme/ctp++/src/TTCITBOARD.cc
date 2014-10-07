@@ -24,7 +24,55 @@ void TTCITBOARD::Print()
  //printboardinfo("");
 }
 /*
+ * Starts ssm and exits. ssm is waiting
+ */
+int TTCITBOARD::startSSM()
+{
+ ssm=GetSSM();
+ // reset address
+ resetSSMAddress();
+ for(w32 i=0;i<Mega;i++){
+  ssm[i]=0;
+  vmew(READ_SSM_WORD,0);
+ }
+ usleep(10000);
+ printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ //
+ resetSSMAddress();
+ return 0;
+} 
+/*
+ * reads SSM
+ */ 
+int TTCITBOARD::readSSM()
+{
+ int ic=0;
+ while((ic<10) && (vmer(READ_SSM_ADDRESS)==0)){
+   usleep(100000);
+   ic++; 
+ }
+ if(ic==10){
+  printf("TTCBOARD:readSSM: ssm not read, trigger not received after 1sec \n");
+  return 1;
+ }
+ ssm=GetSSM();
+ usleep(50000);
+ printf("after reset status: 0x%x\n",getStatus());
+ usleep(100000);
+ printf("after usleep and control 2 status: 0x%x\n",getStatus());
+ printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ w32 stat=getStatus();
+ printf("after usleep and control 3 status: 0x%x\n",stat);
+
+ for(int i=0;i<Mega;i++){
+  ssm[i]=vmer(READ_SSM_WORD);
+ }
+
+ return 0;
+}
+/*
  * Original routine written during debuging.
+ * If triggers are not coming waiting for them.
  */ 
 void TTCITBOARD::start_stopSSM()
 {
@@ -36,18 +84,14 @@ void TTCITBOARD::start_stopSSM()
   ssm[i]=0;
   vmew(READ_SSM_WORD,0);
  }
- // L0-L1 delay
- //vmew(0x24,259);
- // TTC reset
- //vmew(0x10,0xff);
  usleep(10000);
- // reset address
  printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
  //
- //vmew(RESET,0);
- //vmew(CONTROL,0);
  resetSSMAddress();
+ printf("111\n");
+ // tu caka
  while(vmer(READ_SSM_ADDRESS)==0)continue; 
+ printf("222\n");
  usleep(50000);
  printf("after reset status: 0x%x\n",getStatus());
  usleep(100000);
@@ -56,9 +100,6 @@ void TTCITBOARD::start_stopSSM()
  w32 stat=getStatus();
  printf("after usleep and control 3 status: 0x%x\n",stat);
 
- //return;
-
- //resetSSMAddress(); 
  for(int i=0;i<Mega;i++){
   ssm[i]=vmer(READ_SSM_WORD);
   //usleep(100000);
