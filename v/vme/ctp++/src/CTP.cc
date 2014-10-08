@@ -31,8 +31,9 @@ CTP::~CTP(){
          }
  cout<< "~CTP: " << boards.size() << endl;
 }
-void CTP::readBCStatus(int n)
+int CTP::readBCStatus(int n)
 {
+ int ret=0;
  printf("#boards %i \n",boards.size());
  int nb=boards.size();
  int bcstat[nb][4];
@@ -58,8 +59,10 @@ void CTP::readBCStatus(int n)
   {
    string name=(*from)->getName();
    printf("%5s: BCSTASTUSES: 0: %5i 1: %5i 2: %5i 3: %5i \n",name.c_str(),bcstat[j][0],bcstat[j][1],bcstat[j][2],bcstat[j][3]);
+   if(bcstat[j][2] != n) ret =1;
    j++;
   }
+  return ret;
 }
 int CTP::readCounters()
 {

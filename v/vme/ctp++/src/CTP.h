@@ -31,7 +31,7 @@ class CTP
          LTUBOARD *ltu[NUMOFFO*NUMOFCON];
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
 	 int readCFG(string const &name);
-	 void readBCStatus(int n);
+	 int readBCStatus(int n);
 	 int readCounters();
 	 void printCounters();
 	 list<BOARD*> boards;
