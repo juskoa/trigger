@@ -322,8 +322,12 @@ getCounters(), does'not read real LTU counters -
 they are taken from shared memory, if available. Consequence:
 2 readings, i.e. calling getCounters(), less than 1 sec apart are the same.
 2.10.2014
-still finish updateMONBUSY in ltu_proxy/dimservices.c
+still finish updateMONBUSY in ltu_proxy/ltudimservices.c
 2.10.2014
 avmes ->github ->bhm10
-
+9.10.2014
+ltu_proxy/ltudimservices.c -seems ok (i.e. only 1 thread reading
+ltu counters and shared by all ltuclients).
+13.10.
+avmes ->github->p2
 

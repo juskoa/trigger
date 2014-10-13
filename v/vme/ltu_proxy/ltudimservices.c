@@ -23,7 +23,7 @@
 #define MAXRESULT 1500
 #define MAXLILE 1500
 #define MAXCIDAT 80
-#define MAXMCclients 12 
+#define MAXMCclients 14    // was 12 before MONBUSY added
 
 #define TAGcmdDO 18
 #define TAGcmdPIPE 19
@@ -40,8 +40,10 @@ unsigned int CALIBBCid;
 
 // counters reading:
 unsigned int COUNTERSid;
+unsigned int MONBUSYid;
 w32 *buf1=NULL;     // shm
 w32 prevcnts[LTUNCOUNTERSall];   // counters 1sec before
+float busytime1sec=0.0;
 
 int actcid=0;         /* active client id. 0: nobody active */
 FILE *PUTFILE;   // !=NULL upload active
@@ -61,7 +63,7 @@ char actcidat[80];  /* active client: pid@host */
 typedef struct mcc{
   int cid;
   char cidat[MAXCIDAT];    // free item if cidat[0]=='\0'
-  char type ;   // 'm' -MONCOUNTERS   'r' -result
+  char type ;   // 'm' -MONCOUNTERS   'r' -result   'b' -MONBUSY
 } TMCclient;
 
 int NMCclients;
@@ -232,7 +234,7 @@ for(ix=0; ix<MAXMCclients; ix++) {
 finishResult();
 }
 /*----------------------------------------------- updateNMCclients
-Input: type: 'm' -MONCOUNTERS   'r' -RESULT
+Input: type: 'm' -MONCOUNTERS   'r' -RESULT   'b' -MONBUSY
 Operation:
 1. find curent client's or free item in MCclients table
 2. if client not in the table:
@@ -550,7 +552,7 @@ dimlogprt("MONCOUNTERScaba",msg); */
 rc=updateNMCclients('m');
 if(rc==-1) {
   *msgp= ResultString;
-  strcpy(ResultString, "XERROR: Too many clients. Stop this and possibly others clients\n");
+  strcpy(ResultString, "XERROR: Too many clients. Stop this and possibly other clients\n");
   *size= strlen(ResultString)+1;   // "" -empty string is 1 byte message
   return;
 };
@@ -559,6 +561,32 @@ if(rc==-1) {
 /*sprintf(msg,"MONCOUNTERScaba size:%d LTUNCOUNTERSall:%d \n", 
   *size, LTUNCOUNTERSall);
 dimlogprt("MONCOUNTERScaba2",msg); */
+}
+/*----------------------------------------------------------- MONBUSYcaba
+*/
+#ifdef CPLUSPLUS
+void MONBUSYcaba(void *tagvoid, void **msgpvoid, int *size, int *blabla) {
+/*int *tag= (int *)tagvoid; */ char **msgp= (char **)msgpvoid;
+#else
+void MONBUSYcaba(int *tag, unsigned int **msgpint, int *size) {
+char **msgp= (char **)msgint;
+#endif
+int rc;
+char msg[ERRMSGL];
+/*sprintf(msg, "sizeorig:%d LTUNCOUNTERSall:%d\n", *size, LTUNCOUNTERSall);
+dimlogprt("MONCOUNTERScaba",msg); */
+rc=updateNMCclients('b');
+if(rc==-1) {
+  *msgp= ResultString;
+  strcpy(ResultString, "XERROR: Too many clients. Stop this and possibly other clients\n");
+  *size= strlen(ResultString)+1;   // "" -empty string is 1 byte message
+  return;
+};
+*msgp= (char *)&busytime1sec;  // better?:
+//*msgpvoid= (void *)&busytime1sec;
+*size= 4;
+sprintf(msg,"size:%d float content:%6.4f \n", *size, busytime1sec);
+dimlogprt("MONBUSYcaba",msg);
 }
 /*--------------------------------------------------------- readUntilColon()
 if us==1: update service() called, i.e. ResultString is 
@@ -804,6 +832,7 @@ ERenadis/ERdemand -for tests with detectors (to be disabled later)
 actcid= 0;
 }
 int oldnclients=0;
+int oldnbusyclients=0;
 /*-------------------------------------------------------- readltucounters()
 Operation:
 - read counters from LTU into shm
@@ -863,10 +892,32 @@ if(clientid==0) {
 };
 }
 void updateMONBUSY() {
-float deltatime,deltasbusy,sbusy;
+char msg[ERRMSGL];
+// readltucounters() called also before 1-sec loop calling this routine, i.e.
+// prevcnts are always defined even after ltuproxy restart.
+int nclients;
+float deltatime,deltasbusy,newbt;
 deltatime= dodif32(prevcnts[LTU_TIMErp], buf1[LTU_TIMErp]);
 deltasbusy= dodif32(prevcnts[SUBBUSY_TIMERrp], buf1[SUBBUSY_TIMERrp]);
-sbusy= deltasbusy/deltatime;
+newbt= deltasbusy/deltatime;
+// update only in case the diffrence > 1%:
+if(abs(newbt-busytime1sec) > 0.01) {
+  sprintf(msg, "newbusytime:%6.4f previous:%6.4f", newbt, busytime1sec);
+  busytime1sec= newbt;
+  nclients= dis_update_service(MONBUSYid);
+  sprintf(msg,"%s nclients:%d\n", msg, nclients);
+  dimlogprt("updateMONBUSY", msg);
+};
+/*if(oldnbusyclients != nclients) {   // # of clients changed
+    int ix;
+    sprintf(msg, "clients now: %d\n", nclients); 
+    dimlogprt("readltucounters",msg);
+    for(ix=0; ix<NMCclients; ix++) {
+      printf("%c:%3d: %s\n", MCclients[ix].type, 
+        MCclients[ix].cid, MCclients[ix].cidat);
+    }; fflush(stdout);
+    oldncbusylients= nclients;
+  }; */
 }
 /*-------------------------------------------------------- cthread
 running as thread (started once, with dim server)
@@ -881,7 +932,7 @@ while(1) {   //run forever
   };
   dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
   readltucounters();    // update shm 1/sec
-  updateMONBUSY();
+  updateMONBUSY();   
   if(QUIT==1) {
     // freeShared(buf1,...);     -for SSM yes, but not for counters
     buf1=NULL;
@@ -1008,6 +1059,10 @@ strcpy(command, MYDETNAME); strcat(command, "/MONCOUNTERS");
 COUNTERSid=dis_add_service(command,0, buf1, 4*LTUNCOUNTERSall,
   MONCOUNTERScaba, 4568);  
 sprintf(logmsg, "%s%s COUNTERSid:%d\n", logmsg, command,COUNTERSid);
+strcpy(command, MYDETNAME); strcat(command, "/MONBUSY");
+MONBUSYid=dis_add_service(command,0, &busytime1sec, 4,
+  MONBUSYcaba, 4571);  
+sprintf(logmsg, "%s%s MONBUSYid:%d\n", logmsg, command,MONBUSYid);
 
 strcpy(command, MYDETNAME); strcat(command, "/CALIBBC");
 //CALIBBCid= dis_add_service(command,"I:1", NULL, sizeof(int), CALIBBCcaba, 4569);  
@@ -1062,6 +1117,7 @@ QUIT=1;   // stop thread reading ltu counters
 close(infp); close(outfp); popen2active=0; 
 dis_remove_service(RESULTid);
 dis_remove_service(COUNTERSid);
+dis_remove_service(MONBUSYid);
 dis_remove_service(CALIBBCid);
 dis_stop_serving();
 if(logfile !=NULL) fclose(logfile);

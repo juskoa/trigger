@@ -201,4 +201,5 @@ possible to download from the page
 22.9.2014
 ltudimservices.c changed: "TTCinit()" checked (before: "TTCinit(" -
 this caused ltuproxy crash in case DIM DO command send without NL)
-
+9.10.
+ltu counters: read once per sec, shared for all DIM clients (see CTPhistory)
