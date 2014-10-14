@@ -3,14 +3,14 @@
 # send burst to fit one ssm ctpstart.e
 # assumes that ctp is configured and detector is connectedon ttcit switch
 import os,sys,string,time,shlex,subprocess,thread
-class iopipe:
+class command:
   """
      Send command to system . Using subprocess insetad poopen2.
   """
   def __init__(self,cmd,myshell=False):
     self.ret = 0
     args=shlex.split(cmd)
-    #print "iopipe args: ",args
+    #print "command args: ",args
     self.p = subprocess.Popen(args,bufsize=-1,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
     if len(self.p) != 2:
        print "Unexpeced len of subprocess output: ", len(self.p)
@@ -28,7 +28,7 @@ class iopipe:
       time.sleep(1)
       i+=1
     return self.p.poll()  
-  def ioprint(self):
+  def cmdprint(self):
     i=0
     for item in self.p: 
        print i,' ',item
@@ -42,12 +42,9 @@ class iopipe:
     """
       Find text in command output. return line or None if not found.
     """
-    for line in self.p.stdout:
-      ix2 = string.find(line,text)
-      if ix2==0: 
-       print line
-       return line
-    return None
+    ix2 = string.find(self.p[0],text)
+    if ix2==0: return 1 
+    return 0
 def main():
   print """
 This script assumes that:
@@ -59,16 +56,31 @@ This script assumes that:
     print sys.argv
   else:
     print sys.argv
-    #iop=iopipe(sys.argv[1])
-    iottcstart = iopipe("ssh -2 -q alidcsvme007 /local/trigger/v/vme/ctp++/startttc.e")
+    host = command("hostname")
+    #host.cmdprint()
+    if host.check("avmes"):
+      print "Running from avmes"
+      ctpcpu="altri2"
+      ttcitcpu = "altri1"
+      dir1 = " /localavmes/trigger/v/vme/ctp++"
+    else:
+      ctpcpu="alidcsvme001"
+      ttcitcpu = "alidcsvme007"
+      dir1 = " /local/trigger/v/vme/ctp++"
+    dir = " /local/trigger/v/vme/ctp++"
+    #cmd=command(sys.argv[1])
+    cmdttcstart = "ssh -2 -q " + ttcitcpu + dir + "/startttc.e"
+    cmdctpstart = "ssh -2 -q " + ctpcpu   + dir1 + "/ctpstart.e"
+    cmdreadttc = "ssh -2 -q " + ttcitcpu + dir + "/readttc.e"
+    iottcstart = command(cmdttcstart)
     if iottcstart.ret == 1: return;    
-    ioctp = iopipe("ssh -2 -q alidcsvme001 /local/trigger/v/vme/ctp++/ctpstart.e")
+    ioctp = command(cmdctpstart)
     if ioctp.ret == 1: return;    
-    iottcread = iopipe("ssh -2 -q alidcsvme007 /local/trigger/v/vme/ctp++/readttc.e")
+    iottcread = command(cmdreadttc)
     if iottcread.ret == 1: return;    
     #time.sleep(1)
-    #iottcstart.ioprint()
-    #ioctp.ioprint()
+    iottcstart.cmdprint()
+    ioctp.cmdprint()
     iottcread.printlast4()
     return
 if __name__ == "__main__":
