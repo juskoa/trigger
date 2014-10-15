@@ -156,11 +156,14 @@ void DisplaySCAL::DisplayRatiosWU(const int ninp,TriggerInputwCount* inps[],cons
    for(int j=0; j<all->GetNumofClasses();j++){
      TriggerClasswCount* tcl2=all->GetTriggerClass(j);
      //cout << "Doing class: " << tcl2->GetName() << endl;
-     if((strncmp(tcl2->GetName().c_str(),tcl->GetName().c_str(),4)==0) &&
-       ((tcl2->GetName().at(8) == tcl->GetName().at(6)) &&   // matches abce
+     if((strncmp(tcl2->GetName().c_str(),tcl->GetName().c_str(),4)==0) 
+        &&
+       (((tcl2->GetName().at(8) == tcl->GetName().at(6)) 
+         &&   // matches abce
         (tcl->GetName().at(6)=='B')) ||
-       ((tcl2->GetName().at(7) == tcl->GetName().at(5)) &&   // matches abce
-        (tcl->GetName().at(5)=='B')) 
+       ((tcl2->GetName().at(7) == tcl->GetName().at(5)) 
+         &&   // matches abce
+        (tcl->GetName().at(5)=='B'))) 
        ){      
       //cout << "match " << tcl2->GetName().at(8) << " "<< tcl->GetName().at(6) << endl;
       //cout << tcl2->GetName() << "/" << tcl->GetName() << " = ";

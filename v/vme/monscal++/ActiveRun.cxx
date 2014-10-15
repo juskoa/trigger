@@ -39,7 +39,7 @@ fINT(0)
  for(int i=0;i<NCLASS;i++)fClasses[i]=0;
  for(int i=0;i<NDET;i++)fDetectors[i]=0;
  if(runnum){
-   ParseConfigFile(runnum);
+   if(ParseConfigFile(runnum)) exit(1);
  }
  else{
      // inputs, parse valid.ctpinputs and special input config
@@ -55,8 +55,9 @@ fINT(0)
  L2a.SetName("L2a");
  //L2a.SetIXs(CSTART_L2+23,CSTART_L2 + 5);
  L2a.SetIXs(CSTART_INT+8,CSTART_INT + 2);
- //cout << "Starting run " << fRunNumber << endl;
- PrintLog("Run %i started",fRunNumber);
+ stringstream ss;
+ ss << "Starting run" << fRunNumber << endl;
+ PrintLog(ss.str());
 }
 ActiveRun::~ActiveRun()
 {
@@ -69,8 +70,9 @@ ActiveRun::~ActiveRun()
  if(ocdb) delete ocdb;
  if(daq) delete daq;
  if(scal) delete scal;
- //cout << "Run " << fRunNumber << "stopped" << endl;
- PrintLog("Run %i stopped.",fRunNumber);
+ stringstream ss;
+ ss << "Run " << fRunNumber << "stopped" << endl;
+ PrintLog(ss.str());
 }
 //-----------------------------------------------------------
 int ActiveRun::ParseInputsList()
@@ -410,7 +412,8 @@ int ActiveRun::ParseConfigFile(int runnumber){
  stringstream ss;
  if(runnumber){
    ss << "/WORK/RCFG/r" <<runnumber << ".rcfg";
-   frcfgfile = getenv("VMEWORKDIR")+ss.str();
+   //frcfgfile = getenv("VMEWORKDIR")+ss.str();
+   frcfgfile = getenv("VMECFDIR")+ss.str();
  }else{
    cout << "ActiveRun::ParseConfigFile runnum=0, internal error." << endl;
    return 1;
@@ -436,7 +439,8 @@ int ActiveRun::ParsePartitionFile(int runnumber){
  //runnumber=104160;
  if(runnumber){
    ss << "/WORK/PCFG/r" <<runnumber << ".partition";
-   partifile = getenv("VMEWORKDIR")+ss.str();
+   //partifile = getenv("VMEWORKDIR")+ss.str();
+   partifile = getenv("VMECFDIR")+ss.str();
  }else{
   return 0;
  }
