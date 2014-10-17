@@ -19,7 +19,8 @@ copycount2OCDB(copycount2OCDB)
 {
  for(int i=0;i<NRUN;i++)activeruns[i]=0;
  if(SCAL())StartInputs();
- cout << "Monscal created. Output option= " << kPrint << endl;
+ PrintLog("Monscal started.");
+ cout << "Output option= " << kPrint << endl;
 }
 MonScal::~MonScal()
 {

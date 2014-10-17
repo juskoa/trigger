@@ -6,7 +6,7 @@
 #include <vector>
 
 enum {NINP=24};
-enum {NCLASS=50};
+enum {NCLASS=100};
 enum bcmtype {B, A, C, E, S, U};
 using namespace std;
 //#########################################################################

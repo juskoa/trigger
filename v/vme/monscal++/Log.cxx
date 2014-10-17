@@ -32,11 +32,6 @@ sprintf(dmyhms,"%2.2d.%2.2d.%4.0d %2.2d:%2.2d:%2.2d",
   LT->tm_hour,LT->tm_min,LT->tm_sec);
   for(int i=0; i<28; i++) { if(dmyhms[i] == ' ') dmyhms[i] = '_'; }; 
 }
-void Log::PrintLog(const string& text)
-{
- //*log << *this << " " << text << endl;
- *log << *this << " " << text << endl;
-}
 void Log::PrintLog(string& text)
 {
  //*log << *this << " " << text << endl;

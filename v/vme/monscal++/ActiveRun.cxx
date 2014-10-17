@@ -57,7 +57,7 @@ fINT(0)
  L2a.SetIXs(CSTART_INT+8,CSTART_INT + 2);
  stringstream ss;
  ss << "Starting run" << fRunNumber << endl;
- PrintLog(ss.str());
+ PrintLog(ss.str().c_str());
 }
 ActiveRun::~ActiveRun()
 {
@@ -71,8 +71,8 @@ ActiveRun::~ActiveRun()
  if(daq) delete daq;
  if(scal) delete scal;
  stringstream ss;
- ss << "Run " << fRunNumber << "stopped" << endl;
- PrintLog(ss.str());
+ ss << "Run " << fRunNumber << " stopped" << endl;
+ PrintLog(ss.str().c_str());
 }
 //-----------------------------------------------------------
 int ActiveRun::ParseInputsList()
@@ -413,7 +413,7 @@ int ActiveRun::ParseConfigFile(int runnumber){
  if(runnumber){
    ss << "/WORK/RCFG/r" <<runnumber << ".rcfg";
    //frcfgfile = getenv("VMEWORKDIR")+ss.str();
-   frcfgfile = getenv("VMECFDIR")+ss.str();
+   frcfgfile ="/home/alice/trigger/v/vme/"+ss.str();
  }else{
    cout << "ActiveRun::ParseConfigFile runnum=0, internal error." << endl;
    return 1;
@@ -440,7 +440,7 @@ int ActiveRun::ParsePartitionFile(int runnumber){
  if(runnumber){
    ss << "/WORK/PCFG/r" <<runnumber << ".partition";
    //partifile = getenv("VMEWORKDIR")+ss.str();
-   partifile = getenv("VMECFDIR")+ss.str();
+   partifile = "/home/alice/trigger/v/vme/WORK/RCFG/"+ss.str();
  }else{
   return 0;
  }
