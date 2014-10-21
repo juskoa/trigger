@@ -1,10 +1,11 @@
 /* fanio DIM server
-Commands:
+Commands -common for all detectors (detector specified in the message):
         IO    message
 ENABLE  IN    detname,mask
 SAVE    IN    detname,mask
+REFRESH IN    detname       added 20.10.2014
 
-Services:
+Services (one per detector):
                  IO   response
 detname/STATUS   IN   enadis,current
 */
@@ -159,6 +160,15 @@ nclients= dis_update_service(fanis[ixt].dimserid);
 printf("set_oc: name:%s mask:%x size:%d updated clients:%d\n", msg->name, msg->mask, *size, nclients);
 fflush(stdout);
 }  
+/*------------------*/ void refresh(void *tag, void *msgv, int *size)  {  
+Tenablemsg *msg= (Tenablemsg *)msgv;
+int nclients,ixt; char base[12];
+ixt= findbase(msg->name, base);
+//HW_enable(base, msg->mask);
+nclients= dis_update_service(fanis[ixt].dimserid);
+printf("refresh: name:%s size:%d updated clients:%d\n", msg->name, *size, nclients);
+fflush(stdout);
+}  
 
 /*----------*/ void get_oc(void *tag,  void **msgv, int *size, int *blabla) {
 Tstatusmsg **msg= (Tstatusmsg **)msgv;
@@ -176,17 +186,20 @@ int main()  {
 int ix, rc;
 char command[MAXCMDL];
 #ifdef SIMHW
-printf("Commands/services:   SIMHW mode.\n");
+printf("Commands:   SIMHW mode.\n");
 #else
-printf("Commands/services:\n");
+printf("Commands:\n");
 #endif
 strcpy(command, "ENABLE");
 //dis_add_cmnd(command,NULL, set_oc, 18);  printf("%s\n", command);
 dis_add_cmnd(command,"C:16;I:1", set_oc, 18);  printf("%s\n", command);
+strcpy(command, "REFRESH");
+dis_add_cmnd(command,"C:16", refresh, 20);  printf("%s\n", command);
 strcpy(command, "SAVE");
 //dis_add_cmnd(command,NULL set_save, 18);  printf("%s\n", command);
-dis_add_cmnd(command,"C:16;I:1", set_save, 18);  printf("%s\n", command);
+dis_add_cmnd(command,"C:16;I:1", set_save, 19);  printf("%s\n", command);
 fflush(stdout);
+printf("Services:\n");
 for(ix=0; ix<Nfanios; ix++) {
   w32 defaultenable;
   HW_init_common(fanis[ix].base);

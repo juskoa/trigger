@@ -616,7 +616,7 @@ while(1) { // read until ":\n"
     break;
   } else {
     partResult[outl]='\0';
-    if(outl==0) { usleep(1000000); continue; };
+    if(outl==0) { usleep(10); continue; };
     if(us==1) {
       if(appendResult(partResult)) {
         break;   // short ResultString variable
@@ -849,6 +849,8 @@ if(buf1==NULL) {
 for(ix=0; ix<LTUNCOUNTERSall; ix++) {
   prevcnts[ix]=buf1[ix];
 };
+//sprintf(msg, "before: %d %d\n", buf1[epochsecsrp],buf1[0]); 
+//dimlogprt("readltucounters",msg);
 strcpy(msg,"readCNTS2SHM()\n");
 writepipe(msg, strlen(msg));   //NO TRAILING '\0'!
 readUntilColon(0);
@@ -858,6 +860,8 @@ for(ix=0; ix<LTUNCOUNTERSall; ix++) {
 };
 /*  sprintf(msg, "readltucounters: %d %d %d\n", buf1[23],buf1[24], buf1[25]); 
     dimlogprt("readltucounters",msg);*/
+/*sprintf(msg, "after: %d %d\n", buf1[epochsecsrp],buf1[0]); 
+dimlogprt("readltucounters",msg);*/
 }
 /*----------------------------------------------------- updateMONCOUNTERSservice 
 clientid: 0: update all subscribing clients
@@ -868,14 +872,14 @@ int nclients;
 char msg[ERRMSGL];
 if(clientid==0) {
   nclients= dis_update_service(COUNTERSid);
-  /*printf("readltucounters: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
+  /*printf("updateMONCOUNTERSservice: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
     difmics, nclients, ltuc[13], ctpc[CSTART_L1+5]);
-  printf("readltucounters spec secs, mics:%d %d\n", 
+  printf("updateMONCOUNTERSservice spec secs, mics:%d %d\n", 
     ctpc[CSTART_SPEC], ctpc[CSTART_SPEC+1]); */
   if(oldnclients != nclients) {   // # of client changed
     int ix;
     sprintf(msg, "clients now: %d\n", nclients); 
-    dimlogprt("readltucounters",msg);
+    dimlogprt("updateMONCOUNTERSservice",msg);
     for(ix=0; ix<NMCclients; ix++) {
       printf("%c:%3d: %s\n", MCclients[ix].type, 
         MCclients[ix].cid, MCclients[ix].cidat);
@@ -888,7 +892,7 @@ if(clientid==0) {
   nclients= dis_selective_update_service(COUNTERSid, cids);
   /*nclients:0 if this clinet has not subsribed to MONCOUNTERS service */ 
   sprintf(msg,"Forced update for client:%d nclients:%d\n", clientid, nclients);
-  dimlogprt("readltucounters",msg);
+  dimlogprt("updateMONCOUNTERSservice",msg);
 };
 }
 void updateMONBUSY() {
@@ -911,7 +915,7 @@ if(abs(newbt-busytime1sec) > 0.01) {
 /*if(oldnbusyclients != nclients) {   // # of clients changed
     int ix;
     sprintf(msg, "clients now: %d\n", nclients); 
-    dimlogprt("readltucounters",msg);
+    dimlogprt("updateMONBUSY",msg);
     for(ix=0; ix<NMCclients; ix++) {
       printf("%c:%3d: %s\n", MCclients[ix].type, 
         MCclients[ix].cid, MCclients[ix].cidat);
@@ -924,6 +928,7 @@ running as thread (started once, with dim server)
 */
 void cthread( void *blabla) {
 int isecs;
+dimlogprt("cthread","starting...\n");
 readltucounters(); isecs=59;
 while(1) {   //run forever
   if(isecs>=60) {
@@ -1100,7 +1105,7 @@ dis_start_serving(MYDETNAME);
 environ= getenv("VMESITE"); 
 if((strcmp(environ,"ALICE")==0) ||
    (strcmp(environ,"SERVER")==0)) {
-  dimlogprt("ds_register", "Starting the LTUcounters reading thread...");
+  dimlogprt("ds_register", "Starting the LTUcounters reading thread....");
   dim_start_thread(cthread, (void *)TAGcthread);
 } else {
   sprintf(logmsg, "LTUcounters reading thread not started:VMESITE:%s\n", environ);

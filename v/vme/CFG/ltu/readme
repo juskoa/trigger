@@ -79,3 +79,6 @@ ltu2_b8.rbf =ltu2_b7.rbf with functional SEU bit
 25.7.2014
 ltu2_b9.rbf, ltu_b9.rbf -longer FIFOs, 512 instead of 256 words, and
 nearly full condition is set to 208
+21.10.2014
+LTU_T-1_0.rbf -1st version of LTU-T fy (prepared by Sebastian, sebastian.klewin@cern.ch)
+sitting in c26/top crate (alidcsvme004)

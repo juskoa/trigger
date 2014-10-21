@@ -4,13 +4,17 @@ An example of simple DIM server/client.
 
 1. compile/link server and client in linux directory:
   make
-
 2. Start Dns: alias Dns='/home/aj/smi/dim/linux/dns'
   Dns
-
 3. Start server:
   linux/server
-
 4. Start client:
   linux/client
   - the short 'usage mesage' will be printed
+
+History:
+-------
+21.10.2014
+REFRESH cmd added, forcing an update of det/SATTUS service
+todo: modify client.c, allowing also 'MONITORED, with timeout set to 0' (in 
+      addition to ONCE_ONLY) to test REFRESH cmd

@@ -166,11 +166,11 @@ opt:  hexa -give readings in hexa format, default. (e.g. 0fab)\n\
 runn: 0: no run given (just take all readings date1..date2)\n\
      >0: run number -find SOR after 'date1 time1' and EOR from CSTART_RUNX[]\n\
 outfile: the output file name. \n\
-         NOT DONE YET:anypath.rrd  -create .rrd (.txt has to exist in curr. directory\n\
-                       describing rrd)\n\
+         NOT DONE YET:anypath.rrd  -create .rrd (.txt has to exist\n\
+                      in curr. directory describing rrd)\n\
 rel. numbers: in cnames.sorted2 file, i.e. 0 corresponds to l0byclstT,\n\
-    896..901: spare896runx -6 runx numbers\n\
-    923: l2orbit\n\
+    896..901: spare896runx -6 runx numbers (run1)\n\
+    923: l2orbit (run1)\n\
     or\n\
     dimall -put all counters in binary file (like DIM service MONCOUNTERS)\n\
 ");

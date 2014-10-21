@@ -44,7 +44,7 @@ if(accrual==1) {
 } else {
   for(cix=memshift; cix<NCNTS+memshift; cix++) {
     w32 cv;
-    cv= vmer32(COPYREAD);
+    cv= vmer32(COPYREAD); // cv= cix+1;
     //mem[cix]=curprev[1][cix]=cv;
     mem[cix]= cv;
     //printf("readCounters: %d:0x%x\n", cix, cv);
@@ -89,10 +89,10 @@ if(ltushm != NULL) {
     w32 *ltucs;
     ltucs= ltushm->ltucnts;
     for(cix=0; cix<NCNTS; cix++) {
-      buffer[cix]= ltucs[cix];
+      buffer[cix]= ltucs[cix]; // if(cix==1) buffer[cix]= (w32)ltucs;
     };
   } else {
-    // shm found, but seems counters not being read by ltuproxy
+    // shm found, but seems counters not being read 1/sec by ltuproxy
     readCounters(buffer, NCNTS, accrual);
   };
 } else {

@@ -1321,7 +1321,9 @@ class VMEcnts(CTPcnts):
             newval= "%d"%(eval(self.allregs[cntnum]))
             newbin= eval(self.allregs[cntnum])
           #print "allread:",prevval,type(prevval),vlist[i],cntnum
-          #print "allread:%d"%i,prevval,type(prevval), newval, type(newval), cntnum
+          #if (cntnum==0) and (self.showaccrual==1):
+          #  secs= eval(newval)*0.4/1000000.
+          #  print "allread-time:%d/%d"%(i,cntnum),prevbin, newval, "secs:",secs
           #print "allread5:%s:%s:"%(prevent, newval)
         else:                   # CTP: accrual valid
           newval= self.allregs[cntnum]
