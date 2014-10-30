@@ -745,7 +745,7 @@ void LTUBOARD::analTTCB(){
    bitb0=bitb;
    ioff++;
  }
- printf("Start of TTC data: %i \n",ioff);
+ //printf("Start of TTC data: %i \n",ioff);
  //
  for(i=ioff;i<Mega;i++){
    word=ss[i];
@@ -795,7 +795,7 @@ int LTUBOARD::CreateRecordSSM()
  int word;
  w32 *ss=GetSSM();
  analTTCB();
- printf("analTTCB finished \n");
+ //printf("analTTCB finished \n");
  for(int i=1;i<Mega;i++){
     word=ss[i];
     for(w32 j=0;j<18;j++){
@@ -902,7 +902,8 @@ void LTUBOARD::ObtainL1ClassPatternFromTTCB(int j, int wordnumber, unsigned long
 
   if (gotL1fully == 0) {
 
-   if (wordnumber == 0)  L1Classes1 =  (unsigned long long) (qttcb[j]->tdata & 0xf) << 60 ;	    
+   if (wordnumber == 0)  L1Classes1 +=  (unsigned long long) (qttcb[j]->tdata & 0xf) << 60 ;
+
    if (wordnumber == 1)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 48 ;
    if (wordnumber == 2)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 36 ;
    if (wordnumber == 3)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 24 ;
@@ -933,57 +934,85 @@ void LTUBOARD::ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long
   //for (int word=j; (unsigned int) j<qttcb.size(); j++) {
     if (!gotL2fully) {
 
-    if (wordnumber == 4) L2Classes1 = (unsigned long long)   (qttcb[j]->tdata         ) << 52 ;
-    if (wordnumber == 5) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 40 ;
-    if (wordnumber == 6) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 28 ;
-    if (wordnumber == 7) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 16 ;
-    if (wordnumber == 8) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 4 ;
+      if (wordnumber == 4) L2Classes1 += (unsigned long long)   (qttcb[j]->tdata         ) << 52 ;
+      if (wordnumber == 5) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 40 ;
+      if (wordnumber == 6) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 28 ;
+      if (wordnumber == 7) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 16 ;
+      if (wordnumber == 8) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 4 ;
 
-    if (wordnumber == 9) {
-      L2Classes1 += (unsigned long long)  (qttcb[j]->tdata & 0xf   )  ;
-      L2Classes2 = (unsigned long long) (qttcb[j]->tdata & 0xff0 ) << 28 ;
-    }
+      if (wordnumber == 9) {
+	L2Classes1 += (unsigned long long)  (qttcb[j]->tdata & 0xf00   )  >> 8;
+      	L2Classes2 += (unsigned long long) (qttcb[j]->tdata & 0x0ff) << 28 ;
+      }
+      if (wordnumber == 10) L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 16 ;      
+      if (wordnumber == 11) L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 4 ;
 
-    if (wordnumber == 10)  L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 16 ;
-    if (wordnumber == 11)  L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 4 ;
-
-    if (wordnumber == 12) {
-      L2Classes2 += (unsigned long long)  (qttcb[j]->tdata & 0xf00 ) >> 8 ;
-      gotL2fully =1;
-    }
+      if (wordnumber == 12) {
+	L2Classes2 += (unsigned long long)  ((qttcb[j]->tdata & 0xf00 ) ) >> 8;
+	gotL2fully =1;
+      }
     }
 
   return;
 
 }
 
+void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx, bool StandAlone, unsigned long long *frequency) {
 
-void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx) {
+  // in global mode 3rd column of L2 table is the frequency of appearances of particular class pattern!!
 
   bool IsInTable =0;
 
-  for (int i=0; i<15; i++) {
+  if (StandAlone) {
+  for (int i=0; i<1000; i++) {
     if ( ((unsigned long long) indexLx) == TableLx[2][i]) {
       IsInTable = 1;
     }
   }
-
-  if (!IsInTable) {
+  if ((!IsInTable) && (StandAlone)) {
     // printf("filling L%i-table with index %llu \n", level, indexLx);
     TableLx[0][indexLx-1] = LxClasses1;
     TableLx[1][indexLx-1] = LxClasses2;
     TableLx[2][indexLx-1] = indexLx;
   }
+  }
+
+  if (!StandAlone) {
+  for (int i=0; i<1000; i++) {
+    if ((TableLx[0][i] == LxClasses1) && (TableLx[1][i] == LxClasses2))  {
+      indexLx = i+1;
+      IsInTable = 1;
+      if (level == 2) frequency[i]++; 
+      TableLx[2][indexLx-1] = frequency[indexLx-1];
+    }
+  }
+
+  if (!IsInTable) {
+    for (int i=0; i<1000; i++) {
+      if (TableLx[0][i] == 0) {
+	indexLx = i+1;
+	break;
+      }
+    }
+    TableLx[0][indexLx-1] = LxClasses1;
+    TableLx[1][indexLx-1] = LxClasses2;
+    if (level == 1) TableLx[2][indexLx-1] = indexLx-1;
+    if (level == 2) frequency[indexLx-1]++;
+    
+  }
+
+  }
+
 
   bool ClassPatternCorrect =1;
 
   if (IsInTable) {
     // printf("Testing TTCB L%i class pattern with SLM \n", level);
     if (TableLx[0][indexLx-1] != LxClasses1) {ClassPatternCorrect = 0; printf("problem with L%iclass \n", level);
-      //  printf("table pattern 1st part : 0x%llu; ttc pattern 1st part : 0x%llu \n", TableLx[0][indexLx-1], LxClasses1);
+    printf("table pattern 1st part : 0x%llx; ttc pattern 1st part : 0x%llx \n", TableLx[0][indexLx-1], LxClasses1);
     }
     if (TableLx[1][indexLx-1] != LxClasses2) {ClassPatternCorrect = 0; printf("problem with L%iclass \n", level);
-      // printf("index: 0x%llu; table pattern 2nd part : 0x%llu; ttc pattern 2nd part : 0x%llu \n", indexLx, TableLx[1][indexLx-1], LxClasses2);
+    printf("index: 0x%llu; table pattern 2nd part : 0x%llx; ttc pattern 2nd part : 0x%llx \n", indexLx, TableLx[1][indexLx-1], LxClasses2);
     }
     //  if (ClassPatternCorrect) printf("OK! \n");
   }
@@ -994,78 +1023,138 @@ void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned lo
 
 }
 
-
 int LTUBOARD::AnalSSM()
 {
-  int ROC=0;
-  int Cluster =0;
+ 
+  CreateRecordSSM();
+  CheckLx(1);  
+  CheckLx(2); 
+
+  return 0;
+}
+
+
+
+int LTUBOARD::AnalSSM_Didier(bool StandAlone)
+{
+  ierror = 0; 
+  int ROC=0; unsigned long long indexROC = 0;
+  int Cluster =0;  unsigned long long indexCluster = 0;
   unsigned long long L1Classes1=0, L2Classes1=0;
   unsigned long long L1Classes2=0, L2Classes2=0;
+  unsigned long long frequency[1000];
+
+  for (int i=0; i<1000; i++) {
+    frequency[i] = 0;
+  }
   
   // declaration of table for class pattern [slm <-> ttcb] consistency tests
   unsigned long long **TableL1 = new unsigned long long *[3];
   for(int i = 0; i < 3; ++i) {
-    TableL1[i] = new unsigned long long[15];
+    TableL1[i] = new unsigned long long[1000];
   }
 
   unsigned long long **TableL2 = new unsigned long long *[3];
   for(int i = 0; i < 3; ++i) {
-    TableL2[i] = new unsigned long long[15];
+    TableL2[i] = new unsigned long long[1000];
   }
 
   for (int i=0; i< 3; i++) {
-    for (int j=0; j<15; j++) {
+    for (int j=0; j<1000; j++) {
       TableL1[i][j] = 0;
       TableL2[i][j] = 0;
     }
   }
 
   CreateRecordSSM();
+  CreateTTCL12();
   // CheckLx(1);  
   // CheckLx(2); 
 
 
+  ////// count the number of L0, L1 and L2 triggers
+
+  int L0trigs = ql0strobe.size();
+  int L1trigs = ql1strobe.size();
+  int L2trigs = ql1strobe.size();
+
+  // to avoid considering an L1 arriving before the first L0 in the SSM
+  unsigned int firstGoodL1 =0;
+  unsigned int FirstL1member =0;
+  bool foundFirstGoodL1 =0;
+  
+  for (int i=0; i<L1trigs; i++) {
+    if (ql1strobe[i] > ql0strobe[0]) {
+      firstGoodL1 = ql1strobe[i];
+      FirstL1member = i;
+      foundFirstGoodL1 = 1;
+    }
+    if (foundFirstGoodL1) break;
+  }
+  ////
+
   // obtain ttcb info
+
 
   unsigned int firstL1headerWord =0;
   bool foundFirstL1Header =0;
   for (unsigned int j=0; j<qttcb.size(); j++) {
-    if (qttcb[j]->ttcode == 1) {
+    if ((qttcb[j]->ttcode == 1)) {
       firstL1headerWord = j;
       foundFirstL1Header =1;
     }
     if (foundFirstL1Header) break;
   }
 
+
   int L1SerialDataWord = 0;
-  int jnumber=0;
-  
-  bool GotL1 =0; bool GotL2 =0;
+  bool L1Header =0;
+  bool GotL1 =0;
+
   for (unsigned int j=firstL1headerWord; j<qttcb.size(); j++) {
     if (!GotL1){
+      if ((qttcb[j]->ttcode == 2) && (!L1Header)) { 
+	ierror++;
+	printf("Error: Too many L1 data words; found L1d when header was expected (SSM bc %i) \n", qttcb[j]->issm); 
+      }
     if (qttcb[j]->ttcode == 1)  { 
-      jnumber++;
-      ROC = ObtainROCfromTTCB(j);
+      L1Header = 1;
+      if (StandAlone) {ROC = ObtainROCfromTTCB(j);}
       ObtainL1ClassPatternFromTTCB(j, L1SerialDataWord, L1Classes1, L1Classes2, GotL1);
     }
-    if (qttcb[j]->ttcode == 2)  {
-      jnumber++;
+    if ((qttcb[j]->ttcode == 2) && (L1Header))  {
       L1SerialDataWord ++;
       ObtainL1ClassPatternFromTTCB(j, L1SerialDataWord, L1Classes1, L1Classes2, GotL1); 
     }
+
+
+    // detect non-complete L1 message : specifically intercepted by L1 header
+    if ((L1SerialDataWord > 1) && (qttcb[j]->ttcode == 1)) {
+      ierror++;
+      printf("ERROR: L1 message was not complete (SSM bc %i) \n", qttcb[j]->issm);
+      printf("L1 header after L1 message word %i \n", L1SerialDataWord+1);
+      GotL1 = 1;
+      L1Header = 1;
+    }
+
+    // detect non-complete L1 message : intercepted by anything else than L1 header
+    if ((L1SerialDataWord > 1) && (qttcb[j]->ttcode > 2)) {
+      ierror++;
+      printf("Error: L1 message too short; interrupted by ttcb-code %i (SSM bc %i) \n", qttcb[j]->ttcode, qttcb[j]->issm);
+      GotL1 = 1;
+      L1Header = 0;
+    }
  
     if (GotL1) {
-      if (jnumber != 9) {
-	printf("Error: the 9 L1 words were intercepted (SSM word: %i) \n", qttcb[j]->issm);
-	ierror++;
-      }
-      unsigned long long indexROC= ROC;
-      FillLxTable(1, L1Classes1, L1Classes2, indexROC, TableL1);
-      jnumber = 0;
+      if (StandAlone) {indexROC= ROC;}
+      FillLxTable(1, L1Classes1, L1Classes2, indexROC, TableL1, StandAlone, frequency);
       GotL1 = 0;
       L1SerialDataWord =0;
       L1Classes1 =0; L1Classes2 =0; ROC =0;
+      L1Header = 0;
     }
+    // fill table when running on global mode
+
 
     }
     
@@ -1075,7 +1164,7 @@ int LTUBOARD::AnalSSM()
   unsigned int firstL2headerWord =0;
   bool foundFirstL2Header =0;
   for (unsigned int j=0; j<qttcb.size(); j++) {
-    if (qttcb[j]->ttcode == 3) {
+    if ((qttcb[j]->ttcode == 3) && (j>firstL1headerWord)) {
       firstL2headerWord = j;
       foundFirstL2Header =1;
     }
@@ -1084,47 +1173,159 @@ int LTUBOARD::AnalSSM()
 
   int L2SerialDataWord = 0;
   bool L2Header =0;
+  bool GotL2 =0;
 
   for (unsigned int j=firstL2headerWord; j<qttcb.size(); j++) {
     if (!GotL2) {
+      if ((qttcb[j]->ttcode == 4) && (!L2Header)) { 
+	ierror++;
+	printf("Error: Too many L2 data words; found L2d when header was expected (SSM bc %i) \n", qttcb[j]->issm); 
+      }
       if (qttcb[j]->ttcode == 3) L2Header = 1;
       if ((qttcb[j]->ttcode == 4) && (L2Header))  {
       L2SerialDataWord ++;
       if (L2SerialDataWord == 3) { 
-	Cluster = ObtainClusterFromTTCB(j); 
+	if (StandAlone) Cluster = ObtainClusterFromTTCB(j); 
       }
       if ((L2SerialDataWord >3) && (L2SerialDataWord <13)) {
 	ObtainL2ClassPatternFromTTCB(j, L2SerialDataWord, L2Classes1, L2Classes2, GotL2);
       }
       }
 
+      //  printf("L1Classes1 %llu, L1Classes2 %llu \n", L1Classes1, L1Classes2);
+      //  printf("L2Classes1 %llu, L2Classes2 %llu \n", L2Classes1, L2Classes2);
+
     // test if L2 message is complete
     if ((L2SerialDataWord != 0) && (qttcb[j]->ttcode == 3)) {
       ierror++;
-      printf("ERROR: L2 message was not complete (SSM word %i) \n", qttcb[j]->issm);
+      printf("ERROR: L2 message was not complete (SSM bc %i) \n", qttcb[j]->issm);
       printf("L2 header after L2 message word %i \n", L2SerialDataWord+1);
       GotL2 =1;
       L2Header = 1;
     }
+
     
 
-    if (GotL2) {
+    if (GotL2)  {
       // printf("L2Classes1, L2Classes2, Cls: 0x%llx 0x%llx 0x%x \n", L2Classes1, L2Classes2, Cluster);
-      unsigned long long indexCluster= Cluster & 0x0f;
+      if (StandAlone) indexCluster= Cluster & 0x0f;
       if (L2SerialDataWord == 12) {
-	FillLxTable(2, L2Classes1, L2Classes2, indexCluster, TableL2);
+	FillLxTable(2, L2Classes1, L2Classes2, indexCluster, TableL2, StandAlone, frequency);
 	L2Header = 0;
       }
       L2SerialDataWord =0;
       L2Classes1 =0; L2Classes2 =0; Cluster =0;
       GotL2 = 0;
-    }
 
+      }
+    
     }
   }
 
 
-  return 0;
+
+  printf("L0 %i, L1 %i, L2 %i \n", L0trigs, L1trigs, L2trigs);
+
+  // error 1: number of L1 is not equal to number of L2 triggers
+
+  if (L1trigs != L2trigs) {
+    ierror++;
+    printf("error, there are %i L1 triggers but %i L2 triggers...\n", L1trigs, L2trigs);
+  } 
+
+  // test distance (in BC) between L0 and L1 triggers - needs to be constant
+  /*  // this is never true in reality, so not necessary!
+  if (L0trigs == L1trigs) {   // this case never happens in 
+    for (int i=0; i<L0trigs; i++) {
+      //printf("distance between L0 and L1 %i \n", ql1strobe[i] - ql0strobe[i]);
+      if ( (ql1strobe[i] - ql0strobe[i]) != (ql1strobe[0] - ql0strobe[0]) ) {
+	ierror++;
+	printf("distance between L0 and L1 triggers is not constant (SSM bc %i) \n", ql1strobe[i]);
+      }
+    }
+  }
+  */
+
+
+
+  // obtain the constant distance between L0 and L1 in BCs
+  // need the first L0 
+
+  unsigned int firstGoodL0 = ql0strobe[0];
+  for (int i=1; i< L0trigs; i++) {
+    if (ql0strobe[i] < firstGoodL1) firstGoodL0 = ql0strobe[i];  // first good L0 comes before the first good L1
+	else break;
+  }
+  unsigned int ConstantL0L1Distance = firstGoodL1 - firstGoodL0;
+
+  printf("L1-L0 %i \n", ConstantL0L1Distance);
+
+  // now test if L0 and L1 are separated by that constant distance in time
+  
+    int L0member =0;
+    bool L0L1assoc =0;
+
+    for (int L1member=FirstL1member; L1member<L1trigs; L1member++) {
+      L0L1assoc =0;
+      for (int j=L0member; j<L0trigs; j++) {
+	if ( (!L0L1assoc) &&  (ql1strobe[L1member] - ql0strobe[j]) != ConstantL0L1Distance) {
+	  if ((j==L0trigs-1) && (!L0L1assoc)) {
+	    ierror++; 
+	    printf("Error: didn't find an L0 corresponding to L1 in SSM bc %i \n", ql1strobe[L1member]);
+	  }
+	  if ((ql1strobe[L1member]>ql0strobe[j]) && ((ql1strobe[L1member]-ql0strobe[j])<ConstantL0L1Distance)) {
+	    ierror++;
+	    printf("Error: distance between L0 and L1 is too short (%i  BCs) \n", ql1strobe[L1member]-ql0strobe[j]);
+	  }
+	}
+	else  if ((ql1strobe[L1member] - ql0strobe[j]) == ConstantL0L1Distance) {
+	    L0L1assoc =1;
+	    L0member = j+1;
+	}
+
+      }
+    }
+  
+
+    // associate every L1 to an L2 
+
+    if (L1trigs != L2trigs) {
+      ierror ++;
+      printf("error: There are %i L1 triggers but %i L2 triggers \n", L1trigs, L2trigs);
+    }
+
+
+
+    if (!StandAlone) {
+
+      for (int i=0; i<1000; i++) {
+
+	if ((TableL1[0][i] != TableL2[0][i]) || (TableL1[1][i] != TableL2[1][i])) {
+	  ierror++;
+	  printf("[error]: L1 Class pattern != L2 Class pattern (table entry number %i) \n", i);
+	  printf("L1Class pattern word 1  0x%llx \n", TableL1[0][i]);
+	  printf("L1Class pattern word 2  0x%llx \n", TableL1[1][i]);
+	}
+
+	/*
+	if (TableL1[1][i] != 0) {
+	  printf("L1Class pattern word 1  0x%llx \n", TableL1[0][i]);
+	  printf("L1Class pattern word 2  0x%llx \n", TableL1[1][i]);
+	  printf("number of appearances   %llu \n", TableL1[2][i]);
+	}
+	*/	
+	if (TableL2[2][i] != 0) {
+	  printf("L2Class pattern word 1  0x%llx \n", TableL2[0][i]);
+	  printf("L2Class pattern word 2  0x%llx \n", TableL2[1][i]);
+	  printf("number of appearances   %llu \n", TableL2[2][i]);
+	}
+	
+      }
+      
+    }
+    
+
+  return L1trigs;
 }
 
 

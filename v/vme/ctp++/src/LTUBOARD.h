@@ -20,7 +20,9 @@ class LTUBOARD: public BOARD
 	void ObtainL1ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L1Classes1, unsigned long long &L1Classes2, bool &gotL1fully);
 	int ObtainClusterFromTTCB(int j);
 	void ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L2Classes1, unsigned long long &L2Classes2, bool &gotL2fully);
-	void FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx) ;
+	void FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx, bool StandAlone, unsigned long long *frequency) ;
+
+	int AnalSSM_Didier(bool StandAlone);
 
         // SSM analysis
         w32 GetSSMBC(w32 issm);
