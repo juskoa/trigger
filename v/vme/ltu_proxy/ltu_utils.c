@@ -179,13 +179,14 @@ PARTITION_NAME[0]='\0';   // has to come with GLOBAL mode
 readcounters(memend, 1);
 if(templtucfg->flags & FLGextorbit) { b2=3; } else { b2=1;};
 setstdalonemode(b2);
+/*
 if(templtucfg->flags & FLGfecmd12) {
   int rc;
   // send FEEcmd 12 for hmpid
   sprintf(msg, "hmpid STDALONE: sending feecmd 12...");
   infolog_trg(LOG_INFO, msg);
   rc= ttcFEEcmd(12);
-};  
+}; */  
 }
 int Setglobalmode() {
 /* initialise ttcvi: */
@@ -222,7 +223,7 @@ return(rc);
 #define WAITBUSYOFF 5000000       // in micsecs (was 3000000 before 24.4.2012 )
 #define WAITBUSY_STEP 200000  
 w32 emustat, waiting=0; w32 waitbusyoff=WAITBUSYOFF;
-int rc, killsodeod;
+int rc, killsodeod,swattmpts;
 char datetime[20];
 char vcfname[180];
   char msg[200];
@@ -243,7 +244,7 @@ SLMsetstart(templtucfg->ltu_LHCGAPVETO);          /* START not selected */
   //readcounters(0);
   //busytime= mem[BUSY_TIMERrp]; busys= mem[BUSY_COUNTERrp];
 SLMstart(); 
-SLMswstart(1,0); usleep(1000);          /* SW trigger */
+SLMswstart(1,0); swattmpts=1; usleep(1000);          /* SW trigger */
 while(1) {
   /* if BUSY is ON, STARTsignal derived from SWtrigger is killed.
    The waiting for 'SOD/EOD success should match the waiting
@@ -253,7 +254,7 @@ while(1) {
   if(emustat == 0) {   
     killsodeod=0; break;  // SOD/EOD was generated
   };
-  SLMswstart(1,0);          /* SW trigger */
+  SLMswstart(1,0); swattmpts++; /* SW trigger */
   usleep(WAITBUSY_STEP);   //give some time for SOD/EOD generation
   waiting=waiting+WAITBUSY_STEP;
   if(waiting > waitbusyoff) {
@@ -263,7 +264,8 @@ while(1) {
 getdatetime(datetime);
 if(killsodeod == 1) {
   SLMquit();
-  sprintf(msg, "%s killed. Waiting:%d micsecs", seqfile, waiting);
+  sprintf(msg, "%s killed after %d attempts, %d micsecs",
+    seqfile, swattmpts, waiting);
   infolog_trg(LOG_ERROR, msg);
   //printf("%s:%s killed. Waiting:%d micsecs\n", datetime, seqfile, waiting);
 } else {

@@ -82,3 +82,10 @@ nearly full condition is set to 208
 21.10.2014
 LTU_T-1_0.rbf -1st version of LTU-T fy (prepared by Sebastian, sebastian.klewin@cern.ch)
 sitting in c26/top crate (alidcsvme004)
+21.10.2014
+ltu_logic_vBA_for_TRD.rbf
+to be loaded into TRD ltu instead of 0xb9, to get it working
+with their LTU-T (i.e. 3 L0out connectors on LTU will deliver diffrent
+signals)
+24.10.2014
+LTU_T-1_0_1.rbf

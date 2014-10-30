@@ -77,7 +77,7 @@ rc:
  1: internal error (syntax in this script)
  4: can't stop ctpproxy (global run active?), leaving it on
  5: can't download from ACT, ctpproxy left off
- 6: not executed on alitri, nothing done
+ 6: not executed on alitri (main trigger server), nothing done
  7: can't start ctpproxy, after ctpproxy stop and ACT download
  8: actrestart expected, nothing done
  9: CTP switch not loaded, ctpproxy left off
@@ -92,18 +92,14 @@ rc:
     hostname= iop.outlines[0]
     print "HOSTNAME:",os.environ.get('HOSTNAME'),"-%s-"%hostname
     #if os.environ.get('VMESITE')=="SERVER" or os.environ.get('VMESITE')==None:
-    if hostname=="pcalicebhm10":
-      os.environ["VMECFDIR"]="/home/dl/root/usr/local/trigger/devel/v/vme"
+    if hostname=="avmes":
+      os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="altri1"
       vmeswitch="trigger@altri2"
       #os.environ["ACT_DB"]= "daq:daq@pcald30/ACT"
-    #elif hostname=="alidcscom026":
-    #  os.environ["VMECFDIR"]="/data/ClientCommonRootFs/usr/local/trigger/v/vme"
-    #  vmectp="alidcsvme001"
-    #  vmeswitch="trigger@alidcsvme004"
-    #  os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
     elif hostname=="alidcscom835":    # alidcscom188
-      os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
+      #os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
+      os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="alidcsvme001"
       vmeswitch="trigger@alidcsvme004"
       #os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
@@ -142,11 +138,12 @@ rc:
           ixl= iop.check("CTP.SWITCH: connected")
           if ixl>=0:
             print iop.outlines[ixl]
-            iop= iopipe("cd $VMECFDIR/pydim ; linux/client CTPRCFG/RCFG intupdate")
+            iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG intupdate")
             if iop.check("Callback: OK")>=0:
-              iop= iopipe("cd $VMECFDIR/pydim ; linux/client CTPRCFG/RCFG aliasesupdate")
+              iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG aliasesupdate")
               if iop.check("Callback: OK")>=0:
-                iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
+                #iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh startnr"%vmectp,"")
                 time.sleep(2)
                 iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
                 if iop.check("TRIGGER::CTP running.")>=0:

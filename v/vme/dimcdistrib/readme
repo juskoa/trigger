@@ -201,3 +201,6 @@ master copy of this directory is kept in v/vme/dimcdistrib
 11.11.2008
 14*6 l1spurious counters added, total number of counters: 970
 12.6.2010 CSTART_TSGROUP counter (in place of BUSY spare just before RUNX counters)
+
+30.10.2014
+dimcdistrib/c++ -server/client example in c++

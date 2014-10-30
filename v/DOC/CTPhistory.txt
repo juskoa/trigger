@@ -330,4 +330,16 @@ ltu_proxy/ltudimservices.c -seems ok (i.e. only 1 thread reading
 ltu counters and shared by all ltuclients).
 13.10.
 avmes ->github->p2
-
+24.10.
+vme/ltut added (development, also compile/link is in trd@alidcsme004)
+27.10.
+ctplib/busyTools.c -bug fixed (bad bytime from run1 reladr, and bakery added)
+27.10.
+vmeb/myw.py frommsL0pr(): L0pr class parameter now checked 0<xx%<100
+29.10.
+hmpid feecmd12 removed (when switching LTU to stdalone in ltu_proxy.c and
+ltu_utils.c)
+ctpproxy.py -should be ok now (still programming CTPswitch and
+starting ctpproxy with: startnr NO READOUT !)
+30.10.
+ddr3 regs added in ctp.h

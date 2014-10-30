@@ -9,7 +9,8 @@ environ= getenv("VMESITE"); sprintf(msg, "%sVMESITE:%s\n", msg, environ);
 environ= getenv("VMEBDIR"); sprintf(msg, "%sVMEBDIR:%s\n", msg, environ);
 environ= getenv("VMECFDIR"); sprintf(msg, "%sVMECFDIR:%s\n", msg, environ);
 environ= getenv("VMEWORKDIR"); sprintf(msg, "%sVMEWORKDIR:%s\n", msg, environ);
-environ= getenv("dbctp"); sprintf(msg, "%sVMEWORKDIR:%s\n", msg, environ);
+environ= getenv("dbctp"); sprintf(msg, "%sdbctp:%s\n", msg, environ);
+environ= getenv("DIM_DNS_NODE"); sprintf(msg, "%sDIM_DNS_NODE:%s\n", msg, environ);
 printf("%s", msg);
 } 
 /*------------------------

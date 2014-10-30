@@ -163,8 +163,8 @@ Examples:
 
 Synchronous downscaling:
 -----------------------
-This option is valid, if L0pr id f=defined by symbolic name.
-Symbolic name has to define n% value (0<n<100) -see Show ->
+This option is valid, if L0pr if defined by symbolic name.
+Symbolic name has to define n% value (0<=n<=100) -see Show ->
 Synchronous downscaling groups
 """
 def frommsL0pr(oldval, newval):
@@ -191,7 +191,11 @@ def frommsL0pr(oldval, newval):
       retval=str(0x80000000 | int(mult/int(retval)/10.))
     elif string.lower(newval[-1])=='%':   # downscaling in %
       pr= newval[:-1]
-      retval= str(int(round((100-float(pr))*0x1fffff/100)))
+      fpr= float(pr)
+      if (fpr<0.0) or (fpr>100.0):
+        retval=None
+      else:
+        retval= str(int(round((100-fpr)*0x1fffff/100)))
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=str(eval(newval))
     else:     # n given directly as int

@@ -228,6 +228,24 @@ bit31=1: 25bits for L0-class busy time in steps of 10micsecs
          i.e. max. busy time: is  cca 5.58 minutes
 LM0: bit25 (not 31) -see RATE_DATABTMr2
  */
+/* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
+Read request:
+1. set REG1
+2. set REG2
+3. The second write will trigger the read operation.
+
+16 VME words (32 bits wide) must be written
+VME addr of DDR3 data write = hex B0 -BF
+*/
+#define DDR3_REG0      0x9280   /* 31..23 readonly: mem_init, rdi_fifo_empty,
+rdi_fifo_has_space, full_flag, ddr3_ext_rd_itf_rdy, ddr3_ext_wr_itf_rdy,
+rst_logic, rd_done, wr_done
+2..0 writeonly: Errors_reset, Logic_reset, DDR3_reset */
+#define DDR3_REG1      0x9284   /* Start address, read operation */
+#define DDR3_REG2      0x9288   /* Number of readings, read operation */
+#define DDR3_REG3      0x928c   /* Start address, write operation */
+#define DDR3_REG4      0x9290   /* Number of writings, write operation */
+
 #define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
                                 /*   fy>=0xAC           4Kwordxx12bits*/

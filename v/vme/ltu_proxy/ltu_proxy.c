@@ -289,7 +289,7 @@ templtucfg= &templtucfgmem;
 /* following done only once in 1st ltu.exe popened:
 ltuDefaults(&ltushm->ltucfg); ttcDefaults(&ltushm->ltucfg); readltuttcdb(&ltushm->ltucfg);
 */
-sprintf(msg, "ltu_proxy started. LTU_SW_VER:%s",LTU_SW_VER); prtLog(msg);
+sprintf(msg, "ltu_proxy started. LTU_SW_VER:%s compiled:%s %s",LTU_SW_VER, __DATE__, __TIME__); prtLog(msg);
 /*--------------------------------------------------------cmdline args: */
 while (1) {
   int this_option_optind = optind ? optind : 1;
@@ -382,6 +382,7 @@ strcpy(ltu_dimservername,"LTU_"); strcat(ltu_dimservername,dimservernameCAP);
 infolog_SetFacility(ltu_dimservername);
 infolog_SetStream(dimservernameCAP,-1);
 printf("Stream:%s Facility:%s\n", dimservernameCAP, ltu_dimservername);
+printenvironment();
 /*---------------------------------------------------------------- DIM */
 initStatic();   // necessary for FineDelay1/2 hw constant calculations
 printf("Starting DIM services (and assigning shared memory)...\n");
@@ -425,9 +426,10 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
   smi_set_state(state);
 } else {
   ltuInit(&ltushm->ltucfg, 1,0);   // executes TTCinit() too
+  /* removed 29.10.2014 (on Manlio Minervini request)
   if(strcmp(dimservername,"hmpid")==0) {
     ltc->flags= ltc->flags | FLGfecmd12;
-  };
+  }; */
   copyltucfg(templtucfg, ltc);
   ltu_configure(0);        /* configure internal variables (BC, etc)  + LTU*/
   vmeclose();

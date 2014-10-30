@@ -22,6 +22,8 @@
 //#define NCOUNTERS_BUSY_L2RS 129  // run1 only:129. 6*4 L2r FO counters (FO1, FO2,...)
 #define NCOUNTERS_BUSY_TSGROUP 153  // active Time sharing class group
 #define NCOUNTERS_BUSY_RUNX1 154  // 6 RUNX counters from here (see dimcoff,dims)
+#define BYTIMERSCOUNTN 44      // 43: run2-bytime  39:run1-bytime see busyTools.c
+#define NCOUNTERS_BUSY_BYTIME 43
 
 #define NCOUNTERS_INT 19 
 #define NCOUNTERS_SPEC 49   /* 2 + 1 + 22 + 24
