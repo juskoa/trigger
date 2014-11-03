@@ -27,9 +27,9 @@ OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
 HFILES =   $(SRCS:.cc=.h)
 .SECONDARY: $(OBJFILES)
 
-#all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e
+all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e
 # debugging
-all: startttc.e readttc.e
+#all: ttcit.e
 #	@echo SRCS    : $(SRCS)
 #	@echo HFILES  : $(HFILES)
 #	@echo OBJFILES: $(OBJFILES)

@@ -16,12 +16,14 @@ class TTCITBOARD: public BOARD
 	void start_stopSSM();
 	int start_stopSSM(LTUBOARD* ltu);
 	int start_stopSSM(BUSYBOARD* bb);
+        void addclasspattern(w32 *pat);
         // SSM analysis
         void ClearQueues();
         int AnalyseSSM();
         void Dump2quSSM();
         void DumptxtSSM();
 	int CompareL1L2Data(w32* l1m,w32* l2m);
+	int CheckClassPatternSSM();
         void Print();
  private:
 	enum{NL1words=9,NL2words=13};
@@ -36,5 +38,6 @@ class TTCITBOARD: public BOARD
         w32 const RESET;
         w32 const RESET_SNAPSHOT_N;
 	deque<ssmrecord*> qttcab;
+        deque<w32*> classpatterns;
 };
 #endif

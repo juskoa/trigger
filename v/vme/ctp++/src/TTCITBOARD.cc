@@ -85,20 +85,15 @@ void TTCITBOARD::start_stopSSM()
   vmew(READ_SSM_WORD,0);
  }
  usleep(10000);
- printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
  //
  resetSSMAddress();
- printf("111\n");
  // tu caka
  while(vmer(READ_SSM_ADDRESS)==0)continue; 
- printf("222\n");
  usleep(50000);
- printf("after reset status: 0x%x\n",getStatus());
  usleep(100000);
- printf("after usleep and control 2 status: 0x%x\n",getStatus());
- printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
- w32 stat=getStatus();
- printf("after usleep and control 3 status: 0x%x\n",stat);
+ //printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ //w32 stat=getStatus();
+ //printf("after usleep and control 3 status: 0x%x\n",stat);
 
  for(int i=0;i<Mega;i++){
   ssm[i]=vmer(READ_SSM_WORD);
@@ -390,6 +385,10 @@ int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
          flag=1;
          printf("Warning: l1 classes different from l2 classes \n");
        }
+       if(l2[i+2] != 0xf){
+         flag=1;
+         printf("Warning: class pattern != 0xf \n");
+      }
     }
     if(flag){
       for(int i=0;i<27;i++)printf("%1x",l1[i]);
@@ -398,6 +397,7 @@ int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
       printf(" l2\n");
       return 1; // to be removed when L2r
     }
+ 
     /*
     for(int im=0;im<NL1words+1;im++){
      printf(" %03x ", L1m[im]);
@@ -482,4 +482,57 @@ void TTCITBOARD::DumptxtSSM()
      printf("%7i %s 0x%1x 0x%3x \n",j,dd.c_str(),header,data);
    }
  }
+}
+/*============================================================================
+ * Text dump for visual debuging
+ */
+int TTCITBOARD::CheckClassPatternSSM()
+{
+ int ret=0;
+ int istart;
+ for(istart =Mega-1;istart>=0;istart--){
+   if(ssm[istart] & 0x10000){
+     w32 header=(ssm[istart]&0xf000)>>12;
+     if(header==3) break;
+   }
+ }
+ printf("First L2h at %i \n",istart);
+ istart++;
+ int il2=NL2words;
+ for(int i =istart-1;i>=0;i--){
+   int j=Mega-1-i;
+   if(ssm[i] & 0x10000){
+     w32 header=(ssm[i]&0xf000)>>12;
+     w32 data=ssm[i]&0xfff;
+     if(header==3){
+       if(il2 != NL2words){
+         printf("Warning: il2= %i at %i \n",il2,j);
+         return 1;
+       }else{
+         il2=1;
+       }     
+     }else if(header==4){
+        il2++;
+        if(il2<5){
+	  continue;
+        }else if (il2<13){
+          if(data != 0xfff){
+            printf("Warning: data= 0x%x at %i \n",data,j);
+            return 1;
+          }
+        }else if(il2==13){
+          if(data != 0xf00){
+            printf("Warning: data= 0x%x at %i \n",data,j);
+            return 1;
+          }
+        } else {
+          printf("Too many data: il2=%i at %i \n",il2,j);
+	  return 1;
+        }
+     }else{
+       continue;
+     }
+   }
+ }
+ return ret;
 }
