@@ -72,3 +72,47 @@ void L1BOARD::printClasses()
     if((i+1)%10 == 0)printf("\n");
  }
 }
+//---------------------------------------------------------------------
+// Checking classes against 1 - to be removed ot generalised
+//
+int L1BOARD::AnalSSM()
+{
+ int rc=0;
+ w32 sl0strobech,sl0datach;
+ if((sl0strobech=getChannel("l0strobe"))>32)rc=1;
+ if((sl0datach  =getChannel("l0data"))>32)rc=1;
+ if(rc){
+   printf("Error in L1BOARD:AnalSSM: channels not found.\n");
+   return 1;
+ }
+ printf("L1BOARD:AnalSSM: l0strobe, l1data channels %i %i\n",sl0strobech,sl0datach);
+
+ w32 classlow[50],classhigh[50];
+ w32 *sm=GetSSM();
+ int i=0;
+ int L0L0=260;
+ int l0issm=-L0L0;
+ while(i<Mega){
+   int j=0;
+   if(bit(sm[i],sl0strobech)){
+     if((i-l0issm) < L0L0){
+       printf("L1BOARD::AnalSSM: Error L0L0 time violation at %i \n",i);
+       rc=1;
+     }
+     l0issm=i;
+     i++;
+     while((j<50) && (i+j)< Mega){
+      classlow[j]=bit(sm[i+j],sl0strobech);
+      classhigh[j]=bit(sm[i+j],sl0datach);
+      //printf("%i %i %i %i\n",i,j,classlow[j],classhigh[j]);
+      if((classlow[j] != 1) || (classhigh[j] != 1)){
+        //printf("classes !=1 at %i \n",i+j);
+        rc=1;
+      }
+      j++;
+     }
+   }
+   i=i+j+1;
+ }
+ return rc;
+}

@@ -55,9 +55,33 @@ void FOBOARD::SetFile(string const &modename)
  }
 
 }
-
-void FOBOARD::AnalSSMinmonl2()
+int FOBOARD::L2DataOut(char focon)
 {
- 
+ int rc=0;
+ w32 sl2strobech,sdatach;
+ string l2strobename("l2strobe[");
+ l2strobename = l2strobename+focon+"]";
+ if((sl2strobech=getChannel(l2strobename))>32)rc=1;
+ string l2dataname("l2data[");
+ l2dataname = l2dataname+focon+"]";
+ if((sdatach=getChannel(l2dataname))>32) rc=1;
+ if(rc){
+   printf("Error in FOBOARD::L2DataOut: channels not found.\n");
+   return 1;
+ }
+ printf("L2DataOut: %i %i \n",sl2strobech,sdatach);
+ return 0;
+}
+int FOBOARD::AnalSSMinmonl1()
+{
+ return 0;
+}
+
+int FOBOARD::AnalSSMinmonl2()
+{
+ L2DataBackplane();
+ printL2DataBackplane();
+ //L2DataOut('4');
+ return 0;
 }
 

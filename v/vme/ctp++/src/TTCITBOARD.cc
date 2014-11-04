@@ -496,7 +496,8 @@ int TTCITBOARD::CheckClassPatternSSM()
      if(header==3) break;
    }
  }
- printf("First L2h at %i \n",istart);
+ printf("First L2h at %i %i \n",Mega-istart,istart);
+ if(istart<0) return 1;
  istart++;
  int il2=NL2words;
  for(int i =istart-1;i>=0;i--){

@@ -176,7 +176,8 @@ int LTUBOARD::AnalTotalSSM2()
  // Constants
  w32 L0L1=260;
  //w32 L0L2=4149;  // LTU
- w32 L0L2=4150;  // LTU
+ //w32 L0L2=4150;  // LTU
+ w32 L0L2=4259;  // LTU
  //w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
  //int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
  //int L2dSSMOffset=44; // LTU
@@ -219,7 +220,7 @@ int LTUBOARD::AnalTotalSSM2()
      l2first++;
  }
  if(l2first==l2size){
-  printf("Error: First L2 strobe not found. \n");
+  printf("Error: First L2 strobe not found. check L0L2 time \n");
   ierror++;
   return 1;
  }else{
@@ -306,7 +307,7 @@ int LTUBOARD::AnalTotalSSM2()
   //w32 orbitl2=(dwords2[1]<<12)+dwords2[2];
   //CheckL2TTC(bcl2da,dwords2[1],dwords2[2],l2bc);
   //CheckL2TTC(dwords2,l2bc);
-  CheckL2TTC(il2t,dwords2,l2bc);
+  if(CheckL2TTC(il2t,dwords2,l2bc)) return 1;
   il0++;il1++,il2++;il1d++;il2d++;il2t++;
  }
  printf("# of L0 strobe: %i \n",l0size);
@@ -457,15 +458,18 @@ int LTUBOARD::CheckL2TTC(w16* dataser,w32 issm)
  return 0;
 }
 // Compares only one message, so missing or extra is detected
+// Check data against 0xfff - to be removed or modified generally
 int LTUBOARD::CheckL2TTC(w32 ittc,w16* dataser,w32 issm)
 {
  //printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",bcid,orbit1,orbit2);
  w16* data=qttcL2[ittc]->sdata;
- bool err=0;
+ int err=0;
  for(w32 i=0;i<NL2words;i++){
    err |= (dataser[i] != data[i]);
+   if((i>3) && (i<12) && (dataser[i] != 0xfff))err=1024;
+   if((i==13) && (dataser[i] != 0xf00))err=2048;
    if(err){
-    printf("Error: TTC and serial data diff: i=%i ",i);
+    printf("Error: TTC and serial data diff: err=%i i=%i ",err,i);
     for(w32 k=0;k<NL2words;k++)printf("%x %x :",dataser[k],data[k]);
     printf("\n");
     //printf("CheckTTC L2 BC= 0x%x ORB= 0x%x%x \n",dataser[0],dataser[1],dataser[2]);

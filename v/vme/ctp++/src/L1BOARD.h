@@ -13,11 +13,12 @@ class L1BOARD: public BOARD
         // L1 counters starts at 300 in cnames
         // CL0CLST - pointer on T cluster - for 8 clusters check cnames
 	enum{CL1TIME=5, CL1STRIN=35, CL1STROUT=36, CL1CLSB=40, CL1CLSA=140, CL1CLST=241};
+	// SSM
+	int AnalSSM();
  private:
          // vme addresses
          w32 const L1CONDITION;
          w32 const L1INVERT;
          w32 const L1DELAYL0;
-
 };
 #endif

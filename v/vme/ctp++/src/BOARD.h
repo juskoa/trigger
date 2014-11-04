@@ -45,10 +45,7 @@ class BOARD: public BOARDBASIC
 	 void L2DataBackplane();
 	 void printL2DataBackplane();
 	 deque<L2Data>& getL2DataBackplaneList(){return ql2backplane;};
-	 void L2DataSerial(int ch1,int ch2);
-	 void printL2Serial();
 	 deque<L2Data>& getL2SerialList(){return ql2backplane;};
-         //deque<qorbit>& getSSMorbit(){return qorbit;};
 	 enum {kNClasses=100};
          enum {NCOUNTERS_MAX=300};
  protected:

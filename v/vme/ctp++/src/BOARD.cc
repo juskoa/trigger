@@ -434,6 +434,7 @@ int BOARD::SetMode(w32 const modecode) const
    }
    rc= setomvspSSM(modecode&3);
  }else
+   printf("setomSSM: 0x%x \n",modecode);
    rc= setomvspSSM(modecode);   //CTP Board
  //ssmmode=modecode;
  return rc;
@@ -469,10 +470,10 @@ void BOARD::L2DataBackplane()
  if((sdata1ch=getChannel("l2data1"))>32) rc=1;
  if((sdata2ch=getChannel("l2data2"))>32) rc=1;
  if(rc){
-   printf("Error in getL2aList: channels not found.\n");
+   printf("Error in L2DataBackplane: channels not found.\n");
    return;
  }
- printf("compareL2aCTPreadout: l2strobe l2data1 l2data2 channels= %i %i %i\n",sl2strobech,sdata1ch,sdata2ch);
+ printf("L2dataBackplane: l2strobe l2data1 l2data2 channels= %i %i %i\n",sl2strobech,sdata1ch,sdata2ch);
  L2Data L2a,ORBIT;
  clearL2Data(L2a);
  clearL2Data(ORBIT);

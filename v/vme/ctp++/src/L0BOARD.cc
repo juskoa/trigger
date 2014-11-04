@@ -5,7 +5,8 @@ L0BOARD::L0BOARD(int vsp)
 	L0CONDITION(0x400),
 	L0INVERT(0x600),
 	L0VETO(0x900),
-	L0MASK(0xb00)
+	L0MASK(0xb00),
+	SCALED_1(0x5dc),SCALED_2(0x5e0)
 {
   this->AddSSMmode("inmon",0); 
   this->AddSSMmode("outmon",1); 
@@ -121,4 +122,10 @@ void L0BOARD::printClasses()
     printf("%i  0x%x 0x%x \n",i+1,cond,veto);
     //if((i+1)%10 == 0)printf("\n");
  }
+}
+//-----------------------------------------------------------------------------------
+//
+int L0BOARD::AnalSSM()
+{
+ return 0;
 }

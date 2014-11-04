@@ -10,7 +10,9 @@ class FOBOARD: public BOARD
 	// FO counters start at 900
 	enum{CTIME=0};
 	//
-	void AnalSSMinmonl2();
+	int L2DataOut(char focon);
+	int AnalSSMinmonl2();
+	int AnalSSMinmonl1();
  private:
 	void SetFile(string const &modename); 
 };

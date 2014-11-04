@@ -1,7 +1,6 @@
 #include "TTCITBOARD.h"
 int main(){
  w32 err=0;
- //CTP ctp;
  int vmesp=-1;
  string boardname("ttcit");
  TTCITBOARD *ttc= new TTCITBOARD(boardname.c_str(),0x8a0000,vmesp);

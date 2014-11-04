@@ -10,6 +10,7 @@ int main(int argc,char **argv){
  if(argv[1][0]=='0')add=0x810000;
  else if(argv[1][0]=='1')add=0x811000;
  else if(argv[1][0]=='2')add=0x812000;
+ else if(argv[1][0]=='3')add=0x813000;
  else{
   printf("Unknown ltu, please, use x={0,1 ,2} for 0x81x000 \n");
   return 1;
