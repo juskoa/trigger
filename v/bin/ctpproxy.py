@@ -142,8 +142,8 @@ rc:
             if iop.check("Callback: OK")>=0:
               iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG aliasesupdate")
               if iop.check("Callback: OK")>=0:
-                #iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
-                iop= iopipe("ssh -2 -q %s ctpproxy.sh startnr"%vmectp,"")
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
+                #iop= iopipe("ssh -2 -q %s ctpproxy.sh startnr"%vmectp,"")
                 time.sleep(2)
                 iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
                 if iop.check("TRIGGER::CTP running.")>=0:
