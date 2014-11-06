@@ -2,7 +2,7 @@
 
 Summary: ltuclient - Alice TRIGGER software
 Name: ltuclient
-Version: 2.10
+Version: 2.11
 Release: 1
 #Copyright: Alice_TRG
 License: Alice_TRG

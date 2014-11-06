@@ -342,4 +342,9 @@ ltu_utils.c)
 ctpproxy.py -should be ok now (still programming CTPswitch and
 starting ctpproxy with: startnr NO READOUT !)
 30.10.
-ddr3 regs added in ctp.h
+ddr3 regs added in ctp.h, first simple tests with ddr3 (button DDR3 in ctp
+exp. available)
+30.10.
+ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
+5.11.
+DDR3 basics (ctp.c) prepared. Random test with 64MB ok

@@ -829,9 +829,8 @@ class MywBits:
           self.rbatr[bitn]= [msk,lng]
           self.cv[bitn].set(0)
           for ixrb in range(rbits):
-          self.cv[bitn].set((self.value&msk)>>bitn)
-          self.menu.add_radiobutton(text=
-            variable=self.cv[bitn],
+            self.cv[bitn].set((self.value&msk)>>bitn)
+          self.menu.add_radiobutton(textvariable=self.cv[bitn],\
             state=endistate, command=self.mcmd)
           skipuntil=bitn+lng-1
         else:

@@ -203,3 +203,6 @@ ltudimservices.c changed: "TTCinit()" checked (before: "TTCinit(" -
 this caused ltuproxy crash in case DIM DO command send without NL)
 9.10.
 ltu counters: read once per sec, shared for all DIM clients (see CTPhistory)
+30.10.
+ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
+

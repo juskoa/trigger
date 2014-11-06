@@ -230,21 +230,26 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
  */
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
 Read request:
+------------
 1. set REG1
-2. set REG2
-3. The second write will trigger the read operation.
+2. set REG2  -this second write will trigger the read operation.
 
+Write request:
+-------------
 16 VME words (32 bits wide) must be written
-VME addr of DDR3 data write = hex B0 -BF
+VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 */
-#define DDR3_REG0      0x9280   /* 31..23 readonly: mem_init, rdi_fifo_empty,
-rdi_fifo_has_space, full_flag, ddr3_ext_rd_itf_rdy, ddr3_ext_wr_itf_rdy,
-rst_logic, rd_done, wr_done
-2..0 writeonly: Errors_reset, Logic_reset, DDR3_reset */
-#define DDR3_REG1      0x9284   /* Start address, read operation */
-#define DDR3_REG2      0x9288   /* Number of readings, read operation */
-#define DDR3_REG3      0x928c   /* Start address, write operation */
-#define DDR3_REG4      0x9290   /* Number of writings, write operation */
+#define DDR3_CONF_REG0      0x9280   /* 31..23 readonly: 
+31..28: mem_init,            rdi_fifo_empty,      rdi_fifo_has_space, full_flag, 
+27..24: ddr3_ext_rd_itf_rdy, ddr3_ext_wr_itf_rdy, rst_logic,          rd_done, 
+    23: wr_done
+ 2.. 0: writeonly: Errors_reset, Logic_reset, DDR3_reset */
+#define DDR3_CONF_REG1      0x9284   /* Start address, read operation */
+#define DDR3_CONF_REG2      0x9288   /* Number of readings, read operation */
+#define DDR3_CONF_REG3      0x928c   /* Start address, write operation */
+#define DDR3_CONF_REG4      0x9290   /* Number of writings, write operation */
+
+#define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
 
 #define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
@@ -296,18 +301,18 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 //----------------- 
 
 /*----------------- LM0. The block of L0 addresses see above...
-#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
-#define L0_INTERACT2   0x95c0
-#define L0_INTERACTT   0x95c4
-#define L0_INTERACTSEL 0x95c8
+#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> see L0LM0DIFF
+#define L0_INTERACT2   0x9208
+#define L0_INTERACTT   0x920c
+#define L0_INTERACTSEL 0x9210
                             
-#define L0_FUNCTION1   0x95cc
-#define L0_FUNCTION2   0x95d0
-#define RANDOM_1       0x95d4
-#define RANDOM_2       0x95d8
-#define SCALED_1       0x95dc
-#define SCALED_2       0x95e0
-#define ALL_RARE_FLAG  0x95e4
+#define L0_FUNCTION1   0x9214
+#define L0_FUNCTION2   0x9218
+#define RANDOM_1       0x921c
+#define RANDOM_2       0x9220
+#define SCALED_1       0x9224
+#define SCALED_2       0x9228
+#define ALL_RARE_FLAG  0x922c
 */
 //----------------- 
 //
@@ -439,6 +444,16 @@ deliberately after REGEND becasue it is different for L0/LM0*/
 #define RATE_MASKr2 0x03ffffff   /* firmware C0: bit25:0 rnddownscale */
 #define RATE_DATABTM    0x80000000   // where class mask is 
 #define RATE_DATABTMr2  0x2000000
+
+#define DDR3_mem_init 0x80000000
+#define DDR3_rdi_fifo_empty 0x40000000
+#define DDR3_rdi_fifo_has_space 0x20000000
+#define DDR3_full_flag 0x10000000
+#define DDR3_rd_itf_rdy 0x8000000
+#define DDR3_wr_itf_rdy 0x4000000
+#define DDR3_rst_logic 0x2000000
+#define DDR3_rd_done 0x1000000
+#define DDR3_wr_done 0x0800000
 
 #define MAXL0REGS 7
 typedef struct{

@@ -13,6 +13,7 @@ Contents: */
 /*---------------------------------------------------------------- L0-tests */
 /*---------------------------------------------------------------- busy-tests */
 /*---------------------------------------------------------------- ADC-tests */
+/*---------------------------------------------------------------- DDR3 */
 /*---------------------------------------------------------Flash/FPGA */
 /*-------------------------------------------------------- all the boards */
 /* history:
@@ -730,6 +731,7 @@ if(what<10) {
 };
 }
 
+#define RNLXMASK 0xffffffff
 /*FGROUP L0
 check spy memory (256 words from 0x9400 on L0 board )
 Operation: 
@@ -738,7 +740,6 @@ Operation:
 - write 0s to all the 256 words
 */
 void clearSPY(int board) {
-#define RNLXMASK 0xffffffff
 int bb, ix; w32 rnd, data;
 bb= BSP*ctpboards[board].dial;
 setseeds(7,3);
@@ -1198,6 +1199,288 @@ printf("updated TL2 L2_DELAY_L1 FO_DELAY_L1CLST L2_BCOFFSET:%d: %d %d %d\n",
   tl2get, l2l1, fo, l2off);
 }
 
+/*---------------------------------------------------------------- DDR3 */
+#define DDR3_TO 30
+#define DDR3_BLKL 16
+w32 seqdata[16];
+/*FGROUP DDR3 
+Enable DDR3, i.e.:
+vmew32(DDR3_CONF_REG0, 0x7);   // not needed aftr power-up
+vmew32(DDR3_CONF_REG0, 0x4);   // 0x4: Errors_reset
+vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_rest, Logic_reset, DDR3_reset
+streg= vmer32(DDR3_CONF_REG0); 
+*/
+void ddr3_reset() {
+w32 streg;
+vmew32(DDR3_CONF_REG0, 0x7);   // not needed aftr power-up
+vmew32(DDR3_CONF_REG0, 0x4);   // 0x4: Errors_reset
+vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_rest, Logic_reset, DDR3_reset
+streg= vmer32(DDR3_CONF_REG0);   // 0 to: Errors_rest, Logic_reset, DDR3_reset
+printf("DDR3_CONF_REG0: 0x%x (expected: 0xec000000)\n", streg);
+}
+/*FGROUP DDR3 
+read DDR3_CONF_REG0
+*/
+void ddr3_status() {
+int ix; w32 val;
+char txflags[300]="";
+const char *txflg[32]= {"?","?","?","?","?","?","?","?","?","?",
+"?","?","?","?","?","?","?","?","?","?",
+"?","?","?",
+"wr_done", "rd_done", "rst_logic", "ddr3_ext_wr_itf_rdy", "ddr3_ext_rd_itf_rdy",
+"full_flag", "rdi_fifo_has_space", "rdi_fifo_empty", "mem_init"};
+val= vmer32(DDR3_CONF_REG0);
+sprintf(txflags, "DDR3_CONF_REG0:0x%x =", val);
+for(ix=31; ix>=23; ix--) {
+  w32 valix;
+  valix= val>>ix;
+  //printf("val:0x%x ix:%d val>>ix:0x%x\n", val, ix, valix);
+  if((valix & 0x1)==0x1) {
+    sprintf(txflags, "%s\n%2d:%s", txflags, ix, txflg[ix]);
+    //strcat(txflags, txflg[ix]); strcat(txflags, " ");
+  };
+}; printf("%s\n", txflags);
+}
+int ddr3_wrdone() {
+int irep; w32 status;
+irep=0;
+do {
+  if(irep>DDR3_TO) {
+    printf("wrdone error: status: 0x%x\n", status);
+    return(1);
+  };
+  status= vmer32(DDR3_CONF_REG0); irep++;
+} while((status & DDR3_wr_done) == 0);
+return(0);
+};
+int ddr3_rddone() {
+int irep; w32 status;
+irep=0;
+do {
+  if(irep>DDR3_TO) {
+    printf("rddone error: status: 0x%x\n", status);
+    return(1);
+  };
+  status= vmer32(DDR3_CONF_REG0); irep++;
+} while((status & DDR3_rd_done) == 0);
+return(0);
+}
+/*FGROUP DDR3 
+Read DDR3  16 words from DDR3.
+blockad: 0,1,2,...  corresponds to ddr3 addrees 0,16,32,... in 32bits words
+       block length: 512 bits
+*/
+void ddr3_r16test(int blockad) {
+int rc,ix, nwords;
+nwords=16;
+vmew32(DDR3_CONF_REG1, blockad*8);  
+vmew32(DDR3_CONF_REG2, 1);
+rc= ddr3_rddone(); if(rc!=0) return;
+for(ix=0; ix<nwords; ix++) {
+  if((ix%16)==0) {
+    //vmew32(DDR3_CONF_REG1, 0);
+    //vmew32(DDR3_CONF_REG2, nwords);
+    printf("reading 16 words starting by DDR3_BUFF_DATA ...\n");
+  };
+  printf("%3d: 0x%x\n", ix, vmer32(DDR3_BUFF_DATA+ix*4));
+};
+}
+/*FGROUP DDR3 
+Write 16 words to DDR3 from blockad.
+block: 0,1,2,...  corresponds to ddr3 addreses 0,16,32,... in 32bits words
+       block length: 512 bits
+*/
+void ddr3_w16test(int blockad) {
+int rc,ix; w32 val;
+setseeds(7,3);
+for(ix=0; ix<16; ix++) {
+  int ix2;
+  val= ix; for(ix2=0; ix2<3; ix2++) { val= (val<<4) | (ix); };
+  seqdata[ix]= val;
+};
+vmew32(DDR3_CONF_REG3, blockad*8);   // from this block, (in 64bit words),
+vmew32(DDR3_CONF_REG4, 1);       // number of blocks (512 bits)
+for(ix=0; ix<16; ix++) {
+  //int ix2; float fval;
+  // 0..f:
+  //val= ix; for(ix2=0; ix2<7; ix2++) { val= (val<<4) | (ix); };
+  // random vals:
+  // 0x00 at the end of val:
+  //fval= RNLXMASK* rnlx(); val= rounddown(fval);
+  // 0xff at the end of val:
+  val= RNLXMASK* rnlx();
+  val= (blockad<<16) | seqdata[ix];
+  vmew32(DDR3_BUFF_DATA+ix*4, val);
+  printf("%3d written 0x%x\n", ix, val);
+  //if((ix%16)==0) {
+};
+/* following 2 lines here does not work:
+vmew32(DDR3_CONF_REG3, blockad);   // from this block
+vmew32(DDR3_CONF_REG4, 1);       // number of blocks
+block0 write finishes:
+ddr3_w16test( 0) 
+ Error: status: 0xec000000
+*/
+rc= ddr3_wrdone();
+}
+/* Read DDR3 nws words, reading in 16 32bit-words blocks from ddr3 
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
+mem_ad:  pointer to w32[] array
+nws:     number of 32bit words to be read from ddr3 
+*/
+int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws) {
+int rc, ix, iblks, llb, blocks, block0;
+// calculate number of full blocks and length of the last block:
+blocks= nws/DDR3_BLKL; llb= nws % DDR3_BLKL; block0= ddr3_ad/2;
+for(iblks=0; iblks<blocks; iblks++) {
+  int cra;
+  cra= block0+iblks*8;
+  vmew32(DDR3_CONF_REG1, cra);
+  vmew32(DDR3_CONF_REG2, 1);
+  rc= ddr3_rddone(); if(rc!=0) return(rc);
+  //printf("ddr3_read: 16 words from ddr3_ad:0x%x cra:%d ...\n", ddr3_ad, cra);
+  for(ix=0; ix<DDR3_BLKL; ix++) {
+    *mem_ad= vmer32(DDR3_BUFF_DATA+ix*4);
+    mem_ad++;
+  };
+};
+if( llb>0 ) {   // arrange dummy reads for last block
+  int cra;
+  cra= block0+blocks*8;
+  vmew32(DDR3_CONF_REG1, cra);
+  vmew32(DDR3_CONF_REG2, 1);
+  rc= ddr3_rddone(); if(rc!=0) return(rc);
+  //printf("ddr3_read:last block len:%d cra:%d ...\n", llb, cra);
+  for(ix=0; ix<DDR3_BLKL; ix++) {
+    if( ix<llb ) {
+      *mem_ad= vmer32(DDR3_BUFF_DATA+ix*4);
+      mem_ad++;
+      //printf("%3d read 0x%x\n", ix, *mem_ad);
+    } else {
+      w32 dummyr;
+      dummyr= vmer32(DDR3_BUFF_DATA+ix*4);
+      //printf("%3d dummy read 0x%x\n", ix, dummyr);
+    };
+  };
+};
+return(rc);
+}
+/* Write nws words to DDR3, writing 16 32bit-words blocks, last one
+ * padded by 0s.
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
+mem_ad:  pointer to w32[] array
+nws:     number of 32bit words to be written
+*/
+int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws) {
+int rc, ix, iblks, llb, blocks, block0;
+// calculate number of full blocks and length of the last block:
+blocks= nws/DDR3_BLKL; llb= nws % DDR3_BLKL; block0= ddr3_ad/2;
+for(iblks=0; iblks<blocks; iblks++) {
+  int cra;
+  cra= block0+iblks*8;
+  vmew32(DDR3_CONF_REG3, cra);
+  vmew32(DDR3_CONF_REG4, 1);
+  //printf("ddr3_write:16 words from ddr3_ad:0x%x cra:%d ...\n", ddr3_ad, cra);
+  for(ix=0; ix<DDR3_BLKL; ix++) {
+    vmew32(DDR3_BUFF_DATA+ix*4, *mem_ad);
+    mem_ad++;
+    //printf("%3d written 0x%x\n", ix, val);
+  };
+  rc= ddr3_wrdone(); if(rc!=0) return(rc);
+};
+if( llb>0 ) {   // last block padded with 0s:
+  int cra;
+  cra= block0+blocks*8;
+  vmew32(DDR3_CONF_REG3, cra);
+  vmew32(DDR3_CONF_REG4, 1);
+  //printf("ddr3_write:last block len:%d cra:%d ...\n", llb, cra);
+  for(ix=0; ix<DDR3_BLKL; ix++) {
+    if( ix<llb ) {
+      vmew32(DDR3_BUFF_DATA+ix*4, *mem_ad);
+      mem_ad++;
+    } else {
+      vmew32(DDR3_BUFF_DATA+ix*4, 0);
+    };
+    //printf("%3d written 0x%x\n", ix, val);
+  };
+  rc= ddr3_wrdone(); if(rc!=0) return(rc);
+};
+return(rc);
+}
+w32 *bigarray;
+
+/*FGROUP DDR3 
+write,read,compare
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). If not,
+         it will be rounded down
+nws: number of words (1word: 32 bits). n*16, if not
+     rounded up for allocation, but test done for nws words
+     only
+Notes: SSM is 2GB, max. allocated memory:
+i.e. ddr3 chunks:
+0..   1MB  0, 0x40000
+1..   2MB  0x40000, 0x40000
+0..  16MB  0, 0x400000     cca 4.4 secs writing, 5.7secs reading
+0..  64MB  0, 0x1000000        17 secs           23 secs
+0.. 256MB  0, 0x4000000
+0.. 512MB  0, 0x8000000
+*/
+void ddr3_wr_test(w32 ddr3_ad, int nws) {
+int rc, nws2, nerr=0, ix; w32 ddr3_adcor;
+w32 tsec1,usec1,tsec2,usec2, usecs;
+ddr3_adcor= ddr3_ad/16; ddr3_adcor= ddr3_adcor*16;
+nws2= (nws-1)/16; nws2= (nws2+1)*16;
+bigarray= (w32 *)malloc(nws2*4);   // allocate n*16
+if(bigarray==NULL) {
+  printf("0x%x (%d) not allocated\n", nws2, nws2);
+  return;
+};
+setseeds(7,3);
+for(ix=0; ix<nws2; ix++) {
+  w32 val;
+  val= RNLXMASK* rnlx();
+  bigarray[ix]= val;
+};
+printf("0x%x (%d) 32bits words allocated + initialised, writing %d words to ddr3 from %x (%d)....\n",
+ nws2, nws2, nws, ddr3_adcor, ddr3_adcor);
+GetMicSec(&tsec1, &usec1);
+//ddr3_reset();   reset: destroying memory content!
+rc= ddr3_write(ddr3_adcor, bigarray, nws);  
+if(rc!=0) {
+  return;
+};
+GetMicSec(&tsec2, &usec2); usecs= DiffSecUsec(tsec2,usec2,tsec1,usec1);
+printf("writing time: %d usecs\n", usecs);
+printf("reading %d words...\n", nws);
+
+GetMicSec(&tsec1, &usec1);
+rc= ddr3_read(ddr3_adcor, bigarray, nws);
+GetMicSec(&tsec2, &usec2); usecs= DiffSecUsec(tsec2,usec2,tsec1,usec1);
+printf("reading time: %d usecs\n", usecs);
+if(rc!=0) {
+  return;
+};
+printf("testing %d words...\n", nws);
+setseeds(7,3);
+for(ix=0; ix<nws; ix++) {   // should be nws
+  w32 val;
+  val= RNLXMASK* rnlx();
+  if(ix<5) {
+    if(ix==0) {
+      printf("first words, just to see rnd values generation...\n");
+    };
+    printf("%d: 0x%x\n", ix, val);
+  };
+  if(bigarray[ix] != val) {
+    if(nerr<10) {
+      printf("Error at %d: read:%x expected:0x%x\n", ix, bigarray[ix], val);
+    };
+    nerr++;
+  };
+};
+printf("errors:%d, releasing memory...\n", nerr);
+free(bigarray);
+}
 /*FGROUP Common
    rc: 0 -board ix is in the crate 
        1 -board ix is not in the crate

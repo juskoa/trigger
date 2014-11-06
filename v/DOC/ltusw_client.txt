@@ -97,14 +97,15 @@ History:
 vmebltu.tar + .rpm prepared, but not published on web
 23.01.2014 ltu.h LTU_SW_VER 5.0   
 
-2. How to prepare ltuclient distribution   in trigger@pcalicebhm10
+2. How to prepare ltuclient distribution   in trigger@pcalicebhm10 (avmes for
+2.11)
 ----------------------------------------
 - modify LTU_CLIENT_VERSION string constant in v/vme/ltudim/ltuclient.c
   in:
   - v/vme/ltudim/ltuclient.c
     COMPILE/LINK:  
     cd v/vme/ltudim ; make
-    -should be modified/done on x86_64 machine with v.2.8
+    -should be modified/done on x86_64 machine from v.2.8
   - v/bin/distrdimclient  (VERSION here)
   - v/SPECS/ltuclient.spec   (Version: here)
     Note: ~/rpmbuild/RPMS/ltuclient.spec -> to $VMECFDIR/../v/SPECS/
@@ -119,7 +120,9 @@ cd ~/rpmbuild/SPECS
 $VMECFDIR/../bin/distrdimclient distrib
    ->prepares ltuclient-VERSION.src.tar.gz in ~rpmbuild/SOURCES
 script -c 'rpmbuild -ba ltuclient.spec' ~/ltuclient.log
-scp ../RPMS/ltuclient-2.10-1.x86_64.rpm aj@pcalicebhm11:Downloads/
+scp ../RPMS/ltuclient-2.11-1.x86_64.rpm aj@pcalicebhm11:Downloads/
+scp ../RPMS/ltuclient-2.11-1.x86_64.rpm jusko1@lxplus:t/
+scp ../RPMS/ltuclient-2.11-1.x86_64.rpm juskoa@lxplus:www/ltu/
 
 root@pcalicebhm11:
 rpm -e ltuclient
@@ -148,6 +151,7 @@ history:
 2.9  17. 4.2013 ltuclient-2.9-2.x86_64.rpm         (64 bit support)
      17. 1.2014 just repeated
 2.10 23. 1.2014 bug (2.9 is without slmdefs.py), minor problems fixed
+2.11 30.10.2014 ltu counters 1sec readings, increments calculated in client
 
 installation:
   move: 

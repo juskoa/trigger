@@ -600,7 +600,10 @@ class VmeRW:
     if len(items)>0:
       rt= vboard.findvmeregtyp(items[0][0])
       defx={"w8":0, "w16":1,"w32":2}[rt]
-      self.adrmenu=MywMenu81632(adrframe, items=items,side='right', helptext="""Symbolic name of VME register. 
+      helptext="""Symbolic name of VME register.
+"""
+      if vboard.boardName=='ctp':
+        helptext= helptext+"""
 For some CTP registers add:
 0x8000  for BUSY board
 0x9000  for L0   board
@@ -610,7 +613,37 @@ For some CTP registers add:
 0x1000  for FO1  board
 0x*000  for FO*  board
 0x6000  for FO6  board
-""")
+
+
+NOTE1 for L0: 
+Addresses ending r2 or lm0 (e.g. MASK_MODEr2) are different for
+L0 vs. LM0 board. Choose correct one, according to the currently plugged board
+(r2/lm0 to be used with LM0 board. Addresses without r2/lm0 suffix
+are the same for both boards or they are valid ONLY for L0 board
+if they have also r2/lm0 counterpart).
+
+NOTE2 for L0: 
+when working with LM0 board, the following block of registers
+has addresses given below (the one appearing in addr: field is
+correct for an old L0_100classes board):
+#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> see L0LM0DIFF()
+#define L0_INTERACT2   0x9208
+#define L0_INTERACTT   0x920c
+#define L0_INTERACTSEL 0x9210
+                            
+#define L0_FUNCTION1   0x9214
+#define L0_FUNCTION2   0x9218
+#define RANDOM_1       0x921c
+#define RANDOM_2       0x9220
+#define SCALED_1       0x9224
+#define SCALED_2       0x9228
+#define ALL_RARE_FLAG  0x922c
+
+This is the price, we pay for working with both
+L0+LM0 boards using the same software without recompilation and using
+different addresses for L0/LM0.
+"""
+      self.adrmenu=MywMenu81632(adrframe, items=items,side='right', helptext=helptext)
       self.adrmenu.boardmod=self
       self.addrent= MywEntry(master=adrframe,label='addr:', side='left',\
         helptext=htext, textvariable=self.adrmenu.posval,width=8)

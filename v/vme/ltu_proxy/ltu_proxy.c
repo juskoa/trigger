@@ -385,7 +385,7 @@ printf("Stream:%s Facility:%s\n", dimservernameCAP, ltu_dimservername);
 printenvironment();
 /*---------------------------------------------------------------- DIM */
 initStatic();   // necessary for FineDelay1/2 hw constant calculations
-printf("Starting DIM services (and assigning shared memory)...\n");
+printf("Starting DIM services, popen2, assigning shared memory...\n");
 rcso= ds_register(dimservername, BoardBaseAddress);  // has to be here (ltushm)
 if(rcso != 0) {
   sprintf(msg, " Cannot register DIM services LTUname:%s LTUbase: %s\n", 

@@ -16,7 +16,8 @@ prerr now OK (before without NL:NL )
 #include <dic.h>
 #endif
  
-#define LTU_CLIENT_VERSION "2.10"   /* see v/SPECS/ltuclient.spec */
+//#define LTU_CLIENT_VERSION "2.10"   see v/SPECS/ltuclient.spec
+#define LTU_CLIENT_VERSION "2.11"   // 30.10.2014 counters increments on client side
 #define notinitialised "Server restarted."
 #define MAXRESULT 1500
 #define MAXLILE 200
@@ -111,7 +112,7 @@ if(*rc != 1) {
 
 /*--------------------------------------------------*/ int waitinfocall() {
 /* rc: 1: ok   0: timeout */
-#define MAX10ms 500
+#define MAX10ms 900
 int ix,rc;
 for(ix=0; ix<=MAX10ms; ix++) {   // 10 secs =1000 x 10ms
   if(WAITING) {

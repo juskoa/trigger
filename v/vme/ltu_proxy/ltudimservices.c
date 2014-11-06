@@ -622,8 +622,8 @@ while(1) { // read until ":\n"
         break;   // short ResultString variable
       };
     };
-    /* sprintf(logmsg,"Ooutl:%d us:%d ResultString:%s<---\n", 
-       outl,us,ResultString); dimlogprt("rUC", logmsg); */
+    sprintf(logmsg,"Ooutl:%d us:%d partResult:%s ResultString:%s<---\n", 
+      outl,us,partResult, ResultString); dimlogprt("rUC", logmsg); 
   };
   if(strcmp(&partResult[outl-2],":\n")==0) break;
 };
@@ -1041,9 +1041,9 @@ if (pidt <= 0) {
 ltushm= (Tltushm *)mallocShared(shmkey, 0, &segid);  //only attch
 buf1= ltushm->ltucnts;
 if(ltushm->id==0) {   //just allocated
-  prerr("shared memory alloc problem in ds_register()");
   ltushm->id=shmkey;
-  //strcpy(logmsg, "shared memory alloc problem in readltucounters\n");
+  strcpy(logmsg, "shared memory alloc problem in ds_register()\n");
+  prerr(logmsg);
 } else {
   strcpy(logmsg, "got shared memory\n");
 };
@@ -1051,7 +1051,7 @@ if(ltushm->id==0) {   //just allocated
 strcpy(ResultString,notinitialised); strcat(ResultString, servercwd); 
 strcat(ResultString,"\n");
 */
-sprintf(logmsg,"%spopen ok.\n",logmsg);
+sprintf(logmsg,"%spopen pid:%d.\n",logmsg, pidt);
 dimlogprt("ds_register", logmsg);
 
 sprintf(logmsg, "\nServices:\n");

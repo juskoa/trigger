@@ -253,7 +253,28 @@ if(ltuviyes) {
 }
 /*------------------------------------------------------------ TTCinit() */
 int TTCinit() {
-Tltucfg *ltc = &ltushm->ltucfg;  // alwasy use SHM int TTCinit() -interactive
+//debug ludim:
+/*
+printf("debug TTCinit now ait 0sec\n");
+usleep(1000000); printf("debug TTCinit 1sec\n");
+usleep(1000000); printf("debug TTCinit 2\n");
+usleep(1000000); printf("debug TTCinit 3\n");
+usleep(1000000); printf("debug TTCinit 4\n");
+usleep(1000000); printf("debug TTCinit 5\n");
+usleep(1000000); printf("debug TTCinit 6\n");
+//usleep(1000000); printf("debug TTCinit 7\n");
+//usleep(1000000); printf("debug TTCinit 8\n");
+//usleep(1000000); printf("debug TTCinit 9\n");
+*/
+usleep(6000000) ; printf("debug TTCinit 1st multiline in one go\n\
+debug TTCinit 2nd  line in one go\n\
+debug TTCinit 3rd  line in one go\n\
+debug TTCinit 4th  line in one go\n\
+debug TTCinit 5th  line in one go\n\
+debug TTCinit 6th  line in one go\n\
+");
+return(1);
+Tltucfg *ltc = &ltushm->ltucfg;  // always use SHM int TTCinit() -interactive
 return(TTCinitgs(1, 5, ltc));    //  and TTCinit() through DIm service
 }
 /*------------------------------------------------------------ TTCinitgs()

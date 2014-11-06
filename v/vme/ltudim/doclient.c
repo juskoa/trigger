@@ -7,7 +7,7 @@ printf("%s", emg);
 }
 /*--------------------------------------------------*/ int waitinfocall() {
 /* rc: 1: ok   0: timeout */
-#define MAX10ms 500
+#define MAX10ms 900
 int ix,rc;
 for(ix=0; ix<=MAX10ms; ix++) {   // 10 secs =1000 x 10ms
   if(WAITING) {
