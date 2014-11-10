@@ -16,3 +16,4 @@ struct as memeber of class
 test1:
 - method inheritance
 
+test8 - virtual and pure virtual

@@ -131,7 +131,13 @@ void CTP::getboard(string const &line)
     //printf("WARNING: L0 ignored ! \n");
     //return ;
     //cout << " l0 board found " << endl;
-    l0 = new L0BOARD(vspctp);
+    // Get l0ver either from system or from reading board ny board
+    BOARDBASIC* bb = new BOARDBASIC("l0",0x829000,vspctp);
+    int l0ver = bb->getFPGAversion();
+    printf("L0 board version: 0x%x \n",l0ver);
+    delete bb;
+    if(l0ver < 0xc0) l0 = new L0BOARD1(vspctp);
+    else l0=new L0BOARD2(vspctp);
     vspctp=l0->getvsp();
     boards.push_back(l0);    
  }else if(!line.compare(0,2,"l1")){

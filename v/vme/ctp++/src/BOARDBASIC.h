@@ -14,7 +14,8 @@ class BOARDBASIC
 	 int getvsp() const;
          w32 getboardbase() const;
          w32 getBCstatus() const;
-         void printboardinfo(string const &option) const;
+	 w32 getFPGAversion() const {return d_fpgaversion;};
+         void printboardinfo(string const &option) const ;
  protected:
 	 string const d_name;        // l0,l1,l2,fo,busy,ltu
          string error_status;    // "ok" = no error
