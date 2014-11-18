@@ -7,7 +7,7 @@ def callback1(now):
   #print "callback1: '%s' (%s) len:%d" % (now, type(now),len(now))
   print "callback1: '%f' (%s)" % (now, type(now))
 def callback2(now):
-  print "callback2: '%s' (%s)" % (now, type(now))
+  print "callback2 TTCMI/MICLOCK: '%s' (%s) len:%d" % (now, type(now), len(now))
 def callbackC(now):
   print "callbackC: TTCMI/SHIFT '%s' (%s) len:%d" % (now, type(now),len(now))
 
@@ -18,10 +18,11 @@ def main():
     print "Please set the environment variable DIM_DNS_NODE (aldaqecs)"
     sys.exit(1)
   #sid = pydim.dic_info_service("PHASE_SHIFT_BPTX1", "F", callback1)
-  #sid = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback2, service_type=pydim.ONCE_ONLY)
   try:
     #sid = pydim.dic_info_service("PHASE_SHIFT_BPTX1", "F", callback1)
     sid = pydim.dic_info_service("TTCMI/SHIFT", "C", callbackC,
+      service_type=pydim.ONCE_ONLY)
+    sid = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback2,
       service_type=pydim.ONCE_ONLY)
   except:
     print "sys.exc_info:",sys.exc_info()[0]

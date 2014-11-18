@@ -25,9 +25,23 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 #include "ttcmi.h"
 
 //#include "/opt/libDAQlogbook/DAQlogbook.h"
-//----------------------------------------- corde board:
-#define RESET 0x24
-#define ORBMAIN 0x7fbb4
+//RFRX board:
+#define ch1_ref 0x12
+#define ch2_ref 0x14
+#define ch3_ref 0x16
+#define ch1_freq_low 0x18
+#define ch1_freq_high 0x1a
+//#define ch2_freq_low 0x1c
+//#define ch2_freq_high 0x1e
+//#define ch3_freq_low 0x20
+//#define ch3_freq_high 0x22
+#define ident_id 0x8
+#define card_id 0x24
+#define board_id 0x3a
+
+//----------------------------------------- corde board (also vme/corde dir):
+#define CORDE_RESET 0x24
+#define CORDE_ORBMAIN 0x7fbb4
 char corde_base[]="0x7000000";
 char corde_len[]="0x7fc00";
 char corde_A32[]="A32";
@@ -52,7 +66,7 @@ if(micratepresent()) {
   rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
 } else rc=0;
 if(rc==0) {
-  adr= (del-1)*4 + ORBMAIN; 
+  adr= (del-1)*4 + CORDE_ORBMAIN; 
   if(micratepresent()) {
     val= vmxr32(vsp, adr);
     rc= vmxclose(vsp);
@@ -70,7 +84,7 @@ if(micratepresent()) {
   rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
 } else rc=0;
 if(rc==0) {
-  adr= (del-1)*4 + ORBMAIN; // 7: BC1
+  adr= (del-1)*4 + CORDE_ORBMAIN; // 7: BC1
   if(micratepresent()) {
     vmxw32(vsp, adr, val);
   } else {cordevalvme= val; };
@@ -98,7 +112,7 @@ if(micratepresent()) {
 } else rcv=0;
 if(rcv==0) {
   int sig; w32 base,adr,lastval;
-  adr= (del-1)*4 + ORBMAIN; 
+  adr= (del-1)*4 + CORDE_ORBMAIN; 
   if(micratepresent()) {
     base= vmxr32(vsp, adr); 
   } else {
@@ -168,6 +182,93 @@ if(micratepresent()) {
   halfnsvme= halfns;
 };
 }
+/*FGROUP
+- reset CORDE board
+- set RF boards (0x5 for BC and 0x70 for Orbit)
+- set polarity/length for all 3 RF2TTC outputs: MAIN/ORB2/ORB1
+- set BC1/2 and Orbit1/2 delays
+*/
+void writeall() {
+int ix,rc1,rc2,vsp3,vsp4;
+w32 adrpol, adrlen;
+w16 refsBC[3]={0x5, 0x5, 0x70};
+w16 refsOrbit[3]={0x5, 0x5, 0x70};
+vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
+printf("vmxopenam 0x700000 (CORDE) rc:%d\n", rc2);
+vmxw32(vsp4, CORDE_RESET, 0);
+vmxw32(vsp4, CORDE_RESET, 1);
+vmxw32(vsp4, CORDE_RESET, 0);
+rc2= vmxclose(vsp4);
+printf("CORDE board reset. vmeclose rc:%d\n",rc2);
+vsp3=-1; rc1= vmxopenam(&vsp3, (char *)"0x300000", (char *)"0x100", (char *)"A24");
+vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x400000", (char *)"0x100", (char *)"A24");
+printf("vmxopenam 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
+for(ix=0; ix<3; ix++) {
+  adrpol= ch1_ref + ix*0x2;
+  vmxw16(vsp3, adrpol, refsBC[ix]);
+  vmxw16(vsp4, adrpol, refsOrbit[ix]);
+};
+rc1= vmxclose(vsp3); rc2= vmxclose(vsp4);
+printf("vmxclose 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
+/* vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
+printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
+for(ix=0; ix<3; ix++) {
+  adrpol= ORBX_POLARITY+ 0x40*ix;
+  adrlen= ORBX_LENGTH+ 0x40*ix;
+  vmew32(adrpol, 1); vmew32(adrlen, 0x26);
+};
+/* set delays: */
+//i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 15.jun2010, 0 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 40);  // 40 from 10.july2010, 44 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 6.sep2010, 40 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 46);  // 46 from 25.oct2010, 44 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 47);  // 47 from 5.nov2010, 46 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 48);  // 48 from 18.nov2010, 47 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 49);  // 49 from 26.nov2010, 48 before
+//i2cset_delay( BC_DELAY25_BCMAIN, 50);  // 50 from 29.nov2010
+//i2cset_delay( BC_DELAY25_BCMAIN, 51);  // 51 from 2.dec.2010
+//i2cset_delay( BC_DELAY25_BCMAIN, 52);  // 52 from 6.dec.2010 8:20
+//i2cset_delay( BC_DELAY25_BCMAIN, 53);  // 53 from 6.dec.2010 14:30
+// from 2011 set in setbcorbitMain
+/* lets add 5ns for Orbit latch (see calibrate() ) */
+i2cset_delay(ORBIN_DELAY25_ORB1, 20);
+i2cset_delay(ORBIN_DELAY25_ORB2, 0);
+//vmew32(ORBmain_COARSE_DELAY,2);
+vmew32(ORBmain_COARSE_DELAY,3564);
+vmew32(ORB1_COARSE_DELAY,3564);
+i2cset_delay(ORBOUT_DELAY25_ORB1,11);
+i2cset_delay(ORBOUT_DELAY25_ORBMAIN,11);
+// i.e.: BC_DELAY25_BCMAIN 0x7d00c:16c
+//i2cset_delay( ORBmain_COARSE_DELAY, 0); // was and is 0
+/* all the others left as initialised by RF2TTC fy */
+
+vmew32(BC1_MAN_SELECT,1); vmew32(BC2_MAN_SELECT,1); vmew32(BCref_MAN_SELECT,1);
+vmew32(ORB1_MAN_SELECT, 0); vmew32(ORB2_MAN_SELECT, 0); 
+printf("BC1/2/ref and ORB1/2 connected to their external inputs\n");
+setbcorbitMain(4); printf("Using local clock\n");
+//setbcorbitBO1(1);
+//setorbitdelay(3563);
+//rc= vmxclose(vsp);
+}
+void printRFRX(char *rfrxbase) {
+int ix,rc,vsp;
+float frekvs[3];
+vsp=-1; rc= vmxopenam(&vsp, rfrxbase, (char *)"0x100", (char *)"A24");
+printf("RFRX:%s ch1/2/3_ref:0x%x 0x%x 0x%x\n", rfrxbase,
+  vmxr16(vsp, ch1_ref), vmxr16(vsp, ch2_ref), vmxr16(vsp, ch3_ref));
+printf("    frekvch1/2/3: ");
+for(ix=0; ix<3; ix++) {
+  w32 fhl;
+  w16 flow, fhigh;
+  flow= vmxr16(vsp, ch1_freq_low+(ix*4));
+  fhigh= vmxr16(vsp, ch1_freq_high+(ix*4));
+  fhl= flow | (fhigh <<16);
+  frekvs[ix]= (80*16*22)/(flow+ (fhigh*65536.));
+  printf("%d=%fMHz ", fhl, frekvs[ix]);
+}; printf("\n");
+rc= vmxclose(vsp);
+}
+
 /* add Comment in daq for:
 Input: hw and db values for RF2TTC/Corde dealay registers
 fineshift is "": course shift (when the LOCAL/BEAM1 change)
@@ -221,13 +322,13 @@ char dbhns[MAXdbhns]; int ldbhns;
     its= sscanf(dbhns, "%d %d %d\n", &dbhalfns, &dbcordeval, &dblast_applied);
     printf("setCordeshift: clockshift db:%d %d %d hw:%d %d\n", dbhalfns, dbcordeval, dblast_applied, halfns, cordeval);
     if( (its<2) || (dbhalfns>63) || (dbcordeval>1023) ) {
-      infolog_trg(LOG_ERROR, "Bad value in dbctp/clockshift file");
+      infolog_trg(LOG_ERROR, (char *)"Bad value in dbctp/clockshift file");
     } else {
       if((halfns != dbhalfns) || (cordeval != dbcordeval)) {
         i2cset_delay( BC_DELAY25_BCMAIN, dbhalfns);
         i2cset_delay( BC_DELAY25_BC1, dbhalfns);  //keep the same for BPIM
         corde_set(CORDE_DELREG, dbcordeval);
-        shiftCommentInDAQ(halfns, cordeval, dbhalfns, dbcordeval,"");
+        shiftCommentInDAQ(halfns, cordeval, dbhalfns, dbcordeval,(char *)"");
       };
     };
   } else {
@@ -241,7 +342,7 @@ void setbcorbitMain(int maino) {
 w32 bcmain,orbmain;
 char msg[300]; char daqlog[90];
 infolog_SetFacility((char *)"CTP");   // shoul be set in ttcmi.c main...
-infolog_SetStream("",0);
+infolog_SetStream((char *)"",0);
 //rcdl= DAQlogbook_open("trigger:trigger123@10.161.36.8/LOGBOOK");
 // rcdl=daqlogbook_open();   //rcdl must be 0 if opened
 //rcdl=2; printf("setbcorbitMain: DAQlogbook not used...\n");
@@ -276,15 +377,16 @@ if(maino==1) {
   printf("Bad maino input. No action\n"); return;
 };
         // always, after clock change resynchronize DLL on RF2TTC:
-sprintf(msg, "%s + DLL resync", msg);
-DLL_RESYNC(0);        //vmew32(BC_DELAY25_GCR, 0x40);
+//sprintf(msg, "%s + DLL resync", msg);
+sprintf(msg, "%s note: DLL NOT resynchronised", msg);
+//DLL_RESYNC(0);        //vmew32(BC_DELAY25_GCR, 0x40);
 infolog_trg(LOG_INFO, msg);
 //rcdl= daqlogbook_open();
 //if(rcdl==0) {
 //  rcdl= daqlogbook_add_comment(0,"CLOCK",daqlog);
 //  daqlogbook_close(); 
 //};
-com2daq(0,"CLOCK",daqlog);
+com2daq(0,(char *)"CLOCK",daqlog);
 }
 w32 readstatus() {
 w16 rc; w32 s1,s2,s3,s4,s5;
@@ -305,7 +407,7 @@ vmew32(BC_DELAY25_GCR, 0x40);
 if(msg==DLL_stdout) {
 printf("0x40 -> BC_DELAY25_GCR done\n");
 } else if(msg==DLL_daq) {
-  com2daq(0,"CLOCK","DLL_RESYNC");
+  com2daq(0,(char *)"CLOCK",(char *)"DLL_RESYNC");
   //int rcdl;
   //rcdl=daqlogbook_open();   //rcdl must be 0 if opened
   //if(rcdl==0) {
@@ -315,7 +417,7 @@ printf("0x40 -> BC_DELAY25_GCR done\n");
 } else if(msg==DLL_info) {
   //infolog_SetFacility((char *)"CTP"); set in ttcmidims.c
   //infolog_SetStream("",0);
-  infolog_trg(LOG_INFO, "CLOCK DLL_RESYNC done");
+  infolog_trg(LOG_INFO, (char *)"CLOCK DLL_RESYNC done");
 };
 }
 void micrate(int present) {

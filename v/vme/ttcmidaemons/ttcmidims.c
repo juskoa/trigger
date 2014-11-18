@@ -30,6 +30,8 @@
 #define DLL_RESYNCtag 7 
 
 int readclockshift(char *mem, int maxlen);
+void writeall();
+void printRFRX(char *baserfrx);
 
 int MICLOCKid;
 int SHIFTid,QPLLid;
@@ -198,11 +200,11 @@ while(clocktran>=0) {
   clocktran--; sprintf(clocktransition,"%d", clocktran);
   if(clocktran==0) {
     if(*(int *)tag==0) {
-      int rc;
+      /*int rc;
       char cmd[]="$VMECFDIR/ttcmidaemons/sctel.py MININF";
-      //DLL_RESYNC(DLL_info); // commented 19092014
+      DLL_RESYNC(DLL_info); // commented 19092014
       //printf("DLL_RESYNC + clearing the scope persistance\n");
-      //rc= system(cmd);  // commented 19092014
+      rc= system(cmd);   commented 19092014 */
       printf("DLL_RESYNC + MININF not done!\n");
     } else {
       setbcorbit(*(int *)tag); 
@@ -455,6 +457,9 @@ if(micratepresent()) {
     printf("vmxopen TTCMI vme:%d\n", rc); exit(8);
   };
 };
+writeall(); 
+printf("ref bc1 orbit1\n"); printRFRX("0x300000");
+printf("--- bc2 orbit2\n"); printRFRX("0x400000");
 printenvironment();
 printf("DIM server:%s\n",MYNAME);
 dis_add_error_handler(error_handler);
@@ -496,10 +501,10 @@ signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 if(envcmp("VMESITE", "ALICE")==0) {
-  udpsock= udpopens("alidcscom188", send2PORT);
+  udpsock= udpopens("alidcscom835", send2PORT);
   micrate(1);
 } else {
-  udpsock= udpopens("pcalicebhm11", send2PORT);
+  udpsock= udpopens("avmes", send2PORT);
   micrate(0);
 };
 

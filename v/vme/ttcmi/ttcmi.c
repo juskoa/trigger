@@ -13,25 +13,6 @@ ORB1    ORB2
 
 RF2TTC: BST fibre is marked 41994C XF1346
 */
-/* CORDE board: see vme/corde directory... */
-#define CORDE_RESET 0x24
-#define CORDE_ORBMAIN 0x7fbb4
-
-/*REGSTART16 */
-//RFRX board:
-#define ch1_ref 0x12
-#define ch2_ref 0x14
-#define ch3_ref 0x16
-#define ch1_freq_low 0x18
-#define ch1_freq_high 0x1a
-//#define ch2_freq_low 0x1c
-//#define ch2_freq_high 0x1e
-//#define ch3_freq_low 0x20
-//#define ch3_freq_high 0x22
-#define ident_id 0x8
-#define card_id 0x24
-#define board_id 0x3a
-/*REGEND */
 
 #include <string.h>
 #include <stdio.h>
@@ -59,6 +40,8 @@ int clg_defaults[1];
 /* HIDDEN primitives */
 
 extern int quit;
+void writeall();
+void printRFRX(char *rfrxbase);
 
 /*FGROUP calib
 fifoadr: addr. of ORB1_PERIOD_FIFO_RD
@@ -298,93 +281,6 @@ for(ix=0; ix<3; ix++) {
   printf("%u: %d(0x%x)\n", adr, val, val);
 };
 }
-
-/*FGROUP
-- reset CORDE board
-- set RF boards (0x5 for BC and 0x70 for Orbit)
-- set polarity/length for all 3 RF2TTC outputs: MAIN/ORB2/ORB1
-- set BC1/2 and Orbit1/2 delays
-*/
-void writeall() {
-int ix,rc1,rc2,vsp3,vsp4;
-w32 adrpol, adrlen;
-w16 refsBC[3]={0x5, 0x5, 0x70};
-w16 refsOrbit[3]={0x5, 0x5, 0x70};
-vsp4=-1; rc2= vmxopenam(&vsp4, "0x700000", "0x7fc00", "A32");
-printf("vmxopenam 0x700000 (CORDE) rc:%d\n", rc2);
-vmxw32(vsp4, CORDE_RESET, 0);
-vmxw32(vsp4, CORDE_RESET, 1);
-vmxw32(vsp4, CORDE_RESET, 0);
-rc2= vmxclose(vsp4);
-printf("CORDE board reset. vmeclose rc:%d\n",rc2);
-vsp3=-1; rc1= vmxopenam(&vsp3, "0x300000", "0x100", "A24");
-vsp4=-1; rc2= vmxopenam(&vsp4, "0x400000", "0x100", "A24");
-printf("vmxopenam 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
-for(ix=0; ix<3; ix++) {
-  adrpol= ch1_ref + ix*0x2;
-  vmxw16(vsp3, adrpol, refsBC[ix]);
-  vmxw16(vsp4, adrpol, refsOrbit[ix]);
-};
-rc1= vmxclose(vsp3); rc2= vmxclose(vsp4);
-printf("vmxclose 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
-/* vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
-printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
-for(ix=0; ix<3; ix++) {
-  adrpol= ORBX_POLARITY+ 0x40*ix;
-  adrlen= ORBX_LENGTH+ 0x40*ix;
-  vmew32(adrpol, 1); vmew32(adrlen, 0x26);
-};
-/* set delays: */
-//i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 15.jun2010, 0 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 40);  // 40 from 10.july2010, 44 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 6.sep2010, 40 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 46);  // 46 from 25.oct2010, 44 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 47);  // 47 from 5.nov2010, 46 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 48);  // 48 from 18.nov2010, 47 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 49);  // 49 from 26.nov2010, 48 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 50);  // 50 from 29.nov2010
-//i2cset_delay( BC_DELAY25_BCMAIN, 51);  // 51 from 2.dec.2010
-//i2cset_delay( BC_DELAY25_BCMAIN, 52);  // 52 from 6.dec.2010 8:20
-//i2cset_delay( BC_DELAY25_BCMAIN, 53);  // 53 from 6.dec.2010 14:30
-// from 2011 set in setbcorbitMain
-/* lets add 5ns for Orbit latch (see calibrate() ) */
-i2cset_delay(ORBIN_DELAY25_ORB1, 20);
-i2cset_delay(ORBIN_DELAY25_ORB2, 0);
-//vmew32(ORBmain_COARSE_DELAY,2);
-vmew32(ORBmain_COARSE_DELAY,3564);
-vmew32(ORB1_COARSE_DELAY,3564);
-i2cset_delay(ORBOUT_DELAY25_ORB1,11);
-i2cset_delay(ORBOUT_DELAY25_ORBMAIN,11);
-// i.e.: BC_DELAY25_BCMAIN 0x7d00c:16c
-//i2cset_delay( ORBmain_COARSE_DELAY, 0); // was and is 0
-/* all the others left as initialised by RF2TTC fy */
-
-vmew32(BC1_MAN_SELECT,1); vmew32(BC2_MAN_SELECT,1); vmew32(BCref_MAN_SELECT,1);
-vmew32(ORB1_MAN_SELECT, 0); vmew32(ORB2_MAN_SELECT, 0); 
-printf("BC1/2/ref and ORB1/2 connected to their external inputs\n");
-setbcorbitMain(4); printf("Using local clock\n");
-//setbcorbitBO1(1);
-//setorbitdelay(3563);
-//rc= vmxclose(vsp);
-}
-void printRFRX(char *rfrxbase) {
-int ix,rc,vsp;
-float frekvs[3];
-vsp=-1; rc= vmxopenam(&vsp, rfrxbase, "0x100", "A24");
-printf("RFRX:%s ch1/2/3_ref:0x%x 0x%x 0x%x\n", rfrxbase,
-  vmxr16(vsp, ch1_ref), vmxr16(vsp, ch2_ref), vmxr16(vsp, ch3_ref));
-printf("    frekvch1/2/3: ");
-for(ix=0; ix<3; ix++) {
-  w32 fhl;
-  w16 flow, fhigh;
-  flow= vmxr16(vsp, ch1_freq_low+(ix*4));
-  fhigh= vmxr16(vsp, ch1_freq_high+(ix*4));
-  fhl= flow | (fhigh <<16);
-  frekvs[ix]= (80*16*22)/(flow+ (fhigh*65536.));
-  printf("%d=%fMHz ", fhl, frekvs[ix]);
-}; printf("\n");
-rc= vmxclose(vsp);
-}
 /*FGROUP
 PROGRAM_ID:8102008
 ch1_ref:0x5
@@ -411,7 +307,9 @@ int ix;
 char bc12rmansel[4]="III";
 w32 adrpol, adrlen, pol, len, bc1man, orb1man, wwm, wmm, pol1;
 printf("PROGRAM_ID:%x\n", vmer32(PROGRAM_ID));
+printf("ref bc1 orbit1\n");
 printRFRX("0x300000");
+printf("--- bc2 orbit2\n");
 printRFRX("0x400000");
 /*von
 vsp=-1; rc= vmxopenam(&vsp, "0x400000", "0x100", "A24");
