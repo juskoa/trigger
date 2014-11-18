@@ -12,34 +12,20 @@
 
 #include <math.h>
 
-#ifdef _MSC_VER
-
-#include <windows.h>
-
-#elif defined(OS_LINUX)
-
-#define O_BINARY 0
-
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 
-#define DIR_SEPARATOR '/'
-
-#endif
-
 #include <stdio.h>
 #include <string>
 #include <fstream>
 #include <vector>
-#include <dis.hxx>
 #include <stdlib.h>
 
-#include "strlcpy.h"
 #include <csignal>
 #include <ctime>
-#include "DRS.h"
+#define DEBUG 1
 //============================================================================================
 #define NDIM 1024
 using namespace std;
@@ -163,8 +149,10 @@ int AnalyseWaves::FindEdge(float thres,float* t,float * w, float* edge,int& nedg
       float a=(w[i]-w[i-1])/(t[i]-t[i-1]);
       float b=w[i]-a*t[i];
       edge[nedges]=(thres-b)/a;
-      //printf("a, b %f %f \n",a,b);
-      //printf("i=%i time %f w0 %f w2 %f  edge %f \n",i,t[i],w[i-1],w[i],edge[nedges]);
+      if(DEBUG){
+        printf("a, b %f %f \n",a,b);
+        printf("i=%i time %f w0 %f w2 %f  edge %f \n",i,t[i],w[i-1],w[i],edge[nedges]);
+      }
       nedges++;
     }
  }
@@ -186,8 +174,10 @@ int AnalyseWaves::FindEdge(float thres,int iw,int& nedges)
       float a=(w[i]-w[i-1])/(t[i]-t[i-1]);
       float b=w[i]-a*t[i];
       edge[nedges]=(thres-b)/a;
-      //printf("a, b %f %f \n",a,b);
-      //printf("i=%i time %f w0 %f w2 %f  edge %f \n",i,t[i],w[i-1],w[i],edge[nedges]);
+      if(DEBUG){
+        printf("a, b %f %f \n",a,b);
+        printf("i=%i time %f w0 %f w2 %f  edge %f \n",i,t[i],w[i-1],w[i],edge[nedges]);
+      }
       nedges++;
     }
  }
@@ -221,7 +211,9 @@ int AnalyseWaves::Compare2Waves(int iw1,int iw2)
  int ndelta=0;
  for(int j=0;j<nn;j++){
     float delta=edges[iw1][j+istart1]-edges[iw2][j+istart2];
-    //printf("edge1= %f  edge2= %f delta=%f \n",edges[iw1][j+istart1],edges[iw2][j+istart2],delta);      
+    if(DEBUG){
+      printf("edge1= %f  edge2= %f delta=%f \n",edges[iw1][j+istart1],edges[iw2][j+istart2],delta);      
+    }
     sumx += delta;
     sumx2 += delta*delta;
     ndelta++;
