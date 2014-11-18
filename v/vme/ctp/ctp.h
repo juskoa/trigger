@@ -75,13 +75,29 @@ typedef struct {
 #define FPGAVERSION_ADD 0x80 /* board's FPGA version */
 #define BC_STATUS       0xc4   /* [2:0] Orbit error, PLL-locked, BC-error */
 /* Orbit error: set even BUSY board programmed for local orbit*/
-#define SSMcommand  0x19c  /* 0x0: VMEREAD   0x1: VMEWRITE */
-                           /* 0x2 RECAFTER  0x3: RECBEFORE */
-#define SSMstart    0x1a0  /* dummy wr */
-#define SSMstop     0x1a4  /* dummy wr */
-#define SSMaddress  0x1a8  /* w/r */
+#define SSMcommand  0x19c
+/* L0 board:
+0x0: VMEREAD   0x1: VMEWRITE
+0x2 RECAFTER  0x3: RECBEFORE 
+LM0 board (from 0xc1):
+mask  meaning
+0x1   mode 1: continuous (before) mode  0: 1-pass (after mode)
+*/
+#define SSMstart    0x1a0  /* dummy wr, valid for both L0,LM0 boards */
+#define SSMstop     0x1a4  /* dummy wr, L0/LM0 */
+#define SSMaddress  0x1a8  /* w/r ,LM0: set to 0 before start recording*/
 #define SSMdata     0x1ac  /* w/r */
 #define SSMstatus   0x1b0  /* read only. Bits[2:0]: BUSY, OPERATION, MODE */
+/* SSMstatus on LM0 notes:
+- the same address, valid bits 7.11.2014:
+mask meaning
+0x1  -copy of mode (mask: 0x1) bit from SSMcommand
+0x2  - 1: overflow when recording, can be cleared by writing to SSMaddress
+0x4  - n/a
+0x8  - n/a
+0x10  -1: busy (i.e. recording) 0: ready (i.e. for VME access)
+*/
+
 #define SSMenable   0x1b4  /* 00: normal, 10 in enabled, 01 out enabled */
 
 #define PLLreset   0x1bc  /* dummy write */
@@ -105,12 +121,15 @@ L0 board: increased length (max. adr 0x1ff*4 -> 0x2ff*4) implemented earlier.
           0x3ff*4 on L0 board. */
 
 //#define SCOPE_SELECT   0x4f8
-#define SCOPE_SELECT   0x5b0  /* groupB: 0x1e0 groupA: 0x01f */
+#define SCOPE_SELECT   0x5b0  /* For L0/L1/L2 boards
+                                  groupB: 0x1e0 groupA: 0x01f */
                                /* 0x17+0x17-not selected                */
                                /* 0x800: enableB, 0x400: enableA        */
 #define SCOPE_SELECTbfi 0x4f8  /* BSY,FO,INT: different address */
 #define SCOPE_SELECTlm0 0x1f8  /* LM0       : different address */
-#define ADC_SELECTlm0  0x1fc /*ADC mode, ADC input selector. 0x100:ADCmode */
+#define ADC_SELECTlm0  0x1fc /*ADC mode, ADC input selector. 
+0x100:ADCmode -seems n/a for lm0 board
+*/
 #define ADC_SELECT     0x5b4 /*ADC mode, ADC input selector. 0x100:ADCmode */
   /* not FOs, only L0/1/2.      0x100 GND (before A2 version: Orbit (toggle))
                                 0x1NN NN:01-18 i: Input1-Input24
@@ -129,21 +148,20 @@ LM0 board:
 */
 /*#define TEST_ADD        0xc0  was till 12.3.2008 */
 /*#define TEST_ADD        0x7e0 was till  6.11.2013 */
-#define TEST_ADDr2      0x93f8
+#define TEST_ADDr2      0x93f8 /* LM0, L0 */
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board
- shifted (i.e. 0x340 for 1st input) */
-#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
-0x344:inp1,...
-0x804:inp1,..., 0x860:inp24
+#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board shifted 
+(i.e. 0x340 for 1st input)
 LM0:
  3.. 0   Input delay for inputs 1..24
  4       Edge Selector flag inputs 1..24
 11.. 8   Input delay for inputs 25..48
 12       Edge Selector flag inputs 25..48
 21..16   Selection of the input: 0:not connected 1..48 connected to this one
-
+*/
+#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
+0x804:inp1,..., 0x860:inp24
 L0, L1, L2:
  8       Edge Selector flag inputs 1..24
  3.. 0   Input delay for inputs 1..24 (12 for L2)

@@ -89,3 +89,8 @@ with their LTU-T (i.e. 3 L0out connectors on LTU will deliver diffrent
 signals)
 24.10.2014
 LTU_T-1_0_1.rbf
+14.10.2014
+ltu_logic_verD0.rbf
+Special one  for TPC serving as signal converter:
+simple conversion from BUSY1 (LVDS) to SPARE OUT (NIM).
+

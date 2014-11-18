@@ -50,3 +50,5 @@ g++ /usr/local/trigger/vd/vmeb/cmdbase.o inputs_cf.o signature.o ssmbrowser.o in
 
 6.6.2012:
 vmeai.make changed to accomodate inputs linking. Now 'vmecomp inputs' works.
+10.11.2014
+vmecomp inputs ok, measurephase(1,12) nebai -ADC stale vracia 54.

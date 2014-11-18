@@ -205,6 +205,7 @@ typedef struct {
 Tactmac actmac1;
 Tactmac *actmac= NULL;
 
+int scthread_request=0;    // 1: to be started, see ltu.c
 void initmain();
 void endmain();
 void boardInit();
@@ -1407,6 +1408,14 @@ for(i=0; i<argn; i++) {
     noinitmac=1;
     continue;
   };
+  if(strcmp(argv[i], "-scthread") == 0){
+    if(strcmp(BoardName, "ltu") !=0) {
+      printf("-scthread option ignored, valid only for ltu.\n");
+    } else {
+      scthread_request=1;
+    };
+    continue;
+  };
   if(wasbase==0) { /* base */
     /*printf("base:%s",argv[i]); */
     if(((strlen(argv[i]) <= 10) && 
@@ -1417,7 +1426,7 @@ for(i=0; i<argn; i++) {
       wasbase=1;
       continue;
     } else {
-      printf(" base:%s -too long string or not '0x...' ",argv[i]);
+      printf(" base:%s -too long string or not '0x...\n' ",argv[i]);
     };
   };
   printf(" %s -bad parameter, exiting\n", argv[i]); exit(8);
@@ -1496,7 +1505,7 @@ while(1) {
     fprintf(logfile,"%s", line);
   };
   if( line[0] == '#' ) { printf("%s",line); goto NEXTCMD; };
-  if( strcmp(line, "q\n") == 0) break;
+  if( strcmp(line, "q\n") == 0) { quit=888; break; };
   if( line[0] == '?' ) {printHelp(line); goto NEXTCMD; };
   if( line[0] == ' ' && line[1]=='?' ) {printHelp(&line[1]); goto NEXTCMD; };
   currentloops=loops;

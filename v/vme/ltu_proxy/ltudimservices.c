@@ -163,8 +163,8 @@ dimlogprt("exit_handler",msg1);
 void client_exit_handler(int *tag) {
 char msg1[100];
 if((*tag<MAXMCclients) && (MCclients[*tag].cidat[0]!='\0')) {
-  sprintf(msg1,"deleting:%c:%d:%s", 
-    MCclients[*tag].type, *tag, MCclients[*tag].cidat);
+  sprintf(msg1,"deleting:%c:%d %d/%s", 
+    MCclients[*tag].type, *tag, MCclients[*tag].cid, MCclients[*tag].cidat);
   MCclients[*tag].cidat[0]='\0';
   NMCclients--;
 } else {
@@ -273,7 +273,7 @@ if(ixfree == -1) {
   dimlogprt("MCclients",msg);
 } else {                // new client, or 'new replacing' client
   if(MCclients[ixfree].cidat[0]=='\0') {
-    sprintf(msg,"new client:%c:%d %s", type, cid, cidname);
+    sprintf(msg,"new client:%c:%d %d %s", type, ixfree, cid, cidname);
     NMCclients++;
   } else {
     sprintf(msg,"%c:%d replacement: %s -> %c:%s",
@@ -622,8 +622,8 @@ while(1) { // read until ":\n"
         break;   // short ResultString variable
       };
     };
-    sprintf(logmsg,"Ooutl:%d us:%d partResult:%s ResultString:%s<---\n", 
-      outl,us,partResult, ResultString); dimlogprt("rUC", logmsg); 
+    /*sprintf(logmsg,"Ooutl:%d us:%d partResult:%s ResultString:%s<---\n", 
+      outl,us,partResult, ResultString); dimlogprt("rUC", logmsg);  */
   };
   if(strcmp(&partResult[outl-2],":\n")==0) break;
 };
@@ -833,6 +833,12 @@ actcid= 0;
 }
 int oldnclients=0;
 int oldnbusyclients=0;
+void saveprevcnts() {
+int ix;
+for(ix=0; ix<LTUNCOUNTERSall; ix++) {
+  prevcnts[ix]=buf1[ix];
+};
+};
 /*-------------------------------------------------------- readltucounters()
 Operation:
 - read counters from LTU into shm
@@ -840,20 +846,19 @@ Operation:
 void readltucounters() {
 w32 ix;
 w32 *ResultStringBin= (w32 *)ResultString;
-char msg[ERRMSGL];
+//char msg[ERRMSGL];
 
 if(buf1==NULL) {
   prerr("shared memory alloc problem in readltucounters");
   return;
 };
-for(ix=0; ix<LTUNCOUNTERSall; ix++) {
-  prevcnts[ix]=buf1[ix];
-};
 //sprintf(msg, "before: %d %d\n", buf1[epochsecsrp],buf1[0]); 
 //dimlogprt("readltucounters",msg);
+/* thrown out 6.11.2014, replaced by scthread in ltu.c
 strcpy(msg,"readCNTS2SHM()\n");
 writepipe(msg, strlen(msg));   //NO TRAILING '\0'!
 readUntilColon(0);
+*/
                            // dimlogprt("readCNTS2SHMd", ResultString);
 for(ix=0; ix<LTUNCOUNTERSall; ix++) {
   ResultStringBin[ix]=buf1[ix];
@@ -925,6 +930,7 @@ if(abs(newbt-busytime1sec) > 0.01) {
 }
 /*-------------------------------------------------------- cthread
 running as thread (started once, with dim server)
+not called -instead arranged in ltu_proxy.c main() loop
 */
 void cthread( void *blabla) {
 int isecs;
@@ -1105,8 +1111,8 @@ dis_start_serving(MYDETNAME);
 environ= getenv("VMESITE"); 
 if((strcmp(environ,"ALICE")==0) ||
    (strcmp(environ,"SERVER")==0)) {
-  dimlogprt("ds_register", "Starting the LTUcounters reading thread....");
-  dim_start_thread(cthread, (void *)TAGcthread);
+  dimlogprt("ds_register", "Starting cthread reading LTU cnts from SHM is in main...");
+  //dim_start_thread(cthread, (void *)TAGcthread);
 } else {
   sprintf(logmsg, "LTUcounters reading thread not started:VMESITE:%s\n", environ);
   dimlogprt("ds_register", logmsg);
@@ -1125,6 +1131,7 @@ dis_remove_service(COUNTERSid);
 dis_remove_service(MONBUSYid);
 dis_remove_service(CALIBBCid);
 dis_stop_serving();
+shmdt(ltushm);
 if(logfile !=NULL) fclose(logfile);
 exit(0);
 }

@@ -1200,22 +1200,23 @@ printf("updated TL2 L2_DELAY_L1 FO_DELAY_L1CLST L2_BCOFFSET:%d: %d %d %d\n",
 }
 
 /*---------------------------------------------------------------- DDR3 */
-#define DDR3_TO 30
+#define DDR3_TO 30     // timeout
 #define DDR3_BLKL 16
+#define MEGA 1024*1024
 w32 seqdata[16];
 /*FGROUP DDR3 
 Enable DDR3, i.e.:
-vmew32(DDR3_CONF_REG0, 0x7);   // not needed aftr power-up
+vmew32(DDR3_CONF_REG0, 0x7);   // not needed after power-up
 vmew32(DDR3_CONF_REG0, 0x4);   // 0x4: Errors_reset
-vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_rest, Logic_reset, DDR3_reset
+vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_reset, Logic_reset, DDR3_reset
 streg= vmer32(DDR3_CONF_REG0); 
 */
 void ddr3_reset() {
 w32 streg;
-vmew32(DDR3_CONF_REG0, 0x7);   // not needed aftr power-up
+vmew32(DDR3_CONF_REG0, 0x7);   // not needed after power-up
 vmew32(DDR3_CONF_REG0, 0x4);   // 0x4: Errors_reset
-vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_rest, Logic_reset, DDR3_reset
-streg= vmer32(DDR3_CONF_REG0);   // 0 to: Errors_rest, Logic_reset, DDR3_reset
+vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_reset, Logic_reset, DDR3_reset
+streg= vmer32(DDR3_CONF_REG0);   // 0 to: Errors_reset, Logic_reset, DDR3_reset
 printf("DDR3_CONF_REG0: 0x%x (expected: 0xec000000)\n", streg);
 }
 /*FGROUP DDR3 
@@ -1327,6 +1328,7 @@ rc= ddr3_wrdone();
 ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
 mem_ad:  pointer to w32[] array
 nws:     number of 32bit words to be read from ddr3 
+rc:   0: ok
 */
 int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws) {
 int rc, ix, iblks, llb, blocks, block0;
@@ -1370,6 +1372,7 @@ return(rc);
 ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
 mem_ad:  pointer to w32[] array
 nws:     number of 32bit words to be written
+rc:   0: ok
 */
 int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws) {
 int rc, ix, iblks, llb, blocks, block0;
@@ -1418,6 +1421,8 @@ nws: number of words (1word: 32 bits). n*16, if not
      only
 Notes: SSM is 2GB, max. allocated memory:
 i.e. ddr3 chunks:
+           ddr3_ad, nws
+           ------------
 0..   1MB  0, 0x40000
 1..   2MB  0x40000, 0x40000
 0..  16MB  0, 0x400000     cca 4.4 secs writing, 5.7secs reading
@@ -1480,6 +1485,78 @@ for(ix=0; ix<nws; ix++) {   // should be nws
 };
 printf("errors:%d, releasing memory...\n", nerr);
 free(bigarray);
+}
+w32 ssm1[MEGA]; w32 ssm2[MEGA];
+/*FGROUP DDR3 
+Read 4MB of usefull data (64MB from DDR3), i.e.
+store only last 2 words (8 bytes) from each 512bits(64bytes) block
+in ssm1, ssm2
+It takes ~20s. Use ssmshow than.
+*/
+void ddr3_ssmread() {
+int ddr3ad, ix, rc;
+w32 block[DDR3_BLKL];
+//for(ix=0; ix<= MEGA; ix++) {
+for(ix=0; ix< MEGA; ix++) {
+  ddr3ad= ix*16;
+  rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
+  if(rc!=0) {
+    printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
+    return;
+  };
+  ssm1[ix]= block[14];
+  ssm2[ix]= block[15];
+};
+}
+/*FGROUP DDR3 
+Show ssm1, ssm2
+from: 0..1024*1024-1
+lines: number of lines to stdout (equal lines printed only once)
+ * */
+void ddr3_ssmshow(int from, int lines) {
+int ix; char line[90]="", prevline[90]="abc";
+if(from>=MEGA) {
+  printf("Too far. Last address is: %d\n", MEGA-1);
+  return;
+};
+for(ix=from; ix<= from+lines;  ix++) {
+   if(ix>=MEGA) break;
+   sprintf(line, "%8x %8x", ssm1[ix], ssm2[ix]);
+   if( strcmp(line,prevline)!=0) {
+     printf("%6d: %s\n", ix, line);
+     strcpy(prevline, line);
+   };
+};
+}
+/*FGROUP DDR3 
+secs: >1:continuous  -will be stopped after secs seconds
+       0: 1-pass
+*/
+void ddr3_ssmstart(int secs) {
+w32 ssmcmd;
+w32 seconds1,micseconds1, seconds2,micseconds2,diff;
+if(secs==0) {
+  ssmcmd= 0;
+} else {
+  ssmcmd= 1;
+};
+vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);
+vmew32(SSMcommand+BSP*ctpboards[1].dial, ssmcmd);
+GetMicSec(&seconds1, &micseconds1);
+vmew32(SSMstart+BSP*ctpboards[1].dial, DUMMYVAL);
+if(secs>0) {
+  sleep(secs);
+} else {
+  while(1) {
+    w32 st;
+    st= vmer32(SSMstatus+BSP*ctpboards[1].dial);
+    if((st&0x2)==0) continue;   // wait till whole memory recorded
+    break;
+  };
+};
+GetMicSec(&seconds2, &micseconds2);
+diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+printf("%d micsecs\n", diff);
 }
 /*FGROUP Common
    rc: 0 -board ix is in the crate 

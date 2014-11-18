@@ -43,6 +43,13 @@ void setRWMODE(char mode);
 void UPPER(char *name);
 int syncemu();
 
+extern int QUIT;
+extern w32 *buf1;
+void updateMONCOUNTERSservice(int uc);    // update DIM service 1/min
+void updateMONBUSY();   
+void readltucounters();
+void saveprevcnts();
+
 /*------------------------------------------------------------ isNotNONE()
 rc: 1 if defined
     0 if NONE, UNDEFINED or ""
@@ -425,7 +432,11 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
   strcpy(state,"ERROR");
   smi_set_state(state);
 } else {
-  ltuInit(&ltushm->ltucfg, 1,0);   // executes TTCinit() too
+  /* removed 7.11.2014 (done above in ds_register when ltu.exe started)
+   but we need to have Gltuver defined... so let's leave it aslo here
+  */
+    ltuInit(&ltushm->ltucfg, 1,0);   // executes TTCinit() too
+  //
   /* removed 29.10.2014 (on Manlio Minervini request)
   if(strcmp(dimservername,"hmpid")==0) {
     ltc->flags= ltc->flags | FLGfecmd12;
@@ -436,9 +447,28 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
   strcpy(state,"STANDALONE_STOPPED");
   smi_set_state(state);
 };
+printf(" main loop /1sec\n");
 fflush(stdout);
+{ int isecs;
+readltucounters();
+saveprevcnts();
 while(1) {
-  usleep(1000000);
+  //usleep(1000000);
+  if(isecs>=60) {
+    updateMONCOUNTERSservice(0);    // update DIM service 1/min
+    isecs= 0;
+  };
+  dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
+  readltucounters();    // update shm 1/sec
+  updateMONBUSY();   
+  saveprevcnts();
+  if(QUIT==1) {
+    // freeShared(buf1,...);     -for SSM yes, but not for counters
+    buf1=NULL;
+    // see ds_stop shmdt(ltushm);
+    break;
+  };
+};
 };
 return (0);
 }

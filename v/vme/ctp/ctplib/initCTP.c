@@ -200,7 +200,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //setEdge(1,6,0);   // acorde single needs Positive edge
     if(l0C0()) {
       // init CTP LM0 switch to 1->1, 2->2,...
-    /*int lminp=1; w32 lminpadr;
+      int lminp=1; w32 lminpadr;
       lminpadr= SYNCH_ADDr2 + BSP*ctpboards[ix].dial;
       for(lminp=1; lminp<=24; lminp++) {
         w32 val,adr;
@@ -209,8 +209,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         vmew32(adr, val);
       }
       infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
-    */
-      infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
+      //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
     } else {
       setEdgesDelays(1);
     };

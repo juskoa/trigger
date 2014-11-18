@@ -2714,6 +2714,16 @@ clearflags();
 intddlemu= vmer32(INT_DDL_EMU);
 if((intddlemu&0xf)==0) {   //check DDL if DAQ is active
   if((intddlemu&0x70)!=0x30) {
+/* note 17.11.2014:
+when switch off/on the crate, or disconnect/connect DDL,
+fiBEN bit (0x10) goes to 0 and cannot be set to 1 from our side
+by enabling DAQ readout. It gets set only when CTP server at other
+side of DDL is restarted (tested today with Sylvain in lab).
+Fix: 
+CTPserver will go down automatically when DDL is not ready
+(Sylavain is going to modify it this way). When ctp reconnects DDL,
+CTPserver needs to be restarted, which set fiBEN bit ON
+*/
     char msg[200];
     sprintf(msg,"Run %d: CTP DDL link full or in bad state before sending SOD.\
  INT_DDL_EMU:0x%x expected: 0x30",
@@ -2721,7 +2731,7 @@ if((intddlemu&0xf)==0) {   //check DDL if DAQ is active
     infolog_trgboth(LOG_FATAL, msg);
     //von prtLog(msg);
     strncpy(errorReason, msg, ERRMSGL);
-    rc= 5; goto UNSETRET;
+    rc= 5; goto UNSETRETddl;
   };  
 };
 usleep(200);   // be sure, CTP is quiet when reading counters at SOR
@@ -2761,6 +2771,13 @@ gcalibUpdate();
 RET:
 infolog_SetStream("",0);
 return rc;
+UNSETRETddl:
+  prepareRunConfig(part,0);
+  ret= deletePartitions(part);
+  copyHardware(&HW,&HWold);
+  /*goto UNSETRETadb;
+  no gcalib/busys -they were not updated anyhow (UNSETRET) */
+  goto RET;
 UNSETRET:
   prepareRunConfig(part,0);
   ret= deletePartitions(part);

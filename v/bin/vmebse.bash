@@ -62,7 +62,7 @@ if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then
 fi
 #
 #first=`echo $vdir |cut -b 1`
-if [ -e /dev/vme_rcc ] ;then
+if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
   export VMEDRIVER=VMERCC     # VMERCC, SIMVME
   if [[ -z $VMELIBS ]] ;then
     export VMELIBS=/lib/modules/daq
@@ -78,36 +78,29 @@ if [ -e /dev/vme_rcc ] ;then
     export SMAQ_C=alidcscom707
     export DIM_DNS_NODE=aldaqecs
     #export DIM_DNS_NODE=alidcscom188
-    #export ACT_DB=daq:daq@aldaqdb/ACT
-    if [ -d /opt/act ] ;then   # only on server needed
-      export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
-    fi
   elif [ "$hname" = "altri1" ] ;then   # development
     export SMAQ_C=avmes
     export VMESITE=SERVER
     #export DIM_DNS_NODE=pcald30
     export DIM_DNS_NODE=avmes
-    if [ -d /opt/act ] ;then
-      export ACT_DB=daq:daq@pcald30/ACT
-    fi
   elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
     export SMAQ_C=pcalicebhm10
     export VMESITE=SERVER2
     export DIM_DNS_NODE=pcald30
     #export DIM_DNS_NODE=avmes
-    if [ -d /opt/act ] ;then
-      export ACT_DB=daq:daq@pcald30/ACT
-    fi
   else
     export VMESITE=PRIVATE
     export DIM_DNS_NODE=pcald30
   fi
-else
- export VMEDRIVER=SIMVME
- DIPLIB=/opt/dip/lib64
- if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
- fi
+else               #------------------------------ server
+  export VMEDRIVER=SIMVME
+  DIPLIB=/opt/dip/lib64
+  if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
+  fi
+  if [ -d /opt/act ] ;then   # needed only on server
+    export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
+  fi
   if [ "$hname" = "avmes" ] ;then   # development
     export SMAQ_C=avmes
     export VMESITE=SERVER
@@ -120,9 +113,6 @@ else
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
     export DIM_DNS_NODE=aldaqecs
-    if [ -d /opt/act ] ;then   # only on server needed
-      export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
-    fi
   elif [ "$hname" = "pcalicebhm10" ] ;then   # stabel + daqecs
     export SMAQ_C=avmes
     export VMESITE=SERVER2

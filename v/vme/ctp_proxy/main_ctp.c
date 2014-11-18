@@ -109,6 +109,7 @@ if(strcmp(sendcmd,"wait")==0) {
   fflush(stdout); return;
 };
 #endif
+errorReason[0]= '\0';
 if(strcmp(cmd,"LOAD")==0) {
   printf("%s partition: %s mask: %s run:%d\n", cmd,pname, mask,run_number);
   rc= ctp_LoadPartition(pname,mask,run_number,ACT_CONFIG, errorReason);

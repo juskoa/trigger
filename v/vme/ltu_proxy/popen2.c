@@ -39,7 +39,9 @@ pid_t popen2(const char *baseaddr, int *infp, int *outfp) {
         close(p_stdout[READ]); close(WRITE);
         dup2(p_stdout[WRITE], WRITE);
         //execl("/bin/sh", "sh", "-c", baseaddr, NULL);
-        execl(ltupgm, ltupgm,"-noboardInit", baseaddr, NULL);
+        /* -noboardInit -> -scthread 7.11.2014
+        execl(ltupgm, ltupgm,"-noboardInit", baseaddr, NULL); */
+        execl(ltupgm, ltupgm,"-scthread", baseaddr, NULL);
         //printf("popen2:ltupgm:%s\n",ltupgm);
         perror("execl");
         exit(1);

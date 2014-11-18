@@ -192,7 +192,8 @@ void adctimeconst(w32 delay0,w32 delay1,int board)
  return ;
 }
 /*FGROUP ADCtools
-Generates random delays and measure adc for each of them.
+Generates random delays (on BUSY board) and measure adc (on board) 
+for each of them.
 */
 void rndtest(int board)
 {

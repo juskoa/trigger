@@ -172,7 +172,7 @@ if(enable) {
 
 /* master/slave or standalone mode */
 void Setstdalonemode() {
-w32 b2; char msg[100];
+w32 b2;
 //von infolog_SetStream(dimservernameCAP,-1);
 SLMsetstart(templtucfg->ltu_LHCGAPVETO);          /* START not selected */ 
 PARTITION_NAME[0]='\0';   // has to come with GLOBAL mode
@@ -181,7 +181,7 @@ if(templtucfg->flags & FLGextorbit) { b2=3; } else { b2=1;};
 setstdalonemode(b2);
 /*
 if(templtucfg->flags & FLGfecmd12) {
-  int rc;
+  int rc; char msg[100];
   // send FEEcmd 12 for hmpid
   sprintf(msg, "hmpid STDALONE: sending feecmd 12...");
   infolog_trg(LOG_INFO, msg);
@@ -324,7 +324,7 @@ if(  templtucfg->ltu_autostart_signal==3) {
 } else {
   strcpy(msg, "Unknown trigger source,");
 };
-infolog_trg(LOG_INFO, msg);
+infolog_trgboth(LOG_INFO, msg);
 SLMsetstart(templtucfg->ltu_autostart_signal | templtucfg->ltu_LHCGAPVETO);
 SLMstart();
 RET:

@@ -266,6 +266,7 @@ EXTRN w32 Gltuver;  // has to be 0xf3 or 0xbX
 #define FLGlogtimestamp 1   // 1: time stamps for ltu log (todo)
 #define FLGfecmd12 2        // 1: hmpid (fecmd12 to be sent) 0: not hmpid
 #define FLGextorbit 0x4     // 1: external 0: internal orbit
+#define FLGscthread 0x8     // 1: active 0: not active
 #define IXG_calibration_roc 0 
 #define IXltuver 1 
 #define IXGpp_time 2 

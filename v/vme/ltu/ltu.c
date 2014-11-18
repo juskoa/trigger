@@ -2,7 +2,9 @@
 /* BOARD ltu "VXI0::261" 0x800 */
 /*
 23.05.2008 LTUvi
+6.11.2014 scthread added
 */
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -28,6 +30,9 @@ extern w32 *smsltu;
 extern int quit;
 extern char BoardBaseAddress[];
 extern w32 SSMSCHEDULER;/* SSM recording planning, 2-After, 3-Before, 0-no plan */
+extern int scthread_request;
+int rc_scthread=1;     // 0: ok, started
+pthread_t sc_thread;   // NULL: not started
 
 /*HIDDEN ADC SLM SSM EmuTests FrontPanel ExpertConf ConfiguratioH SHM Browser*/
 
@@ -167,7 +172,6 @@ if(SSMsetom(1)) {   /* VME access, write */
 };
 }
 #define Mega (1024*1024)
-//von Tltushm *shmbase=NULL;
 w32 *shmcnts=NULL;
 /*FGROUP SHM
 rc: 0: ok
@@ -740,13 +744,32 @@ Counters monitor */
 Signal selection for front panel 
 A,B outputs
 */
+
 void endmain() {
+if(rc_scthread==0) {
+  printf("Joining scthread...\n");
+  if(pthread_join(sc_thread, NULL)) {
+    printf("Error joining scthread\n");
+  };
+} else {
+  printf("scthread was not started, joining skipped\n");
+};
 #ifdef SIMVME
 #else
 //undoreservation();
 #endif
 }
-
+void *scthread(void *dummy) {
+ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGscthread;
+while(1) {
+  if(quit==888) break;
+  //printf("scthread: readCNTS2SHM...\n");
+  readCNTS2SHM();
+  usleep(1000000);
+};
+ltushm->ltucfg.flags= ltushm->ltucfg.flags & (~FLGscthread);
+return(NULL);
+}
 extern char BoardBaseAddress[];
 /*-------------------------------------------------------------- initmain() */
 /* called once, ALWAYS, at the very beginning.
@@ -782,6 +805,17 @@ if( ((Gltuver&0xf0) != 0xb0 ) && (Gltuver!=0xf3) ) {
   setseeds(3,3);
   //regfuns();
 #endif
+if((scthread_request==1) && ((ltushm->ltucfg.flags & FLGscthread)==0)) {
+  printf("Starting scthread...\n");
+  //scthread_start();
+  if((rc_scthread=pthread_create(&sc_thread, NULL, scthread, ltushm))) {
+    printf("Error creating scthread\n");
+  } else {
+    printf("scthread started.\n");
+  };
+} else {
+  printf("Counters reading thread cannot be started (already active).\n");
+};
 }
 /*-------------------------------------------------------------- boardinit() */
 void boardInit() {   /* called once, after initmain, if -noboardInit 

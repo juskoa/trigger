@@ -74,6 +74,6 @@ LTULD= -L$(LTULIB) -lltu
 DIMLD= -L$(DIMDIR)/linux -ldim
 SMILD= -L$(SMIDIR)/linux -lsmi
 VMEBLD= -L$(VMEBLIB) -lvmeb
-LDFLAGS = -lpthread
+LDFLAGS += -lpthread
 
 

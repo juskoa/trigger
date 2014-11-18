@@ -301,6 +301,10 @@ if(rc==0) {
       }; 
     };
     printf("%s",dain->run1msg); fflush(stdout);
+  } else {
+    char emsg[ERRMSGL];
+    sprintf(emsg,"DAQlogbook_update_cluster failed. rc:%d", rc);
+    infolog_trg(LOG_FATAL, emsg);
   };
 };
 }
