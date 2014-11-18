@@ -8,7 +8,8 @@ GLIBS         = -L/usr/X11R6/lib -lX11 -lm -ldl -rdynamic
 VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/usr/local/include
 
 FILES = x/BOARDBASIC.cc x/BOARD.cc x/SSMTOOLs.cc x/LTUBOARD.cc x/CTP.cc x/CONNECT.cc \
-x/L0BOARD.cc x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
+x/L0BOARD.cc x/L0BOARD1.cc x/L0BOARD2.cc \
+x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
 x/FOBOARD.cc x/TTCITBOARD.cc x/BUSYBOARD.cc x/ssmrecord.cc
 
 SRCS=$(subst x/,src/,$(FILES))
@@ -17,7 +18,7 @@ OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
 HFILES =   $(SRCS:.cc=.h)
 .SECONDARY: $(OBJFILES)
 
-#all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e
+#all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e
 # debugging
 all: $(FILE).e
 #	@echo SRCS    : $(SRCS)

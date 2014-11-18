@@ -51,7 +51,10 @@ BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
 }
 //----------------------------------------------------------------------------
 BOARDBASIC::~BOARDBASIC(){
- if(vmeopenflag)CloseVME();
+ if(vmeopenflag){
+   cout << "Closing VME: " << d_vsp << " ----------------------VMEclosed" << endl;
+   CloseVME();
+ }
 }
 //----------------------------------------------------------------------------
 void BOARDBASIC::printboardinfo(string const &option) const

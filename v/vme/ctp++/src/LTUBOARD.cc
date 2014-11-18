@@ -177,8 +177,8 @@ int LTUBOARD::AnalTotalSSM2()
  w32 L0L1=260;
  //w32 L0L2=4149;  // LTU
  //w32 L0L2=4150;  // LTU
- w32 L0L2=4259;  // LTU
- //w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260
+ // w32 L0L2=4259;  // LTU
+ w32 L0L2=4260;   // L2_DELAY=4318 gives L0L2 4260 altri1
  //int L2dSSMOffset=92; // Offset between bc from SSM and from L2data
  //int L2dSSMOffset=44; // LTU
  int L2dSSMOffset;
@@ -467,7 +467,7 @@ int LTUBOARD::CheckL2TTC(w32 ittc,w16* dataser,w32 issm)
  for(w32 i=0;i<NL2words;i++){
    err |= (dataser[i] != data[i]);
    if((i>3) && (i<12) && (dataser[i] != 0xfff))err=1024;
-   if((i==13) && (dataser[i] != 0xf00))err=2048;
+   if((i==12) && (dataser[i] != 0xf00))err=2048;
    if(err){
     printf("Error: TTC and serial data diff: err=%i i=%i ",err,i);
     for(w32 k=0;k<NL2words;k++)printf("%x %x :",dataser[k],data[k]);

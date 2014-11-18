@@ -3,6 +3,8 @@
 #include <list>
 #include "BOARD.h"
 #include "L0BOARD.h"
+#include "L0BOARD1.h"
+#include "L0BOARD2.h"
 #include "L1BOARD.h"
 #include "L2BOARD.h"
 #include "FOBOARD.h"

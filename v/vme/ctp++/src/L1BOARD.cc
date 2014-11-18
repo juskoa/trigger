@@ -47,20 +47,6 @@ int L1BOARD::CheckCountersNoTriggers()
  if(ret==0)printf("L1  CheckCountersNoTriggers: NO ERROR detected.\n");
  return ret;
 } 
-
-//----------------------------------------------------------------------------
-// set single class at index, with input mask inputs and cluster
-void L1BOARD::setClass(w32 index,w32 inputs,w32 cluster,w32 vetos)
-{
- w32 word=inputs+(cluster<<28) + (vetos<<24)+(1<<31);
- vmew(L1CONDITION+4*index,word);
-}
-//----------------------------------------------------------------------------
-// Set all classes to 0xfffff - dont care
-void L1BOARD::setClassesToZero()
-{
- for(w32 i=0; i<kNClasses; i++)setClass(i+1,0xffffff,0,0xf);
-}
 //----------------------------------------------------------------------------
 // read and print all classes
 void L1BOARD::printClasses()
@@ -89,15 +75,16 @@ int L1BOARD::AnalSSM()
 
  w32 classlow[50],classhigh[50];
  w32 *sm=GetSSM();
- int i=0;
  int L0L0=260;
+ int i=L0L0;
  int l0issm=-L0L0;
+ while((i<Mega) && bit(sm[i],sl0strobech))i++;
  while(i<Mega){
    int j=0;
    if(bit(sm[i],sl0strobech)){
      if((i-l0issm) < L0L0){
        printf("L1BOARD::AnalSSM: Error L0L0 time violation at %i \n",i);
-       rc=1;
+       if(i>L0L0) rc=1;
      }
      l0issm=i;
      i++;
@@ -106,8 +93,9 @@ int L1BOARD::AnalSSM()
       classhigh[j]=bit(sm[i+j],sl0datach);
       //printf("%i %i %i %i\n",i,j,classlow[j],classhigh[j]);
       if((classlow[j] != 1) || (classhigh[j] != 1)){
-        //printf("classes !=1 at %i \n",i+j);
-        rc=1;
+        printf("classes !=1 at %i \n",i+j);
+        //if(i>L0L0)return 1;
+        return 1;
       }
       j++;
      }

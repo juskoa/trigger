@@ -5,7 +5,8 @@
 int main()
 {
   CTP* ctp = new CTP;
-  FOBOARD* fo=ctp->fo[5];
+  //FOBOARD* fo=ctp->fo[5];
+  FOBOARD* fo=ctp->fo[0];
   fo->SetMode("inmonl2",'a');
   fo->StartSSM();
   usleep(50000);
