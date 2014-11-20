@@ -188,11 +188,13 @@ L0, L1, L2:
                                  0x1ff bits: TL1-1 -see calcFO_FILTER_L1() */
 /*REGEND */
 
-/* SSMsetom() modes: */
+/* SSMsetom() modes:
+For LM0 only first 4 modes possible (20.11.2014)
+ */
 #define SSMomvmer 0
 #define SSMomvmew 1
-#define SSMomreca 2
-#define SSMomrecb 3
+#define SSMomreca 2     // 1-pass
+#define SSMomrecb 3     // continuous
 #define SSMomgens 4
 #define SSMomgenc 5
 

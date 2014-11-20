@@ -116,8 +116,18 @@ if(vsp!=0) {   /* ltu */
 called only form setomSSM(), readSSM(), writeSSM() */
 int setomvspSSM(int vsp, w32 boardoffset, w32 opmo) {
 w32 status,bcstatus,busybit,ssmen;
-if(vsp==0) busybit=0x100;     /* ctp board */
-else busybit=0x04;           /* ltu board */
+w32 l0bo=BSP*ctpboards[1].dial;
+if(vsp==0) {                  /* ctp board */
+  if((boardoffset==l0bo) && (l0C0()!=0)) {
+    busybit=0x10;   // LM0 board
+    if((opmo!=0) && (opmo!=1) && (opmo!=0x) && (opmo !=0xb)) {
+      printf("ERROR: LMO board, bad opmo:0x%x\n", opmo);
+      return(1);
+    };
+  } else {
+    busybit=0x100;  // L0 or other ctp board
+  };
+} else busybit=0x04;           /* ltu board */
 bcstatus= vmbr32(vsp, BC_STATUS+boardoffset);
 if(((0x7&opmo)!=SSMomvmer && (0x7&opmo)!=SSMomvmew)&&((bcstatus&0x3)!=0x2)) {
   printf("Warn: BC signal not connected\n");/* BC not necessary for vme R/W*/
@@ -140,8 +150,12 @@ if( status & busybit) {
 vmbw32(vsp,SSMcommand+boardoffset, opmo&0x3f);
 
 if(vsp==0) {   /* ctp board, set SSMenable word: */
-  ssmen= (opmo>>8)&3;
-  vmew32(SSMenable+boardoffset, ssmen);
+  if((boardoffset==l0bo) && (l0C0()!=0)) {
+    ;   // LM0 board has no SSMenable word
+  } else {
+    ssmen= (opmo>>8)&3;
+    vmew32(SSMenable+boardoffset, ssmen);
+  };
 };
 return(0);
 }
@@ -197,6 +211,7 @@ board -number of the board (index into global sms array)
 opmo  -mode/operation bit for SSMcommand word. symbolic names 
        are defined in ctp.h (as SSMom*)
 
+
 opmo for LTU boards:
 --------------
 0x0 -VME access, read
@@ -207,6 +222,12 @@ opmo for LTU boards:
 Bit opmo[4] (0x10) should be set to 1 for LTU/RECORDING mode
     (new feature 'FrontPanel->SSM' introduced for LTU 7.10.2005)
     If not set, signals from LTU-FPGA will be recorded.
+
+opmo for LM0 board:
+------------------
+Valid only: 0, 1, a, b
+SSMomvmer/w 
+SSMomreca/b | 0x8   (i.e. in)
 
 opmo for CTP boards:
 --------------
@@ -303,7 +324,7 @@ while(1) {
     vmxw32(vsp, SSMstart,DUMMYVAL);
   } else {                  /* ctp board */
     boardoffset=BSP*ctpboards[board].dial; 
-    vmew32(SSMaddress+boardoffset,0);
+    vmew32(SSMaddress+boardoffset,0);   // always (also for LM0)
     /*    micwait(30); */
     status= vmer32(SSMstatus+boardoffset);
     vmew32(SSMstart+boardoffset, DUMMYVAL);
@@ -352,7 +373,11 @@ if(board>=NCTPBOARDS) {   /* ltu */
   busybit=0x04;
 } else {     
   boardoffset=BSP*ctpboards[board].dial;
-  busybit=0x100;
+  if((board==1) && (l0C0()!=0)) {
+    busybit=0x10;   // LM0 board
+  } else {
+    busybit=0x100;
+  };
 };
 ssmstatus= vmbr32(vsp, SSMstatus+boardoffset);
 if( (ssmstatus&busybit)==0 ) {
@@ -456,27 +481,30 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   w32 status,enable,mod;
   /* don't touch InOut, ConfSel bits and SSMenable word when VME access*/
   status= vmer32(SSMstatus+ssmoffset);
-  enable= (status&0xc0)<<2;
-  mod= SSMomvmer | (status&0x38) | enable;
-  /*printf("readSSM: status enable mod: %x %x %x\n", status,enable,mod); */
-  ssma= vmer32(SSMaddress+ssmoffset); 
-  //printf("SSMaddress:%x\n",ssma);
-  // SSMaddress has to be read before setom, otherwide overflow bit is cleared 
-  rc= setomvspSSM(0, ssmoffset, mod);
-  if(rc!=0) return(rc);
-  if( ((ssma & 0x100000)==0) ) {
-    /* recording was done in Before mode, we
-    should read only part of the SSM */
-    printf("After or Before mode data without Overflow flag, %d words\n",ssma);
-    vmew32(SSMaddress+ssmoffset,(w32)-1);
-    words= ssma;
+  if((board==1) && (l0C0()!=0)) {   // LM0 board
   } else {
-    words= Mega;
-  };
-  d= vmer32(SSMdata+ssmoffset);
-  d= vmer32(SSMdata+ssmoffset);
-  for(i=0; i<words; i++) {
-    array[i]= vmer32(SSMdata+ssmoffset);
+    enable= (status&0xc0)<<2;
+    mod= SSMomvmer | (status&0x38) | enable;
+    /*printf("readSSM: status enable mod: %x %x %x\n", status,enable,mod); */
+    ssma= vmer32(SSMaddress+ssmoffset); 
+    //printf("SSMaddress:%x\n",ssma);
+    // SSMaddress has to be read before setom, otherwide overflow bit is cleared 
+    rc= setomvspSSM(0, ssmoffset, mod);
+    if(rc!=0) return(rc);
+    if( ((ssma & 0x100000)==0) ) {
+      /* recording was done in Before mode, we
+      should read only part of the SSM */
+      printf("After or Before mode data without Overflow flag, %d words\n",ssma);
+      vmew32(SSMaddress+ssmoffset,(w32)-1);
+      words= ssma;
+    } else {
+      words= Mega;
+    };
+    d= vmer32(SSMdata+ssmoffset);
+    d= vmer32(SSMdata+ssmoffset);
+    for(i=0; i<words; i++) {
+      array[i]= vmer32(SSMdata+ssmoffset);
+    };
   };
 } else {                            /* ltu board */
   vsp=Openvsp(sms[board].ltubase);
