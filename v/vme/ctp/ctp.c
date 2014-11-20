@@ -814,11 +814,16 @@ rc= setomSSM(brd, 0x20d); rc= startSSM1(brd);
 for(sync=0; sync<=15; sync++) {
   for(ix1=0; ix1<24; ix1++) {
    if(l0C0()) {
+    w32 word;
     sadr= bb+SYNCH_ADDr2+4*ix1;
+    word= vmer32(sadr);
+    // keep edge, do it for first 24 only
+    word= (word & 0xfffffff0) | sync;
+    vmew32(sadr, word);
    } else {
     sadr= bb+SYNCH_ADD+4*ix1;
-   };
     vmew32(sadr, sync);
+   };
   };
 /*  rc= startSSM1(brd); */
   usleep(1000000);
@@ -1488,10 +1493,11 @@ free(bigarray);
 }
 w32 ssm1[MEGA]; w32 ssm2[MEGA];
 /*FGROUP DDR3 
-Read 4MB of usefull data (64MB from DDR3), i.e.
-store only last 2 words (8 bytes) from each 512bits(64bytes) block
+Read 4MB of usefull data (64MB from DDR3, i.e. ~23secs), i.e.
+store only last 2 words (2x4 bytes) from each 512bits(=64bytes) block
 in ssm1, ssm2
-It takes ~20s. Use ssmshow than.
+Use ssmshow after being read.
+SSMaddress: 
 */
 void ddr3_ssmread() {
 int ddr3ad, ix, rc;

@@ -253,8 +253,18 @@ if(ltuviyes) {
 }
 /*------------------------------------------------------------ TTCinit() */
 int TTCinit() {
-//debug ludim:
-/*
+//debug ltudim:
+/* more lines:  -loosing lines (seems strcat problem in ltudimservices.c.appendResult() )
+>20.11.2014 17:55:05:TTCinit()>
+<20.11.2014 17:55:11:´¸)è³¸)è´¸)è_\=_\=debug TTCinit 6
+<1><::
+>20.11.2014 17:56:39:TTCinit()>
+<20.11.2014 17:56:45:rË¥õqË¥õrË¥õ(ØJ(ØJdebug TTCinit 3
+debug TTCinit 4
+debug TTCinit 5
+debug TTCinit 6
+<1><::
+
 printf("debug TTCinit now ait 0sec\n");
 usleep(1000000); printf("debug TTCinit 1sec\n");
 usleep(1000000); printf("debug TTCinit 2\n");
@@ -265,7 +275,9 @@ usleep(1000000); printf("debug TTCinit 6\n");
 //usleep(1000000); printf("debug TTCinit 7\n");
 //usleep(1000000); printf("debug TTCinit 8\n");
 //usleep(1000000); printf("debug TTCinit 9\n");
+return(1);
 */
+/*
 usleep(6000000) ; printf("debug TTCinit 1st multiline in one go\n\
 debug TTCinit 2nd  line in one go\n\
 debug TTCinit 3rd  line in one go\n\
@@ -274,6 +286,7 @@ debug TTCinit 5th  line in one go\n\
 debug TTCinit 6th  line in one go\n\
 ");
 return(1);
+*/
 Tltucfg *ltc = &ltushm->ltucfg;  // always use SHM int TTCinit() -interactive
 return(TTCinitgs(1, 5, ltc));    //  and TTCinit() through DIm service
 }
@@ -332,7 +345,7 @@ if(ltubusy&0x80) {
 }else {
   printf("BUSY is OFF before TTCrx init\n");
   wasbusy0=0;
-};
+}; fflush(stdout);
 /*--------------------------------------------------- TTCrx init */
 GetMicSec(&secs0, &mics0);
 readCounters(cntmem, LTUNCOUNTERS, 0);

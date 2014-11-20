@@ -95,7 +95,7 @@ mask meaning
 0x2  - 1: overflow when recording, can be cleared by writing to SSMaddress
 0x4  - n/a
 0x8  - n/a
-0x10  -1: busy (i.e. recording) 0: ready (i.e. for VME access)
+0x100  -1: busy (i.e. recording) 0: ready (i.e. for VME access)
 */
 
 #define SSMenable   0x1b4  /* 00: normal, 10 in enabled, 01 out enabled */
@@ -494,17 +494,17 @@ typedef struct{
 Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
-  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xa8,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xaf,NCOUNTERS_L0, CSTART_L0},
-  {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa4,NCOUNTERS_L1, CSTART_L1},
-  {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa6,NCOUNTERS_L2, CSTART_L2},
-  {"int", 0x55,12,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_INT, CSTART_INT},
-  {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xae,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
-  {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xae,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
-  {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xae,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},
-  {"fo4", 0x53, 4,NOTINCRATE,0,0xff,0xae,NCOUNTERS_FO, CSTART_FO+ 3*NCOUNTERS_FO},
-  {"fo5", 0x53, 5,NOTINCRATE,0,0xff,0xae,NCOUNTERS_FO, CSTART_FO+ 4*NCOUNTERS_FO},
-  {"fo6", 0x53, 6,NOTINCRATE,0,0xff,0xae,NCOUNTERS_FO, CSTART_FO+ 5*NCOUNTERS_FO}
+  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_BUSY, CSTART_BUSY},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc3,NCOUNTERS_L0, CSTART_L0},
+  {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa6,NCOUNTERS_L1, CSTART_L1},
+  {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa8,NCOUNTERS_L2, CSTART_L2},
+  {"int", 0x55,12,NOTINCRATE,0,0xff,0xac,NCOUNTERS_INT, CSTART_INT},
+  {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
+  {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
+  {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},
+  {"fo4", 0x53, 4,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 3*NCOUNTERS_FO},
+  {"fo5", 0x53, 5,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 4*NCOUNTERS_FO},
+  {"fo6", 0x53, 6,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 5*NCOUNTERS_FO}
   };
 
 #else

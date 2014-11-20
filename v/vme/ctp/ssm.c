@@ -119,8 +119,8 @@ w32 status,bcstatus,busybit,ssmen;
 w32 l0bo=BSP*ctpboards[1].dial;
 if(vsp==0) {                  /* ctp board */
   if((boardoffset==l0bo) && (l0C0()!=0)) {
-    busybit=0x10;   // LM0 board
-    if((opmo!=0) && (opmo!=1) && (opmo!=0x) && (opmo !=0xb)) {
+    busybit=0x100;   // LM0 board
+    if((opmo!=0) && (opmo!=1) && (opmo!=0xa) && (opmo !=0xb)) {
       printf("ERROR: LMO board, bad opmo:0x%x\n", opmo);
       return(1);
     };
@@ -374,7 +374,7 @@ if(board>=NCTPBOARDS) {   /* ltu */
 } else {     
   boardoffset=BSP*ctpboards[board].dial;
   if((board==1) && (l0C0()!=0)) {
-    busybit=0x10;   // LM0 board
+    busybit=0x100;   // LM0 board
   } else {
     busybit=0x100;
   };

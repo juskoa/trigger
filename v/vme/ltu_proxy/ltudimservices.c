@@ -212,7 +212,9 @@ if((ml + totlenResult + 3)>=MAXRESULT) {
   finishResult();
   rc=1;
 } else {
-  strcat(ResultString, msg); totlenResult= totlenResult+ml;
+  /*strcat(ResultString, msg); totlenResult= totlenResult+ml;
+   strcat nebavi */
+  strcpy(&ResultString[totlenResult], msg); totlenResult= totlenResult+ml;
 };
 return(rc);
 }
@@ -603,9 +605,10 @@ finishResult()
 */
 void readUntilColon(int us) {
 char partResult[MAXRESULT];
+char Result[MAXRESULT];
 char logmsg[MAXRESULT+MAXLILE];
 int outl;
-startResult();
+Result[0]='\0'; //startResult();
 while(1) { // read until ":\n"
   outl=read(outfp, partResult, MAXRESULT);
   if(outl== -1) {   /* pipe closed */
@@ -618,14 +621,19 @@ while(1) { // read until ":\n"
     partResult[outl]='\0';
     if(outl==0) { usleep(10); continue; };
     if(us==1) {
+      /*
       if(appendResult(partResult)) {
         break;   // short ResultString variable
-      };
+      };*/
+      strcat(Result, partResult);
     };
     /*sprintf(logmsg,"Ooutl:%d us:%d partResult:%s ResultString:%s<---\n", 
       outl,us,partResult, ResultString); dimlogprt("rUC", logmsg);  */
   };
-  if(strcmp(&partResult[outl-2],":\n")==0) break;
+  if(strcmp(&partResult[outl-2],":\n")==0) {
+    strncpy(ResultString,Result,MAXRESULT);
+    break;
+  };
 };
 if(us==1)updateservice();
 }
