@@ -120,9 +120,11 @@ w32 l0bo=BSP*ctpboards[1].dial;
 if(vsp==0) {                  /* ctp board */
   if((boardoffset==l0bo) && (l0C0()!=0)) {
     busybit=0x100;   // LM0 board
-    if((opmo!=0) && (opmo!=1) && (opmo!=0xa) && (opmo !=0xb)) {
+    if((opmo!=0) && (opmo!=1) && (opmo!=2) && (opmo !=3)) {
       printf("ERROR: LMO board, bad opmo:0x%x\n", opmo);
       return(1);
+    } else {
+
     };
   } else {
     busybit=0x100;  // L0 or other ctp board
@@ -147,7 +149,20 @@ if( status & busybit) {
   };
 };
 /*vmew32(SSMcommand+BSP*ctpboards[board].dial, opmo); */
-vmbw32(vsp,SSMcommand+boardoffset, opmo&0x3f);
+if((vsp==0) && (boardoffset==l0bo) && (l0C0()!=0)) {
+  w32 cmdlm0;
+  if(opmo==SSMomreca) {
+    cmdlm0= 0;   // 1-pass
+    vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
+  } else if(opmo==SSMomrecb) {
+    cmdlm0= 1;   // continuous
+    vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
+  } else {
+    ;  // no action for vmer/w for lm0
+  };
+} else {
+  vmbw32(vsp,SSMcommand+boardoffset, opmo&0x3f);
+};
 
 if(vsp==0) {   /* ctp board, set SSMenable word: */
   if((boardoffset==l0bo) && (l0C0()!=0)) {
@@ -226,8 +241,8 @@ Bit opmo[4] (0x10) should be set to 1 for LTU/RECORDING mode
 opmo for LM0 board:
 ------------------
 Valid only: 0, 1, a, b
-SSMomvmer/w 
-SSMomreca/b | 0x8   (i.e. in)
+0: SSMomvmer   1: SSMomvmew 
+2: SSMomreca   3: SSMomrecb  ( 0x8 = in)
 
 opmo for CTP boards:
 --------------
@@ -411,7 +426,8 @@ rc: == 0 OK
    2 problem with openvme for LTU
   10 timeout (counter did not change even after 'maxloops' reads)
 --------------------- */ 
-int condstopSSM(int board, int cntpos, int maxloops, int sleepafter, int customer) {
+int condstopSSM(int board, int cntpos, int maxloops, 
+  int sleepafter, int customer) {
 w32 cntval1,cntval2, secs1,mics1,secs2,mics2,diffusecs,incr;
 int loops, board1, board2=0;
 w32 cntmem1[NCOUNTERS]; w32 cntmem2[NCOUNTERS];  //the all counters version
@@ -482,7 +498,8 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   /* don't touch InOut, ConfSel bits and SSMenable word when VME access*/
   status= vmer32(SSMstatus+ssmoffset);
   if((board==1) && (l0C0()!=0)) {   // LM0 board
-  } else {
+    rc= setomvspSSM(0, ssmoffset, SSMomvmer);
+  } else {                          // BSY L0/1/2 FO INT
     enable= (status&0xc0)<<2;
     mod= SSMomvmer | (status&0x38) | enable;
     /*printf("readSSM: status enable mod: %x %x %x\n", status,enable,mod); */
