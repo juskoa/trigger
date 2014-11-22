@@ -373,6 +373,11 @@ if(maino==1) {
   vmew32(ORBmain_MAN_SELECT, 2); /* 2: internal BCmain synchronized orbit gen*/
   sprintf(msg, "Global clock: %x/%x -> BClocal/ORBlocal",bcmain,orbmain);
   strcpy(daqlog,"LOCAL");
+} else if(maino==12) {
+  vmew32(BCmain_MAN_SELECT, 3);  /* 3: BC1 input */
+  vmew32(ORBmain_MAN_SELECT, 1); /* 1: ORB2 input */
+  sprintf(msg, "Global clock: %x/%x -> BEAM1/ORB2",bcmain,orbmain);
+  strcpy(daqlog,"BEAM1/ORB2");
 } else {
   printf("Bad maino input. No action\n"); return;
 };

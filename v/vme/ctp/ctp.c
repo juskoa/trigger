@@ -1517,22 +1517,46 @@ for(ix=0; ix< MEGA; ix++) {
 /*FGROUP DDR3 
 Show ssm1, ssm2
 from: 0..1024*1024-1
-lines: number of lines to stdout (equal lines printed only once)
+lines: number of words to stdout (equal lines printed only once)
+mask: mask to be applied to second (16. word LM0 input mon)
+      eg. 0xf  -be sensitive only to 4 least significant bits
  * */
-void ddr3_ssmshow(int from, int lines) {
-int ix; char line[90]="", prevline[90]="abc";
+void ddr3_ssmshow(int from, int lines, w32 mask) {
+int ix; char line[90]="", line2[90]="", prevline[90]="abc";
 if(from>=MEGA) {
   printf("Too far. Last address is: %d\n", MEGA-1);
   return;
 };
 for(ix=from; ix<= from+lines;  ix++) {
-   if(ix>=MEGA) break;
-   sprintf(line, "%8x %8x", ssm1[ix], ssm2[ix]);
-   if( strcmp(line,prevline)!=0) {
-     printf("%6d: %s\n", ix, line);
-     strcpy(prevline, line);
-   };
+  w32 wrd;
+  if(ix>=MEGA) break;
+  wrd= ssm2[ix] & mask; 
+  //sprintf(line, "%8x %8x", ssm1[ix], ssm2[ix]);
+  sprintf(line, "%8x",wrd);
+  sprintf(line2, "%8x %8x", wrd, ssm2[ix]);
+  if( strcmp(line,prevline)!=0) {
+    printf("%6d: %s\n", ix, line2);
+    strcpy(prevline, line);
+  };
 };
+}
+/*FGROUP DDR3 
+*/
+int ddr3_dump(char *fname){
+FILE *dump; int i,retcode=0;
+dump= fopen(fname,"w");
+if(dump==NULL) {
+  printf("cannot open file %s\n", fname);
+  retcode=1; goto RET;
+};
+for(i=0; i<MEGA; i++) {
+  w32 d;
+  d= ssm2[i];
+  fwrite(&d, sizeof(w32), 1, dump);
+};
+fclose(dump);
+printf("%s dumped\n", fname);
+RET: return(retcode);
 }
 /*FGROUP DDR3 
 secs: >1:continuous  -will be stopped after secs seconds
@@ -1563,6 +1587,59 @@ if(secs>0) {
 GetMicSec(&seconds2, &micseconds2);
 diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
 printf("%d micsecs\n", diff);
+}
+/*FGROUP DDR3 
+l0inppos: position in cnames.sorted2 (must be lm0 board)
+idn:      name (example: t0c):
+          idn.log, idn_N.dump files created
+waitsecs: roughly in secs to wait for event
+maxevents: stop after acquisition of maxevents
+
+operation:
+- start ssm
+- stop ssm on condition (l0inp change)
+- ddr3 read+dump
+- write to log
+*/
+int ddr3_daq(int l0inp, char *idn, int waitsecs, int maxevents){
+FILE *logf; int loops=0,rc=0,rcssm=0,waitloops;
+char dati[30], logname[80]; w32 ssmrad;
+waitloops=1000*waitsecs;
+sprintf(logname,"%s.log",idn);
+logf= fopen(logname,"w");
+ssmrad= BSP*ctpboards[1].dial+SSMaddress;
+while(1) {
+  w32 stopadr; char fname[40];
+  SSMS: printf("---> ssmstart(1)\n");
+  ddr3_ssmstart(1);
+  while(1) {
+    rcssm= condstopSSM(1, l0inp, waitloops,10, 2); 
+    printf("condstopSSM rc:%d loops:%d\n", rcssm, loops);
+    loops++;
+    if(loops>= maxevents) break;
+    if(rcssm==0) break;   // data
+    if(rcssm==10) continue;   // data not found try again
+    if(rcssm==1) goto SSMS;   // not started
+    break;    // vme error
+  };
+  if(loops>= maxevents) {
+    if(rcssm==10) stopSSM(1);
+    break;
+  };
+  if(rcssm==0) {
+    stopadr= vmer32(ssmrad);
+    ddr3_ssmread();
+    getdatetime(dati);
+    sprintf(fname,"%s_%d.dump", idn, loops);
+    rc= ddr3_dump(fname);
+    fprintf(logf, "%s 0x%x %s %d\n", dati, stopadr, fname, rc);
+  } else {
+    printf("condstopSSM rc:%d\n", rcssm);
+  };
+  fflush(logf);
+};
+fclose(logf);
+return(rc);
 }
 /*FGROUP Common
    rc: 0 -board ix is in the crate 

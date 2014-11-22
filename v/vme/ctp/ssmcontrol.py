@@ -155,8 +155,10 @@ CS2 CS1  command      ssmsigs_file
       if pos==None:
         vb.io.write("rel. position not valid, cond. stop not executed\n")
       else:
-        intstr= vb.io.execute("condstopSSM(%d,%s,%s, 0)"%\
-          (self.smsix+20, pos, ssmctl.btimeout.getEntry()))
+        # customer 2: ctp.exe  let's sleep 200us (was 0) because of 1 brd only
+        intstr= vb.io.execute("condstopSSM(%d,%s,%s, 0, 2)"%\
+          (self.smsix, pos, ssmctl.btimeout.getEntry()))
+        #  (self.smsix+20, pos, ssmctl.btimeout.getEntry()))
         # board 21: stop L0 + L1
     else:
       waitread= False

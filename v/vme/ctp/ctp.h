@@ -719,18 +719,20 @@ edge: 0:Positive 1:Negative
 Edge: choose negative (for delay:0) if unstability is found around delay 0.
 */
 void setEdge(int board,w32 input,w32 edge);
-void setEdgerun1(int board,w32 input,w32 edge);
-void setEdgerun2(int board,w32 input,w32 edge);
 /*FGROUP inputsTools
 set Edge/Delay 
 Inputs:
 board: 1:L0 2:L1 3:L2
-input: 1..24 (1..12 for L2)
+input: 1..24 (1..12 for L2)   1..48 for LM0
 edge:  0:positive 1:negative
 delay: 0..15*/
 void setEdgeDelay(int board, int input, int edge, int delay);
-void setEdgeDelayrun1(int board, int input, int edge, int delay);
-void setEdgeDelayrun2(int board, int input, int edge, int delay);
+/*FGROUP inputsTools
+* i48->i24 */
+void setSwitch(int i48, int i24);
+/*FGROUP inputsTools
+*/
+void printSwitch();
 
 /*FGROUP inputsTools
 Read edge/delay info from hw for all the inputs (clk edge for ORbit

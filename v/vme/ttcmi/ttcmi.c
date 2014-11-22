@@ -193,6 +193,7 @@ Input: maino:
 2 -> BC2/Orbit2
 3 -> BCref/int BCmain synch. orbit generator
 4 -> internal 40.078MHz/int BCmain synch. orbit generator
+12 -> BC1/Orbit2
 Output:
 - clock is changed + log messages written into DAQ infoLogger
 Note (todo?):

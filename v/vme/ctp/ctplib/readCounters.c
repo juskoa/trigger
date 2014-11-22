@@ -117,15 +117,17 @@ I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...,10(INT)
    customer: 2 (for ctp exp. sw)
 */
 w32 getCounter(int board, int reladr, int customer) {
-int bb,cix; w32 copyread;
+int bb,cix,nbc; w32 copyread;
 w32 mem[NCOUNTERS_MAX];
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
+nbc= ctpboards[board].numcnts;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(8); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
-for(cix=0; cix<=reladr; cix++) {
+//for(cix=0; cix<=reladr; cix++) {   // seems not working (cannot catch it) 
+for(cix=0; cix<nbc; cix++) {
   mem[cix]= vmer32(copyread);
 };
 unlockBakery(&ctpshmbase->ccread, customer);

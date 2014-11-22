@@ -438,13 +438,15 @@ if(board<20) {board1=board;} else {
   if(board2>10) board2=0;
 };
 GetMicSec(&secs1, & mics1);
-//cntval1= getCounter(board1, cntpos); //the 'current board counters only' version
-readCounters(cntmem1, NCOUNTERS, 0, customer); cntval1=cntmem1[cntpos];
+cntval1= getCounter(board1, cntpos, customer); //the 'current board counters only' version
+// next line normally ok:
+//readCounters(cntmem1, NCOUNTERS, 0, customer); cntval1=cntmem1[cntpos];
 //for(loops=0; loops<maxloops; loops++) {
 loops=0;
 while(loops<maxloops){
-  //cntval2= getCounter(board1, cntpos);
-  readCounters(cntmem2, NCOUNTERS, 0, customer); cntval2=cntmem2[cntpos];
+  cntval2= getCounter(board1, cntpos,customer);
+  // next line normally ok:
+  //readCounters(cntmem2, NCOUNTERS, 0, customer); cntval2=cntmem2[cntpos];
   if( cntval1 != cntval2) {rc=0; 
     if(sleepafter >0) usleep(sleepafter);
     rc= stopSSM(board1);

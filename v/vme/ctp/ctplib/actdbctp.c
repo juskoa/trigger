@@ -72,6 +72,8 @@ if(actopcls==1) {
 };
 shmdt(ctpshmbase);
 ix= strlen(filter); if(ix>0) filter[ix-1]='\0'; // remove trailing space
+  printf("INFO actdb_getff: filter from ACT not taken into account\n");
+return;
 sprintf(fname,"%s/CFG/ctp/DB/filter",vmecfdir); f=fopen(fname,"w");
 if(f == NULL) {
   printf("INFO actdb_getff: cannot write to %s\n", fname);

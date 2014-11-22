@@ -140,8 +140,8 @@ for(ix=1; ix<=NCLASS; ix++) {
 }; 
 rates2hwInit();
 //dbgssm("classes set");
-printf("omitting init IR, L0F12 on L0/LM0 board.\n");
 /*
+printf("omitting IR and L0F12 init to 0, on L0/LM0 board (programmed elsewhere).\n");
 vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
 vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
 vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
@@ -210,8 +210,27 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       }
       infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
       //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
-    } else {
-      setEdgesDelays(1);
+      setEdgeDelay(1,1,1,0);  // T0C
+      setEdgeDelay(1,2,1,0);  // TSC
+      setEdgeDelay(1,3,1,0);  // TVX
+      setEdgeDelay(1,4,1,0);  // T0A
+      setEdgeDelay(1,5,1,0);  // TCE
+      setEdgeDelay(1,6,0,0);  // 0VBA
+      setEdgeDelay(1,7,0,0);  // 0VBC
+      setEdgeDelay(1,8,0,0);  // 0VGO
+      setEdgeDelay(1,9,0,0);  // 0VLN
+      setEdgeDelay(1,10,0,0); // 0VC5
+      setEdgeDelay(1,37,0,5); // 0BPA
+      setEdgeDelay(1,38,1,10);  // 0BPC
+      setSwitch(3, 20);   // 0TVX
+      setSwitch(20, 3);   // 0MSL
+      setSwitch(37, 21);   // 0BPA
+      //setSwitch(38, 22);   // 0BPC
+      setSwitch(31, 22);   // 0OM2
+      setSwitch(33, 23);   // 0OMU
+      setSwitch(36, 24);   // 0OB0
+    } else { 
+      setEdgesDelays(1); printf("L0 edges/delays set\n");
     };
     vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     //printf("RND1/2 synchronised\n"); RNDsync(3);

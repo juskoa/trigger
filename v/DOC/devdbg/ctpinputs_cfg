@@ -1,9 +1,9 @@
 1. Goal 
 -------
-replace VALID.CTPINPUTS, CTP.SWITCH, L0.INPUTS by ctpinputs.cfg
+replace VALID.CTPINPUTS, CTP.SWITCH, L0.INPUTS (old: 3files way) by ctpinputs.cfg (new: 1file way)
 
 ctpfunctions.cfg  -not yet clear if we move l0f* defs to separate file.
-                   For the time being, it is kept at the end of ctpinputs.cfg.
+                   For the time being, it is kept at the end of ctpinputs.cfg (as in run1).
 
 2. run1 formats
 ---------------
@@ -40,7 +40,7 @@ spdl0_8 0SMB 0 1 4
   vmecrate inputs  ro   old  new
 
 old: old way, i.e. 3 files
-new: new way, i.e. use only ctpinputs.cfg
+new: new way, i.e. use only ctpinputs.cfg (1file)
   
 4. New ctpinputs.cfg format
 ---------------------------
@@ -62,6 +62,7 @@ InpNum:       0: not connected (still can be connected to switch)
 
 Added columns:
 ppn:          PatchPanel number: T|B A|B n   e.g.: TA1 -> EMCAL L1
+              n: 1..20 (numbers engraved on patch panel)
 nameweb:      cable name/number -whatever is written on cable or on our web 'Installation'
 eq:           1: with equalizer 0: no equalizer
 dimdns:       aldaqecs or alidcsdimdns

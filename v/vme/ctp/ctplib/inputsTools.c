@@ -162,6 +162,19 @@ if(board==0) {
   };
 };
 }
-
-
+/* i48 -> i24 */
+void setSwitch(int i48, int i24) {
+w32 synch;
+synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(i24-1));
+synch= (synch & 0xffc0ffff) | ((i48 & 0x3f)<<16);
+vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(i24-1), synch);
+}
+void printSwitch() {
+w32 synch, fed; int input;
+for(input=1; input<=24; input++) {
+  synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(input-1));
+  fed= (synch & 0x003f0000) >> 16;
+  printf("%d <- %d\n", input, fed);
+};
+}
 
