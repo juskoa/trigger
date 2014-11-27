@@ -587,7 +587,7 @@ if(rc==-1) {
 *msgp= (char *)&busytime1sec;  // better?:
 //*msgpvoid= (void *)&busytime1sec;
 *size= 4;
-sprintf(msg,"size:%d float content:%6.4f \n", *size, busytime1sec);
+sprintf(msg,"size:%d float contnt:%6.4f \n", *size, busytime1sec);
 dimlogprt("MONBUSYcaba",msg);
 }
 /*--------------------------------------------------------- readUntilColon()
@@ -849,7 +849,7 @@ for(ix=0; ix<LTUNCOUNTERSall; ix++) {
 };
 /*-------------------------------------------------------- readltucounters()
 Operation:
-- read counters from LTU into shm
+- read counters from shm (i.e. with 1sec. resolution)
 */
 void readltucounters() {
 w32 ix;
@@ -916,7 +916,7 @@ int nclients;
 float deltatime,deltasbusy,newbt;
 deltatime= dodif32(prevcnts[LTU_TIMErp], buf1[LTU_TIMErp]);
 deltasbusy= dodif32(prevcnts[SUBBUSY_TIMERrp], buf1[SUBBUSY_TIMERrp]);
-newbt= deltasbusy/deltatime;
+newbt= 1.0*deltasbusy/deltatime;
 // update only in case the diffrence > 1%:
 if(abs(newbt-busytime1sec) > 0.01) {
   sprintf(msg, "newbusytime:%6.4f previous:%6.4f", newbt, busytime1sec);
@@ -950,7 +950,7 @@ while(1) {   //run forever
     isecs= 0;
   };
   dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
-  readltucounters();    // update shm 1/sec
+  saveprevcnts(); readltucounters();    // update shm 1/sec
   updateMONBUSY();   
   if(QUIT==1) {
     // freeShared(buf1,...);     -for SSM yes, but not for counters
@@ -1079,7 +1079,7 @@ COUNTERSid=dis_add_service(command,0, buf1, 4*LTUNCOUNTERSall,
   MONCOUNTERScaba, 4568);  
 sprintf(logmsg, "%s%s COUNTERSid:%d\n", logmsg, command,COUNTERSid);
 strcpy(command, MYDETNAME); strcat(command, "/MONBUSY");
-MONBUSYid=dis_add_service(command,0, &busytime1sec, 4,
+MONBUSYid=dis_add_service(command,"F", &busytime1sec, 4,
   MONBUSYcaba, 4571);  
 sprintf(logmsg, "%s%s MONBUSYid:%d\n", logmsg, command,MONBUSYid);
 

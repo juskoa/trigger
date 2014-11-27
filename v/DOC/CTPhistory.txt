@@ -348,3 +348,6 @@ exp. available)
 ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
 5.11.
 DDR3 basics (ctp.c) prepared. Random test with 64MB ok
+25.11.
+alignment2daq fixed in pydim (was not written to daq till now)
+

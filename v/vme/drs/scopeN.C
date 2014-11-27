@@ -149,6 +149,6 @@ int readFile(string& filename)
 }
 int scopeN()
 {
- string file("/home/alice/trigger/rl/drs/dataspike3.dat");
+ string file("/home/alice/trigger/rl/drs/dataspike5.dat");
  readFile(file);
 }

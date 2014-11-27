@@ -52,8 +52,8 @@ class iopipe:
 def copypart(partname, fname):
   #sdir= "/data/ClientCommonRootFs/usr/local/trigger/v/vme/CFG/ctp/pardefs2010"
   #ddir= "/data/ClientCommonRootFs/usr/local/trigger/v/vme/CFG/ctp/pardefs"
-  sdir="/data/dl/root/usr/local/trigger/v/vme/CFG/ctp/pardefs2012"
-  ddir="/data/dl/root/usr/local/trigger/v/vme/CFG/ctp/pardefs"
+  sdir="/home/dl6/local/trigger/v/vme/CFG/ctp/pardefs2012"
+  ddir="/home/dl6/local/trigger/v/vme/CFG/ctp/pardefs"
   src= sdir+'/'+fname+".partition"
   dest= ddir+'/'+partname+".partition"
   ot="%s -> %s\n\n"%(fname, partname)

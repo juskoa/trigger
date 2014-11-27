@@ -1,8 +1,11 @@
 #!/bin/bash
 #cd  /data/dl/snapshot
 cd  /home/dl6/snapshot
-#ls -lt alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/ltudimserver.log |head
-#ls -lt alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/LTU-*.log |head
+if [ "$1" = "dim" ] ;then
+  lst="alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/ltudimserver.log"
+elif [ "$1" = "proxy" ] ;then
+ lst="alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/LTU-*.log"
+fi
 ls -lt alidcsvme001/home/alice/trigger/v/vme/WORK/ctp_proxy.log \
- alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/ltudimserver.log \
- alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/LTU-*.log |head -40 |cut -d' ' -f'5-'
+ $lst |head -20 |cut -d' ' -f'5-'
+# alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/ltudimserver.log \

@@ -41,7 +41,7 @@ COLOR_DECIMAL="#d9d9ff"
 
 DimLTUservers= {"tpc":0, "trg":0, "hmpid":0, "muon_trk":0, "ssd":0,
 "daq":0, "tof":0, "fmd":0, "spd":0, "sdd":0, "trd":0, "phos":0, "cpv":0,
-"muon_trg":0, "pmd":0, "t0":0, "v0":0, "zdc":0, "acorde":0, "emcal":0 }
+"muon_trg":0, "pmd":0, "t0":0, "v0":0, "zdc":0, "acorde":0, "emcal":0, "ad":0 }
 
 def RiseToplevel(tlw):
     tlw.lift(); tlw.bell()

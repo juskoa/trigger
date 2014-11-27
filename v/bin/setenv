@@ -63,6 +63,7 @@ alias l0inputdb="cd $VMECFDIR/switchgui; ./l0inputdb.py; cd -"
 alias switched="cd $VMECFDIR/switchgui; ./switched.py; cd -"
 export trir='trigger@alidcscom707.cern.ch'
 export dagw='jusko1@aldaqgw01-daq01.cern.ch'
+export rldagw='rlietava@aldaqgw01-daq01.cern.ch'
 export lxp='jusko1@lxplus.cern.ch'
 #export PATH="$PATH:$ULT/bin"   is in vmebse.bash
 alias cdult="cd $ULT"

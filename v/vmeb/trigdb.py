@@ -346,6 +346,16 @@ class TrgVALIDINPUTS(Table):
     rc='L%c inputs: '%levelc
     for ix in range(len(ins)):
       if ins[ix]: rc= rc+"%s:"%(ix+1)+ins[ix]+' '
+    rc="""L0 inputs:
+0T0C  1 0TSC  2 0TVX  3 0T0A  4 0TCE  5
+0VBA  6 0VBC  7 0VGO  8 0VLN  9 0VC5 10
+0AMU 11 0ASL 12 0ASC 13 0EMC 14 0EMD 15
+0MUH 16 0MUL 17 0MSH 18 0MLL 19 0MSL 20
+0SMH 21 0SH1 22 0SH2 23 0SM2 24 0SH4 25
+0STP 26 0SLT 27 0SX2 28 0SMB 29 0SCO 30
+0OM2 31 0O2? 32 0OMU 33 0OB3 34 0O1? 35
+0OB0 36 0BPA 37 0BPA 38
+"""
     return rc
   def getdn(self, ent, niceout=True):
     if ent[0][0]=='#': return None

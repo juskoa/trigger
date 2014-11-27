@@ -1499,7 +1499,7 @@ in ssm1, ssm2
 Use ssmshow after being read.
 SSMaddress: 
 */
-void ddr3_ssmread() {
+int ddr3_ssmread() {
 int ddr3ad, ix, rc;
 w32 block[DDR3_BLKL];
 //for(ix=0; ix<= MEGA; ix++) {
@@ -1508,11 +1508,12 @@ for(ix=0; ix< MEGA; ix++) {
   rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
   if(rc!=0) {
     printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
-    return;
+    return(rc);
   };
   ssm1[ix]= block[14];
   ssm2[ix]= block[15];
 };
+return(0);
 }
 /*FGROUP DDR3 
 Show ssm1, ssm2
@@ -1605,7 +1606,7 @@ int ddr3_daq(int l0inp, char *idn, int waitsecs, int maxevents){
 FILE *logf; int loops=0,rc=0,rcssm=0,waitloops;
 char dati[30], logname[80]; w32 ssmrad;
 waitloops=1000*waitsecs;
-sprintf(logname,"%s.log",idn);
+sprintf(logname,"WORK/%s_.log",idn);
 logf= fopen(logname,"w");
 ssmrad= BSP*ctpboards[1].dial+SSMaddress;
 while(1) {
@@ -1627,12 +1628,15 @@ while(1) {
     break;
   };
   if(rcssm==0) {
+    int rcssmr;
     stopadr= vmer32(ssmrad);
-    ddr3_ssmread();
-    getdatetime(dati);
-    sprintf(fname,"%s_%d.dump", idn, loops);
-    rc= ddr3_dump(fname);
-    fprintf(logf, "%s 0x%x %s %d\n", dati, stopadr, fname, rc);
+    rcssmr= ddr3_ssmread();
+    if(rcssmr==0) {
+      getdatetime(dati);
+      sprintf(fname,"WORK/%s_%d.dump", idn, loops);
+      rc= ddr3_dump(fname);
+      fprintf(logf, "%s 0x%x %s %d\n", dati, stopadr, fname, rc);
+    };
   } else {
     printf("condstopSSM rc:%d\n", rcssm);
   };

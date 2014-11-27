@@ -26,6 +26,7 @@
 #include <csignal>
 #include <ctime>
 #define DEBUG 1
+#define DEBUG2 1 
 //============================================================================================
 #define NDIM 1024
 using namespace std;
@@ -165,32 +166,49 @@ int AnalyseWaves::FindEdge(float thres,int iw,int& nedges)
 {
  // some broken data at the begining of sample ?
  // brutal force =  start from 5
+ int ret=0;
  float *w=wave[iw];
  float *t=stime[iw];
  float *edge=edges[iw];
  nedges=0;
- for(int i=5;i<NDIM;i++){
+ for(int i=10;i<(NDIM-2);i++){
     if((w[i-1]<=thres) && (w[i]>thres)){
-      float a=(w[i]-w[i-1])/(t[i]-t[i-1]);
+      float a=(w[i]-w[i-1])/(t[i]-t[i-1]);  // 1st derivative
       float b=w[i]-a*t[i];
+      float c=(w[i+2]-w[i])/(t[i+2]-t[i]);  // 1st derivative up
+      if(c<20.) continue;  // the curve bemd down
       edge[nedges]=(thres-b)/a;
+      //check period
+      if(nedges>0){
+        float prev,deltaT;
+        prev=edge[nedges-1];
+        deltaT=abs(edge[nedges]-prev-25.);
+        if(deltaT>1.){
+         printf("Warning: deltaT= %f \n",deltaT);
+	 ret=1;
+        }
+      }
       if(DEBUG){
-        printf("a, b %f %f \n",a,b);
-        printf("i=%i time %f w0 %f w2 %f  edge %f \n",i,t[i],w[i-1],w[i],edge[nedges]);
+        float prev=0;
+        if(nedges>0) prev=edge[nedges-1];
+        printf("%i---------------------------------------\n",iw);
+        printf("i= %i a, b, c %f  %f %f \n",i,a,b,c);
+        printf("time %f w0 %f w2 %f  edge %f  %f\n",t[i],w[i-1],w[i],edge[nedges],edge[nedges]-prev-25.);
       }
       nedges++;
     }
  }
- return 0;
+ return ret;
 }
 int AnalyseWaves::Compare2Waves(int iw1,int iw2)
 {
+ int ret=0;
  int nedges1,nedges2;
  if(FindMinMax(iw1)) return 1;
  //FindEdge((mins[iw1]+maxs[iw1])/3.,iw1,nedges1);
- FindEdge(0,iw1,nedges1);
+ ret += FindEdge(0,iw1,nedges1);
  //FindEdge((mins[iw2]+maxs[iw2])/3.,iw2,nedges2);
- FindEdge(0,iw2,nedges2);
+ ret += FindEdge(0,iw2,nedges2);
  // define jitter as: rising edge1-rising edge2, so values 0-25 always positive
  // now make sure that sequence start with edge1
  int istart1=0,istart2=0;
@@ -227,23 +245,28 @@ int AnalyseWaves::Compare2Waves(int iw1,int iw2)
  fsigma[iw2]=dsigma;
  fmax[iw2]=dmax;
 
- return 0;
+ return ret;
 }
 int AnalyseWaves::Compare4Channels(ScopeDimData *dd)
 {
- if(Compare2Waves(0,1)) return 1;
+ int ret = 0;
+ ret += Compare2Waves(0,1);
+ // Uncomment when other 2 waves are connected
  //Compare2Waves(0,2);
  //Compare2Waves(0,3);
  time_t now;
  now=time(0);
- //printf("------------------------------------------\n");
- //printf("measured means: %ld %f %f %f\n",now,fmean[1],fmean[2],fmean[3]); 
- //printf("measured sigmas: %ld %f %f %f\n",now,fsigma[1],fsigma[2],fsigma[3]); 
- //printf("measured maxs: %ld %f %f %f\n",now,fmax[1],fmax[2],fmax[3]); 
+ if(DEBUG2){
+   printf("------------------------------------------\n");
+   printf("measured means: %ld %f %f %f\n",now,fmean[1],fmean[2],fmean[3]); 
+   printf("measured sigmas: %ld %f %f %f\n",now,fsigma[1],fsigma[2],fsigma[3]); 
+   printf("measured maxs: %ld %f %f %f\n",now,fmax[1],fmax[2],fmax[3]); 
+ }
  dd->time=now;
  dd->val1=fsigma[1];
  dd->val2=fsigma[2];
  dd->val3=fsigma[3];
  if(fsigma[1] > 1.) SaveWaves();
+ if(ret) SaveWaves();
  return 0;
 }

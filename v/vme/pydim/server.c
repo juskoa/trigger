@@ -634,9 +634,9 @@ char emsg[1000];
 char alignment[MAXALIGNMENTLEN];
 environ= getenv("VMESITE");
 if(strcmp(environ,"ALICE")==0) {
-  strcpy(aliname, "/data/dl/snapshot/alidcsvme001/home/alice/trigger/v/vme/WORK/");
+  strcpy(aliname, "/home/dl6/snapshot/alidcsvme001/home/alice/trigger/v/vme/WORK/");
 } else if(strcmp(environ,"SERVER")==0) {
-  strcpy(aliname, "/data/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/");
+  strcpy(aliname, "/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/");
 } else {
   printf("ERROR bad VMESITE env. var:%s",environ); return;
 };
