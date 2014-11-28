@@ -276,7 +276,7 @@ void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
     ret=daqlogbook_update_triggerClusterCounter(runnum,tclust[i]->GetIndex(),tclust[i]->GetL2aCount());
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for cluster %s failed.",runnum,tclust[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for cluster %s failed.",runnum,tclust[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
@@ -316,7 +316,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for class %s failed.",runnum,tclass[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for class %s failed.",runnum,tclass[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
@@ -338,7 +338,7 @@ void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
    ret=daqlogbook_update_triggerDetectorCounter(runnum , dets[i]->GetName().c_str(), dets[i]->GetL2aCount());
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for detector %s failed.",runnum,dets[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for detector %s failed.",runnum,dets[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
@@ -358,7 +358,7 @@ void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
     ret=daqlogbook_update_triggerInputCounter(runnum,inps[i]->GetPosition(), inps[i]->GetLevel(),inps[i]->GetCounter()->GetCountTot());
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for input %s failed.",runnum,inps[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for input %s failed.",runnum,inps[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
@@ -375,7 +375,14 @@ void DAQlogbook::UpdateL2a(Counter& L2a)
  PrintLog("DAQlogbook UpdateL2a called.");
  int ret=0;
  // skontroluj types
- ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeTot());
+ //ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeTot());
+ ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeSec());
+ if(ret){
+   char text[255];
+   sprintf(text,"Error: DAQlogbook: RUN %i update for L2aGlobalCounter failed.",runnum);
+   PrintLog(text);
+   if(log) file << text;
+ }
  if(log){
      char text[255];
      sprintf(text,"L2a= %i %i %lli %lli \n",count , runnum ,L2a.GetCountTot(),L2a.GetTimeTot());
