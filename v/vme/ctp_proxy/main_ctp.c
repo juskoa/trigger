@@ -197,11 +197,11 @@ for (i=1;i<=n_params;i++) {
     // comma separated list of dets (e.g. "PMD,MUON_TRK")
     detectors= detList2bitpat(param);
     if(detectors==-1) {
-      sprintf(errorReason, "Bad list of detectors:%80.80s...",param);
+      sprintf(errorReason, "Bad list of detectors:%s...",param);
       smi_set_parER();
       smi_setState("ERROR"); goto RETSMI;
     };
-    printf("detectors:%80.80s= 0x%x\n",param, detectors);
+    printf("detectors:%s= 0x%x\n",param, detectors);
   } else {
     char wmsg[200];
     sprintf(wmsg,"unknown parameter from ECS:%s", param); prtWarning(wmsg);

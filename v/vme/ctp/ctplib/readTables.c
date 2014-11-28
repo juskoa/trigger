@@ -461,10 +461,15 @@ return(NULL);
 /*------------------------------------------------------------findLTUdetnum()
 rc: ECS/DAQ det number (0...). rc== -1 if not found */
 int findLTUdetnum(char *ltuname) {
-int ix;
+int ix; char value[24];
+if(strcmp(ltuname,"DAQ_TEST")==0) {
+  strcpy(value, "DAQ");   // DAQ in VALID.LTUS
+} else {
+  strcpy(value, ltuname);
+};
 for(ix=0; ix<NDETEC; ix++) {
   //printf("%s %d\n", validLTUs[ix].name, validLTUs[ix].fo);
-  if(strcmp(validLTUs[ix].name, ltuname)==0 ) return(validLTUs[ix].detnum);
+  if(strcmp(validLTUs[ix].name, value)==0 ) return(validLTUs[ix].detnum);
 }; //printf("\n");
 return(-1);
 }
