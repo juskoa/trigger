@@ -224,11 +224,12 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       setEdgeDelay(1,38,1,10);  // 0BPC
       setSwitch(3, 20);   // 0TVX
       setSwitch(20, 3);   // 0MSL
-      setSwitch(37, 21);   // 0BPA
-      //setSwitch(38, 22);   // 0BPC
       setSwitch(31, 22);   // 0OM2
       setSwitch(33, 23);   // 0OMU
       setSwitch(36, 24);   // 0OB0
+      setSwitch(37, 21);   // 0BPA
+      //setSwitch(38, 22);   // 0BPC
+      setSwitch(39, 15);   // 0LSR
     } else { 
       setEdgesDelays(1); printf("L0 edges/delays set\n");
     };

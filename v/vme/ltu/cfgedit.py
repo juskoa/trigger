@@ -388,6 +388,12 @@ Value     -the value of variable (the current value in memory or default value i
 
 The Value is displayed in YELLOW if there is the difference between 
 the 'database' and 'in shared memory' values.
+
+Notes about available parameters:
+l2aseq "L2a.seq" corresponds to (for both run1/2 formats):
+L2A 0x800000000000 0x800000000000 0x0 roc=7 Restart Last ErrProne 
+i.e. class 48 is in class pattern.
+
 """ , self.textview)
     self.textview.configure(yscrollcommand = scrollview.set)
     self.textview.tag_config("DIF", background="yellow")

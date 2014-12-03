@@ -325,6 +325,7 @@ typedef struct {
   w32 id;    // shmkey (filled when allocated)
   Tltucfg ltucfg;
   w32 ltucnts[LTUNCOUNTERSall];
+  float busyfraction;   // 0.0 .. 1.0
 } Tltushm;
 /*
 typedef union a{

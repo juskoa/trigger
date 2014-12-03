@@ -127,7 +127,6 @@ alias ssh="ssh -2"
 alias vmecomp=$VMEBDIR/comp.py
 alias vmecrate=$VMEBDIR/crate.py
 alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB; echo DIM_DNS_NODE:$DIM_DNS_NODE'
-shopt -s expand_aliases
 if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' ] ;then
   echoint "Server cpu: $hname, alias defs in bin/setenv"
 elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then
@@ -139,6 +138,7 @@ else
   #alias ltuserver=/usr/local/trigger/bin/ltuserver.bash
   alias ltuproxy=$VMECFDIR/../bin/ltuproxy.sh
  fi
+shopt -s expand_aliases
 #
 #alias slmshow=$VMECFDIR/ltu/slmcomp.py
 #alias slmedit='cd $VMECFDIR/CFG/ltu/SLM;$VMECFDIR/ltu/ltu6'

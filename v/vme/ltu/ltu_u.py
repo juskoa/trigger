@@ -5,7 +5,7 @@
 #16.12.2013 lturun2 added
 from Tkinter import *
 import tkFileDialog
-import os, os.path, glob, string, types
+import os, os.path, glob, string, types, time
 import myw,counters
 
 def ffdummy(txtlines='ffdummy'):
@@ -1321,8 +1321,10 @@ def ADC_Scan(vb):
         helptext="""Measure points again, i.e. read ADC for randomly
 choosen values for BC_DEALY_ADD  (100 values).""")       
      self.en=myw.MywEntry(f2,label="DELAY:",defvalue=str(max), helptext=\
-""" Value in this entry field is: Delay-2 [ns] where
-Delay corresponds to the edge (sharp declination of the ADC count).
+""" Value in this entry field should correspond to the edge 
+(sharp declination of the ADC count). 
+BC_DEALY_ADD defined in 'Default editor' should be measured value
+decreased by 2.
 WARNING:
 This value corresponds to right setting of BC_DEALY_ADD register
 for the negative edge sampling of the front panel signals.
@@ -1342,7 +1344,7 @@ I.e.: if you want to set different value in this register, use Cancel button
 to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
 """)
      b3=myw.MywButton(f2,label='Save plot',cmd=self.save,side=LEFT,
-        helptext="Save plot in directory $VMEWORKDIR/WORK") 
+        helptext="Save plot in directory $VMEWORKDIR/WORK/adc.ps and archive in WORK/ltuphases/") 
 ############################################################################     
    def checkbcclock(self):
     """
@@ -1366,6 +1368,12 @@ to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
     if rc is not '':
      myw.MywError(errmsg="Directory WORK does not exist.")
      print "rc=",rc,len(rc)
+    else:
+     lt= time.localtime()
+       #ltim= "%2d.%2d. %2d:%2d"%(lt[2], lt[1], lt[3], lt[4])
+     newn= self.vb.boardName+"_%2.2d%2.2d%2.2d%2.2d%2.2d"%(lt[0]-2000,lt[1],lt[2],lt[3],lt[4])
+     cpcmd= "cp WORK/adc.ps WORK/ltuphases/%s.ps"%(newn)
+     os.system(cpcmd)
    def measure(self):
     """
       Measure and plot points again.

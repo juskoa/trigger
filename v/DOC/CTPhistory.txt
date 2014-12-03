@@ -350,4 +350,7 @@ ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
 DDR3 basics (ctp.c) prepared. Random test with 64MB ok
 25.11.
 alignment2daq fixed in pydim (was not written to daq till now)
-
+3.12.2014
+pydim/simpleClient.py   -testing det/MONBUSY possible
+3.12.2014
+ctp switch: only in code: ctplib/initCTP.c + vmeb/trigdb.py

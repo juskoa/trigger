@@ -454,6 +454,11 @@ if( (pll & BC_STATUSorbiterr) == BC_STATUSorbiterr ) {
 pll= checkSEU();
 return;
 }
+/*FGROUP SimpleTests
+*/ 
+void printBusyFraction() {
+printf("busy fraction: %6.4f\n", ltushm->busyfraction);
+};
 /* FGROUP SimpleTests
 Generate trigs triggers. Each Trigger is followed by the busy signal wide
 'busylength' miliseconds. Operation:
@@ -760,12 +765,22 @@ if(rc_scthread==0) {
 #endif
 }
 void *scthread(void *dummy) {
+w32 ptime, pbusy,ntime=0,nbusy=0,nloop=0;
 ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGscthread;
 while(1) {
+  float deltatime,deltasbusy;
   if(quit==888) break;
   //printf("scthread: readCNTS2SHM...\n");
+  ptime= ntime; pbusy= nbusy;
   readCNTS2SHM();
-  usleep(1000000);
+  ntime= ltushm->ltucnts[LTU_TIMErp];
+  nbusy= ltushm->ltucnts[SUBBUSY_TIMERrp];
+  if(nloop>0) {
+    deltatime= dodif32(ptime, ntime);
+    deltasbusy= dodif32(pbusy, nbusy);
+    ltushm->busyfraction= (1.0*deltasbusy)/deltatime;
+  };
+  usleep(1000000); nloop++;
 };
 ltushm->ltucfg.flags= ltushm->ltucfg.flags & (~FLGscthread);
 return(NULL);
@@ -814,7 +829,8 @@ if((scthread_request==1) && ((ltushm->ltucfg.flags & FLGscthread)==0)) {
     printf("scthread started.\n");
   };
 } else {
-  printf("Counters reading thread cannot be started (already active).\n");
+  printf("Counters reading thread not started (already active or not requested. req:%d).\n",
+    scthread_request);
 };
 }
 /*-------------------------------------------------------------- boardinit() */

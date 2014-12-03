@@ -1693,9 +1693,13 @@ ALL= DAQBUSY.activebusys   -all clusters paused
    ~DPap & clust:   '0': go active  '1': stay off 
    ALL & ~DPap  :  other ctp clusters, not in part (0:active 1:off)
    ~clust & DPap: in clusters mask to be paused (0:active, 1:off)
+rc: always 0
 */
 int unsetPartDAQBusy(Tpartition *part, int detectors){
 w32 clust;
+if(part==NULL) {
+  prtWarning("unsetPartDAQBusy: NULL partition..."); return;
+};
 if(DAQBUSY.global==1) {
   w32 dbab;
   clust=getBusyMaskPartition(part,detectors);

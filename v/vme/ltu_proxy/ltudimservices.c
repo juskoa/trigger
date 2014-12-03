@@ -841,48 +841,23 @@ actcid= 0;
 }
 int oldnclients=0;
 int oldnbusyclients=0;
-void saveprevcnts() {
-int ix;
-for(ix=0; ix<LTUNCOUNTERSall; ix++) {
-  prevcnts[ix]=buf1[ix];
-};
-};
-/*-------------------------------------------------------- readltucounters()
-Operation:
-- read counters from shm (i.e. with 1sec. resolution)
-*/
-void readltucounters() {
-w32 ix;
-w32 *ResultStringBin= (w32 *)ResultString;
-//char msg[ERRMSGL];
 
-if(buf1==NULL) {
-  prerr("shared memory alloc problem in readltucounters");
-  return;
-};
-//sprintf(msg, "before: %d %d\n", buf1[epochsecsrp],buf1[0]); 
-//dimlogprt("readltucounters",msg);
-/* thrown out 6.11.2014, replaced by scthread in ltu.c
-strcpy(msg,"readCNTS2SHM()\n");
-writepipe(msg, strlen(msg));   //NO TRAILING '\0'!
-readUntilColon(0);
-*/
-                           // dimlogprt("readCNTS2SHMd", ResultString);
-for(ix=0; ix<LTUNCOUNTERSall; ix++) {
-  ResultStringBin[ix]=buf1[ix];
-};
-/*  sprintf(msg, "readltucounters: %d %d %d\n", buf1[23],buf1[24], buf1[25]); 
-    dimlogprt("readltucounters",msg);*/
-/*sprintf(msg, "after: %d %d\n", buf1[epochsecsrp],buf1[0]); 
-dimlogprt("readltucounters",msg);*/
-}
 /*----------------------------------------------------- updateMONCOUNTERSservice 
 clientid: 0: update all subscribing clients
         !=0: update only clientcid client (forced counters read)
 */
 void updateMONCOUNTERSservice(int clientid) {
 int nclients; 
+w32 ix;
+w32 *ResultStringBin= (w32 *)ResultString;
 char msg[ERRMSGL];
+if(buf1==NULL) {
+  prerr("shared memory alloc problem in updateMONCOUNTERSservice");
+  return;
+};
+for(ix=0; ix<LTUNCOUNTERSall; ix++) {
+  ResultStringBin[ix]=buf1[ix];
+};
 if(clientid==0) {
   nclients= dis_update_service(COUNTERSid);
   /*printf("updateMONCOUNTERSservice: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
@@ -908,23 +883,14 @@ if(clientid==0) {
   dimlogprt("updateMONCOUNTERSservice",msg);
 };
 }
-void updateMONBUSY() {
+void updateMONBUSY(float newbt) {
 char msg[ERRMSGL];
-// readltucounters() called also before 1-sec loop calling this routine, i.e.
-// prevcnts are always defined even after ltuproxy restart.
 int nclients;
-float deltatime,deltasbusy,newbt;
-deltatime= dodif32(prevcnts[LTU_TIMErp], buf1[LTU_TIMErp]);
-deltasbusy= dodif32(prevcnts[SUBBUSY_TIMERrp], buf1[SUBBUSY_TIMERrp]);
-newbt= 1.0*deltasbusy/deltatime;
-// update only in case the diffrence > 1%:
-if(abs(newbt-busytime1sec) > 0.01) {
-  sprintf(msg, "newbusytime:%6.4f previous:%6.4f", newbt, busytime1sec);
-  busytime1sec= newbt;
-  nclients= dis_update_service(MONBUSYid);
-  sprintf(msg,"%s nclients:%d\n", msg, nclients);
-  dimlogprt("updateMONBUSY", msg);
-};
+sprintf(msg, "updateMONBUSY: %6.4f newbusytime:%6.4f", busytime1sec, newbt);
+busytime1sec= newbt;
+nclients= dis_update_service(MONBUSYid);
+sprintf(msg,"%s nclients:%d\n", msg, nclients);
+dimlogprt("updateMONBUSY", msg);
 /*if(oldnbusyclients != nclients) {   // # of clients changed
     int ix;
     sprintf(msg, "clients now: %d\n", nclients); 
@@ -935,30 +901,6 @@ if(abs(newbt-busytime1sec) > 0.01) {
     }; fflush(stdout);
     oldncbusylients= nclients;
   }; */
-}
-/*-------------------------------------------------------- cthread
-running as thread (started once, with dim server)
-not called -instead arranged in ltu_proxy.c main() loop
-*/
-void cthread( void *blabla) {
-int isecs;
-dimlogprt("cthread","starting...\n");
-readltucounters(); isecs=59;
-while(1) {   //run forever
-  if(isecs>=60) {
-    updateMONCOUNTERSservice(0);    // update DIM service 1/min
-    isecs= 0;
-  };
-  dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
-  saveprevcnts(); readltucounters();    // update shm 1/sec
-  updateMONBUSY();   
-  if(QUIT==1) {
-    // freeShared(buf1,...);     -for SSM yes, but not for counters
-    buf1=NULL;
-    shmdt(ltushm);
-    break;
-  };
-};
 }
 /*------------*/ void cmdGETCOUNTERS(void *tag, void *msgv, int *size)  {  
 /* Forced counters reading. */
@@ -977,7 +919,6 @@ if(DBGCMDS) {
  printf("cmdGETCOUNTERS:cid:%d cidat:%s\n", cid, cidat);
 };
 */
-//readltucounters(actcid);
 updateMONCOUNTERSservice(actcid);
 }
 /* -----------------------following routines used from outside (ltu_proxy) */

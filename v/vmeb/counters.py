@@ -1242,7 +1242,7 @@ orc_error  -Orbit record with error
       self.perrep=0
     #if event.widget== self.mrmaster:   #invoked as the very last
     if myw.compwidg(event, self.mrmaster):
-      print "hidemrm-mrmaster...",event.widget
+      #print "hidemrm-mrmaster...",event.widget
       self.finish()
       if self.saveconf:
         cf= open(self.defcounters,"w")

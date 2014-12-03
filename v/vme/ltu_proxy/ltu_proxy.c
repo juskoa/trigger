@@ -6,6 +6,7 @@ See v/DOC/history.txt for history of modifications */
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include <ctype.h>
 #include <getopt.h>
 
@@ -46,9 +47,8 @@ int syncemu();
 extern int QUIT;
 extern w32 *buf1;
 void updateMONCOUNTERSservice(int uc);    // update DIM service 1/min
-void updateMONBUSY();   
+void updateMONBUSY(float newbusyf);   
 void readltucounters();
-void saveprevcnts();
 
 /*------------------------------------------------------------ isNotNONE()
 rc: 1 if defined
@@ -289,6 +289,7 @@ infolog_trgboth(LOG_ERROR, msg); goto RETURN;
 int main(int argc, char **argv) {
 int rcso=0;
 int argi=0;  
+int isecs=60; float prevbusyf, newbusyf=0;
 /*----------------------------------------------------------- defaults: */
 strcpy(BoardBaseAddress, "0xdeadde");
 strcpy(BoardSpaceLength, "0x1000");
@@ -340,7 +341,7 @@ while (1) {
   if(rcso!=0) {
     printf("Usage: %s SMIOBJECT [options]\n\n",argv[0]);
     printf("Options: (case insensitive)\n");
-    printf("  -mode=BC | pulser_edge pulser_level | random | sw (default:BC)\n");
+    printf("  -mode=BC | pulser_edge | pulser_level | random | sw (default:BC)\n");
     printf("  -busy=1 | 2 | 3 | 0                      (default:1 )\n");
     printf("  -L0=ttc | cable                          (default:ttc )\n");
     printf("  -address=hexa VME base address of LTU    (default:0x810000)\n");
@@ -447,21 +448,21 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
   strcpy(state,"STANDALONE_STOPPED");
   smi_set_state(state);
 };
-printf(" main loop /1sec\n");
-fflush(stdout);
-{ int isecs;
-readltucounters();
-saveprevcnts();
+printf(" main loop /1sec\n"); fflush(stdout);
+{ 
 while(1) {
-  //usleep(1000000);
   if(isecs>=60) {
     updateMONCOUNTERSservice(0);    // update DIM service 1/min
     isecs= 0;
   };
   dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
-  readltucounters();    // update shm 1/sec
-  updateMONBUSY();   
-  saveprevcnts();
+  //usleep(1000000); isecs++;  // nebavi ani toto
+  prevbusyf= newbusyf;
+  newbusyf= ltushm->busyfraction;
+  //printf("ltuproxymain: %d prev/now:%6.4f %6.4f\n", isecs, prevbusyf, newbusyf); fflush(stdout);
+  if(fabs(newbusyf-prevbusyf)>0.01) {
+    updateMONBUSY(newbusyf);   
+  };
   if(QUIT==1) {
     // freeShared(buf1,...);     -for SSM yes, but not for counters
     buf1=NULL;
