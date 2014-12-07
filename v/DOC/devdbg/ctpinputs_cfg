@@ -45,6 +45,7 @@ new: new way, i.e. use only ctpinputs.cfg (1file)
 4. New ctpinputs.cfg format
 ---------------------------
 InName = Det Level Signature Inpnum Dimnum Configured Edge Delay DeltaMin  DeltaMax ppn nameweb eq dimdns dimservice #anycomment
+M            M               M             M                                        A   A       A  A      A
 
 - Keep the same format (VALID.CTPINPUTS) as far as possible:
 - Use old files with L0, use this file with LM0
@@ -56,9 +57,11 @@ InName = Det Level Signature Inpnum Dimnum Configured Edge Delay DeltaMin  Delta
 -----------------
 Modified columns:
 Level:        probably we allow also 'M'. Currently valid 0,1,2
-Configured:   0: not connected to ctp switch, 1..48: LM0 switch input number
-InpNum:       0: not connected (still can be connected to switch)
-                 InName: the name used last time or NA (Not Assigned) 
+Configured:   0: not connected to ctp (no L0/1/2 inputs)
+              1..48: LM0 switch input number
+InpNum:       0: not connected (or can be connected to L0 switch)
+              1..24: LM/L0 or L1 input, 1..12: L2 input
+InName:       the name used last time or NA (Not Assigned) 
 
 Added columns:
 ppn:          PatchPanel number: T|B A|B n   e.g.: TA1 -> EMCAL L1
