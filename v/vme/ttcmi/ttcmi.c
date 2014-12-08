@@ -82,7 +82,7 @@ orb:
 1: ORB2/BC2 -
 2: ORBmain=ORB1 BCmain= BC1   ALICE clock BEAM1
 4: ORBmain=ORB2 BCmain= BC2   ALICE clock BEAM2
-
+fromdel: 0  to 63 (6 bits) 
 Set BC_DELAY25_BC1/2/MAIN to their final values before using this!
 16.3.2011:
 all 3 Set to 29,28,27 - ORB1/BC1 calibration is not working
@@ -246,7 +246,7 @@ DLL_RESYNC(DLL_stdout);
 }
 /*FGROUP
 Set orbit delay in BCs in 3 ORBX_COARSE_DELAY registers.
-0    - minimum shift
+0    - m5nimum shift
 3563 -maximum allowed shift
 4000 - show current setting
 */
@@ -321,6 +321,7 @@ rc= vmxclose(vsp);
 */
 /*vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
 printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
+printf("ORB1_DAC:0x%x ORB2_DAC:0x%x\n", vmer32(ORB1_DAC), vmer32(ORB2_DAC));
 for(ix=0; ix<3; ix++) {
   w32 adrdelay, delay;
   adrpol= ORBX_POLARITY+ 0x40*ix;

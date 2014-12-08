@@ -191,8 +191,8 @@ if(micratepresent()) {
 void writeall() {
 int ix,rc1,rc2,vsp3,vsp4;
 w32 adrpol, adrlen;
-w16 refsBC[3]={0x5, 0x5, 0x70};
-w16 refsOrbit[3]={0x5, 0x5, 0x70};
+w16 refsBC[3]={0x5, 0x5, 0xa0};     // a0 from 4.12.2014 (was 0x70)
+w16 refsOrbit[3]={0x5, 0x5, 0xa0};  // a0 from 4.12.2014
 vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
 printf("vmxopenam 0x700000 (CORDE) rc:%d\n", rc2);
 vmxw32(vsp4, CORDE_RESET, 0);
@@ -212,6 +212,7 @@ rc1= vmxclose(vsp3); rc2= vmxclose(vsp4);
 printf("vmxclose 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
 /* vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
 printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
+vmew32(ORB1_DAC, 0xaa); vmew32(ORB2_DAC, 0xaa);
 for(ix=0; ix<3; ix++) {
   adrpol= ORBX_POLARITY+ 0x40*ix;
   adrlen= ORBX_LENGTH+ 0x40*ix;
@@ -230,9 +231,12 @@ for(ix=0; ix<3; ix++) {
 //i2cset_delay( BC_DELAY25_BCMAIN, 52);  // 52 from 6.dec.2010 8:20
 //i2cset_delay( BC_DELAY25_BCMAIN, 53);  // 53 from 6.dec.2010 14:30
 // from 2011 set in setbcorbitMain
-/* lets add 5ns for Orbit latch (see calibrate() ) */
+/* lets add 5ns for Orbit latch (see calibrate() ) 
 i2cset_delay(ORBIN_DELAY25_ORB1, 20);
 i2cset_delay(ORBIN_DELAY25_ORB2, 0);
+*/
+i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.12.2014 (rf2ttcscope)
+i2cset_delay(ORBIN_DELAY25_ORB2, 0x11);
 //vmew32(ORBmain_COARSE_DELAY,2);
 vmew32(ORBmain_COARSE_DELAY,3564);
 vmew32(ORB1_COARSE_DELAY,3564);
