@@ -40,6 +40,7 @@ class BOARD: public BOARDBASIC
          int SetMode(string const &mode,char const c);
 	 int StartSSM() const;
          void StopSSM() const;
+	 void SetSSM(w32 *ss){ssm=ss;};
          SSMTOOLs ssmtools;
          // SSM analysis
 	 void L2DataBackplane();

@@ -21,8 +21,17 @@ class L0BOARD: public BOARD
 	enum{CL0TIME=15,CL0CLSB=19,CL0STR=171,CL0CLSA=187,CL0CLST=289};
         // SSM
         int AnalSSM();
+        virtual void ddr3_reset(){error();};
+        virtual void ddr3_status(){error();};
+        virtual int ddr3_wrdone(){error(); return 1;};
+        virtual int ddr3_rddone(){error(); return 1;};
+	virtual int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws){return 1;};
+        virtual int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws){return 1;};
+	virtual int ddr3_ssmread(){return 1;};
+ 	virtual int DumpSSM(const char *name,int issm){error();return 1;};
 
  private:
+        void error(){printf("Error: this method should be never called\n");exit(1);};
  protected:
  
          // vme addresses
