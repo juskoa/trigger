@@ -20,7 +20,8 @@ class Inputs:
   """
   if self.readL0inputs("L0.INPUTS"): return
   if self.readPhases("INPUT.phases"): return
-  if self.readVALIDCTPINPUTS("VALID.CTPINPUTS"): return
+  #if self.readVALIDCTPINPUTS("VALID.CTPINPUTS"): return
+  if self.readctpinputs("ctpinputs.cfg"): return
   l0inputs=self.l0inputs
   phases=self.inpphases
   notinL0INPUTS=[]
@@ -82,6 +83,18 @@ class Inputs:
   #self.printVALIDCTPINPUTS()
   return 0
  ##############################################################################################
+ def readctpinputs(self,filename):
+  """
+  """
+  file=self.prefix+filename
+  lines = self.openFile(file)
+  if lines==None: 
+   print "Cannot open: ",file
+   return 1
+  self.validctpinputs = self.parsectpinputs(lines)
+  #self.printVALIDCTPINPUTS()
+  return 0
+ ##############################################################################################
  def printVALIDCTPINPUTS(self):
   for i in self.validctpinputs: print i
  ##############################################################################################
@@ -113,7 +126,37 @@ class Inputs:
       input['deltamin']=iteminp[10]
       input['deltamax']=iteminp[11]
       valctpinps.append(input)
-  return sorted(valctpinps,key=itemgetter("namectp"))  
+  return sorted(valctpinps,key=itemgetter("namectp")) 
+ ##############################################################################################
+ def parsectpinputs(self,lines):
+  """
+  """
+  valctpinps=[]
+  for line in lines:
+    line=line.strip(' ')
+    line=line.strip('\tab')
+    items=line.split(" ")
+    if(items[0][0]=="#"): continue
+    iteminp=[]
+    for i in items:
+      if i=='': continue
+      if i[0]=='#': break
+      iteminp.append(i.strip('\n'))
+    if len(iteminp) == 12:
+      input={}
+      input['namectp']=iteminp[0]
+      input['detector']=iteminp[2]
+      input['level']=iteminp[3]
+      input['signature']=iteminp[4]
+      input['inpnum']=iteminp[5]
+      input['dimnum']=iteminp[6]
+      input['configured']=iteminp[7]
+      input['edge']=iteminp[8]
+      input['delay']=iteminp[9]
+      input['deltamin']=iteminp[10]
+      input['deltamax']=iteminp[11]
+      valctpinps.append(input)
+  return sorted(valctpinps,key=itemgetter("namectp"))   
  ##############################################################################################
  def readPhases(self,filename):
   """

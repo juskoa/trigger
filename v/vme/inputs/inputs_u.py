@@ -71,12 +71,12 @@ class AllInputs:
   #print self.Detectors
   dbinputs.append(orbit) 
   self.tl=Toplevel(vb.master)
-  self.tl.title("L0,L1 and L2 inputs")
+  self.tl.title("LM,L0,L1 and L2 inputs")
   self.addinp=[];   
   self.inputsframe= myw.MywFrame(self.tl, side=TOP,relief=FLAT, bg=COLOR_SSMC) 
   header= myw.MywLabel(self.inputsframe, side=TOP, anchor='w',
       helptext=mainhelp, label=
-      ' Input  Level          Name                     Det                          Action                  Signature      Status     Activity  Edge Delay   Phase   Last Rare') 
+      "Input    Level \t     Name \t\t Det    \t\t    Action  \t \t    Signature      Status          Activity  Edge Delay   Phase   Last Rare") 
   self.inputs=[]
   self.rare=StringVar()
   self.last=StringVar()
@@ -518,9 +518,11 @@ class AllInputs:
   return Detectors 
  def readVCTPINPUTS(self):
   """
-     Read file in $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS
+     //Read file in $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS
+     Read file in $VMECFDIR/CFG/ctp/DB/ctpinputs.cfg
   """ 
-  fname= os.environ['VMECFDIR'] +"/CFG/ctp/DB/VALID.CTPINPUTS"
+  #fname= os.environ['VMECFDIR'] +"/CFG/ctp/DB/VALID.CTPINPUTS"
+  fname= os.environ['VMECFDIR'] +"/CFG/ctp/DB/ctpinputs.cfg"
   try:
     database=open(fname,"r") 
   except IOError:

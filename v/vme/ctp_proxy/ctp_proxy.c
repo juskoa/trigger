@@ -1698,7 +1698,7 @@ rc: always 0
 int unsetPartDAQBusy(Tpartition *part, int detectors){
 w32 clust;
 if(part==NULL) {
-  prtWarning("unsetPartDAQBusy: NULL partition..."); return;
+  prtWarning("unsetPartDAQBusy: NULL partition..."); return(0);
 };
 if(DAQBUSY.global==1) {
   w32 dbab;
