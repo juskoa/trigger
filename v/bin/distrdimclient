@@ -1,7 +1,7 @@
 #!/bin/bash
 #This is to be started with right VMECFDIR, VMEBDIR
 #Usage: go to the end of this script
-VERSION="2.11"
+VERSION="2.12"
 if [ "$VMECFDIR" == "" ] ;then
   echo "VMECFDIR not defined"
   exit

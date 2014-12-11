@@ -97,6 +97,7 @@ for(ix=0; ix<NCLASS; ix++) {
 vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 /*------------------------------------------------------ setEdgesDelays
+10.12.2014 added L0 switch programming also
 */
 void setEdgesDelays(int board) {
 int ix, ixinp, ninp, edge, delay;
@@ -107,8 +108,15 @@ if(board==3) {
 } else {
   ninp=24;
   if(l0C0()) {
-    printf(" ERROR: setEdgesDelays: does not work for LM0 board!\n");
-    return;
+    //printf(" ERROR: setEdgesDelays: does not work for LM0 board!\n"); return;
+    ninp=48;
+    // switch:
+    for(ixinp=1; ixinp<=24; ixinp++) {
+      int swn;
+      swn= getSwnDB(ixinp);
+      if(swn==-1) continue;
+      setSwitch(swn, ixinp);
+    };
   };
 };
 for(ixinp=0; ixinp<ninp; ixinp++) {
@@ -210,6 +218,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       }
       infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
       //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
+      /* following done in setEdgersDelays()
       setEdgeDelay(1,1,1,0);  // T0C
       setEdgeDelay(1,2,1,0);  // TSC
       setEdgeDelay(1,3,1,0);  // TVX
@@ -230,9 +239,9 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       setSwitch(37, 21);   // 0BPA
       //setSwitch(38, 22);   // 0BPC
       setSwitch(39, 15);   // 0LSR
-    } else { 
-      setEdgesDelays(1); printf("L0 edges/delays set\n");
+      */
     };
+    setEdgesDelays(1); printf("L0 edges/delays set\n");
     vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     //printf("RND1/2 synchronised\n"); RNDsync(3);
     printf("RND1/2 desynchronised\n"); RNDsync(1);

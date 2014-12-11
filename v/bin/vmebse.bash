@@ -98,13 +98,13 @@ else               #------------------------------ server
   if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
   fi
-  if [ -d /opt/act ] ;then   # needed only on server
-    export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
-  fi
   if [ "$hname" = "avmes" ] ;then   # development
     export SMAQ_C=avmes
     export VMESITE=SERVER
     export DIM_DNS_NODE=avmes
+    if [ -d /opt/act ] ;then
+      export ACT_DB=daq:daq@pcald30/ACT
+    fi
   elif [ "$hname" = 'alidcscom188' ] ;then
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
@@ -113,10 +113,16 @@ else               #------------------------------ server
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
     export DIM_DNS_NODE=aldaqecs
+    if [ -d /opt/act ] ;then   # needed only on server
+      export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
+    fi
   elif [ "$hname" = "pcalicebhm10" ] ;then   # stabel + daqecs
     export SMAQ_C=avmes
     export VMESITE=SERVER2
     export DIM_DNS_NODE=pcald30
+    if [ -d /opt/act ] ;then
+      export ACT_DB=daq:daq@pcald30/ACT
+    fi
   else
     export VMESITE=PRIVATE
   fi

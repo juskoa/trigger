@@ -93,4 +93,7 @@ LTU_T-1_0_1.rbf
 ltu_logic_verD0.rbf
 Special one  for TPC serving as signal converter:
 simple conversion from BUSY1 (LVDS) to SPARE OUT (NIM).
-
+8.12.2014
+ltu_logic_verD1.rbf
+BUSY1 -> PP  i.e. LVDS to NIM
+BUSY2 -> L1  i.e. LVDS to ECL

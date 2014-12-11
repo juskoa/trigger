@@ -161,7 +161,10 @@ else
     #echo "dbg: $HOSTNAME $cfgfile"
     for dtn1 in `awk '{if(($2==host) && ($3!="0")) {print $1}}' host=$HOSTNAME $cfgfile` ;do
       #echo "----------------------starting $dtn1"
-      StartProxy $dtn1
+      ix=`expr match "$dtn1" '#'`
+      if [ "$ix" = '1' ] ;then
+        StartProxy $dtn1
+      fi
     done
     exit
   elif [ "$1" = "killall" ] ;then

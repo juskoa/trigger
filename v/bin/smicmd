@@ -5,8 +5,8 @@ if [ "$1" = 'init' ] ;then
   if [ -z "$2" ] ;then
     echo "runnumber ?"
   else
-# ACO 65536 PHOS: 128   HMPID:64
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 128 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
+# ACO 65536 PHOS: 128   HMPID:64    PHOS+HMPID:128+64=192
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 192 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
   fi
 elif [ "$1" = "start" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP START_PARTITION -ps PARTITION $pname

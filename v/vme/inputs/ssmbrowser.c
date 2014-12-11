@@ -21,7 +21,7 @@ mode -mode of the ssm or:
 */
 void gettableSSM() {
 int ix; 
-char mode[8];
+char mode[MAXSSMMODE];
 for(ix=0; ix<NSSMBOARDS; ix++) {
 /*  printf("ix:%d\n",ix); */
   if((ix<NCTPBOARDS) && (ctpboards[ix].vmever==NOTINCRATE)) {
@@ -31,7 +31,7 @@ for(ix=0; ix<NSSMBOARDS; ix++) {
     if(sms[ix].mode[0]=='\0') {
       strcpy(mode, "_nomode");
     } else {
-      strcpy(mode, sms[ix].mode);
+      strncpy(mode, sms[ix].mode, MAXSSMMODE-1); mode[MAXSSMMODE-1]='\0';
     };
     if(sms[ix].sm==NULL) {
       strcpy(mode, "nossm");

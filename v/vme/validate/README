@@ -31,12 +31,15 @@ i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
 1A. check .rpm
 --------------
 avmes:
-validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-3.0-1.noarch.rpm aj@pcalicebhm11:Downloads
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-4.0-1.noarch.rpm aj@pcalicebhm11:Downloads/
 
 cd $dbctp
 scp ttcparts.cfg VALID.CTPINPUTS L0.INPUTS VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMASKS VALID.LTUS ttcparts.cfg  gcalib.cfg filter clockshift aj@pcalicebhm11:/home/aj/git/trigger/v/vme/CFG/ctp/DB/
+from 4.0 version:
+scp ttcparts.cfg ctpinputs.cfg VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMASKS VALID.LTUS ttcparts.cfg  gcalib.cfg filter clockshift aj@pcalicebhm11:/home/aj/git/trigger/v/vme/CFG/ctp/DB/
 
 install on 11:
+rpm -e validate
 rpm -ivh ~aj/Downloads/validate-3.0-1.noarch.rpm
 export dbctp_pardefs=~/git/trigger/v/vme/CFG/ctp/pardefs
 export dbctp=~/git/trigger/v/vme/CFG/ctp/DB
@@ -67,6 +70,8 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 25.8.2014
 - added trgglobs.py, dependance on tkinter: setup_requires does not work!
 - build on avmes, ver. 3.0 (100 classes) for python 2.6
+10.12.2014
+- ctpinputs.cfg used now instead of VALID.CTPINPUTS L0.INPUTS CTP.SWITCH
 
 3. Problems
 -----------

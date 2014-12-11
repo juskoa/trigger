@@ -246,16 +246,25 @@ class TrgInput:
         if len(li) == 1:   # not connected input
           self.ctpinp=None
         elif len(li) >= 8:
-          # Det Level Signature InpNum Dim Conf Edge Delay
-          # 0   1     2         3      4   5    6    7
+          # Det Level Signature InpNum Dim SwitchN Edge Delay
+          # 0   1     2         3      4   5       6    7
           # example of input from L0.INPUTS (not connected):
           #0ASL = ACORDE 0 1 0 1 0 0 12
-          if li[5]=='1':
+          #if li[5]=='1':
+          if li[3]!='0':   # connected input 
             self.signature= li[2]
             self.dim= li[4]
             self.edge= li[6]
             self.delay= li[7]
             self.ctpinp= int(li[1]), int(li[3])   
+          else:   
+            if li[5]!='0':   # L0 input, connected to the switch only
+              self.signature= li[2]
+              self.dim= li[4]
+              self.edge= li[6]
+              self.delay= li[7]
+              self.ctpinp= int(li[1]), int(li[3])   
+              
           #if li[5]!='1':
           #  self.ctpinp= int(li[1]),0   # not connected
         else:
@@ -872,7 +881,8 @@ Predefined BC masks in VALID.BCMASKS file:
     self.load_BCMs()
     self.load_PFs()
     self.ltus= trigdb.readVALIDLTUS()
-    f= open(os.path.join(TRGDBDIR, "VALID.CTPINPUTS"),"r")
+    #f= open(os.path.join(TRGDBDIR, "VALID.CTPINPUTS"),"r")
+    f= open(os.path.join(TRGDBDIR, "ctpinputs.cfg"),"r")
     # goal: create self.indets list
     # 1. go through VALID.CTPINPUTS, adding l0/1/2 inputs
     # 2. go through l0inputsdb -info for l0 inputs (we need to know
@@ -885,7 +895,7 @@ Predefined BC masks in VALID.BCMASKS file:
     # are l0function definitions, and will be saved as "L0FUNS" detector
     # inputs
     #VON l0finputs=[]   #list of possible L0fun*
-    PrintError("-------------------------------------------- VALID.CTPINPUTS:",self)
+    PrintError("-------------------------------------------- ctpinputs.cfg:",self)
     for line in f.readlines():
       if line[0] == "\n": continue
       if line[0] == "#": continue
@@ -917,6 +927,7 @@ Predefined BC masks in VALID.BCMASKS file:
       newTID.makeVirtL0f()
       #newTID.tidprt()
     #
+    skipL0INPUTS="""
     alll0s= trigdb.TrgL0INPUTS()   
     for l0in in alll0s.ents:
       if l0in[0][0]=='#': continue
@@ -943,6 +954,7 @@ Predefined BC masks in VALID.BCMASKS file:
           # 0ASL = ACORDE 0 1 0 1 0 0 12
           #print "added L0.INPUT input:",line
           newTID.addInput(newInput)
+"""
     #print "\n-----------------------------------------------------TdsLtus:"
     PrintError("\n-----------------------------------------------------TdsLtus:",self)
     #for tid in self.indets: tid.prt() 
@@ -2997,6 +3009,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
 """
     section='Shared'
     filter= trigdb.TrgFilter(self.name)
+    print "loadfile:filterents:", self.name, filter.ents
     self.downscaling=None
     while 1:
       cltds= redline(inf)

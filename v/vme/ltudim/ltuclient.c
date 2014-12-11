@@ -17,7 +17,8 @@ prerr now OK (before without NL:NL )
 #endif
  
 //#define LTU_CLIENT_VERSION "2.10"   see v/SPECS/ltuclient.spec
-#define LTU_CLIENT_VERSION "2.11"   // 30.10.2014 counters increments on client side
+//#define LTU_CLIENT_VERSION "2.11"   // 30.10.2014 counters increments on client side
+#define LTU_CLIENT_VERSION "2.12"   //  9.12.2014 AD, better increments
 #define notinitialised "Server restarted."
 #define MAXRESULT 1500
 #define MAXLILE 200

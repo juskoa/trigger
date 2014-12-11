@@ -62,12 +62,13 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
 /* now update from validCTPINPUTS: */
 for(ix=0; ix<NCTPINPUTS; ix++) {
   int level, inputnum, ixx;
-  if(validCTPINPUTs[ix].configured!=1) continue;
+  //if(validCTPINPUTs[ix].configured!=1) continue;
+  if(validCTPINPUTs[ix].inputnum==0) continue;
   level= validCTPINPUTs[ix].level;
 #ifdef mainp
   if(level<0 || level >2) {
-    printf("error: %d %d %d %s\n", level, validCTPINPUTs[ix].inputnum,
-      validCTPINPUTs[ix].configured,validCTPINPUTs[ix].name);
+    printf("error: %d %d %s\n", level, validCTPINPUTs[ix].inputnum,
+      validCTPINPUTs[ix].name);
   };
 #endif
   inputnum=  validCTPINPUTs[ix].inputnum;
@@ -178,10 +179,11 @@ sprintf(line, "%d epoch epochsecs epochsecs\n",epoch_positions[0]);
 strcat(dimpublication, line);
 sprintf(line, "%d epoch epochmics epochmics\n",epoch_positions[1]);
 strcat(dimpublication, line);
-// ctpins part. Go ovver configured VALID.CTPINPUTS and look into ctpins:
+// ctpins part. Go ovver configured validCTPINPUTs and look into ctpins:
 for(ix=0; ix<NCTPINPUTS; ix++) {
   int level, inputnum, insix, ix2;
-  if(validCTPINPUTs[ix].configured!=1) continue;
+  //if(validCTPINPUTs[ix].configured!=1) continue;
+  if(validCTPINPUTs[ix].inputnum==0) continue;
   level= validCTPINPUTs[ix].level;
   inputnum=  validCTPINPUTs[ix].inputnum;
   position= gethw_inp(level, inputnum, hwname);

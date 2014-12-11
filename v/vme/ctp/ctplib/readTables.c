@@ -69,7 +69,7 @@ if((strcmp(name,"SDD")==0) ||
 }
 /*------------------------------------------------------------readTables()
 read files: VALID.LTUS into validLTUs[]
-            VALID.CTPINPUTS into validCTPINPUTs[]
+            ctpinputs.cfg into validCTPINPUTs[]
 */
 void readTables() {
 enum Ttokentype token;
@@ -262,17 +262,17 @@ sprintf(emsg, "readTables: bad line:%s in VALID.LTUS. %s\n",line,em1);
 prtError(emsg);
 RTRN: 
 fclose(cfgfile);
-/*----------------------------------------------- VALID.CTPINPUTS */
-cfgfile=openFile("VALID.CTPINPUTS","r");
+/*----------------------------------------------- ctpinputs.cfg */
+cfgfile=openFile("ctpinputs.cfg","r");
 if(cfgfile == NULL) return;
 for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   validCTPINPUTs[ixtab].name[0]='\0';
   validCTPINPUTs[ixtab].detector=-1;
   validCTPINPUTs[ixtab].level=-1;
   validCTPINPUTs[ixtab].signature=0xffffffff;
-  validCTPINPUTs[ixtab].inputnum=-1;
+  validCTPINPUTs[ixtab].inputnum=-1;  // 0..24 (0..12 for L2)
   validCTPINPUTs[ixtab].dimnum=-1;
-  validCTPINPUTs[ixtab].configured=-1;
+  validCTPINPUTs[ixtab].switchn=-1;   // 1..48 for L0, 0: for others
   validCTPINPUTs[ixtab].edge=-1;
   validCTPINPUTs[ixtab].delay=-1;
   validCTPINPUTs[ixtab].deltamin=-1;
@@ -308,13 +308,15 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     goto ERRctpignore;
   };
   for(ixx=0; ixx<MaxIntItems; ixx++) a3[ixx]=0;
-    a3[5]=-1; a3[6]=-1;  // edge delay not defined
+    a3[5]=-1; a3[6]=-1;  // edge, delay not defined
     a3[7]=1000; a3[8]=1000;  // delta min/max not defined
   for(ixx=0; ixx<MaxIntItems; ixx++) {
     int negv;
     negv=1;
     token=nxtoken(line, value, &ix);
-    if(token==tINTNUM) { // level, signature, InpNum Dimnum Configured
+    if(token==tINTNUM) { 
+      // level, signature, InpN DimN SwitchN(was Configured) Edge Delays DeltaMin DeltaMax
+      // 0      1          2    3    4                       5    6      7        8
       a3[ixx]= str2int(value);
     } else {
       if( (ixx==5) || (ixx==6) ) {
@@ -344,31 +346,31 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   validCTPINPUTs[ixtab].signature= a3[1];
   validCTPINPUTs[ixtab].inputnum= a3[2];
   validCTPINPUTs[ixtab].dimnum= a3[3];
-  validCTPINPUTs[ixtab].configured= a3[4];
+  validCTPINPUTs[ixtab].switchn= a3[4];
   validCTPINPUTs[ixtab].edge= a3[5];
   validCTPINPUTs[ixtab].delay= a3[6];
   validCTPINPUTs[ixtab].deltamin= a3[7];
   validCTPINPUTs[ixtab].deltamax= a3[8];
-  printf("INFO readTables:%s %d L%d %d in:%d %d config:%d edge:%d del:%d deltas:%d %d\n", 
+  printf("INFO readTables:%s %d L%d %d in:%d %d switch:%d edge:%d del:%d deltas:%d %d\n", 
     validCTPINPUTs[ixtab].name,
     validCTPINPUTs[ixtab].detector, validCTPINPUTs[ixtab].level,
     validCTPINPUTs[ixtab].signature, validCTPINPUTs[ixtab].inputnum,
-    validCTPINPUTs[ixtab].dimnum, validCTPINPUTs[ixtab].configured,
+    validCTPINPUTs[ixtab].dimnum, validCTPINPUTs[ixtab].switchn,
     validCTPINPUTs[ixtab].edge, validCTPINPUTs[ixtab].delay,
     validCTPINPUTs[ixtab].deltamin, validCTPINPUTs[ixtab].deltamax); 
   ixtab++;
   if(ixtab>NCTPINPUTS) {
-    strcpy(em1,"Too many inputs in VALID.CTPINPUTS"); 
+    strcpy(em1,"Too many inputs in ctpinputs.cfg"); 
     goto ERRctp;
   };
   continue;
   ERRctpignore:
-  sprintf(emsg, "VALID.CTPINPUTS line ignored:%s\n %s",line,em1); 
+  sprintf(emsg, "ctpinputs.cfg line ignored:%s\n %s",line,em1); 
   prtWarning(emsg);
 };
 goto RTRNctp;
 ERRctp:
-sprintf(emsg, "readTables: bad line:%s in VALID.CTPINPUTS. %s",line,em1); 
+sprintf(emsg, "readTables: bad line:%s in ctpinputs.cfg. %s",line,em1); 
 prtError(emsg);
 RTRNctp: 
 fclose(cfgfile);
@@ -393,33 +395,63 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
 }; //printf("\n");
 return(-1);
 }
+/*------------------------------------------------------------findSwitchInput()
+swinput: 1..48    rc: -1 not found    or index with 1st occurance of swinput
+Note: swinput can feed more L0 (1..24) inputs, i.e. the line with
+value of swinput in SwitchN column can appear more times.
+*/
+int findSwitchInput(int swinput) {
+int ix;
+for(ix=0; ix<NCTPINPUTS; ix++) {
+  if((validCTPINPUTs[ix].level==0) &&
+     (validCTPINPUTs[ix].switchn==swinput)
+    ) return(ix);
+}; //printf("\n");
+return(-1);
+}
 /*------------------------------------------------------------findInput()
-Input: level (0-2) and input number(1-24)
+Input: level (0-2) and input number(1-24) i.e. after L0 switch (if L0 input)
 Out:   index (0..) pointing to validCTPINPUTs[]. -1 in case of error
+Note: use findSwitchInput for switch input (i.e. input: 1..48)
 */
 int findInput(int level, int input) {
 int ix;
+if(input>24) return(-1);
 for(ix=0; ix<NCTPINPUTS; ix++) {
   //printf("%s %d\n", validCTPINPUTs[ix].name, validCTPINPUTs[ix].detector);
   if((validCTPINPUTs[ix].level==level) &&
-     (validCTPINPUTs[ix].inputnum==input)  &&
-     (validCTPINPUTs[ix].configured==1) 
+     (validCTPINPUTs[ix].inputnum==input)  // && (validCTPINPUTs[ix].configured==1) 
     ) return(ix);
 }; //printf("\n");
 return(-1);
 }
 /*------------------------------------------------------------getEdgeDelayDB()
-Input: level (0-2) and input number(1-24)
+Input: level (1-2) and input number(24 or 12)
+       level:0  input: 1.48 (i.e. input before switch!)
 Out:   rc: 0:ok, -1: error (not configured)
        edge delay
 */
 int getEdgeDelayDB(int level, int input, int *edge, int *delay) {
 int ix;
-ix= findInput(level, input);
+/*if((level==0) && l0C0()) {
+we need to find similar func like l0C0() getting input from sh. memory? */
+if((level==0) && (NCTPINPUTS==84) ) {
+  ix= findSwitchInput(input);
+} else {
+  ix= findInput(level, input);
+};
 if(ix==-1) return(-1);
 *edge= validCTPINPUTs[ix].edge;
 *delay= validCTPINPUTs[ix].delay;
 return(0);
+}
+/*------------------------------------------------------------getSwnDB(inp)()
+*/
+int getSwnDB(int input) {
+int ix;
+ix= findInput(0, input);
+if(ix==-1) return(-1);
+return(validCTPINPUTs[ix].switchn);
 }
 /*------------------------------------------------------------findINPdaqdet()
 Input: level (0-2) and input number(1-24)
@@ -431,8 +463,7 @@ int ix, rc=-1;
 for(ix=0; ix<NCTPINPUTS; ix++) {
   //printf("%s %d\n", validCTPINPUTs[ix].name, validCTPINPUTs[ix].detector);
   if((validCTPINPUTs[ix].level==level) &&
-     (validCTPINPUTs[ix].inputnum==input)  &&
-     (validCTPINPUTs[ix].configured==1) 
+     (validCTPINPUTs[ix].inputnum==input)  // && (validCTPINPUTs[ix].configured==1) 
     ) return(validCTPINPUTs[ix].detector);
 }; //printf("\n");
 return(rc);

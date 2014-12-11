@@ -26,10 +26,10 @@ extern "C" {
 #define l2a_strobe 19
 
 #define MAXTEMPLATEL 20
-#define NLTUS 19
+#define NLTUS 20
 char *LTUS[]={"spd", "sdd", "ssd", "tpc", "trd", "tof", "phos",
   "cpv", "hmpid", "muon_trk", "muon_trg", "pmd",
-  "fmd", "t0", "v0", "zdc", "acorde", "emcal", "daq"}; 
+  "fmd", "t0", "v0", "zdc", "acorde", "emcal", "daq", "ad"}; 
 //define NLTUS 2 
 //char *LTUS[]={"hmpid", "muon_trk"};
 

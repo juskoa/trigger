@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="3.0",
+      version="4.0",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -24,6 +24,7 @@ return code:
 
 news: 
 from version 3.0: 100 classes
+from version 4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
 """,
       author="Anton Jusko",
       packages=["validate"],

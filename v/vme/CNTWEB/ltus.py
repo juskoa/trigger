@@ -9,7 +9,7 @@ CNTfile="/var/www/html/CNTWEB/cfgdir/ltunames.sorted2"
 RRDDB= os.path.join(trigdb.VMEWORKDIR, "../../CNTRRD/rrd/")
 LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
   'CPV', 'HMPID', 'MUON_TRK', 'MUON_TRG', 'PMD',
-  'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ')
+  'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ', 'AD')
 sigcolors=["660000", "66ff00", "6600ff", "66ffff", "ff0000","ff00ff","ffff00", "333333","cccccc","cccc00"]
 
 cfg=None

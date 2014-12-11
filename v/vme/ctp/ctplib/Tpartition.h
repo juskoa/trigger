@@ -12,7 +12,7 @@
 #define NFO 6
 #define NCON 4        // # of connectors at FO
 #define NDETEC 24
-#define NCTPINPUTS 60    // 24+24+12
+#define NCTPINPUTS 84    // 48+24+12
 #ifndef MNPART
 #define MNPART 6
 #endif
@@ -58,9 +58,10 @@ typedef struct Tinput{
   int detector;      // ECS/DAQ Detector number (0..) or -1 if not found
   int level;         // 0,1,2
   w32 signature;
-  int inputnum;      // 1..24 (for level 0)
+  int inputnum; // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
   int dimnum;        // order number of cable. 1 if only 1 input cable given
-  int configured;    // 1:configured   0: not configured
+  int switchn; // 0: not switchinput (i.e. L1/2 input or not connected at all)
+               // 1..48 switch input number
   int edge;          // 0:positive  1: negative -1: notdefined
   int delay;         // 0-15 in BCs   -1:not defined
   int deltamin;

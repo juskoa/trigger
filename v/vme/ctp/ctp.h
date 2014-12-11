@@ -553,6 +553,7 @@ w32 i2cread(int channel, int branch);
 int i2cgetaddr(int board0_34, int *channel, int *branch);
 
 int getEdgeDelayDB(int level, int input, int *edge, int *delay);
+int getSwnDB(int input);
 int getedge(int board,w32 input,w32 *del);
 int getedgerun1(int board,w32 input,w32 *del);
 int getedgerun2(int board,w32 input,w32 *del);

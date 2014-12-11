@@ -354,3 +354,9 @@ alignment2daq fixed in pydim (was not written to daq till now)
 pydim/simpleClient.py   -testing det/MONBUSY possible
 3.12.2014
 ctp switch: only in code: ctplib/initCTP.c + vmeb/trigdb.py
+10.12.
+ctpinputs.cfg now instead of L0.INPUTS VALID.CTPINPUTS CTP.SWITCH
+(see devdbg/ctpinputs_cfg)
+10.12.
+AD introduced - see devdbg/ad
+

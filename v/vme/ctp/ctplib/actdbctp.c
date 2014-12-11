@@ -58,7 +58,7 @@ for(ix=0; ix<NDETEC; ix++) {     // fo all /CTP/trgInput_* items
   rc= actdb_getdbstring(tiname, 0, value, 24);
   // rc=0; strcpy(value,"ON");
   if(rc!=0) continue;
-  if(strcmp(value,"ON")==0) {
+  if(strcmp(value,"OFF")==0) {                       // was ON before 11.12.2014
     strcat(filter, ltuname); strcat(filter, " "); 
     //break;  //ajDBG
   };
@@ -72,8 +72,8 @@ if(actopcls==1) {
 };
 shmdt(ctpshmbase);
 ix= strlen(filter); if(ix>0) filter[ix-1]='\0'; // remove trailing space
-  printf("INFO actdb_getff: filter from ACT not taken into account\n");
-return;
+/*  printf("INFO actdb_getff: filter from ACT not taken into account\n");
+return; */
 sprintf(fname,"%s/CFG/ctp/DB/filter",vmecfdir); f=fopen(fname,"w");
 if(f == NULL) {
   printf("INFO actdb_getff: cannot write to %s\n", fname);

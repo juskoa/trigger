@@ -113,7 +113,7 @@ if(vsp!=0) {   /* ltu */
 }
 
 /*------------------------------------------------------- setomvspSSM()
-called only form setomSSM(), readSSM(), writeSSM() */
+called only from setomSSM(), readSSM(), writeSSM() */
 int setomvspSSM(int vsp, w32 boardoffset, w32 opmo) {
 w32 status,bcstatus,busybit,ssmen;
 w32 l0bo=BSP*ctpboards[1].dial;
@@ -157,8 +157,11 @@ if((vsp==0) && (boardoffset==l0bo) && (l0C0()!=0)) {
   } else if(opmo==SSMomrecb) {
     cmdlm0= 1;   // continuous
     vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
-  } else {
+  } else if((opmo==SSMomvmer) || (opmo==SSMomvmew)) {
     ;  // no action for vmer/w for lm0
+  } else {
+    printf("ERROR: Bad mode for LM0 SSM: 0x%x\n", opmo);
+    return(1);
   };
 } else {
   vmbw32(vsp,SSMcommand+boardoffset, opmo&0x3f);

@@ -393,6 +393,7 @@ var refint="refinterval is %d";
 <th><img class="header" src="pngs/acorde.png" /></th>
 <th><img class="header" src="pngs/emcal.png" /></th>
 <th><img class="header" src="pngs/daq.png" /></th>
+<th><img class="header" src="pngs/ad.png" /></th>
 </tr>
 <th>%s</th>
 """%(refreshsecs, clockinfo, self.mesdti[0], self.mesdti[1], 

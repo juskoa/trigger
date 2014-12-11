@@ -11,6 +11,7 @@ echo
 dos2unix ~/logs/$logname
 #following: does not save warnings/errors  found by make 
 #makeall $1 $2 2>&1> ~/logs/makeall_$1.log
+echo ; echo ; echo ; echo
 echo -e "================================= grepping error+warning lines:"
 grep -i 'error\|warning' ~/logs/$logname |grep -v 'lrcc_error\|prtError.o'
 if [ "$VMEDRIVER" = "SIMVME" ] ;then

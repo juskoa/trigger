@@ -9,7 +9,7 @@ RRDDB= "rrd/mon.rrd"
 time0= 1243119600   #1163718000
 LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
   'CPV', 'HMPID', 'MUON_TRK', 'MUON_TRG', 'PMD',
-  'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ')
+  'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ', 'AD')
 #LTUS=('HMPID','MUON_TRK')
 
 def readcnames(ri, ctpltu):
