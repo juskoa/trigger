@@ -101,13 +101,21 @@ TriggerInput::TriggerInput(string &name,int level,int position,string &detname)
  fposition=position;
  fdetname=detname;
 }
+TriggerInput::TriggerInput(string &name,int level,int position,int iswitch,string &detname)
+{
+ fname=name;
+ flevel=level;
+ fposition=position;
+ fswitchN=iswitch;
+ fdetname=detname;
+}
 void TriggerInput::Print()
 {
  cout << fname << " L" <<flevel << " CTP: "<< fposition << " "   << fdetname << endl;  
 }
 //---------------------------------------------------------------------------
-TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,string &detname)
-:TriggerInput(name,level,position,detname)
+TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,int iswitch,string &detname)
+:TriggerInput(name,level,position,iswitch,detname)
 {
  cnt.SetName(name);
  if(detname.find("SPD") != string::npos){
@@ -120,9 +128,9 @@ TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,strin
  else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetPosition(),CSTART_L1+5);
  else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetPosition(),CSTART_L2+5); */
  // run2:
- if(GetLevel()==0)cnt.SetIXs(CSTART_L0+118+GetPosition(),CSTART_L0+15);
- else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetPosition(),CSTART_L1+5);
- else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetPosition(),CSTART_L2+5);
+ if(GetLevel()==0)cnt.SetIXs(CSTART_L0+118+GetSwitchN(),CSTART_L0+15);
+ else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetSwitchN(),CSTART_L1+5);
+ else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetSwitchN(),CSTART_L2+5);
  else{
    cout << "TrigInput level:" << GetLevel() << endl; 
    Print();

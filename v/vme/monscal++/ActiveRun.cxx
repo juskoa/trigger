@@ -140,7 +140,8 @@ int ActiveRun::ParseValidCTPInputs()
 {
   stringstream ss;
  ifstream file;
- ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ //ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ ss << "/CFG/ctp/DB/ctpinputs.cfg";
  string filename = getenv("VMECFDIR")+ss.str();
  file.open(filename.c_str());
  if(!file){
@@ -166,15 +167,17 @@ int ActiveRun::ProcessInputLine(const string &line)
  vector<string> items;
  splitstring(line,items," ");
  int nitems = items.size();
- if(nitems!=12){
-   cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+ if(nitems < 17){
+   //cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+   cout << "unexpected number of items in ctpinputs,cfg: line:" << endl;
    cout << line << endl;
    return 1;
  }
  // loop input list and add to configuration only if in the list
  for(unsigned int i=0;i<inputlist.size();i++){
   if(items[0].find(inputlist[i]) != string::npos){  
-    TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),atoi(items[7].c_str()),items[2]); 
     inp->Print();
     AddInput(inp);
   } 
@@ -253,7 +256,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
  switch (level){
    case 1:  // inputs
           {
-          if(nitems != 5){
+          if((nitems != 6) && (nitems !=5)){
             PrintLog(("Invalid input syntax: "+line).c_str());
             return 1;
           }
@@ -261,7 +264,8 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
              cout << "ActiveRun::ProcessCfgLine: input "  << items[0] << " skipped." << endl;
              return 0;
           }
-          TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),items[1]); 
+          //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),items[1]); 
+            TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),atoi(items[5].c_str()),items[1]); 
           AddInput(inp);
           return 0;
           }

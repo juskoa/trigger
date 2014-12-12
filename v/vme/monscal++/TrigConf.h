@@ -41,15 +41,18 @@ class TrigTimeCounters{
 //#########################################################################
 class TriggerInput{
  private:
-        int fposition;
+        int fposition; // InpN in ctpinputs,cfg
+        int fswitchN;
         int flevel;
 	string fname;
         string fdetname;
  public:
         TriggerInput(string &name,int level,int position,string &detname);
+        TriggerInput(string &name,int level,int position,int iswitch,string &detname);
         string& GetName(){return fname;}; 
         string& GetDetName(){return fdetname;}
         int GetPosition(){return fposition;};
+        int GetSwitchN(){return fswitchN;};
         int GetLevel(){return flevel;} 
         void Print();
 };
@@ -58,6 +61,7 @@ class TriggerInputwCount: public TriggerInput{
         Counter cnt;
  public:
         TriggerInputwCount(string &name,int level,int position,string &detname);
+        TriggerInputwCount(string &name,int level,int position,int iswitch,string &detname);
         void Update(w32* buffer);
         void Display(ofstream* file);
         void Display(char* text);

@@ -35,7 +35,8 @@ int MonScal::CheckVCTPINPUTStatus()
 // If changed parse it 
 {
  stringstream ss;
- ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ //ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ ss << "/CFG/ctp/DB/ctpinputs.cfg";
  string filename = getenv("VMECFDIR")+ss.str();
 
  struct stat VCTPINPUTS;
