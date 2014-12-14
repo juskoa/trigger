@@ -265,7 +265,8 @@ TriggerClusterwCount::TriggerClusterwCount(string &name,int hwindex)
  // run2:  289: points to l0clstT,1,2,..,8
  l0.SetName("L0after"); l0.SetIXs(CSTART_L0+289+index,CSTART_L0+15);
  busy.SetName("BUSY"); busy.SetIXs(CSTART_L0+0+index,CSTART_L0+15);
- l2.SetName("L2after"); l2.SetIXs(CSTART_L2+447+index,CSTART_L2+5); 
+ //l2.SetName("L2after"); l2.SetIXs(CSTART_L2+447+index,CSTART_L2+5); bug 
+ l2.SetName("L2after"); l2.SetIXs(CSTART_L2+225+2+index,CSTART_L2+5); 
 }
 TriggerClusterwCount::~TriggerClusterwCount()
 {
