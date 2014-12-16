@@ -55,16 +55,7 @@ class BOARD: public BOARDBASIC
          int NCountersfromcnames;
          w32* countdiff;
  	 vector<string> CounterNames;
- private:
-	 virtual void SetFile(string const &modename);
-         int const numofmodes;
-	 int parsemode(string const &mode) const;
-	 w32 *ssm;
-	 w32 ssmmode;
-         int SetMode(string const &mode,char const c,w32 &imode) const;
-         int SetMode(w32 const modecode) const;
-	 int setomvspSSM(w32 const mod) const;
-         //
+	 //
 	 // vme adresses
          //
 	 w32 const SSMcommand; // oxo:VMEREAD 0x1:VMEWRITE 0x2:RECAFTER 0x3:RECBEF
@@ -78,6 +69,16 @@ class BOARD: public BOARDBASIC
 	 w32 const COPYBUSY;
 	 w32 const COPYCLEARADD;
 	 w32 const COPYREAD;
+
+ private:
+	 virtual void SetFile(string const &modename);
+         int const numofmodes;
+	 int parsemode(string const &mode) const;
+	 w32 *ssm;
+	 w32 ssmmode;
+         int SetMode(string const &mode,char const c,w32 &imode) const;
+         int SetMode(w32 const modecode) const;
+	 int setomvspSSM(w32 const mod) const;
 	 // constants
 	 w32 const SSMomvmer;
 	 w32 const SSMomvmew;

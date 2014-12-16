@@ -5,10 +5,12 @@ BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
 :
         BOARDBASIC(name,boardbase,vsp),
 	NCounters(NCOUNTERS_MAX),NCountersfromcnames(0),
-        numofmodes(nofssmmodes),
-	ssmmode(0),
+        countdiff(0),
 	SSMcommand(0x19c),SSMstart(0x1a0),SSMstop(0x1a4),SSMaddress(0x1a8),SSMdata(0x1ac),SSMstatus(0x1b0),SSMenable(0x1b4),
 	COPYCOUNT(0x1d4),COPYBUSY(0x1d8),COPYCLEARADD(0x1dc),COPYREAD(0x1e0),
+        numofmodes(nofssmmodes),
+        ssm(0),
+	ssmmode(0),
 	SSMomvmer(0),SSMomvmew(1),SSMbusybit(0),
 	SSMModes(0)
 {

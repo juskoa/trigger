@@ -28,6 +28,7 @@ class L0BOARD: public BOARD
 	virtual int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws){return 1;};
         virtual int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws){return 1;};
 	virtual int ddr3_ssmread(){return 1;};
+        virtual void ddr3_ssmstart(int sec){error();};
  	virtual int DumpSSM(const char *name,int issm){error();return 1;};
 
  private:

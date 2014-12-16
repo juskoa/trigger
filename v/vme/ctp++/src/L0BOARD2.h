@@ -19,6 +19,7 @@ class L0BOARD2: public L0BOARD
 	int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws);
         int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws);
 	int ddr3_ssmread();
+	void ddr3_ssmstart(int sec);
 	int DumpSSM(const char *name,int issm);
 	void printClasses();
 

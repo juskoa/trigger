@@ -192,6 +192,32 @@ for(ix=0; ix< Mega; ix++) {
 };
 return(0);
 }
+void L0BOARD2::ddr3_ssmstart(int secs) {
+w32 ssmcmd;
+w32 seconds1,micseconds1, seconds2,micseconds2,diff;
+if(secs==0) {
+  ssmcmd= 0;
+} else {
+  ssmcmd= 1;
+};
+vmew(SSMaddress, 0);
+vmew(SSMcommand, ssmcmd);
+GetMicSec(&seconds1, &micseconds1);
+vmew(SSMstart, DUMMYVAL);
+if(secs>0) {
+  sleep(secs);
+} else {
+  while(1) {
+    w32 st;
+    st= vmer(SSMstatus);
+    if((st&0x2)==0) continue;   // wait till whole memory recorded
+    break;
+  };
+};
+GetMicSec(&seconds2, &micseconds2);
+diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+printf("%d micsecs\n", diff);
+}
 int L0BOARD2::DumpSSM(const char *name,int issm)
 {
  if(issm==1)SetSSM(ssm1); else SetSSM(ssm2); 
