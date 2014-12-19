@@ -704,7 +704,7 @@ if(strncmp(msg,"open ", 5)==0) {   /*--------------------------------- open */
     dimlogprt(typs, msg);
     goto RTRNupdated;
 } else {
-    sprintf(ResultString, "Error:got:%s, but open or close expected\n:\n", msg);
+    sprintf(ResultString, "Error:got:\"%s\", but open or close expected\n:\n", msg);
     prerr(ResultString);
 };
 RTRN: //printf("=%s=", ResultString); 

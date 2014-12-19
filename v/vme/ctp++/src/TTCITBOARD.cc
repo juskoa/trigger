@@ -385,10 +385,11 @@ int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
          flag=1;
          printf("Warning: l1 classes different from l2 classes \n");
        }
-       if(l2[i+2] != 0xf){
-         flag=1;
-         printf("Warning: class pattern != 0xf \n");
-      }
+       // Brutal check of trigger patern agains 0xf - used for tests ala didier
+       //if(l2[i+2] != 0xf){
+       //  flag=1;
+       //  printf("Warning: class pattern != 0xf \n");
+       //}
     }
     if(flag){
       for(int i=0;i<27;i++)printf("%1x",l1[i]);

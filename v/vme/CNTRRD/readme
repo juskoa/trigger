@@ -4,7 +4,7 @@ Content:
 3. how to debug
 4. new rrd database
 4A. new rrd databases for 2012:
-4.1. new rrd mon db:
+4.1. udpmonitor, new rrd mon db:
 4.2. Notes for rrd scripting
 5. maintanance: start/stop all the daemons on alidcscom026
 6. WEB
@@ -99,6 +99,12 @@ export PYTHONPATH=$PYTHONPATH:$VMECFDIR/TRG_DBED
 nohup $VMECFDIR/pydim/pydimserver.py >logs/pydimserver.log &
 
 nohup ./htmlCtpBusys.py htmlfifo >logs/htmlCtpBusys.log &
+---------- mon debug:
+linux/udpclient mon 2   -update every 2 secs
+look for last 10secs:
+rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -e now -s end-10s
+-dajak nebavi
+
 ---------- Test if running:
 
 ---------- Stop
@@ -186,8 +192,11 @@ startClients.bash ctpdim start
 startClients.bash rrd start
 startClients.bash html start
 
-4.1. new rrd mon db:
--------------------
+4.1. udpmonitor, new rrd mon db:
+--------------------------------
+udpmon.sh start/stop/status
+log: CNTRRD/logs/udpmon.log
+
 1.
 mon:    ->modify dimcdistrib/monnames.txt
 cd ~/CNTRRD

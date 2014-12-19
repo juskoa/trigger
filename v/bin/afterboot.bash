@@ -4,7 +4,7 @@ export VMECFDIR=/usr/local/trigger/v/vme
 cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
 hn=`hostname`
 export VMEWORKDIR=$VMECFDIR
-awk '{if(!/^#/ && ($2==host) && ($3!="0")) {print "/usr/local/trigger/bin/configFPGA.bash " $1 " " $3 >"/tmp/configALL"}}' host=$hn $cfgfile
+awk '{if(!/^#/ && ($2==host) && ($3!="0")) {print "/usr/local/trigger/bin/configFPGA.bash " $1 " " $3 " ltuinit" >"/tmp/configALL"}}' host=$hn $cfgfile
 #exit
 #echo '/usr/local/trigger/bin/start_daemons >>/tmp/configALL.log' >>/tmp/configALL
 #echo 'sleep 2' >>/tmp/configALL

@@ -120,12 +120,6 @@ w32 l0bo=BSP*ctpboards[1].dial;
 if(vsp==0) {                  /* ctp board */
   if((boardoffset==l0bo) && (l0C0()!=0)) {
     busybit=0x100;   // LM0 board
-    if((opmo!=0) && (opmo!=1) && (opmo!=2) && (opmo !=3)) {
-      printf("ERROR: LMO board, bad opmo:0x%x\n", opmo);
-      return(1);
-    } else {
-
-    };
   } else {
     busybit=0x100;  // L0 or other ctp board
   };
@@ -149,12 +143,12 @@ if( status & busybit) {
   };
 };
 /*vmew32(SSMcommand+BSP*ctpboards[board].dial, opmo); */
-if((vsp==0) && (boardoffset==l0bo) && (l0C0()!=0)) {
+if((vsp==0) && (boardoffset==l0bo) && (l0C0()!=0)) {   // LM0 board
   w32 cmdlm0;
-  if(opmo==SSMomreca) {
+  if(opmo==0xa) {
     cmdlm0= 0;   // 1-pass
     vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
-  } else if(opmo==SSMomrecb) {
+  } else if(opmo==0x2) {
     cmdlm0= 1;   // continuous
     vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
   } else if((opmo==SSMomvmer) || (opmo==SSMomvmew)) {
@@ -244,11 +238,18 @@ Bit opmo[4] (0x10) should be set to 1 for LTU/RECORDING mode
 opmo for LM0 board:
 ------------------
 Valid only: 0, 1, a, b
-0: SSMomvmer   1: SSMomvmew 
-2: SSMomreca   3: SSMomrecb  ( 0x8 = in)
+opmo: as for L0 board translates to LM0-SSMcommand:
+L0 meaning        LM0
+0xa 1pass record  0
+0x2 cont. record  1
 
 opmo for CTP boards:
 --------------
+0: SSMomvmer   
+1: SSMomvmew 
+2: SSMomreca   1pass
+3: SSMomrecb   continuous
+
 The codes above (0-3) are valid, in addition 7 bits (opmo[9..3] are
 meaningfull, and 2 more codes are added:
 0x4 - GENERATING, single pass
@@ -260,6 +261,7 @@ opmo[5..4] - ConfSel bits  (defined in
                $VMECFDIR/CFG/ctp/ssmsigs/.sig files)
 opmo[3]      - InOut flag   1:in   0:out (side of FPGA logic)
 Examples: 
+0x00a - record 1 pass inputs
 0x20d - generate continuously  inputs for board logic
 0x20c - generate 1 pass (27ms) inputs for board logic
 0x102 - record   1 pass (27ms) of board logic outputs
@@ -433,7 +435,7 @@ int condstopSSM(int board, int cntpos, int maxloops,
   int sleepafter, int customer) {
 w32 cntval1,cntval2, secs1,mics1,secs2,mics2,diffusecs,incr;
 int loops, board1, board2=0;
-w32 cntmem1[NCOUNTERS]; w32 cntmem2[NCOUNTERS];  //the all counters version
+//w32 cntmem1[NCOUNTERS]; w32 cntmem2[NCOUNTERS];  //the all counters version
 int rc=10;
 if(board<20) {board1=board;} else {
   board1= board-20;

@@ -28,8 +28,8 @@ if(argn>2) {
   if(seconds<1) seconds=60;
   printf("Automatic update every %d secs\n", seconds);
 };
-//sock= udpopens("pcalicebhm05", send2PORT);
-sock= udpopens("localhost", 9931);
+//sock= udpopens("localhost", 9931);
+sock= udpopens("localhost", send2PORT);
 if(sock==-1) {printf("udpopens error\n"); exit(8); };
 while(1) {
   int rc;
@@ -41,7 +41,7 @@ while(1) {
     sleep(seconds); goto SEND;
   };
   // interactive
-  printf("ds001:ds002 N:val1:U   or ENTER:repeat last cmd   orquit\n");
+  printf("ds001:ds002 N:val1:U   or ENTER:repeat last cmd   or 'quit '\n");
   eof=fgets(line, 100, stdin);
   if(eof==NULL) break;
   inl= index(line, '\n');
@@ -55,7 +55,7 @@ while(1) {
   };
   SEND:fflush(stdout);
   rc= udpsend(sock, (unsigned char *)buffer, strlen(buffer)+1);
-  //printf("rc:%d\n", rc);
+  printf("rc:%d\n", rc);
 };
 return(0);
 }

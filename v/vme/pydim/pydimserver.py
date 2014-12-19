@@ -44,7 +44,7 @@ create ctp_config file (with each run?)
 import os, os.path, string, sys, time, parted, pylog, miclock,threading, subprocess
 miclock.mylog= pylog.Pylog("pydim_shift")
 mylog= pylog.Pylog(info="info")
-
+VERSION= "7"
 def tasc():
   lt= time.localtime()
   ltim= "%2.2d.%2.2d.%4.4d %2.2d:%2.2d:%2.2d"%(lt[2], lt[1], lt[0], lt[3], lt[4], lt[5])
@@ -81,7 +81,7 @@ def main():
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
   executable= os.path.join( os.environ['VMECFDIR'],"pydim","linux_s","server")
   #io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
-  print "Popen %s..."%executable
+  print "ver: %s Popen %s..."%(VERSION,executable)
   p= subprocess.Popen(string.split(executable+" CTPRCFG RCFG"), bufsize=1,
     stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
   io= (p.stdout, p.stdin)

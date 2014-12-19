@@ -1,4 +1,4 @@
-FILE          = l1inmon
+FILE          = ltustart
 
 CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -Isrc
@@ -18,9 +18,9 @@ OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
 HFILES =   $(SRCS:.cc=.h)
 .SECONDARY: $(OBJFILES)
 
-#all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e
+all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e ltuttcit.e
 # debugging
-all: $(FILE).e
+#all: $(FILE).e
 #	@echo SRCS    : $(SRCS)
 #	@echo HFILES  : $(HFILES)
 #	@echo OBJFILES: $(OBJFILES)

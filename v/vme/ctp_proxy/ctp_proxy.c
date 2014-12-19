@@ -2330,7 +2330,7 @@ infolog_SetStream(name, part->run_number);
 } else {   */
 //bakery lock  -should be combined with detectors== -1 (i.e. not done in setPartDAQbusy, but here)
 setPartDAQBusy(part, -1);
-src=generateXOD(part,'Y', emsg, orbitn);
+src=generateXOD(part,'Y', errorReason, orbitn);
 unsetPartDAQBusy(part, -1);
 //bakery unlock
   if(src==0) {
@@ -2340,7 +2340,7 @@ unsetPartDAQBusy(part, -1);
   } else {
     sprintf(emsg,"SYNC not sent. generateXOD() rc:%d orbitn:%u", src, *orbitn); 
     infolog_trgboth(LOG_ERROR, emsg);
-    strncpy(errorReason, emsg,ERRMSGL); rc=3;
+    rc=3;
   };
 //};
 //usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');

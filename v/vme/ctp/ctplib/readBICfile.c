@@ -74,6 +74,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     boardver= 0xff&vmer32(FPGAVERSION_ADD+adshift);
     if((code==0x50) && (boardver>=0xc0)) {
       vmever=0xa0;   // LM0 board, force vmever to the standard one
+      strcpy(ctpboards[ix].name, "lm0");
     };
     ctpboards[ix].vmever= vmever;
     /*
