@@ -905,11 +905,11 @@ Predefined BC masks in VALID.BCMASKS file:
       inpAlreadyIn= self.findInput(inpname)
       if inpAlreadyIn:
         #2 definitions with the same name not allowed!
-        PrintError("""Trigger input %s already defined. VALID.CTPINPUTS line:
+        PrintError("""Trigger input %s already defined. ctpinputs.cfg line:
 %s discarded.  """%(inpname, line), self)
         continue
       if (line[:3]=='l0f') or (line[:3]=='l0A') or (line[:3]=='l0B'):
-        #print "l0fun* special function in VALID.CTPINPUTS:",line
+        #print "l0fun* special function in ctpinputs.cfg:",line
         detname= "L0FUNS"
       else:
         detname= string.strip(string.strip(string.split(inp1[1])[0]))
@@ -2086,7 +2086,7 @@ class TrgPartition:
        print sys.exc_info()[0]
     #print "TrgPartition:",fname, "created. clusters:", self.clusters
   def donewtd(self):
-    print "MywMenuList -using VALID.CTPINPUTS file"
+    print "MywMenuList -using ctpinputs.cfg file"
   def show(self,master,name=None):
     #print "show2:",self.partfr
     if name:

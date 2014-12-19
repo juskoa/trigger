@@ -562,12 +562,16 @@ class AllInputs:
           break
     if flag: continue
     db={}
-    db['number']=items[5]
-    db['numberDIM']=items[6]
-    db['level']='L'+items[3]
     db['name']=items[0]
     db['detector']=items[2]
+    db['level']='L'+items[3]
     db['signature']=items[4]
+    #db['number']=items[5]
+    db['number']=items[7]
+    db['numberDIM']=items[6]
+    db['ctpnum']=items[5]
+    db['Edge'] = items[8]
+    db['Delay'] = items[9]
     dbinputs.append(db)
     #print "Adding: ", db
   return dbinputs
@@ -763,6 +767,7 @@ class Input:
     self.actions=["Get Status","Get Edge","Measure Phase"]
   else:
     self.inpnum=dbinput['number']
+    self.ctpnum=dbinput['ctpnum']
     self.inpnumDIM=dbinput['numberDIM']
     self.detector=dbinput['detector']
     self.level=dbinput['level']
@@ -1030,7 +1035,7 @@ Everything OK!
     If the status is not error check signature
   """
   if(self.name=='ORBIT'): return
-  cmd="CheckSignature("+self.board+","+self.signature+","+self.inpnum+")"
+  cmd="CheckSignature("+self.board+","+self.signature+","+self.ctpnum+")"
   output=self.vb.io.execute(cmd,log="out",applout="<>")
   #print output
 #-----------------------------------------------------

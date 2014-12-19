@@ -344,10 +344,10 @@ class TrgVALIDINPUTS(Table):
     return False
   def valid(self, switchn, inn):
     if self.run1==None:
-      if inn!="0": return True
+      if inn!="0": return True   # L0 connected or L1 or L2
       return False
     else:
-      if switchn=="1": return True
+      if switchn>="1": return True   # old config option (VALID.CTPINPUTS)
       return False
   def getL012inputs(self, levelc):
     """ levelc: '0','1', '2' "switch"
@@ -396,7 +396,7 @@ class TrgVALIDINPUTS(Table):
     if ent[0][0]=='#': return None
     if self.isL0f(ent): return None
     #if ent[7]!="1": return None  # not configured
-    if self.valid(ent[7], ent[5]): return None  # not configured
+    if not self.valid(ent[7], ent[5]): return None  # not configured
     detn= ent[2]
     if niceout:
       if ent[2]=='DAQ':
@@ -410,8 +410,8 @@ class TrgVALIDINPUTS(Table):
     for ent in self.ents:
       detn= self.getdn(ent)
       if detn==None: continue
-      line= "%s %s %s %s %s\n"%(ent[0], detn, \
-        ent[3], ent[4], ent[5])
+      line= "%s %s %s %s %s %s\n"%(ent[0], detn, \
+        ent[3], ent[4], ent[5], ent[7])
       ofile.write(line)
   def prtnames(self):
     all={}

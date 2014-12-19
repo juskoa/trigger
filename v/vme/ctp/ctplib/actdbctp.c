@@ -57,6 +57,7 @@ for(ix=0; ix<NDETEC; ix++) {     // fo all /CTP/trgInput_* items
   sprintf(tiname,"trgInput_%s", ltuname);
   rc= actdb_getdbstring(tiname, 0, value, 24);
   // rc=0; strcpy(value,"ON");
+  printf("INFO actdb_getff:%s:%s\n", tiname, value);
   if(rc!=0) continue;
   if(strcmp(value,"OFF")==0) {                       // was ON before 11.12.2014
     strcat(filter, ltuname); strcat(filter, " "); 
@@ -79,7 +80,7 @@ if(f == NULL) {
   printf("INFO actdb_getff: cannot write to %s\n", fname);
 } else {
   fputs(filter, f);
-  printf("INFO actdb_getff: %s written\n", fname);
+  printf("INFO actdb_getff: %s written:%s\n", fname,filter);
   fclose(f);
 };
 #else

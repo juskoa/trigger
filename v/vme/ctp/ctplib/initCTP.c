@@ -216,7 +216,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         adr= lminpadr+ 4*(lminp-1);
         vmew32(adr, val);
       }
-      infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
+      vmew32(SEL_LM, 1);
+      infolog_trgboth(LOG_INFO, (char *)"LM output set to 1.LM0 CTP switch set to default 1-1 2-2...");
       //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
       /* following done in setEdgersDelays()
       setEdgeDelay(1,1,1,0);  // T0C

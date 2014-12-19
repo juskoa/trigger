@@ -16,9 +16,15 @@ cfg=None
 
 def findInputs(boardname):
   title="not implemented yet"
-  if boardname=='l0' or boardname=='l1' or boardname=='l2':
+  if boardname=='l1' or boardname=='l2':
+    level= boardname[1]
+  elif boardname=='l0':
+    level= "switch"
+  else:
+    level= None
+  if level:
     vain= trigdb.TrgVALIDINPUTS()
-    title= vain.getL012inputs(boardname[1])
+    title= vain.getL012inputs(level)
   return title
 
 class Counter:

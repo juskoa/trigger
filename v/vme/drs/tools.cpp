@@ -25,8 +25,8 @@
 
 #include <csignal>
 #include <ctime>
-#define DEBUG 1
-#define DEBUG2 1 
+#define DEBUG 0 
+#define DEBUG2 0 
 //============================================================================================
 #define NDIM 1024
 using namespace std;
@@ -176,7 +176,7 @@ int AnalyseWaves::FindEdge(float thres,int iw,int& nedges)
       float a=(w[i]-w[i-1])/(t[i]-t[i-1]);  // 1st derivative
       float b=w[i]-a*t[i];
       float c=(w[i+2]-w[i])/(t[i+2]-t[i]);  // 1st derivative up
-      if(c<20.) continue;  // the curve bemd down
+      //if(c<20.) continue;  // the curve bemd down
       edge[nedges]=(thres-b)/a;
       //check period
       if(nedges>0){
@@ -206,9 +206,9 @@ int AnalyseWaves::Compare2Waves(int iw1,int iw2)
  int nedges1,nedges2;
  if(FindMinMax(iw1)) return 1;
  //FindEdge((mins[iw1]+maxs[iw1])/3.,iw1,nedges1);
- ret += FindEdge(0,iw1,nedges1);
+ ret += FindEdge(-0.0,iw1,nedges1);
  //FindEdge((mins[iw2]+maxs[iw2])/3.,iw2,nedges2);
- ret += FindEdge(0,iw2,nedges2);
+ ret += FindEdge(-0.0,iw2,nedges2);
  // define jitter as: rising edge1-rising edge2, so values 0-25 always positive
  // now make sure that sequence start with edge1
  int istart1=0,istart2=0;
@@ -235,7 +235,7 @@ int AnalyseWaves::Compare2Waves(int iw1,int iw2)
     sumx += delta;
     sumx2 += delta*delta;
     ndelta++;
-    if(dmax<delta)dmax=delta;
+    if(fabs(dmax)<fabs(delta))dmax=delta;
  }
  float dmean=sumx/ndelta;
  float dmean2=sumx2/ndelta;
@@ -252,7 +252,7 @@ int AnalyseWaves::Compare4Channels(ScopeDimData *dd)
  int ret = 0;
  ret += Compare2Waves(0,1);
  // Uncomment when other 2 waves are connected
- //Compare2Waves(0,2);
+ Compare2Waves(0,2);
  //Compare2Waves(0,3);
  time_t now;
  now=time(0);

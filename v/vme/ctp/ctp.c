@@ -1567,9 +1567,9 @@ void ddr3_ssmstart(int secs) {
 w32 ssmcmd;
 w32 seconds1,micseconds1, seconds2,micseconds2,diff;
 if(secs==0) {
-  ssmcmd= 0;
+  ssmcmd= 0;   // 1 pass (after)
 } else {
-  ssmcmd= 1;
+  ssmcmd= 1;   // continuous (before)
 };
 vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);
 vmew32(SSMcommand+BSP*ctpboards[1].dial, ssmcmd);

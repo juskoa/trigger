@@ -78,7 +78,9 @@ else
   ltubases="$LTUBASE"
 fi
 for LTUBASE in $ltubases ;do
-$VMECFDIR/VME2FPGA/VME2FPGA.exe $LTUBASE -noinitmac <<-EOF
+#$VMECFDIR/VME2FPGA/VME2FPGA.exe $LTUBASE -noinitmac <<-EOF
+# changed 12.12.2014 to (i.e. allows private loadLTUfpga for trd account on 004):
+$VMEBDIR/../vme/VME2FPGA/VME2FPGA.exe $LTUBASE -noinitmac <<-EOF
 EraseFM()
 LoadFM()
 LoadFPGA()
