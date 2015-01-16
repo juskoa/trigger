@@ -802,6 +802,7 @@ if(strcmp(msg,"logon\n")==0) {
      (strncmp(msg, "setBC_DELAY_ADD(", 16)!=0) &&
      (strncmp(msg, "SLMsetstart(", 12)!=0) &&
      (strncmp(msg, "TTCinit()", 9)!=0) &&
+     (strncmp(msg, "ttcFEEcmd(", 10)!=0) &&
      (strncmp(msg, "ERenadis(", 9)!=0) &&
      (strncmp(msg, "ERgetselector(", 14)!=0) &&
      (strncmp(msg, "ERsetselector(", 14)!=0) &&
@@ -1009,7 +1010,7 @@ strcat(ResultString,"\n");
 sprintf(logmsg,"%spopen pid:%d.\n",logmsg, pidt);
 dimlogprt("ds_register", logmsg);
 
-sprintf(logmsg, "\nServices:\n");
+sprintf(logmsg, "\nServices :\n");
 strcpy(command, MYDETNAME); strcat(command, "/RESULT");
 RESULTid=dis_add_service(command,"C", ResultString, MAXLILE+1, 
   RESULTcaba, 4567);  

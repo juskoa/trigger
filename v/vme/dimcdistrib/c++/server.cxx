@@ -23,7 +23,9 @@ int main()
    int ttt=time(0);
    double tt=(ttt % 10000);
    std::ostringstream ss;
-   ss<<tt;
+   ss << tt;
+   float a=1./3.;
+   ss << " " << a;
    std::string sss(ss.str());
    strncpy(sco,sss.c_str(),256);
    printf("time=%s \n",sco);  
