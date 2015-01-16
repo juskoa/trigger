@@ -2,6 +2,7 @@
 cd $VMECFDIR/ttcmidaemons
 if [ "$1" = "start" ] ;then
 echo "starting..."
+#export DIM_DNS_NODE=alitriwn001
 nohup ./sctelServer.py >$VMEWORKDIR/WORK/sctelServer.log &
 fi
 echo "ps --columns 130 aux|grep sctelServer.py..."
