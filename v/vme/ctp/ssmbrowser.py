@@ -57,6 +57,7 @@ synchronised boards).
       #fbname= self.siginst.brinst.ssmboards[ixx][0]
       #von self.sigitems=self.getsignals(self.fbname)
       #
+      print "BSnames:", self.brdix, self.siginst.brinst.searchssmb(self.brdix)
       ixdef= eval(self.siginst.brinst.searchssmb(self.brdix))
       self.modboard(None, ixdef)
   def modboard(self, inst, ixx):

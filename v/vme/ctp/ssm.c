@@ -148,7 +148,7 @@ if((vsp==0) && (boardoffset==l0bo) && (l0C0()!=0)) {   // LM0 board
   if(opmo==0xa) {
     cmdlm0= 0;   // 1-pass
     vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
-  } else if(opmo==0x2) {
+  } else if(opmo==0xb) {
     cmdlm0= 1;   // continuous
     vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
   } else if((opmo==SSMomvmer) || (opmo==SSMomvmew)) {
@@ -181,17 +181,37 @@ LTU: [4] FrontPanel->SSM mode active
      [1..0] operation
 CTP: [8] -BUSY
      [7..6] Enable SSM Input..Output flag
-     [5..4] ConfSel bits
+     [5..4] CS2 CS1 ConfSel bits
      [3..3] InOut flag   0:out   1:in
      [2..1] Operation bits 
-     [0..0] mode bit 
+     [0..0] mode bit
 error: 0xdeadbeaf
+i.e. low 4 bits rc reflects last action with SSM:
+--- CTP l0/1/2/busy/fo boards :
+0x8 -read
+0xa -record inmon 1 pass (also after 27ms)
+0xb -record inmon cont   (before cont. recording stopped: 0x10b)
+
+--- LM0:
+                SSMstatus   SSMcommand
+inmon 1 pass:   0x0         0             <     27ms
+inmon 1 pass:   0x2         0             after 27ms
+inmon cont:     0x101       0             <27ms          (SSMaddress changing)
+                0x103       0             before stopped (SSMaddress changing)
+                0x3         0             after stop (SSM address fixed)
+read ???
 */
 w32 getswSSM(int board) {
 int vsp,rc;
 if(sms[board].ltubase[0]=='\0') {   /* ctp board */
+  w32 l0bo=BSP*ctpboards[1].dial;
   w32 boardoffset=BSP*ctpboards[board].dial;
-  rc= vmbr32(0, boardoffset+SSMstatus);
+  if((boardoffset==l0bo) && (l0C0()!=0)) {   //LM0
+    rc= vmbr32(0, boardoffset+SSMstatus);
+    rc= rc | 0x8;   // 1:in (artificially for LM0)
+  } else {
+    rc= vmbr32(0, boardoffset+SSMstatus);
+  };
 }else{                              /* ltu board */
   vsp=Openvsp(sms[board].ltubase);
   if(vsp!=-1) {
@@ -239,9 +259,9 @@ opmo for LM0 board:
 ------------------
 Valid only: 0, 1, a, b
 opmo: as for L0 board translates to LM0-SSMcommand:
-L0 meaning        LM0
+L0  meaning       LM0
 0xa 1pass record  0
-0x2 cont. record  1
+0xb cont. record  1
 
 opmo for CTP boards:
 --------------
@@ -254,6 +274,8 @@ The codes above (0-3) are valid, in addition 7 bits (opmo[9..3] are
 meaningfull, and 2 more codes are added:
 0x4 - GENERATING, single pass
 0x5 - GENERATING, continuous
+6 7 -incorrect codes
+
 opmo[9..8] - bits to be used for selecting SSMenable word
              10 ->enable Input    01 ->enable Output
 opmo[7..6] - not used
@@ -308,7 +330,7 @@ RC: 0    ->OK
     1, 2 -> LTU cannot be started
     10   -> time between 1st and last start > 80micsecs
 */
-int startSSM(int n, int *boards) {
+int startSSM(int nbrds, int *boards) {
 int ix, board,ixltus,nltus,vsp,rc=0;
 w32 boardoffset, seconds1,micseconds1, seconds2,micseconds2,diff;
 w32 status;
@@ -316,7 +338,7 @@ int vsps[5];
 /* find ltus and open VME space for them: */
 nltus=0; ix=1;
 while(1) {
-  if(ix>=n) ix=0;
+  if(ix>=nbrds) ix=0;
   board= boards[ix];
   if(board>=NCTPBOARDS) {   /* ltu */
     printf("startSSM: boards[%d] LTU %s\n", ix, sms[board].ltubase);
@@ -336,7 +358,7 @@ while(1) {
 ixltus=0; ix=1;
 GetMicSec(&seconds1, &micseconds1);
 while(1) {
-  if(ix>=n) ix=0;
+  if(ix>=nbrds) ix=0;
   board= boards[ix];
   if(board>=NCTPBOARDS) {   /* ltu */
     vsp= vsps[ixltus]; ixltus++;
@@ -376,9 +398,11 @@ return(startSSM(1, boards));
 Opearation:
 - check if board is in BUSY status
 - stop (recording or generation)
+  if L0/LM0, stop also L1 (recording or generation) if busy
 rc: == 0 OK
        1 board not busy, no action
        2 problem with openvme for LTU
+
 */
 int stopSSM(int board) {
 int vsp=0, rc=0;
@@ -403,9 +427,20 @@ ssmstatus= vmbr32(vsp, SSMstatus+boardoffset);
 if( (ssmstatus&busybit)==0 ) {
   printf("stopSSM: %d board not busy(SSMstatus:%x), no action\n", 
     board, ssmstatus); 
-  rc=1; goto RTRN;
+  rc=1; goto STOP2;
 };
 vmbw32(vsp, SSMstop+boardoffset, DUMMYVAL);
+//printf("stopSSM: %d OK (SSMstatus before stopping:%x)\n", board, ssmstatus);
+STOP2:
+if(board==1) {   // if L0/LM0 always try to stop also L1
+  boardoffset=BSP*ctpboards[2].dial;
+  ssmstatus= vmbr32(vsp, SSMstatus+boardoffset);
+  if( (ssmstatus&0x100)==0 ) {
+    printf("stopSSM: L1 not busy(SSMstatus:0x%x), no action\n", ssmstatus); 
+    rc=1; goto RTRN;
+  };
+  vmbw32(vsp, SSMstop+boardoffset, DUMMYVAL);
+};
 //printf("stopSSM: %d OK (SSMstatus before stopping:%x)\n", board, ssmstatus);
 RTRN:
 return(rc);
@@ -505,7 +540,10 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   /* don't touch InOut, ConfSel bits and SSMenable word when VME access*/
   status= vmer32(SSMstatus+ssmoffset);
   if((board==1) && (l0C0()!=0)) {   // LM0 board
+    //todo here: check if ddr3 filled
+    // following: just to be compatible with getswSSM ?
     rc= setomvspSSM(0, ssmoffset, SSMomvmer);
+    rc= ddr3_ssmread(NULL, array); 
   } else {                          // BSY L0/1/2 FO INT
     enable= (status&0xc0)<<2;
     mod= SSMomvmer | (status&0x38) | enable;
@@ -518,7 +556,7 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
     if( ((ssma & 0x100000)==0) ) {
       /* recording was done in Before mode, we
       should read only part of the SSM */
-      printf("After or Before mode data without Overflow flag, %d words\n",ssma);
+      printf("After or Before mode or not filled. Overflow flag:OFF, %d words\n",ssma);
       vmew32(SSMaddress+ssmoffset,(w32)-1);
       words= ssma;
     } else {
@@ -540,7 +578,7 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   if( ((ssma & 0x80000)==0) ) {
     /* recording was done in Before mode, we
     should read only part of the SSM */
-    printf("After or Before mode data without Overflow flag, %d words\n",ssma);
+    printf("LTU After or Before mode (or not filled) data without Overflow flag, %d words\n",ssma);
     vmew32(SSMaddress+ssmoffset,(w32)-1);
     words= ssma;
   } else {

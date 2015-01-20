@@ -216,8 +216,11 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         adr= lminpadr+ 4*(lminp-1);
         vmew32(adr, val);
       }
-      vmew32(SEL_LM, 1);
-      infolog_trgboth(LOG_INFO, (char *)"LM output set to 1.LM0 CTP switch set to default 1-1 2-2...");
+      infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
+      vmew32(SEL_SPARE_OUT+0xc, 1);
+      vmew32(SEL_SPARE_OUT+0x8, 11);
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM");
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[2]) set to 11:0AMU");
       //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
       /* following done in setEdgersDelays()
       setEdgeDelay(1,1,1,0);  // T0C
@@ -241,11 +244,13 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       //setSwitch(38, 22);   // 0BPC
       setSwitch(39, 15);   // 0LSR
       */
+      ddr3_reset(); printf("DDR3 reset done\n");
+      vmew32(14, SCOPE_A_FRONT_PANEL); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
     };
     setEdgesDelays(1); printf("L0 edges/delays set\n");
     vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
-    //printf("RND1/2 synchronised\n"); RNDsync(3);
-    printf("RND1/2 desynchronised\n"); RNDsync(1);
+    //RNDsync(3); printf("RND1/2 synchronised\n");
+    RNDsync(1); printf("RND1/2 desynchronised\n");
   };
   if(ctpboards[ix].code==L1code) { 
     //cfg vmew32(L1_DELAY_L0, calcL1_DELAY_L0());

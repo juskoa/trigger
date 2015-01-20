@@ -1913,7 +1913,7 @@ if(xse2=='P') {
     //sprintf(msg,"%s %12s %10d %10d\n", msg, validLTUs[idet].name, validLTUs[idet].ctpl2stro, validLTUs[idet].ltul2a);
     sprintf(msg,"%s %12s %10u %10u %10u \n", msg, validLTUs[idet].name, 
       cl0, cl1, cl2);
-    if( (cl0 < cl1) || (cl1 > cl2) ) {
+    if( (cl0 < cl1) || (cl1 < cl2) ) {   // was cla>cl2 till 20.1.2015
       sprintf(msgmism, "%s %s", msgmism, validLTUs[idet].name);
     };
   };
@@ -2412,7 +2412,7 @@ int ctp_StopPartition(char *name){
      infolog_SetStream(name, part->run_number);
      prepareRunConfig(part,0);
    };
-   ret= deletePartitions(part);
+   ret= deletePartitions(part); part=NULL;
    if(ret != 1){
      sprintf(emsg,"deletePartition %s inconsitent: %d",name,ret);
      goto RETSTOP_badsyntax; //nothing to do,partition never existed
@@ -2621,13 +2621,13 @@ if(DBGparts) { printTpartition("After mask applied", part); };
 sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
 if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
-   rc=ret; ret=deletePartitions(part); 
+   rc=ret; ret=deletePartitions(part); part=NULL;
    goto RET2; };
 // If resources available, continue and add part to Partitions[]
 // From now on, no checks necessary (all checks already done)
 if(addPartitions(part)) { 
   strncpy(errorReason, "Cannot add partition", ERRMSGL);
-  rc=4; ret=deletePartitions(part); 
+  rc=4; ret=deletePartitions(part); part=NULL;
   prtError("addPartitions eror."); goto RET2; };
 if(DBGparts) {
   printf("Partitions after adding partition:%s\n",part->name);
@@ -2638,7 +2638,7 @@ sprintf(msg,"timestamp:partition merged: %s %d", name, run_number); prtLog(msg);
 if((ret=addPartitions2HW(AllPartitions))){ //just check if enough resources
   printf("addPartitions2HW error: %i \n", ret);   
   strncpy(errorReason, "Cannot load partition", ERRMSGL);
-  rc=ret; ret=deletePartitions(part); 
+  rc=ret; ret=deletePartitions(part); part=NULL;
   copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
   goto RET2;
 };
@@ -2662,7 +2662,7 @@ sprintf(msg, "timestamp:rc:%d from updateDAQClusters()\n", rc); prtLog(msg);
 if(rc!=0) {
  strncpy(errorReason, "updateDAQClusters() problem", ERRMSGL);
  prepareRunConfig(part,0);
- ret=deletePartitions(part); 
+ ret=deletePartitions(part); part=NULL;
 };
 //printHardware(&HW,"ctp_InitPartition");
 copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
@@ -2777,16 +2777,18 @@ infolog_SetStream("",0);
 return rc;
 UNSETRETddl:
   prepareRunConfig(part,0);
-  ret= deletePartitions(part);
   copyHardware(&HW,&HWold);
+  ret= deletePartitions(part);part=NULL;
   /*goto UNSETRETadb;
   no gcalib/busys -they were not updated anyhow (UNSETRET) */
   goto RET;
 UNSETRET:
   prepareRunConfig(part,0);
-  ret= deletePartitions(part);
   copyHardware(&HW,&HWold);
-  goto UNSETRETadb;
+  unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
+  ret= deletePartitions(part); part=NULL;
+  gcalibUpdate();
+  goto RET;  //UNSETRETadb;
 }
 
 

@@ -359,4 +359,15 @@ ctpinputs.cfg now instead of L0.INPUTS VALID.CTPINPUTS CTP.SWITCH
 (see devdbg/ctpinputs_cfg)
 10.12.
 AD introduced - see devdbg/ad
+15.1.2015
+ctp_proxy.c: ctp_StartPartition() modified (case when SOD cannot be sent)
+14.01.2015 17:40:31: timestamp:prepareRunConfig2:rc 1
+getBusyMaskPartition: detectors:0x0 0PåÐãp
+- now it should be ok, i.e. not seen in the log
+16.1.2015
+ltudimservices.c: ttcFEEcmd( allowed
+16.1.2015
+- stopSSM(), condstopSSM(): in case of L0/LM0 always try to stop also L1
+- SEL_LM changed: now 4 regs (see ctp.h, ctplib/initCTP.c)
+
 

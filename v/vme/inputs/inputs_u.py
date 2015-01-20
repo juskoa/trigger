@@ -717,18 +717,18 @@ class AddModInput:
      MywError("Wrong level: "+level)
      return 0
    num=input['number']
-   valid = []
-   for i in range(1,13,1):
-     valid.append(str(i))
-   if level in ['L2'] and num not in valid:
-     MywError("Wrong input: "+num)
-     print "Wrong input ",num  
-     return 0
-   sig=input['signature']
-   if int(sig) < 1 or int(sig) > 119:
-      print "Wrong signature"
-      MywError('Wrong signature: '+sig)
-      return 0
+   #valid = []
+   #for i in range(1,13,1):
+   #  valid.append(str(i))
+   #if level in ['L2'] and num not in valid:
+   #  MywError("Wrong input: "+num)
+   #  print "Wrong input ",num  
+   #  return 0
+   #sig=input['signature']
+   #if int(sig) < 1 or int(sig) > 119:
+   #   print "Wrong signature ", sig
+   #   MywError('Wrong signature: '+sig)
+   #   return 0
    return 1
  def cancel(self):
    self.tl.destroy()

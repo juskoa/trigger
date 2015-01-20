@@ -128,3 +128,53 @@ RC: number of L2a successfully generated, or
     12345678: cal. triggers stopped becasue det. is not in global run
 */
 int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors);
+
+/*FGROUP DDR3 
+read DDR3_CONF_REG0 (and print mnemonic...)
+*/
+void ddr3_status();
+int ddr3_wrdone();
+int ddr3_rddone();
+
+/*FGROUP DDR3 
+Enable DDR3, i.e.:
+vmew32(DDR3_CONF_REG0, 0x7);   // not needed after power-up
+vmew32(DDR3_CONF_REG0, 0x4);   // 0x4: Errors_reset
+vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_reset, Logic_reset, DDR3_reset
+vmew32(0x9000+SSMaddress, 0);
+streg= vmer32(DDR3_CONF_REG0); 
+*/
+void ddr3_reset();
+
+/* Read DDR3 nws words, reading in 16 32bit-words blocks from ddr3 
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
+mem_ad:  pointer to w32[] array
+nws:     number of 32bit words to be read from ddr3 
+rc:   0: ok
+*/
+int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws);
+
+/* Write nws words to DDR3, writing 16 32bit-words blocks, last one
+ * padded by 0s.
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
+mem_ad:  pointer to w32[] array
+nws:     number of 32bit words to be written
+rc:   0: ok
+*/
+int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws);
+
+/*FGROUP DDR3 
+Read 4MB of usefull data (64MB from DDR3, i.e. ~23secs), i.e.
+store only last 2 words (2x4 bytes) from each 512bits(=64bytes) block
+in ssm1, ssm2
+Use ssmshow after being read.
+ssm1,ssm2: MEGA words  in each (ssm1:NULL -do not fill it)
+rc: 0 ok
+   rc from ddr3_read (stdout printed also)
+*/
+int ddr3_ssmread(w32 *ssm1, w32 *ssm2);
+/*FGROUP DDR3 
+secs: >0:continuous  -will return after secs seconds (leaving continuous active)
+       0: 1-pass
+*/
+void ddr3_ssmstart(int secs);

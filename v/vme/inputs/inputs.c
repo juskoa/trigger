@@ -281,11 +281,17 @@ int setinputrun2(int board,w32 input){
  }
  if(board == 1 || board == 2){
  }else if(board == 3){
+  /* Why this ?
   if(input == 27)      input = 15;
   else if(input == 26) input = 14;
   else if(input == 25) input = 13;
   else if(input > 12){
    ret=1;
+   goto RET;
+  }
+  */
+  if(input > 15){
+   ret =1;
    goto RET;
   }
  }else{

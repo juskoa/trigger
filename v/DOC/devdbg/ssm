@@ -1,0 +1,69 @@
+setomSSM(3,0xa)
+<0>
+startSSM1(3)
+<0>
+getswSSM(3)
+<0x10a>                     0x100
+setsmssw(3,"l2_inmon")   because opmo[2..0]==2
+vmeopr32(0xb1b0)
+0xa
+readSSM(3)
+<0>
+getswSSM(3)
+<0x8>
+vmeopr32(0xb1b0)
+0x8
+
+--------------------start /read
+setomSSM(1,0xa)
+<0>
+startSSM1(1)
+<0>
+getswSSM(1)
+<0x100>
+vmeopr32(0x90c4)
+0x2
+readSSM(1)
+<0>
+getswSSM(1)
+<0x2>
+setsmssw(1,"lm0_outmon")
+------------------------------ 1 pass
+                          lm0
+setomSSM(3,0xa)
+in, 1pass
+<0>
+startSSM1(3)
+<0>
+getswSSM(3)
+<0x10a>                   0x100
+busy, in,1pass
+setsmssw(3,"l2_inmon")
+readSSM(3)
+<0>
+getswSSM(3)
+<0x8>                    0x2 -> lm0_outmon
+
+------------------------------ cont  see ssm.c getswSSM
+                          lm0
+setomSSM(3,0xb)           Bad mode for LM0 SSM: 0xb
+<0>
+startSSM1(3)
+<0>
+getswSSM(3)
+<0x10b>
+setsmssw(3,"l2_inmon")
+
+stopSSM(3)
+<0>
+getswSSM(3)
+<0xb>
+setsmssw(3,"l2_inmon")
+
+readSSM(3)
+<0>
+getswSSM(3)
+<0x8>
+------------------
+16.1.2015
+stopSSM(), condstopSSM(): in case of L0/LM0 always try to stop also L1

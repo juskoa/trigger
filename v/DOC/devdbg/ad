@@ -1,16 +1,14 @@
 AD:
-v/vme/CNTRRD/htmls/pngs
- ~/CNTRRD/htmls/pngs/
+cp v/vme/CNTRRD/htmls/pngs/ad.png ~/CNTRRD/htmls/pngs/
 
 CNTRRD/rrd.py   LTUS -AD amended
 CNTRRD/readltuc.c   LTUS + NLTUS modified
-CNTRRD/htmlCtpBusys ad.png
+CNTRRD/htmlCtpBusys.py ad.png
 CNTWEB/ltus.py  LTUS
 
 CNTWEB/htmlarch/busyL0.html   ?? probably not needed to be modified
 
 ~/CNTRRD/rrd/ADcreate.text -created from PHOScreate.text
-rrdtool - <ADcreate.text
 [trigger@avmes CNTRRD]$ rrdtool - <rrd/ADcreate.text
 OK u:0.00 s:0.01 r:0.02
 

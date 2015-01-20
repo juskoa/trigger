@@ -95,7 +95,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     };
   } else {
     printf("Board %s (base:0x82%1x000) missing\n",
-      ctpboards[ix].name,ix);
+      ctpboards[ix].name, ctpboards[ix].dial);
     ctpboards[ix].vmever= 0;
   };
 };

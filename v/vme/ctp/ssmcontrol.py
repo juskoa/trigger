@@ -76,7 +76,9 @@ class SSM:
     "busyig00":"busy_ingen",  
     "l0ig00":"l0_ingen",  
     "l0im00":"l0_inmon",  
+    "lm0im00":"lm0_inmon",  
     "l0om00":"l0_outmon",  
+    "lm0om00":"lm0_outmon",  
     "l0og00":"l0_outgen",
     "l1ig00":"l1_ingen",  
     "l1og00":"l1_outgen",  
@@ -140,6 +142,7 @@ CS2 CS1  command      ssmsigs_file
     om= self.bactions.getEntry()
     #print "action:",ix, om
     if om=='Read':
+      if self.name=="lm0": vb.io.write("Warning: lm0 read takes ~20sec...\n")
       intstr= vb.io.execute("readSSM(%d)"%(self.smsix))
     elif om=='Write':
       intstr= vb.io.execute("writeSSM(%d)"%(self.smsix))
@@ -156,8 +159,10 @@ CS2 CS1  command      ssmsigs_file
         vb.io.write("rel. position not valid, cond. stop not executed\n")
       else:
         # customer 2: ctp.exe  let's sleep 200us (was 0) because of 1 brd only
+        if self.smsix==1: brd20= 21
+        else: brd20= 1
         intstr= vb.io.execute("condstopSSM(%d,%s,%s, 0, 2)"%\
-          (self.smsix, pos, ssmctl.btimeout.getEntry()))
+          (brd20, pos, ssmctl.btimeout.getEntry()))
         #  (self.smsix+20, pos, ssmctl.btimeout.getEntry()))
         # board 21: stop L0 + L1
     else:
@@ -166,15 +171,19 @@ CS2 CS1  command      ssmsigs_file
         # special case: "R..." -> 27ms IN/OUT mon + WAIT 27ms + READ
         om= om[1:] ; waitread= True
       om=eval(om) | (self.status&0x30)
-      hexstr= vb.io.execute("setomSSM(%d,0x%x)"%(self.smsix,om),
-        applout="<>")[0]
+      hexstrlst= vb.io.execute("setomSSM(%d,0x%x)"%(self.smsix,om),
+        applout="<>")
+      print "ssmcontrol action:",hexstrlst, om, self.name
+      hexstr= hexstrlst[0]
       if hexstr != '0':
         vb.io.write(hexstr+' -from setomSSM, action not started\n')
       else:
         hexstr= vb.io.execute("startSSM1(%d)"%(self.smsix))
+        time.sleep(0.030)   # should be executed only for lm0 for start(1pass)
         if waitread:
           self.readssmst()
           time.sleep(0.030)
+          if self.name=="lm0": vb.io.write("Warning: lm0 read takes ~20sec...\n")
           intstr= vb.io.execute("readSSM(%d)"%(self.smsix))
     self.readssmst()
   def modcs(self):
@@ -204,6 +213,7 @@ CS2 CS1  command      ssmsigs_file
           fo/01          
           fo/10
           l0/00 
+          lm0/00    lm0_inmon
     INGEN fo/00 fo_igl0l1
           fo/01 fo_igl2
           l0/00 l0_ingen
@@ -211,7 +221,7 @@ CS2 CS1  command      ssmsigs_file
     OUTGEN fo/00 fo_outgen
            l0/00 l0_outgen
     """
-    # preapre key: ctpboard[io][mg][01][01]   or
+    # prepare key: ctpboard[io][mg][01][01]   or
     #              ltu[FP]
     key=''
     iomg=''
@@ -221,6 +231,8 @@ CS2 CS1  command      ssmsigs_file
           key= 'ltuFP'
         else:
           key= 'ltu'
+    #elif self.name[0:3]=='lm0':    
+    #  
     else:
       if self.name[0:2]=='fo': key='fo'
       else: key= self.name
@@ -242,7 +254,7 @@ CS2 CS1  command      ssmsigs_file
     else:
       if iomg != '':
         #errmsg="ssmcontrol.py: key %s missing in SSM.modenames"%key
-        errmsg="ssmcontrol.py: mode %s doesn't exist"%key
+        errmsg="ssmcontrol.py: mode %s doesn't exist\n"%key
         vb.io.write(errmsg)
         print errmsg
 class SSMcontrol:
@@ -262,10 +274,12 @@ Action: perform one of the following actions with SSM:
           will be disconnected. The output signals will be
           taken from its SSM.
   Stop:   stop continuous monitoring or generating
+          With L0/LM0 an attemp to stop also L1 board is made after stopping L0/LM0
   Conditional stop:
           - read and check for the change of any counter 
             (see Counter and Timeout entry fields below)
           - stop continuous monitoring as soon as the change is detected
+          - in L0/LM0 case, stop also L1 board
   1pass:  means '1 pass through SSM (when recording or generating)',
           which is 1024*1024*25 ns = ~27 miliseconds
   continuous: record/generate continuously (until 'Stop' Action)
@@ -309,7 +323,7 @@ When 'Conditional stop' applied, this counter is read and tested for the change.
 Relative position of the counter can be find in
 trigger@alidcscom026:$dbctp/cnames.sorted2
 The name of the counter (as seen in Counters widget) can be entered
-too -its relative position will be displayed ctp log-window.
+too -its relative position will be displayed in ctp log-window.
 
 """)
     self.btimeout= myw.MywEntry(fr2, side=LEFT,label="Timeout",

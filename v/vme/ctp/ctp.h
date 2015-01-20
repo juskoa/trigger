@@ -278,7 +278,13 @@ VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 #define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
 #define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
-#define SEL_LM         0x93e0  /* 1..48: L0inp before switch connected to LM */
+#define SEL_SPARE_OUT  0x93e0  
+/* 4 registers 0x93e0,4,8,c reserved for 4 output signals -copy
+of any 1..48 inputs. Should be programmed with number 1..48.
++0 -spare  see initCTP.c
++4 -spare
++8 -0AMU
++c -LM */
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
                                    11..0: BCnumber (valid for Synch. trigger)*/
 #define L0_TCSETr2     0x93fc
@@ -511,7 +517,6 @@ Tctpboards ctpboards[NCTPBOARDS]={
 #else
 extern Tctpboards ctpboards[NCTPBOARDS];
 #endif
-/* all FGROUP declarations are in ctp_expert.h from 5.6.2012 */
 
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
 int setL0f34c(int lutn, char *m4);
