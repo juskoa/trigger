@@ -76,7 +76,7 @@ class AllInputs:
   self.inputsframe= myw.MywFrame(self.tl, side=TOP,relief=FLAT, bg=COLOR_SSMC) 
   header= myw.MywLabel(self.inputsframe, side=TOP, anchor='w',
       helptext=mainhelp, label=
-      "Input    Level \t     Name \t\t Det    \t\t    Action  \t \t    Signature      Status          Activity  Edge Delay   Phase   Last Rare") 
+      "InSwitch    Level \t     Name \t\t Det    \t\t    Action  \t \t    Signature      Status          Activity  Edge Delay   Phase   Last Rare") 
   self.inputs=[]
   self.rare=StringVar()
   self.last=StringVar()
@@ -320,7 +320,12 @@ class AllInputs:
   """
   """
   for i in self.inputs:
-    if i.inpnum == inpnum and i.board == board:
+    #if i.inpnum == inpnum and i.board == board:
+    if i.board == '1':
+       ctpnum=i.ctpnum
+    else:
+       ctpnum=i.inpnum
+    if ctpnum == inpnum and i.board == board:
        return self.inputs.index(i)
   return None
  #
@@ -337,8 +342,9 @@ class AllInputs:
  #
  def checkallinputs(self):
   """
+     active inputs works with ctpnum
   """
-  activeinputs=self.getactiveinputs()
+  activeinputs=self.getactiveinputs()   
   self.checksignature(activeinputs)
   self.showsignatureM()
   self.showactiveinputs(self.inputs,activeinputs)
@@ -367,6 +373,7 @@ class AllInputs:
  #
  def showsignatureM(self):
   """
+     show measured signature
   """
   for i in self.inputs:
     if i.name=='ORBIT':continue
@@ -385,7 +392,8 @@ class AllInputs:
     i.activity='0'
     for k in activeinputs[i.mode]:
         #print k[0],i.inpnum
-        if k[0]==i.inpnum:
+        #if k[0]==i.inpnum:
+        if k[0]==i.ctpnum:
            i.inputactivity['text']=k[1]
            i.activity=k[1]
            activeinputs[i.mode].remove(k)
@@ -443,17 +451,18 @@ class AllInputs:
       Get active inputs: take snapshot memory and 
       check if any signal present
       Also BUSY board is added due to the orbit, otherwise is not necessary.
+      Returns sssm channels, i.e. inputs number (NOT swicth)
   """
   boards=['0','1','2','3']
   activeinputs={'0':[],'1':[],'2':[],'3':[],'1o':[]}
   for i in boards:
     cmd="checkInputsActivity("+i+")"
-    #output=self.vb.io.execute(cmd,log="out",applout="<>")
-    output=self.vb.io.execute(cmd,log="no",applout="<>")
-    #print i,' output= ',output
+    output=self.vb.io.execute(cmd,log="out",applout="<>")
+    #output=self.vb.io.execute(cmd,log="no",applout="<>")
+    print i,' output= ',output
     for j in range(0,len(output)-1,2):
         activeinputs[i].append([output[j],output[j+1]])
-  #print 'active inputs: ',activeinputs
+  print 'active inputs: ',activeinputs
   CTPinternalsignals=0 
   if CTPinternalsignals:
     cmd="checkInputsActivityRB()"
@@ -756,6 +765,7 @@ class Input:
   self.inpnumall='O'
   if self.name == 'ORBIT':
     self.inpnum='0'  
+    self.ctpnum='0'
     self.inpnumDIM='0'  
     self.level='-'
     self.detector='LHC'
@@ -880,9 +890,10 @@ Everything OK!
    """
    fr1= myw.MywFrame(self.toplevel, side=TOP,relief=FLAT, bg=COLOR_SSMC)
    self.fr1=fr1 
+   inpctpnum=self.ctpnum+' '+self.level
    self.inputnumber = MywCheckButton(fr1, side=LEFT, label=self.inpnum, 
                       helptext="Input number")
-   self.inputlevel = myw.MywLabel(fr1, side=LEFT, label=self.level,
+   self.inputlevel = myw.MywLabel(fr1, side=LEFT, label=inpctpnum,
       width=4, expand='no',fill='y',borderwidth=1, 
       helptext="Input trigger level")
    self.inputname = myw.MywLabel(fr1, side=LEFT, label=self.name,

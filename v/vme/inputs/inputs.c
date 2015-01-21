@@ -503,7 +503,11 @@ void checkInputsActivity(int board){
  w32 word;
  for(i=0;i<24;i++)ChannelEmpty[i]=0;
  if(board==1){ 
-   strcpy(mode,"l0_inmon");
+   if(l0C0()) {
+     strcpy(mode,"lm0_inmon");
+   } else {
+     strcpy(mode,"l0_inmon");
+   };
    chan0=8;chanM=32;
  }
  else if(board==2){
@@ -698,7 +702,11 @@ void getorbitstatus(){
 */
 void setL012mode(){
  char mode[32];
- strcpy(mode,"l0_inmon");
+ if(l0C0()) {
+   strcpy(mode,"lm0_inmon");
+ } else {
+   strcpy(mode,"l0_inmon");
+ };
  setsmssw(1,mode);
  strcpy(mode,"l1_inmon");
  setsmssw(2,mode);
