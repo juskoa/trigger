@@ -59,7 +59,7 @@ Inputs:
 Outputs:
 rc: 0 -positive edge
     1 -negative edge
-   >5 -error (unknown board or input)
+   >3 -error (unknown board or input)
 del: meaningfull only for L0/1/2 boards.
 Comment:
 getedge is wrapper for getedgerun1 and getedgerun2

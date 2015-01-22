@@ -325,7 +325,7 @@ class TrgVALIDINPUTS(Table):
   def __init__(self, run1=None):
     """  run1: 
     None   -LM0 board, ctpinputs.cfg
-    "run1lm0" -LM0 board, VALID.CTPINPUTS
+    "run1lm0" -LM0 board, VALID.CTPINPUTS, obsolete
     """
     self.run1= run1
     if run1==None:
@@ -374,7 +374,9 @@ class TrgVALIDINPUTS(Table):
           if self.isL0f(ent): continue
           #if (ent[3]==levelc) and (ent[7]=="1"):
           if (ent[3]=="0") and (ent[7]!="0"):
-            ins[int(ent[7])-1]= ent[0]
+            #ins[int(ent[7])-1]= ent[0]
+            # shopw also CTP input (1..24):
+            ins[int(ent[7])-1]= ent[0] + ":" + ent[5]
         rc= 'L0 switch inputs: '
         for ix in range(len(ins)):
           if ins[ix]: rc= rc+"%s:"%(ix+1)+ins[ix]+' '

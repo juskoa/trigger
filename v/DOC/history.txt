@@ -207,3 +207,7 @@ ltu counters: read once per sec, shared for all DIM clients (see CTPhistory)
 ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
 3.12.2014
 seems det/MONBUSY (busy fraction od subdetector busy) dim service is ok now
+21.1.2015
+TTCRX_RESET STDALONE now possible in Defaults editor allowing
+TTCinit only for STDALONE runs
+

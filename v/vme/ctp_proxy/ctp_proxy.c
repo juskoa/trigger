@@ -1917,7 +1917,7 @@ if(xse2=='P') {
       sprintf(msgmism, "%s %s", msgmism, validLTUs[idet].name);
     };
   };
-  infolog_trg(LOG_INFO, msg);
+  infolog_trgboth(LOG_INFO, msg);
   if( msgmism[0]!='\0') {
     sprintf(msg, "L0/L1/L2 mismatch for %s", msgmism);
     infolog_trgboth(LOG_ERROR, msg);

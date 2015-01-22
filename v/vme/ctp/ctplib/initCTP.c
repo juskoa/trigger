@@ -245,7 +245,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       setSwitch(39, 15);   // 0LSR
       */
       ddr3_reset(); printf("DDR3 reset done\n");
-      vmew32(14, SCOPE_A_FRONT_PANEL); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
+      vmew32(SCOPE_A_FRONT_PANEL, 14); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
     };
     setEdgesDelays(1); printf("L0 edges/delays set\n");
     vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)

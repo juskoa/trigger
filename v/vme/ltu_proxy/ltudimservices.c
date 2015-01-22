@@ -722,8 +722,8 @@ EXTRN char BoardSpaceLength[40];
 
 */
 char *msg=(char *)msgv;
-printf("cmdCMD: tag:%d size:%d msg:%s<\n", *(int *)tag, *size, msg);
-fflush(stdout); 
+/*printf("cmdCMD: tag:%d size:%d msg:%s<\n", *(int *)tag, *size, msg);
+fflush(stdout); */
 /*ixlast= strlen(msg)-1;
 if(msg[ixlast]!='\n') {
   msg[ixlast]= '\n';
@@ -732,17 +732,21 @@ if(msg[ixlast]!='\n') {
 if(checkcid()<0) return;
 if(vmeopen(BoardBaseAddress,BoardSpaceLength) ) {
   printf(" Cannot open vme access for LTU %s\n", BoardBaseAddress);
+  dimlogprt("cmdCMD", " Cannot open vme access for LTU\n");
   return;
 };
 if(strcmp(msg,"ttcrxreset")==0) {
   TTCrxreset(); usleep(10000); TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxreset ok\n");
-  printf("ttcrxreset ok\n");
+  //printf("ttcrxreset ok\n");
 } else if(strcmp(msg,"ttcrxreset fee")==0) {
-  int rc;
+  int rc; char imsg[100];
   rc= TTCinit();
-  printf("ttcrxreset fee rc:%d\n", rc);
-  fflush(stdout);
+  sprintf(imsg, "ttcrxreset fee rc:%d\n", rc);
+  dimlogprt("cmdCMD", imsg);
+  /* stdout is lost (not seen in ltudimserver.log neither in LTU-MUON_TRK.log)
+  sprintf(imsg, "ttcrxreset fee rc:%d\n", rc); fflush(stdout);
+  */
 } else if(strcmp(msg,"ttcrxregs")==0) {
   TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxregs ok\n");
@@ -887,7 +891,7 @@ if(clientid==0) {
 void updateMONBUSY(float newbt) {
 char msg[ERRMSGL];
 int nclients;
-sprintf(msg, "updateMONBUSY: %6.4f newbusytime:%6.4f", busytime1sec, newbt);
+sprintf(msg, "oldbusy: %6.4f newbusytime:%6.4f", busytime1sec, newbt);
 busytime1sec= newbt;
 nclients= dis_update_service(MONBUSYid);
 sprintf(msg,"%s nclients:%d\n", msg, nclients);
@@ -945,7 +949,7 @@ Return code:
 >0 -error found when registering
 */
 int ds_register(char *detname, char *base) {
-char logmsg[1500];
+char logmsg[1500]="";
 int pidt, segid, ix, rc=0;
 w32 shmkey;
 char *environ;
@@ -972,10 +976,11 @@ if(environ ==NULL) {
   dimlogprt("ds_register", logmsg);
   return(10);
 };
-sprintf(logmsg, "DIM_DNS_NODE:%s   DETECTOR:%s\n", environ, MYDETNAME);
+sprintf(logmsg, "compiled:%s %s DIM_DNS_NODE:%s   DETECTOR:%s\n",__DATE__, __TIME__, environ, MYDETNAME);
+dimlogprt("ds_register", logmsg); strcpy(logmsg, "");
 environ=getcwd(servercwd, 80); environ= getenv("VMECFDIR"); 
 if(environ !=NULL) {
-  sprintf(logmsg, "%sVMECFDIR:%s\ncurrdir:%s\n", logmsg,environ, servercwd);
+  sprintf(logmsg, "VMECFDIR:%s\ncurrdir:%s\n", environ, servercwd);
 };
 dimlogprt("ds_register", logmsg);
 dis_add_error_handler(error_handler);

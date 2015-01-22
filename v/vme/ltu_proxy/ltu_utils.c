@@ -117,7 +117,10 @@ if(global==0) {
   strcpy(sgmode,"GLOBAL");
 };
 if(templtucfg->ttcrx_reset==0) {
-  sprintf(msg, "TTCinit() suppressed (by option ttcrx_reset)");
+  sprintf(msg, "TTCinit() suppressed (by option TTCRX_RESET NO)");
+  infolog_trg(LOG_INFO, msg);
+} else if((global==1) and (templtucfg->ttcrx_reset==4)) {
+  sprintf(msg, "TTCinit() suppressed for global (by option TTCRX_RESET STDALONE)");
   infolog_trg(LOG_INFO, msg);
 } else {
   char datetime[20];
@@ -139,7 +142,6 @@ if(templtucfg->ttcrx_reset==0) {
   };
   //printf("Sleeping 3 secs after TTCinit...\n"); usleep(3000000);
 };
-//clearCounters();   // removed (to avoid spikes in monitoring)
 // following moved to startemu()
 //copyltucfg(templtucfg, ltc);   // restore defaults (if overwritten by ECS, to be prepared)
 readcounters(memstart, 0);     // for next run -they can be rewritten differently

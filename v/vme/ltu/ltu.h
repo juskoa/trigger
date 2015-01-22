@@ -293,7 +293,7 @@ typedef struct {
   int orbitbc;   /*X "ORBIT_BC"  on LTU*/
   int dim;       /*X 1:start DIM services   0: do not start DIM services */
   int bc_delay_add;   /*X -temporarily for acorde */
-  int ttcrx_reset;   /* YES:1 NO:0 INIT:2 */
+  int ttcrx_reset;   /* YES:1 NO:0 INIT:2 STDALONE: 4 */
   char mainEmulationSequence[64]; /*X name of file defining 
     the main CTP emulation sequence in VMEWORKDIR/CFG/ltu/SLMproxy/ */
   // added 21.2.

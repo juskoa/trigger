@@ -431,16 +431,18 @@ if( (ssmstatus&busybit)==0 ) {
 };
 vmbw32(vsp, SSMstop+boardoffset, DUMMYVAL);
 //printf("stopSSM: %d OK (SSMstatus before stopping:%x)\n", board, ssmstatus);
-STOP2:
+STOP2: 
+/* bad idea... (rc ? -how should be set?)
 if(board==1) {   // if L0/LM0 always try to stop also L1
   boardoffset=BSP*ctpboards[2].dial;
   ssmstatus= vmbr32(vsp, SSMstatus+boardoffset);
   if( (ssmstatus&0x100)==0 ) {
     printf("stopSSM: L1 not busy(SSMstatus:0x%x), no action\n", ssmstatus); 
-    rc=1; goto RTRN;
+    rc=1; do n goto RTRN;
   };
   vmbw32(vsp, SSMstop+boardoffset, DUMMYVAL);
 };
+*/
 //printf("stopSSM: %d OK (SSMstatus before stopping:%x)\n", board, ssmstatus);
 RTRN:
 return(rc);
