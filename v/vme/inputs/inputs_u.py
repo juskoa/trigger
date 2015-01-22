@@ -1061,14 +1061,15 @@ class Measure:
     self.vb=input.vb
     self.board=input.board   # 1:L0  2:L1  3:L2
     self.lm0board= None      # FPGA version of LM0 board in case of LM0 board
+    self.input=input.ctpnum
     if self.board=='1':
+      self.input=input.inpnum
       cmd='vmeopr32(0x9080)'   # FPGAVERSION_ADD
       output= string.strip(self.vb.io.execute(cmd,log="out"))
       print "Measure:l0C0:", output,":"
       if output >= "0xc0":
         self.lm0board= output
         print "Measure:lm0board:", output
-    self.input=input.inpnum
     self.name=input.name
     self.inp=input
     self.inputphase=input.inputphase
@@ -1077,6 +1078,7 @@ class Measure:
       self.tl.title("ADC "+self.name)
       self.ytitle='ADC'
       self.cmd="measurephase("+self.board+","+self.input+")"
+      print "Debug: Measure ",self.cmd
     else:
       self.tl.title("ORBIT phase (EDGE)")
       self.ytitle='EDGE %'
