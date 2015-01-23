@@ -61,6 +61,17 @@ void readcounters(w32 *mem, int prt) {
     (int)l0, (int)l2a, (int)start, (int)busyc, avdt);	
   infolog_trg(LOG_INFO, msg);
 }
+
+/*--------------------------------------------------------- busystatus()
+RC: 1: BUSY is ON       0: BUSY is OFF */
+int busystatus() {
+w32 status;
+printf("busystatus:\n");
+status=vmer32(BUSY_STATUS);
+//printf("busystatus:%x\n",status);
+if(status & BUSY_ACTIVE) return(1);
+return(0);
+}
 /*------------------------------------------*/ int ltu_configure(int global) {
 /* initialise LTU and TTC path:
 - at the start of ltu_proxy
@@ -76,7 +87,7 @@ Note: mode (stdalone or global) is always set -even in case of rc!=0
 */
 w32 ltu_downscaling,emustat;
 int ixpptime, rc=0;
-char sgmode[12], msg[200];
+char bsystat[4]="?", sgmode[12], msg[200];
 emustat= vmer32(EMU_STATUS);
 if(emustat != 0) {   
   int rcq;
@@ -117,11 +128,13 @@ if(global==0) {
   strcpy(sgmode,"GLOBAL");
 };
 if(templtucfg->ttcrx_reset==0) {
-  sprintf(msg, "TTCinit() suppressed (by option TTCRX_RESET NO)");
-  infolog_trg(LOG_INFO, msg);
+  if( busystatus()) { strcpy(bsystat, "ON"); } else { strcpy(bsystat, "OFF"); }; 
+  sprintf(msg, "TTCinit() suppressed (by option TTCRX_RESET NO). BUSY:%s", bsystat);
+  infolog_trgboth(LOG_INFO, msg);
 } else if((global==1) and (templtucfg->ttcrx_reset==4)) {
-  sprintf(msg, "TTCinit() suppressed for global (by option TTCRX_RESET STDALONE)");
-  infolog_trg(LOG_INFO, msg);
+  if( busystatus()) { strcpy(bsystat, "ON"); } else { strcpy(bsystat, "OFF"); }; 
+  sprintf(msg, "TTCinit() suppressed for global (by option TTCRX_RESET STDALONE). BUSY:%s",bsystat);
+  infolog_trgboth(LOG_INFO, msg);
 } else {
   char datetime[20];
 
@@ -146,17 +159,6 @@ if(templtucfg->ttcrx_reset==0) {
 //copyltucfg(templtucfg, ltc);   // restore defaults (if overwritten by ECS, to be prepared)
 readcounters(memstart, 0);     // for next run -they can be rewritten differently
 return(rc);
-}
-
-/*--------------------------------------------------------- busystatus()
-RC: 1: BUSY is ON       0: BUSY is OFF */
-int busystatus() {
-w32 status;
-printf("busystatus:\n");
-status=vmer32(BUSY_STATUS);
-//printf("busystatus:%x\n",status);
-if(status & BUSY_ACTIVE) return(1);
-return(0);
 }
 
 /*----------------------------------------------*/ void busy12(int enable) {
