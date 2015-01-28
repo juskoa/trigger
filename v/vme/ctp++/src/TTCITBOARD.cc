@@ -222,7 +222,7 @@ int TTCITBOARD::AnalyseSSM()
      if((ss->data==1)){
       // L0 received 
       if((issm-l0)<L0L1time){
-        printf("L0L1 time violation - two L0 closer then %i:  %i \n",L0L1time,issm-l0);
+        printf("Error: L0L0 time violation - two L0 closer then %i:  %i at %i %i\n",L0L1time,issm-l0,issm,l0);
         return 1;
       }
       l0=issm;
@@ -230,7 +230,7 @@ int TTCITBOARD::AnalyseSSM()
      } else {
       // L1 received
       if((issm-l0) != L0L1time){
-        printf("L0L1 time violation - L1 arrived not in time: %i %i %i \n",issm-l0,issm,l0);
+        printf("Error: L0L1 time violation - L1 arrived not in time: %i %i %i \n",issm-l0,issm,l0);
         return 1;
       }
       L1.push_back(issm);
@@ -353,9 +353,9 @@ int TTCITBOARD::AnalyseSSM()
     w32 bcl1=issml1%3564;
     int delta=bcl2m-bcl1;
     if(delta<0) delta = delta+3564;
-    //printf("L1 issm: %7i  L1 bc: %4i L2m issm: %7i L2m bc: %4i delta: %i delay: %i\n",issml1,bcl1,issml2m,bcl2m,delta,delay2);
     if(delta0 != delta){
       printf("Error: delta0= %i \n",delta0);
+      printf("L1 issm: %7i  L1 bc: %4i L2m issm: %7i L2m bc: %4i delta: %i delay: %i\n",issml1,bcl1,issml2m,bcl2m,delta,delay2);
       return 1;
     }
     // bc and orbit offset
@@ -376,7 +376,7 @@ int TTCITBOARD::AnalyseSSM()
     ret += CompareL1L2Data(L1m[i],L2m[i]);
  }
  printf("Max L2 delay: %i Max L1 delay: %i \n",delmaxL2,delmaxL1);
- if(ret==0) printf("NO Error detected. \n");
+ if(ret==0) printf("NO ERROR detected. \n");
  return ret;
 }
 int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)

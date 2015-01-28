@@ -17,7 +17,7 @@ int main()
      ret=ttc->AnalyseSSM();
      if(ret){
        ttc->DumptxtSSM();
-       return 1;
+       //return 1;
      }
      ttc->ClearQueues();
      fflush(stdout);
