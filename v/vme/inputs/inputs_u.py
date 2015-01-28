@@ -797,6 +797,9 @@ class Input:
     #self.actions=["Get Status (DIM)","Get Edge/Delay","Set Status (DIM)","Measure Phase","Check Signature","Set Delay"]
     self.actions=["Get Status (DIM)","Set Status (DIM)","Check Signature","Get Edge/Delay","Set Edge","Set Delay","Measure Phase"]
   #print dbinput
+  self.inpedge=self.ctpnum
+  if self.board == '1': 
+    self.inpedge=self.inpnum
   self.show()
   if self.name == 'ORBIT': self.inputsignatureM['text']='-'
  def printme(self):
@@ -1015,7 +1018,7 @@ Everything OK!
       SYNCAL word (Pedja nomenclature)=SYNCH_ADD (Anton nomenclature).
       /ApplicatioInput/Orbit difference is in C.
   """
-  cmd="getEdge("+self.board+","+self.inpnum+")"
+  cmd="getEdge("+self.board+","+self.inpedge+")"
   output=self.vb.io.execute(cmd,log="out",applout="<>")
   #print 'edge= ',output
   self.edge=output[0]
@@ -1028,7 +1031,7 @@ Everything OK!
       Set delay according to value in get entry
   """
   delay=self.inputdelay.getEntry()
-  cmd="setDelay("+self.board+','+self.inpnum+','+delay+')'
+  cmd="setDelay("+self.board+','+self.inpedge+','+delay+')'
   self.vb.io.execute(cmd,log="out",applout="<>")
  def setedge(self):
   edgeA=self.inputedge.getEntry()
@@ -1037,7 +1040,7 @@ Everything OK!
   else:
      print 'Unknown edge ',edgeA,' no action.'
      return
-  cmd="setEdge("+self.board+','+self.inpnum+','+edge+')'
+  cmd="setEdge("+self.board+','+self.inpedge+','+edge+')'
   self.vb.io.execute(cmd,log="out",applout="<>")
   self.inputedge.entry['bg']=COLOR_normal
   self.edge=edgeA       

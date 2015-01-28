@@ -375,7 +375,7 @@ void setDelay(int board,w32 input,w32 delay){
    printf("Too big delay %i \n",delay);
    return;
  }
-if(l0C0()) {
+if(l0C0() && (board==1)) {
   synch_add= SYNCH_ADDr2;
 } else {
   synch_add= SYNCH_ADD;
@@ -383,6 +383,7 @@ if(l0C0()) {
  word=vmer32(BSP*ctpboards[board].dial+synch_add+4*(input-1));
  word=(word&0xfffffff0)+delay;
  vmew32(BSP*ctpboards[board].dial+synch_add+4*(input-1),word); 
+ //printf("setDelay debug: %i %i\n",BSP*ctpboards[board].dial+synch_add+4*(input-1),word );
 }
 /* FGROUP EDGEtools 
 moved to ctp/ctplib/inputsTools.c
@@ -411,9 +412,9 @@ int measurephase(int board,int input){
  int edge;
  w32 dum;
  if(setinput(board,input)) return 1;
- //edge=getedge(board,input,&dum);
- //if(edge>3) return 2;
- //setEdge(board,input,0);
+ edge=getedge(board,input,&dum);
+ if(edge>3) return 2;
+ setEdge(board,input,0);
  rndtest(board);  
  //setEdge(board,input,edge); 
  return 0;
