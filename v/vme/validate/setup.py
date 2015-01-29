@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="4.0",
+      version="5.0",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -23,8 +23,9 @@ return code:
 8         -error message printed to stdout
 
 news: 
-from version 3.0: 100 classes
-from version 4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
+from v3.0: 100 classes
+from v4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
+from v5.0: $dbctp/filter preferred, if not available trgInput_* (ON/OFF) used
 """,
       author="Anton Jusko",
       packages=["validate"],

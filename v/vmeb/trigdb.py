@@ -260,9 +260,26 @@ class TrgFilter(Table):
   def __init__(self, partname):
     if partname!="PHYSICS_1":   #filter applied ONLY on PHYSICS_1
       self.ents=[]; return
-    fp= os.path.join(TRGDBDIR, "filter")
+    fp= os.path.join(TRGDBDIR, "filter")   # preferred
     if not os.path.exists(fp):
-      self.ents=[]; return
+      import glob
+      # try to construct self.ents[0] -list of 'to be filtered out detectors'
+      # from trgInput_* files  (OFF: filtered out )
+      dlist= []
+      os.chdir(TRGDBDIR)
+      for tn in glob.glob('trgInput_*'):
+        f= open(tn,"r")
+        oo= string.strip(f.readlines()[0])
+        #print "TrgFilter opened:",tn, oo
+        if oo == "OFF":
+          dn= string.strip(tn[9:])
+          dlist.append(dn)
+        f.close()
+      self.ents=[]
+      if len(dlist)==0: return
+      self.ents.append(dlist)
+      #print "TrgFilter:",dlist
+      return
     self.readtable(fp) 
     # 1. line: the list of detector names to be excluded. 
     # 2., 3.,... lines: Dx Dy       (Dx to be repalaced by Dy)

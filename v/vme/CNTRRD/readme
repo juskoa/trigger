@@ -336,7 +336,7 @@ graph graf.png -s 1243129900 -e 1243135900 --step 60 -w 600 -u 10000 -l 8000 DEF
 attributes:
 -s        start
 -e        end
--u -r     rigid (forcing upper limit)
+-u -r     rigid (forcing upper limit)   -see cnt.py
 -l        
 --step
 -w 600

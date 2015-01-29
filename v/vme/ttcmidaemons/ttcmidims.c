@@ -408,8 +408,8 @@ char **msgp= (char **)msgpv;
 char msg[100];
 // readVME:
 *msgp= qpllnow;
-*size= strlen(shiftnow)+1;
-sprintf(msg, "QPLLcaba shiftnow:%s size:%d \n", shiftnow, *size); prtLog(msg); 
+*size= strlen(qpllnow)+1;
+sprintf(msg, "QPLLcaba qpllnow:%s size:%d \n", shiftnow, *size); prtLog(msg); 
 }
 
 /*--------------------------------------------------------------- qpll_thread

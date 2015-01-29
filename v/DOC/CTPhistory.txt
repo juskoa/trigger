@@ -369,5 +369,12 @@ ltudimservices.c: ttcFEEcmd( allowed
 16.1.2015
 - stopSSM(), condstopSSM(): in case of L0/LM0 always try to stop also L1
 - SEL_LM changed: now 4 regs (see ctp.h, ctplib/initCTP.c)
-
-
+20.1.2015
+- not good idea to stop always L1 after L0 stopped, abandoned
+26.1.2015
+validate 5.  (distribution on web cern.ch/juskoa)
+28.1.2015
+CNTWEB - Upper limit added for CTP counters
+28.1.
+ttcmidaemons/ttcmidims.c: bug fixed in log msgs: 'QPLLcaba qpllnow'
+instead of 'SHIFTcaba shiftnow'

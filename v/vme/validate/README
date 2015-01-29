@@ -25,7 +25,7 @@ Requires: tkinter
 %define _topdir /home/alice/trigger/validate/build/bdist.linux-x86_64/rpm
 
 rpmbuild -bb validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
-rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-3.0-1.noarch.rpm
+rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.0-1.noarch.rpm
 i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
 
 1A. check .rpm
@@ -72,6 +72,9 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 - build on avmes, ver. 3.0 (100 classes) for python 2.6
 10.12.2014
 - ctpinputs.cfg used now instead of VALID.CTPINPUTS L0.INPUTS CTP.SWITCH
+26.1.2015 validate-5.0-1.noarch.rpm
+- if filter file not present, use trgInput_* files (content: ON or OFF)
+  prepared and modified for tkinter dependance
 
 3. Problems
 -----------

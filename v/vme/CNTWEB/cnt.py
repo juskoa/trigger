@@ -75,6 +75,8 @@ class Counter:
     cn= self.displayname
     dbconame= self.co2rrdname(self.coname)
     #cfg.log("rrdname:%s name:%s"%(dbconame,self.coname))
+    if cfg.upperlimit!="":
+      ri.write("-r -u" +cfg.upperlimit +" ")
     ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDB, dbconame))
     ri.write("LINE2:%s#%s:%s "%(cn,color,cn))
     ri.close()
@@ -154,6 +156,7 @@ class Config:
   def __init__(self):
     self.period= "default"
     self.grouping= "none"   # trend grouping, used only for LTUs, can be: alls,sigs,ltus,none
+    self.upperlimit=""
     self.dbgmsg= ""
     self.customperiod= ""; self.startgraph= ""
     self.errs=""
@@ -232,6 +235,9 @@ def show(req):
        continue
      if bs=='startgraph':
        cfg.startgraph= req.form['startgraph']
+       continue
+     if bs=='upperlimit':
+       cfg.upperlimit= req.form['upperlimit']
        continue
      #if bs=='deselect':
      #  deselectAll()
@@ -337,7 +343,12 @@ function testButton (what){
   for brd in FOS:
     html= html + cfg.allboards[brd].makeTD()
   #<INPUT TYPE="submit" NAME="deselect" VALUE="deselect all">
-  html= html + cntcom.userrequest(cfg)
+  uplimentry="""
+&nbsp&nbsp&nbsp Upper limit:
+<INPUT TYPE="text" NAME="upperlimit" SIZE="8" VALUE="%s" TITLE="e.g.: 1000 -limit upper shown rate to 1khz"
+onMouseOver="window.status='Example: 1000 (1khz)   1000000  (1mhz)'; return true">
+"""%cfg.upperlimit
+  html= html + cntcom.userrequest(cfg, uplimentry)
   for brd in BL012I + FOS:
   #for brd in ("l0",):
     for ixcnt in range(len(cfg.allboards[brd].counters)):

@@ -27,5 +27,8 @@ timing for lm0 (l0data+l0strobe) signals coming.
 This on called: l1_logic_verA6delayed.rbf
 15.9.2014 l1_logic_verA6.rbf
 version without delays (minor changes against l1_logic_verA6before15sep.rbf)
+23.1.2015 l1_logic_vA7.rbf
+SPY memory sa zapisovali iba 01xxxxxxxx. Pridal som dalsiu SPY memory, kde sa budu zapisovat 10xxxxxxxx.
+
 
 

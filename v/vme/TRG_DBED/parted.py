@@ -3125,6 +3125,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
                 PrintWarning("%s filtered out (provided by %s)"%\
                   (trgclass.getclsname(),det))
                 filteredout=True; break
+            #print "parted filterdout:", det, filteredout
             if filteredout: continue
         #
         if trgclass.trde:      # EMPTY or known descriptor !

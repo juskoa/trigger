@@ -47,7 +47,7 @@ pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detnam
 if [ -z $pid ] ;then
   echo "TRIGGER::CTP not running"
   if [ -z $1 ] ;then
-    echo "start, startnd, startnr or status or sexpected (starttest: obsolete)"
+    echo "start, startnd, startnr or status expected (starttest: obsolete)"
   elif [ "$1" = "status" ] ;then
     exit 8
   elif [ "$1" = "start" ] ;then

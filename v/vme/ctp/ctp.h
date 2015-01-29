@@ -163,7 +163,8 @@ LM0:
 #define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
 0x804:inp1,..., 0x860:inp24
 L0, L1, L2:
- 8       Edge Selector flag inputs 1..24
+ 8.. 8   Edge Selector flag inputs 1..24
+ 7.. 4   not used
  3.. 0   Input delay for inputs 1..24 (12 for L2)
 */
 
