@@ -2115,10 +2115,18 @@ dic_cmnd_callback("CTPCALIB/DO", (void *)"u", 2,&callback,TAGglobalcal);
 void xcountersStart(w32 run, w32 clgroup) {
 char com[100],msg[254];
 int size; int tag; int runcg[2];
+int xrc; char xpid[20];
 //                       printf("xcountersStart removed\n"); return;
+// check xcountersdaq active:
+xrc= popenread((char *)"ps --no-headers -C xcountersdaq -o pid=", xpid, 20);
+if(xpid[0]=='\0') {
+  infolog_trgboth(LOG_FATAL, "xcounters problem, stop all global runs, call CTP expert");
+  quit=1;
+};
 if(run != 0) { // do not print log for 'forced counters reading'
- sprintf(msg,"Run %i: starting xcounters.",run); prtLog(msg);
- tag=TAGstartcount;
+  sprintf(msg,"Run %i: starting xcounters. clgroup:%d xpid:%s popen rc:%d",
+    run, clgroup, xpid, xrc); prtLog(msg);
+  tag=TAGstartcount;
 } else {
  tag=TAGstartcountforced;
 };

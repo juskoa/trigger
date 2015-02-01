@@ -378,3 +378,5 @@ CNTWEB - Upper limit added for CTP counters
 28.1.
 ttcmidaemons/ttcmidims.c: bug fixed in log msgs: 'QPLLcaba qpllnow'
 instead of 'SHIFTcaba shiftnow'
+1.2.2015
+ctp_proxy.c, xcountersStart: check if xcounters active, if not: quit
