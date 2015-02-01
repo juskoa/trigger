@@ -432,6 +432,10 @@ class TrgVALIDINPUTS(Table):
       line= "%s %s %s %s %s %s\n"%(ent[0], detn, \
         ent[3], ent[4], ent[5], ent[7])
       ofile.write(line)
+  def getall(self,detname):
+    """ return reduced lines for detname
+    """
+    return "not implemented yet"
   def prtnames(self):
     all={}
     print "\nAvailable switch L0 inputs:"
@@ -953,9 +957,13 @@ trigdb.py joininputs  L0.INPUTS+VALID.CTPINPUTS -> ctpinputs_built.cfg
     print a.getL012inputs('1')
   elif argv[1]=='prtinps':
     a=TrgVALIDINPUTS()
-    print a.getL012inputs('switch')
-    print a.getL012inputs('0')
-    print a.getL012inputs('1')
+    if len(argv)==2:
+      print a.getL012inputs('switch')
+      print a.getL012inputs('0')
+      print a.getL012inputs('1')
+    else:
+      print "Inputs provided by ", argv[2]
+      print a.getall(argv[2])     
   elif argv[1]=='cables_run1':
     a=TrgL0INPUTS()
     allds= a.prtnames()

@@ -256,6 +256,24 @@ nclients= dis_update_service(CNAMESid);
 printf("INFO CNAMES update for %d clients\n", nclients);
 }
 
+int check_xcounters() {
+int ix, xrc; char xpid[20]="";
+char emsg[ERRMSGL];
+// check xcountersdaq active:
+xrc= popenread((char *)"ps --no-headers -C xcountersdaq -o pid=", xpid, 20);
+for(ix=0; ix< strlen(xpid); ix++) {
+  if(xpid[ix]=='\n') xpid[ix]=' ';
+};
+sprintf(emsg,"INFO DOrcfg xpid:%s popen rc:%d\n", xpid, xrc);
+printf(emsg);
+if(xpid[0]=='\0') {
+  infolog_trg(LOG_FATAL, "xcounters problem, stop all global runs, call CTP expert");
+  printf("ERROR xcounters problem, stop all global runs, call CTP expert\n");
+  xrc=1;
+} else {
+  xrc=0;
+};return(xrc);
+}
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
@@ -269,8 +287,9 @@ if(*size != sizeof(TDAQInfo)){
 } 
 dain= (TDAQInfo *)bmsg;
 //printTDAQInfo(dain);
-printf("INFO Dorcfg msg:%s\n", dain->run1msg); 
+printf("INFO DOrcfg msg:%s\n", dain->run1msg); 
 rc= getname_rn(dain->run1msg, pname, &rundec);
+if(check_xcounters()) return;
 if(rc==0) {
   rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK);
   printf("INFO Dorcfg rc=%i \n",rc);
@@ -484,9 +503,11 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     ignoreDAQLOGBOOK=0;
   };
 } else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {
+  int irc;
   reset_insver();
   readTables();
   ctpc_clear(); updateCNAMES();
+  irc= check_xcounters();
 } else if((strncmp(mymsg,"rcfgdel ",8)==0)) {   // rcfgdel partname runn
   enum Ttokentype t1; int ixl, runn; char pname[16]; char intval[16];;
   char emsg[200];

@@ -335,11 +335,12 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
           sprintf(emsg, "Missing deltamin or deltamax"); prtWarning(emsg);
         };
       } else {
-        strcpy(em1,"Int expected as level, signature, InpNum, Dimnum, Conf, Edge ,Delay or deltamin/max"); 
+        strcpy(em1,"Int expected as level, signature, InpNum, Dimnum, SwitchN, Edge ,Delay or deltamin/max"); 
         goto ERRctp;
       };
     };
   };
+  if( (a3[4]==0) and (a3[2]==0) ) continue;   // not configured
   strcpy(validCTPINPUTs[ixtab].name, inpname);
   validCTPINPUTs[ixtab].detector= detnum;
   validCTPINPUTs[ixtab].level= a3[0];

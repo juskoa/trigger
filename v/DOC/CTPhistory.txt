@@ -380,3 +380,7 @@ ttcmidaemons/ttcmidims.c: bug fixed in log msgs: 'QPLLcaba qpllnow'
 instead of 'SHIFTcaba shiftnow'
 1.2.2015
 ctp_proxy.c, xcountersStart: check if xcounters active, if not: quit
+1.2.2015
+xcounters check moved on server (xcountersdaq is running there) to
+pydim/server.c check_xcounters()
+

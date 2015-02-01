@@ -127,6 +127,9 @@ else               #------------------------------ server
     export VMESITE=PRIVATE
   fi
 fi
+#if [ "$VMESITE" != ALICE ] ;then
+#  unset DATE_INFOLOGGER_DIR
+#fi
 #
 #aliases:
 alias ssh="ssh -2"

@@ -26,7 +26,11 @@ elif [ "$1" = "TRIGGER" ] ;then
 # /opt/smi/linux/smiPreproc TRIGGER.smipp TRIGGER.smi
 # /opt/smi/linux/smiTrans TRIGGER.smi TRIGGER.sobj
 # following cmd takes .sobj as input
-    /opt/smi/linux/smiSM TRIGGER $dbctp/TRIGGER &
+   /opt/smi/linux/smiSM TRIGGER $dbctp/TRIGGER 2>&1>$VMEWORKDIR/WORK/smicmd.log &
+cat - <<-EOF
+
+see $VMEWORKDIR/WORK/smicmd.log
+EOF
 else
 cat - <<-EOF
 Partition name: $pname
