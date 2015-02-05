@@ -1,12 +1,17 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 #ifdef CPLUSPLUS
-#include <smirtl.hxx>
+//#include <smirtl.hxx>
+#include <dic.hxx>
 #else
-#include <smirtl.h>
+//#include <smirtl.h>
+#include <dic.h>
+//
 #endif
 #define MAXCMDL 200
 #define MAXCTPINPUTS 5
-#define MYDETNAME "SPD"
+#define MYDETNAME "ABC"
 
 char state[32]="notfilledyet";   // SMI state
 char obj[128];
@@ -48,9 +53,9 @@ void TRGDET_setdelay(int delay) {
 Delay= delay;
 }
 /*----------------------------------- end of DETECTOR specific code */
-
+/*von
 void setsmi(char *newstate) {
-/* smi_set_state only in case of status or state change */
+// smi_set_state only in case of status or state change 
 static char oldSTATUS[MAXCTPINPUTS+1]="";
 if( (strcmp(newstate,state)!= 0) ||
      (strcmp(oldSTATUS,StatusString)!=0) ) {
@@ -60,7 +65,7 @@ if( (strcmp(newstate,state)!= 0) ||
   smi_set_state(state);
 };
 }
-
+*/
 /* check the input parameters: 
 RC: 0 input parameters ok
     1 error on stdout */
@@ -102,7 +107,7 @@ n2[0] -required option code (0,1,2 or 3)
 n2[1] -CTP input (1,2,...MAXCTPINPUTS)
 */
 int *n2=(int *) n2v;
-if( checkn("SET_OPTIONCODE", (int *)n2, *(int *)tag, *size) ) return;
+if( checkn((char *)"SET_OPTIONCODE", (int *)n2, *(int *)tag, *size) ) return;
 
 TRGDET_cntl(n2[1], n2[0]);
 StatusString[n2[1]-1]=oc2a(n2[0]);
@@ -157,23 +162,24 @@ for(i=0; i<MAXCTPINPUTS; i++) {
 printf("DETECTOR_NAME:%s\n",MYDETNAME);
 printf("Commands/services:\n");
 strcpy(command, MYDETNAME); strcat(command, "/SET_OPTIONCODE");
-dis_add_cmnd(command,"L:2", set_oc, 18);  
+dis_add_cmnd(command,(char *)"I:2", set_oc, 18);  
 printf("%s\n", command);
 strcpy(command, MYDETNAME); strcat(command, "/SET_DELAY");
-dis_add_cmnd(command,"I:1", set_delay, 18);  
+dis_add_cmnd(command,(char *)"I:1", set_delay, 18);  
 printf("%s\n", command);
 
 strcpy(command, MYDETNAME); strcat(command, "/STATUS_OPTIONCODE");
-dis_add_service(command,"C", StatusString, MAXCTPINPUTS+1, get_oc, 4567);  
+dis_add_service(command,(char *)"C", StatusString, MAXCTPINPUTS+1, get_oc, 4567);  
 printf("%s\n", command);
 strcpy(command, MYDETNAME); strcat(command, "/STATUS_DELAY");
-dis_add_service(command,"I:1", &Delay, sizeof(int), get_delay, 4568);  
+dis_add_service(command,(char *)"I:1", &Delay, sizeof(int), get_delay, 4568);  
 printf("%s\n", command);
-
+/*von
 sprintf(obj,"TRIGGER::TIN-%s",MYDETNAME);
 smi_attach(obj, SMI_handle_command);
 setsmi("READY");
-
+*/
+dis_start_serving(MYDETNAME);  
 printf("serving...\n");
 printf("Status of CTP inputs:%s\n",StatusString);
 /*
@@ -211,7 +217,7 @@ while(1) {
       StatusString[inp-1]='E';
     } else {
       printf("/tmp/goToError contains incorrect number:%d\n", inp);
-      setsmi("ERROR"); goto STATESET;
+      //von setsmi("ERROR"); goto STATESET;
     };
     fclose(errfile);
   } else {            // ERRFILE doesn't exist i.e. all inputs are OK:
@@ -222,7 +228,7 @@ while(1) {
       }; 
     };
   };
-  /* goto NOT_READY  if at least 1 input is in error state: */
+  /*von goto NOT_READY  if at least 1 input is in error state:
   validinputs=0;
   for(i=0; i<MAXCTPINPUTS; i++) {   
     if(StatusString[i]=='E') {
@@ -234,13 +240,14 @@ while(1) {
     };
   };
   if(validinputs==MAXCTPINPUTS) {
-    /* goto READY     if ALL active inputs are valid (N) */
+    // goto READY     if ALL active inputs are valid (N) 
     setsmi("READY");
   } else {
-    /* goto NOT_READY if at least 1 active input is not valid */
+    // goto NOT_READY if at least 1 active input is not valid 
     setsmi("NOT_READY");
-  };
+  }; */
   STATESET:
+  printf("Status:%s\n",StatusString);
   sleep(1);  
 };  
 }   
