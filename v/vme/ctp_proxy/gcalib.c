@@ -17,6 +17,7 @@
 #endif
 
 #define DBGCMDS 1
+// following should be taken from VALID.LTUS
 #define SDD 1
 #define TOF 5
 #define MTR 11
@@ -24,6 +25,10 @@
 #define ZDC 15
 #define EMC 18
 #define DAQ 19
+// only for testing in lab:
+#define HMPID 6
+#define PHOS 7
+#define CPV 8
 
 //int GenSwtrg2(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer);
 
@@ -103,7 +108,7 @@ if(gcalcfg==NULL) {
 };
 while(fgets(line, MAXLINELENGTH, gcalcfg)){
   int ix,det,milsec, roc;
-  //printf("Decoding line:%s ",line);
+  printf("Decoding line:%s ",line);
   if(line[0]=='#') continue;
   if(line[0]=='\n') continue;
   ix=0; token= nxtoken(line, value, &ix);
@@ -251,7 +256,7 @@ int ix,bc,det;
 // 1st phase -very first defaults
 for(ix=0; ix<NDETEC; ix++) {
   ACTIVEDETS[ix].deta=-1;
-  ACTIVEDETS[ix].period=0;
+  ACTIVEDETS[ix].period=0;   // no cal. triggers
   ACTIVEDETS[ix].roc=0;
   ACTIVEDETS[ix].calbc=3011;     // was 3556 till 31.3.2011
   if(ctpshmbase->validLTUs[ix].name[0] != '\0'){
@@ -260,12 +265,12 @@ for(ix=0; ix<NDETEC; ix++) {
     strcpy(ACTIVEDETS[ix].name,"nocalib");
   };
 };NACTIVE=0;
-ACTIVEDETS[SDD].period=0;    // 50 i.e. 3 triggs (50ms) spaced 15*60000
-ACTIVEDETS[TOF].period=200;  // 1000;
-ACTIVEDETS[MTR].period=33000; // 10000 .. 100000
-ACTIVEDETS[T00].period=1000;
-ACTIVEDETS[ZDC].period=10000;    // 10000;
-ACTIVEDETS[EMC].period=2000;  // 2000 (1000 .. 5000)
+ACTIVEDETS[SDD].period=0;    // todo: exception: 1 means: 3 triggs (3x50ms) spaced 15*60000ms
+ACTIVEDETS[TOF].period=0;  // 200;
+ACTIVEDETS[MTR].period=0; // 33000
+ACTIVEDETS[T00].period=0;  // 1000;
+ACTIVEDETS[ZDC].period=0;    // 10000;
+ACTIVEDETS[EMC].period=0;  // 2000 (1000 .. 5000)
 ACTIVEDETS[DAQ].period=0;
 /*strcpy(ACTIVEDETS[SDD].name, "SDD");
 strcpy(ACTIVEDETS[TOF].name, "TOF");

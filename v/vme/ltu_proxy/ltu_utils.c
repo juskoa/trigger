@@ -151,7 +151,7 @@ if(templtucfg->ttcrx_reset==0) {
     } else {
       sprintf(msg, "TTCinit() retcode:%d in %s mode", rc, sgmode);
     };
-    infolog_trg(LOG_INFO, msg);
+    infolog_trgboth(LOG_INFO, msg);
   };
   //printf("Sleeping 3 secs after TTCinit...\n"); usleep(3000000);
 };

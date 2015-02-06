@@ -82,6 +82,7 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
     export SMAQ_C=avmes
     export VMESITE=SERVER
     #export DIM_DNS_NODE=pcald30
+    unset DATE_INFOLOGGER_DIR
     export DIM_DNS_NODE=avmes
   elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
     export SMAQ_C=pcalicebhm10
@@ -102,6 +103,7 @@ else               #------------------------------ server
     export SMAQ_C=avmes
     export VMESITE=SERVER
     export DIM_DNS_NODE=avmes
+    unset DATE_INFOLOGGER_DIR
     if [ -d /opt/act ] ;then
       export ACT_DB=daq:daq@pcald30/ACT
     fi

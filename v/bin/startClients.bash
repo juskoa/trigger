@@ -364,7 +364,8 @@ if [ $dmn = "irdim" -o "$dmn" = 'all' ] ;then #-------------------- irdim
 fi
 if [ $dmn = "xcounters" -o "$dmn" = 'all' ] ;then #------------------- xcounters
   if [ "$VMESITE" != "ALICE" ] ;then
-    echo "xcounters available only in the pit"
+    #echo "xcounters available only in the pit"
+    xcounters.sh $sss
   else
     st3 xcounters xcounters.sh tri@$server $sss
   fi

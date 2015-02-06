@@ -54,7 +54,7 @@ while(1) {
     };
   };
   if((secs%1000)==0) {
-    printf("waiting %d secs rc:%d\n", secs, rc); fflush(stdout);
+    printf("waiting for %s %d secs rc:%d...\n", name, secs/1000, rc); fflush(stdout);
   };
   rc=-1;
   if(secs>=maxsecs*1000) break; //if(secs>=maxsecs) break;

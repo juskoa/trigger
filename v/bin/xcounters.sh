@@ -25,15 +25,24 @@ else
   echo "$1.log does not exist"
 fi
 }
+function checkuser() {
+if [ "$VMESITE" = "ALICE" ] ;then
+  if [ "$USER" != "tri" ] ;then
+    echo "start/stop allowed only from tri account at P2"
+    exit
+  fi
+fi
+}
 #-------------------------------------
 hname=`hostname`
-if [ "$hname" != 'xxxxxxxxxxxx' -a "$hname" != 'alidcscom835' ] ;then
-  echo 'This script can be started only from tri@alidcscom835'
+if [ "$hname" != 'avmes' -a "$hname" != 'alidcscom835' ] ;then
+  echo 'This script can be started only from tri@alidcscom835, trigger@avmes'
   exit
 fi
 getpid
 if [ "$1" == 'stop' ] ;then   #-------------------------- stop
   if [ -n "$spid" ] ;then
+    checkuser
     kill -s SIGKILL $spid
     echo "killing: $spid/$user"
     ps
@@ -48,15 +57,22 @@ elif [ "$1" == 'start' ] ;then    #----------------------- start
   #if [ "$2" == 'no1min' ] ;then
   #  no1min='no1min'
   #fi
+  checkuser
   logdir=logs
   cd ~/$logdir
   savelog xcountersdaq
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/dim/linux
   cd 
-  nohup ./xcountersdaq 6 1 >$logdir/xcountersdaq.log &
+  # 1st parameter: 4: OCDB  2:daqlogbook  1: copy to dcs
+  # 4 is ok for lab (or 4+2=6 if daqlogbook update needed)
+  nohup ./xcountersdaq 4 1 >$logdir/xcountersdaq.log &
   cat - <<-EOF 
-  xcounters daemon ($VMECFDIR/monscal++/linux/MonScal = /home/tri/xcountersdaq) started. 
-  log: ~tri/$logdir/xcountersdaq.log"
+  xcounters daemon 
+  executable linked in: $VMECFDIR/monscal++/linux/MonScal
+  copied to: ~tri/xcountersdaq in P2
+             ~trigger/xcountersdaq on avmes (lab)
+             
+  log: ~/$logdir/xcountersdaq.log"
 EOF
 fi
 elif [ "$1" == 'status' ] ;then     #----------------------- status

@@ -116,6 +116,14 @@ def main():
 INF -switch persistence to infinite
 MIN -switch persistence to minimum
 M   -measure (3 lines) -i.e. show on stdout Epoch_time fo3 corde co2
+
+DRS4 notes:
+edge1 = corde (fo1) - rf2ttc(fo2)
+edge2 = fo2-fo3 (both rf2ttc, used for debuging)
+edge3 = nothing
+value1 = sigma of edge1
+value2 = sigma of edge2
+
 """
   if tn!=None:
     tn.close()

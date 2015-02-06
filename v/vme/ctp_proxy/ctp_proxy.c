@@ -932,84 +932,10 @@ int updateDAQClusters(Tpartition *partit) {
 //int rc; //idet, iclu, iclass, rc;
 //int rco;    // 0: DAQlogbook opened    -1: not opened/do not update it
 int rcdaqlog=0;    // rc from updateDAQClusters(). 0: ok  >1 stop the run
-/*
-w32 daqonoff;
-w32 masks[NCLUST];      // detectors in each CLUSTER
-w32 inpmasks[NCLUST];   // input detectors feeding each CLUSTER
-unsigned long long classmasks[NCLUST];  // classes for each CLUSTER
-*/
-//w32 l0finputs=0;          // L0 inputs referenced by l0functions 
-//w32 l0finputs1;         // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
-//unsigned long long ULL1=1;
-//char *vmesite;
-//char DAQlogbookDB[120]="", 
 char emsg[ERRMSGL];
 /* only if we need verbose output:
 DAQlogbook_verbose(1);     */
-/*
-if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) {
-  infolog_trgboth(LOG_INFO, "DAQlogbook not used (FLGignoreDAQLOGBOOK)");
-} else {
-  vmesite=getenv("VMESITE");
-  if(vmesite !=NULL) {
-    if(strcmp(vmesite,"ALICE")==0) {
-      strcpy(DAQlogbookDB, "daq:daq@aldaqdb/LOGBOOK");
-    } else if(strcmp(vmesite,"SERVER")==0) {   // REF setup
-      strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_2");
-    } else {
-      strcpy(DAQlogbookDB, "");
-      rco=-1;
-    };
-    if(DAQlogbookDB[0]!='\0') {
-      sprintf(emsg, "Opening DAQlogbook:%s", DAQlogbookDB); prtLog(emsg);
-      //rco= DAQlogbook_open(DAQlogbookDB);
-      rco= daqlogbook_open();
-      if(rco==-1) {
-        infolog_trgboth(LOG_FATAL, "DAQlogbook_open failed");
-        return(8);
-      };
-    };
-  };
-};
-*/
-prtProfTime("get mic4daq");
-//rcdaqlog= getDAQClusterInfo(partit, &daqi);
-//daqi.daqonoff= vmer32(INT_DDL_EMU) &0xf;
-prtProfTime("got mic4daq");
-/* rc= daqlogbook_update_clusters(partit->run_number, partit->name,
-  &daqi, cshmGlobFlag(FLGignoreDAQLOGBOOK));
-if(rc!=0) {
-  char errm[300];
-  sprintf(errm, "DAQlogbook_update_cluster failed. rc:%d", rc);
-  infolog_trgboth(LOG_FATAL, errm);
-  rcdaqlog=4;
-};
------   moved to pydim */
 prtProfTime("get inps2daq");
-/*{// inputs -> DAQ
-int level,maxinp,ix,ind,rcu;
-for(level=0; level<3; level++) {
-  if(level==2) {maxinp=12; }
-  else         {maxinp=24; }
-  for(ix=0; ix<maxinp; ix++) {
-    ind= findInput(level, ix+1);
-    if(ind==-1) continue;
-    if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rcu=0;
-    } else {
-      rcu= daqlogbook_insert_triggerInput(partit->run_number,   
-        ix+1, validCTPINPUTs[ind].name, level);
-    };
-    if(rcu != 0) {
-      sprintf(emsg, "daqlogbook_insert_triggerInput(%d,%d,%s,%d) rc:%d",
-        partit->run_number,ix+1, validCTPINPUTs[ind].name, level, rcu);
-      infolog_trgboth(LOG_FATAL, emsg);
-      rcdaqlog=6;
-      break;
-    };
-  }; 
-};
-};  moved to pydim */
-prtProfTime("got inps2daq");
 {
   int len;
   char *mem;
@@ -1028,7 +954,6 @@ prtProfTime("got inps2daq");
     partit->run_number, name, len); prtLog(emsg); */
   /*if(len<=0) {
     printf("%s not found, trying /tmp/r%d.rcfg\n",name, partit->run_number);
-    printf("%s not found, trying /tmp/r%d.rcfg\n",name, partit->run_number);
   }; */
   if(len>0) {
     ifile= fopen(name,"r");
@@ -1038,18 +963,6 @@ prtProfTime("got inps2daq");
       rcdaqlog=3;
     } else {
       int ix, rl;
-/* ------------- moved to pydim/server.c
-#define MAXALIGNMENTLEN 4000
-      char alignment[MAXALIGNMENTLEN];
-      //getctp_alignment(partit, alignment, MAXALIGNMENTLEN, l0finputs);
-      getctp_alignment(NULL, alignment, MAXALIGNMENTLEN, l0finputs);
-      if(alignment=='\0') {
-        infolog_trgboth(LOG_FATAL, "Alignment info in DAQlogbook is empty");
-      };
-      prtLog(alignment);
-      //sprintf(emsg, "updateDAQClusters: Run: %d file:%s opened",
-      //  partit->run_number, name); prtLog(emsg);
-moved*/
       mem= (char *)malloc(len+1);
       ix=0; mem[0]='\0';
       rl=fread((void *)mem, 1, len, ifile); mem[rl]='\0';
@@ -1058,24 +971,7 @@ moved*/
         infolog_trgboth(LOG_FATAL, emsg);
       };  
       prtProfTime("got rcfg");
-/* move ->
-      //printf("%s\n", mem);
-      if(rco==0) {
-        //from logbook-6.45.:
-        if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rc=0;
-        } else {
-          rc= DAQlogbook_update_triggerConfig(partit->run_number, 
-            mem, alignment);
-        };
-        if(rc!=0) {
-          sprintf(emsg, "DAQlogbook_update_triggerConfig: rc:%d\n",rc); 
-          infolog_trgboth(LOG_FATAL, emsg);
-          rcdaqlog=5;
-        };
-      };
------- moved to pydim/server.c
-*/
-/* todo: This is the only reason we need .rcfg file in ctpproxy? */
+      /* todo: This is the only reason we need .rcfg file in ctpproxy? */
       if(strcmp(partit->name,"PHYSICS_1")==0) {
         int fixl;
         fixl= get_fixed(mem, &fixpos[2]);
@@ -1096,7 +992,7 @@ moved*/
     sprintf(emsg, "updateDAQClusters: Partition:%s file %s not found.\n", partit->name, name);
     prtWarning(emsg);   // was prtError
     //infolog_trgboth(LOG_FATAL, emsg);
-    rcdaqlog=0;  // 3;
+    rcdaqlog=3;
   };
 };
 //-------------------------------- close
@@ -1111,15 +1007,6 @@ if(rco==0) {
   };
 };*/
 return(rcdaqlog);
-/*von
-if(rcdaqlog==0) {
-  if(rco== -1) rcdaqlog=8;
-};
-if(rco== -1) {
-  return(rcdaqlog);
-} else {
-  return(0); // we are in the lab, do not stop run
-}; */
 }
 /*---------------------------------------------------clusterPart2HW()
   Purpose: to convert clustercodes in partition frame to
