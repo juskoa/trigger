@@ -270,7 +270,7 @@ DAQlogbook::~DAQlogbook()
 }
 void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
 {
- PrintLog("DAQlogbook UpdatedClusters called.");
+ //PrintLog("DAQlogbook UpdatedClusters called.");
  for(int i=0;i<nclust;i++){
     int ret=0;
     ret=daqlogbook_update_triggerClusterCounter(runnum,tclust[i]->GetIndex(),tclust[i]->GetL2aCount());
@@ -290,7 +290,7 @@ void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
 }
 void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 {
- PrintLog("DAQlogbook UpdateClasses called.");
+ //PrintLog("DAQlogbook UpdateClasses called.");
  for(int i=0;i<nclass;i++){
    // warning : 3rd argument w64 but in dalogbook only w32
    //int ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), (w32)tclass[i]->GetL2aCount());
@@ -331,7 +331,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 }
 void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
 {
- PrintLog("DAQlogbook UpdateDetector called.");
+ //PrintLog("DAQlogbook UpdateDetector called.");
  for(int i=0;i<ndet;i++){
    // warning : 3rd argument w64 but in dalogbook only w32
    int ret=0;
@@ -352,7 +352,7 @@ void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
 }
 void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
 {
- PrintLog("DAQlogbook UpdateInputs called");
+ //PrintLog("DAQlogbook UpdateInputs called");
  for(int i=0;i<ninp;i++){
     int ret=0;
     ret=daqlogbook_update_triggerInputCounter(runnum,inps[i]->GetPosition(), inps[i]->GetLevel(),inps[i]->GetCounter()->GetCountTot());
@@ -372,7 +372,7 @@ void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
 }
 void DAQlogbook::UpdateL2a(Counter& L2a)
 {
- PrintLog("DAQlogbook UpdateL2a called.");
+ //PrintLog("DAQlogbook UpdateL2a called.");
  int ret=0;
  // skontroluj types
  //ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeTot());
@@ -432,8 +432,12 @@ CountersOCDB::~CountersOCDB()
    cout << "Executing counters:" << endl;
    PrintLog(cmd);
    rc=system(cmd);
-   sprintf(msg,"cmd:%s rc:%d  copy2dcs:%d \n", cmd, rc, copy2dcs);
+   sprintf(msg,"cmd executed:%s rc:%d  copy2dcs:%d \n", cmd, rc, copy2dcs);
    PrintLog(msg);
+   if(rc != 0){
+    PrintLog("Problem for copying counters to dcsfxs' exiting.");
+    exit(1);
+   }
    //  copy  counters to log
    sprintf(cmd,"mv -f %s delme/%s",fileName.c_str(),fileName.c_str());
    rc=system(cmd);
@@ -453,6 +457,10 @@ CountersOCDB::~CountersOCDB()
    PrintLog(msg);
    sprintf(cmd,"mv -f ./CFG/ctp/DB/aliases.txt ./CFG/ctp/DB/%s",fileNameAliases.c_str());
    rc=system(cmd);
+   if(rc != 0){
+    PrintLog("Problem for copying aliasis to dcsfxs' exiting.");
+    exit(1);
+   }
    sprintf(msg,"cmd:%s rc:%d\n", cmd, rc);
    PrintLog(msg);
    // copy aliases to dcs
