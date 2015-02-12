@@ -14,7 +14,7 @@ if [ $# -lt 3 ] ;then
   echo "Usage: NewDiskless.bash Name IPaddress hw:ad:dr:es:s_:af [5]"
   exit
 fi
-hname=`hostname`
+hname=`hostname -s`
 pxecfg=default_diskless
 cctnbi="CCT.nbi"
 clrfs="/data/ClientLocalRootFs/"

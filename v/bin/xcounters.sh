@@ -34,8 +34,12 @@ if [ "$VMESITE" = "ALICE" ] ;then
 fi
 }
 #-------------------------------------
-hname=`hostname`
-if [ "$hname" != 'avmes' -a "$hname" != 'alidcscom835' ] ;then
+hname=`hostname -s`
+if [ "$hname" = 'avmes' ] ;then
+  p1="4" ; p2="0"
+elif [ "$hname" = 'alidcscom835' ] ;then
+  p1="6" ; p2="1"
+else
   echo 'This script can be started only from tri@alidcscom835, trigger@avmes'
   exit
 fi
@@ -63,9 +67,10 @@ elif [ "$1" == 'start' ] ;then    #----------------------- start
   savelog xcountersdaq
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/dim/linux
   cd 
-  # 1st parameter: 4: OCDB  2:daqlogbook  1: copy to dcs
-  # 4 is ok for lab (or 4+2=6 if daqlogbook update needed)
-  nohup ./xcountersdaq 4 1 >$logdir/xcountersdaq.log &
+  # 1st parameter: 4: OCDB  2:daqlogbook  
+  #   4 is ok for lab (or 4+2=6 if daqlogbook update needed)
+  # 2nd parameter: 1: copy to dcs
+  nohup ./xcountersdaq $p1 $p2 >$logdir/xcountersdaq.log &
   cat - <<-EOF 
   xcounters daemon 
   executable linked in: $VMECFDIR/monscal++/linux/MonScal

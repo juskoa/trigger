@@ -88,7 +88,7 @@ rc:
     rc=8
   else:
     #if os.environ.get('VMESITE')==None:
-    iop= iopipe("hostname")
+    iop= iopipe("hostname -s")
     hostname= iop.outlines[0]
     print "HOSTNAME:",os.environ.get('HOSTNAME'),"-%s-"%hostname
     #if os.environ.get('VMESITE')=="SERVER" or os.environ.get('VMESITE')==None:

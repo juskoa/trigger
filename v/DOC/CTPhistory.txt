@@ -383,4 +383,7 @@ ctp_proxy.c, xcountersStart: check if xcounters active, if not: quit
 1.2.2015
 xcounters check moved on server (xcountersdaq is running there) to
 pydim/server.c check_xcounters()
-
+11.2.2015
+xcounters.sh runs in lab too (as trigger, in p2 as tri)
+11.2.
+hostname -s -> everywhere

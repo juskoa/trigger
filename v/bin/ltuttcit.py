@@ -68,7 +68,7 @@ def main():
   else:
     #print sys.argv
     det=sys.argv[1]
-    host = command("hostname")
+    host = command("hostname -s")
     #host.cmdprint()
     if host.check("avmes"):
       print "Running from avmes"

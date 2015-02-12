@@ -3,7 +3,7 @@
 #usage: ttcmidims.sh
 . $VMECFDIR/../bin/auxfunctions
 #
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != 'alidcsvme017' -a "$hname" != 'altri1' ] ;then
   echo 'This script can be started only on alidcsvme017 (or altri1 for test)'
   exit

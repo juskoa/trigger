@@ -1,6 +1,6 @@
 #!/bin/bash
 # $1: start stop or status
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != 'alidcsvme017' ] ;then
   echo 'This script can be started only on alidcsvme017'
   exit

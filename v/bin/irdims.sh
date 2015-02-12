@@ -27,7 +27,7 @@ fi
 #-------------------------------------
   echo 'This script is obsolete. Use irdims.py @alidcscom521'
 exit
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != 'xxxxxxxxxxxx' -a "$hname" != 'alidcscom027' ] ;then
   echo 'This script can be started only from trigger@alidcscom027'
   exit

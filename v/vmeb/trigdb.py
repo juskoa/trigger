@@ -4,7 +4,7 @@ import os,os.path,sys,string,time
 #import pdb
 
 # working (r/w) directory
-HOST=os.popen('hostname').read().rstrip()
+HOST=os.popen('hostname -s').read().rstrip()
 if os.environ.has_key('VMEWORKDIR'):
   TRGWORKDIR= os.path.join(os.environ['VMEWORKDIR'], "WORK")
 else:

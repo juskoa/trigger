@@ -360,11 +360,11 @@ class AllInputs:
      for j in activeinputs[i]:
        inps=inps+(int(j[0])-start)*'0'+'1'
        start=int(j[0])+1
-     #print 'inps= ',inps
+     print 'checksignature inps= ',inps
      if inps != '': 
        cmd="FindSignatures("+i+","+'"'+inps+'"'+")"
        output=self.vb.io.execute(cmd,log="out",applout="<>")
-       #print i,'output=',output,len(output)
+       print i,'output=',output,len(output)
        for j in range(0,len(output)-1,2):
          k=self.findinput(output[j],i)
          if k != None:
@@ -815,7 +815,7 @@ class Input:
       Input actions: Get Status (DIM), ....
    """
    om=self.bactions.getEntry()
-   print "action",ix,om
+   print "Input action",ix,om
    if om == "Get Status (DIM)":
     self.getstatus()
    elif om == "Measure Phase":
@@ -1051,7 +1051,8 @@ Everything OK!
   if(self.name=='ORBIT'): return
   cmd="CheckSignature("+self.board+","+self.signature+","+self.ctpnum+")"
   output=self.vb.io.execute(cmd,log="out",applout="<>")
-  #print output
+  print "input checksignature: ",output
+  #self.signatureM=
 #-----------------------------------------------------
 class Measure:
    """

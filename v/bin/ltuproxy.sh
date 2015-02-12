@@ -182,7 +182,7 @@ else
     grep -v '^#' $cfgfile
     echo
   fi
-  echo "On this machine, `hostname`, these servers are running:"
+  echo "On this machine, `hostname -s`, these servers are running:"
   #ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 72
   ps --columns 120 -C ltu_proxy o user,pid,args | awk '{print $1 "\t" $2 "\t" $4 " " $5}'
   exit
@@ -195,9 +195,9 @@ export VMEWORKDIR=~/v/$dtn      # started from trigger account
 # find base and right hostname for this detector:
 ltubase=`awk '{if($1==detname) {print $3}}' detname=$dtn $cfgfile`
 hn=`awk '{if($1==detname) {print $2}}' detname=$dtn $cfgfile`
-if [ `hostname` != "$hn" ] ;then
+if [ `hostname -s` != "$hn" ] ;then
   echo "On this host only:"
-  grep `hostname` $cfgfile
+  grep `hostname -s` $cfgfile
   echo
 elif [ ! -d $VMEWORKDIR/WORK ] ; then
   if [ "$2" = "start" ] ; then
@@ -226,7 +226,7 @@ ltuproxy startall          -start all (as in $cfgfile)
 ltuproxy all               -show all possible and active
 ltuproxy active            -show active ltuproxies on this machine
 EOF
-elif [ `hostname` = $hn ] ;then
+elif [ `hostname -s` = $hn ] ;then
   # we are on right server
   if [ "$action" = 'kill' -o "$action" = "restart" ] ;then
     KillProxy $dtn

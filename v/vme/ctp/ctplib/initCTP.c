@@ -217,9 +217,11 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         vmew32(adr, val);
       }
       infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
-      vmew32(SEL_SPARE_OUT+0xc, 1);
+      /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
+      vmew32(SEL_SPARE_OUT+0xc, 32);
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 32:0OLM -LM");
       vmew32(SEL_SPARE_OUT+0x8, 11);
-      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM");
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[2]) set to 11:0AMU");
       //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
       /* following done in setEdgersDelays()

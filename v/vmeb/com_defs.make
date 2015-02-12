@@ -9,7 +9,7 @@ include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
 SERVER_BASEDIR := 
 odl64 := /opt/dip/lib64
-HOSTNAME:=$(shell hostname)
+HOSTNAME:=$(shell hostname -s)
 ifeq ($(HOSTNAME), alidcscom188)
 SERVER_LINK := yes
 CLIENT_HOST := alidcsvme008

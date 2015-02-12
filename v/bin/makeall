@@ -58,7 +58,7 @@ OTHERSmake=': ctp_proxy smaq ltu/ltulib SSMANA ltu_proxy ltudim tinproxy orbitsy
 OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
 #
 
-HOSTNAME=`hostname`
+HOSTNAME=`hostname -s`
 if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' \
   -o  $HOSTNAME = 'alidcscom835' -o  $HOSTNAME = 'avmes' ] ;then
   SERVER=$HOSTNAME

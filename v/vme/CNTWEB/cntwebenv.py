@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os,string
 
-HOST=os.popen('hostname').read().rstrip()
+HOST=os.popen('hostname -s').read().rstrip()
 BASEDIR="/var/www/html/"
 #IMAGES="http://"+HOST+"/imgs/"
 IMAGES="/imgs/"

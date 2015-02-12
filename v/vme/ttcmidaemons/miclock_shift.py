@@ -186,8 +186,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
     mylog.logm("DLL_RESYNC not done (force option).")
   else:
     arg=("none",)
-    res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-    #mylog.logm("DLL_RESYNC not started...")   # CJI
+    #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+    mylog.logm("DLL_RESYNC not started...")   # CJI
 def checkShift():
   cshift= getShift()
   mylog.logm("checkShift: after 10 secs:"+ cshift)
@@ -226,8 +226,8 @@ def callback_bm(bm):
       else:
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-        mylog.logm("DLL_RESYNC started...")
-        #mylog.logm("DLL_RESYNC NOT started...")   # CJI
+        #mylog.logm("DLL_RESYNC started...")
+        mylog.logm("DLL_RESYNC NOT started...")   # CJI
     mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":
       if os.environ['VMESITE']=='ALICE':

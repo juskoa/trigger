@@ -1,6 +1,6 @@
 #!/bin/bash
 #--------------------------------------------------
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != 'alidcscom026' ] ;then
 echo 'This script can be started only on trigger@alidcscom026 '
 exit
