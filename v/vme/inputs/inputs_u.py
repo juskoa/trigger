@@ -318,13 +318,16 @@ class AllInputs:
  #
  def findinput(self,inpnum,board):
   """
+     find inputs for signature snapshot analysis
+     L0 - ctpnum should be used
   """
   for i in self.inputs:
     #if i.inpnum == inpnum and i.board == board:
     if i.board == '1':
        ctpnum=i.ctpnum
     else:
-       ctpnum=i.inpnum
+       ctpnum=i.ctpnum
+    #print ctpnum,' ctpnum,inpnum ' ,inpnum
     if ctpnum == inpnum and i.board == board:
        return self.inputs.index(i)
   return None
@@ -367,6 +370,7 @@ class AllInputs:
        print i,'output=',output,len(output)
        for j in range(0,len(output)-1,2):
          k=self.findinput(output[j],i)
+         print k,' k j ',j
          if k != None:
            print 'checksignature: ',j,output[j],k,self.inputs[k].name
            self.inputs[k].signatureM=output[j+1]
@@ -1049,6 +1053,7 @@ Everything OK!
     If the status is not error check signature
   """
   if(self.name=='ORBIT'): return
+  if(self.ctpnum==0): return
   cmd="CheckSignature("+self.board+","+self.signature+","+self.ctpnum+")"
   output=self.vb.io.execute(cmd,log="out",applout="<>")
   print "input checksignature: ",output
