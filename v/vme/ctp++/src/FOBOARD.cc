@@ -84,4 +84,32 @@ int FOBOARD::AnalSSMinmonl2()
  //L2DataOut('4');
  return 0;
 }
+int FOBOARD::AnalSSMinmonl0()
+{
+ int issm=0,ret=0;
+ //w32 chaninclstt=0,chaninclst1=1; 
+ w32 chanoutl0=14;
+ int l0out0[4];
+ bool empty=1;
+ w32 *sm=GetSSM();
+ for(int i=0;i<4;i++)l0out0[i]=-260;
+ while(issm<Mega){
+   for(int icon=0;icon<4;icon++){
+      if(sm[issm] & (1<<(chanoutl0+icon))){
+        empty=0;
+        int delta=issm-l0out0[icon];
+        //printf("icon=%i delta= %i \n",icon,delta);
+        if(delta<260){
+          printf("Error: L0L0 time violation: icon=%i %i %i delta=%i\n",icon,issm,l0out0[icon],delta);
+          ret=1;
+        }
+        l0out0[icon]=issm;
+      }
+   }
+   issm++;
+ }
+ if(ret==0) printf("FO l0 out OK \n");
+ if(empty)printf("WARNING: NO L0-----------------------------------------\n");
+ return ret;
+}
 

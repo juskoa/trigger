@@ -13,6 +13,7 @@ class FOBOARD: public BOARD
 	int L2DataOut(char focon);
 	int AnalSSMinmonl2();
 	int AnalSSMinmonl1();
+	int AnalSSMinmonl0();
  private:
 	void SetFile(string const &modename); 
 };

@@ -83,11 +83,12 @@ int L1BOARD::AnalSSM()
    int j=0;
    if(bit(sm[i],sl0strobech)){
      if((i-l0issm) < L0L0){
-       printf("L1BOARD::AnalSSM: Error L0L0 time violation at %i \n",i);
+       printf("L1BOARD::AnalSSM: Error L0L0 time violation at %i %i %i\n",l0issm,i,i-l0issm);
        if(i>L0L0) rc=1;
      }
      l0issm=i;
      i++;
+     /* Brutal test for classes 0xffffff
      while((j<50) && (i+j)< Mega){
       classlow[j]=bit(sm[i+j],sl0strobech);
       classhigh[j]=bit(sm[i+j],sl0datach);
@@ -97,8 +98,9 @@ int L1BOARD::AnalSSM()
         //if(i>L0L0)return 1;
         return 1;
       }
+      
       j++;
-     }
+     }*/
    }
    i=i+j+1;
  }

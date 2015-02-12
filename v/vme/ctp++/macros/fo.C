@@ -1,18 +1,22 @@
 #include "CTP.h"
-#include <cmath>
-#define NCLASSES 100
-// configure boards
 int main()
 {
+  int ret=0;
   CTP* ctp = new CTP;
   //FOBOARD* fo=ctp->fo[5];
   FOBOARD* fo=ctp->fo[0];
-  fo->SetMode("inmonl2",'a');
-  fo->StartSSM();
-  usleep(50000);
-  fo->StopSSM();
-  fo->ReadSSM();
-  fo->AnalSSMinmonl2();
-  fo->DumpSSM("fo6");
-  return 0;
+  for(int i=0;i<10000;i++){
+    printf("Checking FO ===================> %i \n",i);
+    fo->SetMode("inmonl0",'a');
+    fo->StartSSM();
+    usleep(50000);
+    fo->StopSSM();
+    fo->ReadSSM();
+    ret=fo->AnalSSMinmonl0();
+    if(ret){
+      //fo->DumpSSM("fo6");
+      return ret;
+    }
+  }
+  return ret;
 }
