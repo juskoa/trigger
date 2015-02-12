@@ -56,6 +56,7 @@ typedef struct Connection{
 void GetMicSec(w32 *tsec, w32 *tusec);
 w32 CountTime();
 void mysleep(w32 delta);
+void getdatetime(char* dmyhms);
 //
 w32 convertS2H(w32 &number,string const ss);
 char *string2char(string s);

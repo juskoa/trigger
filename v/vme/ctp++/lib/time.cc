@@ -41,4 +41,16 @@ void mysleep(w32 delta){
    time=(sec-seconds)*1000000+(mic-micsec);
  }
 }
+void getdatetime(char* dmyhms) {
+/* format date/time for logs
+   dmyhms:  string[20] dd.mm.yyyy hh:mm:ss */
+/*int i; */
+time_t T;
+struct tm *LT;  /*LocalTime */
+T=time(&T); LT = localtime(&T);
+sprintf(dmyhms,"%2.2d.%2.2d.%4.0d %2.2d:%2.2d:%2.2d",
+  LT->tm_mday,LT->tm_mon+1,LT->tm_year+1900,
+  LT->tm_hour,LT->tm_min,LT->tm_sec);
+  for(int i=0; i<28; i++) { if(dmyhms[i] == ' ') dmyhms[i] = '_'; }; 
+}
 

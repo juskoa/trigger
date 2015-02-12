@@ -1,4 +1,5 @@
 #include "TTCITBOARD.h"
+#include "libctp++.h"
 int main(){
  w32 err=0;
  int NN=10000000;
@@ -14,6 +15,9 @@ int main(){
    ttc->Dump2quSSM();
    int ret=ttc->AnalyseSSM();
    if(ret){
+     char time[30];
+     getdatetime(time);
+     printf("Time: %s \n");
      ttc->DumptxtSSM();
      //return 1;
    }
