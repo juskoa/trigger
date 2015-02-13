@@ -624,10 +624,12 @@ for(i=0;i<MAXCLASSGROUPS;i++){
 printf("CLASSES:\n");
 for(i=0;i<NCLASS;i++){
   TKlas *klas;
-  if((klas=part->klas[i]))printTKlas(klas,i);
-  //else break;   // classes are always allocated 1,2,3,...
-  // the above is not when mask is applied !!!
-}
+  if((klas=part->klas[i])) {
+    printTKlas(klas,i);
+  } else {
+    continue;
+  };
+};
  printf("ClusterTable:");
  for(i=0;i<NCLUST;i++)printf("0x%x ",part->ClusterTable[i]);
  printf("\n");
@@ -643,11 +645,99 @@ for(i=0;i<NCLASS;i++){
    dn= part->Detector2Clust[i]; bn= validLTUs[dn].busyinp;
    printf("0x%x:%d ", dn, bn);
  }; printf("\n");*/
- printDetector2Clust(part->Detector2Clust);
- printf("Masked detectors: 0x%x \n",part->MaskedDetectors);
+printDetector2Clust(part->Detector2Clust);
+printf("Masked detectors: 0x%x \n",part->MaskedDetectors);
+/* print classes, including fed detectors:
+for(i=0;i<NCLASS;i++){
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
+  if((klas=part->klas[i])) {
+    printTKlas(klas,i);
+  } else {
+    continue;
+  };
+  //else break;   // classes are always allocated 1,2,3,...
+  // the above is not when mask is applied !!!
+  cluster= klas->l0vetos & 0x7;
+  clustermask= 1<<(cluster-1);
+  txdets[0]='\0';
+  printf("dbg_printTpar: clu:%d mask:%d...\n", cluster, clustermask);
+  for(ixdet=0; ixdet<NDETEC; ixdet++) {
+    int clsts;
+    //printDetsInCluster(part, cluster);
+    clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+    if(clsts & clustermask) {
+      sprintf(txdets, "%s %d", txdets, ixdet);
+    };
+  };
+  printf("    fed dets: %s\n", txdets);
+};*/
 if(part->name != NULL){
 printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->run_number);
 }
+}
+/*-------------------------------------------------------------- checmodLM
+Check if there are classes feeding TRD. Do these modifications for them:
+- check rnd1 bit in L0_CONDITION word for this class
+  if ON and no other input definition in this class:
+    - remove it from L0_CONDITION AND ADD l0inp5
+    - connect swinp32 to RND1 generator
+  else
+    no sense to connect RND1 generator before switch, in case
+    an input is required i.e.:
+    - disconnect swinp32 from RND1 generator (good for next partition)
+
+Consequence: it is nonsense to start TRD cluster with
+more classes mixing rnd1 usage.
+*/
+void checkmodLM(Tpartition *part){
+#define RND1MASK 0x10000000
+#define SWIN32MSK (1<<(32-25))
+int i;
+for(i=0;i<NCLASS;i++){
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
+  if((klas=part->klas[i])) {
+    printTKlas(klas,i);
+  } else {
+    continue;
+  };
+  //else break;   // classes are always allocated 1,2,3,...
+  // the above is not when mask is applied !!!
+  cluster= klas->l0vetos & 0x7;
+  clustermask= 1<<(cluster-1);
+  txdets[0]='\0';
+  //printf("dbg_printTpar: clu:%d mask:%d...\n", cluster, clustermask);
+  //for(ixdet=0; ixdet<NDETEC; ixdet++) {
+  ixdet= 4 ; { // TRD
+    int clsts;
+    //printDetsInCluster(part, cluster);
+    clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+    if(clsts & clustermask) {
+      sprintf(txdets, "%s %d", txdets, ixdet);
+      // class feeding TRD:
+      if(((klas->l0inputs & RND1MASK) == 0) &&  // RND1 used in this class
+         (klas->l0inputs & 0xe0ffffff)==0xe0ffffff)  {  // no other input
+        w32 rndw1, rndw2, rndw3, ninps;
+        ninps= klas->l0inputs | RND1MASK;  // do not use it at L0
+        ninps= ninps & (~0x10);  // AND USE l0inp5 !
+        klas->l0inputs= ninps;
+        rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        rndw3= rndw2 | (SWIN32MSK);
+        vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
+        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x \n", 
+          i, ninps, rndw1, rndw2, rndw3);
+      } else {
+        w32 rndw2, rndw3;
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        rndw3= rndw2 & (~(SWIN32MSK));
+        vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
+        printf("checkmodLM off32:%d l0inputs:0x%x RND1_EN_FOR_INPUTS+4: 0x%x->0x%x \n", 
+          i, klas->l0inputs, rndw2, rndw3);
+      };
+    };
+  };
+  printf("    fed dets: %s\n", txdets);
+};
 }
 /*----------------------------------------------------------- checkRES 
 I:

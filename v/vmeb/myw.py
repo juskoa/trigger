@@ -2299,9 +2299,19 @@ piaty")
   #for n in range(1,20):
   #  but.flash()
   #----------------------------------------------------canvas test:
-  canvFrame=MywFrame(entriesFrame, side=LEFT); 
+  canvFrame=MywFrame(entriesFrame, side=TOP); 
   canvFrame.config(bg="green")
   docanvbut= MywButton(canvFrame,label="Test Kanvas",cmd=Test_Kanvas)
+  #----------------------------------------------------switched test:
+  swiFrame=MywFrame(entriesFrame, side=BOTTOM); 
+  swiDet=MywxMenu(swiFrame, 
+    items=(("acorde","ACO"),("SPD","SPD"), ("MUON_TRG","MTR")),
+    side=LEFT,helptext="choose detector")
+  #swidet.radiobut.configure(relief=FLAT)
+  swiInp=MywxMenu(swiFrame, 
+    items=(("None","0"), ("0MUH","16"),("0MUL","17"), ("0MSH","18")),
+    side=LEFT,helptext="choose input to be connected")
+  #swidet.radiobut.configure(relief=FLAT)
   f.mainloop()
 
 if __name__ == "__main__":

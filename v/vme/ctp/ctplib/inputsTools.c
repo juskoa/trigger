@@ -12,6 +12,7 @@ if(l0C0()) {
 };
 }
 */
+#define DELAYBITS 0x1f
 /*
 board:0:busy (the CLK edge for input ORBIT signal) 
       1..3:L0/1/2  
@@ -33,11 +34,11 @@ void setEdge(int board,w32 input,w32 edge) {
      if(input>24) { inp24= input-24; } else { inp24= input; };
      word=vmer32(BSP*ctpboards[board].dial+SYNCH_ADDr2+4*(inp24-1));
      if(input>24) {
-       msk= 0xffffefff;
-       ms2= 0x00001000;
+       //msk= 0xffffefff; ms2= 0x00001000;
+       msk= 0xffff7fff; ms2= 0x00008000;
      } else {
-       msk= 0xffffffef;
-       ms2= 0x00000010;
+       //msk= 0xffffffef; ms2= 0x00000010;
+       msk= 0xffffff7f; ms2= 0x00000080;
      };
      word= word & msk;
      if(edge) word= word | ms2;
@@ -60,7 +61,7 @@ Outputs:
 rc: 0 -positive edge
     1 -negative edge
    >3 -error (unknown board or input)
-del: meaningfull only for L0/1/2 boards.
+del: meaningfull only for L0/LM0/1/2 boards.
 Comment:
 getedge is wrapper for getedgerun1 and getedgerun2
 */
@@ -86,9 +87,8 @@ int getedge(int board,w32 input,w32 *del){
      if(input>24) { inp24= input-24; } else { inp24= input; };
      edge=vmer32(BSP*ctpboards[board].dial+SYNCH_ADDr2+4*(inp24-1));
      if(input>24) edge= edge>>8;
-     edge= edge &0x1f;
-     *del=(edge&0xf);
-     edge= (edge&0x10) >> 4;
+     //edge= edge &0x1f; *del=(edge&0xf); edge= (edge&0x10) >> 4; till 12.2.2015
+     edge= edge & (0x80 | DELAYBITS); *del=(edge&DELAYBITS); edge= (edge&0x80) >> 7;
    } else {          // L0
      if((input>24) || (input < 1)){
        printf("L0 Input number out of range %i <E>\n",input);
@@ -125,12 +125,15 @@ if((board==1) && (l0C0()!=0)) {
   int inp24; w32 ed,msk;
   if(input>24) { inp24= input-24; } else { inp24= input; };
   synch=vmer32(BSP*ctpboards[board].dial+SYNCH_ADDr2+4*(inp24-1));
-  ed= ((edge & 0x1)<<4) | (delay&0xf);
+  //ed= ((edge & 0x1)<<4) | (delay&0xf); till 12.2.2015
+  ed= ((edge & 0x1)<<7) | (delay&DELAYBITS);
   if(input>24) {
-    msk= 0xffffe0ff;
+    //msk= 0xffffe0ff;
+    msk= 0xffff60ff;   // should use DELAYBITS
     ed= ed<<8;
   } else {
-    msk= 0xffffffe0;
+    //msk= 0xffffffe0;
+    msk= 0xffffff60;
   };
   synch= (msk & synch) | ed;
   vmew32(BSP*ctpboards[board].dial+SYNCH_ADDr2+4*(inp24-1), synch);

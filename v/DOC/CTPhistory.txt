@@ -387,3 +387,7 @@ pydim/server.c check_xcounters()
 xcounters.sh runs in lab too (as trigger, in p2 as tri)
 11.2.
 hostname -s -> everywhere
+12.2.
+SYNCH_ADDr2: edge is shifted by 3 bits to the left (bits 15+7 instead of 12+4)
+and delay is now 5 bits (0..31 BCs)
+

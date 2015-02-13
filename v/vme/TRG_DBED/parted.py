@@ -2290,7 +2290,7 @@ class TrgPartition:
       if string.find(cluster.getltunames(), "TRD")== -1:
         check0HWU= False
       else:
-        check0HWU= True
+        check0HWU= False #True
       for cls in cluster.cls:
         if cls.trde.connected[1]>0:   # at least 1 unconnected input
           unconnectedNames= cls.trde.unconnectedNames
@@ -2343,6 +2343,10 @@ class TrgPartition:
         #print "savepcfg1:",cls.optinps
         for ix4 in range(4):        # rnd1/2 bc1/2
           if cls.optinps[ix4]==1:   # cls uses ix4 resource
+            #print "savepcfg2:", cls.trde.name
+            #if (cls.trde.name == "D0HCO") and (ix4==0):
+            #  PrintWarning("ignoring RND1 at L0 level for D0HCO")
+            #else:
             l0inps= l0inps & ~r12b12
             SHRRSRCS[ix4].used= SHRRSRCS[ix4].used+1
           r12b12= r12b12<<1
@@ -2431,6 +2435,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       else:
         srval= sr.getValue()
         if srval!="None":
+          #if sr.name=="RND1":
+          #  PrintWarning("Value %s of %s not referenced, but ok (LM)"%\
+          #    (srval, sr.name))
+          #else:
           PrintWarning("Value %s of %s ignored (not referenced)"%\
             (srval, sr.name))
           sr.setValue("None")

@@ -11,6 +11,8 @@
 #include "Tpartition.h"
 #include "lexan.h"
 
+int inplm=-1;   // -1: not connected 1..24: l0inp number of 0HCO input
+int inplm_swn;   // -1: not connected 1..24: l0inp number of 0HCO input
 //ctplib.h:
 int l0AB();
 
@@ -233,6 +235,36 @@ for(rabc=L0CONBIT0; rabc<=upto; rabc++) {  // rnd1,2, bc1,2
   };
 }; return(retrc);
 }
+/*------------------------------------------------- rmLMrnd1
+remove RND1 if defined for class, where 0HCO used
+I: inplm (global): 1..24 -number of 0HCO
+   inplm_swn: corresponding switch input number (1..48)
+rc: modified l0inputs
+
+w32 rmLMrnd1(w32 l0inputs) {
+#define RND1MASK 0x10000000
+w32 inps= l0inputs; int ix;
+if((inps & RND1MASK) == 0) {   // RND1 used in this class
+  for(ix=0; ix<24; ix++) {
+    w32 msk;
+    msk= 1<<ix;     // ix: l0inp-1 (i.e. 0..23)
+    if((inps & msk) == 0) {
+      if( (ix+1) == inplm ) {
+        w32 rndw1, rndw2;
+        inps= inps & (~RND1MASK);  // do not use it at L0 level
+        // programming RND1_EN_FOR_INPUTS
+        rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        printf("rmLMrnd1: l0inp:%d l0swin:%d RND1_EN_FOR_INPUTS:0x%x 0x%x \n", 
+          inplm, inplm_swn, rndw1, rndw2);
+      };
+    };
+  };
+};
+printf("rmLMrnd1: 0x%x -> 0x%x\n", l0inputs, inps);
+return inps;
+}
+*/
 /*----------------------------------------------------CLA2Partition()
   Purpose: to convert CLA line in cfg to klas structure
   Parameters:
@@ -282,6 +314,7 @@ CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
                 1   -here 1st parameter is pointing. 2nd = 11-3=8
 */
  if(string2int(&line[i-1],i-j-3,&l0inputs,'h'))return NULL; 
+ //if(inplm>0) l0inputs= rmLMrnd1(l0inputs);
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
  if(string2int(&line[i-1],i-j-3,&l0inverted,'h'))return NULL; 
@@ -737,13 +770,21 @@ RETNULL: return(NULL);
   Called by: readDatabase2Tpartition()
 */
 int ParseFile(char lines[][MAXLINECFG],Tpartition *part){
- int i,ix,retcode=0;
- int iklas=0,ipf=0,ifo=0;
+int i,ix,retcode=0;
+int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
 int allclgrps=0; int clg;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
- char errmsg[300]="";
- part->nclassgroups= 0;
+char errmsg[300]="";
+part->nclassgroups= 0;
+/*
+inplm= findInputName("0HCO");
+if(inplm>=0) {
+  inplm_swn= validCTPINPUTs[inplm].switchn;
+  inplm= validCTPINPUTs[inplm].inputnum;
+};
+printf("inplm:%d\n", inplm); fflush(stdout);
+*/
 for(i=0;i<MAXNLINES;i++){
   if((i>=MAXNLINES-1)) {
      sprintf(errmsg, "ParseFile: too long .pcfg file (> %d lines)", MAXNLINES);
@@ -768,7 +809,7 @@ for(i=0;i<MAXNLINES;i++){
        sprintf(errmsg,"ParseFile: L0342Partition error."); 
        retcode= 1;
      };
-     printf("L0342Partition finished:\n"); printTRBIF(part->rbif);
+     printf("L0342Partition finished:\n"); printTRBIF(part->rbif); 
    } else {
      sprintf(errmsg,"ParseFile: L034 function with L0 firmware<0xAC."); 
      retcode= 1;
@@ -843,6 +884,7 @@ for(i=0;i<MAXNLINES;i++){
     retcode= 4; goto RETERR;
   };
 };
+//printTpartition("ParseFile", part);
 // all CLA lines processed, check classgroups -find which ones are used:
 allclgrps=0;
 for(i=0; i<MAXCLASSGROUPS; i++) {

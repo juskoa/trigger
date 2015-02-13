@@ -146,6 +146,13 @@ LM0 board:
 52     ADC Test input (local phase)  (28 on old L0 board)
 53     BUSY/INT clock phase input
 */
+#define RND1_EN_FOR_INPUTS 0x93f0 /* only on LM0:
+Temporary solutuion for RND1 trigger: it can be connected to any
+1..48 input defining following mask in 2 words:
+bits 23..0: for first 24 inputs
+RND1_EN_FOR_INPUTS+4
+bits 23..0  for inputs 48..25
+*/
 /*#define TEST_ADD        0xc0  was till 12.3.2008 */
 /*#define TEST_ADD        0x7e0 was till  6.11.2013 */
 #define TEST_ADDr2      0x93f8 /* LM0, L0 */
@@ -155,9 +162,9 @@ LM0 board:
 (i.e. 0x340 for 1st input)
 LM0:
  3.. 0   Input delay for inputs 1..24
- 4       Edge Selector flag inputs 1..24
+ 7       Edge Selector flag inputs 1..24   (was 4 before 12.2.2015)
 11.. 8   Input delay for inputs 25..48
-12       Edge Selector flag inputs 25..48
+15       Edge Selector flag inputs 25..48  (was 12 before 12.2.2015)
 21..16   Selection of the input: 0:not connected 1..48 connected to this one
 */
 #define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO

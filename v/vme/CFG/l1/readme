@@ -29,6 +29,6 @@ This on called: l1_logic_verA6delayed.rbf
 version without delays (minor changes against l1_logic_verA6before15sep.rbf)
 23.1.2015 l1_logic_vA7.rbf
 SPY memory sa zapisovali iba 01xxxxxxxx. Pridal som dalsiu SPY memory, kde sa budu zapisovat 10xxxxxxxx.
-
-
+10.2.2014
+A8 timing introduced
 

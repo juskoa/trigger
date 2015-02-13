@@ -1,0 +1,31 @@
+12.2.2015
+Warning: Value 100hz of RND1 ignored (not referenced)
+Errors:
+Cluster: ALL triggered by non-0HWU class D0HCO
+
+fix:
+check0HWU= False #True
+            PrintWarning("Value %s of %s not referenced, but ok (LM)"%\
+- should be modified: if rnd1 used for class with 0HCO input,
+  program RND1, but do not use it at L0 level
+  -> ctp_proxy modified this way: if rnd1 used with 0HCO input, 
+     - the corresponding RND1 bit in class definition is removed, 
+     - RND1_EN_FOR_INPUTS words: left as they are
+bad idea: use clusters, look for TRD
+
+13.2.2015:
+c100 ------ ParseFile --- part name: c100 RunNum:0 hwallocated:0
+RBIFuse:  61 51 51 51 51 51 51 51 51 51 51
+  RBIF rnd1:0x83126 rnd2:0x0 bc1:0x0 bc2:0x0 l0f1:0x0 l0f2:0x0 
+  BCMASKS+PF use: 0 2 0 0 0 0 0 0 0 0 0 0  PF: 0 0 0 0 0  PFC: 0
+classgroups:0:
+CLASSES:
+CLA. 0 0xefffffff 0x0 0x1ffff1 0x0 0x1fffffff 0x0 0x1f000fff hwcl:0 classgroup:0 (null) 
+CLA. 1 0xffffffff 0x0 0x1ffdf2 0x0 0x2fffffff 0x0 0x2f000fff hwcl:0 classgroup:0 (null) 
+ClusterTable:0x0 0x0 0x0 0x0 0x0 0x0 
+CLUSTERS:
+Detectors:HMPID:0x3 PHOS:0x3 
+Masked detectors: 0x0 
+
+see: Tpartition.c checkmodLM()  -invokde from ctp_proxy.c ctp_InitPartition
+-still todo: move hw changes to 'START_PARTITION time (now in INIT_PARTITION...)

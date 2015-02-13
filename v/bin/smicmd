@@ -1,12 +1,12 @@
 #!/bin/bash
 #pname="PHYSICS_1"
-pname="c100"
+pname="$2"
 if [ "$1" = 'init' ] ;then
-  if [ -z "$2" ] ;then
-    echo "runnumber ?"
+  if [ -z "$4" ] ;then
+    echo "smicmd init partition mask RUNN"
   else
 # ACO 65536 PHOS: 128   HMPID:64    PHOS+HMPID:128+64=192
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK 192 -ps RUN_NUMBER $2 -ps ACT_CONFIG NO
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK $3 -ps RUN_NUMBER $4 -ps ACT_CONFIG NO
   fi
 elif [ "$1" = "start" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP START_PARTITION -ps PARTITION $pname
@@ -34,14 +34,19 @@ EOF
 else
 cat - <<-EOF
 Partition name: $pname
-smicmd init RUNN
-smicmd start/stop/pause/resume/sync/ack/reset
+smicmd init partition mask RUNN
+smicmd start/stop/pause/resume/sync/ack/reset partition
 
 General usage:
 1. make sure dns is running on avmes (/opt/dim/linux/dns)
 2.  smicmd TRIGGER      -start private TRIGGER domain (on avmes or altri1)
     ONLY 1 instance can be active (it will crash if another instance is running already)
-3. use smicmd init/start/stop/.... as suggested above
+3. use smicmd partition init/start/stop/.... as suggested above
+4. Note about mask:
+0x80 128 PHOS
+0x40  64 HMPID
+0xc0 192 PHOS HMPID
+0x10  16 TRD
 EOF
 fi
 echo "smiSendCommnad rc:" $?

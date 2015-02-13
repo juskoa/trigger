@@ -20,4 +20,6 @@ phase monitoring included
 8 clusters (instead of 6)
 Treba otestovat aj Snapshot memory, najlepsie na vsetkych doskach.
 Pri kompilacii som na niektorych doskach dostal hlasenie, ze nevie umiestnit logiku do miest kde je to specifikovane.
+10.2.2014
+AA timing introduced
 

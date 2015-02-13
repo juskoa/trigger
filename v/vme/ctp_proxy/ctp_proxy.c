@@ -2521,12 +2521,14 @@ if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
    rc=ret; ret=deletePartitions(part); part=NULL;
    goto RET2; };
+//printTpartition("After checkResources", part);
+checkmodLM(part);   // not good idea (better: in START_PARTITION)
 // If resources available, continue and add part to Partitions[]
 // From now on, no checks necessary (all checks already done)
 if(addPartitions(part)) { 
   strncpy(errorReason, "Cannot add partition", ERRMSGL);
   rc=4; ret=deletePartitions(part); part=NULL;
-  prtError("addPartitions eror."); goto RET2; };
+  prtError("addPartitions error."); goto RET2; };
 if(DBGparts) {
   printf("Partitions after adding partition:%s\n",part->name);
   printAllTp();
@@ -2636,6 +2638,7 @@ CTPserver needs to be restarted, which set fiBEN bit ON
     rc= 5; goto UNSETRETddl;
   };  
 };
+setPartDAQBusy(part, 0);   // added 13.2 2015  (seems we did not pause at start!)
 usleep(200);   // be sure, CTP is quiet when reading counters at SOR
 if(generateXOD(part,'S', errorReason, &orbitn)) {
   // SOD was not delivered (busy)

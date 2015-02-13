@@ -207,7 +207,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //cfg vmew32(getLM0PFad(PF_COMMON)+BSP*ctpboards[ix].dial, calcPFisd(0)<<12);
     //setEdge(1,6,0);   // acorde single needs Positive edge
     if(l0C0()) {
-      // init CTP LM0 switch to 1->1, 2->2,...
+      // init CTP LM0 switch to 1->1, 2->2,..., 24->24
       int lminp=1; w32 lminpadr;
       lminpadr= SYNCH_ADDr2 + BSP*ctpboards[ix].dial;
       for(lminp=1; lminp<=24; lminp++) {
@@ -216,13 +216,17 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         adr= lminpadr+ 4*(lminp-1);
         vmew32(adr, val);
       }
-      infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...");
+      infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...24-24");
+      vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
+      infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       vmew32(SEL_SPARE_OUT+0xc, 32);
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 32:0OLM -LM");
       vmew32(SEL_SPARE_OUT+0x8, 11);
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[2]) set to 11:0AMU");
+      /*vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
+      infolog_trgboth(LOG_INFO, (char *)"RND1_EN_FOR_INPUTS cleared"); */
       //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
       /* following done in setEdgersDelays()
       setEdgeDelay(1,1,1,0);  // T0C

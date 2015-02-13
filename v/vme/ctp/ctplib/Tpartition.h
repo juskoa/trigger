@@ -405,6 +405,7 @@ Tpartition *deleteTpartition(Tpartition *part);
 int setnameTpartition(Tpartition *part, char *name);
 // Print different structures
 void printTpartition(char *headtext, Tpartition *part);
+void checkmodLM(Tpartition *part);
 int getNAllPartitions();
 void printStartedTp();
 void printAllTp();

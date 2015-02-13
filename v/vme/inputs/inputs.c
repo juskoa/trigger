@@ -367,8 +367,7 @@ void measureedge(){
   printf("<%i> <%i> \n",delay,5*edge);
  }
 }
-/*FGROUP ALItools
-*/
+/* FGROUP ALItools   NOT USED? (anyhow shoudl be mdodified after 12.2.2015)
 void setDelay(int board,w32 input,w32 delay){
  w32 word, synch_add;
  if(delay>15){
@@ -385,6 +384,7 @@ if(l0C0() && (board==1)) {
  vmew32(BSP*ctpboards[board].dial+synch_add+4*(input-1),word); 
  printf("setDelay debug: 0x%x 0x%x\n",BSP*ctpboards[board].dial+synch_add+4*(input-1),word );
 }
+*/
 /* FGROUP EDGEtools 
 moved to ctp/ctplib/inputsTools.c
 */

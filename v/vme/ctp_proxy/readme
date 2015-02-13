@@ -105,15 +105,16 @@ SDG identifier2 0xhex2   -random downscaling
 
 CLA lines:
 CLA.xx l0inputs l0inverted l0vetos l0scaler l1def l1inverted l2def
-CLA.xx 0xffffffff 0x0 0xfff1 0x0 0xCFiiiiii 0x0 0xCFIIIiii G
+for LM0 board:
+CLA.xxx 0xffffffff 0x0 0xfffC 0x0 0xCFiiiiii 0x0 0xCFIIIiii G
     logical class number(1-50)
-       l0inputs
-                  l0inverted
-                      l0vetos
-                             l0scaler
-                                 l1def
-                                            l1inverted
-                                                l2def
+        l0inputs
+                   l0inverted
+                       l0vetos
+                              l0scaler
+                                  l1def
+                                             l1inverted
+                                                 l2def
 
 xx xxx
 logical class number (01-50, resp 001-100 in run2). 
@@ -123,7 +124,8 @@ From ctp_classl0.doc, ctp_l0function.doc:
 0: signal active i.e. used
 1: signal masked out, not active, not used
 
-l0inputs: 0xBLiiiiii    corresponds to L0_CONDITION word
+=== l0inputs: L0_CONDITION
+0xBLiiiiii    corresponds to L0_CONDITION word
              <AC             >=AC
   B: 31..30: 00              bc2  bc1
      29..28: bc2 bc1         rnd2 rnd1
@@ -132,16 +134,18 @@ l0inputs: 0xBLiiiiii    corresponds to L0_CONDITION word
              if l0f* is used, the value is defined in RBIF line
   i: 23..0:  L0i24..1        L0i24..1
 
-l0inverted:  0x0 if there are not inverted inputs.
+=== l0inverted:  L0_INVERTac
+0x0 if there are not inverted inputs.
 0xiiiiii: 1: L0 input 24..1 is inverted
 If not 0x0, corresponding bit belongs to inverted input -i.e. this class
 has to be allocated in physical classes 45..50 (not valid for >AC)
 
+=== l0vetos: L0_VETO, L0_VETOr2
          <AC                      >=AC
-l0vetos: 0xM....rAAAAFFFF.CCC          0xM..........rAAAAAAAAAAAAFFFF.CCC
+         0xM....rAAAAFFFF.CCC          0xM..........rAAAAAAAAAAAAFFFF.CCC
           16    11   7   3              31          19           7   3
                                   >=C0  (LM0 board):
-l0vetos:                               0x.DDDDDDDM..rAAAAAAAAAAAAFFFF.CCC
+                                       0x.DDDDDDDM..rAAAAAAAAAAAAFFFF.CCC
                                         31          19           7   3
 
 DDDDDDD DSCG group (7 bits 30..24): only for LM0 board, L0_SDSCG reg. does not exist
@@ -149,7 +153,7 @@ r     All/rare flag (bit12, 20 for >=AC)
 AAAA  BCmask4..1   (i.e. BCM1 veto active is coded as: 0xe, BCM2:0xd BCM3:0xb
       BCmask12..1 for >AC
 FFFF  P/F potection circuits 4..1
-.CCC  Cluster code (3 bits)
+.CCC  ClusterCode (3 bits)
 
 M     Class mask 
       <AC:
@@ -161,7 +165,7 @@ bit31 (0x80000000)  -> goes to L0_MASK register bit0
       >=C0:
 bit23 (0x00800000)  -> L0_MASK does not exist, mask bit is here
 
-l0scaler:
+=== l0scaler: L0_
 0xhexa  -in case of busy or rnd downscaling, starting with 0x 
          (0x0 no downscaling)
 Class busy:     bitXX:1, 25 least significant bits valid:
@@ -183,31 +187,31 @@ I.e. conversion LM0-> L0:
   l0scaler: bit25->31 (25 becomes: do n't care
   l0vetos:  bit23->31 (23 becomes: do n't care
 
--------------------------
-l1def, 
+=== l1def:
 31:    C      RoI flag
-30..28 C      Cluster
+30..28 C      ClusterCode
 27..24 F      P/F PF4..1
 23..0  iiiiii L1 inputs
 See: ctp_classl1.doc
 
-l1inverted (L1inverted: allowed only for classes 45-50 also in >AC!)
+=== l1inverted (L1inverted: allowed only for classes 45-50 also in >AC!)
 23..0  L1 inputs: 0: normal  1:invert input before its use
 
-l2def
-30..28 C   Cluster
+=== l2def:
+30..28 C   ClusterCode
 27..24 F   P/F PF4..1
 23..12 III inverted L2 inputs
 12..0  iii L2 inputs
 
 See: ctp_classl2.doc
-G
-class group.
+=== G:
+class group. If not present, 0 -> i.e. not used in timesahring
 
+---------------------------------------------------------
 FO lines:
 FO.x 0xaabbccdd
 l0vetos, l1def, l2def words of CLA line contain 3bits 
-of 'Logical Cluster code' (1-6).
+of 'Logical ClusterCode' (1-6).
 These 3 bits must to be equal for 1 class.
 
 FO lines define the grouping of detectors into logical clusters.
