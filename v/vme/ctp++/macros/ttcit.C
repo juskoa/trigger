@@ -17,7 +17,7 @@ int main(){
    if(ret){
      char time[30];
      getdatetime(time);
-     printf("Time: %s \n");
+     printf("Time: %s \n",time);
      ttc->DumptxtSSM();
      //return 1;
    }
