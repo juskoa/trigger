@@ -1281,9 +1281,10 @@ i.e. ddr3 chunks:
 0..   1MB  0, 0x40000
 1..   2MB  0x40000, 0x40000
 0..  16MB  0, 0x400000     cca 4.4 secs writing, 5.7secs reading
-0..  64MB  0, 0x1000000        17 secs           23 secs
+0..  64MB  0, 0x1000000        17 secs           23 secs 
 0.. 256MB  0, 0x4000000
 0.. 512MB  0, 0x8000000
+For SSM we use 64MB way (23 secs)
 */
 void ddr3_wr_test(w32 ddr3_ad, int nws) {
 int rc, nws2, nerr=0, ix; w32 ddr3_adcor;

@@ -71,6 +71,29 @@ bit1: 0:QPLL OK           1: QPLL error
 #define ORB2_COARSE_DELAY          0x7FB1C
 #define ORBmain_COARSE_DELAY       0x7FADC
 /*REGEND */
+//
+//RFRX board:
+#define ch1_ref 0x12
+#define ch2_ref 0x14
+#define ch3_ref 0x16
+#define ch1_freq_low 0x18
+#define ch1_freq_high 0x1a
+//#define ch2_freq_low 0x1c
+//#define ch2_freq_high 0x1e
+//#define ch3_freq_low 0x20
+//#define ch3_freq_high 0x22
+#define ident_id 0x8
+#define card_id 0x24
+#define board_id 0x3a
+
+typedef struct Tchan {
+  float freq;   //MHz
+  w16 ref;  
+} Tchan;
+
+//----------------------------------------- corde board (also vme/corde dir):
+#define CORDE_RESET 0x24
+#define CORDE_ORBMAIN 0x7fbb4
 // following part moved from ctplib.h
 #define CORDE_DELREG 7
 w32 corde_get(int del);  // 1..7. VME is opened/closed with each call!

@@ -127,15 +127,15 @@ rc:
         #iop= iopipe(actdownload)
         #print iop.outlines
         #if iop.check("CTP config files downloaded from ACT.")>=0:
-        os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
+        ##os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
         #iop= iopipe("./switched.py load")
         #print iop.outlines
-        sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
-        import switched
-        rc= switched.main("actload")
+        ##sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
+        ##import switched
+        rc= 0 ##rc= switched.main("actload")
         if rc==0:
-          iop= iopipe("ssh -2 -q %s '$VMECFDIR/../bin/loadswitch ctp'"%vmeswitch)
-          ixl= iop.check("CTP.SWITCH: connected")
+          ##iop= iopipe("ssh -2 -q %s '$VMECFDIR/../bin/loadswitch ctp'"%vmeswitch)
+          ixl= 0 ##ixl= iop.check("CTP.SWITCH: connected")
           if ixl>=0:
             print iop.outlines[ixl]
             iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG intupdate")
@@ -178,7 +178,7 @@ rc:
               print iop.outlines
               rc=11   # can't update CTPRCFG/INT1,2 services
           else:
-            rc=9   # can't load CTP switch
+            rc=9   # can't load CTP switch (thrown out in run2)
         else:
           rc=5   # can't download from ACT
       else:

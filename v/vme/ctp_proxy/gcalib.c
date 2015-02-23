@@ -41,7 +41,7 @@ w32 last_heartbeat=0xffffffff;
  (2**32-1)/1000000./60
 71.582788250000007 -i.e. >1hour if time is kept in micsecs... */
 
-w32 beammode=0x12345677;
+w32 beammode=0x12345677;  // used only with T0: they do not get trigs in STABLE BEAMS
 
 typedef struct t {
   w32 secs; w32 usecs;
@@ -67,27 +67,26 @@ char msg[100];
 switch(signum) {
 case SIGUSR1:  // kill -s USR1 pid
   signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
-  sprintf(msg, "got SIGUSR1 signal:%d, fflush(stdout)\n", signum);
-  prtLog(msg);
-  //fflush(stdout);
+  sprintf(msg, "got SIGUSR1 signal:%d\n", signum);
   break;
 case SIGINT:
   signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);
-  printf("got SIGINT signal, quitting...:%d\n", signum);
+  sprintf(msg, "got SIGINT signal, quitting...:%d\n", signum);
   quit=signum; 
   break;
 case SIGQUIT:
   signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
-  printf("got SIGQUIT signal, quitting...:%d\n", signum);
+  sprintf(msg, "got SIGQUIT signal, quitting...:%d\n", signum);
   quit=signum; 
   break;
 case SIGBUS: 
   //vmeish(); not to be called (if called, it kills dims process)
-  sprintf(msg, "got SIGBUS signal:%d\n", signum); prtLog(msg);
+  sprintf(msg, "got SIGBUS signal:%d\n", signum);
   break; 
 default:
-  printf("got unknown signal:%d\n", signum);
+  sprintf(msg, "got unknown signal:%d\n", signum);
 };
+prtLog(msg);
 }
 
 /* Operation:
@@ -165,12 +164,12 @@ void printDET1(int ix) {
 char active[20];
 if(ACTIVEDETS[ix].deta!=-1) {
   strcpy(active,"ACTIVE");
+  printf("%2d: %s %s. period required:%d ms. attempts/sent:%d/%d\n", 
+    ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
+    ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 } else {
   strcpy(active,"NOT ACTIVE");
 };
-printf("%2d: %s %s. period required:%d ms. attempts/sent:%d/%d\n", 
-  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
-  ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 }
 /*--------------------*/int addDET(int det) {
 int rc=0; //OK:added or was added already. 1:not added
@@ -309,7 +308,7 @@ for(ix=0; ix<NDETEC; ix++) {
     printDET1(ix);
     continue;
   };
-}; printf("\n");
+}; printf("\n"); fflush(stdout);
 }
 /* Find next detector (nearest in time) waiting for cal. trigger
 rc: -1 (no active dets) or index to ACTIVEDETS
@@ -434,7 +433,8 @@ if(threadactive==0) {
   //exit(8);
   quit=8;
 };
-if(detectfile("gcalrestart", 1) >=0) {   //debug: simulate error by file presence
+/*
+if(detectfile("gcalrestart", 0) >=0) {   //debug: simulate error by file presence
   // i.e.: echo blabla >$VMEWORKDIR/gcalrestart
   char msg[200];
   //system("gcalibrestart_at.sh >/tmp/gcalibresatrt_at.log");
@@ -447,6 +447,7 @@ if(detectfile("gcalrestart", 1) >=0) {   //debug: simulate error by file presenc
   //system("gcalibrestart_at.sh");
   sprintf(msg,"WORK/../gcalrestart not present (i.e. real crash, not simulated)"); prtLog(msg);
 };
+*/
 }
 
 /*--------------------*/ void DOcmd(void *tag, void *msgv, int *size)  {
@@ -474,7 +475,7 @@ d 0 5     -delete detectors from calibration
 */
 ix=0; token= nxtoken(msg, value, &ix);
 if(token==tSYMNAME) {
-  if((strcmp(value,"u")==0) ) {
+  if((strcmp(value,"u")==0) ) {   // update from global runs (in shm)
     int ads;
     ads= shmupdateDETs();
     if(ads>0){
@@ -502,7 +503,7 @@ if(token==tSYMNAME) {
         } else {
           rc= delDET(det);
         };
-        if(rc!=0) { sprintf(em1,"addel:%c rc:%d", adddel, rc); goto ERR; };
+        if(rc!=0) { sprintf(em1,"add/del:%c rc:%d", adddel, rc); goto ERR; };
         if(threadactive==0) {
           startThread();
         } else {
@@ -545,7 +546,7 @@ dis_stop_serving();
 }
 
 /*------------------------------------*/ int main(int argc, char **argv)  {
-int rc,ads;
+int rc,ads; char msg[100];
 /*
 if(argc<3) {
   printf("Usage: ltuserver LTU_name base\n\
@@ -562,7 +563,8 @@ setlinebuf(stdout);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
-prtLog("gcalib started...");
+sprintf(msg, "gcalib starting, ver 2 %s %s...", __DATE__, __TIME__);
+prtLog(msg);
 rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
@@ -582,6 +584,7 @@ if(ads>0){
     printf("ads:%d but threadactive is 1 at the start", ads);   //cannot happen
   };
 };
+printDETS();
 while(1)  {  
   /* the activity of calthread is checked here:
     if threadactive==1 & heartbeat did not change, the calthread
@@ -597,13 +600,13 @@ while(1)  {
   last_heartbeat= heartbeat;
   /*dtq_sleep(2); */
   sleep(40);  // should be more than max. cal.trig period (33s for muon_trg)
-  if(detectfile("gcalrestart", 1) >=0) { 
+  /*if(detectfile("gcalrestart", 0) >=0) { 
     char msg[200];
     sprintf(msg,"gcalrestart exists"); prtLog(msg);
     system("rm gcalrestart");
     sprintf(msg,"main: gcalrestart removed, exiting..."); prtLog(msg);
     quit=8; 
-  };
+  }; */
   if(quit>0) break;
   beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
   //ds_update();

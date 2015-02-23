@@ -61,24 +61,24 @@ unsigned int cnts[NCOUNTERS];
 /* 5th column in cnames.sorted2: */
 const char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
   "PHOS", "CPV", "PMD", "MUON_TRK", "MUON_TRG",
-  "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ",""}; 
+  "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ","-","AD", ""}; 
 // by RL on TM 1.8.2012: THIS ONE USED FOR L1R CORRECTION
 // 28.11.2012: corrected to be equal with DQM: (pmd, muon_trg, v0):
 float l1rusecs[N24]={0, 7.0, 7.325, 6.65, 6.75, 6.705, 6.835,
   5.8, 0.0, 16.0, 14.275, 7.1,
-  8.26, 6.525, 0.0, 9.2, 7.025, 0.0, 7.035, 0.0};
+  8.26, 6.525, 0.0, 9.2, 7.025, 0.0, 7.035, 0.0,0.0,0.0};
 // by RL on TM 9.3.2012 
 // both TRD values should be 55us(instead of 266.3)-see daqlog from 27.3.2012:
 float l2rusecs[N24]={0, 110.5, 265.1, 306.5, 55.0, 0.0, 107.1,
  56.4, 0.0, 528.3, 412.4, 108.5,
-  126.0, 2.8, 0.0, 107.1, 106.8, 0.0, 106.8, 0.0};
+  126.0, 2.8, 0.0, 107.1, 106.8, 0.0, 106.8, 0.0,0.0,0.0};
 
 float l1rusecsClu[N24]={6.525, 8.525, 7.925, 8.225, 7.2, 7.771, 7.5,
   7.4, 0.0, 13.3, 14.5, 7.35,
-  8.8, 7.375, 6.66, 10.3, 7.975, 0.0, 8.525, 0.0};
+  8.8, 7.375, 6.66, 10.3, 7.975, 0.0, 8.525, 0.0,0.0,0.0};
 float l2rusecsClu[N24]={0, 112.0, 265.8, 308.1, 55.0, 6.5, 107.8,
   57.5, 0.0, 528.6, 412.6, 108.8,
-  126.6, 8.2, 6.5, 108.2, 107.7, 0.0, 108.3, 0.0};
+  126.6, 8.2, 6.5, 108.2, 107.7, 0.0, 108.3, 0.0,0.0,0.0};
 
 #define NCS 6   // elapsed time for BUSY, L0,1,2,FO1, FO3
 

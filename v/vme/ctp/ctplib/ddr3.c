@@ -148,7 +148,7 @@ for(ix=0; ix< MEGA; ix++) {
     return(rc);
   };
   if(ssm1!=NULL) ssm1[ix]= block[14];
-  ssm2[ix]= block[15];
+  if(ssm2!=NULL) ssm2[ix]= block[15];
 };
 vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);   // clear 0x2 flag in SSMstatus
 return(0);

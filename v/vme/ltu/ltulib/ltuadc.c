@@ -181,7 +181,7 @@ void rndtest()
   w32 seconds1,micseconds1, seconds2,micseconds2,diff;
   //delay=32*rnlx();
   delay=(i+7)%32;
-  setbcdelay(i, 1); //Do not change TTC_INTERFACE word during scan !
+  setbcdelay(delay, 1); //Do not change TTC_INTERFACE word during scan !
   /* PLL_RESET always after dealy change then wait for PLL_LOCK: */
   GetMicSec(&seconds1, &micseconds1);
   vmew32(PLL_RESET, DUMMYVAL);

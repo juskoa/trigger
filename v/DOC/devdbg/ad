@@ -17,3 +17,9 @@ startClients.bash rrd stop
 startClients.bash rrd start
 startClients.bash html start
 
+22.2.2015:
+ACT: /CTP/ADtrgInput
+CNTRRD/readctpc.c: 2 items added to the end of arrays (AD...)
+cnames.sorted2: new one created in ~ in p2:
+todo: -> avmes, + -> $dbctp
+

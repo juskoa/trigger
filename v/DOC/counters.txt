@@ -6,8 +6,8 @@ History
 
 run1: How to prepare list of CTP counter names (modified 25.10., 5.7.2010)
 --------------------------------------------------------------------------
-1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
-   copy first VALID.LTUS ttcpaerts.cfg from th pit to $dbctp
+1. create ~/cnames file:  on alidcsvme001 or server (835):
+   copy first VALID.LTUS ttcparts.cfg from th pit to $dbctp
    cd $VMEBDIR ; ./counters.py printnames >~/cnames
    remove Error: lines from ~/cnames
    check number of counters (should be 970):
@@ -131,5 +131,7 @@ $dbctp/ + $VMECFDIR/dimcdistrib/cnames1.sorted2   -old run1 format
 $dbctp/ + $VMECFDIR/dimcdistrib/cnames.sorted2   -new run2 format (now: 1110 lines)
 ls -l $dbctp/cnames1.sorted2 $VMECFDIR/dimcdistrib/cnames1.sorted2
 ls -l $dbctp/cnames.sorted2 $VMECFDIR/dimcdistrib/cnames.sorted2
-13.3.
+13.3.2014
 l1/2 boards (300 counters each) added, tested, seems ok.
+22.2.2015
+AD detector added (just rerunning counter.py printnames...)

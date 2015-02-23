@@ -32,7 +32,7 @@ move ctpproxy call to endless while loop,
 - set it back to 'RUNNING' in main endless loop after excution
   of the corresponding ctpproxy action
 */
-int rc,secs=0;
+int rc,msecs=0;
 struct stat buf;
 //DIR *dp; //struct dirent *ep;
 char *slp;
@@ -45,20 +45,20 @@ while(1) {
   //dp = opendir(dirpath); (void) closedir (dp);
   rc= stat(name, &buf);
   if(rc==0) {
-    printf("detectfile stat rc:%d from stat(%s) msecs:%d\n", rc, name, secs);
+    printf("detectfile stat rc:%d from stat(%s) msecs:%d\n", rc, name, msecs);
     rc= buf.st_size;
     if(rc==0) {
-      printf("detectfile size:0, msecs:%d\n", secs);
+      printf("detectfile size:0, msecs:%d\n", msecs);
     } else {
       break;
     };
   };
-  if((secs%1000)==0) {
-    printf("waiting for %s %d secs rc:%d...\n", name, secs/1000, rc); fflush(stdout);
+  if((msecs%1000)==0) {
+    printf("waiting for %s %d secs rc:%d...\n", name, msecs/1000, rc); fflush(stdout);
   };
   rc=-1;
-  if(secs>=maxsecs*1000) break; //if(secs>=maxsecs) break;
-  usleep(1000); secs=secs+1; //sleep(1); secs++;
+  if(msecs>=maxsecs*1000) break; //if(secs>=maxsecs) break;
+  usleep(1000); msecs=msecs+1; //sleep(1); secs++;
   /* fopen does not refresh.
   opf= fopen(name,"r"); 
   if(opf!=NULL) {

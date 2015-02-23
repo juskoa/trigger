@@ -24,24 +24,7 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 //von #include "ctplib.h"
 #include "ttcmi.h"
 
-//#include "/opt/libDAQlogbook/DAQlogbook.h"
-//RFRX board:
-#define ch1_ref 0x12
-#define ch2_ref 0x14
-#define ch3_ref 0x16
-#define ch1_freq_low 0x18
-#define ch1_freq_high 0x1a
-//#define ch2_freq_low 0x1c
-//#define ch2_freq_high 0x1e
-//#define ch3_freq_low 0x20
-//#define ch3_freq_high 0x22
-#define ident_id 0x8
-#define card_id 0x24
-#define board_id 0x3a
-
 //----------------------------------------- corde board (also vme/corde dir):
-#define CORDE_RESET 0x24
-#define CORDE_ORBMAIN 0x7fbb4
 char corde_base[]="0x7000000";
 char corde_len[]="0x7fc00";
 char corde_A32[]="A32";
@@ -253,6 +236,20 @@ setbcorbitMain(4); printf("Using local clock\n");
 //setbcorbitBO1(1);
 //setorbitdelay(3563);
 //rc= vmxclose(vsp);
+}
+void getRFRX(int vsp, Tchan *frs) {
+int ix;
+for(ix=0; ix<3; ix++) {
+  w32 fhl, refadr;
+  w16 flow, fhigh;
+  refadr= ch1_ref +ix*2;
+  frs[ix].ref= vmxr16(vsp, refadr);
+  flow= vmxr16(vsp, ch1_freq_low+(ix*4));
+  fhigh= vmxr16(vsp, ch1_freq_high+(ix*4));
+  fhl= flow | (fhigh <<16);
+  frs[ix].freq= (80*16*22)/(flow+ (fhigh*65536.));
+  //printf("%d=%fMHz ", fhl, frs[ix].freq);
+}; printf("\n");
 }
 void printRFRX(char *rfrxbase) {
 int ix,rc,vsp;

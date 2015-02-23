@@ -37,6 +37,7 @@ typedef struct {
   int syncflag;/* set by syncSSM, set to -1 by readSSM */
   w32 orbit;   /* channel or mask for orbit for this board */
   Signal *signal; /* signal list */
+  w32 lopmode;    /* last op. mode (set in setomSSM).The must for LM0 board! */
 } Tsms;
 
 EXTRN Tsms sms[NSSMBOARDS];

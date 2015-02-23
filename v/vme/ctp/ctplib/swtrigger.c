@@ -19,7 +19,7 @@ can be invoked togethether with physics triggers being active)
 #define TIMEOUT 100      /* <10 with mysleep(10) */
 #define DBGswtrg2 1
 #define DBGswtrg3 1
-#define DBGswtrg4 1
+#define DBGswtrg4 0
 
 int l0C0();
 
@@ -214,108 +214,6 @@ void vmew32f(w32 adr, w32 data) {
 printf("vmew32f:%8x = %x\n", adr, data);
 }
 
-/*von
-int setswtrig2(char trigtype, int roc, w32 BC, w32 ctprodets){
-w32 daqonoff, word, INTtcset, busyclusterT, overlap, bsysc[NCLUST+1];
-int i, idet, ifo, iconnector;
-w32 testclust[NFO],rocs[NFO];
-
-if( (((BC>3563) && (BC!=0xfff)) && (trigtype !='a')) 
-  ){
-  printf("setswtrig2: BC>3563 %i \n",BC);
-  return 1;
-};
-INTtcset= roc<<1;   // INT board
-// L0 board   p/f, masks off
-//     P/F      BCM4   BCM3    BCM2    BCM1
-word=(1<<18)+(1<<17)+(1<<16)+(1<<15)+(1<<14);
-switch(trigtype){
-  case 'a':
-       word=word+0;
-       if(BC !=0) {   // mask (4bits, 1:use mask 0: do not use mask)
-         word= word & (~(BC&0xf));
-       };
-       //printf("setswtrig2: asynchr trigger 0x%x \n",word);
-       break;
-  case 's':
-       word=word+(1<<12)+BC;
-       //printf("setswtrig2: synchr trigger 0x%x \n",word);
-       break;
-  case 'c':
-    if(BC==0xfff) { 
-      BC= getCALIBBC2(ctprodets);
-    };
-    word=word+(1<<12)+(1<<13)+BC;
-    INTtcset= INTtcset | 1;
-    //printf("setswtrig2: calib trigger 0x%x \n",word);
-    break;
-  default:
-       printf("setswtrig2: unknown type of trigger %c \n",trigtype);
-       return 1;
-}; TRIGTYPE= trigtype;
-// L0 board -p/f prot. off
-if(l0C0()) { vmew32f(L0_TCSETr2,word); } else { vmew32f(L0_TCSET,word); };
-
-word=(1<<18);
-vmew32f(L1_TCSET,word);        // L1 board p/f prot. off
-word=(1<<24)+ctprodets;
-  daqonoff= vmer32(INT_DDL_EMU) &0xf;
-  if((daqonoff==0) || (daqonoff==0x3b)) { 
-    // ctp readout active or emulated, set TRIGGER bit 
-    //the bit has to be set for CALIBRATION events too!
-    // if not set, EVB complains (run 67492)
-    word= word | (1<<17);
-    //printf("setswtrig2: bit17 not set\n");
-    //};
-  };
-vmew32f(L2_TCSET,word);        // L2 board p/f off
-if(DBGswtrg2) printf("setswtrig2:L2_TCSET set to:%x\n", word);
-vmew32f(INT_TCSET,INTtcset);   // INT board
-
-// set BUSY_CLUSTER word (bits 23..0 for detectors 24..1 connected to BUSY)
-busyclusterT= findBUSYinputs(ctprodets);   //no bit17!
-vmew32f(BUSY_CLUSTER, busyclusterT);
-
-// we should update BUSY_OVERLAP word (at least bits corresponding
-// to combinations 1T 2T 3T 4T 5T 6T should be updated: 
-bsysc[0]= busyclusterT;
-for(i=1;i<NCLUST+1;i++){
-  bsysc[i]=vmer32(BUSY_CLUSTER+i*4);
-};
-overlap= calcOverlap(bsysc); vmew32f(BUSY_OVERLAP, overlap);
-if(DBGswtrg2) {
-  printf("setswtrig2: BUSY/SET_CLUSTER: 0x%x BUSY_OVERLAP:0x%x ctprodets:0x%x\n", 
-    busyclusterT, overlap, ctprodets);
-};
-// set corresponding FO boards:
-for(i=0;i<NFO;i++){testclust[i]=0;rocs[i]=0;}
-for(idet=0;idet<NDETEC;idet++){
-  if((ctprodets & (1<<idet))!=0) {   // no bit17!
-    if(Detector2Connector(idet,&ifo,&iconnector)) continue;  //not connected
-    testclust[ifo]=testclust[ifo] +(1<<(16+iconnector));  //TestCluster
-    if(trigtype=='c') {    // cal. trigger, set CALFLAG
-      testclust[ifo]=testclust[ifo] | 0x100000 ;
-    };
-    rocs[ifo]=rocs[ifo]+(roc<<(4*iconnector));  
-    if(DBGswtrg2) {printf(
-      "setswtrig2 ifo=%i icon=%i testcl=0x%x roc=0x%x BC:%d dets:0x%x\n",
-        ifo,iconnector,testclust[ifo],rocs[ifo], BC, ctprodets);
-    };
-  };
-};
-for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
-  //printf("FO:%d\n",ifo);
-  if((notInCrate(ifo+FO1BOARD)==0)) {
-    w32 vmeaddr;
-    vmeaddr= FO_TESTCLUSTER+BSP*(ifo+1);
-    if(DBGswtrg2) printf("setswtrig2 FO:%d Waddr: 0x%x data: 0x%x\n",
-      ifo, vmeaddr, rocs[ifo] | testclust[ifo]);
-    vmew32f(vmeaddr, rocs[ifo] | testclust[ifo]);
-  }
-};
-return 0;
-}
-*/
 /*---------------------------------------------------------getlxackn
 */
 w32 getl0ackn(){

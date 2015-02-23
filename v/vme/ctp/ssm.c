@@ -34,6 +34,7 @@ for(ix=0; ix<NSSMBOARDS; ix++) {
   sms[ix].syncflag= 0;
   sms[ix].signal=NULL;
   sms[ix].ltubase[0]='\0';   // NOT ltu board (i.e. not in the crate or CTP)
+  sms[ix].lopmode= 0;
   //for(jx=0;jx<32;jx++)BoardChannels[ix][jx].start=NULL;  
 };
 // find LTUs in the crate:
@@ -145,8 +146,8 @@ if( status & busybit) {
 /*vmew32(SSMcommand+BSP*ctpboards[board].dial, opmo); */
 if((vsp==0) && (boardoffset==l0bo) && (l0C0()!=0)) {   // LM0 board
   w32 cmdlm0;
-  if(opmo==0xa) {
-    cmdlm0= 0;   // 1-pass
+  if((opmo==0xa) || (opmo==0x2)) {
+    cmdlm0= 0;   // 1-pass INMON or OUTMON
     vmbw32(vsp,SSMcommand+boardoffset, cmdlm0);
   } else if(opmo==0xb) {
     cmdlm0= 1;   // continuous
@@ -195,7 +196,7 @@ i.e. low 4 bits rc reflects last action with SSM:
 --- LM0:
                 SSMstatus   SSMcommand
 inmon 1 pass:   0x0         0             <     27ms
-inmon 1 pass:   0x2         0             after 27ms
+inmon 1 pass:   0x2         0             after 27ms (i.e. SSM filled)
 inmon cont:     0x101       0             <27ms          (SSMaddress changing)
                 0x103       0             before stopped (SSMaddress changing)
                 0x3         0             after stop (SSM address fixed)
@@ -208,7 +209,8 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   w32 boardoffset=BSP*ctpboards[board].dial;
   if((boardoffset==l0bo) && (l0C0()!=0)) {   //LM0
     rc= vmbr32(0, boardoffset+SSMstatus);
-    rc= rc | 0x8;   // 1:in (artificially for LM0)
+    //rc= rc | 0x8; 1:in (artificially for LM0) -inout flag always 1 (only inmon available)
+    rc= sms[board].lopmode;
   } else {
     rc= vmbr32(0, boardoffset+SSMstatus);
   };
@@ -260,7 +262,8 @@ opmo for LM0 board:
 Valid only: 0, 1, a, b
 opmo: as for L0 board translates to LM0-SSMcommand:
 L0  meaning       LM0
-0xa 1pass record  0
+0xa 1pass inmon   0
+0x2 1pass outmon  0
 0xb cont. record  1
 
 opmo for CTP boards:
@@ -298,6 +301,7 @@ int vsp,rc;
 if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   w32 boardoffset=BSP*ctpboards[board].dial;
   rc= setomvspSSM(0, boardoffset, opmo);
+  // lets remember opmo in sms[]. The must for LM0!
 }else{                              /* ltu board */
   if( (opmo&7) >3) {
     printf("ERROR: setomSSM: %x >3 for LTU board\n",(int)opmo);
@@ -314,6 +318,7 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   };
   Closevsp(vsp);
 }
+if(rc==0) sms[board].lopmode= opmo;
 return(rc);
 }
 
@@ -542,10 +547,16 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   /* don't touch InOut, ConfSel bits and SSMenable word when VME access*/
   status= vmer32(SSMstatus+ssmoffset);
   if((board==1) && (l0C0()!=0)) {   // LM0 board
+    w32 opmod;
+    opmod= sms[board].lopmode;
     //todo here: check if ddr3 filled
     // following: just to be compatible with getswSSM ?
     rc= setomvspSSM(0, ssmoffset, SSMomvmer);
-    rc= ddr3_ssmread(NULL, array); 
+    if(opmod==0xa) {
+      rc= ddr3_ssmread(NULL, array); 
+    } else {
+      rc= ddr3_ssmread(array, NULL); 
+    };
   } else {                          // BSY L0/1/2 FO INT
     enable= (status&0xc0)<<2;
     mod= SSMomvmer | (status&0x38) | enable;

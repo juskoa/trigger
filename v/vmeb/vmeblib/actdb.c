@@ -226,12 +226,14 @@ if((err= actdb_getdbfile("ctp.cfg",actname,actversion)) !=0) {rc= err; goto STP;
 sprintf(cfglist, "%s ctp.cfg %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("aliases.txt",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s aliases.txt %s %s\n", cfglist, actname, actversion);
-if((err= actdb_getdbfile("L0.INPUTS",actname,actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("ctpinputs.cfg",actname,actversion)) !=0) {rc= err; goto STP;};
+sprintf(cfglist, "%s ctpinputs.cfg %s %s\n", cfglist, actname, actversion);
+/*if((err= actdb_getdbfile("L0.INPUTS",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s L0.INPUTS %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("CTP.SWITCH",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s CTP.SWITCH %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("VALID.CTPINPUTS",actname,actversion)) !=0) {rc= err; goto STP;};
-sprintf(cfglist, "%s VALID.CTPINPUTS %s %s\n", cfglist, actname, actversion);
+sprintf(cfglist, "%s VALID.CTPINPUTS %s %s\n", cfglist, actname, actversion); */
 if((err= actdb_getdbfile("VALID.DESCRIPTORS",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s VALID.DESCRIPTORS %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("FillingScheme",actname,actversion)) !=0) {rc= err; goto STP;} else {

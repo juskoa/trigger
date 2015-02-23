@@ -81,7 +81,7 @@ D prog.txt       -programming
 
 Other files:
 CTPreadme -notes about the CTP software
-cnames,cnames.sorted2 -list of CTP counter names
+cnames,cnames.sorted2 -list of CTP counter names (see counters.txt)
 CTPhistory.txt        -history of modifications for CTP sw
 logaug                - to do list + what was done in august 2006
 

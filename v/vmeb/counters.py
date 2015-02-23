@@ -1444,20 +1444,20 @@ def main():
       cv=VMEcnts(printnames='Yes')
       #cv.printnames='Yes'
       cv.addnewcnt()
+    elif p1=='shmcnts':
+      #f.bind("<Destroy>", fdestroy)
+      SHMcnts(tlw=f)
+      #VMEcnts(f)
+      f.mainloop()
   else:
     print """Usage:
-./counters.py                   -to get 'counters over time' graph
+./counters.py shmcnts           -to get 'counters over time' graph (abandoned, needs to be finished...)
 ./counters.py printnames        -print counter names to stdout
 Usually:
 ./counters.py printnames >~/cnames
 sort -n -k 2 -t ' ' ~/cnames >~/cnames.sorted2
 
 """
-  return
-  #f.bind("<Destroy>", fdestroy)
-  SHMcnts(tlw=f)
-  #VMEcnts(f)
-  f.mainloop()
 
 if __name__ == "__main__":
   main()

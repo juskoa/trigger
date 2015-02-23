@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.0",
+      version="5.1",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -23,9 +23,9 @@ return code:
 8         -error message printed to stdout
 
 news: 
-from v3.0: 100 classes
 from v4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
 from v5.0: $dbctp/filter preferred, if not available trgInput_* (ON/OFF) used
+from v5.1: 0HWU check removed, i.. TRD cluster allowed with non-0HWU classes
 """,
       author="Anton Jusko",
       packages=["validate"],

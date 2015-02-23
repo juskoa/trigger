@@ -28,13 +28,15 @@
 #define CORDE_SETtag 5 
 #define QPLLtag 6 
 #define DLL_RESYNCtag 7 
+#define FREQStag 8 
 
 int readclockshift(char *mem, int maxlen);
 void writeall();
 void printRFRX(char *baserfrx);
+void getRFRX(int vsp, Tchan *rfrxchannels);
 
 int MICLOCKid;
-int SHIFTid,QPLLid;
+int SHIFTid,QPLLid,FREQSid;
 int MICLOCK_TRANSITIONid;
 
 int quit=0; 
@@ -54,6 +56,10 @@ int clocktran=0; char clocktransition[MAXLILE+1]="0";
 int TAGqpll_thread=88;
 int nlogqpll=0;
 w32 qpllstat=0; // in agreement with qpllnow
+int vspRFRX[2]={-1,-1}; 
+Tchan rfrx1[3];
+Tchan rfrx2[3];
+float freqs[4]; // TTCMI/FREV_B1 FREV_B2 F40_B1 F40_B2
 
 /*--------------------------------------------------------------- error_handler
 A severity code: 0 - info, 1 - warning, 2 - error, 3 - fatal.
@@ -411,18 +417,41 @@ char msg[100];
 *size= strlen(qpllnow)+1;
 sprintf(msg, "QPLLcaba qpllnow:%s size:%d \n", shiftnow, *size); prtLog(msg); 
 }
+/*----------------------------------------------------------- FREQScaba
+*/
+void FREQScaba(void *tag, void **msgpv, int *size, int *blabla) {
+char **msgp= (char **)msgpv; int ix;
+char msg[200]; char freqstxt[80];
+// readVME:
+*msgp= (char *)freqs;
+*size= 16;
+for(ix=0; ix<4; ix++) {
+  sprintf(freqstxt, "%s %f10.6", freqstxt, freqs[ix]);
+};
+sprintf(msg, "FREQScaba freqs now:%s size:%d \n", freqstxt, *size); prtLog(msg); 
+}
 
 /*--------------------------------------------------------------- qpll_thread
 */
 void qpll_thread(void *tag) {
 while(1) {   //run forever
-  int rc; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
+  int rc,ix; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
   char buffer[50];
   if(envcmp("VMESITE", "ALICE")==0) {
     stat= readstatus();
+    // update freqs:
+    getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2);
+    freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
+    freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
+    //printf("ref bc1 orbit1\n"); printf("--- bc2 orbit2\n");
   } else {
     // simulate:
     stat= qpllstat+1;
+    for(ix=0; ix<4; ix++) {
+      int inc;
+      if(ix>1) {inc=10;} else {inc= 1;}; //+10 for F40, +1 for orbits
+      freqs[ix]= freqs[ix]+inc;
+    };
   };
   if(stat != qpllstat) {
     qpllstat= stat;
@@ -447,19 +476,43 @@ while(1) {   //run forever
 /*--------------------------------------------------------------- ds_register
 */
 void ds_register() {
-int rc=0, vspRF2TTC=0;
+int ix,rc=0, vspRF2TTC=0;   // RF2TTC 0, RFRX1/2: see vspRFRX[0..1]
 char command[MAXCMDL];
 
 setlinebuf(stdout);
 if(micratepresent()) {
+  int ix, rcexit=0; char msg[200]="";
+  char *rfrxbase[2]={"0x300000", "0x400000"};
   rc= vmxopenam(&vspRF2TTC, "0xf00000", "0x100000", "A32");
   if(rc!=0) {
-    printf("vmxopen TTCMI vme:%d\n", rc); exit(8);
+    sprintf(msg, "vmxopen TTCMI vme:%d\n", rc); rcexit=8;
+  };
+  for(ix=0; ix<=1; ix++) {
+    vspRFRX[ix]=-1; 
+    rc= vmxopenam(&vspRFRX[ix], rfrxbase[ix], (char *)"0x100", (char *)"A24");
+    if(rc!=0) {
+      sprintf(msg, "vmxopen RFRX%d vme:%d\n", ix, rc); rcexit=8;
+    };
+  };
+  if(rcexit!=0) exit(rcexit);
+  writeall(); 
+  printf("ref bc1 orbit1\n"); printRFRX("0x300000");
+  printf("--- bc2 orbit2\n"); printRFRX("0x400000");
+  printf("getRFRX way:\n");
+  getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2); 
+  freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
+  freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
+  printf("ref bc1 orbit1:"); for(ix=0; ix<3; ix++) {
+    printf("%d/%f ", rfrx1[ix].ref, rfrx1[ix].freq);
+  }; printf("\n");
+  printf("--- bc2 orbit2:"); for(ix=0; ix<3; ix++) {
+    printf("%d/%f ", rfrx2[ix].ref, rfrx2[ix].freq);
+  }; printf("\n");
+} else {
+  for(ix=0; ix<=4; ix++) {
+    freqs[ix]=0.0;
   };
 };
-writeall(); 
-printf("ref bc1 orbit1\n"); printRFRX("0x300000");
-printf("--- bc2 orbit2\n"); printRFRX("0x400000");
 printenvironment();
 printf("DIM server:%s\n",MYNAME);
 dis_add_error_handler(error_handler);
@@ -486,7 +539,9 @@ SHIFTid=dis_add_service(command,"C", shiftnow, MAXLILE+1,
 strcpy(command, MYNAME); strcat(command, "/QPLL");
 QPLLid=dis_add_service(command,"C", qpllnow, MAXLILE+1,
   QPLLcaba, QPLLtag);  printf("%s\n", command);
-//MICLOCK_TRANSITIONcaba, MICLOCK_TRANSITIONtag);  printf("%s\n", command);
+strcpy(command, MYNAME); strcat(command, "/RFRX");
+FREQSid=dis_add_service(command,"F:4", freqs, 16,
+  FREQScaba, FREQStag);  printf("%s\n", command);
 
 printf("serving...\n");
 dis_start_serving(MYNAME);  

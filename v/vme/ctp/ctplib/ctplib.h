@@ -168,7 +168,7 @@ Read 4MB of usefull data (64MB from DDR3, i.e. ~23secs), i.e.
 store only last 2 words (2x4 bytes) from each 512bits(=64bytes) block
 in ssm1, ssm2
 Use ssmshow after being read.
-ssm1,ssm2: MEGA words  in each (ssm1:NULL -do not fill it)
+ssm1,ssm2: MEGA words  in each (ssm1/2:NULL -do not fill it)
 rc: 0 ok
    rc from ddr3_read (stdout printed also)
 */
