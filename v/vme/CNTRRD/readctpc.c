@@ -189,7 +189,8 @@ int rad;
 //w32 *bufw32= (w32 *)buffer;
 rad= cntstr[ix].reladdr;
 // debug: change bufw32 if busy according to avbsyix:
-if(strcmp(hname, "alidcscom835")!=0) {
+if((strcmp(hname, "alidcscom835.cern.ch")!=0) ||
+  (strcmp(hname, "alidcscom835")!=0)) {
   if(cntstr==busy) {
     bufw32[rad]= debugbusy;
     if(ix==0) {
@@ -408,6 +409,7 @@ for(ix=0; ix<N24; ix++) {
     for(cix=0; cix<WHATBUSYS; cix++) {
       int avbusy; w32 trigsdif, l2rsdif; float totbusy;
       totbusy= dodif32(busy[ix].prevcs, busy[ix].currcs)*0.4;
+      //printf("dbg1: %d %d %d %f\n", cix, busy[ix].prevcs, busy[ix].currcs, totbusy);
       //dbg totbusy= timedelta*0.4*(measnum/10.); 
       if(cix==0) {   // bsy/L0
         trigsdif= dodif32(l0s[ix].prevcs, l0s[ix].currcs);
