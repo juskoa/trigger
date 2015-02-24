@@ -108,8 +108,9 @@ if(run>0) {
   crun[0]='\0';
 };
 setenv("DATE_RUN_NUMBER", crun, 1);
-// perhaps better:
-// infoLogger_setParam_int(INFOLOG_PARAM_FIELD_RUN_NUMBER,12345)
+// following from 24.2.2015 (Sylvain advice - env. is reread only once
+// per 60 secs)
+infoLogger_setParam_int(INFOLOG_PARAM_FIELD_RUN_NUMBER,run);
 #endif
 }
 void infolog_SetFacility(char *facility) {

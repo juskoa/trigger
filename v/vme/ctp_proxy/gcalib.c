@@ -459,7 +459,7 @@ enum Ttokentype token; int ix; char value[100]; char em1[200];
 if(DBGCMDS) {
   char logmsg[200];
   sprintf(logmsg, "DOcmd1: tag:%d size:%d mymsg:%s<-endofmsg", *(int *)tag, *size,mymsg);
-  prtLog(logmsg);
+  //prtLog(logmsg);
 };
 if(*size <msglen) msglen=*size;
 strncpy(msg, mymsg, msglen); msg[msglen]='\0';

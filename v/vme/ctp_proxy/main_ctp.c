@@ -67,6 +67,7 @@ if((signum==SIGUSR1) || (signum==SIGQUIT) ) {
     //sprintf(msg, "Waiting for the stop of all partitions before exit");
     sprintf(msg, "Unsuccessful attempt to stop ctpproxy, %d partitions active", np);
     prtLog(msg);
+    pq_send(mq_sendmsg,"quitignored");
   } else {
     quit=10;  // stop immediately (no partitions loaded)
   };
@@ -138,6 +139,8 @@ if(strcmp(cmd,"LOAD")==0) {
     sprintf(ORBIT_NUMBER,"%u", orbitn);
     smi_set_par("ORBIT_NUMBER", ORBIT_NUMBER, STRING);
   }
+} else if(strcmp(cmd,"quitignored")==0) {
+    infolog_trgboth(LOG_ERROR, "Unsuccessful attempt to stop ctpproxy, partitions active");
 } else {
   printf("executectp cmd ignored: %s\n", cmd);
   fflush(stdout); return;
