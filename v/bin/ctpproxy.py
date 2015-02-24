@@ -95,13 +95,13 @@ rc:
     if hostname=="avmes":
       os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="altri1"
-      vmeswitch="trigger@altri2"
+      #vmeswitch="trigger@altri2"
       #os.environ["ACT_DB"]= "daq:daq@pcald30/ACT"
     elif hostname=="alidcscom835":    # alidcscom188
       #os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
       os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="alidcsvme001"
-      vmeswitch="trigger@alidcsvme004"
+      #vmeswitch="trigger@alidcsvme004"
       #os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
     else:
       rc= 6
@@ -123,16 +123,18 @@ rc:
       if iop.check("TRIGGER::CTP not running")>=0:
         #iop= iopipe("...ctp_proxy/linux/act.exe")
         #iop= iopipe("startClients.bash ctpproxy actstart","nout")
-        #actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux/act.exe")
-        #iop= iopipe(actdownload)
-        #print iop.outlines
-        #if iop.check("CTP config files downloaded from ACT.")>=0:
+        actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux_s/act.exe")
+        iop= iopipe(actdownload)
+        print iop.outlines
+        if iop.check("CTP config files downloaded from ACT.")>=0:
         ##os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
         #iop= iopipe("./switched.py load")
         #print iop.outlines
         ##sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
         ##import switched
-        rc= 0 ##rc= switched.main("actload")
+          rc= 0 ##rc= switched.main("actload")
+        else:
+          rc= 5
         if rc==0:
           ##iop= iopipe("ssh -2 -q %s '$VMECFDIR/../bin/loadswitch ctp'"%vmeswitch)
           ixl= 0 ##ixl= iop.check("CTP.SWITCH: connected")

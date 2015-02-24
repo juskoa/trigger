@@ -63,8 +63,9 @@ if((signum==SIGUSR1) || (signum==SIGQUIT) ) {
   int np;
   np= getNAllPartitions();
   if(np!=0) {
-    quit=1; // wait till all partitions stopped
-    sprintf(msg, "Waiting for the stop of all partitions before exit");
+    //quit=1; // wait till all partitions stopped
+    //sprintf(msg, "Waiting for the stop of all partitions before exit");
+    sprintf(msg, "Unsuccessful attempt to stop ctpproxy, %d partitions active", np);
     prtLog(msg);
   } else {
     quit=10;  // stop immediately (no partitions loaded)
