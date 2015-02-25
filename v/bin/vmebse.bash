@@ -15,6 +15,7 @@ fi
 }
 vdir=`pwd`/v     # before git: vdir='v'
 hname=`hostname -s`
+export HOSTNAME=$hname
 if [ -n "$1" ] ;then
   if [ "$1" = 'swonly' ] ;then
     if [ -n "$2" ] ;then

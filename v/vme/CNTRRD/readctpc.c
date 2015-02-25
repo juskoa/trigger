@@ -189,8 +189,7 @@ int rad;
 //w32 *bufw32= (w32 *)buffer;
 rad= cntstr[ix].reladdr;
 // debug: change bufw32 if busy according to avbsyix:
-if((strcmp(hname, "alidcscom835.cern.ch")!=0) ||
-  (strcmp(hname, "alidcscom835")!=0)) {
+if(strcmp(hname, "alidcscom835")!=0) {
   if(cntstr==busy) {
     bufw32[rad]= debugbusy;
     if(ix==0) {
@@ -391,6 +390,9 @@ for(ix=0; ix<N24; ix++) {
   notdefined=0;
   rad= busy[ix].reladdr;
   if(rad != -1) {
+    if(strcmp(hname, "alidcscom835")!=0) {
+      printf("Warning: arranging dbg values in non-p2 setup!...\n");
+    };
     shiftcnt(busy, ix, bufw32);
     shiftcnt(l0s, ix, bufw32);
     shiftcnt(l1s, ix, bufw32);
