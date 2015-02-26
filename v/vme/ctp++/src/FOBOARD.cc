@@ -31,7 +31,7 @@ int FOBOARD::CheckCountersNoTriggers()
  int ret=0;
  for(int i=1;i<NCountersfromcnames;i++){
     if(countdiff[i] != 0){
-      printf("Counter %s != 0 : %u \n",CounterNames[i].c_str(),countdiff[i]);
+      printf("Error: FO Counter %s != 0 : %u \n",CounterNames[i].c_str(),countdiff[i]);
       ret=1;
     }
  }

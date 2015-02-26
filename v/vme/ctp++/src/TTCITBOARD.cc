@@ -324,7 +324,7 @@ int TTCITBOARD::AnalyseSSM()
  if(L1.size() != L2m.size()){
    // check last l0 if not too close to the end of ssm
    if((Mega-L1[L1.size()-1])>4600){
-    printf("Error: different # of L1 and L2m : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
+    printf("Error: different # of L1 and L2m(L2a+L2r) : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
     return 1;
    }
  }
@@ -473,6 +473,29 @@ void TTCITBOARD::Dump2quSSM()
      qttcab.push_back(ss);
    }
  } 
+}
+void TTCITBOARD::DumpqueSSM2file(const char *name)
+{
+ char filename[200];
+ char *environ;
+ char fnpath[1024];
+ FILE *dump;
+ sprintf(filename,"%s",name);
+  // Open file
+ environ= getenv("VMEWORKDIR"); strcpy(fnpath, environ);
+ strcat(fnpath,"/"); strcat(fnpath,"WORK/"); 
+ strcat(fnpath, filename); strcat(fnpath, ".dump");
+ dump=fopen(fnpath,"w");
+ if(dump == NULL){
+  printf("Cannot open file: fnpath: %s\n", fnpath);
+  exit(1);
+ }
+ printf("Dumping qttcab in %s \n",fnpath);
+ for(w32 i=0;i<qttcab.size();i++){
+   char line[128];
+   qttcab[i]->Print2char(line);
+   fprintf(dump,"%i %s \n",i,line);
+ }
 }
 /*============================================================================
  * Text dump for visual debuging
