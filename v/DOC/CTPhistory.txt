@@ -393,3 +393,5 @@ and delay is now 5 bits (0..31 BCs)
 23.2.
 ttcmidims - services added
 ssm[].lopmo added (for LM0 ssm status)
+25.2.
+Tpartition.c: modified to acomodate change of LM from 32 ->11 switch input

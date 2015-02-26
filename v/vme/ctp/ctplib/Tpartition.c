@@ -691,7 +691,8 @@ more classes mixing rnd1 usage.
 */
 void checkmodLM(Tpartition *part){
 #define RND1MASK 0x10000000
-#define SWIN32MSK (1<<(32-25))
+//#define SWIN32MSK (1<<(32-25))
+#define SWIN11MSK (1<<(11-1))
 int i;
 for(i=0;i<NCLASS;i++){
   TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
@@ -720,18 +721,29 @@ for(i=0;i<NCLASS;i++){
         ninps= klas->l0inputs | RND1MASK;  // do not use it at L0
         ninps= ninps & (~0x10);  // AND USE l0inp5 !
         klas->l0inputs= ninps;
-        rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        /*rndw1= vmer32(RND1_EN_FOR_INPUTS);
         rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
         rndw3= rndw2 | (SWIN32MSK);
         vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
         printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x \n", 
-          i, ninps, rndw1, rndw2, rndw3);
+          i, ninps, rndw1, rndw2, rndw3); */
+        rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        rndw3= rndw1 | (SWIN11MSK);
+        vmew32(RND1_EN_FOR_INPUTS, rndw3);
+        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x->0x%x 0x%x\n", 
+          i, ninps, rndw1, rndw3, rndw2);
       } else {
         w32 rndw2, rndw3;
-        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        /*rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
         rndw3= rndw2 & (~(SWIN32MSK));
         vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
         printf("checkmodLM off32:%d l0inputs:0x%x RND1_EN_FOR_INPUTS+4: 0x%x->0x%x \n", 
+          i, klas->l0inputs, rndw2, rndw3); */
+        rndw2= vmer32(RND1_EN_FOR_INPUTS);
+        rndw3= rndw2 & (~(SWIN11MSK));
+        vmew32(RND1_EN_FOR_INPUTS, rndw3);
+        printf("checkmodLM off11:%d l0inputs:0x%x RND1_EN_FOR_INPUTS: 0x%x->0x%x \n", 
           i, klas->l0inputs, rndw2, rndw3);
       };
     };
