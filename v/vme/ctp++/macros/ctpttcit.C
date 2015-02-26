@@ -9,14 +9,19 @@ int main()
   int vmesp=-1;
   string boardname("ttcit");
   TTCITBOARD *ttc= new TTCITBOARD(boardname.c_str(),0x8a0000,vmesp);
-  for(int i=0;i<100000;i++){
+  for(int i=0;i<1000000;i++){
      printf("Snapshot # %i ===================================================================\n",i);
-     if(ttc->start_stopSSM(ctp->busy)) return 1;
+     ///if(ttc->start_stopSSM(ctp->busy)) return 1;
+     ttc->start_stopSSM();
      ttc->Dump2quSSM();
      //ttc->DumptxtSSM();
      ret=ttc->AnalyseSSM();
      if(ret){
+       char time[30];
+       getdatetime(time);
+       printf("Time: %s \n",time);
        ttc->DumptxtSSM();
+       ttc->DumpqueSSM2file("test.txt");
        //return 1;
      }
      ttc->ClearQueues();

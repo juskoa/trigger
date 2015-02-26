@@ -14,7 +14,7 @@ int main()
   //ctp->busy->printCountersDiff();
   ctp->fo[0]->printCountersDiff();
   //ctp->fo[0]->printCounters();
-
+  printf(">-----------------------------Checking counters for no configuration \n");
   ctp->l0->CheckCountersNoTriggers();
   ctp->l1->CheckCountersNoTriggers();
   ctp->l2->CheckCountersNoTriggers();
