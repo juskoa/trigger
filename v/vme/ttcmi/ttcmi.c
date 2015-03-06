@@ -140,7 +140,7 @@ read BC_DEALY25_* registers
 */
 void printBC_DELAYS() {
 int ix;
-char *names[40]={
+const char *names[40]={
 "BC_DELAY25_BC1",
 "BC_DELAY25_BC2",
 "BC_DELAY25_BCREF",
@@ -309,9 +309,9 @@ char bc12rmansel[4]="III";
 w32 adrpol, adrlen, pol, len, bc1man, orb1man, wwm, wmm, pol1;
 printf("PROGRAM_ID:%x\n", vmer32(PROGRAM_ID));
 printf("ref bc1 orbit1\n");
-printRFRX("0x300000");
+printRFRX((char *)"0x300000");
 printf("--- bc2 orbit2\n");
-printRFRX("0x400000");
+printRFRX((char *)"0x400000");
 /*von
 vsp=-1; rc= vmxopenam(&vsp, "0x400000", "0x100", "A24");
 printf("rc:%d vsp:%d\n", rc, vsp);
@@ -442,7 +442,12 @@ while(1) {
 fprintf(f,"%s closing\n", dt); fclose(f);
 }
 void initmain() {
+int rc;
 printf("initmain called...\n");
+micrate(-1);
+if(micratepresent() & 0x1) {
+  rc= openrfrxs();
+};
 }
 void boardInit() {
 writeall();

@@ -11,7 +11,7 @@ g++  -g -I/opt/dim/dim  -DCPLUSPLUS ./cmd1.c -L/opt/dim/linux -ldim -o linux/cmd
 #endif
 
 #define TAGdo 33
-char DETNAME[10]="";
+char DETNAME[10]="xxx";   // e.g. "spd"
 char DNCMD[20];   // detname/CMD
 char cmdglobal[80]="bad cmd";
 int rcglob=8;

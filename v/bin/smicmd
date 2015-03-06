@@ -3,7 +3,7 @@
 pname="$2"
 if [ "$1" = 'init' ] ;then
   if [ -z "$4" ] ;then
-    echo "smicmd init partition mask RUNN"
+    echo "smicmd init partition decmask RUNN"
   else
 # ACO 65536 PHOS: 128   HMPID:64    PHOS+HMPID:128+64=192
     /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK $3 -ps RUN_NUMBER $4 -ps ACT_CONFIG NO
@@ -34,7 +34,7 @@ EOF
 else
 cat - <<-EOF
 Partition name: $pname
-smicmd init partition mask RUNN
+smicmd init partition decmask RUNN
 smicmd start/stop/pause/resume/sync/ack/reset partition
 
 General usage:
@@ -42,11 +42,13 @@ General usage:
 2.  smicmd TRIGGER      -start private TRIGGER domain (on avmes or altri1)
     ONLY 1 instance can be active (it will crash if another instance is running already)
 3. use smicmd partition init/start/stop/.... as suggested above
-4. Note about mask:
+4. Note about mask:  Give it in decimal notation, i.e:
 0x80 128 PHOS
 0x40  64 HMPID
 0xc0 192 PHOS HMPID
 0x10  16 TRD
+0x90 144 TRD PHOS
+0x50  80 TRD HMPID
 EOF
 fi
 echo "smiSendCommnad rc:" $?

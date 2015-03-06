@@ -336,6 +336,7 @@ for(iclu=0;iclu<NCLUST;iclu++) {
     daqi->classmasks64_100[iclu]);
 #ifdef DAQLOGBOOK
   if(ignoredaqlog!=0) { rc=0;
+    printf("INFO DAQlogbook_update_cluster(%d,...) not called(ignore daq)\n", runn);
   } else { 
     logbook_triggerClassMask_t classmask;
     classmask[0]=daqi->classmasks00_063[iclu];
@@ -348,6 +349,7 @@ for(iclu=0;iclu<NCLUST;iclu++) {
     };
   };
 #else
+printf("INFO DAQlogbook_update_cluster(%d,...) not called\n", runn);
 #endif
 };
 return(rc);

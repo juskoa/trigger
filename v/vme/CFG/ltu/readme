@@ -101,4 +101,7 @@ BUSY2 -> L1  i.e. LVDS to ECL
 ltu_logic_vD2.rbf
 BUSY1 -> out_prepulse(NIM)),
 BUSY2 -> out_L1(ECL) + BUSY(LVDS))
+3.3.2015
+ltu_logic_BB.rbf, ltu2_logic_BB.rbf
+improved timing, TTC-A/B output configurable
 

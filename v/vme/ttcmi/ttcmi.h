@@ -101,6 +101,7 @@ void corde_set(int del, w32 val); // detto
 w32 corde_shift(int del, int shift, int *origval);  //detto
 w32 i2cread_delay(w32 delayadd);
 
+int openrfrxs();
 void i2cset_delay(w32 delayadd, int halfns);
 void micrate(int present);
 int micratepresent();

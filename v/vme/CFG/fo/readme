@@ -27,6 +27,7 @@ fo_logic_verAF.rbf
 to be used with l2_logic_verA8.rbf +2 bits for clusters 7,8 in ser. data
 7.4.2014 fo_logic_verB1.rbf
 2 bits shift in class data...
-10.2.2014
+10.2.2015
 B2 timing introduced
-
+3.3.2015
+fo_logic_B3.rbf timing to LTU

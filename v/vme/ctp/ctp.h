@@ -347,7 +347,10 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 #define RANDOM_2       0x9220
 #define SCALED_1       0x9224
 #define SCALED_2       0x9228
-#define ALL_RARE_FLAG  0x922c
+#define ALL_RARE_FLAG  0x922c WRITE ONLY on LM0 board!
+                       1: all (take all classes)
+                       0: take only classes without ALL/rare flag set 
+                          (=red in ctp)
 */
 //----------------- 
 //

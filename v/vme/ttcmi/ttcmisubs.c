@@ -24,13 +24,36 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 //von #include "ctplib.h"
 #include "ttcmi.h"
 
+int vspRFRX[3]={-1,-1};  // RFRX1,2
+
 //----------------------------------------- corde board (also vme/corde dir):
 char corde_base[]="0x7000000";
 char corde_len[]="0x7fc00";
 char corde_A32[]="A32";
 
 w32 halfnsvme=0x140+29, cordevalvme=512;
-int havemicrate=1;
+/* 3:p2     RF2TTC + RFRXs
+ * 0:altri1 (no RF2TTC, no RFRX) 
+ * 2:altri2 (only RF2TTC)
+ * 4: corde only
+*/
+int havemicrate=0; 
+
+int openrfrxs() {
+int ix,rc=0;
+const char *rfrxbase[2]={"0x300000", "0x400000"};
+char msg[200]="";
+for(ix=0; ix<=1; ix++) {
+  vspRFRX[ix]=-1; 
+  rc= vmxopenam(&vspRFRX[ix], (char *)rfrxbase[ix], (char *)"0x100", (char *)"A24");
+  //rc= vmxopenam(&vspRFRX[ix], rfrxbase[ix], "0x100", "A24");
+  if(rc!=0) {
+    sprintf(msg, "vmxopen RFRX%d vme:%d\n", ix, rc);
+    break;
+  };
+};
+return(rc);
+}
 
 void com2daq(int run, char *title, char *msg) {
 int rc; char cmd[530];
@@ -172,69 +195,83 @@ if(micratepresent()) {
 - set BC1/2 and Orbit1/2 delays
 */
 void writeall() {
-int ix,rc1,rc2,vsp3,vsp4;
-w32 adrpol, adrlen;
-w16 refsBC[3]={0x5, 0x5, 0xa0};     // a0 from 4.12.2014 (was 0x70)
-w16 refsOrbit[3]={0x5, 0x5, 0xa0};  // a0 from 4.12.2014
-vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
-printf("vmxopenam 0x700000 (CORDE) rc:%d\n", rc2);
-vmxw32(vsp4, CORDE_RESET, 0);
-vmxw32(vsp4, CORDE_RESET, 1);
-vmxw32(vsp4, CORDE_RESET, 0);
-rc2= vmxclose(vsp4);
-printf("CORDE board reset. vmeclose rc:%d\n",rc2);
-vsp3=-1; rc1= vmxopenam(&vsp3, (char *)"0x300000", (char *)"0x100", (char *)"A24");
-vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x400000", (char *)"0x100", (char *)"A24");
-printf("vmxopenam 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
-for(ix=0; ix<3; ix++) {
-  adrpol= ch1_ref + ix*0x2;
-  vmxw16(vsp3, adrpol, refsBC[ix]);
-  vmxw16(vsp4, adrpol, refsOrbit[ix]);
+int ix,rc2;
+if(micratepresent()&0x4) {
+  int vsp4;
+  vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
+  printf("vmxopenam 0x700000 (CORDE) rc:%d\n", rc2);
+  vmxw32(vsp4, CORDE_RESET, 0);
+  vmxw32(vsp4, CORDE_RESET, 1);
+  vmxw32(vsp4, CORDE_RESET, 0);
+  rc2= vmxclose(vsp4);
+  printf("CORDE board reset. vmeclose rc:%d\n",rc2);
+} else {
+  printf("CORDE not set (not p2)\n");
 };
-rc1= vmxclose(vsp3); rc2= vmxclose(vsp4);
-printf("vmxclose 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
+//if((micratepresent()==3) || (micratepresent()==2)) {
+if(micratepresent()&1 ) {          //----------------------- RFRXs
+  w32 adrpol;
+  w16 refsBC[3]={0x5, 0x5, 0xa0};     // a0 from 4.12.2014 (was 0x70)
+  w16 refsOrbit[3]={0x5, 0x5, 0xa0};  // a0 from 4.12.2014
+  for(ix=0; ix<3; ix++) {
+    adrpol= ch1_ref + ix*0x2;
+    vmxw16(vspRFRX[0], adrpol, refsBC[ix]);
+    vmxw16(vspRFRX[1], adrpol, refsOrbit[ix]);
+  };
+  /* rc1= vmxclose(vspRFRX[0]); rc2= vmxclose(vspRFRX[1]);
+  printf("vmxclose 0x300000 rc:%d 0x400000 rc:%d\n", rc1, rc2);
+  */
+} else {
+  printf("RFRXs not set (not p2)\n");
+};
+if(micratepresent()&2 ) {          //----------------------- RF2TTC
+  w32 adrpol, adrlen;
+  vmew32(ORB1_DAC, 0xaa); vmew32(ORB2_DAC, 0xaa);
+  for(ix=0; ix<3; ix++) {
+    adrpol= ORBX_POLARITY+ 0x40*ix;
+    adrlen= ORBX_LENGTH+ 0x40*ix;
+    vmew32(adrpol, 1); vmew32(adrlen, 0x26);
+  };
+  /* set delays: */
+  //i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 15.jun2010, 0 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 40);  // 40 from 10.july2010, 44 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 6.sep2010, 40 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 46);  // 46 from 25.oct2010, 44 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 47);  // 47 from 5.nov2010, 46 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 48);  // 48 from 18.nov2010, 47 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 49);  // 49 from 26.nov2010, 48 before
+  //i2cset_delay( BC_DELAY25_BCMAIN, 50);  // 50 from 29.nov2010
+  //i2cset_delay( BC_DELAY25_BCMAIN, 51);  // 51 from 2.dec.2010
+  //i2cset_delay( BC_DELAY25_BCMAIN, 52);  // 52 from 6.dec.2010 8:20
+  //i2cset_delay( BC_DELAY25_BCMAIN, 53);  // 53 from 6.dec.2010 14:30
+  // from 2011 set in setbcorbitMain
+  /* lets add 5ns for Orbit latch (see calibrate() ) 
+  i2cset_delay(ORBIN_DELAY25_ORB1, 20);
+  i2cset_delay(ORBIN_DELAY25_ORB2, 0);
+  */
+  i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.12.2014 (rf2ttcscope)
+  i2cset_delay(ORBIN_DELAY25_ORB2, 0x11);
+  //vmew32(ORBmain_COARSE_DELAY,2);
+  vmew32(ORBmain_COARSE_DELAY,3564);
+  vmew32(ORB1_COARSE_DELAY,3564);
+  i2cset_delay(ORBOUT_DELAY25_ORB1,11);
+  i2cset_delay(ORBOUT_DELAY25_ORBMAIN,11);
+  // i.e.: BC_DELAY25_BCMAIN 0x7d00c:16c
+  //i2cset_delay( ORBmain_COARSE_DELAY, 0); // was and is 0
+  /* all the others left as initialised by RF2TTC fy */
+
+  vmew32(BC1_MAN_SELECT,1); vmew32(BC2_MAN_SELECT,1); vmew32(BCref_MAN_SELECT,1);
+  vmew32(ORB1_MAN_SELECT, 0); vmew32(ORB2_MAN_SELECT, 0); 
+  printf("BC1/2/ref and ORB1/2 connected to their external inputs\n");
+  setbcorbitMain(4); printf("Using local clock\n");
+  //setbcorbitBO1(1);
+  //setorbitdelay(3563);
+};
 /* vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
 printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
-vmew32(ORB1_DAC, 0xaa); vmew32(ORB2_DAC, 0xaa);
-for(ix=0; ix<3; ix++) {
-  adrpol= ORBX_POLARITY+ 0x40*ix;
-  adrlen= ORBX_LENGTH+ 0x40*ix;
-  vmew32(adrpol, 1); vmew32(adrlen, 0x26);
+if((micratepresent()&0x3)==0) {
+  printf("Realy good place to start ttcmi ? micratepresent:%d\n",micratepresent());
 };
-/* set delays: */
-//i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 15.jun2010, 0 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 40);  // 40 from 10.july2010, 44 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 44);  // 44 from 6.sep2010, 40 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 46);  // 46 from 25.oct2010, 44 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 47);  // 47 from 5.nov2010, 46 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 48);  // 48 from 18.nov2010, 47 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 49);  // 49 from 26.nov2010, 48 before
-//i2cset_delay( BC_DELAY25_BCMAIN, 50);  // 50 from 29.nov2010
-//i2cset_delay( BC_DELAY25_BCMAIN, 51);  // 51 from 2.dec.2010
-//i2cset_delay( BC_DELAY25_BCMAIN, 52);  // 52 from 6.dec.2010 8:20
-//i2cset_delay( BC_DELAY25_BCMAIN, 53);  // 53 from 6.dec.2010 14:30
-// from 2011 set in setbcorbitMain
-/* lets add 5ns for Orbit latch (see calibrate() ) 
-i2cset_delay(ORBIN_DELAY25_ORB1, 20);
-i2cset_delay(ORBIN_DELAY25_ORB2, 0);
-*/
-i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.12.2014 (rf2ttcscope)
-i2cset_delay(ORBIN_DELAY25_ORB2, 0x11);
-//vmew32(ORBmain_COARSE_DELAY,2);
-vmew32(ORBmain_COARSE_DELAY,3564);
-vmew32(ORB1_COARSE_DELAY,3564);
-i2cset_delay(ORBOUT_DELAY25_ORB1,11);
-i2cset_delay(ORBOUT_DELAY25_ORBMAIN,11);
-// i.e.: BC_DELAY25_BCMAIN 0x7d00c:16c
-//i2cset_delay( ORBmain_COARSE_DELAY, 0); // was and is 0
-/* all the others left as initialised by RF2TTC fy */
-
-vmew32(BC1_MAN_SELECT,1); vmew32(BC2_MAN_SELECT,1); vmew32(BCref_MAN_SELECT,1);
-vmew32(ORB1_MAN_SELECT, 0); vmew32(ORB2_MAN_SELECT, 0); 
-printf("BC1/2/ref and ORB1/2 connected to their external inputs\n");
-setbcorbitMain(4); printf("Using local clock\n");
-//setbcorbitBO1(1);
-//setorbitdelay(3563);
 //rc= vmxclose(vsp);
 }
 void getRFRX(int vsp, Tchan *frs) {
@@ -427,7 +464,21 @@ printf("0x40 -> BC_DELAY25_GCR done\n");
 };
 }
 void micrate(int present) {
-havemicrate= present;
+if(present==-1) {
+  if(envcmp((char *)"VMESITE", (char *)"ALICE")==0) {
+    havemicrate= 7;  // CORDE RF2TTC RFRXs
+  } else {
+    char *hn;
+    hn= getenv("HOSTNAME");
+    if(strcmp(hn, "altri2")==0) {
+      havemicrate= 2;  // RF2TTC only
+    } else {
+      havemicrate= 0;
+    };
+  };
+} else {
+  havemicrate= present;
+};
 }
 int micratepresent() {
 return(havemicrate);

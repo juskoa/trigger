@@ -143,7 +143,7 @@ int bb,cix; w32 copyread;
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(8); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 for(cix=0; cix<=reladr; cix++) {

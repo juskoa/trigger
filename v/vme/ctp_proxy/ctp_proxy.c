@@ -2081,11 +2081,13 @@ return(rc);
 //--------------------------------------------------------------------
 // Initialise
 //w8 *mallocShared(w32 shmkey, int size, int *segid);
+extern char TRD_TECH[];   // partition name in case it is TRD technical partition
 int ctp_Initproxy(){
 int sp,rc; char *environ;
 char msg[300], cmd[100], dimcom[40], alipath[120];
 #define MAXALIGNMENTLEN 4000
 char alignment[MAXALIGNMENTLEN];
+TRD_TECH[0]='\0';
 rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
@@ -2343,6 +2345,12 @@ if(generateXOD(part,'E', emsg, &orbitn )) {
   //goto RETSTOPunset;  anyhow, we have to relese hw
 };
 prepareRunConfig(part,0);
+if(strcmp(part->name, TRD_TECH)==0) {
+  // disconnect RNT1
+  vmew32(RND1_EN_FOR_INPUTS, 0);
+  vmew32(RND1_EN_FOR_INPUTS+4, 0);
+  prtLog("RND1_EN_FOR_INPUTS cleared");
+};
 ret=deletePartitions(part); tspart= checkTS();
 if(tspart!=NULL) {
   strcpy(tsname, tspart->name);

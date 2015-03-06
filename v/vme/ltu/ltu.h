@@ -143,7 +143,8 @@ bit3=1 -> 'L0 over TTC' mode
 LTUvi:
   bit0: Delay CahnnelB flag (+BC/2)
   bit1: Delay CahnnelA flag
-  bit2: not used
+  bit2: 0: normal LTU, 1: the copy of TTC-A/B sent over L0-LVDS-2/3 outputs
+        -valid from version BB
 LTUf3:
   bits[1..0]
   00  for BC_DELAY_ADD: 0,1,20-27
