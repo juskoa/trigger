@@ -8,10 +8,10 @@ if [ $# -eq 1 ] ;then
     exit
   fi
   #cd ~/v/vme/WORK
-  scp "$id"_.log "$id"_*.dump $dbctp/ctpinputs.cfg trigger@alidcscom707:SMAQ/$id/
+  scp -p "$id"_.log "$id"_*.dump $dbctp/ctpinputs.cfg trigger@alidcscom707:SMAQ/$id/
   if [ $? -eq 0 ] ;then
-    echo "removing $id files in 2 secs..."
-    sleep 3
+    echo " not removing $id._ files ..."
+    #sleep 3
     rm "$id"_.log "$id"_*.dump
   fi
 else
@@ -21,7 +21,7 @@ smaqmv id
 
 Operation: copy (FROM current dir) .dump files to 707:SMAQ/id/, remove them if scp ok, i.e.:
 
-mkdir id      -if MUST NOT exist
+mkdir id      -if MUST NOT exist on 707
 scp id_.log id_*.dump ctpinputs.cfg 707:SMAQ/id/
 rm  id_.log id_*.dump
 EOF

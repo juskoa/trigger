@@ -1373,18 +1373,29 @@ for(ix=from; ix<= from+lines;  ix++) {
 */
 int ddr3_dump(char *fname){
 FILE *dump; int i,retcode=0;
+int allbitn=0, ix=0; int bits[32];
+int lowix=8; int highix=31;
+for(ix=lowix; ix<=highix; ix++) bits[ix]=0;
+
 dump= fopen(fname,"w");
 if(dump==NULL) {
   printf("cannot open file %s\n", fname);
-  retcode=1; goto RET;
+  retcode=0; goto RET;
 };
 for(i=0; i<MEGA; i++) {
   w32 d;
   d= ssm2[i];
+  for(ix=lowix; ix<=highix; ix++) {
+    w32 msk;
+    msk= 1<<ix;
+    if(d & msk) bits[ix]++;
+  };
   fwrite(&d, sizeof(w32), 1, dump);
 };
 fclose(dump);
-printf("%s dumped\n", fname);
+for(ix=lowix; ix<=highix; ix++) allbitn= allbitn+bits[ix];
+printf("%s dumped. bits:%d\n", fname, allbitn);
+retcode= allbitn;
 RET: return(retcode);
 }
 /*FGROUP DDR3 
@@ -1399,6 +1410,10 @@ operation:
 - stop ssm on condition (l0inp change)
 - ddr3 read+dump
 - write to log
+- check quit condition
+- loop again from start ssm
+
+Note: use kilme pid  to raise quit condition
 */
 int ddr3_daq(int l0inp, char *idn, int waitsecs, int maxevents){
 FILE *logf; int loops=0,rc=0,rcssm=0,waitloops;
@@ -1437,6 +1452,10 @@ while(1) {
     };
   } else {
     printf("condstopSSM rc:%d\n", rcssm);
+  };
+  if(quit !=0) {
+    fprintf(logf, "SIGUSR1 received, finishing loop...\n"); quit=0;
+    break;
   };
   fflush(logf);
 };
