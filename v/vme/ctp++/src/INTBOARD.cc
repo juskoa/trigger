@@ -2,7 +2,8 @@
 //===========================================================================================================
 INTBOARD::INTBOARD(int vsp)
 :
-	BOARD("int",0x82c000,vsp,4)
+	BOARD("int",0x82c000,vsp,4),
+	BCOFFSET(0x5a8)
 {
   this->AddSSMmode("ddldat",0); 
   this->AddSSMmode("ddllog",1); 
