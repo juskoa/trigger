@@ -21,8 +21,10 @@ class LTUBOARD: public BOARD
 	int ObtainClusterFromTTCB(int j);
 	void ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L2Classes1, unsigned long long &L2Classes2, bool &gotL2fully);
 	void FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx, bool StandAlone, unsigned long long *frequency) ;
-
-	int AnalSSM_Didier(bool StandAlone);
+	int AnalyseSSM_Didier(bool StandAlone, unsigned long long **TableL1, unsigned long long **TableL2, unsigned long long *frequency, int Nssm);
+	string ClassGroupCheck(unsigned long long CP1, unsigned long long CP2);
+	void GetNclasses();
+	bool CheckClusterPattern(int Cluster);
 
         // SSM analysis
         w32 GetSSMBC(w32 issm);
