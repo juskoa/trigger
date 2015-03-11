@@ -16,6 +16,7 @@ class BOARD: public BOARDBASIC
 	 int getCounterNames(const string& board);
 	 int readcopyCounters();
 	 int readCounters();
+         w32  getCounterDiff(w32 i){return countdiff[i];};
 	 void copyCounters(){vmew(COPYCOUNT,0x0);};
 	 int readCountersDiff();
 	 void printCounters();
