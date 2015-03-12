@@ -9,6 +9,7 @@ DAQbusy doesn't have to be applied (i.e. setswtrig(), startswtrig
 can be invoked togethether with physics triggers being active)
 */
 #include <unistd.h>
+#include <stdlib.h>   // getenv
 #include <stdio.h>
 #include <string.h>
 #include "vmewrap.h"
@@ -373,11 +374,14 @@ if(detectors & 0x20000) {
 };
 if(trigtype=='c') {
   status= cshmGlobalDets();
-  //status= detectors; printf("Presence of dets in glob. run not checked!!!\n");
-  if((status & detectors)!=detectors) {
-    printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
-      detectors,status);
-    return 12345678;   //magic used in ctp/testclass.py
+  if(strcmp("ALICE", getenv("VMESITE"))==0) {
+    if((status & detectors)!=detectors) {
+      printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
+        detectors,status);
+      return 12345678;   //magic used in ctp/testclass.py
+    };
+  } else {
+    status= detectors; printf("Presence of dets in glob. run not checked!!!\n");
   };
 };
 lockBakery(&ctpshmbase->swtriggers, customer);
