@@ -24,7 +24,8 @@ before 24.8.2008 225
 from 31.8.2007. 225 corresponds to LTU.L1_DELAY=TL1-1=224
 from 4.6.2008 (LTUvi): 225 LTU.L1_DELAY= TL1-2= 223 which should give real 224bcs
 
-LTU.L2_DELAY should be TL2
+LTU.L2_DELAY should be TL2 
+LTU.L2_DELAY = TL2 + 65   from 10.3.2015
 */
 //static int TL2=3472;  till 11.6.2008
 // TL2=3952; till 29.8.2011. Changed to 4208 in ctp.cfg
@@ -67,12 +68,16 @@ return(TBCL0);
 }
 /*--------------------------------*/ w32 calcL1_DELAY_L0() {
 /* L1_DELAY_L0 register, L1 board */
-return(TL1-55);   // changed 4.6.2008 to -55
+//return(TL1-55);   // changed 4.6.2008 to -55
+return(TL1-105);   // changed 7.3.2014 to -105
 }
 /*--------------------------------*/ w32 calcL2_DELAY_L1() {
 /* L2_DELAY_L1 register, L2 board */
-//return(TL2-TL1-56);    // changed 4.6.2008 to -56
-return(TL2-TL1-64);    // to be changed (24.8.2008) to -64
+//return(TL2-TL1-56);   // changed 4.6.2008 to -56
+//return(TL2-TL1-64);   // changed 24.8.2008) to -64
+//return(TL2-TL1-114);    // changed  7.3.2014  to -114
+//return(TL2-TL1-116);    // changed  9.3.2014  to -116
+return(TL2-TL1-108);   // changed 9.3.2014 to -108: measured TL2:4208 yes it is L0-L2 time
 }
 /*--------------------------------*/ w32 calcBUSY_L0L1DEADTIME() {
 /* BUSY_L0L1DEADTIME register, BUSY board */
@@ -87,13 +92,14 @@ return((TL2-TL1-38)/8);    // changed 1.8.2008
 /*--------------------------------*/ w32 calcFO_FILTER_L1(){
 return ((TL1-1)+(1<<12));}     //+enable L1spurious FILTER (bit 0x1000)
 /*--------------------------------*/ w32 calcL2_BCOFFSET() {
-/* L2_BCOFFSET register, L1 board */
+/* L2_BCOFFSET register, L2 board */
 //return((TBCL0+TL2+1)%ORBITLENGTH);
 return((TBCL0+TL2-5)%ORBITLENGTH); //26.8.2008
 }
 /*--------------------------------*/ w32 calcINT_BCOFFSET() {
 /* INT_BCOFFSET register, INT board p.6 */
-return((TBCL0+3)%ORBITLENGTH);       // 26.8.2008
+return((TBCL0+3559)%ORBITLENGTH);       // 11.3.2015
+//return((TBCL0+3)%ORBITLENGTH);       // 26.8.2008
 //return((TBCL0+2)%ORBITLENGTH);       // 20.8.2008
 //return((TBCL0+TL2+1)%ORBITLENGTH); // 1.8.2008
 }

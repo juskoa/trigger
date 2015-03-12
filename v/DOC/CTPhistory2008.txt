@@ -194,7 +194,7 @@ FO1 board has dial 1 (before it was 0). Modifications:
            nctp= FO1BOARD + (line[7]-'0');  changed to:
            nctp= FO1BOARD + (line[7]-'0')-1;
     ctp seems OK, but not tested with ctp_proxy software 
-22.4.
+22.4.2007
 - ctplib/timingpars.c modified: calcINT_BCOFFSET, calcL2_DELAY_L1 and
   added some comments
 - initCTP.c now uses timingpars.c now (checked for usage in ctp, ctp/ctplib
