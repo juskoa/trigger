@@ -395,3 +395,7 @@ ttcmidims - services added
 ssm[].lopmo added (for LM0 ssm status)
 25.2.
 Tpartition.c: modified to acomodate change of LM from 32 ->11 switch input
+1.3.
+TTCMI(/RFRX service added, ttcmidaemons,ttcmi reshuffled a bit (i.e. 
+now better for debug in lab)
+

@@ -136,18 +136,23 @@ myprtLog(msg1);
 rc: -1 error (full) or index where added
 */
 int add_insver(int runn, char *pname, char *inst, char *ver) {
-int ix, newfix=-1;
+int ix, newfix=-1, allcted=0;
 for(ix=0; ix<6; ix++) {
-  if(insver[ix].runn==0) newfix= ix;
+  if(insver[ix].runn==0) {
+    newfix= ix;
+  } else {
+    allcted++;
+  };;
   //if(run==insver[ix].runn) fix= ix;
 };
 if(newfix!=-1) {
+  allcted++;  // count in also the one just allocated
   insver[newfix].runn= runn;
   strcpy(insver[newfix].parname, pname);
   strcpy(insver[newfix].insname, inst);
   strcpy(insver[newfix].insver, ver);
 };
-printf("INFO insver:%d:%s %s %s\n",newfix, pname, inst, ver);
+printf("INFO insver:%d:%s %s %s allcted:%d\n",newfix, pname, inst, ver, allcted);
 return(newfix);
 }
 /*----------------------------------------------------------- find_insver
@@ -261,7 +266,7 @@ int ix, xrc; char xpid[20]="";
 char emsg[ERRMSGL];
 // check xcountersdaq active:
 xrc= popenread((char *)"ps --no-headers -C xcountersdaq -o pid=", xpid, 20);
-for(ix=0; ix< strlen(xpid); ix++) {
+for(ix=0; ix< (int)strlen(xpid); ix++) {
   if(xpid[ix]=='\n') xpid[ix]=' ';
 };
 sprintf(emsg,"INFO DOrcfg xpid:%s popen rc:%d\n", xpid, xrc);
@@ -323,7 +328,7 @@ if(rc==0) {
   } else {
     char emsg[ERRMSGL];
     sprintf(emsg,"DAQlogbook_update_cluster failed. rc:%d", rc);
-    infolog_trg(LOG_FATAL, emsg);
+    infolog_trgboth(LOG_FATAL, emsg);
   };
 };
 }
@@ -451,8 +456,8 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     mymsg[0]= 'p';
   };
   //prtLog(emsg);
-  myprtLog(emsg);
-  infolog_trg(infoerr, emsg);
+  //myprtLog(emsg);
+  infolog_trgboth(infoerr, emsg);
   rc= add_insver(rundec, pname, instname, version);
   if(rc==-1) {
     sprintf(emsg,"run:%d, instance/ver will not be stored in ACT", rundec);
@@ -517,6 +522,8 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     t1= nxtoken(mymsg, intval, &ixl);   // runNumber
     if(t1==tINTNUM) {
       runn= str2int(intval);
+      // from 26.2. maybe not needed here, but seems ok when INIT brings ctpproxy to LOAD_FAILURE
+      del_insver(runn);  
     } else {
       sprintf(emsg,"pydimserver: bad run number in rcfgdel %s cmd", pname);
     };

@@ -56,9 +56,10 @@ int clocktran=0; char clocktransition[MAXLILE+1]="0";
 int TAGqpll_thread=88;
 int nlogqpll=0;
 w32 qpllstat=0; // in agreement with qpllnow
-int vspRFRX[2]={-1,-1}; 
-Tchan rfrx1[3];
-Tchan rfrx2[3];
+extern int *vspRFRX;
+int vspRF2TTC=0;
+Tchan rfrx1[3]= {{0.,0},{0.,0},{0.,0}};
+Tchan rfrx2[3]= {{0.,0},{0.,0},{0.,0}};
 float freqs[4]; // TTCMI/FREV_B1 FREV_B2 F40_B1 F40_B2
 
 /*--------------------------------------------------------------- error_handler
@@ -93,7 +94,10 @@ if(EXITSERVER==1) {
   dis_remove_service(QPLLid);
   dis_remove_service(MICLOCK_TRANSITIONid);
   dis_stop_serving();
-  if(micratepresent()) vmeclose();
+  if(micratepresent()==2) vmeclose();
+  if(micratepresent()==3) {
+    vmeclose(); vmxclose(vspRFRX[0]); vmxclose(vspRFRX[1]);
+  };
   exit(0);
 };
 }
@@ -424,7 +428,7 @@ char **msgp= (char **)msgpv; int ix;
 char msg[200]; char freqstxt[80];
 // readVME:
 *msgp= (char *)freqs;
-*size= 16;
+*size= 16; freqstxt[0]='\0';
 for(ix=0; ix<4; ix++) {
   sprintf(freqstxt, "%s %f10.6", freqstxt, freqs[ix]);
 };
@@ -435,7 +439,7 @@ sprintf(msg, "FREQScaba freqs now:%s size:%d \n", freqstxt, *size); prtLog(msg);
 */
 void qpll_thread(void *tag) {
 while(1) {   //run forever
-  int rc,ix; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
+  int rc; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
   char buffer[50];
   if(envcmp("VMESITE", "ALICE")==0) {
     stat= readstatus();
@@ -447,11 +451,17 @@ while(1) {   //run forever
   } else {
     // simulate:
     stat= qpllstat+1;
-    for(ix=0; ix<4; ix++) {
-      int inc;
-      if(ix>1) {inc=10;} else {inc= 1;}; //+10 for F40, +1 for orbits
-      freqs[ix]= freqs[ix]+inc;
-    };
+    rfrx1[2].freq= rfrx1[2].freq + 1;
+    rfrx2[2].freq= rfrx2[2].freq + 1;
+    rfrx1[1].freq= rfrx1[1].freq + 10;
+    rfrx2[1].freq= rfrx2[1].freq + 10;
+  };
+  if((freqs[0] != rfrx1[2].freq) ||
+     (freqs[1] != rfrx2[2].freq) ||
+     (freqs[3] != rfrx1[1].freq) ||
+     (freqs[4] != rfrx2[1].freq)
+  ) {
+    rc= dis_update_service(FREQSid);
   };
   if(stat != qpllstat) {
     qpllstat= stat;
@@ -466,53 +476,56 @@ while(1) {   //run forever
     //prtLog(buffer);
   };
   nlogqpll++;
-  if((nlogqpll % 600)==0) {    // 60/600:log 1/hour
+  if((nlogqpll % 60)==0) {    // 60/600:log 1/hour
     prtLog(buffer);
   };
-  dtq_sleep(10);
+  dtq_sleep(1);
   if(quit!=0) break;
 };
 }
 /*--------------------------------------------------------------- ds_register
 */
 void ds_register() {
-int ix,rc=0, vspRF2TTC=0;   // RF2TTC 0, RFRX1/2: see vspRFRX[0..1]
+int ix,rc=0; int rcexit=0;
 char command[MAXCMDL];
 
 setlinebuf(stdout);
-if(micratepresent()) {
-  int ix, rcexit=0; char msg[200]="";
-  char *rfrxbase[2]={"0x300000", "0x400000"};
+if(micratepresent()& 0x2) {
+  char msg[200]="";
   rc= vmxopenam(&vspRF2TTC, "0xf00000", "0x100000", "A32");
   if(rc!=0) {
     sprintf(msg, "vmxopen TTCMI vme:%d\n", rc); rcexit=8;
   };
-  for(ix=0; ix<=1; ix++) {
-    vspRFRX[ix]=-1; 
-    rc= vmxopenam(&vspRFRX[ix], rfrxbase[ix], (char *)"0x100", (char *)"A24");
-    if(rc!=0) {
-      sprintf(msg, "vmxopen RFRX%d vme:%d\n", ix, rc); rcexit=8;
-    };
-  };
-  if(rcexit!=0) exit(rcexit);
-  writeall(); 
-  printf("ref bc1 orbit1\n"); printRFRX("0x300000");
-  printf("--- bc2 orbit2\n"); printRFRX("0x400000");
-  printf("getRFRX way:\n");
-  getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2); 
-  freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
-  freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
-  printf("ref bc1 orbit1:"); for(ix=0; ix<3; ix++) {
-    printf("%d/%f ", rfrx1[ix].ref, rfrx1[ix].freq);
-  }; printf("\n");
-  printf("--- bc2 orbit2:"); for(ix=0; ix<3; ix++) {
-    printf("%d/%f ", rfrx2[ix].ref, rfrx2[ix].freq);
-  }; printf("\n");
 } else {
+  printf("RF2TTC not connected\n");
+};
+if(micratepresent()& 0x1) {
+  int ix;
+  rc= openrfrxs();
+  if(rc==0) {
+    writeall(); 
+    printf("ref bc1 orbit1\n"); printRFRX("0x300000");
+    printf("--- bc2 orbit2\n"); printRFRX("0x400000");
+    printf("getRFRX way:\n");
+    getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2); 
+    freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
+    freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
+    printf("ref bc1 orbit1:"); for(ix=0; ix<3; ix++) {
+      printf("%d/%f ", rfrx1[ix].ref, rfrx1[ix].freq);
+    }; printf("\n");
+    printf("--- bc2 orbit2:"); for(ix=0; ix<3; ix++) {
+      printf("%d/%f ", rfrx2[ix].ref, rfrx2[ix].freq);
+    }; printf("\n");
+  } else {
+    rcexit=8;
+  };
+} else {
+  printf("RFRXs not connected\n");
   for(ix=0; ix<=4; ix++) {
     freqs[ix]=0.0;
   };
 };
+if(rcexit!=0) exit(rcexit);
 printenvironment();
 printf("DIM server:%s\n",MYNAME);
 dis_add_error_handler(error_handler);
@@ -555,14 +568,12 @@ infolog_SetStream("",0);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
+micrate(-1);
 if(envcmp("VMESITE", "ALICE")==0) {
   udpsock= udpopens("alidcscom835", send2PORT);
-  micrate(1);
 } else {
   udpsock= udpopens("avmes", send2PORT);
-  micrate(0);
 };
-
 ds_register();
 
 while(1)  {  

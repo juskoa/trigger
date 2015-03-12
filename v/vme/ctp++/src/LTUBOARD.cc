@@ -895,7 +895,9 @@ vmew(QUIT_SET, DUMMYVAL);
 usleep(100);
 st= vmer(EMU_STATUS); return(st);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Didier
+//
 
 int LTUBOARD::ObtainROCfromTTCB(int j) {
   int ROC        = (qttcb[j]->tdata & 0x3c0) >> 6;
@@ -913,7 +915,7 @@ void LTUBOARD::ObtainL1ClassPatternFromTTCB(int j, int wordnumber, unsigned long
    if (wordnumber == 3)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 24 ;
    if (wordnumber == 4)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    ) << 12 ;
    if (wordnumber == 5)  L1Classes1 += (unsigned long long) (qttcb[j]->tdata    )  ;
-   
+
    if (wordnumber == 6)  L1Classes2 += (unsigned long long) (qttcb[j]->tdata    ) << 24 ;
    if (wordnumber == 7)  L1Classes2 += (unsigned long long) (qttcb[j]->tdata    ) << 12 ;
    if (wordnumber == 8)  {
@@ -933,12 +935,11 @@ int LTUBOARD::ObtainClusterFromTTCB(int j) {
 
 void LTUBOARD::ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long long &L2Classes1, unsigned long long &L2Classes2, bool &gotL2fully) {
 
-
   gotL2fully =0;
   //for (int word=j; (unsigned int) j<qttcb.size(); j++) {
     if (!gotL2fully) {
 
-      if (wordnumber == 4) L2Classes1 += (unsigned long long)   (qttcb[j]->tdata         ) << 52 ;
+      if (wordnumber == 4) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 52 ;
       if (wordnumber == 5) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 40 ;
       if (wordnumber == 6) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata         ) << 28 ;
       if (wordnumber == 7) L2Classes1 += (unsigned long long)  (qttcb[j]->tdata        ) << 16 ;
@@ -948,18 +949,20 @@ void LTUBOARD::ObtainL2ClassPatternFromTTCB(int j, int wordnumber, unsigned long
 	L2Classes1 += (unsigned long long)  (qttcb[j]->tdata & 0xf00   )  >> 8;
       	L2Classes2 += (unsigned long long) (qttcb[j]->tdata & 0x0ff) << 28 ;
       }
+
       if (wordnumber == 10) L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 16 ;      
       if (wordnumber == 11) L2Classes2 += (unsigned long long)  (qttcb[j]->tdata         ) << 4 ;
-
+            
       if (wordnumber == 12) {
 	L2Classes2 += (unsigned long long)  ((qttcb[j]->tdata & 0xf00 ) ) >> 8;
 	gotL2fully =1;
       }
     }
-
+    
   return;
 
 }
+
 
 void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned long long LxClasses2, unsigned long long indexLx, unsigned long long **TableLx, bool StandAlone, unsigned long long *frequency) {
 
@@ -986,7 +989,7 @@ void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned lo
     if ((TableLx[0][i] == LxClasses1) && (TableLx[1][i] == LxClasses2))  {
       indexLx = i+1;
       IsInTable = 1;
-      if (level == 2) frequency[i]++; 
+      if (level == 2) {frequency[i]++;} 
       TableLx[2][indexLx-1] = frequency[indexLx-1];
     }
   }
@@ -1001,7 +1004,10 @@ void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned lo
     TableLx[0][indexLx-1] = LxClasses1;
     TableLx[1][indexLx-1] = LxClasses2;
     if (level == 1) TableLx[2][indexLx-1] = indexLx-1;
-    if (level == 2) frequency[indexLx-1]++;
+    if (level == 2) {frequency[indexLx-1]++;
+      //printf ("index %llu freq %llu \n", indexLx-1, frequency[indexLx-1]);
+        TableLx[2][indexLx-1] = frequency[indexLx-1];
+    }
     
   }
 
@@ -1022,10 +1028,13 @@ void LTUBOARD::FillLxTable(int level, unsigned long long LxClasses1, unsigned lo
   }
 
   if (!ClassPatternCorrect) {
-    printf("Error: L%i Class pattern in TTCB does not match the one in SLM \n", level);
+    printf("Error: L%i Class pattern in TTCB does not match the table entry with same index - incorrect class pattern \n", level);
   }
 
 }
+
+
+
 
 int LTUBOARD::AnalSSM()
 {
@@ -1037,38 +1046,138 @@ int LTUBOARD::AnalSSM()
   return 0;
 }
 
+bool LTUBOARD::CheckClusterPattern(int Cluster) {
+  // input here should be the cluster pattern(s) expected from the configuration
+  // An algorithm that reads the .cfg file to extract the class pattern inputs will also extract this cluster pattern input
+  int ClusterPattern = 0x1; // your input
+  if (Cluster != ClusterPattern)  {
+    ierror++;
+    printf("[ERROR]: the obtained cluster pattern from the L2message in the TTC b-channel (0x%x) does not match your input (0x%x)", Cluster, ClusterPattern);
+    return 0;
+  }
+  else
+    return 1;
+ 
+}
+
+string LTUBOARD::ClassGroupCheck(unsigned long long CP1, unsigned long long CP2) {
+  // define here the classes correspondig to each group as set up in the configuration
+  // if you are not using a particular group, set its 100 bits to 0
+
+  // currently corresponding to configuration testctpbig.cfg
+
+  // Currently, one has to manually convert the configuration to these numbers. An algorithm to read the .cfg file and produce them will be useful
+
+  unsigned long long Rd1_p1 = 0x820408204104104ULL; // first 64 bits of Rd1 trigger group
+  unsigned long long Rd1_p2 = 0x82082220ULL;        // remaining 36 buts of Rd1 trigger group
+  unsigned long long Rd2_p1 = 0x1450a1450a28a28aULL; 
+  unsigned long long Rd2_p2 = 0x145144440ULL;
+  unsigned long long BC1_p1 = 0xa2891228b1451451ULL;
+  unsigned long long BC1_p2 = 0x228a28895ULL;
+  unsigned long long BC2_p1 = 0x41060c1040820820ULL;
+  unsigned long long BC2_p2 = 0xc1041110aULL;
+
+  unsigned long long GroupInCP1 = 0; unsigned long long GroupInCP2 = 0;
+  string GroupsInPattern = "";
+  string thegroup = "";
+ 
+  unsigned int Bit = 1;
+
+  for (unsigned long long count=0; count<4; count++) {    // count=0 -->tests Rd1; 1->tests Rd2; 2->tests BC1; 4->tests BC2
+    if (count==0) {
+      // looking for the first bit that equals 1 and checking if it matches with class pattern associated to 'count'; 
+      //if yes, it goes to end of loop for final test
+      for (unsigned int i=0; i<64; i++) {            
+	if (((CP2 & (Bit<<i)) == (Bit<<i)) && ((Rd1_p2 & (Bit<<i)) == (Bit<<i))) {GroupInCP1 = Rd1_p1; GroupInCP2 = Rd1_p2; thegroup = "Rd1"; break;}
+      }
+    }
+    if (count==1) {
+      for (int i=0; i<64; i++) {
+	if (((CP2 & (Bit<<i)) == (Bit<<i)) && ((Rd2_p2 & (Bit<<i)) == (Bit<<i))) {GroupInCP1 = Rd2_p1; GroupInCP2 = Rd2_p2; thegroup = "Rd2"; break;}
+      }
+    }
+    if (count==2) {
+      for (int i=0; i<64; i++) {
+	if (((CP2 & (Bit<<i)) == (Bit<<i)) && ((BC1_p2 & (Bit<<i)) == (Bit<<i))) {GroupInCP1 = BC1_p1; GroupInCP2 = BC1_p2; thegroup = "BC1"; break;}
+      }
+    }
+    if (count==3) {
+      for (int i=0; i<64; i++) {
+	if (((CP2 & (Bit<<i)) == (Bit<<i)) && ((BC2_p2 & (Bit<<i)) == (Bit<<i))) {GroupInCP1 = BC2_p1; GroupInCP2 = BC2_p2; thegroup = "BC2"; break;}
+      }
+    }
+    
+    for (int b=0; b<36; b++) {
+      if ((GroupInCP2 != 0) && ((GroupInCP2 & (Bit<<b)) == (Bit<<b)) && ((CP2 & (Bit<<b)) != (Bit<<b))) { 
+	// one bit of the expected class pattern is not present in the measured one --> error
+	ierror++;
+	printf("[Error]: %s classes are not all present in pattern 0x%llx 0x%llx \n", thegroup.c_str(), CP1, CP2);
+	printf("-->class %i not present... stop here! \n", b+1); break;
+      }
+    } 
+
+    for (unsigned int a=0; a<64; a++) {
+      if ((ierror == 0) && (GroupInCP1 != 0) && ((GroupInCP1 & (Bit<<a)) == (Bit<<a)) && ((CP1 & (Bit<<a)) != (Bit<<a))) {
+	ierror++;
+	printf("[Error]: %s classes are not all present in pattern 0x%llx 0x%llx \n", thegroup.c_str(), CP1, CP2);
+	printf("-->class %i not present... stop here! \n", a+37); break;
+      }
+      if ((a==64) && (ierror == 0)) GroupsInPattern.append(thegroup);
+    }
+
+    GroupInCP1=0; GroupInCP2=0;   
+  }
+  return GroupsInPattern;
+}
 
 
-int LTUBOARD::AnalSSM_Didier(bool StandAlone)
+
+int LTUBOARD::AnalyseSSM_Didier(bool StandAlone, unsigned long long **TableL1, unsigned long long **TableL2, unsigned long long *frequency, int Nssm)
 {
   ierror = 0; 
   int ROC=0; unsigned long long indexROC = 0;
-  int Cluster =0;  unsigned long long indexCluster = 0;
+  int Cluster =0; int ClusterPattern =0; unsigned long long indexCluster = 0; 
   unsigned long long L1Classes1=0, L2Classes1=0;
   unsigned long long L1Classes2=0, L2Classes2=0;
-  unsigned long long frequency[1000];
 
-  for (int i=0; i<1000; i++) {
-    frequency[i] = 0;
-  }
-  
-  // declaration of table for class pattern [slm <-> ttcb] consistency tests
-  unsigned long long **TableL1 = new unsigned long long *[3];
-  for(int i = 0; i < 3; ++i) {
-    TableL1[i] = new unsigned long long[1000];
+  if (Nssm==0) {
+  if (!StandAlone) {
+    printf("\n"); printf("-----------------------------Running in CTP mode -------------------------------------------- \n"); printf("\n"); 
+    printf("\n"); printf("-1) Extracts all information from TTCB channel----------------------------------------------- \n"); // CreateRecordSSM
+    printf("\n"); printf("-2) Obtain class patterns from TTCB channel-------------------------------------------------- \n"); // ObtainLxPatternFromTTCB
+    printf("\n"); printf("-3) Fill a table with the class patterns and the frequency of each pattern------------------- \n"); // FillLxTable
+    printf("\n"); printf("-4) Check for incomplete/too long L1 messages------------------------------------------------ \n"); // here 
+    printf("\n"); printf("-5) Check for incomplete/too long L2 messages------------------------------------------------ \n"); // here
+    printf("\n"); printf("-6) Check for non-constant L1-L0 intervals & incomplete sequences---------------------------- \n"); // here 
+    printf("\n"); printf("-7) Check for inconsistency between L1 and L2 class patterns--------------------------------- \n"); // here
+    printf("\n"); printf("-8) Check for correct class pattern---------------------------------------------------------- \n"); //CheckClusterPattern
+                   printf("    --> remember to set the cluster pattern as input in LTUBOARD::CheckClusterPattern------- \n");
+    printf("\n"); printf("-9) Check for incomplete groups in class pattern (missing classes from Rd1, Rd2, BC1 or BC2)- \n"); //ClassGroupCheck
+                   printf("    --> remember to set the correct class group hexa-decimal codes in \n");
+                   printf("        'LTUBOARD::ClassGroupCheck()' according to your configuration '                      \n");  
+    printf("\n"); printf("\n");
   }
 
-  unsigned long long **TableL2 = new unsigned long long *[3];
-  for(int i = 0; i < 3; ++i) {
-    TableL2[i] = new unsigned long long[1000];
+  else  {
+    printf("\n"); printf("-----------------------------Running in Standalone mode ------------------------------------- \n"); printf("\n"); 
+    printf("\n"); printf("-1) Extracts all information from TTCB channel----------------------------------------------- \n"); // CreateRecordSSM
+    printf("\n"); printf("-2) Obtain class patterns from TTCB channel-------------------------------------------------- \n"); // ObtainLxPatternFromTTCB
+    printf("\n"); printf("-3) Associate L1 with ROC and L2 cl pattern with cluster from TTC header information--------- \n"); // here
+                  printf("    (set ROC=cluster in the SLM, and make them unique for each L2a instance)----------------- \n"); 
+    printf("\n"); printf("-4) Fill a table with the class patterns and the frequency of each pattern------------------- \n"); // FillLxTable
+    printf("\n"); printf("-5) Check for inconsistency between TTCB class patterns with same indices-------------------- \n"); // FillLxTable
+    printf("\n"); printf("-6) Check for incomplete/too long L1 messages------------------------------------------------ \n"); // here 
+    printf("\n"); printf("-7) Check for incomplete/too long L2 messages------------------------------------------------ \n"); // here
+    printf("\n"); printf("-8) Check for non-constant L1-L0 intervals & incomplete sequences---------------------------- \n"); // here 
+    printf("\n"); printf("-9) Check for correct class pattern---------------------------------------------------------- \n"); //CheckClusterPattern
+                   printf("    --> remember to set the cluster pattern as input in LTUBOARD::CheckClusterPattern------- \n");
+
+    printf("\n"); printf("\n");
+  }
   }
 
-  for (int i=0; i< 3; i++) {
-    for (int j=0; j<1000; j++) {
-      TableL1[i][j] = 0;
-      TableL2[i][j] = 0;
-    }
-  }
+
+
 
   CreateRecordSSM();
   CreateTTCL12();
@@ -1115,6 +1224,8 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
   bool L1Header =0;
   bool GotL1 =0;
 
+  //Checking for incomplete/too long L1 messages
+
   for (unsigned int j=firstL1headerWord; j<qttcb.size(); j++) {
     if (!GotL1){
       if ((qttcb[j]->ttcode == 2) && (!L1Header)) { 
@@ -1131,8 +1242,7 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
       ObtainL1ClassPatternFromTTCB(j, L1SerialDataWord, L1Classes1, L1Classes2, GotL1); 
     }
 
-
-    // detect non-complete L1 message : specifically intercepted by L1 header
+    // detect incomplete L1 message : specifically intercepted by L1 header
     if ((L1SerialDataWord > 1) && (qttcb[j]->ttcode == 1)) {
       ierror++;
       printf("ERROR: L1 message was not complete (SSM bc %i) \n", qttcb[j]->issm);
@@ -1141,7 +1251,7 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
       L1Header = 1;
     }
 
-    // detect non-complete L1 message : intercepted by anything else than L1 header
+    // detect incomplete L1 message : intercepted by anything else than L1 header
     if ((L1SerialDataWord > 1) && (qttcb[j]->ttcode > 2)) {
       ierror++;
       printf("Error: L1 message too short; interrupted by ttcb-code %i (SSM bc %i) \n", qttcb[j]->ttcode, qttcb[j]->issm);
@@ -1175,9 +1285,12 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
     if (foundFirstL2Header) break;
   }
 
+
   int L2SerialDataWord = 0;
   bool L2Header =0;
   bool GotL2 =0;
+
+  //Checking for incomplete/too long L2 messages
 
   for (unsigned int j=firstL2headerWord; j<qttcb.size(); j++) {
     if (!GotL2) {
@@ -1189,15 +1302,13 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
       if ((qttcb[j]->ttcode == 4) && (L2Header))  {
       L2SerialDataWord ++;
       if (L2SerialDataWord == 3) { 
-	if (StandAlone) Cluster = ObtainClusterFromTTCB(j); 
+	Cluster = ObtainClusterFromTTCB(j); 
+	ClusterPattern = ObtainClusterFromTTCB(j);
       }
       if ((L2SerialDataWord >3) && (L2SerialDataWord <13)) {
 	ObtainL2ClassPatternFromTTCB(j, L2SerialDataWord, L2Classes1, L2Classes2, GotL2);
       }
       }
-
-      //  printf("L1Classes1 %llu, L1Classes2 %llu \n", L1Classes1, L1Classes2);
-      //  printf("L2Classes1 %llu, L2Classes2 %llu \n", L2Classes1, L2Classes2);
 
     // test if L2 message is complete
     if ((L2SerialDataWord != 0) && (qttcb[j]->ttcode == 3)) {
@@ -1209,9 +1320,7 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
     }
 
     
-
     if (GotL2)  {
-      // printf("L2Classes1, L2Classes2, Cls: 0x%llx 0x%llx 0x%x \n", L2Classes1, L2Classes2, Cluster);
       if (StandAlone) indexCluster= Cluster & 0x0f;
       if (L2SerialDataWord == 12) {
 	FillLxTable(2, L2Classes1, L2Classes2, indexCluster, TableL2, StandAlone, frequency);
@@ -1221,12 +1330,13 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
       L2Classes1 =0; L2Classes2 =0; Cluster =0;
       GotL2 = 0;
 
-      }
+    }
     
     }
   }
 
 
+  //Checking for non-constant L1-L0 intervals & incomplete sequences
 
   printf("L0 %i, L1 %i, L2 %i \n", L0trigs, L1trigs, L2trigs);
 
@@ -1236,20 +1346,6 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
     ierror++;
     printf("error, there are %i L1 triggers but %i L2 triggers...\n", L1trigs, L2trigs);
   } 
-
-  // test distance (in BC) between L0 and L1 triggers - needs to be constant
-  /*  // this is never true in reality, so not necessary!
-  if (L0trigs == L1trigs) {   // this case never happens in 
-    for (int i=0; i<L0trigs; i++) {
-      //printf("distance between L0 and L1 %i \n", ql1strobe[i] - ql0strobe[i]);
-      if ( (ql1strobe[i] - ql0strobe[i]) != (ql1strobe[0] - ql0strobe[0]) ) {
-	ierror++;
-	printf("distance between L0 and L1 triggers is not constant (SSM bc %i) \n", ql1strobe[i]);
-      }
-    }
-  }
-  */
-
 
 
   // obtain the constant distance between L0 and L1 in BCs
@@ -1262,7 +1358,6 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
   }
   unsigned int ConstantL0L1Distance = firstGoodL1 - firstGoodL0;
 
-  printf("L1-L0 %i \n", ConstantL0L1Distance);
 
   // now test if L0 and L1 are separated by that constant distance in time
   
@@ -1299,10 +1394,9 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
     }
 
 
-
+    //test for inconsistency between L1 and L2 class patterns
     if (!StandAlone) {
-
-      for (int i=0; i<1000; i++) {
+      for (int i=0; i<16; i++) {
 
 	if ((TableL1[0][i] != TableL2[0][i]) || (TableL1[1][i] != TableL2[1][i])) {
 	  ierror++;
@@ -1311,26 +1405,16 @@ int LTUBOARD::AnalSSM_Didier(bool StandAlone)
 	  printf("L1Class pattern word 2  0x%llx \n", TableL1[1][i]);
 	}
 
-	/*
-	if (TableL1[1][i] != 0) {
-	  printf("L1Class pattern word 1  0x%llx \n", TableL1[0][i]);
-	  printf("L1Class pattern word 2  0x%llx \n", TableL1[1][i]);
-	  printf("number of appearances   %llu \n", TableL1[2][i]);
-	}
-	*/	
-	if (TableL2[2][i] != 0) {
-	  printf("L2Class pattern word 1  0x%llx \n", TableL2[0][i]);
-	  printf("L2Class pattern word 2  0x%llx \n", TableL2[1][i]);
-	  printf("number of appearances   %llu \n", TableL2[2][i]);
-	}
-	
+	// look for missing classes of the same class group (Rd1, Rd2, BC1, BC2)
+	unsigned long long CP1 = TableL2[0][i]; unsigned long long CP2 = TableL2[1][i];
+	if (!StandAlone) ClassGroupCheck(CP1, CP2);
+	// check for correct cluster pattern
+	CheckClusterPattern(ClusterPattern);
+
       }
       
     }
-    
-
   return L1trigs;
 }
-
 
 

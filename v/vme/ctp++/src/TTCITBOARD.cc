@@ -36,7 +36,7 @@ int TTCITBOARD::startSSM()
   vmew(READ_SSM_WORD,0);
  }
  usleep(10000);
- printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ //printf("address after reset= 0x%x\n",vmer(READ_SSM_ADDRESS));
  //
  resetSSMAddress();
  return 0;
@@ -57,12 +57,13 @@ int TTCITBOARD::readSSM()
  }
  ssm=GetSSM();
  usleep(50000);
- printf("after reset status: 0x%x\n",getStatus());
+ //printf("after reset status: 0x%x\n",getStatus());
  usleep(100000);
- printf("after usleep and control 2 status: 0x%x\n",getStatus());
- printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
- w32 stat=getStatus();
- printf("after usleep and control 3 status: 0x%x\n",stat);
+ //printf("after usleep and control 2 status: 0x%x\n",getStatus());
+ //printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
+ //w32 stat=getStatus();
+ getStatus();
+ //printf("after usleep and control 3 status: 0x%x\n",stat);
 
  for(int i=0;i<Mega;i++){
   ssm[i]=vmer(READ_SSM_WORD);
@@ -223,6 +224,7 @@ int TTCITBOARD::AnalyseSSM()
       // L0 received 
       if((issm-l0)<L0L1time){
         printf("Error: L0L0 time violation - two L0 closer then %i:  %i at %i %i\n",L0L1time,issm-l0,issm,l0);
+	
         return 1;
       }
       l0=issm;
@@ -324,7 +326,7 @@ int TTCITBOARD::AnalyseSSM()
  if(L1.size() != L2m.size()){
    // check last l0 if not too close to the end of ssm
    if((Mega-L1[L1.size()-1])>4600){
-    printf("Error: different # of L1 and L2m : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
+    printf("Error: different # of L1 and L2m(L2a+L2r) : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
     return 1;
    }
  }
@@ -375,6 +377,8 @@ int TTCITBOARD::AnalyseSSM()
     bc0=bcl2m;
     ret += CompareL1L2Data(L1m[i],L2m[i]);
  }
+ for(w32 i=0;i<L1m.size();i++)delete L1m[i];
+ for(w32 i=0;i<L2m.size();i++)delete L2m[i];
  printf("Max L2 delay: %i Max L1 delay: %i \n",delmaxL2,delmaxL1);
  if(ret==0) printf("NO ERROR detected. \n");
  return ret;
@@ -473,6 +477,29 @@ void TTCITBOARD::Dump2quSSM()
      qttcab.push_back(ss);
    }
  } 
+}
+void TTCITBOARD::DumpqueSSM2file(const char *name)
+{
+ char filename[200];
+ char *environ;
+ char fnpath[1024];
+ FILE *dump;
+ sprintf(filename,"%s",name);
+  // Open file
+ environ= getenv("VMEWORKDIR"); strcpy(fnpath, environ);
+ strcat(fnpath,"/"); strcat(fnpath,"WORK/"); 
+ strcat(fnpath, filename); strcat(fnpath, ".dump");
+ dump=fopen(fnpath,"w");
+ if(dump == NULL){
+  printf("Cannot open file: fnpath: %s\n", fnpath);
+  exit(1);
+ }
+ printf("Dumping qttcab in %s \n",fnpath);
+ for(w32 i=0;i<qttcab.size();i++){
+   char line[128];
+   qttcab[i]->Print2char(line);
+   fprintf(dump,"%i %s \n",i,line);
+ }
 }
 /*============================================================================
  * Text dump for visual debuging

@@ -9,6 +9,7 @@
 #include "Tpartition.h"
 #include "lexan.h"
 
+char TRD_TECH[24]="";
 /*  SDGS operations
  line: "SDG name 0x23"
 */
@@ -678,13 +679,11 @@ printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->
 /*-------------------------------------------------------------- checmodLM
 Check if there are classes feeding TRD. Do these modifications for them:
 - check rnd1 bit in L0_CONDITION word for this class
-  if ON and no other input definition in this class:
+  if ON and 'downscaling 0' and 'no other input definition in this class':
     - remove it from L0_CONDITION AND ADD l0inp5
-    - connect swinp32 to RND1 generator
+    - connect swinp32/11 to RND1 generator
   else
-    no sense to connect RND1 generator before switch, in case
-    an input is required i.e.:
-    - disconnect swinp32 from RND1 generator (good for next partition)
+    nothing, but make sure RND1 connection to swinp32/11 is disabled at EOR
 
 Consequence: it is nonsense to start TRD cluster with
 more classes mixing rnd1 usage.
@@ -716,6 +715,7 @@ for(i=0;i<NCLASS;i++){
       sprintf(txdets, "%s %d", txdets, ixdet);
       // class feeding TRD:
       if(((klas->l0inputs & RND1MASK) == 0) &&  // RND1 used in this class
+         (klas->scaler==0 ) &&                  // downscaling 0
          (klas->l0inputs & 0xe0ffffff)==0xe0ffffff)  {  // no other input
         w32 rndw1, rndw2, rndw3, ninps;
         ninps= klas->l0inputs | RND1MASK;  // do not use it at L0
@@ -731,21 +731,23 @@ for(i=0;i<NCLASS;i++){
         rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
         rndw3= rndw1 | (SWIN11MSK);
         vmew32(RND1_EN_FOR_INPUTS, rndw3);
-        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x->0x%x 0x%x\n", 
-          i, ninps, rndw1, rndw3, rndw2);
-      } else {
-        w32 rndw2, rndw3;
+        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x 0x%x\n", 
+          i, ninps, rndw1, rndw2, rndw3, rndw2);
+        strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
+      };/* else {
+        w32 rndw2, rndw3; */
         /*rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
         rndw3= rndw2 & (~(SWIN32MSK));
         vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
         printf("checkmodLM off32:%d l0inputs:0x%x RND1_EN_FOR_INPUTS+4: 0x%x->0x%x \n", 
           i, klas->l0inputs, rndw2, rndw3); */
+        /* bad idea anyhow (other class or class in another partition disconnects RND1!
         rndw2= vmer32(RND1_EN_FOR_INPUTS);
         rndw3= rndw2 & (~(SWIN11MSK));
         vmew32(RND1_EN_FOR_INPUTS, rndw3);
         printf("checkmodLM off11:%d l0inputs:0x%x RND1_EN_FOR_INPUTS: 0x%x->0x%x \n", 
           i, klas->l0inputs, rndw2, rndw3);
-      };
+      }; */
     };
   };
   printf("    fed dets: %s\n", txdets);

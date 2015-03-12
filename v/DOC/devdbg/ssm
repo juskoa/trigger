@@ -67,3 +67,6 @@ getswSSM(3)
 ------------------
 16.1.2015
 stopSSM(), condstopSSM(): in case of L0/LM0 always try to stop also L1
+
+23.2.
+ssm[].lopmode introduced -the must for LM0 status stored here

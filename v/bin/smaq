@@ -39,7 +39,7 @@ else
   ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
   ssh -q2 trigger@$SMAQ_C "rm -rf SMAQ/$SMAQDATA/*"
 fi
-scp -Bq2 $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS trigger@$SMAQ_C:SMAQ/$SMAQDATA/
+scp -Bq2 $VMECFDIR/CFG/ctp/DB/ctpinputs.cfg trigger@$SMAQ_C:SMAQ/$SMAQDATA/
 cd $VMEWORKDIR
 #$VMECFDIR/inputs/inputs.exe <<-EOF
 #inputsSMAQ(0,$sig)

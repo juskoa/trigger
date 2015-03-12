@@ -10,7 +10,8 @@ int main()
  usleep(1000000);
  l0->ddr3_ssmstart(0);
  l0->ddr3_ssmread();
- string ssm("test");
- l0->DumpSSM(ssm.c_str(),2);
+ string ssm("test1");
+ //l0->DumpSSM(ssm.c_str(),2);
+ l0->DumpSSM(ssm.c_str(),1);
  return 0;
 }

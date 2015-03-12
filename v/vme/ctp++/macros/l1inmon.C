@@ -24,7 +24,7 @@ int main()
       string num(buf);
       ssmdump=ssmdump+num;
       l1->DumpSSM(ssmdump.c_str());
-      if(counte==1)return 1;
+      if(counte==0)return 1;
       counte++;
     }
     T=l0->getBC1();

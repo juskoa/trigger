@@ -63,6 +63,21 @@ void L1BOARD::printClasses()
 //
 int L1BOARD::AnalSSM()
 {
+ // Triggern patern, to be parameter later
+ // 2 64 bit words
+ w64 trigclasshigh;  //  1- 50 l0data   : 1- last, 50 first after strobe
+ w64 trigclasslow; // 51-100 l0strobe : 51 lasy,100 first after strobe
+ //              51           100
+ //trigclasslow =0xfffffffffffffll;
+ // odd classes
+ //trigclasslow =0xaaaaaaaaaaaaall;
+ trigclasslow =  0x5555555555555ll;
+ //              1           50
+ //trigclasshigh=0xfffffffffffffll;
+ // odd classes
+ //trigclasshigh=0xaaaaaaaaaaaaall;
+ trigclasshigh  =0x5555555555555ll;
+ //
  int rc=0;
  w32 sl0strobech,sl0datach;
  if((sl0strobech=getChannel("l0strobe"))>32)rc=1;
@@ -76,7 +91,8 @@ int L1BOARD::AnalSSM()
  w32 classlow[50],classhigh[50];
  w32 *sm=GetSSM();
  int L0L0=260;
- int i=L0L0;
+ //int i=L0L0;
+ int i=0;
  int l0issm=-L0L0;
  while((i<Mega) && bit(sm[i],sl0strobech))i++;
  while(i<Mega){
@@ -88,21 +104,30 @@ int L1BOARD::AnalSSM()
      }
      l0issm=i;
      i++;
-     /* Brutal test for classes 0xffffff
+     /* Brutal test for classes 0xffffff */
      while((j<50) && (i+j)< Mega){
       classlow[j]=bit(sm[i+j],sl0strobech);
       classhigh[j]=bit(sm[i+j],sl0datach);
-      //printf("%i %i %i %i\n",i,j,classlow[j],classhigh[j]);
-      if((classlow[j] != 1) || (classhigh[j] != 1)){
-        printf("classes !=1 at %i \n",i+j);
-        //if(i>L0L0)return 1;
+      //printf("%i %i %i %i\n",i,j,classlow[j],trigclasslow&(1ll<<j));
+      //if((classlow[j] != 1) || (classhigh[j] != 1)){
+      bool bit=trigclasslow&(1ll<<j);
+      if((classlow[j] != bit) && (i>50)){
+        printf("strobe low classes !=1 at %i ,strobe=%i\n",i+j,l0issm);
         return 1;
       }
-      
+      bit=trigclasshigh&(1ll<<j);
+      if((classhigh[j] != bit)&& (i>50)){
+        printf("data high classes !=1 at %i , strobe=%i\n",i+j,l0issm);
+        return 1;
+      }      
       j++;
-     }*/
+     }
+     //
    }
    i=i+j+1;
+ }
+ if(l0issm == -L0L0){
+   printf("Warning: no strobe in ssm \n");
  }
  return rc;
 }

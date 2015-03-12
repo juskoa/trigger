@@ -10,6 +10,7 @@ class ssmrecord
     ssmrecord(const ssmrecord &obj);
     ssmrecord& operator=(const ssmrecord& rec);
     ~ssmrecord();
+    void Print2char(char* rec);
     w32 issm; // position in ssm
     w32 data; // orbit
     w16 *sdata;

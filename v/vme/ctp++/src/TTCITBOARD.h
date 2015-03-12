@@ -22,6 +22,7 @@ class TTCITBOARD: public BOARD
         int AnalyseSSM();
         void Dump2quSSM();
         void DumptxtSSM();
+        void DumpqueSSM2file(const char *filename);
 	int CompareL1L2Data(w32* l1m,w32* l2m);
 	int CheckClassPatternSSM();
         void Print();

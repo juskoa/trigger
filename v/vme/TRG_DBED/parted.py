@@ -2043,6 +2043,7 @@ class TrgPartition:
     is created.
     strict: luminosity DIM service (see preproc.py) has to be available
     """
+    self.downscaling=None
     self.strict= strict
     if strict=="strict":
       preproc.getlumi()

@@ -1,4 +1,5 @@
 #include "ssmrecord.h"
+#include <cstdio>
 ssmrecord::ssmrecord(w32 issm,w32 data)
 :issm(issm),data(data),sdata(0),
 ttcode(0),e(0),address(0),tdata(0),chck(0){}
@@ -39,5 +40,9 @@ ssmrecord& ssmrecord::operator=(const ssmrecord& rec)
   chck=rec.chck;
  }
  return *this;
+}
+void ssmrecord::Print2char(char* rec)
+{
+ sprintf(rec,"issm=%i data:%i sdata:%p ttcode:%i e:%i address:0x%x tdata:0x%x chck:%i",issm,data,sdata,ttcode,e,address,tdata,chck);
 }
 
