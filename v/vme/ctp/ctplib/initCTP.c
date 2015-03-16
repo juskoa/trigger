@@ -177,10 +177,12 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   if(ctpboards[ix].code==BUSYcode) {
     //cfg printf("Configuring BUSY board in 'external orbit mode'...\n"); 
     //cfg vmew32(BUSY_ORBIT_SELECT, 0);   // external orbit
+/*
 #ifndef CAVERN_SETUP
     printf("Configuring BUSY board in 'local orbit mode'...\n"); 
     vmew32(BUSY_ORBIT_SELECT, 3563 | 0x2000);   
 #endif
+*/
     //cfg vmew32(BUSY_DELAY_ADD, 0);
     vmew32(BUSY_DISB_CTP_BUSY, 1);   /* disable CTPbusy (see INT) */
     /* cfg vmew32(BUSY_CTPDEADTIME, 60);    

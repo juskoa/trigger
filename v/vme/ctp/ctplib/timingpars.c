@@ -17,15 +17,17 @@ typedef unsigned int w32;
 
 
 static int ORBITLENGTH=3564;
-static int TL1=260;                          
+static int TL1=280;                          
 /* see ltu/ltulib/ltuinit.c: L1_DEALY is TL1-1= 259 which should give 260
    BCs distance on LTUoutput
-before 24.8.2008 225
 from 31.8.2007. 225 corresponds to LTU.L1_DELAY=TL1-1=224
+before 24.8.2008 225
 from 4.6.2008 (LTUvi): 225 LTU.L1_DELAY= TL1-2= 223 which should give real 224bcs
+from 16.3.2015 280 (i.e. LTU.L!_DELAY=279
 
 LTU.L2_DELAY should be TL2 
 LTU.L2_DELAY = TL2 + 65   from 10.3.2015
+LTU.L2_DELAY = TL2 + 66   from 16.3.2015
 */
 //static int TL2=3472;  till 11.6.2008
 // TL2=3952; till 29.8.2011. Changed to 4208 in ctp.cfg
@@ -98,7 +100,8 @@ return((TBCL0+TL2-5)%ORBITLENGTH); //26.8.2008
 }
 /*--------------------------------*/ w32 calcINT_BCOFFSET() {
 /* INT_BCOFFSET register, INT board p.6 */
-return((TBCL0+3559)%ORBITLENGTH);       // 11.3.2015
+return((TBCL0+3560)%ORBITLENGTH);       // 12.3.2015
+//return((TBCL0+3559)%ORBITLENGTH);       // 11.3.2015
 //return((TBCL0+3)%ORBITLENGTH);       // 26.8.2008
 //return((TBCL0+2)%ORBITLENGTH);       // 20.8.2008
 //return((TBCL0+TL2+1)%ORBITLENGTH); // 1.8.2008

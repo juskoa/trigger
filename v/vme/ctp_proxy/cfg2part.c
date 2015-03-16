@@ -13,6 +13,8 @@
 
 int inplm=-1;   // -1: not connected 1..24: l0inp number of 0HCO input
 int inplm_swn;   // -1: not connected 1..24: l0inp number of 0HCO input
+extern char TRD_TECH[];   // partition name in case it is TRD technical partition
+
 //ctplib.h:
 int l0AB();
 
@@ -1210,7 +1212,7 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   int hwclass; int indets; TKlas *klas;
   if((klas=partit->klas[iclass]) == NULL) continue;
   hwclass= partit->klas[iclass]->hwclass;  // 0..49
-  //if(hwclass>49) {
+  //if(hwclass>49) 
   if(hwclass>99) {
     intError("getDAQClustersInfo: hwclass>49"); rcdaqlog=10;
   };
@@ -1224,6 +1226,15 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   }
   //
   indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  if(strcmp(TRD_TECH, partit->name)==0) { // LM correction for techn. run:
+    int newindets;
+    // actually. l0inp5 is used with RND generator, i.e. we
+    // do not want to tell DAQECS T0 is readout detector:
+    newindets= indets & 0xffdfff;   // d=1101 -exclude T0!
+    printf("getDAQClusterInfo:correction (no T0) for technical %s 0x%x -> 0x%x\n",
+      TRD_TECH, indets, newindets);
+    indets= newindets;
+  };
   l0finputs= l0finputs|l0finputs1;
   // l0finputs will be usd later when ctp_alignment called
   if(indets<0) rcdaqlog=2;   
