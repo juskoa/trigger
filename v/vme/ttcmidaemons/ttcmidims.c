@@ -493,8 +493,9 @@ setlinebuf(stdout);
 if(micratepresent()& 0x2) {
   char msg[200]="";
   rc= vmxopenam(&vspRF2TTC, "0xf00000", "0x100000", "A32");
+  sprintf(msg, "vmxopen RF2TTC rc:%d vsp:%d\n", rc, vspRF2TTC); printf(msg);
   if(rc!=0) {
-    sprintf(msg, "vmxopen TTCMI vme:%d\n", rc); rcexit=8;
+    rcexit=8;
   };
 } else {
   printf("RF2TTC not connected\n");

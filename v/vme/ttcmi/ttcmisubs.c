@@ -47,8 +47,8 @@ for(ix=0; ix<=1; ix++) {
   vspRFRX[ix]=-1; 
   rc= vmxopenam(&vspRFRX[ix], (char *)rfrxbase[ix], (char *)"0x100", (char *)"A24");
   //rc= vmxopenam(&vspRFRX[ix], rfrxbase[ix], "0x100", "A24");
+  sprintf(msg, "vmxopen RFRX%d rc:%d vsp:%d\n", ix, rc, vspRFRX[ix]); printf(msg);
   if(rc!=0) {
-    sprintf(msg, "vmxopen RFRX%d vme:%d\n", ix, rc);
     break;
   };
 };
@@ -199,12 +199,13 @@ int ix,rc2;
 if(micratepresent()&0x4) {
   int vsp4;
   vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
-  printf("vmxopenam 0x700000 (CORDE) rc:%d\n", rc2);
+  printf("vmxopenam 0x700000 (CORDE) rc:%d vsp4:%d\n", rc2, vsp4);
   vmxw32(vsp4, CORDE_RESET, 0);
   vmxw32(vsp4, CORDE_RESET, 1);
   vmxw32(vsp4, CORDE_RESET, 0);
-  rc2= vmxclose(vsp4);
-  printf("CORDE board reset. vmeclose rc:%d\n",rc2);
+  //rc2= vmxclose(vsp4);
+  //printf("CORDE board reset done. vmxclose rc:%d\n",rc2);
+  printf("CORDE board reset done. vmxclose not done\n");
 } else {
   printf("CORDE not set (not p2)\n");
 };
@@ -226,6 +227,7 @@ if(micratepresent()&1 ) {          //----------------------- RFRXs
 };
 if(micratepresent()&2 ) {          //----------------------- RF2TTC
   w32 adrpol, adrlen;
+  printf("setting RF2TTC...\n");
   vmew32(ORB1_DAC, 0xaa); vmew32(ORB2_DAC, 0xaa);
   for(ix=0; ix<3; ix++) {
     adrpol= ORBX_POLARITY+ 0x40*ix;
