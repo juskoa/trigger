@@ -680,7 +680,7 @@ printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->
 Check if there are classes feeding TRD. Do these modifications for them:
 - check rnd1 bit in L0_CONDITION word for this class
   if ON and 'downscaling 0' and 'no other input definition in this class':
-    - remove it from L0_CONDITION AND ADD l0inp5
+    - remove RND1 from L0_CONDITION AND ADD l0inp5
     - connect swinp32/11 to RND1 generator
   else
     nothing, but make sure RND1 connection to swinp32/11 is disabled at EOR
