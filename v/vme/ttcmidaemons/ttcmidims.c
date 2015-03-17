@@ -500,11 +500,18 @@ if(micratepresent()& 0x2) {
 } else {
   printf("RF2TTC not connected\n");
 };
+if(micratepresent()& 0x2) {
+  //w32 bcm, om;
+  //bcm= vmer32(BCmain_MAN_SELECT); om= vmer32(ORBmain_MAN_SELECT);
+  //printf("ds_register1: 0x%x 0x%x\n", bcm, om);
+  writeall(); 
+  //bcm= vmer32(BCmain_MAN_SELECT); om= vmer32(ORBmain_MAN_SELECT);
+  //printf("ds_register2: 0x%x 0x%x\n", bcm, om);
+};
 if(micratepresent()& 0x1) {
   int ix;
   rc= openrfrxs();
   if(rc==0) {
-    writeall(); 
     printf("ref bc1 orbit1\n"); printRFRX("0x300000");
     printf("--- bc2 orbit2\n"); printRFRX("0x400000");
     printf("getRFRX way:\n");

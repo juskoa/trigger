@@ -198,14 +198,15 @@ void writeall() {
 int ix,rc2;
 if(micratepresent()&0x4) {
   int vsp4;
-  vsp4=-1; rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
+  vsp4=-1; 
+  rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
   printf("vmxopenam 0x700000 (CORDE) rc:%d vsp4:%d\n", rc2, vsp4);
   vmxw32(vsp4, CORDE_RESET, 0);
   vmxw32(vsp4, CORDE_RESET, 1);
   vmxw32(vsp4, CORDE_RESET, 0);
   //rc2= vmxclose(vsp4);
   //printf("CORDE board reset done. vmxclose rc:%d\n",rc2);
-  printf("CORDE board reset done. vmxclose not done\n");
+  printf("CORDE board reset done. vmxclose NOT done\n");
 } else {
   printf("CORDE not set (not p2)\n");
 };

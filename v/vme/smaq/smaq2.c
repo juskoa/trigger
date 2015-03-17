@@ -94,11 +94,14 @@ char msg[20]="bobr";
 rc= dic_cmnd_callback("ACR07/BOBR", msg, strlen(msg)+1, &callback, 33);
 } */
 /////////////////////////////////////////////////////////////////////////////////////
-#define MAXCOUNTERS 160
+//#define MAXCOUNTERS 160  run1
+#define MAXCOUNTERS 300
 #define NINP 24
-#define L0OFFSET 65 
-#define L0TIMEOFFSET 13
-#define L1OFFSET 5
+//#define L0OFFSET 65         // run1 (just before l0inp1 counter)
+#define L0OFFSET 118        // run2: beware: now 1..48 switch input counters!
+//#define L0TIMEOFFSET 13   // run1
+#define L0TIMEOFFSET 15     // run2
+#define L1OFFSET 5          // l1time relative to L1start
 #define BEEPPOS 24 
 int inpL0[NINP];
 double getTime(w32 oldval,w32 newval){
@@ -420,10 +423,10 @@ if(trigboard==3) {
   timeadr=5;
   counteroffset=5;   // L2OFFSET
 } else if(trigboard==2) {
-  timeadr=5;
-  counteroffset=5;   // L1OFFSET
+  timeadr=L1OFSET;
+  counteroffset=L1OFSET;   // L1OFFSET
 } else {
-  timeadr=13;
+  timeadr=L0TIMEOFFSET;
   counteroffset=L0OFFSET;
 };
 
@@ -529,12 +532,12 @@ if(inpnum012>48) {
   inpnum= inpnum012-24;
   trigboard=2;                        // l0, l1 or only l1
   boards[0]= trigboard;
-  timeadr=5;
-  counteroffset=5;   // L1OFFSET
+  timeadr=L1OFSET;
+  counteroffset=L1OFSET;   // L1OFFSET
 } else {                              // l0, l1 or only l0
   inpnum= inpnum012;
   trigboard=1; 
-  timeadr=13;
+  timeadr=L0TIMEOFFSET;
   counteroffset=L0OFFSET;
 };
 if(boards[2]== 1 ) {

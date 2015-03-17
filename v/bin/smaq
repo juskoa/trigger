@@ -4,7 +4,8 @@
 #rc: 8: smaq is already running
 # smaq kill
 . $VMECFDIR/../bin/auxfunctions
-getpid "$VMECFDIR/smaq/smaq.exe"
+#getpid "$VMECFDIR/smaq/smaq.exe"
+getpid "$VMECFDIR/smaq/smaq2.exe"
 echo ":$spid user:$user"
 if [ $# -eq 0 ] ;then
   echo "Usage:"
@@ -44,5 +45,5 @@ cd $VMEWORKDIR
 #$VMECFDIR/inputs/inputs.exe <<-EOF
 #inputsSMAQ(0,$sig)
 #EOF
-$VMECFDIR/smaq/smaq.exe $sig <<-EOF
+$VMECFDIR/smaq/smaq2.exe $sig <<-EOF
 EOF

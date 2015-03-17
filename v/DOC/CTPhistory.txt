@@ -407,4 +407,5 @@ now better for debug in lab)
   getDAQClusterInfo() in ctp_proxy/cfg2part.c
 16.4.
 L0-L1: +20BCs. changed: ltulib/ltuinit.c, ctp.cfg
+also L2_DELAY adjusted (now TL2+66, before TL2)
 
