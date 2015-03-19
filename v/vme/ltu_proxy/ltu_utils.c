@@ -97,7 +97,12 @@ if(emustat != 0) {
 };
 ERenadis(0);	      	/* always disable errors */
 vmew32(L1_FORMAT, templtucfg->l1format);   /* L1message */
-vmew32(BC_DELAY_ADD,   templtucfg->bc_delay_add); setTTCint(templtucfg->L0); 
+vmew32(BC_DELAY_ADD,   templtucfg->bc_delay_add);
+if((strcmp(dimservernameCAP,"TRD")==0) &&
+   ((vmer32(LTUVERSION_ADD)&0xff)>=0xbb)) {
+  templtucfg->L0= templtucfg->L0 | TRD_TTCINT_BIT;
+};
+setTTCint(templtucfg->L0); 
 vmew32(ORBIT_BC,   templtucfg->orbitbc);
 if(global==0) {
   ixpptime= IXSpp_time;

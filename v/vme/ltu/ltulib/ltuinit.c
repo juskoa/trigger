@@ -542,17 +542,34 @@ if(ltuviyes) {
   } else if(((del>=5) && (del<=17)) || (del==31)) { 
     newttin=0x1;
   } else if((del>=18) && (del<=30)) { 
-    newttin=0x2; */
-  if(((del<=6) && (del>=0)) || ((del >=20) && (del<=31))) {
-    newttin=0x2;   // chanA +BC/2
-  } else if((del>=8) && (del<=18)) { 
-    newttin=0x1;   // chanB +BC/2
-  } else if(del==7 ) { 
-    newttin=0x3;   // both TTC chans A/B +BC/2
-  } else if(del== 19) { 
-    newttin=0x0; 
-  } else { newttin=0;
-    printf("BC_DELAY_ADD out of the allowed range (0-31)\n");
+    newttin=0x2; 
+  */
+  if((vmer32(LTUVERSION_ADD)&0xff)<0xbb) {
+    //following valid till 17.3.2015 (ltuver <=0xba)
+    if(((del<=6) && (del>=0)) || ((del >=20) && (del<=31))) {
+      newttin=0x2;   // chanA +BC/2
+    } else if((del>=8) && (del<=18)) { 
+      newttin=0x1;   // chanB +BC/2
+    } else if(del==7 ) { 
+      newttin=0x3;   // both TTC chans A/B +BC/2
+    } else if(del== 19) { 
+      newttin=0x0; 
+    } else { newttin=0;
+      printf("BC_DELAY_ADD out of the allowed range (0-31)\n");
+    };
+  } else {
+    // following valid from 17.3.2015 (ltuver >=0xbb)
+    if(((del<=7) && (del>=0)) || ((del >=21) && (del<=31))) {
+      newttin=0x2;   // chanA +BC/2
+    } else if((del>=9) && (del<=19)) { 
+      newttin=0x1;   // chanB +BC/2
+    } else if(del==8 ) { 
+      newttin=0x3;   // both TTC chans A/B +BC/2
+    } else if(del== 20) { 
+      newttin=0x0; 
+    } else { newttin=0;
+      printf("BC_DELAY_ADD out of the allowed range (0-31)\n");
+    };
   };
 } else {   // TTCvi
   strcpy(ttcorltu,"TTCvi");

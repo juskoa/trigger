@@ -144,7 +144,7 @@ LTUvi:
   bit0: Delay CahnnelB flag (+BC/2)
   bit1: Delay CahnnelA flag
   bit2: 0: normal LTU, 1: the copy of TTC-A/B sent over L0-LVDS-2/3 outputs
-        -valid from version BB
+        -valid from version BB see TRD_TTCINT_BIT
 LTUf3:
   bits[1..0]
   00  for BC_DELAY_ADD: 0,1,20-27
@@ -200,6 +200,7 @@ LTUf3:
 #define CLEARCOUNTER   0x5ac /* clear counters CMD */
 /*REGEND */
 
+#define TRD_TTCINT_BIT 0x4
 #define LTUNCOUNTERSall   26 
 #define LTUNCOUNTERS   21
 #define LTU_TIMErp        0

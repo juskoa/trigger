@@ -210,4 +210,7 @@ seems det/MONBUSY (busy fraction od subdetector busy) dim service is ok now
 21.1.2015
 TTCRX_RESET STDALONE now possible in Defaults editor allowing
 TTCinit only for STDALONE runs
-
+18.3.
+setTTCint() changed -new version of table
+18.3.
+TRD_TTCINT_BIT introduced (for ltuver >= 0xbb)

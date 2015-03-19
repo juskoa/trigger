@@ -405,7 +405,9 @@ now better for debug in lab)
 13.3.
 - bug in LM patch fixed: 'T0 triggering for technical with TRD in readout' in 
   getDAQClusterInfo() in ctp_proxy/cfg2part.c
-16.4.
+16.3.
 L0-L1: +20BCs. changed: ltulib/ltuinit.c, ctp.cfg
 also L2_DELAY adjusted (now TL2+66, before TL2)
+18.3.
+setTTCint() changed -new version of table, TRD_TTCINIT_BIT introduced
 
