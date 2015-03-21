@@ -160,7 +160,8 @@ word=(1<<24)+ctprodets;
     // ctp readout active or emulated, set TRIGGER bit 
     //the bit has to be set for CALIBRATION events too!
     // if not set, EVB complains (run 67492)
-    word= word | (1<<17);
+    //word= word  | (1<<17);
+    word=word ;        // temporary suppress bit17 till Monday 23rd
     //printf("setswtrig: bit17 not set\n");
     //};
   };

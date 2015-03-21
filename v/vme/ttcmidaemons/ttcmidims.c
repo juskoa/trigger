@@ -1,3 +1,15 @@
+/*
+before 20.3.2015
+[trigger@alidcscom835 pydim]$ ./simpleClient.py TTCMI/QPLL
+dns: aldaqecs
+connecting to TTCMI/QPLL service fmt: C
+serid: <type 'int'> 1
+enter any text or q:
+service_cb 20.03.2015 18:01:48  received: type: <type 'tuple'> ('155\x00',)
+AliceClock is: 155
+After:
+
+ * */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -51,13 +63,13 @@ char shiftnow[MAXLILE+1]="none";  // halfsecs corde_val
 char qpllnow[MAXLILE+1]="none";  // T1122RRMM hexa (qpllstat binary)
 // T: TTCrx ready   i.e. 1 ok
 // BC1/2/Ref/main:  Error Locked, i.e. 01 ok
+w32 qpllstat=0; // in agreement with qpllnow
 int clocktran=0; char clocktransition[MAXLILE+1]="0";
 
 int TAGqpll_thread=88;
 int nlogqpll=0;
-w32 qpllstat=0; // in agreement with qpllnow
-extern int *vspRFRX;
-int vspRF2TTC=0;
+extern int vspRFRX[2];
+extern int vspRF2TTC;
 Tchan rfrx1[3]= {{0.,0},{0.,0},{0.,0}};
 Tchan rfrx2[3]= {{0.,0},{0.,0},{0.,0}};
 float freqs[4]; // TTCMI/FREV_B1 FREV_B2 F40_B1 F40_B2
@@ -94,9 +106,9 @@ if(EXITSERVER==1) {
   dis_remove_service(QPLLid);
   dis_remove_service(MICLOCK_TRANSITIONid);
   dis_stop_serving();
-  if(micratepresent()==2) vmeclose();
-  if(micratepresent()==3) {
-    vmeclose(); vmxclose(vspRFRX[0]); vmxclose(vspRFRX[1]);
+  if(micratepresent()&0x2) vmeclose();
+  if(micratepresent()&0x1) {
+    vmxclose(vspRFRX[0]); vmxclose(vspRFRX[1]);
   };
   exit(0);
 };
@@ -344,7 +356,7 @@ dim_start_thread(newclock, (void *)&newclocktag);
 }
 /*-----------------*/ void MICLOCK_SETcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];
-char *msg= (char *)msgv; int rc,rc2; 
+char *msg= (char *)msgv; int rc,rc2=0; 
 sprintf(errmsg, "MICLOCK_SETcmd: tag:%d size:%d msg:%5.5s\n", 
   *(int *)tag, *size, msg); prtLog(errmsg); 
 /* pydim client: msg not finished by 0x0 ! -that's why strncmp() used below...
@@ -354,7 +366,8 @@ msg[*size]='\0';   // with python client ok
 //if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
 };
 */
-rc= authenticate(""); rc2=1; //rc2= authenticate("oerjan/");
+//rc= authenticate(""); rc2=1; //rc2= authenticate("oerjan/");
+rc=0;
 if((rc!=0) and (rc2!=0) ) {
   //sprintf(errmsg, "Only trigger/oerjan user can change the clock"); prtLog(errmsg); 
   sprintf(errmsg, "Only trigger user can change the clock"); prtLog(errmsg); 
@@ -398,7 +411,7 @@ char msg[100];
 getclocknow();
 *msgp= clocknow;
 *size= strlen(clocknow)+1;
-sprintf(msg, "MICLOCKcaba clocknow:%s size:%d \n", clocknow, *size); prtLog(msg); 
+sprintf(msg, "MICLOCKcaba clocknow:%s size:%d", clocknow, *size); prtLog(msg); 
 }
 /*----------------------------------------------------------- SHIFTcaba
 */
@@ -409,7 +422,7 @@ char msg[100];
 getshiftnow();
 *msgp= shiftnow;
 *size= strlen(shiftnow)+1;
-sprintf(msg, "SHIFTcaba shiftnow:%s size:%d \n", shiftnow, *size); prtLog(msg); 
+sprintf(msg, "SHIFTcaba shiftnow:%s size:%d", shiftnow, *size); prtLog(msg); 
 }
 /*----------------------------------------------------------- QPLLcaba
 */
@@ -417,10 +430,12 @@ void QPLLcaba(void *tag, void **msgpv, int *size, int *blabla) {
 char **msgp= (char **)msgpv;
 char msg[100];
 // readVME:
-*msgp= qpllnow;
-*size= strlen(qpllnow)+1;
-sprintf(msg, "QPLLcaba qpllnow:%s size:%d \n", shiftnow, *size); prtLog(msg); 
-}
+// *msgp= qpllnow;
+*msgp= (char *) qpllstat;
+// *size= strlen(qpllnow)+1;
+*size= 4;
+sprintf(msg, "QPLLcaba qpllnow:0x%x size:%d", qpllstat, *size); prtLog(msg); 
+} 
 /*----------------------------------------------------------- FREQScaba
 */
 void FREQScaba(void *tag, void **msgpv, int *size, int *blabla) {
@@ -432,14 +447,11 @@ char msg[200]; char freqstxt[80];
 for(ix=0; ix<4; ix++) {
   sprintf(freqstxt, "%s %f10.6", freqstxt, freqs[ix]);
 };
-sprintf(msg, "FREQScaba freqs now:%s size:%d \n", freqstxt, *size); prtLog(msg); 
+sprintf(msg, "FREQScaba freqs now:%s size:%d", freqstxt, *size); prtLog(msg); 
 }
 
-/*--------------------------------------------------------------- qpll_thread
-*/
-void qpll_thread(void *tag) {
-while(1) {   //run forever
-  int rc; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
+int update_qpll() {
+  int rc,rcret=0; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
   char buffer[50];
   if(envcmp("VMESITE", "ALICE")==0) {
     stat= readstatus();
@@ -463,24 +475,35 @@ while(1) {   //run forever
   ) {
     rc= dis_update_service(FREQSid);
   };
+  stat=qpllstat+1; //simulate change
   if(stat != qpllstat) {
     qpllstat= stat;
     sprintf(qpllnow,"%3.3x", qpllstat);
     rc= dis_update_service(QPLLid);
-    //printf("QPLL update rc:%d qpllnow:%s\n",rc,qpllnow);
+    printf("QPLL update rc:%d qpllstat:0x%x\n",rc,qpllstat);
+    /*
     mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
     bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;
     sprintf(buffer, "mon ds006:ds007:ds008:ds009 N:%d:%d:%d:%d", 
       mainerr, mainlck, bc1err, bc1lck);
     rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
-    //prtLog(buffer);
+    prtLog(buffer); */
   };
   nlogqpll++;
-  if((nlogqpll % 60)==0) {    // 60/600:log 1/hour
+  if((nlogqpll % 3600)==0) {    // 60/600:log 1/hour
     prtLog(buffer);
   };
-  dtq_sleep(1);
-  if(quit!=0) break;
+  if(quit!=0) rcret=10;
+return(rcret);
+}
+/*--------------------------------------------------------------- qpll_thread
+*/
+void qpll_thread(void *tag) {
+while(1) {   //run forever
+  int rc;
+  rc= update_qpll();
+  dtq_sleep(10);
+  if(rc!=0) break;
 };
 }
 /*--------------------------------------------------------------- ds_register
@@ -489,9 +512,9 @@ void ds_register() {
 int ix,rc=0; int rcexit=0;
 char command[MAXCMDL];
 
-setlinebuf(stdout);
 if(micratepresent()& 0x2) {
   char msg[200]="";
+  vspRF2TTC=0;
   rc= vmxopenam(&vspRF2TTC, "0xf00000", "0x100000", "A32");
   sprintf(msg, "vmxopen RF2TTC rc:%d vsp:%d\n", rc, vspRF2TTC); printf(msg);
   if(rc!=0) {
@@ -499,6 +522,14 @@ if(micratepresent()& 0x2) {
   };
 } else {
   printf("RF2TTC not connected\n");
+};
+if(micratepresent()& 0x1) {
+  rc= openrfrxs();
+  if(rc!=0) {
+    rcexit=8;
+  };
+} else {
+  printf("RFRXs not connected\n");
 };
 if(micratepresent()& 0x2) {
   //w32 bcm, om;
@@ -510,23 +541,16 @@ if(micratepresent()& 0x2) {
 };
 if(micratepresent()& 0x1) {
   int ix;
-  rc= openrfrxs();
-  if(rc==0) {
-    printf("ref bc1 orbit1\n"); printRFRX("0x300000");
-    printf("--- bc2 orbit2\n"); printRFRX("0x400000");
-    printf("getRFRX way:\n");
-    getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2); 
-    freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
-    freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
-    printf("ref bc1 orbit1:"); for(ix=0; ix<3; ix++) {
-      printf("%d/%f ", rfrx1[ix].ref, rfrx1[ix].freq);
-    }; printf("\n");
-    printf("--- bc2 orbit2:"); for(ix=0; ix<3; ix++) {
-      printf("%d/%f ", rfrx2[ix].ref, rfrx2[ix].freq);
-    }; printf("\n");
-  } else {
-    rcexit=8;
-  };
+  printf("getRFRX way:\n");
+  getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2); 
+  freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
+  freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
+  printf("ref bc1 orbit1:"); for(ix=0; ix<3; ix++) {
+    printf("%d/%f ", rfrx1[ix].ref, rfrx1[ix].freq);
+  }; printf("\n");
+  printf("--- bc2 orbit2:"); for(ix=0; ix<3; ix++) {
+    printf("%d/%f ", rfrx2[ix].ref, rfrx2[ix].freq);
+  }; printf("\n"); 
 } else {
   printf("RFRXs not connected\n");
   for(ix=0; ix<=4; ix++) {
@@ -558,37 +582,43 @@ strcpy(command, MYNAME); strcat(command, "/SHIFT");
 SHIFTid=dis_add_service(command,"C", shiftnow, MAXLILE+1,
   SHIFTcaba, SHIFTtag);  printf("%s\n", command);
 strcpy(command, MYNAME); strcat(command, "/QPLL");
-QPLLid=dis_add_service(command,"C", qpllnow, MAXLILE+1,
-  QPLLcaba, QPLLtag);  printf("%s\n", command);
+//QPLLid=dis_add_service(command,"C", qpllnow, MAXLILE+1,
+QPLLid=dis_add_service(command, "L", &qpllstat, sizeof(qpllstat),
+//  QPLLcaba, QPLLtag);  printf("%s\n", command);
+  NULL, QPLLtag);  printf("%s\n", command);
 strcpy(command, MYNAME); strcat(command, "/RFRX");
 FREQSid=dis_add_service(command,"F:4", freqs, 16,
   FREQScaba, FREQStag);  printf("%s\n", command);
 
 printf("serving...\n");
 dis_start_serving(MYNAME);  
-printf("Starting the thread reading BC*QPLL_STATUS regs...\n");
-dim_start_thread(qpll_thread, (void *)&TAGqpll_thread);
+printf("not Starting the thread reading BC*QPLL_STATUS regs...\n");
+//dim_start_thread(qpll_thread, (void *)&TAGqpll_thread);
 }
 
 int main(int argc, char **argv)  {
 infolog_SetFacility((char *)"CTP");
 infolog_SetStream("",0);
+setlinebuf(stdout);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 micrate(-1);
+/*
 if(envcmp("VMESITE", "ALICE")==0) {
   udpsock= udpopens("alidcscom835", send2PORT);
 } else {
   udpsock= udpopens("avmes", send2PORT);
-};
+}; */
 ds_register();
 
 while(1)  {  
-  /*printf("sleeping 10secs...\n");*/
-  dtq_sleep(2); //sleep(10);  
-  if(quit>0) break;
-  //ds_update();
+  int rc;
+  rc= update_qpll();
+  //sleep(10) ; 
+  dtq_sleep(10);
+  printf("slept 10secs...\n"); fflush(stdout);
+  if(rc!=0) break;
 };  
 ds_stop();
 exit(0);

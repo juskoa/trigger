@@ -25,11 +25,11 @@ corde_shift(): bug fixed: 150< allowed shift <150 is now: -150<shift<150
 #include "ttcmi.h"
 
 int vspRFRX[3]={-1,-1};  // RFRX1,2
-
+int vspRF2TTC=0;
 //----------------------------------------- corde board (also vme/corde dir):
 char corde_base[]="0x7000000";
 char corde_len[]="0x7fc00";
-char corde_A32[]="A32";
+char corde_am[]="A32";
 
 w32 halfnsvme=0x140+29, cordevalvme=512;
 /* 3:p2     RF2TTC + RFRXs
@@ -68,12 +68,12 @@ if( (strlen(title)+strlen(msg)) > 500) {
 
 w32 corde_get(int del) {  // 1..7. VME is opened/closed with each call!
 int rc,vsp=-1; w32 adr, val;
-if(micratepresent()) {
-  rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+if(micratepresent()&0x4) {
+  rc= vmxopenam(&vsp, corde_base, corde_len, corde_am);
 } else rc=0;
 if(rc==0) {
   adr= (del-1)*4 + CORDE_ORBMAIN; 
-  if(micratepresent()) {
+  if(micratepresent()&0x4) {
     val= vmxr32(vsp, adr);
     rc= vmxclose(vsp);
   } else {
@@ -86,12 +86,12 @@ return(val);
 }
 void corde_set(int del, w32 val) {
 int vsp=-1,rc; w32 adr;
-if(micratepresent()) {
-  rc= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+if(micratepresent()&0x4) {
+  rc= vmxopenam(&vsp, corde_base, corde_len, corde_am);
 } else rc=0;
 if(rc==0) {
   adr= (del-1)*4 + CORDE_ORBMAIN; // 7: BC1
-  if(micratepresent()) {
+  if(micratepresent()&0x4) {
     vmxw32(vsp, adr, val);
   } else {cordevalvme= val; };
   //adr= (4-1)*4 + ORBMAIN; // BC_MAIN (not needed -only BC1 delayd in CORDE)
@@ -113,13 +113,13 @@ return;
 #define corde_ministep 5
 w32 corde_shift(int del, int shift, int *origval) {  
 int vsp=-1, rc,rcv; 
-if(micratepresent()) {
-  rcv= vmxopenam(&vsp, corde_base, corde_len, corde_A32);
+if(micratepresent()&0x4) {
+  rcv= vmxopenam(&vsp, corde_base, corde_len, corde_am);
 } else rcv=0;
 if(rcv==0) {
   int sig; w32 base,adr,lastval;
   adr= (del-1)*4 + CORDE_ORBMAIN; 
-  if(micratepresent()) {
+  if(micratepresent()&0x4) {
     base= vmxr32(vsp, adr); 
   } else {
     base= cordevalvme;
@@ -196,25 +196,12 @@ if(micratepresent()) {
 */
 void writeall() {
 int ix,rc2;
-if(micratepresent()&0x4) {
-  int vsp4;
-  vsp4=-1; 
-  rc2= vmxopenam(&vsp4, (char *)"0x700000", (char *)"0x7fc00", (char *)"A32");
-  printf("vmxopenam 0x700000 (CORDE) rc:%d vsp4:%d\n", rc2, vsp4);
-  vmxw32(vsp4, CORDE_RESET, 0);
-  vmxw32(vsp4, CORDE_RESET, 1);
-  vmxw32(vsp4, CORDE_RESET, 0);
-  //rc2= vmxclose(vsp4);
-  //printf("CORDE board reset done. vmxclose rc:%d\n",rc2);
-  printf("CORDE board reset done. vmxclose NOT done\n");
-} else {
-  printf("CORDE not set (not p2)\n");
-};
 //if((micratepresent()==3) || (micratepresent()==2)) {
 if(micratepresent()&1 ) {          //----------------------- RFRXs
   w32 adrpol;
   w16 refsBC[3]={0x5, 0x5, 0xa0};     // a0 from 4.12.2014 (was 0x70)
   w16 refsOrbit[3]={0x5, 0x5, 0xa0};  // a0 from 4.12.2014
+  printf("setting RFRXs...vspRFRX:%d %d\n", vspRFRX[0],vspRFRX[1]);
   for(ix=0; ix<3; ix++) {
     adrpol= ch1_ref + ix*0x2;
     vmxw16(vspRFRX[0], adrpol, refsBC[ix]);
@@ -228,7 +215,9 @@ if(micratepresent()&1 ) {          //----------------------- RFRXs
 };
 if(micratepresent()&2 ) {          //----------------------- RF2TTC
   w32 adrpol, adrlen;
-  printf("setting RF2TTC...\n");
+  printf("setting RF2TTC... vspRF2TTC:%d\n", vspRF2TTC);
+  adrpol= vmer32(ORB1_DAC);
+  printf("ORB1_DAC:0x%x\n", adrpol);
   vmew32(ORB1_DAC, 0xaa); vmew32(ORB2_DAC, 0xaa);
   for(ix=0; ix<3; ix++) {
     adrpol= ORBX_POLARITY+ 0x40*ix;
@@ -270,6 +259,22 @@ if(micratepresent()&2 ) {          //----------------------- RF2TTC
   //setbcorbitBO1(1);
   //setorbitdelay(3563);
 };
+if(micratepresent()&0x4) {
+  int vsp4;
+  vsp4=-1; 
+  rc2= vmxopenam(&vsp4, (char *)corde_base, (char *)corde_len,
+    (char *)corde_am);
+  printf("vmxopenam %s (CORDE) rc:%d vsp4:%d\n",
+    corde_base, rc2, vsp4);
+  vmxw32(vsp4, CORDE_RESET, 0);
+  vmxw32(vsp4, CORDE_RESET, 1);
+  vmxw32(vsp4, CORDE_RESET, 0);
+  rc2= vmxclose(vsp4);
+  printf("CORDE board reset done. vmxclose rc:%d\n",rc2);
+  //printf("CORDE board reset done. vmxclose NOT done\n");
+} else {
+  printf("CORDE not set (not p2)\n");
+};
 /* vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
 printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
 if((micratepresent()&0x3)==0) {
@@ -291,7 +296,7 @@ for(ix=0; ix<3; ix++) {
   //printf("%d=%fMHz ", fhl, frs[ix].freq);
 }; printf("\n");
 }
-void printRFRX(char *rfrxbase) {
+void printRFRX(char *rfrxbase) {   // invoked ONLY from ttcmi (NOT from ttcmidims!)
 int ix,rc,vsp;
 float frekvs[3];
 vsp=-1; rc= vmxopenam(&vsp, rfrxbase, (char *)"0x100", (char *)"A24");
@@ -469,7 +474,7 @@ printf("0x40 -> BC_DELAY25_GCR done\n");
 void micrate(int present) {
 if(present==-1) {
   if(envcmp((char *)"VMESITE", (char *)"ALICE")==0) {
-    havemicrate= 7;  // CORDE RF2TTC RFRXs
+    havemicrate= 7;  // 7: CORDE RF2TTC RFRXs
   } else {
     char *hn;
     hn= getenv("HOSTNAME");

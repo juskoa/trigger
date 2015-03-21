@@ -423,8 +423,8 @@ if(trigboard==3) {
   timeadr=5;
   counteroffset=5;   // L2OFFSET
 } else if(trigboard==2) {
-  timeadr=L1OFSET;
-  counteroffset=L1OFSET;   // L1OFFSET
+  timeadr=L1OFFSET;
+  counteroffset=L1OFFSET;   // L1OFFSET
 } else {
   timeadr=L0TIMEOFFSET;
   counteroffset=L0OFFSET;
@@ -532,8 +532,8 @@ if(inpnum012>48) {
   inpnum= inpnum012-24;
   trigboard=2;                        // l0, l1 or only l1
   boards[0]= trigboard;
-  timeadr=L1OFSET;
-  counteroffset=L1OFSET;   // L1OFFSET
+  timeadr=L1OFFSET;
+  counteroffset=L1OFFSET;   // L1OFFSET
 } else {                              // l0, l1 or only l0
   inpnum= inpnum012;
   trigboard=1; 
