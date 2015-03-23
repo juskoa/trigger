@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>    /* sleep(), usleep() */
+#include <string.h>
 #include "vmewrap.h"
 #include "ctp.h"
 //#include "ctplib.h"
@@ -151,6 +152,56 @@ for(ix=0; ix< MEGA; ix++) {
   if(ssm2!=NULL) ssm2[ix]= block[15];
 };
 vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);   // clear 0x2 flag in SSMstatus
+return(0);
+}
+int ddr3_ssmdump(w32 opmod, FILE *dump) {
+int ddr3ad, ix, rc, opmoix;
+w32 block[DDR3_BLKL];
+int allbitn=0, ixb; int bits[32];
+int lowix=8; int highix=31;
+for(ixb=lowix; ixb<=highix; ixb++) bits[ixb]=0;
+
+/*FILE *dump;
+char fn[100]="WORK/"; */
+
+//for(ix=0; ix<= MEGA; ix++) {
+if(opmod==0xa) {
+  opmoix= 14;
+} else if(opmod==0xb) {
+  opmoix= 15;
+} else {
+  return(1);
+};
+/*strcat(fn,fname);
+dump= fopen(fn,"w");
+if(dump==NULL) {
+  printf("ddr3_ssmdump: cannot open file %s\n", fn);
+  return(2);
+}; */
+for(ix=0; ix< MEGA; ix++) {
+  w32 data;
+  ddr3ad= ix*16;
+  rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
+  if(rc!=0) {
+    printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
+    return(rc);
+  };
+  data= block[opmoix];
+  for(ixb=lowix; ixb<=highix; ixb++) {
+    w32 msk;
+    msk= 1<<ixb;
+    if(data & msk) bits[ixb]++;
+  };
+  fwrite(&data, sizeof(w32), 1, dump);
+};
+vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);   // clear 0x2 flag in SSMstatus
+for(ixb=lowix; ixb<=highix; ixb++) {
+  if(bits[ixb] >0) {
+    allbitn= allbitn+bits[ixb];
+    printf("ixbit:%2d %d\n", ixb, bits[ixb]);
+  };
+};
+printf("ddr3_ssmdump bits:%d\n", allbitn);
 return(0);
 }
 void ddr3_ssmstart(int secs) {

@@ -454,11 +454,15 @@ int update_qpll() {
   int rc,rcret=0; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
   char buffer[50];
   if(envcmp("VMESITE", "ALICE")==0) {
-    stat= readstatus();
+    if(micratepresent()& 0x2) {
+      stat= readstatus();
+    } else { stat=stat+1; };
     // update freqs:
-    getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2);
-    freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
-    freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
+    if(micratepresent()& 0x1) {
+      getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2);
+      freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
+      freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
+    };
     //printf("ref bc1 orbit1\n"); printf("--- bc2 orbit2\n");
   } else {
     // simulate:
@@ -615,10 +619,11 @@ ds_register();
 while(1)  {  
   int rc;
   rc= update_qpll();
+  if(rc!=0) break;
+  printf("sleteping 10secs...\n"); fflush(stdout);
   //sleep(10) ; 
   dtq_sleep(10);
   printf("slept 10secs...\n"); fflush(stdout);
-  if(rc!=0) break;
 };  
 ds_stop();
 exit(0);

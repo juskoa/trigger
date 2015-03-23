@@ -332,8 +332,9 @@ dt[10]='_';
 //dt[16]='_';
 nbs= boards[2];
 for(ix=0; ix<nbs; ix++) {
-  rcscp= readSSM(boards[ix]);
-  if(rcscp!=0) break;
+  w32 swssm;
+  swssm= getswSSM(boards[ix]); printf("getswSSM:0x%x\n", swssm);
+  //rcscp= readSSM(boards[ix]); if(rcscp!=0) break;
   if(nbs==1) {
     sprintf(filename,"l%d_%i_%s.dmp",board123-1,inpnum,dt);
   } else {
@@ -358,18 +359,22 @@ for(ix=0; ix<nbs; ix++) {
   idea2: create thread, uploading ssm directly to $SMAQ_C over TCP/IP
   */
   if(SMAQ_C[0]!='\0'){
-    sprintf(cmd, "scp -Bq2 WORK/%s trigger@%s:SMAQ/%s/", 
-      filename, SMAQ_C, dirname);
-    //printf("%s\n",cmd);
-    rcscp= system(cmd);
-    if(rcscp==0) {
-      sprintf(cmd, "rm WORK/%s", filename);
-      rcscp= system(cmd);
-      if(rcscp!=0) {
-        printf("rc:%d from remove file...\n", rcscp);
-      };
+    if(strcmp(dirname,"")==0) {
+      printf("%s not scp-ed, empty SMAQDATA\n",filename);
     } else {
-      break;
+      sprintf(cmd, "scp -Bq2 WORK/%s trigger@%s:SMAQ/%s/", 
+        filename, SMAQ_C, dirname);
+      //printf("%s\n",cmd);
+      rcscp= system(cmd);
+      if(rcscp==0) {
+        sprintf(cmd, "rm WORK/%s", filename);
+        rcscp= system(cmd);
+        if(rcscp!=0) {
+          printf("rc:%d from remove file...\n", rcscp);
+        };
+      } else {
+        break;
+      };
     };
   };
 };
@@ -382,7 +387,7 @@ boards[0..1] -boards to be stoped+readout+started
 */
 int getSSMs(int *boards, int board123, int inpnum,int intboard,FILE *f){
 int rcscp;
-usleep(4000); // fine even for triggering with BOBR signal
+//usleep(4000); // fine even for triggering with BOBR signal
 // which is coming 19 orbits before interaction
 rcscp= stop_ssm(boards);   if(rcscp == 10) goto RTRN;
 if(intboard)stopSSM(4);
@@ -390,8 +395,9 @@ if(intboard)stopSSM(4);
 //read_ssm(boards);
 rcscp= rdumpscp_ssm(boards, board123, inpnum, f);
 // onl in the pit:
-if(strcmp(SMAQ_C,"pcalicebhm10")!=0) checkInputs2(board123,f,inpnum);
+//if(strcmp(SMAQ_C,"pcalicebhm10")!=0) checkInputs2(board123,f,inpnum);
 setstart_ssm(boards);
+/*
  if(intboard){  
    CTPRIRDList *INTlist=NULL; 
    //sprintf(filename,"b2_%s",dt);
@@ -407,6 +413,7 @@ setstart_ssm(boards);
  }
  fflush(f);
  usleep(30000);  // 30ms should be enough
+*/
 RTRN: return(rcscp);
 }
 //------------------------------------------------------------
@@ -472,9 +479,10 @@ if(trigboard==3) {
                      1 : take int board and trigger on l0 input board
                      2 : take int board and trigger on l0int1 counters 
                      3 : take int board and trigger on l0int2 counters
-  inpnum - inpnumber on l0 level to trigger on: 1..24
-                     on l1 level to trigger on:25..48
-           101..148 -take 2 ssms triggering on 1.48 input
+  inpnum - inpnumber on l0 level to trigger on: 1..48
+                     on l1 level to trigger on:51..74
+           101..148 -take 2 ssms triggering on 1..48 input of L0
+           151..174 -take 2 ssms triggering on 1..24 input of L1
            0: trigger on LHCpp (BOBR card in the CTP crate)
   Output:
          - log file - contains also BC of interaction records
@@ -489,7 +497,7 @@ int boards[3];
  w32 timeadr;
  int i,timeold,time,inpnum;
  double timediff;
- int trigold,trig;
+ int trigold,trigcur;
  int vspbobr;
  int trigcond,beepcond;
  Tlhcpp lhcpp;
@@ -497,6 +505,7 @@ int boards[3];
  char *environ;
  char fnpath[1024],logname[1024];
  char dt[32];
+w32 timelastnotrg;
 // Open the log file
  getdatetime(dt);
  dt[10]='_';
@@ -522,35 +531,32 @@ if(inpnum012>100) {           // we want l0+l1(l2) snapshot
   boards[0]= 2; boards[1]= 1; // start order: l0, l1
   inpnum012= inpnum012-100;
 };
-if(inpnum012>48) {
-  inpnum= inpnum012-48;
-  trigboard=3;                        // l0, l2 or only l2
-  boards[0]= trigboard;
-  timeadr=5;
-  counteroffset=5;   // L2OFFSET
-} else if(inpnum012>24) {
-  inpnum= inpnum012-24;
-  trigboard=2;                        // l0, l1 or only l1
+// boards[2]: # of boards   inpnum012:1..48 or 51..74
+if(inpnum012>50) {   // trigger: L1
+  inpnum= inpnum012-50;
+  trigboard=2;             
   boards[0]= trigboard;
   timeadr=L1OFFSET;
-  counteroffset=L1OFFSET;   // L1OFFSET
-} else {                              // l0, l1 or only l0
+  counteroffset= L1OFFSET;   // inps start just after time
+} else {            // trigger: L0
   inpnum= inpnum012;
   trigboard=1; 
   timeadr=L0TIMEOFFSET;
   counteroffset=L0OFFSET;
 };
+countermax=counteroffset+NINP+6;  // 6 for int counters
+//countermax=counteroffset+1;
 if(boards[2]== 1 ) {
   boards[0]= trigboard;
-  printf("triggering with L%d inp%d. Readout boards: L%d\n",
-    trigboard-1, inpnum, boards[0]-1);
+  printf("triggering with L%d inp%d/%d max:%d. Readout board: L%d\n",
+    trigboard-1, inpnum, counteroffset, countermax, boards[0]-1);
 } else {
-  printf("triggering with L%d inp%d. Readout boards: L%d L%d\n",
-    trigboard-1, inpnum, boards[0]-1, boards[1]-1);
+  printf("triggering with L%d inp%d/%d max:%d. Readout boards: L%d L%d\n",
+    trigboard-1, inpnum, counteroffset, countermax, boards[0]-1, boards[1]-1);
 };
 
 /* now boards[2]: number of boards to be readout
-       2: boards[0..1] is l1+l0 or l2+l0
+       2: boards[0..1] is l1+l0
        1: boards[0] is l1 or l0
 */
 initNames(trigboard);
@@ -561,8 +567,6 @@ if(intboard == 2){   // trigger on int1
   inpnum=28;
 }
 
- //countermax=counteroffset+NINP+6;  // 6 for int counters
- countermax=counteroffset+NINP+30;  // 6 for int counters
  
  getCountersBoard(trigboard,counteroffset + NINP,l0first,3);
  for(i=0;i<NINP;i++){
@@ -585,71 +589,74 @@ if(intboard == 2){   // trigger on int1
      };
    }; 
  };
- // 1st readings
- getCountersBoard(trigboard,countermax,last,3);
- timeold=last[timeadr];
- if(inpnum)trigold=last[counteroffset+inpnum];  //counting from 1
- else beepcond= (((lhcpp.Byte54)&0x1) != 0);
- setstart_ssm(boards);
- //setomSSM(trigboard,0xb);startSSM1(trigboard);   // IN, continuous
- if(intboard){
+// 1st readings
+getCountersBoard(trigboard,countermax,last,3);
+timeold=last[timeadr];
+timelastnotrg= timeold;
+if(inpnum)trigold=last[counteroffset+inpnum];  //counting from 1
+else beepcond= (((lhcpp.Byte54)&0x1) != 0);
+setstart_ssm(boards);
+/* if(intboard){
   setomSSM(4,0x3);startSSM1(4);  // OUT, continuous
   initprintBCs();
  }
- usleep(100000);
- /* todo:
-  -we want counters content every 2 seconds
-  -we want to trigger on lhcpp i.e. we should start to check
-   for lhcpp when we are close to it (every 40 secs) 
-  -we want to trigger on counter change (lhcpp or counter change)
- */
- while(1){
-    int rc;
-    if(inpnum==0) {  // we trigger on lhcpp
-      rc= getlhcpp(vspbobr,1, PP_PERIOD, &lhcpp); 
-      if(rc!=0) {
-        printf("No LHCpp after %d secs. getlhcpp() rc:%d\n", PP_PERIOD, rc);
-        trigcond=0;
-      } else {
-        trigcond=1;
-      };
-    } else {         // we trigger on CTP inputs counter change
-      getCountersBoard(trigboard,countermax,last,3); 
-      time=last[timeadr]; trig=last[counteroffset+inpnum];
-      trigcond= (trig != trigold);
+ usleep(100000); */
+while(1){
+  int rc; 
+  w32 ts1,ts2,us1,us2, cntr_us;
+  if(inpnum==0) {  // we trigger on lhcpp
+    rc= getlhcpp(vspbobr,1, PP_PERIOD, &lhcpp); 
+    if(rc!=0) {
+      printf("No LHCpp after %d secs. getlhcpp() rc:%d\n", PP_PERIOD, rc);
+      trigcond=0;
+    } else {
+      trigcond=1;
     };
-    //printf("inpnum bobr: %i %x\n",inpnum,(lhcpp.Byte54));
-    //beep=last[counteroffset+BEEPPOS];
-    //printf("trig: %i old %u new %u \n",inpnum,trigold,trig);
-    if(trigcond){
-      //beepni(); cicolino not used recently
-      getSSMs(boards, trigboard, inpnum,intboard,f);   // inpnum!=0 (the must, else crashes in checkInputs2)
-      getCountersBoard(trigboard,countermax,last,3); 
-      time=last[timeadr]; trig=last[counteroffset+inpnum];
-      trigold=trig;
-      //countersRead();
-      //break;
-    };
-    if(quit!=0) {
-      // the request 'stop smaqing' registered (signal -s SIGUSR1 pid), let's stop
-      fprintf(f, "quitting on signal:%d\n", quit);
-      break;
-    };
-    usleep(1000); // was 200 at the start of Aug (can be much more for 1bobr/48 secs)
-    timediff=getTime(timeold,time);
-    //printf("time: old %u new %u diff %f\n",timeold,time,timediff); 
-    if(timediff>1000.*2){   // per 1 secs
-      //char dt[32];
-      //smaqprintCounters(trigboard,L0counts, inpnum, f); 
-      //getdatetime(dt);
-      //dt[10]='_';
-      //printf("time: diff %f %s\n",timediff,dt);
-      timeold=time;
-    }    
- }
- if(inpnum==0) bobrClose(vspbobr);
- fclose(f);
- return 0;
+  } else {         // we trigger on CTP inputs counter change
+    GetMicSec(&ts1, &us1);
+    getCountersBoard(trigboard,countermax,last,3); 
+    GetMicSec(&ts2, &us2);
+    time=last[timeadr]; trigcur=last[counteroffset+inpnum];
+    trigcond= (trigcur != trigold);
+  };
+  //printf("inpnum bobr: %i %x\n",inpnum,(lhcpp.Byte54));
+  //beep=last[counteroffset+BEEPPOS];
+  //printf("trig: %i old %u new %u \n",inpnum,trigold,trig);
+  if(trigcond){
+    w32 trigdif; float td;
+    //beepni(); cicolino not used recently
+    getSSMs(boards, trigboard, inpnum,intboard,f);
+    trigdif= dodif32(trigold,trigcur);
+    td= getTime(timelastnotrg, time);
+    printf("triggered: %i old %u new %u ms(toggle):%f9.2 td:%f9.2ms\n",
+      inpnum,trigold,trigcur, trigdif/20000., td);
+    trigold=trigcur;
+    cntr_us= DiffSecUsec(ts2,us2,ts1,us1);
+    printf("Cnts reading: %d usecs\n", cntr_us);
+    //break;
+  } else {
+    timelastnotrg= time;
+  };
+  if(quit!=0) {
+    // the request 'stop smaqing' registered (signal -s SIGUSR1 pid), let's stop
+    fprintf(f, "quitting on signal:%d\n", quit);
+    break;
+  };
+  usleep(200000); // was 200 at the start of Aug (can be much more for 1bobr/48 secs)
+  timediff=getTime(timeold,time);
+  //printf("time: old %u new %u diff %f\n",timeold,time,timediff); 
+  //if(timediff>1000.*2){   // per 1 secs
+  if(timediff>100000){   // 10**5 == 100secs
+    //char dt[32];
+    //smaqprintCounters(trigboard,L0counts, inpnum, f); 
+    getdatetime(dt); dt[10]='_';
+    printf("time: diff %f %s\n",timediff,dt);
+    timeold=time;
+  }    
+}
+if(inpnum==0) bobrClose(vspbobr);
+fclose(f);
+return 0;
 }
 /*-----------------------------------------------------------
 */
@@ -668,17 +675,20 @@ validCTPINPUTs= &ctpshmbase->validCTPINPUTs[0];
 validLTUs= &ctpshmbase->validLTUs[0];
 
  checkCTP();
+ ddr3_reset();
  initSSM();
 } 
 void printhelp() {
-  printf("Expected: one argument - input number\n\
+printf("Expected: one argument - input number\n\
  input     triggered    SSMs\n\
  number       on       read out \n\
   1.. 24      L0        L0\n\
- 25.. 48      L1        L1\n\
+ 51.. 74      L1        L1\n\
 101..124      L0        L0+L1\n\
 125..148      L1        L0+L1\n\
 ");
+printf("$SMAQDATA:\"%s\"\n\
+in case it is empty string: do not scp/rm dump files.\n", dirname);
 }
 /*********************************************************
 */
@@ -686,6 +696,10 @@ int main(int argc, char **argv) {
 char *datadir;
 int inpnum;
 //setseeds(3,3); 
+datadir= getenv("SMAQDATA");
+if(datadir !=NULL) {
+  strcpy(dirname, datadir);
+};
 if(argc != 2){
   printhelp();
   return 1;
@@ -696,11 +710,7 @@ if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) ){
   return 2;
  }
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
- initSMAQ();
- datadir= getenv("SMAQDATA");
- if(datadir !=NULL) {
-   strcpy(dirname, datadir);
- };
+initSMAQ();
  inputsSMAQ(0,inpnum);
  vmeclose();
  return 0;

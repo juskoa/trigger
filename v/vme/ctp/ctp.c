@@ -1430,7 +1430,7 @@ while(1) {
     rcssm= condstopSSM(1, l0inp, waitloops,10, 2); 
     printf("condstopSSM rc:%d loops:%d\n", rcssm, loops);
     loops++;
-    if(loops>= maxevents) break;
+    if(loops> maxevents) break;
     if(rcssm==0) break;   // data
     if(rcssm==10) continue;   // data not found try again
     if(rcssm==1) goto SSMS;   // not started

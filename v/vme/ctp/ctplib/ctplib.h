@@ -173,6 +173,8 @@ rc: 0 ok
    rc from ddr3_read (stdout printed also)
 */
 int ddr3_ssmread(w32 *ssm1, w32 *ssm2);
+
+int ddr3_ssmdump(w32 opmod, FILE *dumpfile);
 /*FGROUP DDR3 
 secs: >0:continuous  -will return after secs seconds (leaving continuous active)
        0: 1-pass

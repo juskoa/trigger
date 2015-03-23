@@ -294,7 +294,7 @@ for(ix=0; ix<3; ix++) {
   fhl= flow | (fhigh <<16);
   frs[ix].freq= (80*16*22)/(flow+ (fhigh*65536.));
   //printf("%d=%fMHz ", fhl, frs[ix].freq);
-}; printf("\n");
+}; //printf("\n");
 }
 void printRFRX(char *rfrxbase) {   // invoked ONLY from ttcmi (NOT from ttcmidims!)
 int ix,rc,vsp;
