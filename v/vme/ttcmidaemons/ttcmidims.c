@@ -14,6 +14,7 @@ After:
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>     // nanosleep
 #include <limits.h>
 #include <errno.h>
 
@@ -74,6 +75,17 @@ Tchan rfrx1[3]= {{0.,0},{0.,0},{0.,0}};
 Tchan rfrx2[3]= {{0.,0},{0.,0},{0.,0}};
 float freqs[4]; // TTCMI/FREV_B1 FREV_B2 F40_B1 F40_B2
 
+int msleep(unsigned long milisec)
+{
+    struct timespec req={0};
+    time_t sec=(int)(milisec/1000);
+    milisec=milisec-(sec*1000);
+    req.tv_sec=sec;
+    req.tv_nsec=milisec*1000000L;
+    while(nanosleep(&req,&req)==-1)
+         continue;
+    return 1;
+}
 /*--------------------------------------------------------------- error_handler
 A severity code: 0 - info, 1 - warning, 2 - error, 3 - fatal.
 */
@@ -444,60 +456,64 @@ char msg[200]; char freqstxt[80];
 // readVME:
 *msgp= (char *)freqs;
 *size= 16; freqstxt[0]='\0';
+/*
 for(ix=0; ix<4; ix++) {
   sprintf(freqstxt, "%s %f10.6", freqstxt, freqs[ix]);
 };
 sprintf(msg, "FREQScaba freqs now:%s size:%d", freqstxt, *size); prtLog(msg); 
+*/
 }
 
 int update_qpll() {
-  int rc,rcret=0; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
-  char buffer[50];
-  if(envcmp("VMESITE", "ALICE")==0) {
-    if(micratepresent()& 0x2) {
-      stat= readstatus();
-    } else { stat=stat+1; };
-    // update freqs:
-    if(micratepresent()& 0x1) {
-      getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2);
-      freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
-      freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
-    };
-    //printf("ref bc1 orbit1\n"); printf("--- bc2 orbit2\n");
-  } else {
-    // simulate:
-    stat= qpllstat+1;
-    rfrx1[2].freq= rfrx1[2].freq + 1;
-    rfrx2[2].freq= rfrx2[2].freq + 1;
-    rfrx1[1].freq= rfrx1[1].freq + 10;
-    rfrx2[1].freq= rfrx2[1].freq + 10;
+int rc,rcret=0; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
+char buffer[50];
+if(envcmp("VMESITE", "ALICE")==0) {
+  if(micratepresent()& 0x2) {
+    stat= readstatus();
+  } else { stat=0xfff; };
+  // update freqs:
+  if(micratepresent()& 0x1) {
+    getRFRX(vspRFRX[0], rfrx1); getRFRX(vspRFRX[1], rfrx2);
+    freqs[0]= rfrx1[2].freq; freqs[1]= rfrx2[2].freq;
+    freqs[2]= rfrx1[1].freq; freqs[3]= rfrx2[1].freq;
   };
-  if((freqs[0] != rfrx1[2].freq) ||
-     (freqs[1] != rfrx2[2].freq) ||
-     (freqs[3] != rfrx1[1].freq) ||
-     (freqs[4] != rfrx2[1].freq)
-  ) {
-    rc= dis_update_service(FREQSid);
-  };
-  stat=qpllstat+1; //simulate change
-  if(stat != qpllstat) {
-    qpllstat= stat;
-    sprintf(qpllnow,"%3.3x", qpllstat);
-    rc= dis_update_service(QPLLid);
-    printf("QPLL update rc:%d qpllstat:0x%x\n",rc,qpllstat);
-    /*
-    mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
-    bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;
-    sprintf(buffer, "mon ds006:ds007:ds008:ds009 N:%d:%d:%d:%d", 
-      mainerr, mainlck, bc1err, bc1lck);
-    rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
-    prtLog(buffer); */
-  };
-  nlogqpll++;
-  if((nlogqpll % 3600)==0) {    // 60/600:log 1/hour
-    prtLog(buffer);
-  };
-  if(quit!=0) rcret=10;
+  //printf("ref bc1 orbit1\n"); printf("--- bc2 orbit2\n");
+} else {
+  // simulate:
+  stat= qpllstat+1;
+  rfrx1[2].freq= rfrx1[2].freq + 1;
+  rfrx2[2].freq= rfrx2[2].freq + 1;
+  rfrx1[1].freq= rfrx1[1].freq + 10;
+  rfrx2[1].freq= rfrx2[1].freq + 10;
+};
+if((freqs[0] != rfrx1[2].freq) ||
+   (freqs[1] != rfrx2[2].freq) ||
+   (freqs[3] != rfrx1[1].freq) ||
+   (freqs[4] != rfrx2[1].freq)
+) {
+  rc= dis_update_service(FREQSid);
+};
+//stat=qpllstat+1; //simulate change
+if(stat != qpllstat) {
+  qpllstat= stat;
+  sprintf(qpllnow,"%3.3x", qpllstat);
+  rc= dis_update_service(QPLLid);
+  printf("QPLL update rc:%d qpllstat:0x%x\n",rc,qpllstat);
+  /*
+  mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
+  bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;
+  sprintf(buffer, "mon ds006:ds007:ds008:ds009 N:%d:%d:%d:%d", 
+    mainerr, mainlck, bc1err, bc1lck);
+  rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
+  prtLog(buffer); */
+};
+nlogqpll++;
+if((nlogqpll % 3600)==0) {    // 60/600:log 1/hour
+  char msg[100];
+  sprintf(msg, "qpllstat:0x%x", qpllstat);
+  prtLog(msg);
+};
+if(quit!=0) rcret=10;
 return(rcret);
 }
 /*--------------------------------------------------------------- qpll_thread
@@ -594,8 +610,8 @@ strcpy(command, MYNAME); strcat(command, "/RFRX");
 FREQSid=dis_add_service(command,"F:4", freqs, 16,
   FREQScaba, FREQStag);  printf("%s\n", command);
 
-printf("serving...\n");
-dis_start_serving(MYNAME);  
+rc=dis_start_serving(MYNAME);  
+printf("serving rc:%d\n", rc);
 printf("not Starting the thread reading BC*QPLL_STATUS regs...\n");
 //dim_start_thread(qpll_thread, (void *)&TAGqpll_thread);
 }
@@ -617,13 +633,14 @@ if(envcmp("VMESITE", "ALICE")==0) {
 ds_register();
 
 while(1)  {  
-  int rc;
+  int rc=0;
   rc= update_qpll();
   if(rc!=0) break;
-  printf("sleteping 10secs...\n"); fflush(stdout);
-  //sleep(10) ; 
-  dtq_sleep(10);
-  printf("slept 10secs...\n"); fflush(stdout);
+  //printf("sleteping 10secs...\n"); fflush(stdout);
+  //sleep(1) ; 
+  //msleep(1000);
+  dtq_sleep(2);
+  //printf("slept 10secs...\n"); fflush(stdout);
 };  
 ds_stop();
 exit(0);

@@ -75,6 +75,7 @@ alias lth="ls -lt |head"
 alias sx="ssh $XY"
 alias xt='xterm -bg black -fg gray60 &'
 alias mail='pine -f /var/spool/mail/root'
+alias calclient="$VMECFDIR/ctp_proxy/calclient.py"
 if [ "$VMESITE" = 'ALICE' ] ;then
 alias ssh1="ssh $XY trigger@alidcsvme001.cern.ch"
 alias ssh2="ssh $XY trigger@alidcsvme002.cern.ch"

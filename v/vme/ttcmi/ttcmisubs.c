@@ -292,7 +292,7 @@ for(ix=0; ix<3; ix++) {
   flow= vmxr16(vsp, ch1_freq_low+(ix*4));
   fhigh= vmxr16(vsp, ch1_freq_high+(ix*4));
   fhl= flow | (fhigh <<16);
-  frs[ix].freq= (80*16*22)/(flow+ (fhigh*65536.));
+  frs[ix].freq= (1000*80*16*22)/(flow+ (fhigh*65536.));
   //printf("%d=%fMHz ", fhl, frs[ix].freq);
 }; //printf("\n");
 }

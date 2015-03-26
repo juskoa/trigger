@@ -355,9 +355,10 @@ printf("INFO DOcom2daq len:%d m:%s\n", *size, line);
 if(*size > MAXDAQCOMMENT) {
   printf("ERROR too long title+comment for DAQlogbook\n"); return;
 };
-ixl=0; t1= nxtoken(line, value, &ixl);   // title
+ixl=0; t1= nxtoken(line, value, &ixl);   // runN
 if(t1==tINTNUM) {
   runN= str2int(value);
+  t1= nxtoken(line, value, &ixl);   // title
   if(t1==tSTRING) {
     strcpy(title, value);
     t1= nxtoken(line, value, &ixl);   // message
