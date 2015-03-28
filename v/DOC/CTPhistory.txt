@@ -410,4 +410,16 @@ L0-L1: +20BCs. changed: ltulib/ltuinit.c, ctp.cfg
 also L2_DELAY adjusted (now TL2+66, before TL2)
 18.3.
 setTTCint() changed -new version of table, TRD_TTCINIT_BIT introduced
+25.3.
+pydim/server.c -bug fixed for in DOcom2daq() -should now
+send comment to daqlogbook
+25.3.
+swtrigger.c: BC=BC-2 for calibration triggers! (in pit)
+25.3.
+readConters.c: bug in counters reading: all counters have to be readout from
+the board -evenm if not need -see readCountersBoard()
+28.3
+bin/smaq ok -trg account created on avmes + alidcscom707/835 for shifter
+smaq: to be started on trigger@alidcsvme001 ->scp-> trg@707,
+i.e. smaq root should run on trg@707
 

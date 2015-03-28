@@ -5,14 +5,16 @@
 # smaq kill
 . $VMECFDIR/../bin/auxfunctions
 #getpid "$VMECFDIR/smaq/smaq.exe"
+trgusr=trg
 getpid "$VMECFDIR/smaq/smaq2.exe"
-echo ":$spid user:$user"
 if [ $# -eq 0 ] ;then
   echo "Usage:"
   echo "smaq ctp_input DIRNAME"
-  echo "DIRNAME -this directory is created at trigger@$SMAQ_C:SMAQ/"
+  echo "DIRNAME -this directory is created at $trgusr@$SMAQ_C:SMAQ/"
   echo "         if missing, 'last' is used (it will be emptied before usage)"
   echo "smaq kill -kill active smaq"
+  echo
+  echo "smaq pid:$spid user:$user"
   exit
 fi
 #if [ -n $spid ] ;then ! not working (USE  " " around $par in such test
@@ -35,19 +37,18 @@ sig=$1
 if [ $# -ge 2 ] ;then
   export SMAQDATA="$2"
   if [ -n "$SMAQDATA" ] ;then
-    ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
+    ssh -q2 $trgusr@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
   fi
 else
   export SMAQDATA="last"
-  ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
-  ssh -q2 trigger@$SMAQ_C "rm -rf SMAQ/$SMAQDATA/*"
+  ssh -q2 $trgusr@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
+  ssh -q2 $trgusr@$SMAQ_C "rm -rf SMAQ/$SMAQDATA/*"
 fi
 if [ -n "$SMAQDATA" ] ;then
-  scp -Bq2 $VMECFDIR/CFG/ctp/DB/ctpinputs.cfg trigger@$SMAQ_C:SMAQ/$SMAQDATA/
+  scp -Bq2 $VMECFDIR/CFG/ctp/DB/ctpinputs.cfg $trgusr@$SMAQ_C:SMAQ/$SMAQDATA/
 fi
 cd $VMEWORKDIR
 #$VMECFDIR/inputs/inputs.exe <<-EOF
 #inputsSMAQ(0,$sig)
 #EOF
-$VMECFDIR/smaq/smaq2.exe $sig <<-EOF
-EOF
+$VMECFDIR/smaq/smaq2.exe $sig >$VMEWORKDIR/WORK/smaq.log

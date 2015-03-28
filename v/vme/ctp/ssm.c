@@ -674,6 +674,8 @@ w32 d, ssmoffset;
 int vsp,i,retcode=0;
 char fn[100]="WORK/";
 FILE *dump;
+w32 ts1,ts2,us1,us2, cntr_us;
+GetMicSec(&ts1, &us1);
 ssmoffset= BSP*ctpboards[board].dial;
 strcat(fn,fname);
 dump= fopen(fn,"w");
@@ -692,7 +694,7 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
     // following: just to be compatible with getswSSM ?
     retcode= setomvspSSM(0, ssmoffset, SSMomvmer);
     retcode= ddr3_ssmdump(opmod, dump);
-    printf("dumpSSM: %d from ddr3_ssmdump()\n",retcode);
+    //printf("dumpSSM: %d from ddr3_ssmdump()\n",retcode);
   } else {      // BSY L0/1/2 Fo INT
     enable= (status&0xc0)<<2;
     mod= SSMomvmer | (status&0x38) | enable;
@@ -725,7 +727,8 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
 /* ssma= vmxr32(vsp, SSMaddress);
   printf("SSMaddress end:%x\n",ssma); */
 fclose(dump);
-printf("%s created\n", fn);
+GetMicSec(&ts2, &us2); cntr_us= DiffSecUsec(ts2,us2,ts1,us1);
+printf("%s created in time:%d us\n", fn, cntr_us);
 RET:return(retcode);
 }
 #define NOCOMPRESS

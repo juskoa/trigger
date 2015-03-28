@@ -198,10 +198,10 @@ vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);   // clear 0x2 flag in SSMstatus
 for(ixb=lowix; ixb<=highix; ixb++) {
   if(bits[ixb] >0) {
     allbitn= allbitn+bits[ixb];
-    printf("ixbit:%2d %d\n", ixb, bits[ixb]);
+    printf("%2d: %d\n", ixb, bits[ixb]);
   };
 };
-printf("ddr3_ssmdump bits:%d\n", allbitn);
+printf("ddr3_ssmdump bits:%d details above\n", allbitn);
 return(0);
 }
 void ddr3_ssmstart(int secs) {

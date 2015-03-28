@@ -1399,7 +1399,7 @@ retcode= allbitn;
 RET: return(retcode);
 }
 /*FGROUP DDR3 
-l0inppos: position in cnames.sorted2 (must be lm0 board)
+l0inppos: position in cnames.sorted2 (must be lm0 board. l0inp1:119)
 idn:      name (example: t0c):
           idn.log, idn_N.dump files created
 waitsecs: roughly in secs to wait for event
@@ -1430,15 +1430,11 @@ while(1) {
     rcssm= condstopSSM(1, l0inp, waitloops,10, 2); 
     printf("condstopSSM rc:%d loops:%d\n", rcssm, loops);
     loops++;
-    if(loops> maxevents) break;
+    if(loops>= maxevents) break;
     if(rcssm==0) break;   // data
     if(rcssm==10) continue;   // data not found try again
     if(rcssm==1) goto SSMS;   // not started
     break;    // vme error
-  };
-  if(loops>= maxevents) {
-    if(rcssm==10) stopSSM(1);
-    break;
   };
   if(rcssm==0) {
     int rcssmr;
@@ -1452,6 +1448,10 @@ while(1) {
     };
   } else {
     printf("condstopSSM rc:%d\n", rcssm);
+  };
+  if(loops>= maxevents) {
+    if(rcssm==10) stopSSM(1);
+    break;
   };
   if(quit !=0) {
     fprintf(logf, "SIGUSR1 received, finishing loop...\n"); quit=0;
