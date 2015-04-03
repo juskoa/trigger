@@ -48,7 +48,7 @@ w32 orbitstatus;
 // DIM 
 char DETSET_COM[256]="NONE";
 char DETSTAT_COM[256]="NONE";
-#define MAXCTPINPUTS 24 
+#define MAXCTPINPUTS 48      // the must for LM0
 char StatusString[MAXCTPINPUTS+1];
 
 /*---------------------------------------------*/ void gotsignal(int signum) {
@@ -96,7 +96,7 @@ rc= dic_cmnd_callback("ACR07/BOBR", msg, strlen(msg)+1, &callback, 33);
 /////////////////////////////////////////////////////////////////////////////////////
 //#define MAXCOUNTERS 160  run1
 #define MAXCOUNTERS 300
-#define NINP 24
+#define NINP 48
 //#define L0OFFSET 65         // run1 (just before l0inp1 counter)
 #define L0OFFSET 118        // run2: beware: now 1..48 switch input counters!
 //#define L0TIMEOFFSET 13   // run1
