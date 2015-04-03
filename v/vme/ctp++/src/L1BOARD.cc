@@ -70,13 +70,13 @@ int L1BOARD::AnalSSM()
  //              51           100
  //trigclasslow =0xfffffffffffffll;
  // odd classes
- //trigclasslow =0xaaaaaaaaaaaaall;
- trigclasslow =  0x5555555555555ll;
+ trigclasslow =0xaaaaaaaaaaaaall;
+ //trigclasslow =  0x5555555555555ll;
  //              1           50
  //trigclasshigh=0xfffffffffffffll;
  // odd classes
- //trigclasshigh=0xaaaaaaaaaaaaall;
- trigclasshigh  =0x5555555555555ll;
+ trigclasshigh=0xaaaaaaaaaaaaall;
+ //trigclasshigh  =0x5555555555555ll;
  //
  int rc=0;
  w32 sl0strobech,sl0datach;

@@ -11,8 +11,8 @@ int main()
   TTCITBOARD *ttc= new TTCITBOARD(boardname.c_str(),0x8a0000,vmesp);
   for(int i=0;i<1000000;i++){
      printf("Snapshot # %i ===================================================================\n",i);
-     ///if(ttc->start_stopSSM(ctp->busy)) return 1;
-     ttc->start_stopSSM();
+     if(ttc->start_stopSSM(ctp->busy)) return 1;
+     ///ttc->start_stopSSM();
      ttc->Dump2quSSM();
      //ttc->DumptxtSSM();
      ret=ttc->AnalyseSSM();

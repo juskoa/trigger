@@ -193,7 +193,8 @@ int TTCITBOARD::AnalyseSSM()
  }
  w32 l0,i0;
  w32 issm0=qttcab[0]->issm;
- if(issm0 == 262){
+ //if(issm0 == 262){
+ if(issm0 == 282){
    l0=2;
    i0=0;
  }else if(issm0 == 3){
@@ -204,14 +205,15 @@ int TTCITBOARD::AnalyseSSM()
  }else{
  //if((issm0 != 262) && (issm0 != 266) && (issm0 != 265)){
    //printf("Error: first L1 expected at 262,266  but found at %i \n",qttcab[0]->issm);
-   printf("Warning: first L1 expected at 262  or at 3 but found at %i \n",qttcab[0]->issm);
+   printf("Warning: first L1 expected at 282  or at 3 but found at %i \n",qttcab[0]->issm);
    //return 2;
  }
  w32 cl0=1,cl1=0,cl1m=0,cl2a=0,cl2r=0;
  deque<w32> L1;
  deque<w32*> L1m;
  deque<w32*> L2m;
- w32 L0L1time=260;
+ //w32 L0L1time=260;
+ w32 L0L1time=280;
  w32 l1mes[NL1words+1],l2mes[NL2words+1]; // one flag
  l1mes[0]=0;l2mes[0]=0;
  for(w32 i=i0;i<qttcab.size();i++){
