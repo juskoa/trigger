@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <string.h>   // system()
+#include <stdlib.h>   // system()
 #include "vmeblib.h"
 #define NWIDE 133
 
@@ -154,11 +156,14 @@ void DisplaySCAL::DisplayRatiosWU(const int ninp,TriggerInputwCount* inps[],cons
    for(int j=0; j<all->GetNumofClasses();j++){
      TriggerClasswCount* tcl2=all->GetTriggerClass(j);
      //cout << "Doing class: " << tcl2->GetName() << endl;
-     if(strncmp(tcl2->GetName().c_str(),tcl->GetName().c_str(),4)==0 &&
-       ((tcl2->GetName().at(8) == tcl->GetName().at(6)) &&   // matches abce
+     if((strncmp(tcl2->GetName().c_str(),tcl->GetName().c_str(),4)==0) 
+        &&
+       (((tcl2->GetName().at(8) == tcl->GetName().at(6)) 
+         &&   // matches abce
         (tcl->GetName().at(6)=='B')) ||
-       ((tcl2->GetName().at(7) == tcl->GetName().at(5)) &&   // matches abce
-        (tcl->GetName().at(5)=='B')) 
+       ((tcl2->GetName().at(7) == tcl->GetName().at(5)) 
+         &&   // matches abce
+        (tcl->GetName().at(5)=='B'))) 
        ){      
       //cout << "match " << tcl2->GetName().at(8) << " "<< tcl->GetName().at(6) << endl;
       //cout << tcl2->GetName() << "/" << tcl->GetName() << " = ";
@@ -233,6 +238,7 @@ count(0)
 {
  cout << "Starting DAQlogbook for run: " << runnum << " log=" << log << endl;
  if(daqnotopen){
+    cout << "Opening daqlogbook ..." << endl;
     int rcdaq= daqlogbook_open();
     if(rcdaq==-1) cout << "DAQlogbook open failed for run " << runnum<<endl;
     else{
@@ -254,7 +260,7 @@ count(0)
 }
 DAQlogbook::~DAQlogbook()
 {
- cout << "Stopping DAQlogbook for run: " << runnum << " log= "<< log <<endl;
+ //cout << "Stopping DAQlogbook for run: " << runnum << " log= "<< log <<endl;
  // close in MonScal
  //daqlogbook_close(); 
  if(log){
@@ -264,18 +270,19 @@ DAQlogbook::~DAQlogbook()
 }
 void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
 {
+ //PrintLog("DAQlogbook UpdatedClusters called.");
  for(int i=0;i<nclust;i++){
     int ret=0;
     ret=daqlogbook_update_triggerClusterCounter(runnum,tclust[i]->GetIndex(),tclust[i]->GetL2aCount());
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for cluster %s failed.",runnum,tclust[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for cluster %s failed.",runnum,tclust[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
    if(log){
      char text[255];
-     sprintf(text,"%i %i %s %lli \n",count , runnum ,tclust[i]->GetName().c_str(), tclust[i]->GetL2aCount());
+     sprintf(text,"Clusters: %i %i %s %lli \n",count , runnum ,tclust[i]->GetName().c_str(), tclust[i]->GetL2aCount());
      file << text;
      file.flush();
    }
@@ -283,7 +290,7 @@ void DAQlogbook::UpdateClusters(const int nclust,TriggerClusterwCount* tclust[])
 }
 void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 {
- //cout << "DAQlogbook UpdateClasses called." << endl;
+ //PrintLog("DAQlogbook UpdateClasses called.");
  for(int i=0;i<nclass;i++){
    // warning : 3rd argument w64 but in dalogbook only w32
    //int ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), (w32)tclass[i]->GetL2aCount());
@@ -309,14 +316,14 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for class %s failed.",runnum,tclass[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for class %s failed.",runnum,tclass[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
    if(log){
      char text[255];
      //sprintf(text,"%i %i %i %i \n",count++, runnum ,tclass[i]->GetIndex0(), (w32)tclass[i]->GetL2aCount());
-     sprintf(text,"%i %i %i %i %lli %lli %i %i %i %i %f\n",count++, runnum,tclass[i]->GetGroup() ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+     sprintf(text,"Classes: %i %i %i %i %lli %lli %i %i %i %i %f\n",count++, runnum,tclass[i]->GetGroup() ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
      file << text;
      file.flush();
    }
@@ -324,20 +331,20 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 }
 void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
 {
- //cout << "DAQlogbook UpdateDetector called." << endl;
+ //PrintLog("DAQlogbook UpdateDetector called.");
  for(int i=0;i<ndet;i++){
    // warning : 3rd argument w64 but in dalogbook only w32
    int ret=0;
    ret=daqlogbook_update_triggerDetectorCounter(runnum , dets[i]->GetName().c_str(), dets[i]->GetL2aCount());
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for detector %s failed.",runnum,dets[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for detector %s failed.",runnum,dets[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
    if(log){
      char text[255];
-     sprintf(text,"%i %i %s %lli \n",count , runnum ,dets[i]->GetName().c_str(), dets[i]->GetL2aCount());
+     sprintf(text,"Detectors: %i %i %s %lli \n",count , runnum ,dets[i]->GetName().c_str(), dets[i]->GetL2aCount());
      file << text;
      file.flush();
    }
@@ -345,18 +352,19 @@ void DAQlogbook::UpdateDetectors(const int ndet,DetectorwCount* dets[])
 }
 void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
 {
+ //PrintLog("DAQlogbook UpdateInputs called");
  for(int i=0;i<ninp;i++){
     int ret=0;
     ret=daqlogbook_update_triggerInputCounter(runnum,inps[i]->GetPosition(), inps[i]->GetLevel(),inps[i]->GetCounter()->GetCountTot());
    if(ret){
      char text[255];
-     sprintf(text,"DAQloogbook: RUN %i update for input %s failed.",runnum,inps[i]->GetName().c_str());
+     sprintf(text,"Error: DAQlogbook: RUN %i update for input %s failed.",runnum,inps[i]->GetName().c_str());
      PrintLog(text);
      if(log) file << text;
    }
    if(log){
      char text[255];
-     sprintf(text,"%i %i %s %i %i %lli\n",count , runnum ,inps[i]->GetName().c_str(), inps[i]->GetPosition(),inps[i]->GetLevel(), inps[i]->GetCounter()->GetCountTot());
+     sprintf(text,"Inputs: %i %i %s %i %i %lli\n",count , runnum ,inps[i]->GetName().c_str(), inps[i]->GetPosition(),inps[i]->GetLevel(), inps[i]->GetCounter()->GetCountTot());
      file << text;
      file.flush();
    }
@@ -364,9 +372,17 @@ void DAQlogbook::UpdateInputs(const int ninp,TriggerInputwCount* inps[])
 }
 void DAQlogbook::UpdateL2a(Counter& L2a)
 {
+ //PrintLog("DAQlogbook UpdateL2a called.");
  int ret=0;
  // skontroluj types
- ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeTot());
+ //ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeTot());
+ ret = daqlogbook_update_triggerGlobalCounter(runnum,L2a.GetCountTot(),L2a.GetTimeSec());
+ if(ret){
+   char text[255];
+   sprintf(text,"Error: DAQlogbook: RUN %i update for L2aGlobalCounter failed.",runnum);
+   PrintLog(text);
+   if(log) file << text;
+ }
  if(log){
      char text[255];
      sprintf(text,"L2a= %i %i %lli %lli \n",count , runnum ,L2a.GetCountTot(),L2a.GetTimeTot());
@@ -413,9 +429,15 @@ CountersOCDB::~CountersOCDB()
    int rc=0;
    // copy counters to dcs
    sprintf(cmd,"./dcsFES_putData.sh %d GRP CTP_xcounters /home/tri/%s",runnum, fileName.c_str());
+   cout << "Executing counters:" << endl;
+   PrintLog(cmd);
    rc=system(cmd);
-   sprintf(msg,"cmd:%s rc:%d  copy2dcs:%d \n", cmd, rc, copy2dcs);
+   sprintf(msg,"cmd executed:%s rc:%d  copy2dcs:%d \n", cmd, rc, copy2dcs);
    PrintLog(msg);
+   if(rc != 0){
+    PrintLog("Problem for copying counters to dcsfxs' exiting.");
+    exit(1);
+   }
    //  copy  counters to log
    sprintf(cmd,"mv -f %s delme/%s",fileName.c_str(),fileName.c_str());
    rc=system(cmd);
@@ -428,11 +450,17 @@ CountersOCDB::~CountersOCDB()
    int rc=0;
    // copy aliases from act to tri:~tri/CFG/ctp/DB
    sprintf(cmd,"getactaliases.bash");
+   cout << "Executing aliases:" << endl;
+   PrintLog(cmd);
    rc=system(cmd);
    sprintf(msg,"cmd:%s rc:%d\n", cmd, rc);
    PrintLog(msg);
    sprintf(cmd,"mv -f ./CFG/ctp/DB/aliases.txt ./CFG/ctp/DB/%s",fileNameAliases.c_str());
    rc=system(cmd);
+   if(rc != 0){
+    PrintLog("Problem for copying aliasis to dcsfxs' exiting.");
+    exit(1);
+   }
    sprintf(msg,"cmd:%s rc:%d\n", cmd, rc);
    PrintLog(msg);
    // copy aliases to dcs

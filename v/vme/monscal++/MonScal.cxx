@@ -2,6 +2,7 @@
 #include "ctpcounters.h"
 #include "ActiveRun.h"
 #include <iostream>
+#include "stdlib.h"
 #include "vmeblib.h"
 #include <sstream>
 #include <sys/stat.h> 
@@ -18,7 +19,8 @@ copycount2OCDB(copycount2OCDB)
 {
  for(int i=0;i<NRUN;i++)activeruns[i]=0;
  if(SCAL())StartInputs();
- cout << "Monscal created. Output option= " << kPrint << endl;
+ PrintLog("Monscal started.");
+ cout << "Output option= " << kPrint << endl;
 }
 MonScal::~MonScal()
 {
@@ -33,7 +35,8 @@ int MonScal::CheckVCTPINPUTStatus()
 // If changed parse it 
 {
  stringstream ss;
- ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ //ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ ss << "/CFG/ctp/DB/ctpinputs.cfg";
  string filename = getenv("VMECFDIR")+ss.str();
 
  struct stat VCTPINPUTS;

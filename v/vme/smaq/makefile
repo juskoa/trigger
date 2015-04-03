@@ -1,38 +1,36 @@
-# VMERCC command line interface compile&link
-# current dir: $(VMECFDIR)/smaq
-VMECC=$(VMEGCC)
-ifeq ($(VMESITE), ALICE)
-WHICHSETUP = CAVERN_SETUP
-else
-WHICHSETUP = CERNLAB_SETUP
+# cd $(VMECFDIR)/smaq ; make
+include $(VMEBDIR)/com_defs.make
+#with infoLogger:
+#include $(VMEBDIR)/daq_defs.make
+#CFLAGS=$(COMMONCFLAGS) -I$(VMEBinc) -I$(CTPinc) -I$(DIMinc) $(daqINCDIRS)
+CFLAGS=$(COMMONCFLAGS) -I$(VMEBinc) -I$(CTPinc)
+#$(info CFLAGS: $(CFLAGS))
+
+#LIBS = $(CTPLD) $(VMEBLD) $(VMERCCLD) $(DIMLD)
+LIBS = $(CTPLD) $(VMEBLD) $(VMERCCLD)
+LDFLAGS += -lm
+
+ifdef SERVER_LINK
+  $(error Error: to be executed on $(CLIENT_HOST))
 endif
-ifeq ($(VMECC),g++)
-COMDEFS=-D$(WHICHSETUP) -D$(VMEDRIVER) -DCPLUSPLUS
-else
-COMDEFS=-D$(WHICHSETUP) -D$(VMEDRIVER)
-endif
-COMMONCFLAGS=-Wall $(COMDEFS) -I$(VMEBDIR)/vmeblib
-#libobjs=$(VMECFDIR)/CTPcommon/snapshot.o $(VMECFDIR)/CTPcommon/vmefpga.o
-
-EXTRALIBS = -L$(DIMDIR)/linux -ldim 
-
-LDFLAGS +=-lpthread -L$(VMECFDIR)/ctp/ctplib/linux_c -lctp -L$(VMEBDIR)/vmeblib/linux_c -lvmeb
-
-ifdef DATE_INFOLOGGER_DIR
-INCDIRS=-I$(DIMDIR)/dim -I$(DATE_INFOLOGGER_DIR) \
- -I$(VMECFDIR)/ctp_proxy -I$(VMECFDIR)/ctp/ctplib
-LDFLAGS +=-L$(DIMDIR)/linux -ldim -L$(DATE_INFOLOGGER_DIR) -lInfo
-endif
-include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
-
 OBJFILES=smaq.o ssm.o intint.o
-smaq.exe: $(OBJFILES)
-	$(VMECC) $(OBJFILES) $(LDFLAGS) -lm -o smaq.exe
+OBJFILES2=smaq2.o ssm.o intint.o
+all: smaqold.exe smaq2.exe checkdmp.exe
+smaqold.exe: $(OBJFILES)
+	$(CC) $(LDFLAGS) $(OBJFILES) $(LIBS) -o $@
+smaq2.exe: $(OBJFILES2) $(CTPLIB)/libctp.a 
+	$(CC) $(LDFLAGS) $(OBJFILES2) $(LIBS) -o $@
+	ln -sf smaq2.exe smaq.exe
+checkdmp.exe: checkdmp.c $(VMEBDIR)/vmeblib/vmewrap.h
+	$(CC) -g $(CFLAGS) $(LDFLAGS) $(VMERCCLD) -o $@ $<
 ssm.o: ssm.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h
-	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) ssm.c
+	$(CC) -g -c $(CFLAGS) -o $@ $<
 intint.o: intint.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ctplib.h ssmctp.h intint.h
-	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) intint.c
+	$(CC) -g -c $(CFLAGS) -o $@ $<
 smaq.o: smaq.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
-	 $(VMECC) -g -c $(CFLAGS) $(INCDIRS) smaq.c
+	$(CC) -g -c $(CFLAGS) -o $@ $<
+smaq2.o: smaq2.c $(VMEBDIR)/vmeblib/vmewrap.h ctp.h ssmctp.h 
+#	echo CFLAGS: $(CFLAGS)
+	$(CC) -g -c $(CFLAGS) -o $@ $<
 clean:
-	rm *.o *.pyc *.exe
+	rm -f *.o *.pyc *.exe

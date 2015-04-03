@@ -9,6 +9,7 @@ DAQbusy doesn't have to be applied (i.e. setswtrig(), startswtrig
 can be invoked togethether with physics triggers being active)
 */
 #include <unistd.h>
+#include <stdlib.h>   // getenv
 #include <stdio.h>
 #include <string.h>
 #include "vmewrap.h"
@@ -19,6 +20,10 @@ can be invoked togethether with physics triggers being active)
 #define TIMEOUT 100      /* <10 with mysleep(10) */
 #define DBGswtrg2 1
 #define DBGswtrg3 1
+#define DBGswtrg4 0
+
+int l0C0();
+
 w32 ifoglob[NFO];
 /* read CALIBRATION_BC from ltuproxy. Return -1 if more detectors
 involved or unknow detector
@@ -114,7 +119,7 @@ w32 testclust[NFO],rocs[NFO];
 
 if( (((BC>3563) && (BC!=0xfff)) && (trigtype !='a')) 
   ){
-  printf("setswtrig: BC>3563 %i \n",BC);
+  printf("Error: setswtrig: BC>3563 %i \n",BC);
   return 1;
 };
 INTtcset= roc<<1;   // INT board
@@ -142,10 +147,11 @@ switch(trigtype){
     //printf("setswtrig: calib trigger 0x%x \n",word);
     break;
   default:
-       printf("setswtrig: unknown type of trigger %c \n",trigtype);
+       printf("Error: setswtrig: unknown type of trigger %c \n",trigtype);
        return 1;
 }; TRIGTYPE= trigtype;
-vmew32(L0_TCSET,word);        // L0 board -p/f prot. off
+// L0 board -p/f prot. off
+if(l0C0()) { vmew32(L0_TCSETr2,word); } else { vmew32(L0_TCSET,word); };
 word=(1<<18);
 vmew32(L1_TCSET,word);        // L1 board p/f prot. off
 word=(1<<24)+ctprodets;
@@ -159,7 +165,7 @@ word=(1<<24)+ctprodets;
     //};
   };
 vmew32(L2_TCSET,word);        // L2 board p/f off
-if(DBGswtrg) printf("setswtrig:L2_TCSET set to:%x\n", word);
+if(DBGswtrg4) printf("setswtrig:L2_TCSET set to:%x\n", word);
 vmew32(INT_TCSET,INTtcset);   // INT board
 /* set BUSY_CLUSTER word (bits 23..0 for detectors 24..1 connected to BUSY)
 */
@@ -172,7 +178,7 @@ for(i=1;i<NCLUST+1;i++){
   bsysc[i]=vmer32(BUSY_CLUSTER+i*4);
 };
 overlap= calcOverlap(bsysc); vmew32(BUSY_OVERLAP, overlap);
-if(DBGswtrg) {
+if(DBGswtrg4) {
   printf("setswtrig: BUSY/SET_CLUSTER: 0x%x BUSY_OVERLAP:0x%x ctprodets:0x%x\n", 
     busyclusterT, overlap, ctprodets);
 };
@@ -186,7 +192,7 @@ for(idet=0;idet<NDETEC;idet++){
       testclust[ifo]=testclust[ifo] | 0x100000 ;
     };
     rocs[ifo]=rocs[ifo]+(roc<<(4*iconnector));  
-    if(DBGswtrg) {printf(
+    if(DBGswtrg4) {printf(
       "setswtrig ifo=%i icon=%i testcl=0x%x roc=0x%x BC:%d dets:0x%x\n",
         ifo,iconnector,testclust[ifo],rocs[ifo], BC, ctprodets);
     };
@@ -198,7 +204,7 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
     w32 vmeaddr;
     vmeaddr= FO_TESTCLUSTER+BSP*(ifo+1);
     ifoglob[ifo]= testclust[ifo] | rocs[ifo];
-    if((DBGswtrg==1)&&(testclust[ifo]!=0)) printf("setswtrig FO:%d Waddr: 0x%x data: 0x%x\n",
+    if((DBGswtrg4==1)&&(testclust[ifo]!=0)) printf("setswtrig FO:%d Waddr: 0x%x data: 0x%x\n",
       ifo, vmeaddr, rocs[ifo] | testclust[ifo]);
     vmew32(vmeaddr, rocs[ifo] | testclust[ifo]);
   }
@@ -209,107 +215,16 @@ void vmew32f(w32 adr, w32 data) {
 printf("vmew32f:%8x = %x\n", adr, data);
 }
 
-int setswtrig2(char trigtype, int roc, w32 BC, w32 ctprodets){
-w32 daqonoff, word, INTtcset, busyclusterT, overlap, bsysc[NCLUST+1];
-int i, idet, ifo, iconnector;
-w32 testclust[NFO],rocs[NFO];
-
-if( (((BC>3563) && (BC!=0xfff)) && (trigtype !='a')) 
-  ){
-  printf("setswtrig2: BC>3563 %i \n",BC);
-  return 1;
-};
-INTtcset= roc<<1;   // INT board
-// L0 board   p/f, masks off
-//     P/F      BCM4   BCM3    BCM2    BCM1
-word=(1<<18)+(1<<17)+(1<<16)+(1<<15)+(1<<14);
-switch(trigtype){
-  case 'a':
-       word=word+0;
-       if(BC !=0) {   // mask (4bits, 1:use mask 0: do not use mask)
-         word= word & (~(BC&0xf));
-       };
-       //printf("setswtrig2: asynchr trigger 0x%x \n",word);
-       break;
-  case 's':
-       word=word+(1<<12)+BC;
-       //printf("setswtrig2: synchr trigger 0x%x \n",word);
-       break;
-  case 'c':
-    if(BC==0xfff) { 
-      BC= getCALIBBC2(ctprodets);
-    };
-    word=word+(1<<12)+(1<<13)+BC;
-    INTtcset= INTtcset | 1;
-    //printf("setswtrig2: calib trigger 0x%x \n",word);
-    break;
-  default:
-       printf("setswtrig2: unknown type of trigger %c \n",trigtype);
-       return 1;
-}; TRIGTYPE= trigtype;
-vmew32f(L0_TCSET,word);        // L0 board -p/f prot. off
-word=(1<<18);
-vmew32f(L1_TCSET,word);        // L1 board p/f prot. off
-word=(1<<24)+ctprodets;
-  daqonoff= vmer32(INT_DDL_EMU) &0xf;
-  if((daqonoff==0) || (daqonoff==0x3b)) { 
-    // ctp readout active or emulated, set TRIGGER bit 
-    //the bit has to be set for CALIBRATION events too!
-    // if not set, EVB complains (run 67492)
-    word= word | (1<<17);
-    //printf("setswtrig2: bit17 not set\n");
-    //};
-  };
-vmew32f(L2_TCSET,word);        // L2 board p/f off
-if(DBGswtrg2) printf("setswtrig2:L2_TCSET set to:%x\n", word);
-vmew32f(INT_TCSET,INTtcset);   // INT board
-/* set BUSY_CLUSTER word (bits 23..0 for detectors 24..1 connected to BUSY)
-*/
-busyclusterT= findBUSYinputs(ctprodets);   //no bit17!
-vmew32f(BUSY_CLUSTER, busyclusterT);
-/* we should update BUSY_OVERLAP word (at least bits corresponding
-to combinations 1T 2T 3T 4T 5T 6T should be updated: */
-bsysc[0]= busyclusterT;
-for(i=1;i<NCLUST+1;i++){
-  bsysc[i]=vmer32(BUSY_CLUSTER+i*4);
-};
-overlap= calcOverlap(bsysc); vmew32f(BUSY_OVERLAP, overlap);
-if(DBGswtrg2) {
-  printf("setswtrig2: BUSY/SET_CLUSTER: 0x%x BUSY_OVERLAP:0x%x ctprodets:0x%x\n", 
-    busyclusterT, overlap, ctprodets);
-};
-/* set corresponding FO boards: */
-for(i=0;i<NFO;i++){testclust[i]=0;rocs[i]=0;}
-for(idet=0;idet<NDETEC;idet++){
-  if((ctprodets & (1<<idet))!=0) {   // no bit17!
-    if(Detector2Connector(idet,&ifo,&iconnector)) continue;  //not connected
-    testclust[ifo]=testclust[ifo] +(1<<(16+iconnector));  //TestCluster
-    if(trigtype=='c') {    // cal. trigger, set CALFLAG
-      testclust[ifo]=testclust[ifo] | 0x100000 ;
-    };
-    rocs[ifo]=rocs[ifo]+(roc<<(4*iconnector));  
-    if(DBGswtrg2) {printf(
-      "setswtrig2 ifo=%i icon=%i testcl=0x%x roc=0x%x BC:%d dets:0x%x\n",
-        ifo,iconnector,testclust[ifo],rocs[ifo], BC, ctprodets);
-    };
-  };
-};
-for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
-  //printf("FO:%d\n",ifo);
-  if((notInCrate(ifo+FO1BOARD)==0)) {
-    w32 vmeaddr;
-    vmeaddr= FO_TESTCLUSTER+BSP*(ifo+1);
-    if(DBGswtrg2) printf("setswtrig2 FO:%d Waddr: 0x%x data: 0x%x\n",
-      ifo, vmeaddr, rocs[ifo] | testclust[ifo]);
-    vmew32f(vmeaddr, rocs[ifo] | testclust[ifo]);
-  }
-};
-return 0;
-}
 /*---------------------------------------------------------getlxackn
 */
 w32 getl0ackn(){
- return (vmer32(L0_TCSTATUS)&0x8)/0x8;
+return (vmer32(L0_TCSTATUS)&0x8)/0x8;
+/*w32 rc;
+if(l0C0()) {
+ rc= vmer32(L0_TCSTATUSr2)&0x8)/0x8;
+} else {
+ rc= vmer32(L0_TCSTATUS)&0x8)/0x8;
+}; return(rc); */
 }
 w32 getl1ackn(){
  return (vmer32(L1_TCSTATUS)&0x8)/0x8;
@@ -319,10 +234,22 @@ w32 getl2ackn(){
 }
 
 w32 getPPrqst(){
- return (vmer32(L0_TCSTATUS)&0x2)/0x2;
+return (vmer32(L0_TCSTATUS)&0x2)/0x2;
+/*w32 rc;
+if(l0C0()) {
+ rc= vmer32(L0_TCSTATUSr2)&0x2)/0x2;
+} else {
+ rc= vmer32(L0_TCSTATUS)&0x2)/0x2;
+}; return(rc); */
 }
 w32 getL0rqst(){
- return (vmer32(L0_TCSTATUS)&0x4)/0x4;
+return (vmer32(L0_TCSTATUS)&0x4)/0x4;
+/* w32 rc;
+if(l0C0()) {
+ rc= vmer32(L0_TCSTATUSr2)&0x4)/0x4;
+} else {
+ rc= vmer32(L0_TCSTATUS)&0x4)/0x4;
+}; return(rc); */
 }
 /*---------------------------------------------------------startswtrig
 Operation:
@@ -342,12 +269,12 @@ Operation:
 */
 char reason[9][40]={"Fail", "killed at L0", "killed at L1", "L2r", "OK",
   "PP timeout", "L0 timeout", "L2a/r timeout","bad TRIGTYPE (!= c s a)"};
-int startswtrig(){
+int startswtrig(w32 *orbitn){
  w32 flag;
  int ret,i;
 //w32 itime=0,time[20]; 
 //time[itime++]=CountTime();
-vmew32(L0_TCSTART,0);
+*orbitn= vmer32(L2_ORBIT_READ); vmew32(L0_TCSTART,0); 
 if(TRIGTYPE == 'c'){ i=0;
   while(getPPrqst() && i<TIMEOUT)i++;
   if(i>=TIMEOUT){
@@ -372,7 +299,11 @@ i=0; while(!getl0ackn() && (i<TIMEOUT))i++;
  //time[itime++]=CountTime();
 if(i>=TIMEOUT){
   w32 l0status;
-  l0status=vmer32(L0_TCSTATUS);
+  if(l0C0()) {
+    l0status=vmer32(L0_TCSTATUS);
+  } else {
+    l0status=vmer32(L0_TCSTATUS);
+  };
   //printf("startswtrig: L0 TC_STATUS:0x%x\n", l0status);
   ret= 1; goto RETERR;
 };
@@ -392,7 +323,7 @@ while(((flag&0xc) == 0) && i<TIMEOUT) {   //wait L2a/L2r ACK
   mysleep(10);
   i++;
 };
-//if(DBGswtrg) printf("  l2ackn:0x%x loops(10us sleep) %i \n",flag, i);
+//if(DBGswtrg4) printf("  l2ackn:0x%x loops(10us sleep) %i \n",flag, i);
 if(i >= TIMEOUT){
   printf("startswtrig: Timeout at l2ackn. \n");
   ret= 7; goto RET;
@@ -412,32 +343,27 @@ if(flag == 4){         // L2r ack
  printf("ret= %i \n",ret);
  */ 
 RETERR:
-if(DBGswtrg) printf("startswtrig: %d %s\n", ret, reason[ret] );
+if(DBGswtrg4) printf("startswtrig: %d %s\n", ret, reason[ret] );
 RET:  clearflags(); 
 return(ret);
 }
 
-/*FGROUP DebCon   --------------------------------------------- GenSwtrg
-Generate n software trigger sequences
-Operation:
--check if all detectors are in global (ctpproxy shared memory)
--setswtrig()
--while(n) startswtrig()
-
-Parameters: see setswtrig()
-customer: number 0..1
-0: SODEOD generation initiated from ctp_proxy
-1: calibration triggers from gcalib task
-2: dimservices.c (not to be used) + ctp.exe (expert sw) + ctpt.exe
-
+/* ------------------------------------------------------------ GenSwtrg 
+orbitn: orbit number read just before the first trigger generation, i.e.
+        it is always <= of ORBITID of the sw. trigger event
 RC: number of L2a successfully generated, or
     12345678: cal. triggers stopped becasue det. is not in global run
 */
-int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
+int  GenSwtrg(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, 
+              int customer, w32 *orbitn ){
 int flag,itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
-w32 status;
-status=vmer32(L0_TCSTATUS);
+w32 status, orbitnloc;
+if(l0C0()) {
+  status=vmer32(L0_TCSTATUS);
+} else {
+  status=vmer32(L0_TCSTATUS);
+};
 if((status&0x10)==0x10){
   printf(" GenSwtrg: TC busy. L0 TC_STATUS:0x%x\n", status);
   return 0;
@@ -448,23 +374,28 @@ if(detectors & 0x20000) {
 };
 if(trigtype=='c') {
   status= cshmGlobalDets();
-  if((status & detectors)!=detectors) {
-    printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
-      detectors,status);
-    return 12345678;   //magic used in ctp/testclass.py
+  if(strcmp("ALICE", getenv("VMESITE"))==0) {
+    if((status & detectors)!=detectors) {
+      printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
+        detectors,status);
+      return 12345678;   //magic used in ctp/testclass.py
+    };
+  } else {
+    status= detectors; printf("Presence of dets in glob. run not checked!!!\n");
   };
 };
 lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig(trigtype,roc,BC,detectors)!=0) {
   l2a=0; goto RELEASERET; //return 0;
 };
-while(((itr<n) && ((flag=startswtrig())))){
+while(((itr<ntriggers) && ((flag=startswtrig(&orbitnloc))))){
+  if(itr==0) *orbitn= orbitnloc;
   if(flag == 1)l0++;
   else if(flag == 2)l1++;
   else if(flag == 3)l2r++;
   else if(flag == 4)l2a++;
   else {
-    printf(" GenSwtrg: unexpected flag %i \n",flag);
+    printf(" GenSwtrg: unexpected flag %i\n",flag);
     goto RELEASERET; //return l2a;
   }
   itr++;
@@ -486,7 +417,7 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
 };
 RELEASERET:
 unlockBakery(&ctpshmbase->swtriggers, customer);
-if(DBGswtrg) {
+if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
   printf("l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
@@ -495,9 +426,15 @@ TRIGTYPE='.';
 // return i;
 return l2a;
 }
+/* see ctplib.h */
+int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors) {
+w32 orbitn;
+return(GenSwtrg(ntriggers, trigtype, roc, BC, detectors, 2, &orbitn ));
+}
 /* called only in case of problem with gcalib. Idea: print
 out (vmew32f()) all vme access */
-int GenSwtrg2(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
+/*von
+int GenSwtrg2(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
 int itr=0;
 int l0=0,l1=0,l2a=0,l2r=0;
 w32 status;
@@ -522,19 +459,6 @@ lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig2(trigtype,roc,BC,detectors)!=0) {
   l2a=0; goto RELEASERET; //return 0;
 };
-/* { int flag;
-while(((itr<n) && ((flag=startswtrig())))){
-  if(flag == 1)l0++;
-  else if(flag == 2)l1++;
-  else if(flag == 3)l2r++;
-  else if(flag == 4)l2a++;
-  else {
-    printf(" GenSwtrg: unexpected flag %i \n",flag);
-    goto RELEASERET; //return l2a;
-  }
-  itr++;
-  //usleep(60000000);
-};}; */
 RELEASERET:
 unlockBakery(&ctpshmbase->swtriggers, customer);
 if(DBGswtrg2) {
@@ -546,3 +470,4 @@ TRIGTYPE='.';
 // return i;
 return l2a;
 }
+*/

@@ -2,6 +2,8 @@
 #include <unistd.h>    /* usleep() */
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
+#include "ctpcounters.h"
 #include "Tpartition.h"
 #define NDET 24
 /*---------------------------------------------------------- getBUSYtimerscounters()
@@ -9,10 +11,10 @@ Read 80 BUSY counters.
 rc: !=0: OK
     ==0: error
 */
-#define BYTIMERSCOUNTN 110 
 int getBUSYtimerscounters(w32 *mem) {
-int board=0;   //BUSY board
-int bb,cix, rc=1;
+int board=0, rc=1;   //BUSY board
+/* bad implementation (bakery-lock missing) used during run1:
+int bb,cix;
 w32 copyread;
 bb= BSP*ctpboards[board].dial;   //this is 0x8000 for BUSY board
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
@@ -22,18 +24,20 @@ copyread= bb+COPYREAD;
 for(cix=0; cix<BYTIMERSCOUNTN; cix++) {   // 24 byin* timers, busy_time
   mem[cix]= vmer32(copyread);
 };
+*/
+getCountersBoard(board, BYTIMERSCOUNTN, mem, 0);  // 0: ctpproxy customer
 return(rc);
 }
 w32 findDeadBusys(w32 detpat) {
 int cix;
-w32 mem1[BYTIMERSCOUNTN];   // place for 24 byin* timers[0..23] +"busy_time counter"[39]
+w32 mem1[BYTIMERSCOUNTN];   // place for 24 byin* timers[0..23] +bytime counter[39/43]
 w32 mem2[BYTIMERSCOUNTN];
 char ltus[200];
 int rc;
 w32 ms100, busys=0;
 rc= getBUSYtimerscounters(mem1); usleep(100000);
 rc= getBUSYtimerscounters(mem2);
-ms100= dodif32(mem1[39], mem2[39]);     // busy_timer
+ms100= dodif32(mem1[NCOUNTERS_BUSY_BYTIME], mem2[NCOUNTERS_BUSY_BYTIME]); // busy_timer
 //printf("findDeadBusys: ms100:%d\n", ms100);
 for(cix=0; cix<24; cix++) {   // 24 byin* timers, busy_time
   w32 bt;
@@ -58,7 +62,7 @@ rc: busy pattern: [0..23] bits set to 1 correspond to Dead busy inputs
 */
 w32 findDeadBusysRuns(int time){
 int cix;
-w32 mem1[BYTIMERSCOUNTN];   // place for 24 byin* timers[0..23] +"busy_time counter"[39]
+w32 mem1[BYTIMERSCOUNTN];   // place for 24 byin* timers[0..23] +bytime counter
 w32 mem2[BYTIMERSCOUNTN];
 int cls[7];
 float dtfrac[NDET],dtperev[NDET],rate[NDET];
@@ -72,7 +76,7 @@ for(i=0;i<NDET;i++){
 time=time*1000;
 rc= getBUSYtimerscounters(mem1); usleep(time);
 rc= getBUSYtimerscounters(mem2);
-ms100= dodif32(mem1[39], mem2[39]);     // busy_timer
+ms100= dodif32(mem1[NCOUNTERS_BUSY_BYTIME], mem2[NCOUNTERS_BUSY_BYTIME]); // busy_timer
 // input dead time per event and deat time
 for(cix=0; cix<NDET; cix++) {   // 24 byin* timers, busy_time
   w32 bt,btr;
@@ -132,7 +136,7 @@ void printLastDetectors(w32 cluster){
   getBUSYtimerscounters(mem1);sleep(1);memlok=1;
  }
  getBUSYtimerscounters(mem2);
- timedif=dodif32(mem1[39],mem2[39]);
+ timedif=dodif32(mem1[NCOUNTERS_BUSY_BYTIME],mem2[NCOUNTERS_BUSY_BYTIME]);
  timeint=timedif*0.4/1000.;  // in milisecs 
   mask=0;
   cls= vmer32(BUSY_CLUSTER+4*cluster);

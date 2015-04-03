@@ -77,11 +77,15 @@ struct list *addlist(struct list *f,int poradie,char *text)
 /* Print and delete list */
 int printlist(struct list *f,FILE *ff)
 {
- struct list *first;
+ if(!ff){
+  printf("printlist: file pointer is null \n");
+  return 0;
+ }
  if(!f){
-   printf("List is empty. \n");
+   printf("printlist: List is empty. \n");
    return 0;
  }  
+ struct list *first;
  while(f->prev) f=f->prev; /* Going to start */
  first=f->next;
  free(f->name);

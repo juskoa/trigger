@@ -1,0 +1,19 @@
+test2:
+opening file- rdstate ?
+
+test3:
+strip string
+
+test4:
+cout dec vs hex
+
+test5:
+list of pointers
+
+test6:
+struct as memeber of class
+
+test1:
+- method inheritance
+
+test8 - virtual and pure virtual

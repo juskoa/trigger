@@ -1,3 +1,23 @@
+Format of .sig file:
+0 name1
+...
+31 name32
+32 mopicsoi
+any lines ?
+
+mopicsoi: string of '0's and '1's:
+33 mopicsoi
+34 m           mode: recording 0:after   1:before
+35  op         operation: 10:recording
+36    0        inout:     InOut
+37     00      ConfSel:   Output Monitor mode
+38       00    SSMenable: output(0) from SSM, input(0)
+
+.sig files are used in ctp/ssm*.py -> see SSM.modenames ssmcontrol.py.
+Seems, for ltu only 2 files are relevant:
+ltu_i1.sig   -front panel signals monitoring in global
+ltu_im.sig   -LTU monitoring signals in stdalone or global
+
 16/01/06
 --------
 backplanefp.names has been modified to be 

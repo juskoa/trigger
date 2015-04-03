@@ -10,11 +10,11 @@ extern int SSMSCHEDULER; /* SSM recording planning, 2-After, 3-Before, 0-no plan
 w32 *smsltu;
 
 /*--------------------------------------------------- SnapShot memory */
-char *txtAfter="After (26ms)";
-char *txtBefore="Before (continuous)";
-char *txtNorec="no recording";
-char *txtBad="internal error-bad rec. mode";
-char *getAB(w32 opmo) {
+const char *txtAfter="After (26ms)";
+const char *txtBefore="Before (continuous)";
+const char *txtNorec="no recording";
+const char *txtBad="internal error-bad rec. mode";
+const char *getAB(w32 opmo) {
 if(opmo==2) return(txtAfter);
 if(opmo==3) return(txtBefore);
 if(opmo==0) return(txtNorec);

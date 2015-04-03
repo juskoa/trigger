@@ -601,7 +601,7 @@ def main(act=None):
       #ftk= Tk()
       #ftk.title('CTP switch batch') ; ff=1
       withgui='no'
-      rc= os.system("../ctp_proxy/linux/act.exe")
+      rc= os.system("../ctp_proxy/linux_s/act.exe")
       print "Downloading config files from ACT. rc:0x%x"%rc
       rc= rc>>8
       if rc!=0:

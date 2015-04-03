@@ -6,6 +6,7 @@ See v/DOC/history.txt for history of modifications */
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include <ctype.h>
 #include <getopt.h>
 
@@ -18,6 +19,10 @@ See v/DOC/history.txt for history of modifications */
 #include "infolog.h"
 #include "vmewrap.h"
 #include "vmeblib.h"
+/* we use intermediate DIM (ltucfg2daq()...
+  #include "daqlogbook.h"
+
+   */
 #define LTUMAIN
 #include "ltu.h"
 #define PROXY_MAIN
@@ -38,6 +43,12 @@ int ds_register(char *detname, char *base);
 void setRWMODE(char mode);
 void UPPER(char *name);
 int syncemu();
+
+extern int QUIT;
+extern w32 *buf1;
+void updateMONCOUNTERSservice(int uc);    // update DIM service 1/min
+void updateMONBUSY(float newbusyf);   
+void readltucounters();
 
 /*------------------------------------------------------------ isNotNONE()
 rc: 1 if defined
@@ -107,7 +118,7 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        //von infolog_SetStream(dimservernameCAP,RUN_NUMBER);
        if( isNotNONE(configuration) ) {
          int rc;
-         rc= setOptionMem("L2aseq", configuration,templtucfg);
+         rc= setOptionMem((char *)"L2aseq", configuration,templtucfg);
          if(rc!=0) {
            sprintf(msg, "Bad CONFIGURATION:%s", configuration);
            infolog_trg(LOG_FATAL, msg); goto SETERROR;
@@ -115,7 +126,7 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        }; /* do nothing if not supplied!  */
        if( isNotNONE(mode) ) {
          int rc;
-         rc= setOptionMem("mode", mode,templtucfg);
+         rc= setOptionMem((char *)"mode", mode,templtucfg);
          if(rc!=0) {
            sprintf(msg, "Bad MODE:%s", mode);
            infolog_trg(LOG_FATAL, msg); goto SETERROR;
@@ -123,11 +134,14 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
        }; /* do nothing if not supplied!  */
        if( isNotNONE(FineDelay1) ) {
          int rc;
-         rc= setOptionMem("FineDelay1", FineDelay1,templtucfg);
+         rc= setOptionMem((char *)"FineDelay1", FineDelay1,templtucfg);
          if(rc!=0) {
            sprintf(msg, "Bad FineDelay1:%s", FineDelay1);
            infolog_trg(LOG_FATAL, msg); goto SETERROR;
          };
+       };
+       if((rcse= checkSEU())) {
+         infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
        };
        busy12(1);
        // check busy:
@@ -150,15 +164,30 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
          strcpy(state,"STANDALONE_RUNNING"); smi_set_state(state);
        };
      } else if (strcmp(action,"NV_GOTOGLOBAL") == 0) {
-       w32 fd1,fd2,bcd; int rcdaq;
+       int rcdaq; 
+       Tltucfg1 ltucfg;
+       //w32 fd1,fd2,bcd; 
+       if((rcdaq= checkSEU())) {
+         infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
+       };
        Setglobalmode();
        printf("%s -->    GLOBAL.\n",obj);
        busy12(1);
        setRWMODE('R');
        strcpy(state,"GLOBAL"); smi_set_state(state);
        //von infolog_SetStream(dimservernameCAP,RUN_NUMBER);
-       fd1= templtucfg->FineDelay1; fd2= templtucfg->FineDelay2;
-       bcd= templtucfg->bc_delay_add;
+       /* ---> DIM -> alitri -> daqlogbook way: */
+       ltucfg.run= RUN_NUMBER;
+       strcpy(ltucfg.detector, dimservernameCAP);
+       ltucfg.LTUFineDelay1= templtucfg->FineDelay1; 
+       ltucfg.LTUFineDelay2= templtucfg->FineDelay2;
+       ltucfg.LTUBCDelayAdd= templtucfg->bc_delay_add;
+       rcdaq= ltucfg2daq(&ltucfg);
+       sprintf(msg,"ltucfg2daq(%d,%s,%d,%d,%d) rc:%d",
+         ltucfg.run,ltucfg.detector, ltucfg.LTUFineDelay1,
+         ltucfg.LTUFineDelay2, ltucfg.LTUBCDelayAdd, rcdaq);
+       //
+       /* --->                  daqlogbook way: 
        rcdaq= daqlogbook_open();
        if(rcdaq==-1) {
          sprintf(msg,"DAQlogbook not opened");
@@ -172,6 +201,8 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
          infolog_trg(LOG_INFO, msg);
        };
        rcdaq= daqlogbook_close();
+       */
+       infolog_trg(LOG_INFO, msg);
      } else if( strcmp(action, "SET_DEFAULT")==0) {
        //printltuDefaultsMem(templtucfg);
        if(setOptionMem(NAME, VALUE,templtucfg)!=0) {
@@ -183,20 +214,24 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
      } else {goto RETERR;}
    } else if (strcmp(state,"STANDALONE_RUNNING") == 0) {
       if (strcmp(action,"STOP") == 0) {
-         strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
-         stopemu(sodeodecs);
-         printf("%s --> Stops the emulator and waiting 2 secs why?\n",obj);
-         sleep (2);
-         strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
-         setRWMODE('W');
-         //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
+        int rcse;
+        strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
+        stopemu(sodeodecs);
+        printf("%s --> Stop the emulator and waiting 2 secs why?\n",obj);
+        sleep (2);
+        strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
+        setRWMODE('W');
+        if((rcse= checkSEU())) {
+          infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
+        };
+        //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
       } else if (strcmp(action,"PAUSE") == 0) {
-         //strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
-         // keep commented (from 10.4.)
-         pauseemu();
-         printf("%s --> Stops the emulator and waiting 2 secs why?\n",obj);
-         sleep (2);
-         strcpy(state,"STANDALONE_PAUSED"); smi_set_state(state);
+        //strcpy(state,"STANDALONE_STOPPING"); smi_set_state(state);
+        // keep commented (from 10.4.)
+        pauseemu();
+        printf("%s --> Stops the emulator and waiting 2 secs why?\n",obj);
+        sleep (2);
+        strcpy(state,"STANDALONE_PAUSED"); smi_set_state(state);
       } else {goto RETERR;}
    } else if (strcmp(state,"STANDALONE_PAUSED") == 0) {
       if (strcmp(action,"STOP") == 0) {
@@ -221,12 +256,16 @@ if(templtucfg->plist[IXdefedit_id] != ltc->plist[IXdefedit_id]) {
       } else {goto RETERR;}
    } else if (strcmp(state,"GLOBAL") == 0 ) {
       if (strcmp(action,"NV_GOTOSTANDALONE_STOPPED") == 0) {
-         Setstdalonemode();
-         printf("%s -->    STDALONE. \n",obj);
-         busy12(1);
-         strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
-         setRWMODE('W');
-         //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
+        int rcse;
+        Setstdalonemode();
+        printf("%s -->    STDALONE. \n",obj);
+        busy12(1);
+        strcpy(state,"STANDALONE_STOPPED"); smi_set_state(state);
+        setRWMODE('W');
+        if((rcse= checkSEU())) {
+          infolog_trg(LOG_ERROR, (char *)"Single event upset detected, reconfigure LTU FPGA");
+        };
+        //von RUN_NUMBER=-1; infolog_SetStream(dimservernameCAP,RUN_NUMBER);
       } else {goto RETERR;}
    } else if (strcmp(state,"ERROR") == 0) {
       if (strcmp(action,"RESET") == 0) {
@@ -250,6 +289,7 @@ infolog_trgboth(LOG_ERROR, msg); goto RETURN;
 int main(int argc, char **argv) {
 int rcso=0;
 int argi=0;  
+int isecs=60; float prevbusyf, newbusyf=0;
 /*----------------------------------------------------------- defaults: */
 strcpy(BoardBaseAddress, "0xdeadde");
 strcpy(BoardSpaceLength, "0x1000");
@@ -257,7 +297,7 @@ templtucfg= &templtucfgmem;
 /* following done only once in 1st ltu.exe popened:
 ltuDefaults(&ltushm->ltucfg); ttcDefaults(&ltushm->ltucfg); readltuttcdb(&ltushm->ltucfg);
 */
-sprintf(msg, "ltu_proxy started. LTU_SW_VER:%s",LTU_SW_VER); prtLog(msg);
+sprintf(msg, "ltu_proxy started. LTU_SW_VER:%s compiled:%s %s",LTU_SW_VER, __DATE__, __TIME__); prtLog(msg);
 /*--------------------------------------------------------cmdline args: */
 while (1) {
   int this_option_optind = optind ? optind : 1;
@@ -301,7 +341,7 @@ while (1) {
   if(rcso!=0) {
     printf("Usage: %s SMIOBJECT [options]\n\n",argv[0]);
     printf("Options: (case insensitive)\n");
-    printf("  -mode=BC | pulser_edge pulser_level | random | sw (default:BC)\n");
+    printf("  -mode=BC | pulser_edge | pulser_level | random | sw (default:BC)\n");
     printf("  -busy=1 | 2 | 3 | 0                      (default:1 )\n");
     printf("  -L0=ttc | cable                          (default:ttc )\n");
     printf("  -address=hexa VME base address of LTU    (default:0x810000)\n");
@@ -350,9 +390,10 @@ strcpy(ltu_dimservername,"LTU_"); strcat(ltu_dimservername,dimservernameCAP);
 infolog_SetFacility(ltu_dimservername);
 infolog_SetStream(dimservernameCAP,-1);
 printf("Stream:%s Facility:%s\n", dimservernameCAP, ltu_dimservername);
+printenvironment();
 /*---------------------------------------------------------------- DIM */
 initStatic();   // necessary for FineDelay1/2 hw constant calculations
-printf("Starting DIM services (and assigning shared memory)...\n");
+printf("Starting DIM services, popen2, assigning shared memory...\n");
 rcso= ds_register(dimservername, BoardBaseAddress);  // has to be here (ltushm)
 if(rcso != 0) {
   sprintf(msg, " Cannot register DIM services LTUname:%s LTUbase: %s\n", 
@@ -392,19 +433,43 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
   strcpy(state,"ERROR");
   smi_set_state(state);
 } else {
-  ltuInit(&ltushm->ltucfg, 1,0);   // executes TTCinit() too
+  /* removed 7.11.2014 (done above in ds_register when ltu.exe started)
+   but we need to have Gltuver defined... so let's leave it aslo here
+  */
+    ltuInit(&ltushm->ltucfg, 1,0);   // executes TTCinit() too
+  //
+  /* removed 29.10.2014 (on Manlio Minervini request)
   if(strcmp(dimservername,"hmpid")==0) {
     ltc->flags= ltc->flags | FLGfecmd12;
-  };
+  }; */
   copyltucfg(templtucfg, ltc);
   ltu_configure(0);        /* configure internal variables (BC, etc)  + LTU*/
   vmeclose();
   strcpy(state,"STANDALONE_STOPPED");
   smi_set_state(state);
 };
-fflush(stdout);
+printf(" main loop /1sec\n"); fflush(stdout);
+{ 
 while(1) {
-  usleep(1000000);
+  if(isecs>=60) {
+    updateMONCOUNTERSservice(0);    // update DIM service 1/min
+    isecs= 0;
+  };
+  dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
+  //usleep(1000000); isecs++;  // nebavi ani toto
+  prevbusyf= newbusyf;
+  newbusyf= ltushm->busyfraction;
+  //printf("ltuproxymain: %d prev/now:%6.4f %6.4f\n", isecs, prevbusyf, newbusyf); fflush(stdout);
+  if(fabs(newbusyf-prevbusyf)>0.01) {
+    updateMONBUSY(newbusyf);   
+  };
+  if(QUIT==1) {
+    // freeShared(buf1,...);     -for SSM yes, but not for counters
+    buf1=NULL;
+    // see ds_stop shmdt(ltushm);
+    break;
+  };
+};
 };
 return (0);
 }

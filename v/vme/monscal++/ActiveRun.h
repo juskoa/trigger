@@ -12,7 +12,7 @@ using namespace std;
 class ActiveRun : public Log
 {
  private:
-         enum {NCLASS=50, NCLUST=6,NINP=60, NDET=24};
+         enum {NCLASS=100, NCLUST=6,NINP=60, NDET=24};
          const int fRunNumber;
          string fname;
          string frcfgfile;
@@ -55,6 +55,7 @@ class ActiveRun : public Log
          void PrintClusters();
          void PrintClasses();
          void PrintDetectors();
+	 void PrintRun();
          //----------DisplayonScreen
          void CreateDisplaySCAL(){scal = new DisplaySCAL(fRunNumber,fname);};
          void DisplayRun(){scal->DisplayRun(ninp,fTrigInputs,nclust,fClusters,fINT,ndet,fDetectors);DisplaySCAL::GetfileSCAL()->flush();};

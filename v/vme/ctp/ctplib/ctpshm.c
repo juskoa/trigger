@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>   //malloc
 #include "string.h"
-#include "vmewrap.h"
+#include "vmewrapdefs.h"
 #include "shmaccess.h"
 //#include "bakery.h" is in Tpartition.h
 #include "vmeblib.h"
-#include "ctp.h"
+//#include "ctp.h"
 #include "Tpartition.h"
 
 /*-------------------------------------------------------*/ void cshmInit() {
-// invoked from: ctp_proxy.c test.c main_shm.c
+/* invoked from: 
+altri1: ctp_proxy/ctp_proxy.c test.c main_shm.c
+alitri: pydim/server.c 
+*/
 int i; Tpartitionshm *shmpart;
 // 1 of the following 2 lines:
 ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);
@@ -23,7 +26,7 @@ if(ctpshmbase->datetime[0]=='\0') {
   for(i=0;i<MNPART;i++){ shmpart[i].name[0]= '\0'; };
   ctpshmbase->GlobalFlags=0;
   ctpshmbase->active_cg=0;
-  initBakery(&ctpshmbase->swtriggers, "swtriggers", 3);
+  initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
   initBakery(&ctpshmbase->ccread, "ccread", 5);
 };
 if(validCTPINPUTs==NULL) {
@@ -32,7 +35,21 @@ if(validCTPINPUTs==NULL) {
 };
 }
 void cshmDetach() {   // client should relese memory usage by calling this
-detachShared((w8 *)ctpshmbase);
+detachShared((void *)ctpshmbase);
+}
+/*------------------------------------------------- */ void cshmClear() {
+int i; Tpartitionshm *shmpart;
+shmpart= &ctpshmbase->startedParts[0];
+for(i=0;i<MNPART;i++){ 
+  int ii;
+  shmpart[i].name[0]= '\0'; 
+  shmpart[i].run_number = 0;
+  shmpart[i].paused = 0;
+  for(ii=0; ii<NDETEC; ii++) {
+    shmpart[i].Detector2Clust[ii]= 0x0;
+  };
+  //part->cshmpart= NULL; done in initTpartition()
+};
 }
 /*------------------------------------------------- GlobalFlags: */
 int cshmGlobFlag(w32 flag) {
@@ -80,8 +97,9 @@ shmpart= &ctpshmbase->startedParts[0];
 printf("VALID.LTUS:\n");
 for(i=0;i<NDETEC;i++){ 
   if(ctpshmbase->validLTUs[i].name[0] != '\0'){
-    printf("%d:%s fo:%d:%d\n", i, ctpshmbase->validLTUs[i].name,
-      ctpshmbase->validLTUs[i].fo, ctpshmbase->validLTUs[i].foc);
+    printf("%d:%s fo:%d:%d %d %s\n", i, ctpshmbase->validLTUs[i].name,
+      ctpshmbase->validLTUs[i].fo, ctpshmbase->validLTUs[i].foc,
+      ctpshmbase->validLTUs[i].busyinp, ctpshmbase->validLTUs[i].ltubasea);
   };
 };
 printf("GlobalFlags:%x active_cg:%d\n", ctpshmbase->GlobalFlags,

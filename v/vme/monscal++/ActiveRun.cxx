@@ -39,21 +39,25 @@ fINT(0)
  for(int i=0;i<NCLASS;i++)fClasses[i]=0;
  for(int i=0;i<NDET;i++)fDetectors[i]=0;
  if(runnum){
-   ParseConfigFile(runnum);
+   if(ParseConfigFile(runnum)) exit(1);
  }
  else{
      // inputs, parse valid.ctpinputs and special input config
    ParseInputsList();
    ParseValidCTPInputs();
  }
+ //PrintRun();
  //ParsePartitionFile(runnum); // this is not necessary now, all info is in rcfg
  FindDetectors();
  //PrintDetectors();
  // Create global l2a counter
+ cout << "Creating global L2a counter" << endl;
  L2a.SetName("L2a");
  //L2a.SetIXs(CSTART_L2+23,CSTART_L2 + 5);
  L2a.SetIXs(CSTART_INT+8,CSTART_INT + 2);
- cout << "Starting run " << fRunNumber << endl;
+ stringstream ss;
+ ss << "Starting run" << fRunNumber << endl;
+ PrintLog(ss.str().c_str());
 }
 ActiveRun::~ActiveRun()
 {
@@ -66,7 +70,9 @@ ActiveRun::~ActiveRun()
  if(ocdb) delete ocdb;
  if(daq) delete daq;
  if(scal) delete scal;
- cout << "Stopping run " << fRunNumber << endl;
+ stringstream ss;
+ ss << "Run " << fRunNumber << " stopped" << endl;
+ PrintLog(ss.str().c_str());
 }
 //-----------------------------------------------------------
 int ActiveRun::ParseInputsList()
@@ -134,7 +140,8 @@ int ActiveRun::ParseValidCTPInputs()
 {
   stringstream ss;
  ifstream file;
- ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ //ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ ss << "/CFG/ctp/DB/ctpinputs.cfg";
  string filename = getenv("VMECFDIR")+ss.str();
  file.open(filename.c_str());
  if(!file){
@@ -160,15 +167,17 @@ int ActiveRun::ProcessInputLine(const string &line)
  vector<string> items;
  splitstring(line,items," ");
  int nitems = items.size();
- if(nitems!=12){
-   cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+ if(nitems < 17){
+   //cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+   cout << "unexpected number of items in ctpinputs,cfg: line:" << endl;
    cout << line << endl;
    return 1;
  }
  // loop input list and add to configuration only if in the list
  for(unsigned int i=0;i<inputlist.size();i++){
   if(items[0].find(inputlist[i]) != string::npos){  
-    TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),atoi(items[7].c_str()),items[2]); 
     inp->Print();
     AddInput(inp);
   } 
@@ -247,7 +256,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
  switch (level){
    case 1:  // inputs
           {
-          if(nitems != 5){
+          if((nitems != 6) && (nitems !=5)){
             PrintLog(("Invalid input syntax: "+line).c_str());
             return 1;
           }
@@ -255,7 +264,8 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
              cout << "ActiveRun::ProcessCfgLine: input "  << items[0] << " skipped." << endl;
              return 0;
           }
-          TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),items[1]); 
+          //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),items[1]); 
+            TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),atoi(items[5].c_str()),items[1]); 
           AddInput(inp);
           return 0;
           }
@@ -292,7 +302,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
           return 0;
    case 7:  // classes
          {
-         if((nitems < 8) || (nitems >10)){
+         if((nitems != 8) && (nitems != 10) && (nitems != 11)){
            PrintLog(("Invalid class syntax: "+line).c_str());
           return 1;
          }
@@ -406,7 +416,8 @@ int ActiveRun::ParseConfigFile(int runnumber){
  stringstream ss;
  if(runnumber){
    ss << "/WORK/RCFG/r" <<runnumber << ".rcfg";
-   frcfgfile = getenv("VMEWORKDIR")+ss.str();
+   //frcfgfile = getenv("VMEWORKDIR")+ss.str();
+   frcfgfile ="/home/alice/trigger/v/vme/"+ss.str();
  }else{
    cout << "ActiveRun::ParseConfigFile runnum=0, internal error." << endl;
    return 1;
@@ -432,7 +443,8 @@ int ActiveRun::ParsePartitionFile(int runnumber){
  //runnumber=104160;
  if(runnumber){
    ss << "/WORK/PCFG/r" <<runnumber << ".partition";
-   partifile = getenv("VMEWORKDIR")+ss.str();
+   //partifile = getenv("VMEWORKDIR")+ss.str();
+   partifile = "/home/alice/trigger/v/vme/WORK/RCFG/"+ss.str();
  }else{
   return 0;
  }
@@ -453,19 +465,31 @@ int ActiveRun::ParsePartitionFile(int runnumber){
 }
 void ActiveRun::PrintInputs()
 {
+ cout << "INPUTS:" << endl;
  for(int i=0;i<ninp;i++)fTrigInputs[i]->Print();
 }
 void ActiveRun::PrintClusters()
 {
+ cout << "CLUSTERS:"<< endl;
  for(int i=0;i<nclust;i++)fClusters[i]->Print();
 }
 void ActiveRun::PrintClasses()
 {
+ cout << "CLASSES:" << endl;
  for(int i=0;i<nclass;i++)fClasses[i]->Print();
 }
 void ActiveRun::PrintDetectors()
 {
+ cout << "DETECTORS:" << endl;
  for(int i=0;i<ndet;i++)fDetectors[i]->Print();
+}
+void ActiveRun::PrintRun()
+{
+ cout << "RUN: " << fRunNumber << endl;
+ PrintInputs();
+ PrintClusters();
+ PrintClasses();
+ PrintDetectors();
 }
 void ActiveRun::UpdateRunCounters(w32* buffer)
 {

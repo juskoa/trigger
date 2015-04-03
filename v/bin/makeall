@@ -1,13 +1,18 @@
 #!/bin/bash
 # Start this script:
 # makeall 2>&1>~/makeall.gccor++
-# compiled in pit (gcc): 20.7.2009
+# better, start on both (server + client, i.e. 6times):
+# script -c 'makeall allctp clean' ~/makeall_allctp.log
+# script -c 'makeall allltu clean' ~/makeall_allltu.log
+# script -c 'makeall others clean' ~/makeall_others.log
+
 function cleancmp() {
 if [ -n "$SERVER" ] ;then
   echo --- $1 not done on server:$SERVER
   return
 fi
-echo "========================== vmecomp package $1 $2"
+echo
+echo "=======================### vmecomp package $1 $2 =================================="
 cd $VMECFDIR/$1 
 if [ "$2" == "clean" ] ;then
   make -f $1.make clean
@@ -28,7 +33,8 @@ if [ -z "$SERVER" -a "$1" = 's' ] ;then
   echo "--- $2 not done ($1, but this is client)"
   return
 fi
-echo "========================== make package $2 $3"
+echo
+echo "=======================### make package $2 $3 ====================================="
 cd $VMECFDIR/$2 
 if [ "$3" == "clean" ] ;then
   make clean
@@ -48,12 +54,13 @@ fi
 # to be modified for g++:
 #cleancmp ctpt
 #
-OTHERSmake=': ctp_proxy smaq ltu/ltulib SSMANA ltu_proxy ltudim tinproxy orbitsync dimcdistrib dimsc MORELTUS pydim CNTRRD ttcmidaemons filling dimcoff monscal++ fanio/dim :'
+OTHERSmake=': ctp_proxy smaq ltu/ltulib SSMANA ltu_proxy ltudim tinproxy orbitsync dimcdistrib dimsc MORELTUS pydim CNTRRD ttcmidaemons filling dimcoff fanio/dim monscal++:'
 OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
 #
 
-HOSTNAME=`hostname`
-if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' ] ;then
+HOSTNAME=`hostname -s`
+if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' \
+  -o  $HOSTNAME = 'alidcscom835' -o  $HOSTNAME = 'avmes' ] ;then
   SERVER=$HOSTNAME
 else
   unset SERVER
@@ -66,14 +73,23 @@ fi
 if [ "$#" -eq 0 ] ;then
 cat - <<-EOF
 Usage:
+Repeat 3 steps on avmes first, than on altri1 (alidcsvme008):
 makeall allctp [clean] -comp/link vmeb, vmeb/vmeblib, ctplib,ctp,ctp_proxy,smaq
                         toobusy
 makeall allltu [clean] -   ltulib,ltu,SSMANA,VME2FPGA,ltu_proxy, ltudim
-makeall others [clean] -compile this:
+makeall others [clean] 
+script -c 'makeall others clean' ~/others.makelog
+                       -compile this:
 $OTHERSmake
 $OTHERScmp
 
 makeall package [clean]     -compile/link only 1 package (see above for names)
+
+See makeallscript, which is:
+- renaming old logs to .old in ~/logs  
+- calling this script using script 
+- unix2dos logfile
+
 EOF
 exit
 fi
@@ -83,7 +99,13 @@ else
   CLEAN=""
 fi
 if [ "$1" = "allctp" ] ;then
-cd $VMEBDIR ; make clean ; make
+echo "=======================### make package vmeb clean ONLY on vme client ======================"
+if [ -n "$SERVER" ] ;then
+  echo "--- vmeb not done (this is client)"
+else
+cd $VMEBDIR ; make -f makefile_vmeb clean ; make -f makefile_vmeb
+fi
+echo "=======================### make package vmeblib clean ====================================="
 cd $VMEBDIR/vmeblib ; make clean ; make
 cleanmake s ctp/ctplib $CLEAN
 #complink ctp/ctplib $CLEAN

@@ -1,0 +1,7 @@
+Software connected with drs:
+scope.C afs: ~rlietava/public/alice/scope - visualisation of waveforms
+tools.cpp - software for analysis of waveforms used both with: 
+drs_exam_rl.cpp
+- dim server to be run at pi@alidcsrpi001
+drs_exam_file.cpp 
+- reads data from file - used for debuging

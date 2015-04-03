@@ -1,0 +1,8 @@
+_run1.seq -> used for <0xb7 version of LTU:
+sod eod sync L2a L2async  (last one probably not needed ?)
+
+compile (at one place, slm_proxy/noclasses):
+bin/doRightSeqs.bash
+
+make links for each detector:
+makeSLMproxylinks.bash

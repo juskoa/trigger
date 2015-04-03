@@ -11,27 +11,43 @@ Synchronise/desynchronise random generators
 mask:
 3 synchronise RND1 and RND2 generators on L0 board
 1 desynchronise RND1 and RND2 generators on L0 board
+other: print to stdout current status (3: sync, 1: desync mode)
 */
 void RNDsync(int mask) {
-vmew32(L0_ENA_CRND, mask);
-vmew32(L0_CLEAR_RND, DUMMYVAL);
+w32 adr;
+if(l0C0()) {
+  adr= L0_ENA_CRNDlm0;
+} else {
+  adr= L0_ENA_CRND;
+};
+if((mask != 3) and (mask != 1)) {
+  w32 w;
+  w= vmer32(adr);
+  printf("L0_ENA_CRND (3: sync, 1: desync mode):0x%x\n", w);
+} else {
+  vmew32(adr, mask);
+  vmew32(L0_CLEAR_RND, DUMMYVAL);
+};
 }
 /*
-set L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
-    L1_DEFINITION L1_INVERT L2_DEFINITION
-words for klas (1..50)
+set L0_CONDITION L0_INVERT L0_VETO (scaler-not used here) 
+    L1_DEFINITION L1_INVERT L2_DEFINITION 
+words for klas (1..100)
 ATTENTION: 
 1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
    bit31 for >AC
+   LM0: L0_MASK not used. CLASS MASK bit is in: L0_VETOr2.23
 2. invert,l1invert -valid only for class>=45
 */
 void setClassInit(int klas,w32 condition, w32 invert, w32 veto, w32 scaler,
               w32 l1def, w32 l1invert, w32 l2def) {
-int bb,klasix; w32 mskbit;
+int bb,klasix;
 w32 l0invAC; int minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+l0invAC=L0_INVERTac; minAC=0;
 bb= klas*4; klasix=klas-1;
 if(notInCrate(1)==0) {   // L0 board
+  w32 mskbit;
+  printf("setClassInit:%d:%x %x %x %x\n", klas, condition,invert,veto,scaler);
   //Klas[klasix].regs[0]= condition; 
   vmew32(L0_CONDITION+bb, condition);
   if(klas>minAC) {  /* only for inverted klasses ! */
@@ -39,9 +55,18 @@ if(notInCrate(1)==0) {   // L0 board
     vmew32(l0invAC+bb, invert);
   };
   //Klas[klasix].regs[2]= veto; 
-  if(l0AB()==0) {   //firmAC
-    vmew32(L0_VETO+bb, veto&0x1fffff); 
-    mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+  if(l0AB()==0) {   //firm AC or higher
+    if(l0C0()) {
+      vmew32(L0_VETOr2+bb, veto);
+    } else {
+      vmew32(L0_VETO+bb, veto&0x1fffff); 
+      mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+      if(ctpboards[1].boardver>=0xaf) {  // sync. downscaling
+        //printf("boardver:%x klas:%d sdg:%d\n", ctpboards[1].boardver, klas, klas-1);
+        vmew32(L0_SDSCG+bb, klas-1); 
+        //printf("initCTP%x+ %d <- %d\n", L0_SDSCG, bb, klas-1);
+      };
+    };
   } else {
     vmew32(L0_VETO+bb, veto&0xffff); 
     /* 1st L0 version (A0): vmew32(L0_MASK+bb, veto&0x10000); */
@@ -52,7 +77,7 @@ if(notInCrate(1)==0) {   // L0 board
 if(notInCrate(2)==0) {   // L1 board
   //Klas[klasix].regs[4]= l1def; 
   vmew32(L1_DEFINITION+bb, l1def);
-  if(klas>=45) {  /* only for inverted klasses ! */
+  if(klas>=1) {  /* was 45 before 13.9.2014 (bug) */
     //Klas[klasix].regs[5]= l1invert; 
     vmew32(L1_INVERT+bb, l1invert);
   };
@@ -64,21 +89,35 @@ if(notInCrate(3)==0) {
 }
 void rates2hwInit() {
 int ix;
-vmew32(RATE_MODE,1);   /* vme mode */
+vmew32(getRATE_MODE(),1);   /* vme mode */
 vmew32(RATE_CLEARADD,DUMMYVAL);
-for(ix=0; ix<50; ix++) {
-  vmew32(RATE_DATA, ix<<25);
+for(ix=0; ix<NCLASS; ix++) {
+  vmew32(RATE_DATA, 0);    // 0: from 23.6.2014  (ix<<25): before
 };
-vmew32(RATE_MODE,0);   /* normal mode */
+vmew32(getRATE_MODE(),0);   /* normal mode */
 }
 /*------------------------------------------------------ setEdgesDelays
+10.12.2014 added L0 switch programming also
 */
 void setEdgesDelays(int board) {
 int ix, ixinp, ninp, edge, delay;
 if(board==3) {
   ninp=12;
+} else if(board==2) {
+  ninp=24;
 } else {
   ninp=24;
+  if(l0C0()) {
+    //printf(" ERROR: setEdgesDelays: does not work for LM0 board!\n"); return;
+    ninp=48;
+    // switch:
+    for(ixinp=1; ixinp<=24; ixinp++) {
+      int swn;
+      swn= getSwnDB(ixinp);
+      if(swn==-1) continue;
+      setSwitch(swn, ixinp);
+    };
+  };
 };
 for(ixinp=0; ixinp<ninp; ixinp++) {
   ix= getEdgeDelayDB(board-1, ixinp+1, &edge, &delay);
@@ -87,25 +126,43 @@ for(ixinp=0; ixinp<ninp; ixinp++) {
   setEdgeDelay(board,ixinp+1,edge,delay);
 };
 }
-/* init CTP. Should be called only once. 
-   ! Another instance of vmecrate ctp calls this routine too! 
+/*FGROUP LM0
+init CTP. Should be called only once. 
+   ! Another instance of 'vmecrate ctp' calls this routine too! 
    -> i.e. use: 'vmecrate nbi ctp' for expert (ctp) sw.
    ctp_proxy, when restarted, calls this routine.
    Only 'system parameters' should be set here (i.e. timing...)
 */
 void initCTP() {
-int ix,rc;
+int ix,rc=0;
 resetPLLS();
-for(ix=1; ix<=50; ix++) {
-  setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
-}; rates2hwInit();
-vmew32(L0_INTERACT1, 0); vmew32(L0_INTERACT2, 0); vmew32(L0_INTERACTT, 0);
-vmew32(L0_INTERACTSEL, 0);
-vmew32(L0_FUNCTION1, 0); vmew32(L0_FUNCTION2, 0);
+for(ix=1; ix<=NCLASS; ix++) {
+  //klas,w32 condition, w32 invert, w32 veto, w32 scaler,
+  //            w32 l1def, w32 l1invert, w32 l2def
+  //setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
+  if(l0C0()){
+    setClassInit(ix,0xffffffff,0x0,0x009ffff0 | (ix-1)<<24, 0, 0x8fffffff, 0x0, 0xf000fff);
+  }else {
+    setClassInit(ix,0xffffffff,0x0,0x801ffff0, 0, 0x8fffffff, 0x0, 0xf000fff);
+  };
+}; 
+rates2hwInit();
+//dbgssm("classes set");
+/*
+printf("omitting IR and L0F12 init to 0, on L0/LM0 board (programmed elsewhere).\n");
+vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
+vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
+vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
+*/
 if(l0AB()==0) {   //firmAC
-rc= setL0f34c(0, "0");
+  if(l0C0()) {
+    printf("omitting setL0f34c() on LM0 board.\n");
+  } else {
+    rc= setL0f34c(0, (char *)"0");
+  };
 };
 ix= loadcheckctpcfg();
+//dbgssm("after loadcheckctpcfg");
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
   if(ctpboards[ix].code==FOcode) { 
@@ -126,27 +183,80 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 #endif
     //cfg vmew32(BUSY_DELAY_ADD, 0);
     vmew32(BUSY_DISB_CTP_BUSY, 1);   /* disable CTPbusy (see INT) */
-    /* longest serial message in bits -2 -2. 
+    /* cfg vmew32(BUSY_CTPDEADTIME, 60);    
+       longest serial message in bits -2 -2. 
        Now: (61: 1bit header +60databits) + (3: to be safe) = 64
        i.e. BUSY_CTPDEADTIME is 64 -2 -2 = 60
+    
+      - was 52 before 13.3. 2008
+      - was 60 before 30.1.2014
+      - is 60+50=110 after 30.1.2014 which corresponds 
+        to real deadtime (scope) to 112BCs
+       BUSY_L0L1_DEADTIME=213 corresponds to L1_DELAY_L0:160 -> to get 1 BC 
+       between L1end/nearest_next_L0start on LTU output when using 
+       'L0 over TTC' option
     */
-    //cfg vmew32(BUSY_CTPDEADTIME, 60);    /* was 52 before 13.3. 2008 */
-    /* 213 corresponds to L1_DELAY_L0:160 -> to get 1 BC between 
-       L1end/nearest_next_L0start on LTU output when using 'L0 over TTC'
-       option */
     //calc vmew32(BUSY_L0L1DEADTIME, 213);  
     //cfg vmew32(BUSY_L0L1DEADTIME, calcBUSY_L0L1DEADTIME());  
   };                                 
   if(ctpboards[ix].code==L0code) { 
-    //cfg vmew32(L0_INTERACT1, 0);   // no interactions defined
-    //cfg vmew32(L0_INTERACT2, 0); //cfg vmew32(L0_INTERACTT, 0);
-    //cfg vmew32(L0_INTERACTSEL, 0);
-    //cfg vmew32(L0_BCOFFSET,calcL0_BCOFFSET());
-    //cfg vmew32(PF_COMMON+BSP*ctpboards[ix].dial, calcPFisd(0)<<12);
+    //cfg vmew32(getLM0addr(L0_INTERACT1), 0);   // no interactions defined
+    //cfg vmew32(getLM0addr(L0_INTERACT2), 0); //cfg vmew32(getLM0addr(L0_INTERACTT), 0);
+    //cfg vmew32(getLM0addr(L0_INTERACTSEL), 0);
+    //cfg vmew32(L0_BCOFFSET[r2],calcL0_BCOFFSET());
+    //cfg vmew32(getLM0PFad(PF_COMMON)+BSP*ctpboards[ix].dial, calcPFisd(0)<<12);
     //setEdge(1,6,0);   // acorde single needs Positive edge
-    vmew32(ALL_RARE_FLAG , 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
-    setEdgesDelays(1);
-    RNDsync(1);
+    if(l0C0()) {
+      // init CTP LM0 switch to 1->1, 2->2,..., 24->24
+      int lminp=1; w32 lminpadr;
+      lminpadr= SYNCH_ADDr2 + BSP*ctpboards[ix].dial;
+      for(lminp=1; lminp<=24; lminp++) {
+        w32 val,adr;
+        val= lminp<<16;   // positive edge(s), delay(s): 0
+        adr= lminpadr+ 4*(lminp-1);
+        vmew32(adr, val);
+      }
+      infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...24-24");
+      vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
+      infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
+      /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
+      vmew32(SEL_SPARE_OUT+0xc, 11);
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 11:0HCO -LM");
+      vmew32(SEL_SPARE_OUT+0x8, 45);
+      infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[2]) set to 45:0AMU");
+      /*vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
+      infolog_trgboth(LOG_INFO, (char *)"RND1_EN_FOR_INPUTS cleared"); */
+      //infolog_trgboth(LOG_INFO, (char *)"omitting LM0 CTP switch set to default 1-1 2-2...");
+      /* following done in setEdgersDelays()
+      setEdgeDelay(1,1,1,0);  // T0C
+      setEdgeDelay(1,2,1,0);  // TSC
+      setEdgeDelay(1,3,1,0);  // TVX
+      setEdgeDelay(1,4,1,0);  // T0A
+      setEdgeDelay(1,5,1,0);  // TCE
+      setEdgeDelay(1,6,0,0);  // 0VBA
+      setEdgeDelay(1,7,0,0);  // 0VBC
+      setEdgeDelay(1,8,0,0);  // 0VGO
+      setEdgeDelay(1,9,0,0);  // 0VLN
+      setEdgeDelay(1,10,0,0); // 0VC5
+      setEdgeDelay(1,37,0,5); // 0BPA
+      setEdgeDelay(1,38,1,10);  // 0BPC
+      setSwitch(3, 20);   // 0TVX
+      setSwitch(20, 3);   // 0MSL
+      setSwitch(31, 22);   // 0OM2
+      setSwitch(33, 23);   // 0OMU
+      setSwitch(36, 24);   // 0OB0
+      setSwitch(37, 21);   // 0BPA
+      //setSwitch(38, 22);   // 0BPC
+      setSwitch(39, 15);   // 0LSR
+      */
+      ddr3_reset(); printf("DDR3 reset done\n");
+      vmew32(SCOPE_A_FRONT_PANEL, 14); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
+    };
+    setEdgesDelays(1); printf("L0 edges/delays set\n");
+    vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
+    //RNDsync(3); printf("RND1/2 synchronised\n");
+    RNDsync(1); printf("RND1/2 desynchronised\n");
   };
   if(ctpboards[ix].code==L1code) { 
     //cfg vmew32(L1_DELAY_L0, calcL1_DELAY_L0());
@@ -173,10 +283,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     //cfg vmew32(INT_DDL_EMU,0x0);       /* DAQ from 30.5.2008 always active */
     if(cshmGlobFlag(FLGignoreDAQRO)) {
       vmew32(INT_DDL_EMU,0xb);      /*  DAQ not active */
-      infolog_trgboth(LOG_INFO, "CTP readout OFF (NODAQRO option)");
+      infolog_trgboth(LOG_INFO, (char *)"CTP readout OFF (NODAQRO option)");
     } else {
       vmew32(INT_DDL_EMU,0x0);      /*  DAQ active  */
-      infolog_trgboth(LOG_INFO, "CTP readout ON");
+      infolog_trgboth(LOG_INFO, (char *)"CTP readout ON");
     };
   };
 };

@@ -1,0 +1,4 @@
+VMERCCLD := -L/lib/modules/daq 
+# -lDFDebug
+CFLAGS=$(COMMONCFLAGS) -I/usr/local/include
+

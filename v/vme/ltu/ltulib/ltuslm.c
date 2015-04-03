@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "vmewrap.h"
 #include "ltu.h"
 
@@ -51,11 +52,17 @@ return(vmer32(START_SET)&0x0f);
 Generate start signal by SW
 n       -number of SW triggers (0-endless loop)
 milsecs -time interval, in miliseconds, between triggers 
+         if > 1000000: interval betwenn triggers is: (milsecs-1000000)us
 return  -number of generated SW triggers 
 */
 int SLMswstart(int n, int milsecs) {
 int i,micsecs;
-i=0; micsecs=milsecs*1000;
+i=0; 
+if(milsecs>1000000) {
+  micsecs=milsecs-1000000;
+} else {
+  micsecs=milsecs*1000;
+};
 if((SSMSCHEDULER>=2) & (SSMSCHEDULER<=3)) {
   w32 opmo;
   opmo= SSMSCHEDULER; 
@@ -140,7 +147,7 @@ if(slm ==NULL) {
 };
 linenum=0,ixx=0; 
 while(1){
-  int ix;
+  int ix,w1632;
   char *frc;
   w32 dw;
   frc= fgets(line, MAXLINE, slm);
@@ -156,10 +163,16 @@ while(1){
   linenum++; 
   if(linenum <= SLMSKIPL) continue;
   dw=0;
-  for(ix=15; ix>=0; ix--) {
+  if(strlen(line)>=32) {
+    w1632= 31;
+  } else {
+    if(lturun2) goto ERRLINErun1;
+    w1632= 15;
+  };
+  for(ix=w1632; ix>=0; ix--) {
     if(line[ix]=='0') {
     } else if(line[ix]=='1') {
-      dw= dw | (1<<(15-ix));
+      dw= dw | (1<<(w1632-ix));
     } else {
       goto ERRLINE;
     };
@@ -175,6 +188,9 @@ return(rc);
 ERRLINE:
 printf("ERROR in SLMreadasci %s. Line:%d %s\n", filen,linenum,line); 
 rc=2; goto ERRRET;
+ERRLINErun1:
+printf("ERROR in SLMreadasci %s. Short line (i.e. run1 format (16bits words)?).\n", filen); 
+rc=2; goto ERRRET;
 }
 
 /*FGROUP SLM 
@@ -182,7 +198,7 @@ filen: load this file into SLM memory. Absolute path or
        relative path to $VMEWORKDIR has to be given, i.e.
        CFG/ltu/SLM/one.seq, or CFG/ltu/SLMproxy/sod.seq
 rc: 0: ok, loaded
-   >0: not loaded, error printed to stdout
+   >0: not loaded, error printed to stdout:
        3: emulation active   4: global mode
 */
 int SLMload(char *filen) {

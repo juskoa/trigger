@@ -1,0 +1,15 @@
+#!/bin/bash
+# this script should be places in trg@aldaqacr07:bin/ to facilitate shifter's work
+sm=trigger@alidcscom707
+fn=`ssh $sm 'cd ~/SMAQProject/gui/archive;ls -t *.pdf| head -1'`
+#echo $fn
+cd ~/pdf
+if [ $# -eq 0 ] ;then
+  txt="freshest .pdf file"
+else
+  txt=$1
+  fn=$1
+fi
+echo "scping $txt from alidcscom707:SMAQProject/gui/archive/ ..."
+echo "   ---> pdf/$fn"
+scp -p $sm:SMAQProject/gui/archive/$fn .

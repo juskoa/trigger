@@ -4,11 +4,15 @@
 #include <errno.h>
 #include "vmewrap.h"
 #include "vmeblib.h"
+#include "daqlogbook.h"
 #include "infolog.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 #include "lexan.h"
 
+int inplm=-1;   // -1: not connected 1..24: l0inp number of 0HCO input
+int inplm_swn;   // -1: not connected 1..24: l0inp number of 0HCO input
 //ctplib.h:
 int l0AB();
 
@@ -86,12 +90,14 @@ int string2int(char *cstr,int length,w32 *num,char b){
   printf("string2int error: unknown base %cstr \n",b);
   return 1;
  }
- if((length>w32toint((2*sizeof(w32)))) && (b =='h')){
-  printf("string2int error: length=%i >2*sizeof(w32) \n",length);
+ if((length>8) && (b =='h')){
+  char cstr20[20];
+  strncpy(cstr20, cstr, 20); cstr[19]='\0';
+  printf("string2int error: length=%i >8 cstr[0..20]:%s\n",length,cstr20);
   return 1;
  }
  if(length>9 && b == 'd'){
-  printf("string2int error: length=%i >2*sizeof(w32) \n",length);
+  printf("string2int error: length=%i >9 \n",length);
   return 1;
  }
  *num=0;
@@ -229,6 +235,36 @@ for(rabc=L0CONBIT0; rabc<=upto; rabc++) {  // rnd1,2, bc1,2
   };
 }; return(retrc);
 }
+/*------------------------------------------------- rmLMrnd1
+remove RND1 if defined for class, where 0HCO used
+I: inplm (global): 1..24 -number of 0HCO
+   inplm_swn: corresponding switch input number (1..48)
+rc: modified l0inputs
+
+w32 rmLMrnd1(w32 l0inputs) {
+#define RND1MASK 0x10000000
+w32 inps= l0inputs; int ix;
+if((inps & RND1MASK) == 0) {   // RND1 used in this class
+  for(ix=0; ix<24; ix++) {
+    w32 msk;
+    msk= 1<<ix;     // ix: l0inp-1 (i.e. 0..23)
+    if((inps & msk) == 0) {
+      if( (ix+1) == inplm ) {
+        w32 rndw1, rndw2;
+        inps= inps & (~RND1MASK);  // do not use it at L0 level
+        // programming RND1_EN_FOR_INPUTS
+        rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        printf("rmLMrnd1: l0inp:%d l0swin:%d RND1_EN_FOR_INPUTS:0x%x 0x%x \n", 
+          inplm, inplm_swn, rndw1, rndw2);
+      };
+    };
+  };
+};
+printf("rmLMrnd1: 0x%x -> 0x%x\n", l0inputs, inps);
+return inps;
+}
+*/
 /*----------------------------------------------------CLA2Partition()
   Purpose: to convert CLA line in cfg to klas structure
   Parameters:
@@ -242,22 +278,43 @@ for(rabc=L0CONBIT0; rabc<=upto; rabc++) {  // rnd1,2, bc1,2
   Output: 
   Called by: ParseFile()
 */
-TKlas *CLA2Partition(char *line,int *error){
+TKlas *CLA2Partition(char *line,int *error, char *pname){
  TKlas *klas;
  int i,j; w32 group=0; w32 mskCLAMASK;
  w32 l0inputs,l0inverted,l0vetos,scaler;
  w32 l1definition,l1inverted,l2definition;
+int sdgix=-1;   // -1: not SDG class
+char emsg[300];
+char clsnum[3];
  *error=1;
  i=0;
 if(l0AB()==0) {   //firmAC
-  mskCLAMASK=0x80000000;
+  mskCLAMASK=getCLAMASK();
 } else {
   mskCLAMASK=0x10000;
 }
+strncpy(clsnum,&line[4],2); clsnum[2]='\0';
+while(line[i] != ' ' && (i<MAXLINECFG))i++;
+j=i++;    // i.e. j=i; i=i+1
+/* now:
+       l0inputs       l0vetos    presc    l1def      l1i l2def      cg
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
+       i
+      j 
+alco valid for:
+CLA.001 0x
+       ji
+*/
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
- j=i++;
- while(line[i] != ' ' && (i<MAXLINECFG))i++;
+/* 
+      0123456789.1
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
+                 i
+      j 
+                1   -here 1st parameter is pointing. 2nd = 11-3=8
+*/
  if(string2int(&line[i-1],i-j-3,&l0inputs,'h'))return NULL; 
+ //if(inplm>0) l0inputs= rmLMrnd1(l0inputs);
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
  if(string2int(&line[i-1],i-j-3,&l0inverted,'h'))return NULL; 
@@ -266,7 +323,26 @@ if(l0AB()==0) {   //firmAC
  if(string2int(&line[i-1],i-j-3,&l0vetos,'h'))return NULL; 
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
- if(string2int(&line[i-1],i-j-3,&scaler,'h')) return NULL; 
+ /* printf("cfg2part:%s:chars:%d, i=%d j=%d\n",&line[i-1],i-j-3,i,j);
+CLA.01 0xbfffffff 0x0 0x7fffffb1 0x1fae13 0x1bffffff 0x0 0x1f000fff
+    i-j-3=6                     j        i
+ line[j+1]: start of prescaler: symname or 0x23
+            length of symname or hexnumber is: i-j-1
+ */
+ if(strncmp(&line[j+1],"0x",2)!=0) {   // SDG symname
+   char symname[12];
+   strncpy(symname, &line[j+1], i-j-1); symname[i-j-1]='\0';
+   sdgix= SDGfind(symname, pname);
+   if(sdgix==-1) {   // unknown SDG name in class definition
+     sprintf(emsg, "unknown SDG name in class definition: %s for part:%s",
+       symname, pname);
+     infolog_trgboth(LOG_ERROR, emsg); return NULL;
+   };
+   scaler= SDGS[sdgix].l0pr;
+ } else {                            // 0xvalue
+   if(string2int(&line[i-1],i-j-3,&scaler,'h')) return NULL; 
+   //printf("cfg2part scaler:%x\n",scaler);
+ };
  j=i++;
  while(line[i] != ' ' && (i<MAXLINECFG))i++;
  if(string2int(&line[i-1],i-j-3,&l1definition,'h'))return NULL; 
@@ -275,20 +351,37 @@ if(l0AB()==0) {   //firmAC
  if(string2int(&line[i-1],i-j-3,&l1inverted,'h'))return NULL; 
  j=i++;
  while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
- if(string2int(&line[i-1],i-j-3,&l2definition,'h'))return NULL;
- // i: points to last character of l2definition
- j=i++;
- // j and i point to:
- // \n  -group definition is missing 
- // ' ' -group definition probably follows the l2definition
- if( (line[i] != '\n') && (line[i] != '\0') ) {
-   while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
-   if(string2int(&line[i-1],i-j-1,&group,'d')) {
-     printf("classgroup def. error i:%d line[i]:%c:%c:\n", i, line[i], line[i-1]);
-   };/* else {
-     printf("classgroup:%d\n", group);
-   };*/
- };
+/* 
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
+                                                                   i
+                                                        j
+                1   -here 1st parameter is pointing. 2nd = 11-3=8
+*/
+if(string2int(&line[i-1],i-j-3,&l2definition,'h'))return NULL;
+// i: points to the space|\n after l2definition
+j=i++;
+/* now: (X == new line character)
+group defined:
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1X
+group not defined:
+CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fffX
+                                                                    i
+                                                                   j
+*/
+// j points to space|\n and i points to:
+// ?  -1 char after \n (group definition is missing) 
+// 'x' -start of group definition (x is digit)
+if( (line[j] != '\n') && (line[i] != '\n') ) {
+  while((line[i] != '\n') && (line[i] != ' ') && (i<MAXLINECFG))i++;
+  // i: points to the space|\n after group
+  if(string2int(&line[i-1],i-j-1,&group,'d')) {
+    sprintf(emsg,"classgroup def. error i:%d line[i]:%c:%c:\n", 
+      i, line[i], line[i-1]);
+    infolog_trgboth(LOG_ERROR, emsg); return NULL;
+  } else {
+    ; //printf("classgroup:CLAfrom1.%s cg=%d\n", clsnum,group);
+  };
+};
  // class enable
  if(~(l0vetos) & mskCLAMASK){ 
   klas = (TKlas *) malloc(sizeof(TKlas));
@@ -306,8 +399,7 @@ if(l0AB()==0) {   //firmAC
  klas->l0inverted=l0inverted;
  klas->l0vetos=l0vetos;
  // Warning if using 'not defined' resources:
- 
- klas->scaler=scaler;
+klas->sdg= sdgix; klas->scaler=scaler;
  klas->l1definition=l1definition;
  klas->l1inverted=l1inverted;
  klas->l2definition=l2definition;
@@ -480,7 +572,7 @@ Input: - string containig BCMASK line from pcfg file
 Return: pointer to rbif, NULL = error
 */
 TRBIF *BCMASK2Partition(char *line,TRBIF *rbif){
-int ix,il; unsigned int bcmaskn;
+int ix,il; unsigned int lenline,bcmaskn;
 if(rbif == NULL){
   rbif = allocTRBIF();
   if(rbif == NULL){
@@ -489,7 +581,10 @@ if(rbif == NULL){
   };
 };
 if(l0AB()==0) {bcmaskn=BCMASKN;} else {bcmaskn=4;};
-if(strlen(line) < ((bcmaskn/4)*ORBITLENGTH+8)) {
+lenline= strlen(line);
+if(lenline < ((bcmaskn/4)*ORBITLENGTH+8)) {
+  char errm[300];
+  sprintf(errm, "BCMASK2Partition: short BCMASKS line (len:%d bcmaskn:%d) in .pcfg", lenline,bcmaskn);
   infolog_trgboth(LOG_FATAL, "BCMASK2Partition: short BCMASKS line in .pcfg");
   return NULL;
 };
@@ -675,13 +770,21 @@ RETNULL: return(NULL);
   Called by: readDatabase2Tpartition()
 */
 int ParseFile(char lines[][MAXLINECFG],Tpartition *part){
- int i,ix,retcode=0;
- int iklas=0,ipf=0,ifo=0;
+int i,ix,retcode=0;
+int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
 int allclgrps=0; int clg;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
- char errmsg[300]="";
- part->nclassgroups= 0;
+char errmsg[300]="";
+part->nclassgroups= 0;
+/*
+inplm= findInputName("0HCO");
+if(inplm>=0) {
+  inplm_swn= validCTPINPUTs[inplm].switchn;
+  inplm= validCTPINPUTs[inplm].inputnum;
+};
+printf("inplm:%d\n", inplm); fflush(stdout);
+*/
 for(i=0;i<MAXNLINES;i++){
   if((i>=MAXNLINES-1)) {
      sprintf(errmsg, "ParseFile: too long .pcfg file (> %d lines)", MAXNLINES);
@@ -706,7 +809,7 @@ for(i=0;i<MAXNLINES;i++){
        sprintf(errmsg,"ParseFile: L0342Partition error."); 
        retcode= 1;
      };
-     printf("L0342Partition finished:\n"); printTRBIF(part->rbif);
+     printf("L0342Partition finished:\n"); printTRBIF(part->rbif); 
    } else {
      sprintf(errmsg,"ParseFile: L034 function with L0 firmware<0xAC."); 
      retcode= 1;
@@ -718,6 +821,12 @@ for(i=0;i<MAXNLINES;i++){
      sprintf(errmsg,"ParseFile: BCMASK2Partition error"); retcode= 1;
    };
    printf("BCMASK2Partition finished:\n"); printTRBIF(part->rbif);
+  } else if(strncmp("SDG ",lines[i],4) == 0){
+   if(SDGadd(lines[i], part->name)) {
+     SDGclean(part->name);
+     sprintf(errmsg,"ParseFile: SDGadd error"); retcode= 1;
+     goto RETERR;
+   };
   } else  if(strncmp("PF.",lines[i],3) == 0){
    if(PF2Partition(lines[i],part->rbif)) {
      sprintf(errmsg,"ParseFile: PF2Partition error"); retcode= 1;
@@ -738,7 +847,7 @@ for(i=0;i<MAXNLINES;i++){
     retcode=2;
     goto RETERR;
    };
-   part->klas[iklas]=CLA2Partition(lines[i],&error);
+   part->klas[iklas]=CLA2Partition(lines[i],&error, part->name);
    if((part->klas[iklas] == NULL) && error) {
      sprintf(errmsg, "ParseFile: CLA2Partition() rc:%d", error);
      retcode= 1; goto RETERR;
@@ -775,6 +884,7 @@ for(i=0;i<MAXNLINES;i++){
     retcode= 4; goto RETERR;
   };
 };
+//printTpartition("ParseFile", part);
 // all CLA lines processed, check classgroups -find which ones are used:
 allclgrps=0;
 for(i=0; i<MAXCLASSGROUPS; i++) {
@@ -809,7 +919,7 @@ if(DBGcfgin) {
 RETERR:
 if(errmsg[0]!='\0') {
   prtError(errmsg);
-  infolog_trg(LOG_ERROR, errmsg);
+  infolog_trgboth(LOG_ERROR, errmsg);
 };
 return retcode;
 BADGROUP:
@@ -1056,6 +1166,80 @@ for(ixlevel=0; ixlevel<3; ixlevel++) {
 RTRN:
 return(allinpdets);
 }
+/*------------------------------------------------------- getDAQClusterInfo()
+*/
+int getDAQClusterInfo(Tpartition *partit, TDAQInfo *daqi) {
+unsigned long long ULL1=1,classmasks_l[NCLUST],classmasks_u[NCLUST];
+int idet, iclu, iclass, rcdaqlog=0;
+w32 l0finputs=0;// L0 inputs referenced by l0functions 
+w32 l0finputs1; // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
+//if(partit->run_number<10) { return(0); };
+// only in run1msg: daqi->MaskedDetectors= partit->MaskedDetectors;
+for(iclu=0;iclu<NCLUST;iclu++){
+  daqi->masks[iclu]=0;
+  daqi->inpmasks[iclu]=0;
+  //daqi->classmasks01_32[iclu]=0; daqi->classmasks33_64[iclu]=0;
+  classmasks_l[iclu]=0;
+  classmasks_u[iclu]=0;
+};
+//--------------------- masks:
+for(idet=0;idet<NDETEC;idet++){
+  int pclu, pclust, hwclust;
+  pclust= partit->Detector2Clust[idet]; // det. can belong to more clusters!
+  if(pclust ==0) continue;
+  // idet is in pclust, find HWclust:
+  for(pclu=0; pclu<NCLUST; pclu++) {
+    if(pclust & (1<<pclu)) {
+      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", partit->name, pclust, pclu);
+      hwclust= findHWCluster(partit, pclu+1);
+      if(hwclust>0) {
+        daqi->masks[hwclust-1]= daqi->masks[hwclust-1] | (1<<idet);
+      };
+    };
+  };
+};
+if(DBGlogbook) {
+  int pclu;
+  printf("getDAQClustersInfo:masks[0-%d]:0x:",NCLUST);
+  for(pclu=0; pclu<NCLUST; pclu++) {
+    printf("%x ", daqi->masks[pclu]); 
+  }; printf("\n");
+};
+//--------------------- classmasks and inpmasks:
+for(iclass=0; iclass<NCLASS; iclass++) {
+  int hwclass; int indets; TKlas *klas;
+  if((klas=partit->klas[iclass]) == NULL) continue;
+  hwclass= partit->klas[iclass]->hwclass;  // 0..49
+  //if(hwclass>49) {
+  if(hwclass>99) {
+    intError("getDAQClustersInfo: hwclass>49"); rcdaqlog=10;
+  };
+  iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
+  //daqi->classmasks[iclu]= daqi->classmasks[iclu] | (ULL1<<hwclass);
+  // 100 classes: see DAQlogbook.h
+  if(hwclass<64){
+    classmasks_l[iclu]= classmasks_l[iclu] | (ULL1<<hwclass);
+  }else{
+    classmasks_u[iclu]= classmasks_u[iclu] | (ULL1<<(hwclass-64));
+  }
+  //
+  indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  l0finputs= l0finputs|l0finputs1;
+  // l0finputs will be usd later when ctp_alignment called
+  if(indets<0) rcdaqlog=2;   
+  if(DBGlogbook) printf("getDAQClustersInfo:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
+    partit->hwallocated, iclu, iclass, indets);
+  daqi->inpmasks[iclu]= daqi->inpmasks[iclu] | indets;
+};
+for(iclu=0;iclu<NCLUST;iclu++){
+  //daqi->classmasks01_32[iclu]= classmasks_l[iclu];
+  //daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;
+  daqi->classmasks00_063[iclu]=classmasks_l[iclu];
+  daqi->classmasks64_100[iclu]=classmasks_u[iclu];
+};
+return(rcdaqlog);
+}
+
 void setglobalflags(int argc, char **argv) {
 setglobalflag(argc, argv, "NODAQLOGBOOK", FLGignoreDAQLOGBOOK);
 setglobalflag(argc, argv, "NODAQRO", FLGignoreDAQRO);

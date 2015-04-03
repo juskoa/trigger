@@ -2,8 +2,10 @@
 # starting udpmon server reading CTPcounters stream and sending
 # the subset of these counters (in accordance with active partitions)
 # to FXS
-#usage: xcounters.sh
-function getpid() {
+#usage: 
+. $VMECFDIR/../bin/auxfunctions
+
+function mygetpid() {
 pidcmd=`ps ax --columns 120 -o'%p %u %a' |grep "$1"|grep -v grep`
 #13643 trigger  ./linux/ttcmidims
 #echo "pidcmd:$1:$pidcmd"
@@ -16,7 +18,7 @@ if [ "${dl[2]}" = "$1" ] ;then
 else
   spid=''
 fi
-#echo getpid: $spid $dl $pidcmd
+#echo mygetpid: $spid $dl $pidcmd
 }
 function savelog() {
 ds=`date +%y%m%d%H%M`   # %S -seconds (not used)
@@ -31,16 +33,15 @@ fi
 DNAME="udpmon"
 export EXENAME="$VMECFDIR/CNTRRD/linux/udpmonitor"
 logdir=~/CNTRRD/logs
-hname=`hostname`
-if [ "$1" = 'test' ] ;then   #-------------------------- stop
+if [ "$1" = 'test' ] ;then   #-------------------------- test
   exit 7
 fi
-if [ "$hname" != 'pcalicebhm05' -a "$hname" != 'alidcscom188' \
-  -a "$hname" != 'pcalicebhm10' ] ;then
-  echo 'can be started only from trigger@alidcscom188 or pcalicebhm05/10'
+onlyserver
+if [ "$?" != "0" ] ;then
+  echo "not on sever"
   exit 8
 fi
-getpid $EXENAME
+mygetpid $EXENAME
 #echo "spid:$spid"
 if [ "$1" = 'stop' -o "$1" = 'kill' ] ;then   #-------------------------- stop
   if [ -n "$spid" ] ;then

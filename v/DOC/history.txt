@@ -124,3 +124,90 @@ SYNC added (smi command executing sync )
 ltuclient-2.9-1.x86_64.rpm prepared (see DOC/ltu_distrib) -older version
 does not communicate correctly with server (Counters read)
 
+9.4.2013
+ltu/ltu.c  serial#:0 this LTU is accounted version 2 (i.e. not scratched yet)
+see also CTPhistory: (cmdbase.c, vmewrap.c also 64 bits now ok, not tested
+thoroughly).
+17.4.2013
+vme/CFG/ltu/SLM/L2a.seq,slm,...          -here are standard .seq/slm files
+vme/CFG/ltu/SLMproxy/L2async.seq,slm,...  placed
+17.4.2013
+vmeb/myw.py: if ltuclient: $VMEWORKDIR/WORK created if not existing before
+vme/ltudim/ltuclient.spec added (copied into ~/rpms/SPECS before .rpm built)
+26.4.
+v/SPECS directory now for spec files (ltusw binary rpm and ltuclient
+src+bin rpms now available)
+7.6.
+vmeb/caenvme.setup vmeb/vmeblib/vmewrap.c bin/startClients.bash
+copied from alitoftm00 (64bits PC). Still to be updated later (Pietro).
+20.6.2013
+spec for ltusw changed (AutoReq: no) -i.e. no dependency on .so libraries now
+5.7.2013
+TSI148: VME driver for the single-board
+computer Fastwel CPC600 with the VME bridge Tundra Tsi148
+8.11.2013
+checkSEU() added in Simple  tests menu
+2.12.2013
+ltu_proxy: daqlogbook_update_LTUConfig() call
+todo: 
+1. replace it by DIM call (like com2daq in ctplib/ttcmisubs.c)
+   i.e. NO daqlogbook usage on VME comps (infoLogger is using mysql libs anyhow)
+2. abandon idea of (1.), and arrange daqlogbook+mysql linking on VME comps
+   (as it was during run1)
+3.11.
+option 1. done, i.e.:
+daqlogbook access from pydim/server.c. ltu_proxy uses ltucfg2daq().
+Possible problem: 
+for private lab setup, pydim server is not available -i.e.
+I keep also original option commented in case it is needed.
+11.12.2013
+ltu/slmcmp.py slmcomp.py: modified for 100 classes (-run1 argument if
+old way 50 classes needed)
+18.12.2013
+slmcmp.py, slmcomp.py, ltulib/ltuslm.c: using 32 bit words (2x bigger slm),
+L2 data placed in bits 31..16
+Todo: Error message when attempt to load 16 bits .seq file
+7.1.2014
+32 bits SLM memory, text editor invoked for .slm and .seq (with
+different help)
+13.1.oltu_u.py:
+if (type(f2save)==types.StringType) or (type(f2save)==types.UnicodeType):
+i.e. tkFileDialog returns UnicodeType (before 2.6 seems it was StringType)
+14.1.
+slmc[o]mp.py: Warning issued now, when L2class pattern is not a subset
+of L1 classes
+16.1.
+checkSEU() added in ltu_proxy.c. See also devdbg/seu
+ltusw-5.0 published on web
+1.4.2014
+ltu_u.py: CTP emulator allows automatic break execution when emulation active
+2.4.
+ltu_proxy/printcounters.c -print LTU counters to stdout (vme access)
+28.4.2014
+ltuproxy.sh -gives better error in case DIM_DNS_NODE not available
+17.6.
+LTU2, fpga ver<0xb8: SEU bit not checked
+19.6.
+lu/ltu_u.py: before calling SSMANA/ssmanls... chdir to WORKDIR added:
+        os.chdir(os.environ['VMEWORKDIR'])
+25.7.
+0xb9 (ltu+ltu2) -longer fifos
+24.8.
+5.3 version of ltusw prepared for lnxpool33-disk (see
+mails/virtualmm/lnxpool33). to be redone and put on web
+28.8
+cern.ch/juskoa/ltu modified -0xb9 is included in .tar.gz file and
+possible to download from the page
+22.9.2014
+ltudimservices.c changed: "TTCinit()" checked (before: "TTCinit(" -
+this caused ltuproxy crash in case DIM DO command send without NL)
+9.10.
+ltu counters: read once per sec, shared for all DIM clients (see CTPhistory)
+30.10.
+ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
+3.12.2014
+seems det/MONBUSY (busy fraction od subdetector busy) dim service is ok now
+21.1.2015
+TTCRX_RESET STDALONE now possible in Defaults editor allowing
+TTCinit only for STDALONE runs
+

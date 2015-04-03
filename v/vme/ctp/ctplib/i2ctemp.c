@@ -6,7 +6,7 @@
 
 int prterror=1;   // 0: do not print error messages (too many of them)
 w32 hourcnt=0;    // only first MAXERRSPRINT and then each 1000th error message
-#define MAXERRSPRINT 50
+#define MAXERRSPRINT 40
 /*-------------------------------------------------------- errifallowed */
 void errifallowed(char *msg) {
 hourcnt++;
@@ -85,7 +85,7 @@ channel: 0: F1-FO6 + INT
          4: crate3 alidcsvme004 trd zdc emc
          5: crate4 alidcsvme005 tpc pmd acorde
          6: crate5 alidcsvme002 ssd fmd t0
-         7: crate6 alidcsvme003 hmpid phos cpv
+         7: crate6 alidcsvme003 hmpid phos cpv ad
 return: 4 channels packed in 1 32bit word
 */
 /*------------------------------------*/ w32 i2cread(int channel, int branch) {

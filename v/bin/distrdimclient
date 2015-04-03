@@ -1,6 +1,7 @@
 #!/bin/bash
 #This is to be started with right VMECFDIR, VMEBDIR
 #Usage: go to the end of this script
+VERSION="2.12"
 if [ "$VMECFDIR" == "" ] ;then
   echo "VMECFDIR not defined"
   exit
@@ -10,9 +11,8 @@ if [ "$VMEWORKDIR" == "" ] ;then
   exit
 fi
 if [ "$1" == "distrib" ] ;then
-VERSION="2.9"
-VDIR="vd"
-cd ; mkdir -p "ltuclient-$VERSION"
+VDIR="v"
+cd ; rm -rf "ltuclient-$VERSION"
 mkdir -p "ltuclient-$VERSION/vmeb"
 mkdir -p "ltuclient-$VERSION/vme/ltudim/linux"
 mkdir -p "ltuclient-$VERSION/vme/ltu"
@@ -23,23 +23,20 @@ cd $VMECFDIR ; cd ../..
    $VDIR/vmeb/myw.py $VDIR/vmeb/cratedim.sh \
    $VDIR/vmeb/counters.py ~/ltuclient-$VERSION/vmeb/
  cp $VDIR/vme/ltudim/setup.sh ~/ltuclient-$VERSION/scripts/
- cp $VDIR/vme/ltudim/linux/ltuclient ~/ltuclient-$VERSION/vme/ltudim/linux/
+#cp $VDIR/vme/ltudim/linux/ltuclient ~/ltuclient-$VERSION/vme/ltudim/linux/
  cp $VDIR/vme/ltudim/ltuclient.c $VDIR/vme/ltudim/ltucmd.c $VDIR/vme/ltudim/cmd1.c \
    $VDIR/vme/ltudim/makefile \
    $VDIR/vme/ltudim/makefile_common ~/ltuclient-$VERSION/vme/ltudim/
- cp $VDIR/vme/ltu/ltu6.tcl $VDIR/vme/ltu/ltu_u.py $VDIR/vme/ltu/slmcomp.py \
-   $VDIR/vme/ltu/ltu_cf.py \
-   $VDIR/vme/ltu/slmcmp.py $VDIR/vme/ltu/mywrl.py $VDIR/vme/ltu/ssman.py \
-   $VDIR/vme/ltu/cfgedit.py \
+ cp $VDIR/vme/ltu/ltu6.tcl $VDIR/vme/ltu/*.py \
    ~/ltuclient-$VERSION/vme/ltu/
  cp -a $VDIR/vme/WORKIMAGE ~/ltuclient-$VERSION/vme/
  cd 
- tar -czvf ~/rpms/SOURCES/ltuclient-$VERSION.src.tar.gz ltuclient-$VERSION
+ tar -czvf ~/rpmbuild/SOURCES/ltuclient-$VERSION.src.tar.gz ltuclient-$VERSION
  #echo "~/dimltuclient.tar created"
- echo "~/rpms/SOURCES/ltuclient-$VERSION.src.tar.gz created"
+ echo "~/rpmbuild/SOURCES/ltuclient-$VERSION.src.tar.gz created"
  echo "Now execute:"
- echo 'cd ~/rpms/SPECS ; rpmbuild -ba ltuclient.spec'
- echo "-> rpms/RPMS/ltuclient-$VERSION.rpm"
+ echo 'cd ~/rpmbuild/SPECS ; rpmbuild -ba ltuclient.spec'
+ echo "-> rpmbuild/RPMS/ltuclient-$VERSION.rpm"
 elif [ "$1" == "make" ] ;then
 # after dimclient.tar is unpacked ( cd ~ ; tar -xf dimclient.tar)
 # make following directories in client account:
@@ -52,8 +49,15 @@ echo "start client:"
 echo "vmecrate DETNAME"
 echo "where DETNAME is the name of your detector"
 else
-  echo "Usage:"
-  echo "distrdimclient make           -after unpacking dimclient.tar"
-  echo "distrdimclient distrib        -to prepare file dimclient.tar"
+  cat - <<-EOF
+Usage:
+distrdimclient make           -after unpacking dimclient.tar
+distrdimclient distrib        -to prepare tar.gz + rpm in:
+  ~/ltuclient-VERSION
+  ~/rpmbuild/SOURCES/ltuclient-VERSION.src.tar.gz
+NOTE: provide fresh $VMECFDIR/../SPECS/ltuclient.spec
+      ( ~/rpmbuild/SPECS/ is pointing to it)
+EOF
+  echo "VERSION:$VERSION"
   exit
 fi

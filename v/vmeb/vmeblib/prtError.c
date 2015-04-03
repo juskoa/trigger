@@ -9,13 +9,13 @@ char dt[20];
 getdatetime(dt);
 printf("%s: ***  Warning:%s\n",dt,msg); fflush(stdout);
 }
-/*------------------------------------------------------prtError(char *msg)
+/*------------------------------------------------------prtError(const char *msg)
 Print error.
 */
 void prtError(char *msg) {
 char dt[20];
 getdatetime(dt);
-printf("%s: ***  Error:\n%s\n",dt,msg); fflush(stdout);
+printf("%s: ***  Error:%s\n",dt,msg); fflush(stdout);
 }
 /*----------------------------------------------------*/ 
 void prtLog(char *msg) {
@@ -29,6 +29,6 @@ Internal error.
 void intError(char *msg) {
 char dt[20];
 getdatetime(dt);
-printf("%s: *** Internal Error:\n%s\n\n",dt,msg); fflush(stdout);
+printf("%s: *** Internal Error:%s\n\n",dt,msg); fflush(stdout);
 }
 

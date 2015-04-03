@@ -18,15 +18,30 @@ else
   echo "$dtn: not known or not on this machine (possible cpu: $hn)"
 fi
 }
-function makelinks() {
-    SEQFILES=noclasses
-    cd $VMEWORKDIR/CFG/ltu/SLMproxy
-    ABSEFI=$VMECFDIR/ltu_proxy/$SEQFILES
-    echo "making links: $VMEWORKDIR/CFG/ltu/SLMproxy/*.seq"
-    echo "          --> $ABSEFI/"
-    ln -sf "$ABSEFI/sod.seq" sod.seq
-    ln -sf "$ABSEFI/eod.seq" eod.seq
-    ln -sf "$ABSEFI/L2a.seq" L2a.seq
+#function makelinks() {
+#    SEQFILES=noclasses
+#    cd $VMEWORKDIR/CFG/ltu/SLMproxy
+#    ABSEFI=$VMECFDIR/ltu_proxy/$SEQFILES
+#    echo "making links: $VMEWORKDIR/CFG/ltu/SLMproxy/*.seq"
+#    echo "          --> $ABSEFI/"
+#    ln -sf "$ABSEFI/sod.seq" sod.seq
+#    ln -sf "$ABSEFI/eod.seq" eod.seq
+#    ln -sf "$ABSEFI/L2a.seq" L2a.seq
+#    ln -sf "$ABSEFI/sync.seq" sync.seq
+#}
+function makedirs() {
+echo "$VMEWORKDIR does not exist, creating, also SLMproxy links for $1..."
+mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
+mkdir -p $VMEWORKDIR/CFG/ltu/SLM
+if [ -e $VMEWORKDIR/CFG/ltu/ltuttc.cfg ]   ;then
+  echo "ltuttc.cfg already exists, not overwritten"
+else
+  cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
+  echo "default ltuttc.cfg created"
+fi
+cp -a $VMECFDIR/CFG/ltu/SLM/*.slm $VMEWORKDIR/CFG/ltu/SLM/
+mkdir -p $VMEWORKDIR/WORK
+makeSLMproxylinks.bash $1
 }
 function mvfile() {
 # $1: relative path of the log file NO SUFFIX, i.e.: WORK/ctpproxy
@@ -48,10 +63,9 @@ function StartProxy() {
 # $1 -dtn (ssd, acorde, spd,...)
 # $pid -should be empty
 export VMEWORKDIR=~/v/$1      # started from trigger or triad account
-if [ ! -d $VMEWORKDIR ] ; then
-  echo $1 
-  echo "$VMEWORKDIR does not exist, nothing started"
-  return
+if [ ! -d $VMEWORKDIR/WORK ] ; then
+  echo "making working dirs for $1 ..."
+  makedirs $1
 fi
 cd $VMEWORKDIR
 curpwd=`pwd`; echo "StartProxy:pwd:$curpwd"
@@ -61,7 +75,9 @@ pid=`ps --columns 120 -C ltu_proxy o user,pid,args | awk '{if($4==detname) {prin
 if [ -z "$pid" ] ;then
   #export DIM_DNS_NODE=10.161.37.8
   #echo "starting $proxyname"
-  declare -a doexist=(`$SMIBIN/proxyExists $proxyname`)
+  #declare -a doexist=(`$SMIBIN/proxyExists $proxyname`)
+  linemsg=`$SMIBIN/proxyExists $proxyname`
+  declare -a doexist=($linemsg)
   proxyon=${doexist[2]}
   #proxyon=`ProxyOn $proxyname`
   echo "$proxyname proxyon:$proxyon doexist:$doexist"
@@ -79,6 +95,9 @@ if [ -z "$pid" ] ;then
     # -mode=$trigger 
     # -BCrate=$rate -L0=$l0 -busy=$busy -orbitbc=$orbitbc $nosodeod $nodim 
     ltubase=`awk '{if($1==detname) {print $3}}' detname=$1 $cfgfile`
+    if [ -z "$ltubase" ] ;then
+      echo "Bad name:$1" ; exit
+    fi
     echo "DATE_INFOLOGGER_LOGHOST: $DATE_INFOLOGGER_LOGHOST proxy:$proxyname $ltubase"
     mvfile WORK/LTU-$DTN
     # gdb $VMECFDIR/ltu_proxy/linux/ltu_proxy
@@ -88,6 +107,12 @@ if [ -z "$pid" ] ;then
     nohup $VMECFDIR/ltu_proxy/linux/ltu_proxy  $proxyname \
      -address=$ltubase </dev/null 2>&1 >WORK/LTU-$DTN.log & 
     echo "nohup rc:$?"
+  elif [ "$proxyon" = "-" ] ;then
+    # seems the case:
+    #[acorde@aco-vme WORK]$ /opt/smi/linux/proxyExists  TRIGGER::LTU-ACORDE
+    # PID 11411 - Mon Apr 28 03:55:52 2014 - (ERROR) Client Connecting to DIM_DNS on acordetest: Connection refused
+    echo "Error: $linemsg"
+    echo "Server not started"
   else
     echo "$proxyname is already running (pid:$pid proxyon:$proxyon). Server not started"
     return
@@ -134,8 +159,10 @@ if [ $# -eq 2 ] ;then
 else
   if [ "$1" = "startall" ] ;then
     #echo "dbg: $HOSTNAME $cfgfile"
-    for dtn1 in `awk '{if($2==host) {print $1}}' host=$HOSTNAME $cfgfile` ;do
-      #echo "----------------------starting $dtn1"
+    for dtn1 in `awk '{if(($2==host) && ($3!="0")) {print $1}}' host=$HOSTNAME $cfgfile` ;do
+      ix=`expr match "$dtn1" '#'`
+      #echo "----------------------starting $dtn1 $ix"
+      [ "$ix" = '1' ] && continue
       StartProxy $dtn1
     done
     exit
@@ -145,18 +172,19 @@ else
         echo "killing $pid" ; kill $pid
       fi
     done
-    for dtn1 in `awk '{if($2==host) {print $1}}' host=$HOSTNAME $cfgfile` ;do
+    for dtn1 in `awk '{if(($2==host) && ($3!="0")) {print $1}}' host=$HOSTNAME $cfgfile` ;do
       ipcremove $dtn1
     done
     exit
   elif [ "$1" = "all" -o "$1" = "active" ] ;then
     if [ "$1" = "all" ] ;then
     echo "Known detectors:"
-    cat $cfgfile
+    grep -v '^#' $cfgfile
     echo
   fi
-  echo "On this machine, `hostname`, these servers are running:"
-  ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 72
+  echo "On this machine, `hostname -s`, these servers are running:"
+  #ps --columns 120 -C ltu_proxy o user,pid,args |colrm 16 72
+  ps --columns 120 -C ltu_proxy o user,pid,args | awk '{print $1 "\t" $2 "\t" $4 " " $5}'
   exit
   else
   action="error"
@@ -164,15 +192,18 @@ else
 fi
 dtn=$1
 export VMEWORKDIR=~/v/$dtn      # started from trigger account
-if [ ! -d $VMEWORKDIR ] ; then
+# find base and right hostname for this detector:
+ltubase=`awk '{if($1==detname) {print $3}}' detname=$dtn $cfgfile`
+hn=`awk '{if($1==detname) {print $2}}' detname=$dtn $cfgfile`
+if [ `hostname -s` != "$hn" ] ;then
+  echo "On this host only:"
+  grep `hostname -s` $cfgfile
+  echo
+elif [ ! -d $VMEWORKDIR/WORK ] ; then
   if [ "$2" = "start" ] ; then
-     echo "$VMEWORKDIR does not exist, creating..."
-     mkdir -p $VMEWORKDIR/CFG/ltu/SLMproxy
-     mkdir -p $VMEWORKDIR/CFG/ltu/SLM
-     cp -a $VMECFDIR/CFG/ltu/ltuttc.cfg $VMEWORKDIR/CFG/ltu/
-     cp -a $VMECFDIR/CFG/ltu/SLM/L2a.slm $VMEWORKDIR/CFG/ltu/SLM/
-     mkdir -p $VMEWORKDIR/WORK
-     makelinks
+     makedirs $dtn
+     #makelinks
+     #makeSLMproxylinks.bash $dtn
   elif [ "$2" = "status" ] ;then
     echo 2
     exit
@@ -184,9 +215,6 @@ if [ ! -d $VMEWORKDIR ] ; then
 fi
 cd $VMEWORKDIR
 #
-# find base and right hostname for this detector:
-ltubase=`awk '{if($1==detname) {print $3}}' detname=$dtn $cfgfile`
-hn=`awk '{if($1==detname) {print $2}}' detname=$dtn $cfgfile`
 if [ -z "$ltubase" -o "$action" = "error" ] ;then
   cat - <<-EOF
 Usage:
@@ -198,7 +226,7 @@ ltuproxy startall          -start all (as in $cfgfile)
 ltuproxy all               -show all possible and active
 ltuproxy active            -show active ltuproxies on this machine
 EOF
-elif [ `hostname` = $hn ] ;then
+elif [ `hostname -s` = $hn ] ;then
   # we are on right server
   if [ "$action" = 'kill' -o "$action" = "restart" ] ;then
     KillProxy $dtn

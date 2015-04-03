@@ -1,16 +1,17 @@
 #!/usr/bin/python
-import sys,telnetlib,time,string
+import sys,telnetlib,time,string,os
 class TN:
   scpi="SCPI> "
   def __init__(self):
     try:
-      self.tn = telnetlib.Telnet('alidcsaux008.cern.ch', 5024)    # ,timout_insec from 2.6
+      self.tn = telnetlib.Telnet('alidcsaux009.cern.ch', 5024)    # ,timout_insec from 2.6
+      # will be: alictpclockmon
       #time.sleep(2)
       self.tn.write("\n")
       #time.sleep(1)
       rep=self.tn.read_until(self.scpi)
     except:
-      print "ERROR:cannot open telnet to alidcsaux008"
+      print "ERROR:cannot open telnet to alidcsaux009"
       #print sys.exc_info()
       rep=""
     print "sctel.prompt1:%s"%rep
@@ -90,6 +91,9 @@ def main():
   #FOUT= open(tfile,"a")
   #rep= tn.cmdS(":SYSTEM:TIME?\n")
   #print "file:", tfile   #,"rep1:",rep
+  if os.environ['VMESITE']!='ALICE':
+    print "sctel.py: not ALICE environment. argv:", sys.argv
+    return
   tn=None
   if (len(sys.argv)>1) and \
     ((sys.argv[1]=="M") or (sys.argv[1]=="INF") or (sys.argv[1]=="MIN")\
@@ -112,6 +116,14 @@ def main():
 INF -switch persistence to infinite
 MIN -switch persistence to minimum
 M   -measure (3 lines) -i.e. show on stdout Epoch_time fo3 corde co2
+
+DRS4 notes:
+edge1 = corde (fo1) - rf2ttc(fo2)
+edge2 = fo2-fo3 (both rf2ttc, used for debuging)
+edge3 = nothing
+value1 = sigma of edge1
+value2 = sigma of edge2
+
 """
   if tn!=None:
     tn.close()

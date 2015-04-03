@@ -25,6 +25,18 @@ ttcitsw.py i       -show current connection
 ttcitsw.py r       -reset TTCit optical switch (*RST command)
 ttcitsw.py N       -connect channel N (1..24) to TTCit
 ttcitsw.py detname -connect LTU detname to TTCit
+
+Notes (example of operation):
+chmod a+rwx /dev/ttyS2
+ls -l /dev/ttyS2
+crwxrwxrwx 1 root uucp 4, 66 Feb 17  2012 /dev/ttyS2
+[alidcsvme007] /home/alice/trigger/v/vme/WORK > ttcitsw.py sdd
+Connecting: sdd (chan:23) to TTCit switch...
+cmd:SWITCH:23\r response:(6):'23,OK\r'
+[alidcsvme007] /home/alice/trigger/v/vme/WORK > ttcitsw.py i
+cmd:SWITCH?\r response:(3):'23\r'
+TTCIT switch channel:23 = ltu:SDD
+
 """
   else:
     cmd=sys.argv[1]

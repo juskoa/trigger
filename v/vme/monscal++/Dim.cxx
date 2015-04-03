@@ -23,7 +23,9 @@ void ErrorHandler::errorHandler(int severity, int code, char *msg) {
       ss << services[index] << endl;
       index++;
     }
+    ss << endl << "Exiting !" << endl;
     PrintLog(ss.str().c_str());
+    exit(1);
 }
 OpenDim::OpenDim(w32 kPrint,bool copy2dcs)
 :

@@ -1,25 +1,38 @@
 CC=$(VMEGCC)
-COMMONCFLAGS= -Wall -g -D$(VMEDRIVER)
+#COMMONCFLAGS= -Wall -g -D$(VMEDRIVER)
+COMMONCFLAGS= -Wall -Wno-write-strings -g -D$(VMEDRIVER)
 ifeq ($(CC),g++)
 #CCDEFS +=-DCPLUSPLUS
 COMMONCFLAGS +=-DCPLUSPLUS
 endif
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
-HOSTNAME:=$(shell hostname)
+SERVER_BASEDIR := 
+odl64 := /opt/dip/lib64
+HOSTNAME:=$(shell hostname -s)
 ifeq ($(HOSTNAME), alidcscom188)
 SERVER_LINK := yes
 CLIENT_HOST := alidcsvme008
-SERVER_PREF := /data/dl/root
-SERVER_BASEDIR := 
+#SERVER_PREF := /data/dl/root
+#SERVER_PREF := /data/dl/root/usr/local/trigger/...
+# provided, theres is a link: /usr/local/trigger ->...
+SERVER_PREF :=
 odl64 := /opt/dip/lib
+endif
+ifeq ($(HOSTNAME), alidcscom835)
+SERVER_LINK := yes
+CLIENT_HOST := alidcsvme008
+SERVER_PREF := /home/dl6
 endif
 ifeq ($(HOSTNAME), pcalicebhm10)
 SERVER_LINK := yes
+CLIENT_HOST := altri2
+SERVER_PREF := /home/dl6
+endif
+ifeq ($(HOSTNAME), avmes)
+SERVER_LINK := yes
 CLIENT_HOST := altri1
-SERVER_PREF := /home/dl/root
-SERVER_BASEDIR := vd
-odl64 := /opt/dip/lib64
+SERVER_PREF := /home/dl6
 endif
 
 EXEDIR= ../linux
@@ -31,6 +44,8 @@ endif
 
 ifdef SERVER_LINK
 ODIR = linux_s
+#  all exe on 64 bit machines go to _s:
+EXEDIR= ../linux_s
 CTPLIB= $(VMECFDIR)/ctp/ctplib/linux_s
 LTULIB= $(VMECFDIR)/ltu/ltulib/linux_s
 VMEBLIB= $(VMEBDIR)/vmeblib/linux_s
@@ -49,7 +64,7 @@ endif
 SMIinc = $(SMIDIR)/smixx
 DIMinc = $(DIMDIR)/dim
 CTPinc = $(CTPLIB)/..
-VMEBinc = $(VMEBLIB)/..
+VMEBinc = $(VMEBDIR)/vmeblib
 
 # link:
 # VMERCCLD is in vmeai.make.VMERCC:
@@ -59,7 +74,6 @@ LTULD= -L$(LTULIB) -lltu
 DIMLD= -L$(DIMDIR)/linux -ldim
 SMILD= -L$(SMIDIR)/linux -lsmi
 VMEBLD= -L$(VMEBLIB) -lvmeb
-LDFLAGS = -lpthread
-#EXEDIR= ../linux
+LDFLAGS += -lpthread
 
 

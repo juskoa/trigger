@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 setup(name="validate",
-      version="2.2",
+      version="5.1",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -10,16 +11,25 @@ dbctp          directory containing CTP configuration files
 dbctp_pardefs  directory containing .partition file
 
 Validation:
-python /usr/lib/python2.3/site-packages/validate/validate.py partname
+python /usr/lib/python2.6/site-packages/validate/validate.py partname [strict]
 
--validates partname.partition file
+-validates partname.partition file. 
+Optional strict parameter forces 'strict validation', i.e.:
+- IR_MONITOR/CTP/Luminosity DIM service has to be available in case
+  FIXLUM/FIXLOSS/FIXPOWER (automatic downscaling) is used in validated file
 
 return code:
 0         -the names of triggering detectors printed to stdout
 8         -error message printed to stdout
+
+news: 
+from v4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
+from v5.0: $dbctp/filter preferred, if not available trgInput_* (ON/OFF) used
+from v5.1: 0HWU check removed, i.. TRD cluster allowed with non-0HWU classes
 """,
       author="Anton Jusko",
       packages=["validate"],
       package_dir={"validate":"./"},
      )
 #      package_dir={"validate":"./"},
+#nebavi:      setup_requires=["tkinter"],

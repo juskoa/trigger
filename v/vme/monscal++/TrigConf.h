@@ -6,8 +6,8 @@
 #include <vector>
 
 enum {NINP=24};
-enum {NCLASS=50};
-enum bcmtype {B, A, C, E, U};
+enum {NCLASS=100};
+enum bcmtype {B, A, C, E, S, U};
 using namespace std;
 //#########################################################################
 class InteractionwCount
@@ -41,15 +41,18 @@ class TrigTimeCounters{
 //#########################################################################
 class TriggerInput{
  private:
-        int fposition;
+        int fposition; // InpN in ctpinputs,cfg
+        int fswitchN;
         int flevel;
 	string fname;
         string fdetname;
  public:
         TriggerInput(string &name,int level,int position,string &detname);
+        TriggerInput(string &name,int level,int position,int iswitch,string &detname);
         string& GetName(){return fname;}; 
         string& GetDetName(){return fdetname;}
         int GetPosition(){return fposition;};
+        int GetSwitchN(){return fswitchN;};
         int GetLevel(){return flevel;} 
         void Print();
 };
@@ -58,6 +61,7 @@ class TriggerInputwCount: public TriggerInput{
         Counter cnt;
  public:
         TriggerInputwCount(string &name,int level,int position,string &detname);
+        TriggerInputwCount(string &name,int level,int position,int iswitch,string &detname);
         void Update(w32* buffer);
         void Display(ofstream* file);
         void Display(char* text);
@@ -89,10 +93,10 @@ class Detector{
 class DetectorwCount : public Detector
 {
  private:
-          Counter l2a,pp;
+          Counter l2s,l2r,pp;
  public:
         DetectorwCount(const Detector &dec);   
-        w64 GetL2aCount(){return l2a.GetCountTot();};
+        w64 GetL2aCount(){return (l2s.GetCountTot()-l2r.GetCountTot());};
         w64 GetPPCount(){return pp.GetCountTot();};
         void Update(w32* buffer);
 };

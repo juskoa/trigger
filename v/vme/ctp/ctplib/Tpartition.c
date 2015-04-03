@@ -5,8 +5,81 @@
 #include "vmewrap.h"
 #include "ctp.h"
 #include "ctplib.h"
+#include "daqlogbook.h"
 #include "Tpartition.h"
 #include "lexan.h"
+
+char TRD_TECH[24]="";
+/*  SDGS operations
+ line: "SDG name 0x23"
+*/
+int SDGadd(char *line, char *pname) {
+int ix,ixf=-1;
+char name[MAXPARTNAME]; w32 dsf;
+enum Ttokentype token; char value[80];
+// line-> name dsf
+ix= 4; token=nxtoken(line, value, &ix);
+if(token==tSYMNAME) {
+  strcpy(name, value);
+  token=nxtoken(line, value, &ix);
+  if(token==tHEXNUM) {
+    dsf= hex2int(&value[2]);
+  } else {
+    char emsg[300];
+    sprintf(emsg,"Hexadecimal number expected in 3rd column:%s",line);
+    infolog_trgboth(LOG_ERROR, emsg);
+    return(1);
+  };
+} else {
+  char emsg[300];
+  sprintf(emsg,"Symbolic name expected in 2nd column:%s",line);
+  infolog_trgboth(LOG_ERROR, emsg);
+  return(1);
+};
+for(ix=0; ix<NCLASS; ix++) {
+  if(strcmp(SDGS[ix].name,"")==0) {
+    ixf= ix ; break;
+  };
+};
+if(ixf>=0) {
+  strcpy(SDGS[ixf].name, name);
+  strcpy(SDGS[ixf].pname, pname);
+  SDGS[ixf].l0pr= dsf;
+  SDGS[ixf].firstclass= 0;
+  if(ixf>=NSDGS) NSDGS= ixf+1;
+  printf("SDGadd: %s %s 0x%x\n", name, pname, dsf);
+  return(0);
+}; 
+infolog_trgboth(LOG_ERROR, "too many SDG definitions in all partitions");
+return(1);
+}
+int SDGfind(char *name, char *pname) {
+int ix,ixf=-1;
+for(ix=0; ix<NSDGS; ix++) {
+  if((strcmp(SDGS[ix].name,name)==0) &&
+     (strcmp(SDGS[ix].pname,pname)==0)) {
+    ixf= ix ; break;
+  };
+};return(ixf);
+}
+void SDGinit(){
+int ix;
+for(ix=0; ix<NCLASS; ix++) {
+  SDGS[ix].name[0]='\0';
+  SDGS[ix].pname[0]='\0';
+  SDGS[ix].l0pr= 0;
+  SDGS[ix].firstclass= 0;
+}; NSDGS=0;
+}
+void SDGclean(char *pname){
+int ix,newNSDGS=NSDGS;
+for(ix=0; ix<NSDGS; ix++) {
+  if(strcmp(SDGS[ix].pname, pname)==0) {
+    SDGS[ix].name[0]='\0';
+    if(ix==(newNSDGS-1)) newNSDGS--;
+  };
+}; NSDGS= newNSDGS;
+}
 
 /*------------------------------------------------------------ copyPF
 */
@@ -106,27 +179,34 @@ return(rc);
 }
 /*-----------------*/
 void printTRBIF_34(TRBIF *rbif, int ix) {   // ixlut3132 or ixlut4142
-int lutn=9,base=0;
+int lutn=9,base=0; w32 used;
+used= rbif->rbifuse[ix];
 if(ix==ixlut3132) {lutn=1; base= 0; 
-  printf("l0f3:0x%x use:0x%x symb:%s\n",
-    rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f3sym);
+  if(used!=notused) {
+    printf("l0f3:0x%x use:0x%x symb:%s\n",
+      rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f3sym);
+  };
 } else if(ix==ixlut4142) {lutn=3; base= LEN_l0f34/2; 
-  printf("l0f4:0x%x use:0x%x symb:%s\n",
-    rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f4sym);
+  if(used!=notused) {
+    printf("l0f4:0x%x use:0x%x symb:%s\n",
+      rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f4sym);
+  };
 } else {
   intError("in printTRBIF_34"); return;
 };
-printf("%1d: ", lutn);
-/* todo rc= checkEqualValues(&rbif->lut34[base]);
-if(rc==-1) { */
-for(ix=0;ix<LEN_l0f34/4;ix++) { 
-  printf("%x",rbif->lut34[ix+base]); 
-}; /* else {
-};*/
-printf("\n");
-printf("%1d: ", lutn+1); base= base+ LEN_l0f34/4;
-for(ix=0;ix<LEN_l0f34/4;ix++) { 
-  printf("%x",rbif->lut34[ix+base]); }; printf("\n");
+if(used!=notused) {
+  printf("%1d: ", lutn);
+  /* todo rc= checkEqualValues(&rbif->lut34[base]);
+  if(rc==-1) { */
+  for(ix=0;ix<LEN_l0f34/4;ix++) { 
+    printf("%x",rbif->lut34[ix+base]); 
+  }; /* else {
+  };*/
+  printf("\n");
+  printf("%1d: ", lutn+1); base= base+ LEN_l0f34/4;
+  for(ix=0;ix<LEN_l0f34/4;ix++) { 
+    printf("%x",rbif->lut34[ix+base]); }; printf("\n");
+};
 };
 /*------------------------------------------------------printTRBIF()
 */
@@ -298,7 +378,6 @@ checkRES
 */
 int l0condition2rbif(int bit,int *ix){
  int ret=0;
-if(l0AB()==0) {   //firmAC
  switch(bit){
   case 24: *ix=ixl0fun1; break;
   case 25: *ix=ixl0fun2; break;
@@ -311,18 +390,6 @@ if(l0AB()==0) {   //firmAC
   default: printf("Internal error:l0condition2rbif: wrong bit 0x%x\n",bit);
            ret=1; break;
  };
-} else {
- switch(bit){
-  case 24: *ix=ixl0fun1; break;
-  case 25: *ix=ixl0fun2; break;
-  case 26: *ix=ixrnd1; break;
-  case 27: *ix=ixrnd2; break;
-  case 28: *ix=ixbc1; break;
-  case 29: *ix=ixbc2; break;
-  default: printf("Internal error:l0condition2rbif: wrong bit 0x%x\n",bit);
-           ret=1; break;
- };
-};
 return ret;
 }
 /*-----------------------------------------------------------------------
@@ -383,33 +450,32 @@ l0veto= (l0veto & 0xfffffff8) + hwclust;
 l1def=  (l1def & 0x8fffffff) + (hwclust<<28);
 l2def=  (l2def & 0x8fffffff) + (hwclust<<28);
 // RBIF
-if(l0AB()==0) {   //firmAC
+//if(l0AB()==0) {   //firmAC
   modL0input(&l0inp,part,24);  //l0f1
   modL0input(&l0inp,part,26);  //l0f3
   modL0input(&l0inp,part,28);  //rnd1
   modL0input(&l0inp,part,30);  //bc1
-} else {
-  modL0input(&l0inp,part,24);  //l0fun 
-  modL0input(&l0inp,part,26);  //rnd
-  modL0input(&l0inp,part,28);  //bc
-};
+//} else {
+//  modL0input(&l0inp,part,24);  //l0fun 
+//  modL0input(&l0inp,part,26);  //rnd
+//  modL0input(&l0inp,part,28);  //bc
+//};
 toklas->l0inputs= l0inp;
 toklas->l0vetos= l0veto;      
 toklas->l1definition= l1def;      
 toklas->l2definition= l2def;      
 }
+/*---------------------------------------- getCLAMASK() */
+w32 getCLAMASK() {
+if(l0C0()) { return(0x800000); } else {return(0x80000000);};
+}
 /*----------------------------------------------------------cleanTKlas()
 */
 void cleanTKlas(TKlas *klas){
-if(klas != NULL){ w32 mskCLAMASK;
+if(klas != NULL){
   klas->l0inputs=0;
   klas->l0inverted=0;
-  if(l0AB()==0) {   //firmAC
-    mskCLAMASK=0x80000000;
-  } else {
-    mskCLAMASK=0x10000;
-  };
-  klas->l0vetos=mskCLAMASK;// disbale klas by default
+  klas->l0vetos=getCLAMASK();// disabale klas by default
   klas->scaler=0;
   klas->l1definition=0;
   klas->l1inverted=0;
@@ -504,6 +570,7 @@ strcpy(part->partmode, partmode);  // partmode:for rcfg
  part->classgroups[8]=8; 
  part->classgroups[9]=9; */
  part->active_cg= 0;
+ part->cshmpart= NULL;
 }
 /*--------------------------------------------------deleteTpartition()
  rbif has no pinters to free.
@@ -516,6 +583,7 @@ Tpartition *deleteTpartition(Tpartition *part){
      np++;
    };
  };
+SDGclean(part->name);
  //printf("deleteTpartition: not null classes:%d\n",np);
  free(part->rbif); //free P/F
 //if(part->fixed_cnts!=NULL) free(part->fixed_cnts);
@@ -557,10 +625,12 @@ for(i=0;i<MAXCLASSGROUPS;i++){
 printf("CLASSES:\n");
 for(i=0;i<NCLASS;i++){
   TKlas *klas;
-  if((klas=part->klas[i]))printTKlas(klas,i);
-  //else break;   // classes are always allocated 1,2,3,...
-  // the above is not when mask is applied !!!
-}
+  if((klas=part->klas[i])) {
+    printTKlas(klas,i);
+  } else {
+    continue;
+  };
+};
  printf("ClusterTable:");
  for(i=0;i<NCLUST;i++)printf("0x%x ",part->ClusterTable[i]);
  printf("\n");
@@ -576,11 +646,112 @@ for(i=0;i<NCLASS;i++){
    dn= part->Detector2Clust[i]; bn= validLTUs[dn].busyinp;
    printf("0x%x:%d ", dn, bn);
  }; printf("\n");*/
- printDetector2Clust(part->Detector2Clust);
- printf("Masked detectors: 0x%x \n",part->MaskedDetectors);
+printDetector2Clust(part->Detector2Clust);
+printf("Masked detectors: 0x%x \n",part->MaskedDetectors);
+/* print classes, including fed detectors:
+for(i=0;i<NCLASS;i++){
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
+  if((klas=part->klas[i])) {
+    printTKlas(klas,i);
+  } else {
+    continue;
+  };
+  //else break;   // classes are always allocated 1,2,3,...
+  // the above is not when mask is applied !!!
+  cluster= klas->l0vetos & 0x7;
+  clustermask= 1<<(cluster-1);
+  txdets[0]='\0';
+  printf("dbg_printTpar: clu:%d mask:%d...\n", cluster, clustermask);
+  for(ixdet=0; ixdet<NDETEC; ixdet++) {
+    int clsts;
+    //printDetsInCluster(part, cluster);
+    clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+    if(clsts & clustermask) {
+      sprintf(txdets, "%s %d", txdets, ixdet);
+    };
+  };
+  printf("    fed dets: %s\n", txdets);
+};*/
 if(part->name != NULL){
 printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->run_number);
 }
+}
+/*-------------------------------------------------------------- checmodLM
+Check if there are classes feeding TRD. Do these modifications for them:
+- check rnd1 bit in L0_CONDITION word for this class
+  if ON and 'downscaling 0' and 'no other input definition in this class':
+    - remove it from L0_CONDITION AND ADD l0inp5
+    - connect swinp32/11 to RND1 generator
+  else
+    nothing, but make sure RND1 connection to swinp32/11 is disabled at EOR
+
+Consequence: it is nonsense to start TRD cluster with
+more classes mixing rnd1 usage.
+*/
+void checkmodLM(Tpartition *part){
+#define RND1MASK 0x10000000
+//#define SWIN32MSK (1<<(32-25))
+#define SWIN11MSK (1<<(11-1))
+int i;
+for(i=0;i<NCLASS;i++){
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
+  if((klas=part->klas[i])) {
+    printTKlas(klas,i);
+  } else {
+    continue;
+  };
+  //else break;   // classes are always allocated 1,2,3,...
+  // the above is not when mask is applied !!!
+  cluster= klas->l0vetos & 0x7;
+  clustermask= 1<<(cluster-1);
+  txdets[0]='\0';
+  //printf("dbg_printTpar: clu:%d mask:%d...\n", cluster, clustermask);
+  //for(ixdet=0; ixdet<NDETEC; ixdet++) {
+  ixdet= 4 ; { // TRD
+    int clsts;
+    //printDetsInCluster(part, cluster);
+    clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+    if(clsts & clustermask) {
+      sprintf(txdets, "%s %d", txdets, ixdet);
+      // class feeding TRD:
+      if(((klas->l0inputs & RND1MASK) == 0) &&  // RND1 used in this class
+         (klas->scaler==0 ) &&                  // downscaling 0
+         (klas->l0inputs & 0xe0ffffff)==0xe0ffffff)  {  // no other input
+        w32 rndw1, rndw2, rndw3, ninps;
+        ninps= klas->l0inputs | RND1MASK;  // do not use it at L0
+        ninps= ninps & (~0x10);  // AND USE l0inp5 !
+        klas->l0inputs= ninps;
+        /*rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        rndw3= rndw2 | (SWIN32MSK);
+        vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
+        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x \n", 
+          i, ninps, rndw1, rndw2, rndw3); */
+        rndw1= vmer32(RND1_EN_FOR_INPUTS);
+        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        rndw3= rndw1 | (SWIN11MSK);
+        vmew32(RND1_EN_FOR_INPUTS, rndw3);
+        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x 0x%x\n", 
+          i, ninps, rndw1, rndw2, rndw3, rndw2);
+        strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
+      };/* else {
+        w32 rndw2, rndw3; */
+        /*rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
+        rndw3= rndw2 & (~(SWIN32MSK));
+        vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
+        printf("checkmodLM off32:%d l0inputs:0x%x RND1_EN_FOR_INPUTS+4: 0x%x->0x%x \n", 
+          i, klas->l0inputs, rndw2, rndw3); */
+        /* bad idea anyhow (other class or class in another partition disconnects RND1!
+        rndw2= vmer32(RND1_EN_FOR_INPUTS);
+        rndw3= rndw2 & (~(SWIN11MSK));
+        vmew32(RND1_EN_FOR_INPUTS, rndw3);
+        printf("checkmodLM off11:%d l0inputs:0x%x RND1_EN_FOR_INPUTS: 0x%x->0x%x \n", 
+          i, klas->l0inputs, rndw2, rndw3);
+      }; */
+    };
+  };
+  printf("    fed dets: %s\n", txdets);
+};
 }
 /*----------------------------------------------------------- checkRES 
 I:
@@ -678,6 +849,8 @@ if strdetmask =="": only create mask according to partition detectors
 rc: 0: ok, mask applied
     1: applying mask led to empty partition
     >1: error (part. cannot be loaded)
+    WARNING message if cluster became empty
+    ERROR message in some cases
 */
 int applyMask(Tpartition *part, char *strdetmask) {
 int id, iclu, icla, nclu, retrc=0, isr, bcmscopied=0;
@@ -726,8 +899,8 @@ if((detmask & realmask)!= detmask) {    // (| would be for 1=active)
       strcat(baddetstr, dtname); strcat(baddetstr," ");
     };
   };
-  sprintf(emsg, "applyMask: incorrect det. mask :0x%x dets:0x%x. Detectors: %s not allowed in partition: %s.",
-    detmask, realmask, baddetstr, part->name);
+  sprintf(emsg, "applyMask: Detectors: %s not allowed in partition: %s, incorrect det. mask :0x%x dets:0x%x.",
+    baddetstr, part->name, detmask, realmask );
   prtError(emsg); infolog_trg(LOG_ERROR, emsg);
   return(2);
 };
@@ -748,6 +921,7 @@ for(id=0;id<NDETEC;id++) {
       if( iclus & (1<<iclu)) {
         clu2det[iclu]= clu2det[iclu] & ~(1<<id);
         if(clu2det[iclu]==0) {   // Cluster iclu became empty, check classes
+          char emsg[ERRMSGL];
           for(icla=0 ; icla<NCLASS  ; icla++){
             if(part->klas[icla] == NULL) continue;
             //printTKlas(part->klas[icla],icla);
@@ -759,7 +933,8 @@ for(id=0;id<NDETEC;id++) {
               free(part->klas[icla]); part->klas[icla]=NULL;
             };
           };
-          printf("applyMask: Cluster iclu:%d became empty\n", iclu);
+          sprintf(emsg, "applyMask: Cluster iclu:%d became empty\n", iclu);
+          infolog_trgboth(LOG_WARNING, emsg);
         };
       };
     };
@@ -772,13 +947,8 @@ for(id=0;id<NDETEC;id++) {
   };
 };
 // release shared resources (i.e. allocate by going over classes left):
-if(l0AB()==0) {   //firmAC
   upperbit= L0CONBITLac;
   bcmfrom=8; bcmto=19;
-} else {
-  upperbit= L0CONBITL;
-  bcmfrom=8; bcmto=11;
-};
 for(icla=0 ; (icla<NCLASS) ; icla++){
   TKlas *cls;
   int bit;
@@ -968,21 +1138,84 @@ int checkTClustVDClustTpartition(Tpartition *part){
  }
  return 0;
 }
+/*-------------------------------------------------*/ int getPartDetectors(Tpartition *part) {
+int idet, rc=0, rc_exp=0;
+for(idet=0;idet<NDETEC;idet++){
+  int pclu, pclust, hwclust;
+  pclust= part->Detector2Clust[idet]; // det. can belong to more clusters!
+  if(pclust ==0) continue;
+  // idet is in pclust, find HWclust:
+  rc_exp= rc_exp | (1<<idet);   // should be enough, but chek for possible int. error
+  for(pclu=0; pclu<NCLUST; pclu++) {
+    if(pclust & (1<<pclu)) {
+      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", part->name, pclust, pclu);
+      hwclust= findHWCluster(part, pclu+1);
+      if(hwclust>0) {
+        rc= rc | (1<<idet);
+      };
+    };
+  };
+};
+if(rc!=rc_exp) {
+  char errmsg[120];
+  sprintf(errmsg,"getPartDetectors: rc:0x%x expected:0x%x", rc, rc_exp);
+  intError(errmsg);
+};
+return(rc);
+}
 /*---------------------------------------------------------getBusyMaskPartition()
- Purpose: to calculate busy mask for partition part (for pause/resume)
- Parameters: input: part
- Globals: none
- Returns: busymask
+ Purpose: calculate cluster busy mask for partition part (for pause/resume)
+ Parameters: input: part, 
+   detectors: 0: return all clusters in partition
+            !=0: consider only clusters with these detectors
+ Returns: cluster mask, i.e. 5..0 bits, 1: cluster in part
 */
-w32 getBusyMaskPartition(Tpartition *part){
- w32 clust;
- int i;
- clust=0;
- for(i=0;i<NCLUST;i++){
-  if(part->ClusterTable[i])clust=clust+(1<<i);
- }
- //printf("getBusyMaskPartition: part:%s 0x%x \n", part->name, clust);
- return clust;
+w32 getBusyMaskPartition(Tpartition *part, int detectors){
+w32 clust=0, exp_clust=0;
+int i, locdetectors; int idet;
+if(detectors==0) {
+  locdetectors= 0xffffff;
+  for(i=0;i<NCLUST;i++){ // old way (all clusters)
+    if(part->ClusterTable[i]) exp_clust=exp_clust | (1<<i);
+  };
+} else {
+/* instead of all clusters, find out only those defined in detectors pattern
+   detector pattern not checked for correctness here.
+*/
+  locdetectors= detectors;
+};
+printf("getBusyMaskPartition: detectors:0x%x %s\n", detectors, part->name);
+for(idet=0;idet<NDETEC;idet++){
+  int pclu, pclust, hwclust;
+  if((locdetectors & (1<<idet)) == 0 ) continue;
+  pclust= part->Detector2Clust[idet]; // det. can belong to more clusters!
+  if(pclust ==0) continue;
+  for(pclu=0; pclu<NCLUST; pclu++) { // idet is in pclust, find HWclust:
+    if(pclust & (1<<pclu)) {
+      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", part->name, pclust, pclu);
+      hwclust= findHWCluster(part, pclu+1);
+      printf("getBusyMaskPartition:idet:%2d pclust:%d pclu:%d hwclust:%d\n", idet, pclust, pclu,hwclust);
+      if(hwclust>0) {
+        clust= clust | (1<<(hwclust-1));
+      } else {
+        printf("ERROR internal hwclust:0 for pclu(0..5):%d\n", pclu);
+      };
+    };
+  };
+};
+if(detectors==0) {   // check if available (for possible bug in ctpproxy code...)
+  if(exp_clust != clust) {
+    char errmsg[120];
+    sprintf(errmsg,"getBusyMaskPartition: clust:0x%x expected:0x%x", clust, exp_clust);
+    intError(errmsg);
+  };
+};
+if(DBGbusy) {
+  printf("getBusyMaskPartition: %s dets:0x%x clust:0x%x\n" ,
+    part->name, detectors, clust);
+};
+//printf("getBusyMaskPartition: part:%s 0x%x \n", part->name, clust);
+return clust;
 }
 /*------------------------------------------------------- prtalignment1()
 I: level:0..2, inp:1..24, af, leng
@@ -1060,7 +1293,7 @@ if(partit==NULL) {
   for(iclass=0; iclass<NCLASS; iclass++) {
     int hwclassn,ixlevel; TKlas *klpo, *klas;
     if((klas=partit->klas[iclass]) == NULL) continue;
-    hwclassn= klas->hwclass;  // 0..49
+    hwclassn= klas->hwclass;  // 0..NCLASS-1
     klpo= HW.klas[hwclassn];
     // *klpo should be checked with *klas (internal consistency)
     for(ixlevel=0; ixlevel<3; ixlevel++) {
@@ -1145,12 +1378,7 @@ void printHardware(Hardware *hwpart, char *dbgtext){
  }
  if(hwpart->name == NULL)printf("%s Hardware name=NULL \n", dbgtext);
  else printf("%s Hardware name: %s -----------\n", dbgtext,hwpart->name);
- printTRBIF(hwpart->rbif);
-if(l0AB()==0) {   //firmAC
-  mskCLAMASK=0x80000000;
-} else {
-  mskCLAMASK=0x10000;
-};
+ printTRBIF(hwpart->rbif); mskCLAMASK=getCLAMASK();
  for(i=0;i<NCLASS;i++){
   TKlas *klas;
   if((klas=hwpart->klas[i])) {
@@ -1186,6 +1414,7 @@ void cleanHardware(Hardware *hw, int leaveint){
   cleanTFO(&hw->fo[i]);
  }
  cleanTBUSY(&hw->busy);
+for(i=0; i<NCLASS; i++) hw->sdgs[i]=i;
 }
 /*-----------------------------------------------------copyHardware()
   All memory allocated by initHW
@@ -1193,10 +1422,11 @@ void cleanHardware(Hardware *hw, int leaveint){
 void copyHardware(Hardware *to,Hardware *from){
  int i;
  strcpy(to->name, from->name);
- for(i=0;i<NCLASS;i++)copyTKlas(to->klas[i],from->klas[i]);
+ for(i=0;i<NCLASS;i++) copyTKlas(to->klas[i],from->klas[i]);
  copyTRBIF(to->rbif,from->rbif);
- for(i=0;i<NFO;i++)to->fo[i]=from->fo[i];
+ for(i=0;i<NFO;i++) to->fo[i]=from->fo[i];
  copyTBUSY(&(to->busy),&(from->busy));
+for(i=0;i<NCLASS;i++) to->sdgs[i]= from->sdgs[i];
 }
 /*----------------------------------------------------------load2HW()
   Purpose: load HW to hw
@@ -1217,10 +1447,16 @@ w32 i,isp,bb, overlap,flag,bcmaskn;
 TKlas *klas;
 TRBIF *rbif;
 w32 l0invAC, minAC;
+w32 rate_mask;
 int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
 char skipped[200]="";
+if(l0C0()) {
+  rate_mask= RATE_MASKr2;
+} else {
+  rate_mask= RATE_MASK;
+};
 
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+l0invAC=L0_INVERTac; minAC=0;
 // find out TIMESHARING classes, using StartedPartitions:
 for(i=0;i<NCLASS;i++) parthwclasses[i]=0;
 for(isp=0;isp<MNPART;isp++){
@@ -1243,19 +1479,12 @@ for(isp=0;isp<MNPART;isp++){
 };
  //------------------------------------------- RBIF
  rbif=hw->rbif;
- vmew32(RANDOM_1, rbif->rbif[ixrnd1]);
- vmew32(RANDOM_2, rbif->rbif[ixrnd2]);
- vmew32(SCALED_1, rbif->rbif[ixbc1]);
- vmew32(SCALED_2, rbif->rbif[ixbc2]);
- vmew32(L0_FUNCTION1, rbif->rbif[ixl0fun1]);
- vmew32(L0_FUNCTION2, rbif->rbif[ixl0fun2]);
- /*
- vmew32(L0_INTERACT1, rbif->rbif[ixintfun1]);  // INT* loaded only at ctp_proxy restart
- vmew32(L0_INTERACT2, rbif->rbif[ixintfun2]);  // see laodcheckctpcfg() in readTables.c
- vmew32(L0_INTERACTT, rbif->rbif[ixintfunt]);
- vmew32(L0_INTERACTSEL, rbif->intsel);
- vmew32(ALL_RARE_FLAG , rbif->rare);
-  */
+ vmew32(getLM0addr(RANDOM_1), rbif->rbif[ixrnd1]);
+ vmew32(getLM0addr(RANDOM_2), rbif->rbif[ixrnd2]);
+ vmew32(getLM0addr(SCALED_1), rbif->rbif[ixbc1]);
+ vmew32(getLM0addr(SCALED_2), rbif->rbif[ixbc2]);
+ vmew32(getLM0addr(L0_FUNCTION1), rbif->rbif[ixl0fun1]);
+ vmew32(getLM0addr(L0_FUNCTION2), rbif->rbif[ixl0fun2]);
 //------------------------------------------- L0f34 + BCmasks
 //todo:
 flag=0;
@@ -1323,13 +1552,17 @@ for(i=0;i<NCLASS;i++){
   //printTKlas(klas, i);
   vmew32(L0_CONDITION+bb,klas->l0inputs);
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
-  if(l0AB()==0) {   //firmAC
-    vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
+  if(l0AB()==0) {   //firmAC or >C0
+    if(l0C0()) {
+      vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
+    } else {
+      vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
+    };
   } else {
     vmew32(L0_VETO+bb,(klas->l0vetos)&0xffff);
   };
   vmew32(L1_DEFINITION+bb, klas->l1definition);
-  if(i>=44)vmew32(L1_INVERT+bb, klas->l1inverted);
+  if(i>=1)vmew32(L1_INVERT+bb, klas->l1inverted);   // was 44 (bug) before 13.9.2014
   vmew32(L2_DEFINITION+bb, klas->l2definition);
   // check part. name (do not reprogram TSpartitions) + classgroup
   if(tsname[0]=='\0') {skip=0;               // no TS or TS just being started
@@ -1339,21 +1572,34 @@ for(i=0;i<NCLASS;i++){
   if(skip==1) {
     sprintf(skipped,"%s %d", skipped, i);
   } else {
-    if(l0AB()==0) {  //firmAC
-     mskbit= (klas->l0vetos)>>31; vmew32(L0_MASK+bb, mskbit);
+    if(l0AB()==0) {  //firmAC and 
+      if(l0C0()==0) {  // L0 (not LM0) board
+        mskbit= (klas->l0vetos)>>31; vmew32(L0_MASK+bb, mskbit);
+      };
+      // no need for LM0 (done above)
     } else {
      mskbit= ((klas->l0vetos)&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
     };
   };
 };
 printf("loadHW:skipped:%s\n", skipped);
+if(l0C0()==0) {
+for(i=0;i<NCLASS;i++){
+  vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
+};
+} else {
+ ; //see L0-VETOs
+};
  //--------------------------------------------- L0 downscalers
- vmew32(RATE_MODE,1);   /* vme mode */
+ vmew32(getRATE_MODE(),1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
- for(i=0; i<50; i++) {
-   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK));
+ for(i=0; i<NCLASS; i++) {
+   /* 23.6.2014: no reason to set 0..49 in bits 30..25,
+      although see note in ctp.h at RATE_MASK). From now, put 0 above bit 25
+   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK)); */
+   vmew32(RATE_DATA, (hw->klas[i]->scaler & rate_mask));
  };
- vmew32(RATE_MODE,0);   /* normal mode */
+ vmew32(getRATE_MODE(),0);   /* normal mode */
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {
@@ -1388,32 +1634,19 @@ int readHW(Hardware *hw){
  TKlas *klas;
  TRBIF *rbif;
 w32 l0invAC, minAC;
-if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
-/* we keep interactin definition as SYSTEM PARAMETER (i.e. like L0L1delay...)
-   see initCTP.c -these are set there and left untouched
-hw->int12tdef.interact1= vmer32(L0_INTERACT1); 
-hw->int12tdef.interact2= vmer32(L0_INTERACT2); 
-hw->int12tdef.interactt= vmer32(L0_INTERACTT); 
-hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL); 
-*/
+//if(l0AB()==0) {l0invAC=L0_INVERTac; minAC=0; } else { l0invAC=L0_INVERT; minAC=44;};
+l0invAC=L0_INVERTac; minAC=0;
  //------------------------------------------- RBIF
  rbif=hw->rbif;
- rbif->rbif[ixrnd1]=vmer32(RANDOM_1);
- rbif->rbif[ixrnd2]=vmer32(RANDOM_2);
- rbif->rbif[ixbc1]=vmer32(SCALED_1);
- rbif->rbif[ixbc2]=vmer32(SCALED_2);
- rbif->rbif[ixl0fun1]=vmer32(L0_FUNCTION1);
- rbif->rbif[ixl0fun2]=vmer32(L0_FUNCTION2);
- /*
- vmew32(L0_INTERACT1, rbif->rbif[ixintfun1]);
- vmew32(L0_INTERACT2, rbif->rbif[ixintfun2]);
- vmew32(L0_INTERACTT, rbif->rbif[ixintfunt]);
- vmew32(L0_INTERACTSEL, rbif->intsel);
- vmew32(ALL_RARE_FLAG , rbif->rare);
-  */
+ rbif->rbif[ixrnd1]=vmer32(getLM0addr(RANDOM_1));
+ rbif->rbif[ixrnd2]=vmer32(getLM0addr(RANDOM_2));
+ rbif->rbif[ixbc1]=vmer32(getLM0addr(SCALED_1));
+ rbif->rbif[ixbc2]=vmer32(getLM0addr(SCALED_2));
+ rbif->rbif[ixl0fun1]=vmer32(getLM0addr(L0_FUNCTION1));
+ rbif->rbif[ixl0fun2]=vmer32(getLM0addr(L0_FUNCTION2));
  //------------------------------------------- classes
  for(i=0;i<NCLASS;i++){
-    w32 mskbit,l0vetos;
+    w32 l0vetos;
     if(hw->klas[i] == NULL){
      char msg[200];
      sprintf(msg,"readHW sw error: unexpected hw.klas[%i]=NULL \n",i);
@@ -1427,28 +1660,28 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
     klas->l0inputs=vmer32(L0_CONDITION+bb);
     if(i>=minAC)klas->l0inverted=vmer32(l0invAC+bb);
     else klas->l0inverted=0;
-    l0vetos=vmer32(L0_VETO+bb);
-    mskbit=vmer32(L0_MASK+bb);
-  if(l0AB()==0) {   //firmAC
-    l0vetos= (l0vetos&0x1fffff) | ((mskbit&0x1)<<31);
-  } else {
-    l0vetos= (l0vetos&0xffff ) | ((mskbit&0x1)<<16);
-  };
+    if(l0C0()) {
+      l0vetos=vmer32(L0_VETOr2+bb);
+    } else {
+      w32 mskbit;
+      l0vetos=vmer32(L0_VETO+bb);
+      mskbit=vmer32(L0_MASK+bb);
+      l0vetos= (l0vetos&0x1fffff) | ((mskbit&0x1)<<31);
+    };
     klas->l0vetos=l0vetos;
-    //mskbit= (l0vetos&0x10000)>>16; 
     //L0 scaler done separately to keep vme access low
     //L1
     klas->l1definition=vmer32(L1_DEFINITION+bb);
-    if(i>=44)klas->l1inverted=vmer32(L1_INVERT+bb);
+    if(i>=1)klas->l1inverted=vmer32(L1_INVERT+bb);   // was 44 (bug) before 13.9.2014
     else klas->l1inverted=0;
     //L2
     klas->l2definition=vmer32(L2_DEFINITION+bb);
  }
  //--------------------------------------------- L0 downscalers
- vmew32(RATE_MODE,1);   /* vme mode */
+ vmew32(getRATE_MODE(),1);   /* vme mode */
  vmew32(RATE_CLEARADD,DUMMYVAL);
- for(i=0; i<50; i++)hw->klas[i]->scaler=vmer32(RATE_DATA);
- vmew32(RATE_MODE,0);   /* normal mode */
+ for(i=0; i<NCLASS; i++)hw->klas[i]->scaler=vmer32(RATE_DATA);
+ vmew32(getRATE_MODE(),0);   /* normal mode */
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {
@@ -1459,7 +1692,7 @@ hw->int12tdef.interactsel= vmer32(L0_INTERACTSEL);
    };
  }
  //--------------------------------------------- BUSYs
-if(DBGbusy) printf("load2HW. SET_CLUSTER T 1..6:");
+if(DBGbusy) printf("readHW. SET_CLUSTER T 1..6:");
 for(i=0;i<NCLUST+1;i++){
   if(DBGbusy) {
      printf("0x%x ",hw->busy.set_cluster[i]);

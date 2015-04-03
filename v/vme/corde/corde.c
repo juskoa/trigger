@@ -90,9 +90,16 @@ delay: register to be changed
 3:ORB1         6:BC2
 
 ps: 
-0     0x0     -5120ps
+0     0x0     -5120ps    minimal shift
 5120  0x200       0ps
-10230 0x3ff   +5110ps
+10230 0x3ff   +5110ps    maximal shift!
+
+An example from 2013 pA run (after pb-p changed back to p-p):
+shifter reported too big shift: -1.5ns
+
+BC1 (7) changed from 8010ps (0x321) -> 9600ps
+i.e. +1590ns
+after ~ 1-2 minutes, clock shift reached +0.1ns
 */
 void set(int delay, int ps) {
 w32 regad, val;

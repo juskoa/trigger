@@ -7,6 +7,8 @@ typedef unsigned int w32;
 #define HEADERLEN 8
 #define SIGNATLEN 7
 #define HEADER 0xb1
+
+#define SSMDUMP "ssm.dump"
 // 0xb1=0x8d !
 /*-------------------------------------------------------------------------
 Debugging: Write binary file of the same foemat as in ssm.c
@@ -16,11 +18,9 @@ int dumpSSMlocal(w32 *sm){
  int i;
  w32 word;
  FILE *dump;
- char fn[256];
- strcpy("ssm.dump",fn);
- dump= fopen(fn,"w");
+ dump= fopen(SSMDUMP,"w");
  if(dump==NULL) {
-  printf("cannot open file %s\n", fn);
+  printf("cannot open file %s\n", SSMDUMP);
   return 1;
  };
  for(i=0;i<Mega;i++){ 
@@ -37,11 +37,9 @@ int readSSMDumplocal(w32 *sm){
   int i,nwords;
  w32 word;
  FILE *dump;
- char fn[256];
- strcpy("ssm.dump",fn);
- dump= fopen(fn,"w");
+ dump= fopen(SSMDUMP,"w");
  if(dump==NULL) {
-  printf("cannot open file %s\n", fn);
+  printf("cannot open file %s\n", SSMDUMP);
   return 1;
  };
  for(i=0;i<Mega;i++){ 

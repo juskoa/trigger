@@ -1,26 +1,46 @@
 # auxiliary functions used from $CCRFS/usr/local/trigger/bin scipts
 function getpid() {
+#usage: getpid
+#       if [ -n "$spid" ] ;then
+#
 #pidcmd1=`ps --columns 150 ax -o'%p %u %a' |grep $1`
 #pidcmd=`echo $pidcmd1 |grep -v '<defunct>' |grep -v grep`
 #echo $pidcmd1
 pnam=`basename $1`
 pid=`pgrep $pnam`
+spid=''
+#echo "auxfunctions:pid:$pid"
+if [ -z "$pid" ] ;then
+  spid=''
+else
 #pidcmd=`ps -o'%p %u %a' $pid |tail -1`
-pidcmd=`ps -o'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
+  pidcmd=`ps -wo'%p %u %a' $pid |grep -v COMMAND |grep -v '/bin/bash'`
+  if [ -z "$pidcmd" ] ;then
+    return
+  fi
 #echo pnam:$pnam  pid:$pid pidcmd:$pidcmd
-declare -a dl=($pidcmd)
+  declare -a dl=($pidcmd)
+#echo "auxfunctions:pidcmd:$pidcmd dl:$dl"
+# correct for python starts:
+# i.e.:
+#24899 trigger  /usr/bin/python /data/dl/root/usr/.../wsgi/ctpwsgi.py
+#25118 trigger  /usr/local/trigger/stable/v/vme/ctp_proxy/linux/gcalib.exe
+  if [ ${#dl[@]} -ge 4 -a ${dl[2]} = "/usr/bin/python" ] ;then
+    dl[2]=${dl[3]}
+  fi
 #echo dl:${dl}
 #echo "comparing:"
 #echo ${dl[2]}
 #echo $1
 #if [ "${dl[2]}" = "$1" ] ;then
-if [ `echo ${dl[2]} | awk '{ print index($0,dt) }' dt=$1` -gt 0 ] ;then
-  user=${dl[1]}
-  spid=${dl[0]}
-else
-  spid=''
+  if [ `echo ${dl[2]} | awk '{ print index($0,dt) }' dt=$1` -gt 0 ] ;then
+    user=${dl[1]}
+    spid=${dl[0]}
+  else
+    spid=''
+  fi
 fi
-#echo getpid:$spid:${dl[0]}:$pidcmd
+#echo auxfunctions:getpid:$spid:${dl[0]}:$pidcmd
 }
 function savelog() {
 ds=`date +%y%m%d%H%M`   # %S -seconds
@@ -33,7 +53,7 @@ fi
 }
 function onlyhost() {
 # usage: onlyhost alidcsvme001 ; if if [ $? -ne 0 ] ;then...
-hname=`hostname`
+hname=`hostname -s`
 if [ "" == "$1" ] ;then
   return 0   # do not check hostname
 fi
@@ -44,5 +64,41 @@ else
   return 0
 fi
 }
-# following used in bin/smaq script:
-export smaqhost=alidcscom707
+function onlyserver() {
+hname=`hostname -s`
+if [ "$hname" != "avmes" -a "$hname" != "alidcscom835" -a "$hname" != "pcalicebhm10" ] ;then
+  return 8
+else
+  #echo 'can be started only from trigger@alidcscom835 or pcalicebhm10/avmes'
+  return 0
+fi
+}
+function getcpunames() {
+#usage: getcpunames     sets these variables:
+#       ctpvme cmpvme ttcmivme server server27
+#Note: this code is also used in vmebse.bash
+hname=`hostname -s`
+if [ "$VMESITE" = 'ALICE' ] ;then
+  ctpvme=alidcsvme001
+  cmpvme=alidcsvme008
+  ttcmivme=alidcsvme017
+  server=alidcscom835   # alidcscom188  alitri
+  server27=alidcscom707 # alitrir   see also alidcscom521
+elif [ "$VMESITE" = 'SERVER' ] ;then
+  # avmes
+  ctpvme=altri1
+  cmpvme=altri1
+  ttcmivme=altri1
+  server=$hname
+  server27=NONE
+elif [ "$VMESITE" = 'SERVER2' ] ;then
+  # bhm10
+  ctpvme=altri2
+  export cmpvme=altri2
+  ttcmivme=altri2
+  server=$hname
+  server27=NONE
+else
+  echo "auxfunctions.getcpunames: bad VMESITE:$VMESITE"
+fi
+}

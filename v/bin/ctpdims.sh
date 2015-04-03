@@ -23,7 +23,7 @@ else
 fi
 }
 #-------------------------------------
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != 'alidcsvme001' -a "$hname" != 'altri1' ] ;then
   echo 'This script can be started only on alidcsvme001 or altri1'
   exit

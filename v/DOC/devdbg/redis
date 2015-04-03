@@ -1,0 +1,24 @@
+Source:  http://redis.io
+local doc in: downloads//redis-2.0.0-rc1/doc
+
+server:
+downloads/redis-2.6.4  
+redis-sever started in ~/redis directory
+
+clients:  see ~/downloads directory
+python: newest distrib needs python 2.7...
+C: hiredis-master
+ -15.11.2012 compiled
+cmdline: redis-cli (from redis server distrib)
+
+Databases:
+default one (0) used for TRG system.
+keys:
+bsy_screen see CNTRRD/readctpc.c
+
+Status:
+- let's try to use only server -it contains also C-client
+and cmd client.
+
+debug: aj@pcalicebhm11:EXAMPS/redis
+       using only standard server distrib (2.6.4)

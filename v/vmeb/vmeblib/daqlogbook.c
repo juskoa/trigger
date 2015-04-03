@@ -7,16 +7,22 @@ pydimserver.py
 #include <stdlib.h>
 #include <string.h>
 
-#include "vmewrap.h"
 #include "lexan.h"
 #include "vmeblib.h"
+#include "vmewrap.h"
+#include "daqlogbook.h"
+/* from Tpartition.h:
+#define NCLUST 6
+struct TDAQInfo
+*/
+
 #ifdef DAQLOGBOOK
 #ifdef CPLUSPLUS
 extern "C" {
 #include "DAQlogbook.h"
-int DAQlogbook_update_LTUConfig(unsigned int run, const char *detector,
+/*von int DAQlogbook_update_LTUConfig(unsigned int run, const char *detector,
   unsigned int LTUFineDelay1, unsigned int LTUFineDelay2, 
-  unsigned int LTUBCDelayAdd);
+  unsigned int LTUBCDelayAdd); */
 }
 #else
 #include "DAQlogbook.h"
@@ -39,9 +45,12 @@ if(vmesite !=NULL) {
   if(strcmp(vmesite,"ALICE")==0) {
     //DAQ_DB_LOGBOOK=trigger:trigger123@10.161.36.8/LOGBOOK
     //strcpy(DAQlogbookDB, "daq:daq@aldaqdb/LOGBOOK");   // was till 12.9.2010
-    strcpy(DAQlogbookDB, "trigger:trigger123@10.161.36.8/LOGBOOK");
+    //strcpy(DAQlogbookDB, "trigger:trigger123@10.161.36.8/LOGBOOK");   // run1
+    strcpy(DAQlogbookDB, "logbooktrg:ts0G9ce2@aldaqdb/LOGBOOK");
   } else if(strcmp(vmesite,"SERVER")==0) {
-    strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK");
+    strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_CTP");
+    //strcpy(DAQlogbookDB, "daq:daq@137.138.143.230/LOGBOOK_CTP");   //pcald30's ip
+    //strcpy(DAQlogbookDB, "daq:daq@128.141.139.225/LOGBOOK");  //slc6 (Franco)
   } else {
     strcpy(DAQlogbookDB, "");
   };
@@ -71,19 +80,20 @@ rc= DAQlogbook_close();
 rc=0;
 #endif
 if(rc==-1) {
-  prtError("DAQlogbook_close failed");
+  char em[]= "DAQlogbook_close failed"; prtError(em);
 };
 return(rc);
 }
 
 /* called from pydim/server.c */
 //int daqlogbook_update_triggerClassName(unsigned int runN, unsigned char classN, char *value) {
-int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime)
+int daqlogbook_update_triggerClassName(unsigned int run, unsigned char classId, const char *className, unsigned int classGroupId, float classGroupTime,const char *downscaling, const char **aliases)
 {
 int rc;
 #ifdef DAQLOGBOOK
   //rc= DAQlogbook_update_triggerClassName(runN, classN, value);
-  rc= DAQlogbook_update_triggerClassName(run, classId, className, classGroupId, classGroupTime);
+  rc= DAQlogbook_update_triggerClassName(run, classId, className, 
+classGroupId, classGroupTime, downscaling, aliases);
 #else
   printf("INFO DAQlogbook_update_triggerClassName() not called");
   rc=0;
@@ -240,8 +250,13 @@ if(slen > 0) {
     //printf("INFO line:%s slen:%d\n",&cs_string[ix], slen);
     if(rc==0) break;   // EOF reached
     strncpy(line, &cs_string[ix], slen); line[slen]='\0'; ix= ix+rc;
+    if(line[0]=='\n') continue;
+    if(line[0]=='#') continue;
     abce= strpbrk(line, "ABCE");
-    if(abce==NULL) { rc=-2; break; };   // bad format
+    if(abce==NULL) { 
+      printf("ERROR bad line in cs:len:%d:%s\n", slen, line);
+      continue;
+    };
     rc= sscanf(line,"%d", &bc);
     if(rc<1) { rc=-3; break; };   // bad format
     if(*abce == 'A') {storebcbit(bc, beamA); ACBEI[0]++;};
@@ -304,4 +319,52 @@ rc=0;
 #endif
 return(rc);
 }
-
+/* update clusters info in DAQlogbook (6 clusters)
+*/
+int daqlogbook_update_clusters(unsigned int runn, char *pname,
+  TDAQInfo *daqi, 
+  unsigned int ignoredaqlog) {    // on vme available in shm
+int iclu,rc;
+printf("INFO daqlogbook_update_clusters: pname:%s runn:%d\n", pname, runn);
+for(iclu=0;iclu<NCLUST;iclu++) {
+  if(daqi->masks[iclu]==0) continue;
+  if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
+    daqi->masks[iclu]= daqi->masks[iclu] | (1<<17);
+  };
+  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx\n", 
+    iclu+1, daqi->masks[iclu], daqi->inpmasks[iclu], daqi->classmasks00_063[iclu],
+    daqi->classmasks64_100[iclu]);
+#ifdef DAQLOGBOOK
+  if(ignoredaqlog!=0) { rc=0;
+    printf("INFO DAQlogbook_update_cluster(%d,...) not called(ignore daq)\n", runn);
+  } else { 
+    logbook_triggerClassMask_t classmask;
+    classmask[0]=daqi->classmasks00_063[iclu];
+    classmask[1]=daqi->classmasks64_100[iclu];
+    rc=DAQlogbook_update_cluster(runn, iclu+1, daqi->masks[iclu], 
+      pname, daqi->inpmasks[iclu], classmask);
+    if(rc!=0) {
+      printf("ERROR DAQlogbook_update_cluster failed. rc:%d", rc);
+      break;
+    };
+  };
+#else
+printf("INFO DAQlogbook_update_cluster(%d,...) not called\n", runn);
+#endif
+};
+return(rc);
+}
+void printTDAQInfo(TDAQInfo *tdaq)
+{
+ printf("TDAQInfo: daqoonoff= %i \n",tdaq->daqonoff);
+ printf("Clusters detector masks: \n");
+ for(int i=0;i<NCLUST;i++)printf("%i=0x%x ",i,tdaq->masks[i]);
+ printf("\n");
+ printf("Input detector masks: \n");
+ for(int i=0;i<NCLUST;i++)printf("%i=0x%x ",i,tdaq->inpmasks[i]);
+ printf("\n");
+ printf("Classmasks: \n");
+ for(int i=0;i<NCLUST;i++)printf("%i=0x%llx 0x%llx \n",i,tdaq->classmasks00_063[i],tdaq->classmasks64_100[i]);
+ printf("\n");
+ printf("run1msg: %s \n",tdaq->run1msg);
+}

@@ -46,6 +46,13 @@ void Log::PrintLog(char* text)
  //*log << *this << " " << text << endl;
  cout << *this << " " << text << endl;
 }
+void Log::PrintLog(char* text,int i)
+{
+ // c like formatting expected
+ stringstream ss;
+ ss << *this << " " << text << "\n";
+ printf(ss.str().c_str(),i);
+}
 ostream &operator<<(ostream &stream ,Log  &log)
 {
  char time[30];

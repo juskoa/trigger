@@ -9,17 +9,17 @@ RRDDB= "rrd/mon.rrd"
 time0= 1243119600   #1163718000
 LTUS=('SPD', 'SDD', 'SSD', 'TPC', 'TRD', 'TOF', 'PHOS',
   'CPV', 'HMPID', 'MUON_TRK', 'MUON_TRG', 'PMD',
-  'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ')
+  'FMD', 'T0', 'V0', 'ZDC', 'ACORDE', 'EMCAL', 'DAQ', 'AD')
 #LTUS=('HMPID','MUON_TRK')
 
 def readcnames(ri, ctpltu):
   #name="temp"; gaucou="COUNTER"; ri.write("DS:%s:%s:120:U:U "%(name,gaucou))
   #name="cnt"; gaucou="COUNTER"; ri.write("DS:%s:%s:120:U:U "%(name,gaucou))
-  cnames= os.path.join(os.environ['VMECFDIR'], 'dimcdistrib', ltunames)
+  cnames= os.path.join(os.environ['VMECFDIR'], 'CNTWEB/cfgdir', ltunames)
   if ctpltu=="ctp":
-    cnames= os.path.join(os.environ['VMECFDIR'], 'dimcdistrib', ctpnames)
+    cnames= os.path.join(os.environ['VMECFDIR'], 'CNTWEB/cfgdir', ctpnames)
   if ctpltu=="mon":
-    cnames= os.path.join(os.environ['VMECFDIR'], 'dimcdistrib', monnames)
+    cnames= os.path.join(os.environ['VMECFDIR'], 'CNTWEB/cfgdir', monnames)
   cnfi= open(cnames,"r")
   if not cnfi:
     print "Where is %s ?"%cnames
@@ -86,8 +86,8 @@ def rrd_create1(strtime0, rrdb):
   ri.write("create %s --start %s --step 60 "% (rrddb,strtime0))
   nofds= readcnames(ri, ctpltu)
   if ctpltu=='mon':
-    ri.write("RRA:LAST:0.5:1:10080 ")  # last 4 weeks (24*7*60)/1min
-    ri.write("RRA:AVERAGE:0.5:60:8760 ")   # last year (365*60)/1hour
+    ri.write("RRA:LAST:0.5:1:10080 ")  # last  week (24*7*60)/1min
+    ri.write("RRA:AVERAGE:0.5:60:8760 ")   # last year (365*24)/1hour
   else:
     #ri.write("RRA:AVERAGE:0.5:1:600 ")   # last 10 hours/1min
     #ri.write("RRA:AVERAGE:0.5:1:1440 ")   # last 24 hours/1min

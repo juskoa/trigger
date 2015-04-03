@@ -26,53 +26,8 @@ int getlhcpp(int vsp, int bstn, int waitforpp, Tlhcpp *lhcpp);
 void nextBSTdcs(int vspbobr, w32 *bstmsg, int bstn);
 void getlhc2ctpOrbit(int vspbobr, w32 *bst2ctp, w32 *bst3124);
 
-#define CORDE_DELREG 7
-w32 corde_get(int del);  // 1..7. VME is opened/closed with each call!
-void corde_set(int del, w32 val); // detto
-w32 corde_shift(int del, int shift, int *origval);  //detto
-w32 i2cread_delay(w32 delayadd);
-void i2cset_delay(w32 delayadd, int halfns);
-
-int shiftCommentInDAQ(int halfns, int cordeval, 
-  int dbhalfns, int dbcordeval, char *fineshift);
-
-/* FGROUP
-Input: maino: 
-1 -> BC1/Orbit1
-2 -> BC2/Orbit2
-3 -> BCref/int BCmain synch. orbit generator
-4 -> internal 40.078MHz/int BCmain synch. orbit generator
-Operastion:
-- compare 2 regs on ttcmi and corde board with $dbctp/clockshift
-- set new values in these regs if different
-- 'Clock shift' comment to daqlogbook
-- change clock 
-- 'CLOCK' comment written into DAQ logbook
-Note (todo?):
-It seems, for
-A. BC2/ORB2 or BC1/ORB1 we should set ORB1_MAN_SELECT=ORB2_MAN_SELECT=0
-B. BCREF/
-C. localBC/
-*/
-void setbcorbitMain(int maino);
-/*FGROUP
-read QPLL* and TTCrx status bits.
-RC: 0xTAB
-T: bit 8. 1: TTCrx ok
-A: [7..6] BC1 error,locked (i.e. 01 correct)
-   [5..4] BC2
-B: [3..2] BCref
-   [1..0] BCmain
-I.e. 0x155 is correct status of all 9 bits
-     0x1aa error in both BC, was not locked. NEXT READING is 0x155 !
-*/
-w32 readstatus();
-#define DLL_stdout 1
-#define DLL_daq 2
-#define DLL_info 4
-void DLL_RESYNC(int msg);
-
 //readtables.c:
+int isTrigDet(char *name);
 FILE *openFile(char *fname, char *rw);
 int readdbfile(char *fname, char *mem, int maxlen);
 int writedbfile(char *fname, char *mem);
@@ -84,7 +39,11 @@ customer:
 */
 void readCounters(w32 *mem, int N, int accrual, int customer);
 void getCountersBoard(int board, int reladr,w32 *mem, int customer);
-/*FGROUP L012 */
+/*FGROUP L012 
+I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...,10(INT)
+   reladr: from 0...reladr  (i.e. 3 means reading first 4 counters)
+   customer: 2 (for ctp exp. sw)
+*/
 w32 getCounter(int board, int reladr, int customer);
 /*FGROUP L012 */
 void getCounters(int N, int accrual, int customer);
@@ -98,11 +57,16 @@ rc: 0: if L0 borad firmware >0xAB
     boardversion if firmware <=0xAB 
 */
 int l0AB();
+/*FGROUP SimpleTests 
+rc: 0: if L0 board
+    boardversion if LM0  (i.e. >=0xc0)
+*/
+int l0C0();
 
 // pfp.c
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT);
 
-// moved from ctp.c:
+// ctpTools.c, moved from ctp.c:
 /*FGROUP INT
 daqon:0       ->daq active
 daqon:0xb     ->daq off (i.e. produce triggers in spite of DDL red diode 
@@ -123,4 +87,94 @@ INT_DDL_EMU word in normal mode (i.e. DAQ active):
 0x70:      1         1         1  data not sent (backpressure)
 */
 void DAQonoff(int daqon);
+// classn:1..100  mskbit: 1: disable 0: enable
+void setClaMask(int classn, int mskbit);
+w32 getRATE_MODE();
+/*FGROUP SimpleTests
+Input: address (e.g. 0x95bc) from range 0x95bc..0x95e4.
+L0_INTERACT1   0x95bc    16 bits thruth table
+L0_INTERACT2   0x95c0
+L0_INTERACTT   0x95c4
+L0_INTERACTSEL 0x95c8    [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1
+                         [5..9]-> ... for INTERACT2 
+L0_FUNCTION1   0x95cc
+L0_FUNCTION2   0x95d0
+RANDOM_1       0x95d4    bit31: 1: Enable filter
+RANDOM_2       0x95d8
+SCALED_1       0x95dc
+SCALED_2       0x95e0
+ALL_RARE_FLAG  0x95e4
 
+rc: corresponding L0 or LM0 address
+*/
+w32 getLM0addr(w32 l0addr);
+w32 getLM0PFad(w32 l0addr);
+w32 getCLAMASK();
+
+/*FGROUP DebCon
+Generate n software trigger sequences
+Operation:
+-check if all detectors are in global (ctpproxy shared memory)
+-setswtrig()
+-while(n) startswtrig()
+
+Parameters: see setswtrig()
+customer: number 0..1
+0: SOD/EOD/SYNC generation initiated from ctp_proxy
+1: calibration triggers from gcalib task
+2: dimservices.c (usually not used) + ctp.exe (expert sw) + ctpt.exe
+
+RC: number of L2a successfully generated, or
+    12345678: cal. triggers stopped becasue det. is not in global run
+*/
+int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors);
+
+/*FGROUP DDR3 
+read DDR3_CONF_REG0 (and print mnemonic...)
+*/
+void ddr3_status();
+int ddr3_wrdone();
+int ddr3_rddone();
+
+/*FGROUP DDR3 
+Enable DDR3, i.e.:
+vmew32(DDR3_CONF_REG0, 0x7);   // not needed after power-up
+vmew32(DDR3_CONF_REG0, 0x4);   // 0x4: Errors_reset
+vmew32(DDR3_CONF_REG0, 0x0);   // 0 to: Errors_reset, Logic_reset, DDR3_reset
+vmew32(0x9000+SSMaddress, 0);
+streg= vmer32(DDR3_CONF_REG0); 
+*/
+void ddr3_reset();
+
+/* Read DDR3 nws words, reading in 16 32bit-words blocks from ddr3 
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
+mem_ad:  pointer to w32[] array
+nws:     number of 32bit words to be read from ddr3 
+rc:   0: ok
+*/
+int ddr3_read(w32 ddr3_ad, w32 *mem_ad, int nws);
+
+/* Write nws words to DDR3, writing 16 32bit-words blocks, last one
+ * padded by 0s.
+ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). Has to be N*16 
+mem_ad:  pointer to w32[] array
+nws:     number of 32bit words to be written
+rc:   0: ok
+*/
+int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws);
+
+/*FGROUP DDR3 
+Read 4MB of usefull data (64MB from DDR3, i.e. ~23secs), i.e.
+store only last 2 words (2x4 bytes) from each 512bits(=64bytes) block
+in ssm1, ssm2
+Use ssmshow after being read.
+ssm1,ssm2: MEGA words  in each (ssm1/2:NULL -do not fill it)
+rc: 0 ok
+   rc from ddr3_read (stdout printed also)
+*/
+int ddr3_ssmread(w32 *ssm1, w32 *ssm2);
+/*FGROUP DDR3 
+secs: >0:continuous  -will return after secs seconds (leaving continuous active)
+       0: 1-pass
+*/
+void ddr3_ssmstart(int secs);

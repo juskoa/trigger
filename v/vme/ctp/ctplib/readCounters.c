@@ -2,6 +2,7 @@
 #include <unistd.h>    /* usleep() */
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 
 /*---------------------------------------------------------------- Counters */
@@ -21,7 +22,7 @@ customer:
 4: inputs
 
 Counters are placed in mem in following order:
-L0  160 counters   (check in ctp/ctpcounters.h)
+L0  160/262 counters   (check in ctp/ctpcounters.h)
 L1  160 ...
 L2  134
 FO1  34
@@ -55,7 +56,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
   NCNTS=ctpboards[b123].numcnts;
   memshift=ctpboards[b123].memshift;
   /*printf("readCounters: %d in, board:%s base:%x shift:%d NCNTS:%d\n", 
-    b123, ctpboards[b123].name,bb, memshift, NCNTS); */
+    b123, ctpboards[b123].name,bb, memshift, NCNTS);*/
   if(accrual==1) {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       w32 cur,prev,dif;
@@ -67,41 +68,73 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
         dif= (0xffffffff - prev) + cur +1;
       };
       mem[cix]= dif;
-      countsread++; if(countsread>NCNTStbr) break;
+      //mem[cix]= (b123<<12) | cix;
+      //countsread++; if(countsread>NCNTStbr) break;
     };
+    /*
+    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
+      int startix;
+      startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
+      for(cix= startix; cix< startix+4; cix++) {
+        w32 cur,prev,dif;
+        curprev[1][cix]= vmer32(copyread);
+        cur= curprev[1][cix]; prev= curprev[0][cix];
+        if(cur >= prev) {
+          dif= cur-prev;
+        } else {
+          dif= (0xffffffff - prev) + cur +1;
+        };
+        mem[cix]= dif;
+        //mem[cix]= 0xff0000 | (b123<<12) | cix;
+        //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
+      };
+    }; */
   } else {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       mem[cix]= vmer32(copyread);
-      countsread++; if(countsread>NCNTStbr) break;
+      //countsread++; if(countsread>NCNTStbr) break;
     };
+    /*
+    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
+      int startix;
+      startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
+      for(cix= startix; cix< startix+4; cix++) {
+        mem[cix]= vmer32(copyread);
+        //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
+      };
+    }; */
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
+  countsread= countsread+ NCNTS;
   if(countsread>NCNTStbr) break;
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 /*printf("cnts 13 165:%d %d\n", mem[13], mem[165]); */
 }
-/*FGROUP L012
-I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...
-   reladr: from 0...
+/* in .h FGROUP L012
+I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...,10(INT)
+   reladr: from 0...reladr  (i.e. 3 means reading first 4 counters)
+   customer: 2 (for ctp exp. sw)
 */
 w32 getCounter(int board, int reladr, int customer) {
-int bb,cix; w32 copyread;
+int bb,cix,nbc; w32 copyread;
 w32 mem[NCOUNTERS_MAX];
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
+nbc= ctpboards[board].numcnts;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(8); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
-for(cix=0; cix<=reladr; cix++) {
+//for(cix=0; cix<=reladr; cix++) {   // seems not working (cannot catch it) 
+for(cix=0; cix<nbc; cix++) {
   mem[cix]= vmer32(copyread);
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 return(mem[reladr]);
 }
 /* FGROUP L012
-I: board: 0(busy),1(L0),2(L1), 3(L2), 4(FO1),...
+I: board: 0(busy),1(L0),2(L1), 3(L2), 4(INT), 5(FO1), 6(FO2),...
    reladr: Max. rel address to be read. from 0...
    mem: memory[MAXCOUNTERS]
 */
@@ -110,7 +143,7 @@ int bb,cix; w32 copyread;
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(8); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 for(cix=0; cix<=reladr; cix++) {
@@ -158,13 +191,21 @@ lockBakery(&ctpshmbase->ccread, customer);
 for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
-  vmew32(bb+CLEARCOUNTER,1); 
+  if((b123==1) && (l0C0())) {
+    vmew32(CLEARCOUNTER_lm0,1); 
+  } else {
+    vmew32(bb+CLEARCOUNTER,1); 
+  };
 };
 usleep(4);
 for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
-  vmew32(bb+CLEARCOUNTER,0);
+  if((b123==1) && (l0C0())) {
+    vmew32(CLEARCOUNTER_lm0,0); 
+  } else {
+    vmew32(bb+CLEARCOUNTER,0);
+  };
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 printf("Counters cleared.\n");

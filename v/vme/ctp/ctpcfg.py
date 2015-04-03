@@ -66,12 +66,22 @@ def InvertBit(w32,bit):   # bit: 0..31
     iw32= w32 | (1<<bit)
   #print "InverBit %d: 0x%x -> 0x%x"%(bit,w32,iw32)
   return iw32
+def CopyBit(data, mfrom, mto):
+  if (data & mfrom) != 0:
+    datao= data | mto   # 1
+  else:
+    datao= data & (~mto)   # 0
+  print "CopyBit: 0x%x  %x -> %x result:0x%x"%(data, mfrom, mto, datao)
+  return datao
 
 vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
 Gl0AB= int(l0abtxt[0])
+l0c0txt= vbexec.get2("l0C0()")
+Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
-print "Gl0AB:",Gl0AB
+if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0
+print "Gl0AB/C0:",Gl0AB,'/',Gl0C0
 
 class Genhw:
   def __init__(self,attrs=None):
@@ -116,9 +126,11 @@ class Genhw:
         atr.hwwritten(newval)
 
 class Ctpconfig:
-  clusterx0=17    # left top corner of cluster's rectangles 
-  l0x0=30         # left top corner of classes L0 bit rectangles 
+  NCLASS= 100
+  clusterx0=25 #17  left top corner of cluster's rectangles 
+  l0x0=clusterx0+13 # left top corner of classes L0 bit rectangles 
   l0y0=10         # class 0 -not class, instead reserved for text header
+  hty0= 3 #was 10         # header text line
   int1bits=["INTfun1","BC1","BC2","RND1","RND2"]
   int2bits=["INTfun2","BC1","BC2","RND1","RND2"]
   #vonint2bits=[("i0",1),("i1",1),("i2",1),("i3",1),("i4",1),"INTfun2","BC1","BC2","RND1","RND2"]
@@ -129,8 +141,11 @@ class Ctpconfig:
     lastshrgrp2= firstshrgrp2+12
     grp3start= lastshrgrp1+4
     dbgbits=12 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
-    mskCLAMASK=0x80000000
     BCMASKN=12
+    if Gl0C0==None:
+      mskCLAMASK=0x80000000
+    else:
+      mskCLAMASK=0x00800000
   else:
     firstshrgrp2= lastshrgrp1+4
     lastshrgrp2= firstshrgrp2+4
@@ -232,11 +247,17 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
       print "Ctpconfig:cct:",cct
     if cct[0]=='0':   # L0 in the crate
       self.readShared()
+      #dbgssmo= vbexec.get1("gettableSSM()")
+      #print "dbgssm: before getClass",dbgssmo
+      # get rates into mmemory before reading class definitions:
+      vbexec.get1("hw2rates()")# has to be before following cycle:
       self.klasses=[]
-      for ix in range(1,51):   #keep this order ! 
+      for ix in range(1,Ctpconfig.NCLASS+1):   #keep this order ! 
         k=Klas(self,ix)
         k.readhw()    # should be OK with shared memory
         self.klasses.append(k)
+      #dbgssmo= vbexec.get1("gettableSSM()")
+      #print "dbgssm: after getClass",dbgssmo
     else:
       self.klasses= [ Klas(self,31, 0xaa55, 0x3230),
         Klas(self, 8, 0xaa55, 0x3232)]
@@ -250,12 +271,16 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
         self.fanouts.append(Fanout(self,ix+1,None))
         # let's read FO once more when initialised
       ixinbt= ixinbt+1
+    #dbgssmo= vbexec.get1("gettableSSM()")
+    #print "dbgssm: after getFO",dbgssmo
     #BUSY:
     cct= vbexec.get2("notInCrate(0)")
     if cct[0]=='0':   # BUSY in the crate
       self.busyboard= BusyBoard(self)
     else:
       self.busyboard=None
+    #dbgssmo= vbexec.get1("gettableSSM()")
+    #print "dbgssm: after BusyBoard",dbgssmo
   def findKlass(self,clnumber):
     for cl in self.klasses:
       if cl.clnumber==clnumber: return cl
@@ -266,6 +291,7 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
     if self.caclstl:
       myw.RiseToplevel(self.caclstl); return
     self.caclstl= myw.NewToplevel("CTP classes",self.classesDestroyed)
+    #print "doClasses:", self.caclstl
     self.cmdbuts= myw.MywHButtons(self.caclstl, [
       ("blabla",self.cmdallenabled)
       ],side=TOP, helptext="""
@@ -283,19 +309,23 @@ All/Enabled -show all or only enabled classes. This button becomes red
       for k in self.klasses:
         if (k.l0vetos & Ctpconfig.mskCLAMASK)==0:   #class enabled
           nclines= nclines+1
+        #print "doCanvas:%d %d: 0x%x 0x%x"%(k.clnumber, nclines,k.l0inputs, k.l0vetos)
     self.cmdbuts.buttons[0].setLabel(aetx)
     self.cmdbuts.buttons[0].setColor(myw.COLOR_BGDEFAULT)
+    if nclines>30: nclines=30   #show max. 30 classes (with scrollbar)
     canvash= (nclines+1)*myw.Kanvas.bitHeight + Ctpconfig.l0y0
+    canvashmax= (Ctpconfig.NCLASS+1)*myw.Kanvas.bitHeight + Ctpconfig.l0y0
     canvasw= Klas.l2vetosx0 + myw.Kanvas.bitWidth*4 + myw.Kanvas.interspace   #980
     if self.canvas: print "error -canvs not deleted"
     self.freenumber=1   #line (from 1) on canvas
     self.canvas= myw.Kanvas(self.caclstl,self.canvasDestroyed, ctpcfg=self,
       width=canvasw,height=canvash,
+      scrollregion=(0, 0, canvasw, canvashmax),
       background='yellow', borderwidth=1)
-    id0=self.canvas.create_text(1, Ctpconfig.l0y0,
+    id0=self.canvas.create_text(1, Ctpconfig.hty0,
       anchor=NW,text="Cl#")
     self.canvas.doHelp(id0, """Class number and Cluster it belongs to""")
-    id1=self.canvas.create_text(Ctpconfig.l0x0, Ctpconfig.l0y0,
+    id1=self.canvas.create_text(Ctpconfig.l0x0, Ctpconfig.hty0,
       anchor=NW,text="L0 inputs")
     self.canvas.doHelp(id1, 
 """L0 inputs: 1-24, 2 special functions, 2 scaled down BC, 2 random triggers.
@@ -306,14 +336,14 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit for classes 1-50 (45-50 with <AC version of L0-board)
 """)
-    id2=self.canvas.create_text(Klas.l0vetosx0, Ctpconfig.l0y0,
+    id2=self.canvas.create_text(Klas.l0vetosx0, Ctpconfig.hty0,
       anchor=NW,text="L0 vetos sel.")
     self.canvas.doHelp(id2,"""L0 selectable vetos. As with L0 inputs:
          red:         don't care    (1)
          green:       veto selected (0)
 Bit 'Class mask' must be selected (i.e. green) for active (triggering) classes
 """)
-    id3=self.canvas.create_text(Klas.l0scalerx0, Ctpconfig.l0y0,
+    id3=self.canvas.create_text(Klas.l0scalerx0, Ctpconfig.hty0,
       anchor=NW,text="L0 pre-scaler")
     self.canvas.doHelp(id3,
 """ L0 pre-scaler. 21 bits (0-no downscaling 0x1fffff-supress all triggers).
@@ -321,7 +351,7 @@ Bit 'Class mask' must be selected (i.e. green) for active (triggering) classes
 %50 -reduce triggers by half
 %1  -full trigger rate down-scaled 100 times
 """)
-    id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.l0y0,
+    id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.hty0,
       anchor=NW,text="L1 inputs")
     self.canvas.doHelp(id4, """ L1 inputs: 1-24.
 Mouse buttons clicks:
@@ -331,12 +361,12 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit (only for classes 45-50)
 """)
-    id5=self.canvas.create_text(Klas.l1vetosx0, Ctpconfig.l0y0,
-      anchor=NW,text="L1 vetos")
+    id5=self.canvas.create_text(Klas.l1vetosx0, Ctpconfig.hty0,
+      anchor=NW,text="L1vetos")
     self.canvas.doHelp(id5,"""L1 vetos
 """)
-    id6=self.canvas.create_text(Klas.l2inputsx0, Ctpconfig.l0y0,
-      anchor=NW,text="L2 inputs")
+    id6=self.canvas.create_text(Klas.l2inputsx0, Ctpconfig.hty0,
+      anchor=NW,text=" L2 inputs")
     self.canvas.doHelp(id6, """ L2 inputs: 1-12.
 Mouse buttons clicks:
 Left  -> modify
@@ -345,13 +375,13 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit (only for classes 45-50)
 """)
-    id7=self.canvas.create_text(Klas.l2vetosx0, Ctpconfig.l0y0,
-      anchor=NW,text="L2 vetos")
+    id7=self.canvas.create_text(Klas.l2vetosx0, Ctpconfig.hty0,
+      anchor=NW,text="L2vetos")
     self.canvas.doHelp(id7,"""L2 vetos
 """)
-    # sort klasses according to their cluster:
     sorted= self.klasses
-    sorted.sort(self.compCluster)
+    # sort klasses according to their cluster:
+    # sorted.sort(self.compCluster)
     for k in sorted:
     #for k in self.klasses:
       if self.allorenabled==1:
@@ -362,7 +392,7 @@ Middle-> modify the invert bit (only for classes 45-50)
   def canvasDestroyed(self,event):
     # this method is automatically invoked (by Tk) , when 
     # canvas' Toplevel window is destroyed
-    #print "canvasDestroyed: marking classes 'not-visible'"
+    #print "canvasDestroyed: marking classes 'not-visible'i event:",event
     for k in self.klasses:
       k.linenumber=0      # not visible
     self.freenumber=1   #line (from 1, line0 is text header) on canvas
@@ -393,6 +423,7 @@ Middle-> modify the invert bit (only for classes 45-50)
     if myw.compwidg(event, self.caclstl):
       #print "==========",dir(event)
       self.caclstl=None
+    #self.caclstl=None    # this line added 31.10.2013
     #if (event.widget==self.canvas) or (event.widget==self.caclstl):
     #always (when toplevel 'Classes' or only canvas destroyed):
   def doline(self, xy1, xy2, color="white",width=1):
@@ -427,10 +458,31 @@ Middle-> modify the invert bit (only for classes 45-50)
       llongs= ORBITLENGTH*3
     else:
       llongs= ORBITLENGTH
+    fversion= None    # lm0-l0, any combination (i.e. l0-lm0...)
     for line in cf.readlines():
       lab,rest= string.split(line,None,1)
       rest= rest[:-1]
-      #print lab,':',rest,':'
+      #print "loadfile:", lab,':',rest,':', fversion
+      if fversion==None:   # 1st line has to be VER (if present)
+        if lab=='VER': 
+          if Gl0C0==None:
+            PrintError("LM0 cfg file: %s, but old L0 board"%(string.strip(line)))
+            vbexec.printmsg("LM0 cfg file, will be modified for L0 board\n")
+            fversion="lm0-l0"
+            #break
+          else:
+            print "ok: VER with LM0 board %s"%(line)
+            fversion="lm0-lm0"
+        else:
+          if Gl0C0==None:
+            fversion="l0-l0"
+            print "ok: no VER line with L0 board"
+          else:
+            fversion="l0-lm0"
+            PrintError("bad cfg file: LM0 board, old .cfg file (1st line is not VER)")
+            vbexec.printmsg("bad cfg file: LM0 board, old .cfg file\n")
+            break
+        continue
       if lab=='RBIF': 
         self.readSharedline(rest,0, Ctpconfig.lastshrgrp1,sep=':')
       elif lab=='INTSEL': 
@@ -448,11 +500,19 @@ Middle-> modify the invert bit (only for classes 45-50)
         self.sharedrs[ishr].setattrfo(rest, 0)
         #self.sharedrs[ishr].hwwritten(0) #anyhow already set with BCMASKS:
       elif lab[:4]=='CLA.':
-        clnmb= int(lab[4:6])
+        if len(lab)==6:
+          clnmb= int(lab[4:6])
+          print "Warning: .cfg file: 50 classes format %s..."%lab
+        elif len(lab)==7:
+          clnmb= int(lab[4:7])
+          #print ".cfg file: 100 classes format"
+        else:
+          PrintError("bad line: %s"%(line))   
+          continue
         kl= self.findKlass(clnmb)
-        kl.readhw(rest)
+        kl.readhw(rest, fversion=fversion)
         if kl.linenumber==0:     # not displayed
-          if (kl.l0vetos&Ctpconfig.mskCLAMASK)==0:
+          if (kl.l0vetos & Ctpconfig.mskCLAMASK)==0:
             newcanvas=1          # but choosen
         else:
           kl.refreshClass();
@@ -587,9 +647,9 @@ Middle-> modify the invert bit (only for classes 45-50)
     if Gl0AB==None:   #firmAC
       # we cannot do the following:
       lut34= vbexec.getsl("getSharedL0f34(1)")[0]
-      print "writeShared_shared:lut34:",lut34
-      for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
-        print "writeSharedishr:%x"%ishr, self.sharedrs[ishr].value
+      #print "writeShared_shared:lut34:",lut34
+      #for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
+      #  print "writeSharedishr:%x"%ishr, self.sharedrs[ishr].value
       # but we take modifications stored in python-code only:
       longs=[] ; lut34="" #; lut4=[]
       for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
@@ -616,6 +676,10 @@ Middle-> modify the invert bit (only for classes 45-50)
     else:
       lut34= None
     if cf:
+      if Gl0C0:
+        cmd="VER %s\n"%Gl0C0
+        print "writeShared:",cmd
+        cf.write(cmd)
       #writeit=1   # write always to file
       cmd="RBIF "
       #for ishr in range(len(self.sharedrs)):
@@ -904,7 +968,11 @@ class Klas(Genhw):
     #iinvetos[i] -> position of bit in self.l0vetos
     #         4567 PF14, 8..11 BCmask1..4, 12:All/Rare 16:Classmask
     # firmAC: 4567 PF14, 8..19 BCmask1..12, 20:All/Rare 31:Classmask
-    iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
+    # firmC0: 4567 PF14, 8..19 BCmask1..12, 20:All/Rare 23:Classmask
+    if Gl0C0==None:
+      iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
+    else:
+      iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
     MININVL0_45= 1
   else:
     l0allinputs=30   # numb. of valid bits in L0_CONDITION_n word for old versions
@@ -919,7 +987,7 @@ class Klas(Genhw):
   l0vetosx0=myw.Kanvas.bitWidth*l0allinputs + Ctpconfig.l0x0 + myw.Kanvas.interspace
   # 15 -2 vetos overwritten
   l0scalerx0= l0vetosx0+ myw.Kanvas.bitWidth*l0allvetos + myw.Kanvas.interspace
-  l1inputsx0=  l0scalerx0+82
+  l1inputsx0=  l0scalerx0+90   # 82
   l1vetosx0=  l1inputsx0 + myw.Kanvas.bitWidth*24 + myw.Kanvas.interspace
   l2inputsx0=  l1vetosx0 + myw.Kanvas.bitWidth*5 + myw.Kanvas.interspace
   l2vetosx0=  l2inputsx0 + myw.Kanvas.bitWidth*12 + myw.Kanvas.interspace
@@ -931,7 +999,7 @@ class Klas(Genhw):
   colCluster=('black','brown','red','orange','yellow','green','blue')
   def __init__(self, ctpcfg, number, inputs=0, vetos=0, scaler=0):
     Genhw.__init__(self)
-    self.clnumber=number      # hw. number of the class (1-50)
+    self.clnumber=number      # hw. number of the class (1-NCLASS)
     self.linenumber= 0        # line number on Canvas (1...) 0-not displayed
     self.ctpcfg=ctpcfg
     self.l0inputs=inputs
@@ -942,19 +1010,28 @@ class Klas(Genhw):
     self.l2definition=0
     self.scaler=0
     self.clusbitid=None       # cluster bit id (canvas item)
-  def readhw(self, line=None):
+  def readhw(self, line=None, fversion="l0"):
     if line:
       c5txt= string.split(line)
       self.hwwritten(0)
+      c5= map(eval, c5txt)
+      if fversion=="lm0-l0":
+        print "readhw before: %8x %8x"%(c5[2], c5[3])
+        # l0veto  : copy bit23 -> 31
+        c5[2]= CopyBit(c5[2], 0x800000, 0x80000000)
+        # l0scaler: copy bit25 -> 31
+        c5[3]= CopyBit(c5[3], 0x2000000, 0x80000000)
+        print "readhw after: %8x %8x"%(c5[2], c5[3])
     else:
       c5txt= vbexec.get1("getClass("+str(self.clnumber)+")")
       self.hwwritten(1)
-    #print "c5:",c5, self.clnumber
-    c5= map(eval, c5txt)
+      c5= map(eval, c5txt)
     self.l0inputs= c5[0]    #30 bits (32 for firmAC)
     self.l0inverted= c5[1]  #24 bits
-    self.l0vetos= c5[2]     #16 bits. bit16:CLassMask,bit0-12->see hw
+    self.l0vetos= c5[2]     #16 bits. , 31 bits for lm0
+    # bit16:CLassMask,bit0-12->see hw. not for LM0
     self.scaler= c5[3]
+    #print "readhw:%d: 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0vetos)
     if len(c5)<=4:   #old format -before L1.L2
       vbexec.printmsg("class%d:: L1,L2 definitions missing, taking defaults\n"%self.clnumber)
       self.l1definition= 0xfffffff
@@ -966,7 +1043,7 @@ class Klas(Genhw):
       self.l2definition= c5[6]
   def writehw(self,cf=None):
     if cf:
-      fmt="CLA.%02d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
+      fmt="CLA.%03d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
       cmdout= cf.write
     else:
       fmt="setClass(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
@@ -1068,11 +1145,11 @@ class Klas(Genhw):
       if cabi>=200:
         startx0= Klas.l2inputsx0; i=cabi-200
         hlptext="L2 input "+str(i+1)
-        minInverted= 45
+        minInverted= 1 #45
       elif cabi>=100:
         startx0= Klas.l1inputsx0; i=cabi-100
         hlptext="L1 input "+str(i+1)
-        minInverted= 45
+        minInverted= 1 #45
       else:
         startx0= Ctpconfig.l0x0; i=cabi
         minInverted= Klas.MININVL0_45   # <AC or >=AC 
@@ -1129,11 +1206,11 @@ class Klas(Genhw):
     if ibit>=200:
       inputs= self.l2definition
       inverted= self.l2definition>>12
-      minInverted= 45
+      minInverted= 1 #45
     elif ibit>=100:
       inputs= self.l1definition
       inverted= self.l1inverted
-      minInverted= 45
+      minInverted= 1 #45
     else:
       inputs= self.l0inputs
       inverted= self.l0inverted
@@ -1158,7 +1235,7 @@ class Klas(Genhw):
   def modL0handler(self,event, eventkeycode, klasbit):
     """klasbit: 0..
     """
-    #print "modL0handler1:", klasbit,hex(self.l0inputs), eventkeycode
+    print "modL0handler1:", klasbit,eventkeycode, hex(self.l0inputs), hex(self.l1definition), hex(self.l1inverted)
     #print "modL0handler2:", event, dir(event)
     #print "modL0handler3:", event.keycode, event.keysym,event.keysym_num, eventkeycode
     #print "modL0handler4:", type(event.keycode)
@@ -1247,6 +1324,7 @@ green:0 -killed if AllRare is Rare"""
     #if klasbit==9:   #Class mask
     #print "modVetohandler:",event,canvbit, event.keycode
     # VME L0_MASK word will be updated according to self.l0vetos[31] bit
+    # or l0vetos[23] bit in LM0 case
     if canvbit>=200:
       self.l2definition=InvertBit(self.l2definition, self.canv2hwveto(canvbit) )
     elif canvbit>=100:
@@ -1511,18 +1589,22 @@ If at least 1 cluster is in DAQBUSY state, DAQ LED on L0 board should be ON.
       #cmd= self.detscmd, defval= self.dets,
       helptext="""CLUSTER word as programmed on BUSY board. 
 You can see LTU names or numbers.
-The numbers represents NOT CONNECTED busy inputs (1-24) 
-belonging to this cluster -i.e. something is wrong (all busy inputs
-used should be CONNECTED!).
 Always when cluster is choosen for a FO output connector (upper part of
 the widget), the corresponding registers on FO boards are modified, BUT
 BUSY BOARD IS LEFT UNTOUCHED.
 
-That is the reason why numbers(1-24) of this button,
-corresponding to bits in CLUSTER word on BUSY board, are 'read only'.
-The right value can be obtained by pressing 'FOs-->BUSY' button.
-(if you want to play with BUSY board setting independently,
-remove allro='yes' option for self.db button in ctpcfg.py file)
+That is the reason why numbers(1-24), corresponding to 
+the bits in BUSY_CLUSTER+4*N (N=1,2,...) register, are 'read only'.
+The right value can be obtained by pressing 'FOs-->BUSY' button (and
+written to BUSY board by File->Write2hw button).
+BUSY inputs are taken from shared memory, updated ONLY with ctp_proxy start -
+i.e. if VALID.LTUS is changed, restart ctp_proxy to get them visible
+also in ctp expert sw.
+
+If you want to play with BUSY_CLUSTER register independently on shared
+memory using this button, remove allro='yes' option for self.db 
+button in ctpcfg.py file.
+
 """)
   def daqbsycmd(self):
     if self.cluster==0:return   # no DAQBUSY for Test cluster
@@ -1571,8 +1653,8 @@ part of the 'CTP fo boards' widget) to conform with FOs setting (upper part).
 NOTES:
 1. INT_TC_SET word (INT board i.e. RoC and CIT bits in L2a message) 
    is left untouched.
-2. HW (i.e. BUSY board) is not programmed, unless the next File->Write2hw
-   button pressed
+2. HW (i.e. BUSY board) is not programmed, unless the File->Write2hw
+   button activation
 """)
     for ibc in (0,1,2,3,4,5,6):
       self.bcs[ibc].showCluster(fr)
@@ -1624,10 +1706,12 @@ NOTES:
               str(focon.connector)+")")[0]
             ibsyinp=int(bsyinp)
             if ibsyinp==0: continue   # not connected bsy input
-            #print "bsyinp:", detn, ibsyinp
+            print "bsyinp:", detn, ibsyinp
             #self.refreshClusters(detn, clstr)
             self.refreshClusters(ibsyinp, clstr)
-            self.hwwritten(0)
+            #self.hwwritten(0)
+    # always when FOs->BUSY button presses, reprogram BUSY_CLSTER: (from 14..2014)
+    self.hwwritten(0)
     #cl06=vbexec.get1("updateBusyClusts()")
     #print "fos2busy:", cl06
   def readhw(self, line=None):
@@ -2185,8 +2269,9 @@ class PFwholecircuit:
     self.pfwidget=None   # not shown
     self.levels=[]   # 3 pointers to PFcircuit objects (for 3 levels)
     self.pfinbc= None 
-    for ix in range(3):
-      #print "PFwholecircuit:", ix, self.circuit
+    #for ix in range(3):
+    for ix in range(len(self.ctp.pfbs)):
+      #print "PFwholecircuit:", ix, self.circuit, len(self.ctp.pfbs)
       self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
   def setpfinbc(self, pfinbc):
     """ set corresponding fields in PFboard objects, 

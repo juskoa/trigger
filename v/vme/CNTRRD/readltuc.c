@@ -26,10 +26,10 @@ extern "C" {
 #define l2a_strobe 19
 
 #define MAXTEMPLATEL 20
-#define NLTUS 19
+#define NLTUS 20
 char *LTUS[]={"spd", "sdd", "ssd", "tpc", "trd", "tof", "phos",
   "cpv", "hmpid", "muon_trk", "muon_trg", "pmd",
-  "fmd", "t0", "v0", "zdc", "acorde", "emcal", "daq"}; 
+  "fmd", "t0", "v0", "zdc", "acorde", "emcal", "daq", "ad"}; 
 //define NLTUS 2 
 //char *LTUS[]={"hmpid", "muon_trk"};
 
@@ -81,9 +81,9 @@ for(ix=0; ix< NLTUS; ix++) {
       sprintf(msg, "%s %s:%d:%d", msg, inforcs[ix].ntemplate, timedif, rc);
     };
   };
-}; strcat(msg,"\n");
-if(strcmp(msg,"\n")!=0) {
-  printf(msg); fflush(stdout);
+}; 
+if(msg[0]!='\0') {
+  prtWarning(msg);
 };
 }
 /*-----------------------*/ void gotcnts(void *tag, void *buffer, int *size) {
@@ -140,7 +140,8 @@ int inforc, ixtag, ixdet;
 char service[40], ltuUPPER[40];
 //setbuf(stdout, NULL);   nebavi
 //dbgout= fopen("dbgout", "w");
-rrdpipe= popen("/usr/bin/rrdtool - >ltu_rrdtool.log", "w");
+//rrdpipe= popen("/usr/bin/rrdtool - >ltu_rrdtool.log", "w");
+rrdpipe= popen("/usr/bin/rrdtool - >/dev/null", "w");
 if(rrdpipe==NULL) {
   printf("Cannot open /usr/bin/rrdtool -\n");
   exit(8);
@@ -148,6 +149,7 @@ if(rrdpipe==NULL) {
 for(ixtag=0; ixtag< NLTUS; ixtag++) {
 };
 for(ixtag=0; ixtag< NLTUS; ixtag++) {
+char msg[900];
   inforcs[ixtag].timeInSecs= 0;
   strcpy(ltuUPPER, LTUS[ixtag]); UPPER(ltuUPPER);
   sprintf(inforcs[ixtag].ntemplate, "%s", ltuUPPER);
@@ -155,7 +157,8 @@ for(ixtag=0; ixtag< NLTUS; ixtag++) {
   inforc= dic_info_service(service, MONITORED, 0, 
     cnts,4*(LTUNCOUNTERSall), gotcnts, ixtag, &cntsFailed, 4); 
   inforcs[ixtag].inforc= inforc;
-  printf("%s=%d id:%d %s\n", service, ixtag, inforc, inforcs[ixtag].ntemplate);
+  sprintf(msg,"%s=%d id:%d %s", service, ixtag, inforc, inforcs[ixtag].ntemplate);
+  prtLog(msg);
 };
 while(1) {
   sleep(100);

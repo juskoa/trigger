@@ -1,0 +1,2 @@
+#!/bin/bash
+grep -e 'ing START_PART' -e 'ing STOP_PA' -e 'ing INIT_P' $1

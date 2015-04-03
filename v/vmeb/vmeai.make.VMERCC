@@ -1,5 +1,5 @@
-VMERCCLD := -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc
+VMERCCLD := -L$(VMELIBS) -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lDFDebug
 LDFLAGS += $(VMERCCLD)
 # -lDFDebug
-CFLAGS=$(COMMONCFLAGS) -I/usr/local/include
+CFLAGS=$(COMMONCFLAGS) -I$(VMEINCS)
 

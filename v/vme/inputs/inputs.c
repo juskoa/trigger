@@ -163,7 +163,7 @@ void scanDel(int micseconds,int board)
    usleep(micseconds);
   while(1) {
     w32 bcs;
-    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS);
+    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS); bcs=0x2;
     if(bcs & BC_STATUSpll) break;
   };
    val=readadc(board);
@@ -192,7 +192,8 @@ void adctimeconst(w32 delay0,w32 delay1,int board)
  return ;
 }
 /*FGROUP ADCtools
-Generates random delays and measure adc for each of them.
+Generates random delays (on BUSY board) and measure adc (on board) 
+for each of them.
 */
 void rndtest(int board)
 {
@@ -215,7 +216,7 @@ void rndtest(int board)
   /* PLL_RESET always after dealy change then wait for PLL_LOCK: */
   GetMicSec(&seconds1, &micseconds1);
   //vmew32(BSP*ctpboards[0].dial+PLLreset, DUMMYVAL);
-  vmew32(BSP*ctpboards[board].dial+PLLreset, DUMMYVAL);
+  //vmew32(BSP*ctpboards[board].dial+PLLreset, DUMMYVAL);
   /* first wait for 'unlocked' at least 300 milsecs 
   while(1) {
     w32 bcs;
@@ -228,7 +229,7 @@ void rndtest(int board)
   all0mics=all0mics+diff; */ 
   while(1) {
     w32 bcs;
-    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS);
+    bcs= vmer32(BSP*ctpboards[board].dial+BC_STATUS); bcs=0x2;
     if(bcs & BC_STATUSpll) break;
   };
   GetMicSec(&seconds2, &micseconds2);
@@ -264,12 +265,49 @@ rc: 2 BC_STATUS low bits: [BC_STATUSpll, BC_STATUSerr] */
 w32 getbcstatus(int board) {
  w32 boardoffset;
  boardoffset=BSP*ctpboards[board].dial;
- return 3&vmer32(boardoffset + BC_STATUS);
+ return 0x2; //return 3&vmer32(boardoffset + BC_STATUS);
 }
-/*FGROUP ADCtools
-  Inputs are counted from 1 to 24(12) as in hardware.
-*/
-int setinput(int board,w32 input){
+/*
+ * run2 is same as run1 at the moment one has to think
+ * what to do
+ */
+int setinputrun2(int board,w32 input){
+  w32 boardoffset;
+ int ret=0;
+ boardoffset=BSP*ctpboards[board].dial;
+ if(input > 53 || input < 0) {
+   ret=2;
+   goto RET;
+ }
+ if(board == 1 || board == 2){
+ }else if(board == 3){
+  /* Why this ?
+  if(input == 27)      input = 15;
+  else if(input == 26) input = 14;
+  else if(input == 25) input = 13;
+  else if(input > 12){
+   ret=1;
+   goto RET;
+  }
+  */
+  if(input > 15){
+   ret =1;
+   goto RET;
+  }
+ }else{
+  ret=3;
+  goto RET;
+ }
+if((board==1) && (l0C0())) {
+ vmew32(boardoffset+ADC_SELECTlm0,input);
+} else {
+ vmew32(boardoffset+ADC_SELECT,input);
+};
+ RET:
+ printf("board=%i input =%i ret=%i\n",board,input,ret);
+ return ret;
+}
+int setinputrun1(int board,w32 input){
  w32 boardoffset;
  int ret=0;
  boardoffset=BSP*ctpboards[board].dial;
@@ -290,9 +328,25 @@ int setinput(int board,w32 input){
   ret=3;
   goto RET;
  }
+if((board==1) && (l0C0())) {
+ vmew32(boardoffset+ADC_SELECTlm0,input);
+} else {
  vmew32(boardoffset+ADC_SELECT,input);
+};
  RET:
  printf("board=%i input =%i ret=%i\n",board,input,ret);
+ return ret;
+}
+/*FGROUP ADCtools
+  Inputs are counted from 1 to 24(12) as in hardware.
+*/
+int setinput(int board,w32 input){
+ int ret=0;
+ if(l0C0()==0){
+   ret=setinputrun1(board,input);
+ }else{
+   ret=setinputrun2(board,input);
+ }
  return ret;
 }
 /*FGROUP EDGEtools
@@ -313,18 +367,24 @@ void measureedge(){
   printf("<%i> <%i> \n",delay,5*edge);
  }
 }
-/*FGROUP ALItools
-*/
+/* FGROUP ALItools   NOT USED? (anyhow shoudl be mdodified after 12.2.2015)
 void setDelay(int board,w32 input,w32 delay){
- w32 word;
+ w32 word, synch_add;
  if(delay>15){
    printf("Too big delay %i \n",delay);
    return;
  }
- word=vmer32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1));
+if(l0C0() && (board==1)) {
+  synch_add= SYNCH_ADDr2;
+} else {
+  synch_add= SYNCH_ADD;
+};
+ word=vmer32(BSP*ctpboards[board].dial+synch_add+4*(input-1));
  word=(word&0xfffffff0)+delay;
- vmew32(BSP*ctpboards[board].dial+SYNCH_ADD+4*(input-1),word); 
+ vmew32(BSP*ctpboards[board].dial+synch_add+4*(input-1),word); 
+ printf("setDelay debug: 0x%x 0x%x\n",BSP*ctpboards[board].dial+synch_add+4*(input-1),word );
 }
+*/
 /* FGROUP EDGEtools 
 moved to ctp/ctplib/inputsTools.c
 */
@@ -352,11 +412,11 @@ int measurephase(int board,int input){
  int edge;
  w32 dum;
  if(setinput(board,input)) return 1;
- edge=getedge(board,input,&dum);
- if(edge>3) return 2;
- setEdge(board,input,0);
+ //- edge=getedge(board,input,&dum);
+ //- if(edge>3) return 2;
+ //- setEdge(board,input,0);
  rndtest(board);  
- setEdge(board,input,edge); 
+ //setEdge(board,input,edge); 
  return 0;
 }
 
@@ -444,7 +504,11 @@ void checkInputsActivity(int board){
  w32 word;
  for(i=0;i<24;i++)ChannelEmpty[i]=0;
  if(board==1){ 
-   strcpy(mode,"l0_inmon");
+   if(l0C0()) {
+     strcpy(mode,"lm0_inmon");
+   } else {
+     strcpy(mode,"l0_inmon");
+   };
    chan0=8;chanM=32;
  }
  else if(board==2){
@@ -639,7 +703,11 @@ void getorbitstatus(){
 */
 void setL012mode(){
  char mode[32];
- strcpy(mode,"l0_inmon");
+ if(l0C0()) {
+   strcpy(mode,"lm0_inmon");
+ } else {
+   strcpy(mode,"l0_inmon");
+ };
  setsmssw(1,mode);
  strcpy(mode,"l1_inmon");
  setsmssw(2,mode);

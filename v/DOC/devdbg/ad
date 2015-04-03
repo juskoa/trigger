@@ -1,0 +1,25 @@
+AD:
+cp v/vme/CNTRRD/htmls/pngs/ad.png ~/CNTRRD/htmls/pngs/
+
+CNTRRD/rrd.py   LTUS -AD amended
+CNTRRD/readltuc.c   LTUS + NLTUS modified
+CNTRRD/htmlCtpBusys.py ad.png
+CNTWEB/ltus.py  LTUS
+
+CNTWEB/htmlarch/busyL0.html   ?? probably not needed to be modified
+
+~/CNTRRD/rrd/ADcreate.text -created from PHOScreate.text
+[trigger@avmes CNTRRD]$ rrdtool - <rrd/ADcreate.text
+OK u:0.00 s:0.01 r:0.02
+
+
+startClients.bash rrd stop
+startClients.bash rrd start
+startClients.bash html start
+
+22.2.2015:
+ACT: /CTP/ADtrgInput
+CNTRRD/readctpc.c: 2 items added to the end of arrays (AD...)
+cnames.sorted2: new one created in ~ in p2:
+todo: -> avmes, + -> $dbctp
+

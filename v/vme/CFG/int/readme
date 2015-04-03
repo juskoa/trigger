@@ -14,3 +14,19 @@ phase measurement included
 30.6.2011
 int_logic_a9.rbf 
 IR are pushed ot from buffer every 2 seconds (before: 20s)
+2.9.2011
+int_logic_aa.rbf 
+Synchronisation of Orbit counters on INT board cahnged to fit
+longer L2a time (TL2 = 4208).
+5.9.2011
+int_logic_aa.rbf. Now only 1024-2047 BCids are used for INT/L2 sync.
+13.11.2013
+int_logic_verAB.rbf   -first version for run2 (100 classes, new readout)
+1.4.2014 int_logic_verAC.rbf
+CTP readout -> word 4 bit 11 is always 1 in run2 (was 0 in run1)
+9.4.2014 int_logic_verAC.rbf
+another AC version word4/bit12 is run2-flag, ctp readout is ok now
+10.2.2014
+AD timing introduced
+5.3.2015
+AE: orbit synchronisation now takes into account 2bit longer L2data (cluster[7..8] bits)

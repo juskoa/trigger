@@ -1,6 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "vmeblib.h"
+// get globals ctpsegid, ctpshmbase declared
+#define DBMAIN
+#include "Tpartition.h"
 
 int actdb_getInstances(char *itemname);
 int actdb_getPartition(char *name, char *filterpar, char *a, char *b);
@@ -14,7 +17,8 @@ if(argc>1) {
   printf("filter %d:\n%s\n", (int)strlen(filter),filter);
   };
 } else {
-  grc= actdb_getInstances("/CTP/ctp.cfg");
+  //grc= actdb_getInstances("/CTP/ctp.cfg");
+  grc= actdb_getInstances("/CTP");
 };
 return(grc);
 }

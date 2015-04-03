@@ -8,6 +8,10 @@ BCS_BEFORE=85   # was 16, TRD request: 85
 DIS_BEFORE=3
 DIS_AFTER_AC=32
 DIS_AFTER_B=128
+# the minimal distance to the previous/next B-bunch:
+# i.e. 2: -at least 1 bunch between I and neighbour
+I2B_BEFORE=11
+I2B_AFTER=2
 def suborbit(a, b):
   """ cal. diffrence between 2 BCs b->a
   """
@@ -223,15 +227,17 @@ class LHCinfo:
       else:
         self.buckets[bc]= BcAttrs(None,buc, '', train)
     return err
-  def read_sch(self, fn):
+  def read_sch(self, fn, fsname=None):
     """ rc: err message or ""
 lines in fn:
+----------------1.format
 Old scheme (.sch), before 19.9.2010: ring_1/2 in ll[3]
- inj  3  2  ring_1     2001     1250   4
+ inj  3  2  ring_1     2001     1250   4             [0]     [1]
             Y          Y         Y     Y             Y       Y
             beam       bucFirst buc    repetitions SPSspace PStrains
   0   1  2   3         4         5     6            7        8
 
+----------------2.format
 New scheme (web txt), after 19.9.2010: ring_1/ring_2 in ll[2]
 # Injection sequence:
 #
@@ -250,6 +256,18 @@ i.e.:
 empty line: ignored
 len(splitted line)<7: ignore
 
+----------------3.format
+From http://lpc.web.cern.ch/lpc/fillingschemes.htm
+ -> LHC Injection Scheme Display    -> .csv file
+
+idx,inj Nbr,	Ring,RF Bucket,Bu Spac (ns),bu per PS batch,SPS Batch spac,PSbatch nbr,bu Int[1e9p]
+0   1           2    3         4            5               6              7           8
+Bu Spac : space in ns between bunches in the same PS train
+SPS Batch Spac : space in ns between 2 PS trains in the SPS
+
+-seems the same as format 2 (column 8 not used anyhow)
+
+-----------------
 Goal: prepare:
 1. abcs{}: abcs[bc] is one of: 'A' 'B' 'C' 'E'   bc:0..3563
 2. buckets: buckets[bc].buc: n or n1,n2 LHC bucket number(s) 1..35641
@@ -257,14 +275,22 @@ Goal: prepare:
     """
     errs=""
     trainlenmax=0
+    if fsname!=None:
+      dipfile= open(fsname+".schdip","w")
+      ringac= ("?","A","C")
+    else:
+      dipfile= None
     for line in string.split(fn,"\n"):
       if line == "": continue
       if line[0] == "\n": continue
       if line[0] == "#": continue
       ll= string.split(line)
       if len(ll)<7: continue
-      if ll[3][:5]=='ring_':   
+      if ll[3][:5]=='ring_':    #old way
         ixring=3; ixbeam=3; ixbucFirst=4; ixbuc=5; ixrepetitions=6 
+        if len(ll)==7:          # SPS spacing + trains/SPS batch not given
+           ll.append("0")       # any?
+           ll.append("1")       # just 1 single bunch in 1 train
         ixSPSspace= 7; ixPStrains=8
       elif ll[2][:5]=='ring_':  #new
         ixring=2; ixbeam=2; ixbucFirst=3; ixbuc=4; ixrepetitions=5 
@@ -281,13 +307,15 @@ Goal: prepare:
       if repetitions>trainlenmax:
         trainlenmax= repetitions
       beam= int(ring[1]) ; bucFirst= int(ll[ixbucFirst])
+      bc_spacing= int(ll[ixbuc])/25
+      #print "%d PStrains:"%beam,PStrains,"reps:",repetitions,"SPSspace:",SPSspace
       for ibcsps in range(PStrains):
-        #print "ibcsps:",ibcsps, SPSspace
+        #print "ibcsps:",ibcsps, "bucFirst:",bucFirst, "SPSspace:",SPSspace
         for ibc in range(repetitions):   # ibc>0: multi bunch injections
-          bc_spacing= int(ll[ixbuc])/25
-          buc= (bucFirst + 10*ibcsps*SPSspace/25 + \
-            ibc*(10*bc_spacing))%(ORBITL*10)
+          buc= (bucFirst + ibc*(10*bc_spacing))%(ORBITL*10)
           bc=bu2bc(beam, buc)
+          if dipfile:
+            dipfile.write("%s %d\n"%(ringac[beam], buc))
           if ibc==0:
             trainStart= [repetitions, bc_spacing]
           else:
@@ -295,6 +323,11 @@ Goal: prepare:
           #print "bcbuc:", beam, buc,"->", bc
           err=self.__storebc(bc, beam, buc,trainStart)
           if err: errs= errs+ err + "\n"
+        if SPSspace==0:    # is 0 for Multi_100b_46_16_22_36bpi9inj (11.2.2013)
+          bucFirst= buc + 10*bc_spacing
+        else:
+          bucFirst= buc + 10*SPSspace/25
+    if dipfile: dipfile.close();
     print "Max. train:", trainlenmax
     return errs
   def read_dip(self, fn):
@@ -373,6 +406,7 @@ later time (when .mask cretaed)
   alice=fsname+'\n'; 
   lhcfs= LHCinfo(fsname)
   if format == "from sch":
+    #errmsg= lhcfs.read_sch(fn,fsname)   create also fsname.schdip file
     errmsg= lhcfs.read_sch(fn)
   if format == "from dip":
     errmsg= lhcfs.read_dip(fn)
@@ -627,7 +661,7 @@ class FilScheme:
     self.mainsat= "mainsat"   # main-sat always: COMMON from 3.5.2012
     self.mask={}   # contains only meaningful (BACE) BCs: mask[3] is 'A B C or E'
     self.fsname= fsname
-    self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[]}
+    self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[], 'I':[]}
     # self.bx['B']: list of ints representing colliding BCs
     self.ignore={};    # dictionary of ignored bunches
     ixline=-1 ; Bbunches=0
@@ -662,6 +696,27 @@ class FilScheme:
       if (bace=='A') or (bace=='C'):
         #self.bx['AorC'].append(bxn)   # A + C
         self.insert('AorC', bxn)
+    Blen= len(self.bx['B'])
+    if Blen>0:
+      if Blen==1:
+        self.bx['I'].append(self.bx['B'][0])
+      else:
+        for ix in range(Blen):
+          if ix==0:
+            prevB=self.bx['B'][Blen-1]
+          else:
+            prevB=self.bx['B'][ix-1]
+          if ix==(Blen-1):
+            nextB=self.bx['B'][0]
+          else:
+            nextB=self.bx['B'][ix+1]
+          prosI=self.bx['B'][ix]
+          dist_before= suborbit(prosI, prevB)
+          dist_after= suborbit(nextB, prosI)
+          #print("Itest: %d -%d- %d"%(dist_before,prosI,dist_after))
+          if (dist_before>=I2B_BEFORE) and (dist_after>=I2B_AFTER):
+            self.insert('I', prosI)
+    #print("I:", self.bx['I'])
     if self.mainsat=='b2':    # if B>=0 : main-main else main_sat
       if Bbunches>0:
         self.mainsat= None
@@ -818,44 +873,61 @@ class FilScheme:
     #print "reversed:",cmask
     return cmask
   def mainsatAC(self, AC): 
-    """ after Easter 2012:  AC could be: A C S
+    """ after Easter 2012:  AC could be: A C S SA SC
     find: 
     AC
     A or C   .A. or .C.   (where . is nothing or E )   -> A or C mask
     S        AC                            -> S (i.e. SS)
              CA                            -> S (i.e. SS)
-    SA       AC  -A is SA-bunch, C is SC-bunch
+    SA       AC  -A is SA-bunch
+    SC       AC  -C is SC-bunch
     rc: sorted list of A/C SA/SC/S bunches
     """
     #maar= self.fillL('H')   # all disabled
     bxac=[]
     for bx in self.mask.keys():   # not sorted!
       bt= self.mask[bx]
-      if bt=='E' or bt=='B': continue   # ignore B,E-bunches
+      if bt=='E' or bt=='B': continue   # B,E is always B,E
       prevbx= prevbc(bx); nextbx= nextbc(bx)
       if self.mask.has_key(prevbx): prevbt= self.mask[prevbx]
       else: prevbt=''
-      if self.mask.has_key(nextbx):
-        nextbt= self.mask[nextbx]
-      else:
-        nextbt=''
+      if self.mask.has_key(nextbx): nextbt= self.mask[nextbx]
+      else: nextbt=''
       if (AC=='A') or (AC=='C'):
         if (AC== bt):   # locate start of comb A/C
-          if (prevbt=='' or prevbt=='E') and (nextbt=='' or nextbt=='E'):
+          # was before 7.1.2013 (problem with 25ns fs):
+          #if (prevbt=='' or prevbt=='E') and (nextbt=='' or nextbt=='E'):
+          # bxac.append(bx)
+          #elif prevbt=='B' or prevbt==AC:
+          #  print "Error: 2 neighbouring bcs from %d:%c%c "%(prevbx, prevbt,bt)
+          #
+          # following line for pA2013 (from 7.1.2013) i.e. full set of A/C:
+          #bxac.append(bx)
+          # after 11.2.2013:
+          if (prevbt=='' or prevbt=='E' or prevbt=='B' or prevbt==AC) and \
+             (nextbt=='' or nextbt=='E' or nextbt=='B' or nextbt==AC):
             bxac.append(bx)
-          elif prevbt=='B' or prevbt==AC:
-            print "Error: 2 neighbouring bcs from %d:%c%c "%(prevbx, prevbt,bt)
         continue
       # S case (AC or CA -2nd one is current one):
       if AC=='S':
-        if (prevbt=='A' and bt=='C') or (prevbt=='C' and bt=='A') or\
-           (nextbt=='A' and bt=='C') or (nextbt=='C' and bt=='A'):
+        #if (prevbt=='A' and bt=='C') or (prevbt=='C' and bt=='A') or\
+        #   (nextbt=='A' and bt=='C') or (nextbt=='C' and bt=='A'):
+        prevcb= (prevbt=='C') or (prevbt=='B')
+        nextcb= (nextbt=='C') or (nextbt=='B')
+        prevab= (prevbt=='A') or (prevbt=='B')
+        nextab= (nextbt=='A') or (nextbt=='B')
+        if (prevcb and bt=='A') or (nextcb and bt=='A') or\
+          (prevab and bt=='C') or (nextab and bt=='C'):
           bxac.append(bx)
       elif AC=='SA':
-        if (prevbt=='C' and bt=='A') or (nextbt=='C' and bt=='A'):
+        prevcb= (prevbt=='C') or (prevbt=='B')
+        nextcb= (nextbt=='C') or (nextbt=='B')
+        if (prevcb and bt=='A') or (nextcb and bt=='A'):
           bxac.append(bx)
       elif AC=='SC':
-        if (prevbt=='A' and bt=='C') or (nextbt=='A' and bt=='C'):
+        prevab= (prevbt=='A') or (prevbt=='B')
+        nextab= (nextbt=='A') or (nextbt=='B')
+        if (prevab and bt=='C') or (nextab and bt=='C'):
           bxac.append(bx)
       else:
         print "Internal error: mainsatAC arg:%s (allowed: A C S SA SC)"%AC
@@ -874,7 +946,11 @@ class FilScheme:
         if mskc=='.': 
           mskc= btype
         else:
-          print "Error: bc %d is %c or %c ?"%(ix1,mskc,btype)
+          if (btype=='S') and ((mskc=='A') or (mskc=='C')):
+            # AB: a is in A-mask and also in S-mask, return 'S'
+            mskc= btype
+          else:
+            print "Error: bc %d is %c or %c ?"%(ix1,mskc,btype)
     return mskc
     # remove following:
     if self.isin(self.arch['A'], ix1):
@@ -939,7 +1015,9 @@ class FilScheme:
     bs= len(self.arch['S'])
     bsa= len(self.arch['SA'])
     bsc= len(self.arch['SC'])
-    print "Summary: B:%d S/SA/SC:%d/%d/%d A:%d C:%d"%(bb, bs,bsa,bsc, 
+    bsi= len(self.bx['I'])
+    print "Summary: B:%d(I:%d nonB before/after:%d/%d) S/SA/SC:%d/%d/%d A:%d C:%d"%\
+      (bb, bsi,I2B_BEFORE-1,I2B_AFTER-1,bs,bsa,bsc, 
       len(self.arch['A']), len(self.arch['C']))
   def getMasks(self):
     om= "# %s"%self.fsname
@@ -953,6 +1031,11 @@ class FilScheme:
     self.arch['B']= self.bx['B']
     om= om+"\n" + self.print1('B')
     om= om+"\n" + "bcmB" +" "+ self.eN(self.bx['B'])
+    om= om+"\n" + self.print1('I')
+    om= om+"\n" + "bcmI" +" "+ self.eN(self.bx['I'])
+    om= om+"""
+bcmGA 224H121L3219H
+bcmGC 2897H121L546H"""
     if self.mainsat=="never this part of the code":
       self.arch['A']= self.bx['A']
       om= om+"\n" + self.print1('A')

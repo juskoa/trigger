@@ -1,14 +1,10 @@
-#include <list>
-class cl{
-};
+#include <iostream>
+#include <cmath>
+#include <stdlib.h>
 using namespace std;
 int main(){
- list<cl*> test;
- int a=2;
- int *p;
- p=&a;
- cl *aa;
- aa=new(cl);
- test.push_back(aa);
+ long long int k;
+ cout << sizeof(k) << endl;
+ cout << "Rand max " << log2(RAND_MAX) << endl;
 }
 

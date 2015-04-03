@@ -1,0 +1,107 @@
+<html>
+  <head>
+<script type="text/JavaScript">
+<!--
+var hname=location.hostname.replace(/^www\./i,'');
+document.write("<title>ALICE Trigger @ " + hname + "</title>");
+//-->
+</script>
+  </head>
+<!--
+<body BGCOLOR="#FFFFFF">
+   <br><br><center>
+   <img src="trigger.gif" alt="Welcome to the ALICE Trigger web at P2" align=center>
+<br><br>
+-->
+<script type="text/JavaScript">
+document.write("<br><br><center> Welcome to the ALICE Trigger @ " + hname + "</cneter><br>");
+</script>
+</center>
+<dl>
+<dt><b>Docs</b></dt>
+  <UL>
+    <LI><A href="http://alicetrigger.web.cern.ch/alicetrigger/">ALICE trigger (CERN replica)</A>
+<!---
+    <LI><A href="https://www.ep.ph.bham.ac.uk/twiki/bin/view/ALICE/">ALICE trigger twiki (bham)</A>
+-->
+    <LI><A href="https://twiki.cern.ch/twiki/bin/view/ALICE/CentralTriggerProcessor">ALICE trigger twiki (cern)</A>
+      <LI><A href="https://alice-logbook.cern.ch/wiki/tiki-view_faq.php?faqId=2&highlight=BCmonitor#q149">BC numbers in the run</A> (DAQ wiki, use user/passwd valid for aldaqacr07 login)
+<!---
+    <LI><A href="http://indico.cern.ch/getFile.py/access?resId=0&materialId=slides&confId=85840">Beam modes vs. RFsynchro</A>
+-->
+      <LI><A href="writeups/beam_modes_and_RF_synchro2.pdf">Beam modes and RFsynchro</A>
+    <LI><A href="writeups">Writeups</A>
+    <UL>
+      <LI><A href="writeups/CTP_SM1.11.pdf">Shifter manual</A>
+      <LI><A href="writeups/CTP_FAQ1.6.pdf">Expert manual</A>
+      <LI><A href="writeups/last_tcc.pdf">Trigger class codes</A> -local copy, may be obsolete
+<!---
+      <LI><A href="https://twiki.cern.ch/twiki/pub/ALICE/TriggerCoordination/">Latest Trigger Class Codes</A> -web page with newest version <A href="https://twiki.cern.ch/twiki/pub/ALICE/TriggerCoordination/TCCodes-10-07-30-00.pdf">TCCodes-10-07-30-00.pdf</A>
+-->
+<LI><A href="https://twiki.cern.ch/twiki/bin/viewauth/ALICE/TriggerCoordination">Latest Trigger Class Codes</A> -web page with the newest version
+    </UL>
+  </UL>
+<dt><b>Monitoring</b></dt>
+  <UL>
+<!---
+    <LI><A href="http://pcalicebhm05/CNTWEB/cnt/">CTP counters</A>
+    <LI><A href="http://pcalicebhm05/CNTWEB/ltus/">LTU counters</A>
+    <LI><A href="http://pcalicebhm05/CNTWEB/mons/">TTCMI,... </A>
+-->
+    <LI><A href="CNTWEB/cnt/">CTP counters</A> <A href="CNTWEB/ltus/">LTU counters</A>
+    <LI><A href="http://alidcsaux008">Scope clock monitor</A>
+    <LI><A href="htmls/ratios.html">L2/L0 ratios in global runs</A>
+    <LI><A href="CNTWEB/mons/">TTCMI,... </A>
+  </UL>
+<dt><b>Status</b></dt>
+  <UL>
+<!---
+    <LI><A href="http://pcalicebhm05/htmls/busyL0.html">Global runs status</A>
+    <LI><A href="http://pcalicebhm05/ltus/status/index.php">ltuproxies status</A>
+-->
+    <LI><A href="htmls/busyL0.html">Global runs BUSY status</A>
+<!--#include file="exs/incme.shtml" --> 
+    <LI><A href="ltus/status/index.php">ltuproxies status</A>
+  </UL>
+<dt><b>Local partition configurations </b></dt>
+ <UL>
+    <LI><A href="CNTWEB/chlocpart?partname=PHYSICS_1">PHYSICS_1</A>
+    <LI><A href="CNTWEB/chlocpart?partname=PHYSICS_2">PHYSICS_2</A>
+    <LI><A href="CNTWEB/chlocpart?partname=PHYSICS_3">PHYSICS_3</A>
+    <LI><A href="CNTWEB/chlocpart?partname=TEST_1">TEST_1</A>
+ </UL>
+ACT configurations:
+ <UL>
+    <LI><A href="writeups/Pb_partitions">PbPb 2011 partitions in ACT</A> -an incomplete attempt to document the history of PHYSICS_1 modifications...
+ </UL>
+<dt><b>LHC operation</b></dt>
+  <UL>
+    <LI><A href="http://op-webtools.web.cern.ch/op-webtools/vistar/vistars.php?usr=LHC1">OP Vistars</A>
+    <LI><A href="https://ttcpage1.web.cern.ch/ttcpage1/war/TTCpage1.html">LHC clock</A>
+<!---
+    <LI><A href="CNTWEB/newfill/translate">LHC filling scheme -> ALICE -> ACT</A>
+--->
+    <LI><b>ALICE collisions schedules:</b>
+      <UL>
+        <LI><A href="fs">Loaded from ACT</A> 
+        <LI><A href="fs_auto">Created automatically (using DIP)</A> 
+        <LI><A href="CS">Current one</A>&nbsp&nbsp&nbsp<A href="CNTWEB/csmap">Orbit profile</A>
+      </UL>
+</UL>
+<dt><b>Others</b></dt>
+  <UL>
+    <LI><A href="http://aldaqds03/acr/index_daq.html">DAQ @ Point2</A> &nbsp&nbsp&nbsp
+       <A href="http://cern.ch/alice-logbook">ALICE Logbook</A> &nbsp&nbsp
+       <A href="https://alice-logbook.cern.ch/act">ALICE Configuration Tool (ACT)</A>
+<!---
+    <LI><A href="https://aliceinfo.cern.ch/Collaboration/Run_Coordination/Run09/">Run coordination 2009-2010</A>
+--->
+    <LI><A href="http://aliweb.cern.ch/Run_Coordination/Run09/index.html">2011 Run Coordination</A> &nbsp&nbsp&nbsp
+        <A href="http://alicesms.cern.ch">ALICE Shift Management System</A>
+    <LI><A href="mailto:alice-triggersupport@cern.ch">Trigger support</A>
+  </UL>
+</dl>
+</body>
+</html>
+
+

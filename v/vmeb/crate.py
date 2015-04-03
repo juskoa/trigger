@@ -65,7 +65,7 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       break
     bnbase.append(string.split(p,'='))
     board= bnbase[-1]
-    #print 'p:',p
+    #print 'p:',p, board
     if len(board) == 2:         # base address given too
       basead=string.strip(board[1])
     else:       #default base addr.
@@ -91,21 +91,20 @@ nbi         -if parameter nbi supplied, the board won't be initialised
         vmeboard= myw.VmeBoard(f1, boardName=board[0], \
                 baseAddr=basead, initboard=initboard)
       except:
-        print sys.exc_info()[0]
-        print """Board name ['ltu', 'ttcvi',...], or
-detectore name """ +str(myw.DimLTUservers.keys()) + " expected."
+        print "crate.py:", sys.exc_info()[0]
+        print """Board name ['ltu', 'ttcvi',...], or detector name """ +str(myw.DimLTUservers.keys()) + " expected."
         sys.exit(0)
       f1.addBoard(vmeboard)
       syspadd= os.path.join(cfdir, board[0])
     sys.path.append(syspadd)   # to find user gui routines
-    print "crate.py: myw.vbexec:", myw.vbexec
+    #print "crate.py: myw.vbexec:", myw.vbexec
     if myw.vbexec==None:   # nbi LTU could open it
       try:
         vmeboard.openCmd(); myw.vbinit(vmeboard)
       except:
         print sys.exc_info()[0]
         sys.exit(0)
-    print "crate.py2: myw.vbexec:", myw.vbexec
+    #print "crate.py2: myw.vbexec:", myw.vbexec
     if board[0]=='ctp': 
       import ctp_u,ctpcfg
       if not ctp_u.ctpmem: 

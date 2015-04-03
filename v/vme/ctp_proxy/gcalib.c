@@ -17,6 +17,7 @@
 #endif
 
 #define DBGCMDS 1
+// following should be taken from VALID.LTUS
 #define SDD 1
 #define TOF 5
 #define MTR 11
@@ -24,6 +25,10 @@
 #define ZDC 15
 #define EMC 18
 #define DAQ 19
+// only for testing in lab:
+#define HMPID 6
+#define PHOS 7
+#define CPV 8
 
 //int GenSwtrg2(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer);
 
@@ -36,7 +41,7 @@ w32 last_heartbeat=0xffffffff;
  (2**32-1)/1000000./60
 71.582788250000007 -i.e. >1hour if time is kept in micsecs... */
 
-w32 beammode=0x12345677;
+w32 beammode=0x12345677;  // used only with T0: they do not get trigs in STABLE BEAMS
 
 typedef struct t {
   w32 secs; w32 usecs;
@@ -62,36 +67,34 @@ char msg[100];
 switch(signum) {
 case SIGUSR1:  // kill -s USR1 pid
   signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
-  sprintf(msg, "got SIGUSR1 signal:%d, fflush(stdout)\n", signum);
-  prtLog(msg);
-  //fflush(stdout);
+  sprintf(msg, "got SIGUSR1 signal:%d\n", signum);
   break;
 case SIGINT:
   signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);
-  printf("got SIGINT signal, quitting...:%d\n", signum);
+  sprintf(msg, "got SIGINT signal, quitting...:%d\n", signum);
   quit=signum; 
   break;
 case SIGQUIT:
   signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
-  printf("got SIGQUIT signal, quitting...:%d\n", signum);
+  sprintf(msg, "got SIGQUIT signal, quitting...:%d\n", signum);
   quit=signum; 
   break;
 case SIGBUS: 
   //vmeish(); not to be called (if called, it kills dims process)
-  sprintf(msg, "got SIGBUS signal:%d\n", signum); prtLog(msg);
+  sprintf(msg, "got SIGBUS signal:%d\n", signum);
   break; 
 default:
-  printf("got unknown signal:%d\n", signum);
+  sprintf(msg, "got unknown signal:%d\n", signum);
 };
+prtLog(msg);
 }
 
 /* Operation:
-- 
+- read gcalib.cfg
 gcalib.cfg:
 #ltuname period[ms] roc
 HMPID 2000
 DAQ 3000 6
-
 ----------------------------------------*/ void read_gcalibcfg() {
 FILE* gcalcfg;
 enum Ttokentype token;
@@ -104,7 +107,7 @@ if(gcalcfg==NULL) {
 };
 while(fgets(line, MAXLINELENGTH, gcalcfg)){
   int ix,det,milsec, roc;
-  //printf("Decoding line:%s ",line);
+  printf("Decoding line:%s ",line);
   if(line[0]=='#') continue;
   if(line[0]=='\n') continue;
   ix=0; token= nxtoken(line, value, &ix);
@@ -161,12 +164,12 @@ void printDET1(int ix) {
 char active[20];
 if(ACTIVEDETS[ix].deta!=-1) {
   strcpy(active,"ACTIVE");
+  printf("%2d: %s %s. period required:%d ms. attempts/sent:%d/%d\n", 
+    ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
+    ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 } else {
   strcpy(active,"NOT ACTIVE");
 };
-printf("%2d: %s %s. period required:%d ms. attempts/sent:%d/%d\n", 
-  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
-  ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 }
 /*--------------------*/int addDET(int det) {
 int rc=0; //OK:added or was added already. 1:not added
@@ -252,7 +255,7 @@ int ix,bc,det;
 // 1st phase -very first defaults
 for(ix=0; ix<NDETEC; ix++) {
   ACTIVEDETS[ix].deta=-1;
-  ACTIVEDETS[ix].period=0;
+  ACTIVEDETS[ix].period=0;   // no cal. triggers
   ACTIVEDETS[ix].roc=0;
   ACTIVEDETS[ix].calbc=3011;     // was 3556 till 31.3.2011
   if(ctpshmbase->validLTUs[ix].name[0] != '\0'){
@@ -261,12 +264,12 @@ for(ix=0; ix<NDETEC; ix++) {
     strcpy(ACTIVEDETS[ix].name,"nocalib");
   };
 };NACTIVE=0;
-ACTIVEDETS[SDD].period=0;    // 50 i.e. 3 triggs (50ms) spaced 15*60000
-ACTIVEDETS[TOF].period=200;  // 1000;
-ACTIVEDETS[MTR].period=33000; // 10000 .. 100000
-ACTIVEDETS[T00].period=1000;
-ACTIVEDETS[ZDC].period=10000;    // 10000;
-ACTIVEDETS[EMC].period=2000;  // 2000 (1000 .. 5000)
+ACTIVEDETS[SDD].period=0;    // todo: exception: 1 means: 3 triggs (3x50ms) spaced 15*60000ms
+ACTIVEDETS[TOF].period=0;  // 200;
+ACTIVEDETS[MTR].period=0; // 33000
+ACTIVEDETS[T00].period=0;  // 1000;
+ACTIVEDETS[ZDC].period=0;    // 10000;
+ACTIVEDETS[EMC].period=0;  // 2000 (1000 .. 5000)
 ACTIVEDETS[DAQ].period=0;
 /*strcpy(ACTIVEDETS[SDD].name, "SDD");
 strcpy(ACTIVEDETS[TOF].name, "TOF");
@@ -305,7 +308,7 @@ for(ix=0; ix<NDETEC; ix++) {
     printDET1(ix);
     continue;
   };
-}; printf("\n");
+}; printf("\n"); fflush(stdout);
 }
 /* Find next detector (nearest in time) waiting for cal. trigger
 rc: -1 (no active dets) or index to ACTIVEDETS
@@ -362,8 +365,9 @@ while(1) {
     };
     // generate calib. trigger:
     if(cshmGlobFlag(FLGignoreGCALIB)==0) {
+      w32 orbitn;
       rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].roc, ACTIVEDETS[ndit].calbc,
-        1<<ndit, 1);
+        1<<ndit, 1, &orbitn);
       if(rcgt==12345678) {
         delDET(ndit); if(NACTIVE==0) goto STP;
         continue;
@@ -420,6 +424,31 @@ if(DBGCMDS) {
   prtLog("calthread stop.");
 };
 }
+void startThread() {
+dim_start_thread(calthread, (void *)&TAGcalthread);
+usleep(100000);
+if(threadactive==0) {
+  char msg[200];
+  sprintf(msg,"thread not started! exiting..."); prtLog(msg);
+  //exit(8);
+  quit=8;
+};
+/*
+if(detectfile("gcalrestart", 0) >=0) {   //debug: simulate error by file presence
+  // i.e.: echo blabla >$VMEWORKDIR/gcalrestart
+  char msg[200];
+  //system("gcalibrestart_at.sh >/tmp/gcalibresatrt_at.log");
+  system("rm gcalrestart");
+  sprintf(msg,"gcalrestart removed, registered, exiting..."); prtLog(msg);
+  //exit(8);
+  quit=8; 
+}else {
+  char msg[200];
+  //system("gcalibrestart_at.sh");
+  sprintf(msg,"WORK/../gcalrestart not present (i.e. real crash, not simulated)"); prtLog(msg);
+};
+*/
+}
 
 /*--------------------*/ void DOcmd(void *tag, void *msgv, int *size)  {
 /* msg: if string finished by "\n\0" remove \n */
@@ -430,11 +459,10 @@ enum Ttokentype token; int ix; char value[100]; char em1[200];
 if(DBGCMDS) {
   char logmsg[200];
   sprintf(logmsg, "DOcmd1: tag:%d size:%d mymsg:%s<-endofmsg", *(int *)tag, *size,mymsg);
-  prtLog(logmsg);
+  //prtLog(logmsg);
 };
 if(*size <msglen) msglen=*size;
-strncpy(msg, mymsg, msglen);
-msg[msglen]='\0';
+strncpy(msg, mymsg, msglen); msg[msglen]='\0';
 /*if(msg[*size-2]=='\n') {
   msg[*size-2]='\0';
 } else {
@@ -447,7 +475,7 @@ d 0 5     -delete detectors from calibration
 */
 ix=0; token= nxtoken(msg, value, &ix);
 if(token==tSYMNAME) {
-  if((strcmp(value,"u")==0) ) {
+  if((strcmp(value,"u")==0) ) {   // update from global runs (in shm)
     int ads;
     ads= shmupdateDETs();
     if(ads>0){
@@ -455,7 +483,7 @@ if(token==tSYMNAME) {
         ads, threadactive);
       fflush(stdout);
       if(threadactive==0) {
-        dim_start_thread(calthread, (void *)&TAGcalthread);
+        startThread();
       } else { // 1: 2nd global run (ok) or what?
         // perhaps, here we should stop/start active thread.
         sprintf(em1,"u:ads:%d, threadactive is 1, i.e. 2nd global?", ads); 
@@ -475,9 +503,9 @@ if(token==tSYMNAME) {
         } else {
           rc= delDET(det);
         };
-        if(rc!=0) { sprintf(em1,"addel:%c rc:%d", adddel, rc); goto ERR; };
+        if(rc!=0) { sprintf(em1,"add/del:%c rc:%d", adddel, rc); goto ERR; };
         if(threadactive==0) {
-          dim_start_thread(calthread, (void *)&TAGcalthread);
+          startThread();
         } else {
           sprintf(em1,"a:det:%d but threadactive is 1", det); goto ERR;
         };
@@ -518,7 +546,7 @@ dis_stop_serving();
 }
 
 /*------------------------------------*/ int main(int argc, char **argv)  {
-int rc,ads;
+int rc,ads; char msg[100];
 /*
 if(argc<3) {
   printf("Usage: ltuserver LTU_name base\n\
@@ -535,7 +563,8 @@ setlinebuf(stdout);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
-prtLog("gcalib started...");
+sprintf(msg, "gcalib starting, ver 2 %s %s...", __DATE__, __TIME__);
+prtLog(msg);
 rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
@@ -550,11 +579,12 @@ beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
 ads= shmupdateDETs();  // added from 18.11.2010
 if(ads>0){
   if(threadactive==0) {
-    dim_start_thread(calthread, (void *)&TAGcalthread);
+    startThread();
   } else {
     printf("ads:%d but threadactive is 1 at the start", ads);   //cannot happen
   };
 };
+printDETS();
 while(1)  {  
   /* the activity of calthread is checked here:
     if threadactive==1 & heartbeat did not change, the calthread
@@ -570,6 +600,13 @@ while(1)  {
   last_heartbeat= heartbeat;
   /*dtq_sleep(2); */
   sleep(40);  // should be more than max. cal.trig period (33s for muon_trg)
+  /*if(detectfile("gcalrestart", 0) >=0) { 
+    char msg[200];
+    sprintf(msg,"gcalrestart exists"); prtLog(msg);
+    system("rm gcalrestart");
+    sprintf(msg,"main: gcalrestart removed, exiting..."); prtLog(msg);
+    quit=8; 
+  }; */
   if(quit>0) break;
   beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
   //ds_update();

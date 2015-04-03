@@ -77,34 +77,31 @@ rc:
  1: internal error (syntax in this script)
  4: can't stop ctpproxy (global run active?), leaving it on
  5: can't download from ACT, ctpproxy left off
- 6: not executed on alitri, nothing done
+ 6: not executed on alitri (main trigger server), nothing done
  7: can't start ctpproxy, after ctpproxy stop and ACT download
  8: actrestart expected, nothing done
  9: CTP switch not loaded, ctpproxy left off
 10: can't update CTPRCFG/CS service
 11: can't update CTPRCFG/INT1,2 services
+12: can't update aliases.txt in pydimserver
 """
     rc=8
   else:
     #if os.environ.get('VMESITE')==None:
-    iop= iopipe("hostname")
+    iop= iopipe("hostname -s")
     hostname= iop.outlines[0]
     print "HOSTNAME:",os.environ.get('HOSTNAME'),"-%s-"%hostname
     #if os.environ.get('VMESITE')=="SERVER" or os.environ.get('VMESITE')==None:
-    if hostname=="pcalicebhm05":
-      os.environ["VMECFDIR"]="/data/ClientCommonRootFs/usr/local/trigger/vd/vme"
+    if hostname=="avmes":
+      os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="altri1"
-      vmeswitch="trigger@altri2"
+      #vmeswitch="trigger@altri2"
       #os.environ["ACT_DB"]= "daq:daq@pcald30/ACT"
-    #elif hostname=="alidcscom026":
-    #  os.environ["VMECFDIR"]="/data/ClientCommonRootFs/usr/local/trigger/v/vme"
-    #  vmectp="alidcsvme001"
-    #  vmeswitch="trigger@alidcsvme004"
-    #  os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
-    elif hostname=="alidcscom188":
-      os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/v/vme"
+    elif hostname=="alidcscom835":    # alidcscom188
+      #os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
+      os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="alidcsvme001"
-      vmeswitch="trigger@alidcsvme004"
+      #vmeswitch="trigger@alidcsvme004"
       #os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
     else:
       rc= 6
@@ -126,56 +123,64 @@ rc:
       if iop.check("TRIGGER::CTP not running")>=0:
         #iop= iopipe("...ctp_proxy/linux/act.exe")
         #iop= iopipe("startClients.bash ctpproxy actstart","nout")
-        #actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux/act.exe")
-        #iop= iopipe(actdownload)
-        #print iop.outlines
-        #if iop.check("CTP config files downloaded from ACT.")>=0:
-        os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
+        actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux_s/act.exe")
+        iop= iopipe(actdownload)
+        print iop.outlines
+        if iop.check("CTP config files downloaded from ACT.")>=0:
+        ##os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
         #iop= iopipe("./switched.py load")
         #print iop.outlines
-        sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
-        import switched
-        rc= switched.main("actload")
+        ##sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
+        ##import switched
+          rc= 0 ##rc= switched.main("actload")
+        else:
+          rc= 5
         if rc==0:
-          iop= iopipe("ssh -2 -q %s '$VMECFDIR/../bin/loadswitch ctp'"%vmeswitch)
-          ixl= iop.check("CTP.SWITCH: connected")
+          ##iop= iopipe("ssh -2 -q %s '$VMECFDIR/../bin/loadswitch ctp'"%vmeswitch)
+          ixl= 0 ##ixl= iop.check("CTP.SWITCH: connected")
           if ixl>=0:
             print iop.outlines[ixl]
-            iop= iopipe("cd $VMECFDIR/pydim ; linux/client CTPRCFG/RCFG intupdate")
+            iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG intupdate")
             if iop.check("Callback: OK")>=0:
-              iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
-              time.sleep(2)
-              iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
-              if iop.check("TRIGGER::CTP running.")>=0:
-                f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
-                lin1= f.readline() ; f.close()
-                if lin1[:7]=="bcmasks":
-                  iop= iopipe("colschedule.bash update")
-                  if iop.check("Callback: OK")>=0:
+              iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG aliasesupdate")
+              if iop.check("Callback: OK")>=0:
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
+                #iop= iopipe("ssh -2 -q %s ctpproxy.sh startnr"%vmectp,"")
+                time.sleep(2)
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
+                if iop.check("TRIGGER::CTP running.")>=0:
+                  f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
+                  lin1= f.readline() ; f.close()
+                  if lin1[:7]=="bcmasks":
+                    iop= iopipe("colschedule.bash update")
+                    if iop.check("Callback: OK")>=0:
+                      rc=0
+                    else:
+                      print iop.outlines
+                      rc=10   # can't update CTPRCFG/CS service
+                  else:
+                    #print "FillingScheme != BCMASK. -> CTPRCFG/CS not updated"
+                    print "FillingScheme == auto, reading DIP service..."
+                    sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
+                    import getfsdip
+                    rc=getfsdip.main("act")
+                    if rc==0:
+                      print "New masks prepared and CTPRCFG/CS DIM service updated"
+                    else:
+                      print "CTP masks not updated, filling scheme not ready through DIP"
+                    # if DIP not available, nothing should happen, that's why we force rc to 0
                     rc=0
-                  else:
-                    print iop.outlines
-                    rc=10   # can't update CTPRCFG/CS service
                 else:
-                  #print "FillingScheme != BCMASK. -> CTPRCFG/CS not updated"
-                  print "FillingScheme == auto, reading DIP service..."
-                  sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
-                  import getfsdip
-                  rc=getfsdip.main("act")
-                  if rc==0:
-                    print "New masks prepared and CTPRCFG/CS DIM service updated"
-                  else:
-                    print "CTP masks not updated, filling scheme not ready through DIP"
-                  # if DIP not available, nothing should happen, that's why we force rc to 0
-                  rc=0
+                  print iop.outlines
+                  rc=7   # can't start ctpproxy
               else:
                 print iop.outlines
-                rc=7   # can't start ctpproxy
+                rc=12   # can't update aliases.txt in pydimserver
             else:
               print iop.outlines
               rc=11   # can't update CTPRCFG/INT1,2 services
           else:
-            rc=9   # can't load CTP switch
+            rc=9   # can't load CTP switch (thrown out in run2)
         else:
           rc=5   # can't download from ACT
       else:

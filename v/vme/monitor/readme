@@ -1,34 +1,68 @@
 state   check_rc  action    new state    note
 -----------------------------------------------
-down    off       start     restarted    init:down
+down    off       start     rstrted      init:down
 down    idle      -         ok           init:ok
 down    on,msg    -         ok,msg       init:ok
-        hung      restart   restarted    init:down
+        hung      restart   rstrted      init:down
 rstrted off       -         -            try to restart/sms after 1hour?
 rstrted idle      -         ok
 rstrted on,msg    -         ok
         hung      -         -            sms?
-ok      off       start     restarted
+ok      off       start     rstrted  
 ok      idle      -         -
 ok      on,msg    -         -
-        hung      restart   restarted
+        hung      restart   rstrted  
 
--: no action, or do not change state
+The order according to monitor.py.main():
+state   check_rc  action    new state    note
+-----------------------------------------------
+down    off       start     rstrted      init:down
+ok      off       start     rstrted  
+rstrted off       -         -            "DOWN/OK->OFF cannot restart"
+                                         try to restart/sms after 1hour?
 
-check_rc:
-off  -daemon is not running (no pid)
-idle -is on (pid found), but it is not clear if it is hanged
-on   -is on and responding (i.e. fresh udp message)
-hung -not responding
+down    hung      restart   rstrted      init:down
+ok      hung      restart   rstrted  
+rstrted hung      -         -            "RESTARTED->HUNG cannot restart"
+                                         sms?
 
+down    idle      -         ok           init:ok
+ok      idle      -         ok
+rstrted idle      -         ok
+
+down    on,msg    -         ok,msg       init:ok
+rstrted on,msg    -         ok
+ok      on,msg    -         ok
+
+-: no action, i.e. the state not changed
+
+check_rc: -ret. code from do_check() checking the status of a daemon
+--------
+OFF  -daemon is not running (no pid)
+IDLE -is on (pid found), but it is not clear if stuck
+ON   -is on and responding (i.e. fresh udp message)
+HUNG -not responding (pid found, but stuck)
+
+Actions:
+-------
 restart:
- - check if on and kill if not, start daemon
+ - check if on, kill if not on, start daemon
 idle:
- - status returned pid:, + readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
+ - status returned pid: 
+   + SPECIAL for readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
 
-start:
-./monitor.py &
+Config:
+------
+see: allds= in monitor.py main()
+     doc in Daemon.__init__()
+
+Control:
+------
+./monitor.py [re]start &
+./monitor.py stop
+
 History:
+-------
 14.8.
 gcalib.sh, udpmon.sh refurbished:
 - kill introduced (the same as stop)
@@ -37,7 +71,7 @@ todo:
 - sms -done (22.8.)
 - add another state: idle -i.e. just process is found (by startClients.bash)
 
-27.2.2012 -html added (bin/html.bash modified to return pid:N)
+27.2.2012 -html added (bin/startClients.bash modified to return pid:N)
 
 Problem:
 at SOR/EOR and if time sharing active, it can happen, we get some triggers 
@@ -49,4 +83,35 @@ reading is regarded as '1st reading'.
 Before: shorter interval was not considered for calib calculation, 
 but the time of previous reading
 was stored -i.e. the interval was than included in next interval.
+
+20.7. 2012
+pydim added (i.e. startClients.bash returns "pid: ..." if on
+i.e. monitor-able daemons now: udpmon pydim html gcalib
+
+17.10. 2012
+control better, still not complete...
+26.10.2012
+ttcmidim instead of pydim i.e., now monitored:
+udpmon gcalib ttcmidim html
+28.11.2012
+udpmon gcalib ctpwsgi ttcmidim html
+29.5.2013
+autor (autorestart: y|n) option added. pydim added with autor='n'. Now
+monitoring: udpmon gcalib ctpwsgi ttcmidim html pydim
+14.6.
+.html:
+
+system state AUTOR time last
+START  STOP        time previous action
+
+24.6.
+hddtemp added:
+- sms in case of high temperature, but 
+- not when it comes back to normal- should be done with some hysteresis
+16.7.
+hddtemp improved -hysteresis when hddtemp high/ok
+19.9.2014
+hddtemp -no sense on alidcscom835:
+[trigger@alidcscom835 NOTES]$ hddtemp /dev/sda
+/dev/sda: Dell VIRTUAL DISK: S.M.A.R.T. not available
 

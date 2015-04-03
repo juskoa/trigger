@@ -9,6 +9,9 @@ LTUVERSION_ADD: 0xf3 ltu   -see vme/ltu. Last LTU+TTCVI version.
                 0xb0 ltuvi
                 0xb3 rate limit implemented (TPC)
                 0xb4 higher L2_DELAY
+0xb6 -last run1 version
+0xb7 -run2: 100 classes
+
 trigger input generator:
 -----------------------
 L0 top connector -CTP L0 trigger input
@@ -45,7 +48,12 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "3.7 15.06.2010"   // lnxpool31
 //#define LTU_SW_VER "3.8 19.07.2010"   // 0xb5, RATE_LIMIT +3bits
 //#define LTU_SW_VER "4.0 19.2.2012"     // 0xb6, +ltu2_b6.rbf
-#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
+//#define LTU_SW_VER "4.1 04.05.2012"     // SYNC SMI cmd added
+//#define LTU_SW_VER "4.2 22.04.2013"     // ltu v2, x86_64
+//#define LTU_SW_VER "5.0 17.01.2014"    // run2:100 classes
+//#define LTU_SW_VER "5.1 17.06.2014"    // SEUbit not checked for fpgaver<0xb8
+//#define LTU_SW_VER "5.2 23.06.2014"    // CTPemu: spacing in us possible
+#define LTU_SW_VER "5.3 22.08.2014"    // 0xb9
 
 /*REGSTART32 */
 /* VME FPGA: */
@@ -68,7 +76,7 @@ LTU FPGA:80-bc   -reserved
 /*REGSTART32 */
 #define TEMP_START    0x58   /* LTU temperature: */
 #define TEMP_STATUS   0x5c   /* bit0: temp, 
-for new LTUs (serial>=64):      bit1: CRCerror 1:error 0:ok */
+for new LTUs (serial>=64, ver.>=0xb6):  bit1: CRCerror 1:error 0:ok */
 #define TEMP_READ     0x60 
 #define MASTER_MODE   0x64   /* b4=0 ->TTCvi, b4=1 ->test-mode (LTU snapshot)
 				b[3..0] dest. LTU dial address in test-mode */
@@ -135,7 +143,8 @@ bit3=1 -> 'L0 over TTC' mode
 LTUvi:
   bit0: Delay CahnnelB flag (+BC/2)
   bit1: Delay CahnnelA flag
-  bit2: not used
+  bit2: 0: normal LTU, 1: the copy of TTC-A/B sent over L0-LVDS-2/3 outputs
+        -valid from version BB
 LTUf3:
   bits[1..0]
   00  for BC_DELAY_ADD: 0,1,20-27
@@ -145,8 +154,8 @@ LTUf3:
   bit2=0 -> L1out positive (for TTCex)
   bit2=1 -> L1out negative (for TTCvi)
 				*/
-#define STDALONE_MODE   0x534  /* bit0: GLOBAL:0 STDALONE:1 
-  for ltuver>=0xb6 also bit1: ext. orbit:1 int. orbit:0 */
+#define STDALONE_MODE   0x534  /* RW. bit0: GLOBAL:0 STDALONE:1 
+  for ltuver>=0xb6 also bit1: ext. orbit:1 written, int. orbit:0 written*/
 /* BUSY configuration: */
 #define BUSY_ENABLE     0x138  /* w 0x3 enables BUSY1,2 */
 #define BUSY_STATUS     0x13c
@@ -159,7 +168,8 @@ LTUf3:
                                /* bit8: enable logic analyser oututs */
 #define MINIMAX_SELECT  0x570
 #define MINIMAX_LIMIT   0x578
-#define FIFO_MAX        0x158  /* 15-8:L2max  7-0:L1max */
+#define FIFO_MAX        0x158  /* <=0xb8: 15-8:L2max  7-0:L1max */
+                               /* >=0xb9: 17-9:L2max  8-0:L1max */
 /* COUNTERS: */
 #define SOFT_LED        0x15c  /* soft LED */
 #define BUSYMAX_DATA    0x168
@@ -168,7 +178,7 @@ LTUf3:
 #define PIPELINE_CLEAR  0x198   /* dummy w sets the EMU_STATUS[1] bit */
 /* 0x19c - 0x1b0 reserved for SnapShot memory */
 #define SSMcommand  0x19c  /* bit0:mode: 0:VMEREAD   1:VMEWRITE */
-                           /* bit2:operation: 0:RECAFTER  0x3:RECBEFORE */
+                           /* bit1:operation: 0:RECAFTER  0x3:RECBEFORE */
                            /* bit4:CTPflag: '7FPsignals->SSM' mode */
 #define SSMstart    0x1a0  /* dummy wr */
 #define SSMstop     0x1a4  /* dummy wr */
@@ -241,6 +251,7 @@ LTUf3:
 /*LTUMAIN id defined ONLY in: 
 ltu/ltu.c
 ltu_proxy/ltu_proxy.c
+ltu_proxy/printcounters.c
 */
 #ifdef LTUMAIN
 #define EXTRN
@@ -256,6 +267,7 @@ EXTRN w32 Gltuver;  // has to be 0xf3 or 0xbX
 #define FLGlogtimestamp 1   // 1: time stamps for ltu log (todo)
 #define FLGfecmd12 2        // 1: hmpid (fecmd12 to be sent) 0: not hmpid
 #define FLGextorbit 0x4     // 1: external 0: internal orbit
+#define FLGscthread 0x8     // 1: active 0: not active
 #define IXG_calibration_roc 0 
 #define IXltuver 1 
 #define IXGpp_time 2 
@@ -282,7 +294,7 @@ typedef struct {
   int orbitbc;   /*X "ORBIT_BC"  on LTU*/
   int dim;       /*X 1:start DIM services   0: do not start DIM services */
   int bc_delay_add;   /*X -temporarily for acorde */
-  int ttcrx_reset;   /* YES:1 NO:0 INIT:2 */
+  int ttcrx_reset;   /* YES:1 NO:0 INIT:2 STDALONE: 4 */
   char mainEmulationSequence[64]; /*X name of file defining 
     the main CTP emulation sequence in VMEWORKDIR/CFG/ltu/SLMproxy/ */
   // added 21.2.
@@ -314,6 +326,7 @@ typedef struct {
   w32 id;    // shmkey (filled when allocated)
   Tltucfg ltucfg;
   w32 ltucnts[LTUNCOUNTERSall];
+  float busyfraction;   // 0.0 .. 1.0
 } Tltushm;
 /*
 typedef union a{
@@ -339,10 +352,17 @@ typedef struct {
 } Tpardesc;
 */
 
-EXTRN Tltushm *ltushm;
+#ifdef LTUMAIN
+Tltushm *ltushm=NULL;
+#else
+extern Tltushm *ltushm;
+#endif
 
-#define ltuvino ((Gltuver&0xf0)!=0xb0)
-#define ltuviyes ((Gltuver&0xf0)==0xb0)
+//#define ltuvino ((Gltuver&0xf0)!=0xb0)
+//#define ltuviyes ((Gltuver&0xf0)==0xb0)
+#define ltuvino ((Gltuver&0xff)<0xb0)
+#define ltuviyes ((Gltuver&0xff)>=0xb0)
+#define lturun2 ((Gltuver&0xff)>=0xb7)
 
 /* ltulib functions: */
 /*FGROUP "ExpertConf"
@@ -388,6 +408,7 @@ written.
 int fpgainit();
 void setBC_DELAY_ADD(int delay);
 
+int checkSEU();
 void ltuInit(Tltucfg *ltc, int stdalone, int secs);
 void ltuDefaults(Tltucfg *ttcpars);
 
@@ -474,6 +495,13 @@ int getsgmode();
 void setstdalonemode(w32 b2);
 /*FGROUP ConfiguratioH */
 int getgltuver();
+/*FGROUP SimpleTests
+Check SEU ( TEMP_STATUS&0x2 ) bit. NOT CHECKED for LTUver1
+rc: >0 in case of SEU was registered.
+rc:  0 ok, no SEU registered from last checkSEU() activation
+*/
+int checkSEU();
+
 void readCounters(w32 *mem, int N, int accrual);
 w32 getCounter(int reladr);
 void getCounters(int N, int accrual, int bakery_customer);
@@ -531,7 +559,7 @@ int SSMclearac();
 void SSMclear();
 int readSSM(w32 *sm);
 int checkSignature(w32 *sm,int *channels,int offset); 
-char *getAB(w32 opmo);
+const char *getAB(w32 opmo);
 
 /*FGROUP ADC
 Set BC_DELAY_ADD 

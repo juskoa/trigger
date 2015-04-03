@@ -2,3 +2,22 @@ To compile:
 gcc -Wall ssmana.c -o ssmana.exe
 new (LTUvi) version -from 0xb0:
 gcc -Wall ssmanv.c -o ssmanv.exe
+
+9/1/13
+new ltu version with 100 classes: ssmanls1.c
+To run:
+run from dir SSMAN 
+SSM.dump expected in WORK/
+text output SSMa.txt written in WORK/
+
+21.1.2014
+make -compile+link 2 executables ssmanls1.exe and ssmanv.exe
+      in directory corresponding to the machine (linux/ or lin64/)
+
+Working:
+-------------
+Why was offset=2 in old version ?
+Start to analyse after first L0 ?
+Two modes of ltu ssm:
+ltu_i1 - global
+ltu_im - local

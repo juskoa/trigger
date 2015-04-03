@@ -1,4 +1,4 @@
-1. print out current L0 inputs:
+1. print out current L0 inputs: ------------------------------
 [alidcscom026] /data/ClientCommonRootFs/usr/local/trigger/v/vmeb > python
 Python 2.3.4 (#1, Dec 11 2007, 21:18:01) 
 [GCC 3.4.6 20060404 (Red Hat 3.4.6-9)] on linux2
@@ -9,7 +9,32 @@ t.getL012inputs('0')
 'L0 inputs: 1:0SMB 2:0VBA 3:0VBC 4:0BPA 5:0BPC 6:0MUL 7:0MSL 8:0MLL 9:0MUH 10:0SPF 11:0SH1 12:0SCO 13:0SH2 14:0SBK 15:0LSR 16:0OIN 17:0OUP 18:0AMU 19:0VBK 20:0TCE 21:0TSC 22:0HWU 23:0EMC 24:0PH0 '
 >>> 
 
-2. check if ACT is available:
+2. check if ACT is available: -----------------------------
 [alidcscom188] /data/dl/root/usr/local/trigger/v/vme/ctp_proxy > mysql -u acttrg -pCBNRR2be -h aldaqdb ACT
 ERROR 1044 (42000): Access denied for user 'acttrg'@'%' to database 'ACT'
+
+3. catch terminal output: ------------------------
+script file.script
+...
+CTRL-D
+
+4. send SMI command manually: ----------------------
+/opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION pamb2 -dbg
+-dbg: don't send, just see how it looks like. 
+
+5. mount samba on alidcscom188: -----------------------
+[root@alidcscom188 dcsScripts]# pwd
+/root/dcsScripts
+[root@alidcscom188 dcsScripts]# ./mntDcsUser juskoa
+- type nice passwd 4x
+- use /mnt/alidcsfs001/Scratch/tri for our backups
+
+6. python recompile: python -m compileall .    (see bin/pyrecomp)
+
+7. CTP readout in lab
+trigger@pcaldctp2
+
+ctpro >/dev/null
+which ctpro
+alias ctpro='cd /date/trigger/Linux; ./ctpServer'
 

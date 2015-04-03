@@ -1,0 +1,19 @@
+16.07.2012 13:48:53: newclock thread starting. tag:4 
+
+newclock thread started. clocktran:3 tag:4 quit:0
+setting ttcmi clock:4
+TTCMI/SHIFT update for 0 clients
+16.07.2012 13:49:08: MICLOCKcaba clocknow:LOCAL size:6 
+
+updated MICLOCK clients:1
+16.07.2012 13:49:33: MICLOCK_SETcmd: tag:3 size:6 msg:BEAM1
+
+16.07.2012 13:49:33: newclock thread starting. tag:1 
+
+16.07.2012 13:49:43: MICLOCK_SETcmd: tag:3 size:6 msg:BEAM1
+
+16.07.2012 13:49:43: MICLOCK_SET: newclock thread already started!
+-seems neclock thread crashed (without setitng clocktran to 0)
+Fix: 
+  if(quit==1) clocktran=0;    -instead of if(quit==1) break;
+  in newclock thread

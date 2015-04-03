@@ -16,3 +16,18 @@ filter to suppress spurios included, CRC on
 Fri Aug 15 14:08:58 CEST 2008
 fo_logic_02_l1error.rbf
 as 01 + glitches detection
+22.3.2012
+fo_ae.rbf -added 4 counters 48..51 counting L2a only
+21.11.2013
+fo_logic_verAF.rbf
+- new L2a messages with 100 classes
+13.3.2014 fo_logic_verB0.rbf
+8 clusters (instead of 6). problem s casovanim.
+18.3.2014 fo_logic_verB1.rbf  is fo_logic_ver_B1_1803.rbf
+to be used with l2_logic_verA8.rbf +2 bits for clusters 7,8 in ser. data
+7.4.2014 fo_logic_verB1.rbf
+2 bits shift in class data...
+10.2.2015
+B2 timing introduced
+3.3.2015
+fo_logic_B3.rbf timing to LTU

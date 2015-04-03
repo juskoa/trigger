@@ -279,6 +279,10 @@ void DefaultTimeWindows();
 void AnalyzeOneSnapShot();
 void AnalyzeN(int n);
 void BcidMismatch(int n);
+void SetL12MesOld();
+void SetL12MesNew();
+void PrintL12Mes();
+void ClearStat();
 
 /*
             OM - On-Board Monitor

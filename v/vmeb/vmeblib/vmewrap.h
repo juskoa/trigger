@@ -2,6 +2,7 @@
 #define VMEWRAP_H_INCLUDED
 
 #ifndef w81632
+typedef unsigned long long int w64;
 typedef unsigned int w32;
 typedef unsigned short int w16;
 typedef unsigned char w8;

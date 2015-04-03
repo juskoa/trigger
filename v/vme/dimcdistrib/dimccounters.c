@@ -50,7 +50,7 @@ int ix;
 /* let's take time counters from BUSY, L0,L1,L2 FO1, FO2 board,
 so we can check if difference is 60 seconds (server is sending
 counters every minute) */
-cs[0].reladdr= CSTART_BUSY+39; strcpy(cs[0].name, "bytime");
+cs[0].reladdr= CSTART_BUSY+43; strcpy(cs[0].name, "bytime");
 /*
 cs[1].reladdr= CSTART_L0+13; strcpy(cs[1].name, "l0time");
 cs[2].reladdr= CSTART_L1+5; strcpy(cs[2].name, "l1time");

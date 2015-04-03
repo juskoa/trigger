@@ -13,7 +13,7 @@ w32 *curprev[2]={bufc1,bufc2};
 /* read counters to memory mem[]. 
 Input:    
 mem        pointer to w32 array
-NCNTS      # of counters to be read (LVDST or LTU)
+NCNTS      # of counters to be read (LVDST or for LTU:LTUNCOUNTERS)
 accrual:== 1 -return accruals (i.e. difference between this and last read)
            ! ONLY 1 process can use 'accrual' feature at 1 time !
         != 1 -return current values
@@ -44,7 +44,7 @@ if(accrual==1) {
 } else {
   for(cix=memshift; cix<NCNTS+memshift; cix++) {
     w32 cv;
-    cv= vmer32(COPYREAD);
+    cv= vmer32(COPYREAD); // cv= cix+1;
     //mem[cix]=curprev[1][cix]=cv;
     mem[cix]= cv;
     //printf("readCounters: %d:0x%x\n", cix, cv);
@@ -68,18 +68,38 @@ return(mem[reladr]);
 }
 
 /* Print all counters to stdout (1 per line)
-getCounters() 
 NCNTS: number of counters to be read + 1 (rel. position of last counter)
 if accrual==1, than print accruals
 bakery_customer: has to be 2 when reading from GUI (2
 is shared with ctp-counters vmeb/counters.py).
 BUT NOT USED YET for ltu, here it is just for compatibility
 with vmeb/counters.py call: getCounters(...
+24.9.2014:
+- use shm for reading if available (in the same time ltuproxy's cthred
+  arranged to read counters every second, i.e. getCounters cannot
+  return fresh value within shiorter interval)
+- accrual is not valid any more, always abs. values returned
 */
 void getCounters(int NCNTS, int accrual, int bakery_customer) {
-int cix;
+int cix; // Tltushm *ltushm;  is in ltu.h (EXTERN)
 w32 buffer[NCNTS];
-readCounters(buffer, NCNTS, accrual);
+accrual=0;   // return ALWAYS ABSOLUTE values
+if(ltushm != NULL) {
+  if(ltushm->ltucnts[LTU_TIMErp] != 0) { 
+    w32 *ltucs;
+    ltucs= ltushm->ltucnts;
+    for(cix=0; cix<NCNTS; cix++) {
+      buffer[cix]= ltucs[cix]; // if(cix==1) buffer[cix]= (w32)ltucs;
+    };
+  } else {
+    // shm found, but seems counters not being read 1/sec by ltuproxy
+    readCounters(buffer, NCNTS, accrual);
+  };
+} else {
+  // shm not available (should never happen!)
+  printf("ERROR: getCounters(): shm not available for ltu, reading ltu\n");
+  readCounters(buffer, NCNTS, accrual);
+};
 for(cix=0; cix<NCNTS; cix++) {
   //printf("0x%x\n",curprev[1][cix]);
   printf("0x%x\n",buffer[cix]);

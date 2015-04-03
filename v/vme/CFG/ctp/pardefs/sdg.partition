@@ -1,0 +1,8 @@
+Version: 7
+grpa 10%
+BC1 1khz
+BC2 2khz
+Clusters:
+MUON
+DTRUE(bc1) DTRUE(bc1,L0pr=grpa) DTRUE(bc1,L0pr=grpa)
+HMPID

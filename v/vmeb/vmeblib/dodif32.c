@@ -13,7 +13,7 @@ return(dif);
 w32 rounddown(float f) {
 #ifdef CPLUSPLUS
 w32 ret;
-ret= int(f);
+ret= (unsigned int)(f);
 //printf("f:%f ret:%d\n",f,ret);
 return(ret);
 #else

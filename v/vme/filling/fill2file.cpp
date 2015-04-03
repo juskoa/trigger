@@ -32,6 +32,8 @@ ACTIVE_INJECTION_SCHEME "Single_13b_8_8_8"
 #include "Dip.h"
 #include "DipSubscription.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <iostream>
 #include <fstream>   // ofstrem
@@ -49,12 +51,13 @@ public:
     // allow us to access subscription objects
     Client * client;
     string fillsch;
+    string beammode;
     int fillno; int bunches; int beams;
     ofstream fs_file;
     int wlines;
   public:
     GeneralDataListener(Client *c):client(c) {
-      beams=0; 
+      beams=0; beammode="";
     }
     ~GeneralDataListener() {
       //cout << "-------GeneralDataListener destructor" <<endl;
@@ -71,7 +74,7 @@ public:
       string beamname = "";
       //cout << "-----------------------handleMessage" << endl;
       try {
-       if (subscription == client->sub[0]) {
+       if (subscription == client->sub[0]) {   //RunConfiguration
          //cout << "Received data from " << subscription->getTopicName() << endl;
          int noFields;
          const char **tags = message.getTags(noFields);
@@ -90,12 +93,21 @@ public:
            << " dim: " << message.getValueDimension(*tags) << " :" << item << endl;*/
            tags++;
          }
-       } else if (subscription == client->sub[1]) {
+       } else if (subscription == client->sub[1]) {   // Beam1
          bc = message.extractIntArray(size, "value");
          beamname = "A"; offset = 346; beams++;
-       } else {
+       } else if (subscription == client->sub[2]) {   // Beam2
          bc = message.extractIntArray(size, "value");
          beamname = "C"; offset = 3019; beams++;
+       } else {   // BeamMode
+         int noFields;
+         const char **tags = message.getTags(noFields);
+         for (int i = 0; i < noFields; i++) {
+           item= message.extractString(*tags);
+           if(strcmp(*tags,"value")==0) {
+             beammode= item;
+           };
+         };
        }
       } catch (DipException e) {
 	cout << "Unexpected exception occured: " << e.what() << endl;
@@ -119,10 +131,29 @@ public:
           wlines++;
 	}
         //cout << "written:" << wlines <<" " << fillsch << " " << fillno <<" " << beamname << " " << size << endl;
+        /* stdout line:
+        When fill2file invoked in correct time (see bemmodeok() ):
+        fs shema_name fill_number DIPbunches Written_bunches
+        When fill2file invoked in bad time:
+        fs badtime
+        */
         if(beams==2) {
-          cout << "fs "<< fillsch <<" " << fillno <<" " << bunches <<" " << wlines << endl;
+          if(beammodeok()==1) {
+            cout << "fs "<< fillsch <<" " << fillno <<" " << bunches <<" " << wlines << endl;
+          } else {
+            cout << "fs "<< "badtime:" << beammode << endl;
+          };
         };
       }
+    }
+    int beammodeok() {
+      if((beammode == "PREPARE RAMP") or (beammode == "RAMP") or
+         (beammode == "FLAT TOP") or (beammode == "SQUEEZE") or
+         (beammode == "ADJUST") or (beammode == "STABLE BEAMS")) {
+        return(1);
+      } else {
+        return(0);
+      };
     }
     void connected(DipSubscription *arg0) { }
     void disconnected(DipSubscription *arg0, char *arg1) { }
@@ -135,8 +166,9 @@ public:
   Client() {
     string clientName = "client_ctp"; 
     dip = Dip::create(clientName.c_str());
-    sub = new DipSubscription*[3];
+    sub = new DipSubscription*[4];
     handler = new GeneralDataListener(this);
+    sub[3] = dip->createDipSubscription("dip/acc/LHC/RunControl/BeamMode", handler);
     sub[0] = dip->createDipSubscription("dip/acc/LHC/RunControl/RunConfiguration", handler);
     sub[1] = dip->createDipSubscription("dip/acc/LHC/RunControl/CirculatingBunchConfig/Beam1", handler);
     sub[2] = dip->createDipSubscription("dip/acc/LHC/RunControl/CirculatingBunchConfig/Beam2", handler);
@@ -146,6 +178,7 @@ public:
     dip->destroyDipSubscription(sub[0]);
     dip->destroyDipSubscription(sub[1]);
     dip->destroyDipSubscription(sub[2]);
+    dip->destroyDipSubscription(sub[3]);
     delete handler;
     delete dip;
   }

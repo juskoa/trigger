@@ -16,19 +16,48 @@ cfg=None
 
 def findInputs(boardname):
   title="not implemented yet"
-  if boardname=='l0' or boardname=='l1' or boardname=='l2':
+  if boardname=='l1' or boardname=='l2':
+    level= boardname[1]
+  elif boardname=='l0':
+    level= "switch"
+  else:
+    level= None
+  if level:
     vain= trigdb.TrgVALIDINPUTS()
-    title= vain.getL012inputs(boardname[1])
+    title= vain.getL012inputs(level)
   return title
 
 class Counter:
   def __init__(self, name, cgt='C', displayname='N'):
     self.coname=name
-    if displayname=='ctp' or displayname=='N':
+    if name=='spare17':   # run2: LM before vetos
+      self.displayname= "l0LMbv"
+    elif displayname=='ctp' or displayname=='N':
       self.displayname=name
     else:
       self.displayname=displayname+'-'+name
     self.selected=""   # 'y': selected
+  def run1_co2rrdname(self, nm):
+    if nm[:2]=='fo' and nm[3:9]=='l2rout':
+      fon= int(nm[2])
+      con= int(nm[9])
+      ix= 870 + (fon-1)*4 + con
+      return "spare%d"%ix
+    elif nm=="spare895TSGROUP":
+      return "spare895"
+    elif nm[:5]=="spare" and nm[8:12]=="runx":
+      return nm[:8]
+    else:
+      return nm
+  def co2rrdname(self, nm):
+    """run2: rrdnames == cnames.sorted2 names
+    provision to be made for:
+    - TSGROUP counter (run2: spare1485TSGROUP)
+    - runx cnts (run2: from spare1486runx)
+    Note: 'display name' (seen in web) conversion is taken 
+      into account in __init__
+    """
+    return nm
   def makeImage(self):
     color="660000"
     finame= cntcom.BASEDIR+"imgs/"+self.displayname+'.png'
@@ -44,7 +73,11 @@ class Counter:
     #ri.write("graph graf.png -s now-10h --step 60 -w 600 ")
     ri.write("graph "+finame+" "+fromto+" --step 60 -w "+pixwidth+" ")
     cn= self.displayname
-    ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDB, self.coname))
+    dbconame= self.co2rrdname(self.coname)
+    #cfg.log("rrdname:%s name:%s"%(dbconame,self.coname))
+    if cfg.upperlimit!="":
+      ri.write("-r -u" +cfg.upperlimit +" ")
+    ri.write("DEF:%s=%s:%s:AVERAGE "% (cn, RRDDB, dbconame))
     ri.write("LINE2:%s#%s:%s "%(cn,color,cn))
     ri.close()
     # following allowed only without SElinux:
@@ -122,9 +155,12 @@ class Board:
 class Config:
   def __init__(self):
     self.period= "default"
+    self.grouping= "none"   # trend grouping, used only for LTUs, can be: alls,sigs,ltus,none
+    self.upperlimit=""
+    self.dbgmsg= ""
     self.customperiod= ""; self.startgraph= ""
     self.errs=""
-    self.cfginit="just initialised"
+    self.log("just initialised")
     self.allboards= {
       "busy":Board("busy","#ccff00"),
       "l0":Board("l0","#cc9933"),
@@ -155,6 +191,8 @@ class Config:
         self.allboards[lines[2]].addCounter(lines)
     #self.allboards['l0'].counters[0].selected='y'    #for testing
     # cookies
+  def log(self, msg):
+     self.dbgmsg= self.dbgmsg + msg +"<br>"
 
 def deselectAll():
   global cfg
@@ -170,7 +208,7 @@ def index():
     cfg= Config()
   else:
     deselectAll()
-    cfg.cfginit="index, alredy initialised"
+    cfg.log("index, alredy initialised")
   s= cfg.errs
   if s=="": s= _makehtml()
   return s
@@ -181,7 +219,7 @@ def show(req):
    if cfg==None:
      cfg= Config()
    else:
-     cfg.cfginit="show, alredy initialised"
+     cfg.log("show, alredy initialised")
    s= cfg.errs
    if s!="": return s
    # The getfirst() method returns the value of the first field with the
@@ -197,6 +235,9 @@ def show(req):
        continue
      if bs=='startgraph':
        cfg.startgraph= req.form['startgraph']
+       continue
+     if bs=='upperlimit':
+       cfg.upperlimit= req.form['upperlimit']
        continue
      #if bs=='deselect':
      #  deselectAll()
@@ -302,7 +343,12 @@ function testButton (what){
   for brd in FOS:
     html= html + cfg.allboards[brd].makeTD()
   #<INPUT TYPE="submit" NAME="deselect" VALUE="deselect all">
-  html= html + cntcom.userrequest(cfg)
+  uplimentry="""
+&nbsp&nbsp&nbsp Upper limit:
+<INPUT TYPE="text" NAME="upperlimit" SIZE="8" VALUE="%s" TITLE="e.g.: 1000 -limit upper shown rate to 1khz"
+onMouseOver="window.status='Example: 1000 (1khz)   1000000  (1mhz)'; return true">
+"""%cfg.upperlimit
+  html= html + cntcom.userrequest(cfg, uplimentry)
   for brd in BL012I + FOS:
   #for brd in ("l0",):
     for ixcnt in range(len(cfg.allboards[brd].counters)):
@@ -315,7 +361,7 @@ function testButton (what){
   #html= html +"<img src=graf.png>\n"
   #pf= os.popen("ls"); cmdout=pf.read(); pf.close()
   #html= html +cmdout +"<BR>\n"
-  html= html +"<HR> dbg:" + cfg.cfginit
+  #html= html +"<HR> dbglog:" + cfg.dbgmsg
   #html= html + str(os.environ)
   html= html + """</BODY>
 </HTML>

@@ -5,9 +5,14 @@
 #cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
 #hn=`awk '{if($1==detname) {print $2}}' detname=$detn $cfgfile`
 if [ $# -ne 1 ] ;then
-  echo Start this script in v/XXX/CFG/ltu/SLM directory on alidcsvme???. 
-  echo SLM2SLMproxy.bash name
-  echo where name is name of name.slm file
+  cat - <<-EOF
+Start this script in v/XXX/CFG/ltu/SLM directory on alidcsvme???. 
+SLM2SLMproxy.bash name
+where name is name of name.slm file in SLM directory.
+Actions:
+cp SLM/name.slm  SLMproxy/name.slm + name.seq created
+    
+EOF
   exit
 fi
 d=`basename $PWD`

@@ -3,9 +3,10 @@
 #include "vmewrap.h"
 #include "vmeblib.h"
 #include "ctp.h"
+#include "ctplib.h"
 #include "Tpartition.h"
 /*---------------------------------------------------------------- L0-Shared */
-/*FGROUP DbgNewFW     */
+/* FGROUP DbgNewFW
 void loadRun(w32 runnumber){
   CTPHardware ctp;
   VALIDLTUS ltus;
@@ -15,15 +16,15 @@ void loadRun(w32 runnumber){
   run.Load2SW();
   CTPHardware::Print();
   run.Load2HW();
-}
-/*FGROUP DbgNewFW     */
+} */
+/* FGROUP DbgNewFW 
 void printHW(){
  CTPHardware::Print();
-}
-/*FGROUP DbgNewFW     */
+} */
+/* FGROUP DbgNewFW
 void unloadRun(w32 run){
  CTPHardware::Unload(run);
-}
+} */
 /*Shared memory (not yet shared between all tasks running on ctp CPU):
 l0f34stat[] -rightmost bit/column (bit 0) corresponds to LUT1
 */
@@ -32,7 +33,7 @@ unsigned char l0f34stat[LEN_l0f34] ={0xd,0xe,0xa,0xd};
 void getL0FUN34(w32* lut){
  w32 i;
  // toto je zle (write only!, L0FUN34 LUTs cannot be read)
- //for(i=0;i<0xfff+1;i++)lut[i]=vmer32(L0_FUNCTION34+4*i)&0xf000;
+ //for(i=0;i<0xfff+1;i++)lut[i]=vmer32(l0_fun34+4*i)&0xf000;
  for(i=0;i<LEN_l0f34;i++)lut[i]= l0f34stat[i];
 } 
 /*FGROUP DbgNewFW    
@@ -43,9 +44,9 @@ void setL0FUN34(w32* lut){
  if(!lut)printf("setL0FUN34: writing dummy falues.\n");
  for(i=0;i<0xfff+1;i++){
     if(lut){
-      vmew32(L0_FUNCTION34,i+lut[i]<<11+1<<12);
+      vmew32(l0_fun34,i+lut[i]<<11+1<<12);
     }else{
-      vmew32(L0_FUNCTION34,(0x3)<<11+i);
+      vmew32(l0_fun34,(0x3)<<11+i);
     }
  }
 }
@@ -88,18 +89,18 @@ An example of output:
 void getShared() {
 w32 w;
 if(notInCrate(1)) return;
-w= vmer32(RANDOM_1); printf("0x%x\n", w);
-w= vmer32(RANDOM_2); printf("0x%x\n", w);
-w= vmer32(SCALED_1); printf("0x%x\n", w);
-w= vmer32(SCALED_2); printf("0x%x\n", w);
-w= vmer32(L0_INTERACT1); printf("0x%x\n", w);
-w= vmer32(L0_INTERACT2); printf("0x%x\n", w);
-w= vmer32(L0_INTERACTT); printf("0x%x\n", w);
-w= vmer32(L0_FUNCTION1); printf("0x%x\n", w);
-w= vmer32(L0_FUNCTION2); printf("0x%x\n", w);
-w= vmer32(L0_INTERACTSEL); 
+w= vmer32(getLM0addr(RANDOM_1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(RANDOM_2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(SCALED_1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(SCALED_2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACT1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACT2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACTT)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_FUNCTION1)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_FUNCTION2)); printf("0x%x\n", w);
+w= vmer32(getLM0addr(L0_INTERACTSEL)); 
 printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
-w= vmer32(ALL_RARE_FLAG); printf("0x%x\n", w&0x1);
+w= vmer32(getLM0addr(ALL_RARE_FLAG)); printf("0x%x\n", w&0x1);
 }
 /*
 Read 4 LUTs LUT31/2 LUT41/2 from shared memory (they are not accessible
@@ -142,7 +143,7 @@ if( (l0f34stat[0]==0xd) &&
   };
 }; */
 //read hw: no way (cannot be read out).
-//for(is=0;is<LEN_l0f34;is++)l0f34stat[i]= (vmer32(L0_FUNCTION34)&0xf000)>>12;
+//for(is=0;is<LEN_l0f34;is++)l0f34stat[i]= (vmer32(l0_fun34)&0xf000)>>12;
 l0f34= l0f34stat;
 if(lutout==1) {
   printf("0x");
@@ -181,23 +182,23 @@ set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2,
                w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2) {
 if(notInCrate(1)) return;
-vmew32(RANDOM_1, r1);
-vmew32(RANDOM_2, r2);
-vmew32(SCALED_1, bs1);
-vmew32(SCALED_2, bs2);
-vmew32(L0_INTERACT1, int1);
-vmew32(L0_INTERACT2, int2);
-vmew32(L0_INTERACTT, intt);
-vmew32(L0_FUNCTION1, l0fun1);
-vmew32(L0_FUNCTION2, l0fun2);
+vmew32(getLM0addr(RANDOM_1), r1);
+vmew32(getLM0addr(RANDOM_2), r2);
+vmew32(getLM0addr(SCALED_1), bs1);
+vmew32(getLM0addr(SCALED_2), bs2);
+vmew32(getLM0addr(L0_INTERACT1), int1);
+vmew32(getLM0addr(L0_INTERACT2), int2);
+vmew32(getLM0addr(L0_INTERACTT), intt);
+vmew32(getLM0addr(L0_FUNCTION1), l0fun1);
+vmew32(getLM0addr(L0_FUNCTION2), l0fun2);
 }
 /*FGROUP L0
 set INTERACTSEL ALL_RARE_FLAG
 */
 void setShared2(w32 intsel, w32 allrare) {
 if(notInCrate(1)) return;
-vmew32(L0_INTERACTSEL, intsel);
-vmew32(ALL_RARE_FLAG , allrare);
+vmew32(getLM0addr(L0_INTERACTSEL), intsel);
+vmew32(getLM0addr(ALL_RARE_FLAG) , allrare);
 }
 /* set L0f34 in hw. 
 Input:
@@ -214,14 +215,19 @@ in shared memory +hw
 
 rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
 int setL0f34c(int lutn, char *m4) {
-int is;
+int is; w32 l0_fun34;
+if(l0C0()) {
+  l0_fun34= L0_FUNCTION34r2;
+} else {
+  l0_fun34= L0_FUNCTION34;
+};
 if(lutn==0) {   // all 4 LUTs operations:
   if((strcmp(m4,"0")==0) || (strcmp(m4,"f")==0)) {
     w8 bits;
     bits=  hex12int(m4[0]);
     for(is=0;is<LEN_l0f34;is++){
       l0f34stat[is]= bits;
-      vmew32(L0_FUNCTION34, ((bits<<12) | is));
+      vmew32(l0_fun34, ((bits<<12) | is));
       //vmew32(L0_FUNCTION3, (((bits&0x3)<<12) | is));
       //vmew32(L0_FUNCTION4, (((bits&0xc)<<10) | is));
     };
@@ -232,7 +238,7 @@ if(lutn==0) {   // all 4 LUTs operations:
       bits= hex12int(m4[is]);
       if(bits>0xf) return(255);
       l0f34stat[is]= bits;
-      vmew32(L0_FUNCTION34, ((bits<<12) | is));
+      vmew32(l0_fun34, ((bits<<12) | is));
       //vmew32(L0_FUNCTION3, (((bits&0x3)<<12) | is));
       //vmew32(L0_FUNCTION4, (((bits&0xc)<<10) | is));
     };
@@ -259,7 +265,7 @@ if(lutn==0) {   // all 4 LUTs operations:
         //change=1;
         newval= (shmval & (~rowbitmask)) | bitval;
         l0f34stat[isxbase+isx]= newval;
-        vmew32(L0_FUNCTION34, (((isxbase+isx)<<12) | newval));
+        vmew32(l0_fun34, (((isxbase+isx)<<12) | newval));
         //vmew32(L0_FUNCTION3, (((bits&0x3)<<12) | is));
         //vmew32(L0_FUNCTION4, (((bits&0xc)<<10) | is));
       };

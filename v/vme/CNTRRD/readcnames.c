@@ -1,5 +1,5 @@
 #include "common.h"
-int findAddresses(
+int findAddresses(   seems not used yet...
 int ix;
 FILE *cnames;
 char *cfdir; char cnamesname[100];

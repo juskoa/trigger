@@ -11,7 +11,7 @@ g++  -g -I/opt/dim/dim  -DCPLUSPLUS ./cmd1.c -L/opt/dim/linux -ldim -o linux/cmd
 #endif
 
 #define TAGdo 33
-char DETNAME[10]="";
+char DETNAME[10]="xxx";   // e.g. "spd"
 char DNCMD[20];   // detname/CMD
 char cmdglobal[80]="bad cmd";
 int rcglob=8;
@@ -47,7 +47,7 @@ if(argc!=2) {
 };
 strcpy(DETNAME,argv[1]);
 strcpy(DNCMD,DETNAME); strcat(DNCMD, "/CMD");
-rc=execute(DNCMD, "ttcrxreset");   // TTCrx reset + TTCrx regs init
+rc=execute(DNCMD, (char *)"ttcrxreset");   // TTCrx reset + TTCrx regs init
 //rc=execute(DNCMD, "ttcrxreset fee");   // ttcrxreset + FEE reset
 if(rc==1) { 
   sleep(2);   // at least 1secs, if not, server does not see the request!

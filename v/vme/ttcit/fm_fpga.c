@@ -252,7 +252,7 @@ int writeFM(w32 address, int dato){
          reasonable time it must go back to READY
    */
   while( (GetStatFM() == BUSYFM) && (attempts < MAX_W_ATTEMPTS ) ){
-    usleep(1);
+    //usleep(1);
     attempts++;
   }
   /*
@@ -356,9 +356,9 @@ nmod = 2;
 }else if(i < 1000){
 nmod = 100;
 }else if(i < 10000){
-nmod = 100;
+nmod = 1000;
 }else{
-nmod = 100;
+nmod = 1000;
 }
 if((i % nmod) == 0){
 printf("%d -th dato written\n",i);

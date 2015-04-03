@@ -140,7 +140,7 @@ BCMASK, BCMASKuse used in (similar actions for PF):
                                              copycheckPF() called
     load2HW
       loadBCmasks -load all masks (even if only 1 used)
-                                             WritePFuser (defined in pfp.c)
+                                      setPF[c]      (defined in pfp.c)
 12.10. todo
 pydimserver.py: miclock should not be called in lab
 ok 12.10.2011 19:49:25: ***  Error:
@@ -334,3 +334,124 @@ L1.1:800fffc1 c57bfff aa
 A:th1/2:1 63 dT:255 del/f:0/1 B:th1/2:63 63 dT:123 del/f:197/0 P:0xaa 0 0 
 L2.1:5f9fc1 317bfff faa
 A:th1/2:1 63 dT:249 del/f:5/0 B:th1/2:63 63 dT:123 del/f:49/0 P:0xaa 15 0 
+-> line in TRIGGER.PFS:
+       L0.1                   L1.1                        L2.1                      L0  L1       L2
+tpc    0xf7f80 0x3dfbe 0x1caa 0x800f7fc1 0xc57bfff 0x1daa 0x5f9fc1 0x317bfff 0x1faa 0xc 0x10100c 0x6d00c
+tpc4   0xf7f80 0x3dfbe 0x1caa 0x800fffc1 0xc57bfff 0xaa   0x5f9fc1 0x317bfff 0xfaa  0xc 0x10100c 0x6d00c
+tpcIR1 0xf7f80 0x3dfbe 0x1c02 0x800f7fc1 0xc57bfff 0x1d02 0x5f9fc1 0x317bfff 0x1f02 0xa 0x10100a 0x6d00a
+PF.x L0_PFBLOCK_A L0_PFBLOCK_B L0_PFLUT
+     L1_PFBLOCK_A L1_PFBLOCK_B L1_PFLUT
+     L2_PFBLOCK_A L2_PFBLOCK_B L2_PFLUT
+     L0_PF_COMMON L1_PF_COMMON L2_PF_COMMON 
+
+PFBLOCK_A/B
+th1*  5.. 0
+th2* 11.. 6
+dT*  19..12   prot.int width= (1..255)+1 or 0->257, i.e. result is 2..257
+              in BCs: widthA*(sdA+1)
+del* 30..20   0-(2k-1) clock periods
+f*   31       NoDelayFlag
+              1: no delay interval
+              0: (delA+1)*(sdA+1)
+
+del,f: ignored for L0
+
+PFLUT
+P     7.. 0
+sdA  12.. 8   scale down factor 0-31
+sdB  17..13   N+1, i.e period= (sdA+1)*widthA
+
+Note:
+If Lx_PFBLOCK_A/B = Lx_PFLUT = 0 (i.e. 0 0 0), PF veto
+is not activated for classes using this PF.
+
+PF_COMMON
+intA   3.. 0
+intB   7.. 4
+delLT 11.. 8   LUT
+delSD 23..12   signal delay. 
+               L0: ignored
+               L1: max. 512 bcs, i.e. only bits 20..12 used
+               L2: full 12bits range (in bcs) available
+
+DecodePF() should return something like:
+PF_COMMON
+   intA intB delLT delSD
+L0
+L1
+L2
+
+PFBLOCK PFLUT
+   th1 th2 dT -> ns del f sd P
+0A:                          val
+ B:
+1A:                          val
+ B:
+2A:                          val
+ B:
+
+
+Notes:
+1. last 4 bits of last 3 words:INTa LUT 0xa=IR1  0xc=IR2
+   i.e. tpcIR1 is initiated by IR1 (others by IR2)
+
+mess: (reverse decoding should be done by some sw, like ReadPF() ):
+2.        tpc vs    tpc4
+L1_PFBLOCK_A
+          800f7fc1  800fffc1
+L1_PFLUT  0x1daa    0xaa
+          1d aa     0 aa  sdA:29 vs 0, i.e. tpc: 30bcs tpc4: 1bcs (no downscale)
+          (f7+1)*1d=    ff*0=
+          7192      ?
+L2_PFLUT  0x1faa    0xfaa
+          1f aa     f aa  sdA:31 vs 15
+          (f7+1)*1f (ff+1)*f
+          =         =
+          7688      3840
+
+-------------- tpc -180us +100us:
+WritePFuser( 3, 1,7200)     -for L0,L1     7200=
+WritePFuser( 4, 1,4000)       -for L2
+
+now ReadPF(3)
+(3)  0xf7f80 0xfbe   0x1c02 0x800f7fc1 0x10201fff 0x1d02                            0xa 0x10100a 0x6d00a 
+(4)                                                      0x5f9fc1 0x6e01fff 0x1f02  0xa 0x10100a 0x6d00a
+tpc  0xf7f80 0x3dfbe 0x1caa 0x800f7fc1  0xc57bfff 0x1daa 0x5f9fc1 0x317bfff 0x1faa  0xc 0x10100c 0x6d00c
+             *1      *2                 *3        *4              *5        *6 
+
+from sent-mail-dec-2011:
+Better:
+                                   3d 
+set all B:dT on 3 levels to 0 (now 61 123 123)A
+> este sme chceli nastavit B:dT na 1, nie na 0.
+>
+> Marek
+
+we will provide algorithm how to calculate protected interval from
+12 numbers supplied in PF definition, and put into ctp config
+human readable comment (very likely not in this PbPbrun).
+...
+We should agree on PF names (like on BC masks names).
+Now, we have only one, named tpc, with the meaning:
+Protection interval -180/+100us against IR2
+
+Ahoj,
+ked tak pozeram, tak teraz mame na L2 nastavene
+dT:249 a factor:31 co dava
+(32*249)/40.= 199.2 us
+cize ked chceme aby nefungoval 199.2 us dozadu,
+ale iba po L1, tak by sme mali dat
+TL2-TL1 = 4208- 260 = 3948 BCs. 
+Cize by sme asi mali dat na L2
+dT: 124 a factor: 31 co da 32*124= 3968 -cize sa ku bude
+prekryvat s L1 co nevadi.
+Dobre?
+Ahoj, Tono
+Ahoj,
+nakoniec urobili run (posledny vecer pred zastavenim),
+so specialne nastavenym L1 PF ktory nebral do uvahy 4 BCs
+po IR (0VLN afterpulsy).
+Roman predtym demonstroval na SSM a na druhy den
+aj na scope ze to bavi (ta L1 PF) ako ma, takze aj ten run
+bude zrejme ok, Ahoj, Tono
+

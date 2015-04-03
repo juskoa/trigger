@@ -5,7 +5,7 @@ ORB1: 0x7fb60:1 0x7fb58:0x26
 ORB2: 0x7fb20:1 0x7fb18:0x26
 ORBmain: 0x7fae0:1 0x7fad8:0x26
 
-14.7.:
+14.7.:   -before/during run1
 [alidcsvme017] /usr/local/trigger/v/vme/ttcmi/rf2ttc/bin > ./rf2ttcscope_atlice VMEbus base address = 0x00f00000
 Your choice: [1] :3
 ====================================================================

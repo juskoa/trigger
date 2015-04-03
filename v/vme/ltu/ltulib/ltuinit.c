@@ -96,7 +96,7 @@ Titems SODEOD_options[]={{"YES",1}, {"NO", 0}, {"1", 1}, {"0", 0}, {"", 0}};
 Titems LHCGAPVETO_options[]={{"YES",8}, {"NO", 0}, {"1", 8}, {"0", 0}, {"", 0}};
 Titems DIM_options[]={{"YES",1}, {"NO", 0}, {"1", 1}, {"0", 0}, {"", 0}};
 Titems TTCRX_RESET_options[]={{"YES",1}, {"NO", 0}, {"1", 1}, {"0", 0}, 
-  {"INIT", 2}, {"", 0}};
+  {"INIT", 2}, {"STDALONE", 4}, {"", 0}};
 Titems flags_options[]={{"YES",1}, {"NO", 0}, {"1", 1}, {"0", 0}, {"", 0}};
 
 /*---------------------------------------------------------------------*/
@@ -544,11 +544,11 @@ if(ltuviyes) {
   } else if((del>=18) && (del<=30)) { 
     newttin=0x2; */
   if(((del<=6) && (del>=0)) || ((del >=20) && (del<=31))) {
-    newttin=0x2;
+    newttin=0x2;   // chanA +BC/2
   } else if((del>=8) && (del<=18)) { 
-    newttin=0x1;
+    newttin=0x1;   // chanB +BC/2
   } else if(del==7 ) { 
-    newttin=0x3; 
+    newttin=0x3;   // both TTC chans A/B +BC/2
   } else if(del== 19) { 
     newttin=0x0; 
   } else { newttin=0;
@@ -605,7 +605,11 @@ vmew32(L1_DELAY,259);   // TL1-1 (see ctplib/timingpars.c) 224
 //vmew32(L2_DELAY,3520);  till 11.6.2008
 //vmew32(L2_DELAY,3952);  till 29.8.2011
 vmew32(L2_DELAY,4208);  // TL2 (see ctplib/timigpars.c)
-
+/* With run2 ctp+ltu firmwares, equal L1-L2 delay (global == stdalone) 
+reached when:
+ltu L2_DELAY modified from 4208 -> 810 and
+ctp L2_DELAY_L1 modified from   3884 -> 500
+*/
 /* following overwritten from file CFG/ltu/ltuttc.cfg:*/
 vmew32(ORBIT_BC,ltc->orbitbc);
 vmew32(L1_FORMAT,ltc->l1format);
@@ -655,3 +659,33 @@ if(ltc->ttcrx_reset==0) {
 int getgltuver() {
 return(Gltuver);
 }
+/*
+rc: >0 in case of SEU was registered.
+rc:  0 ok, no SEU registered from last checkSEU() activation
+*/
+int checkSEU() {
+w32 serial, pll;
+pll= vmer32(TEMP_STATUS)&0x2;
+serial= 0x7f&vmer32(SERIAL_NUMBER);   // 0x7f for ltu2 (bit 0x40 is 0 for ltu1)
+if((serial>=64) || (serial==0)) {
+  if(serial==0) {
+    printf("Serial number:0 ->this board accounted LTU version 2\n");
+  };
+  // check only from fpgaver 0xb8
+  if(Gltuver>=0xb8) {
+    if(pll==0x2) {
+      printf("CRC error bit set, reconfigure LTU!\n");
+      vmew32(TEMP_STATUS, 0);    // is needed here?
+      return(1);
+    } else {
+      printf("CRC bit ok\n");
+    };
+  } else {
+    printf("CRC bit not checked (LTU version 2, but FPGAver <0xb8 )\n");
+  };
+} else {
+  printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");
+};
+return(0);
+}
+

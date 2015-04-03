@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 2.2.2012:
+# 2.2.2012 and 20.1.2013 (DLL_RESYNC removed):
 # look for #CJI -Clock Jitter Invetsigation modifications (no DLL_RESYNC)
 #
 # This should run all the time:
@@ -19,10 +19,15 @@ import pydim
 mylog= None
 VMECFDIR= os.environ["VMECFDIR"]
 if os.environ['VMESITE']=='ALICE':
-  MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+  #MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+  MICLOCKID="/home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
 else:
   #print "VMESITE:", os.environ['VMESITE']
-  MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
+  if os.environ["USER"]=="oerjan":
+    MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/oerjan/miclockid"
+  else:
+    #MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
+    MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
 
 def signal_handler(signal, stack):
   global MICLOCKID
@@ -73,7 +78,7 @@ class web:
     #print "Saving to:",fn
     #print line
     f.close()
-    mylog.logm("web.save:"+line, 1)
+    #mylog.logm("web.save:"+line, 1)
   def show(self):
     mylog.logm("miclock:%s transition:%s newclock:%s bmname:%s mode::%s"%\
       (self.miclock, self.transition, self.newclock, 
@@ -111,8 +116,6 @@ def callback1(now):
   ##mylog.logm("TTCMI/MICLOCK: %s. -WEB NOT UPDATED ##"%(now))
 
 def getShift():
-  if os.environ['VMESITE']!='ALICE':
-    return "0.05"
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
   iop= popen2.popen2(mcmd+" s", 1) #0- unbuffered, 1-line buffered
   line= iop[0].readline()
@@ -162,12 +165,12 @@ def checkandsave(csf_string, fineshift="None", force=None):
             (ttcmi_hns, corde_10ps, last_applied))
         else:
           newcorde= corde_10ps - csps/10
-          f= open(fn,"w")
-          line= "%s %d %s"%(ttcmi_hns,newcorde, csps_applied_new); f.write(line)
-          f.close()
-          mylog.logm("Clock shift in db: %s %d %s -> %s %d %s"%\
-            (ttcmi_hns, corde_10ps, last_applied, ttcmi_hns, newcorde, csps_applied_new))
+          #f= open(fn,"w")   -written in .c (CORDE_SET)
+          #line= "%s %d %s"%(ttcmi_hns,newcorde, csps_applied_new); f.write(line)
+          #f.close()
           if fineshift != "None":
+            f= open(fn,"r"); line= f.readline(); f.close()
+            mylog.logm("Clock shift in db before SET: %s"%line)
             corde_shift= "%d"%(-csps/10)
             arg= (corde_shift,)
             res= pydim.dic_cmnd_service("TTCMI/CORDE_SET", arg, "C")
@@ -183,8 +186,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
     mylog.logm("DLL_RESYNC not done (force option).")
   else:
     arg=("none",)
-    res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-    #CJI mylog.logm("DLL_RESYNC not started...")
+    #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+    mylog.logm("DLL_RESYNC not started...")   # CJI
 def checkShift():
   cshift= getShift()
   mylog.logm("checkShift: after 10 secs:"+ cshift)
@@ -223,8 +226,9 @@ def callback_bm(bm):
       else:
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-        #CJI mylog.logm("DLL_RESYNC NOT started...")
-    mylog.logm("BEAM MODE:%s clock %s OK shift:%s"%(bmname, expclock, cshift))
+        #mylog.logm("DLL_RESYNC started...")
+        mylog.logm("DLL_RESYNC NOT started...")   # CJI
+    mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":
       if os.environ['VMESITE']=='ALICE':
         import sctel
@@ -269,7 +273,7 @@ def callback_bm(bm):
           mylog.logm("setting scope persitence: "+mininf)
           tn.setPersitence(mininf)
           tn.close()
-          mylog.logm("alidcsaux008 scope persitence: "+mininf)
+          #mylog.logm("alidcsaux008 scope persitence: "+mininf)
       ##mylog.logm("NOT CHANGED ##")
   mylog.flush()
 
@@ -286,7 +290,7 @@ def main():
   #signal.signal(signal.SIGUSR1, signal_handler)
   # authenticate:
   ##if os.environ['USER']=="##trigger":
-  if os.environ['USER']=="trigger":
+  if os.environ['USER']=="trigger" or os.environ['USER']=="oerjan":
     if os.path.exists(MICLOCKID):
       lsf= open(MICLOCKID,"r"); pid=lsf.read(); lsf.close; 
       pid= string.strip(pid,"\n")
@@ -322,15 +326,28 @@ Than start miclock again.
   while True:
     #time.sleep(10)
     try:
-      a= raw_input('enter BEAM1 BEAM2 REF LOCAL man auto (now:%s) or q:\n'%\
+      #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
+      a= raw_input("""
+   enter:
+   BEAM1       	-change the ALICE clock to BEAM1
+   LOCAL       	-change the ALICE clock to LOCAL
+   man/auto     -change operation mode (manual or automatic) now:%s
+   getshift    	-display current clock shift
+   reset       	-reset current clock shift to 0
+   q            -quit this script
+"""%\
         WEB.clockchangemode)
     except:
       a='q'
       mylog.logm("exception:"+str(sys.exc_info()[0]))
-    if (a!='q') and (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
+    if string.find("getshift",a)==0: a="getshift"
+    if (a!='q') and (a!='') and \
+      (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
+      (a!='getshift') and (a!='reset') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
-      mylog.logm('bad input:%s...'%a) ; continue
+      mylog.logm('bad input:%s'%a) ; continue
     if a=='q': break
+    if a=='': continue
     if a=='auto':
       WEB.clockchangemode='auto'
       WEB.save()
@@ -339,10 +356,16 @@ Than start miclock again.
       WEB.save()
     elif a=='show':
       WEB.show()
+    elif (a=='getshift'):
+      cshift= getShift()
+      if cshift != "old":
+        mylog.logm("Clock shift: %s ns."%cshift)
+      else:
+        mylog.logm("Clock shift not measured (too old).")
     elif a=='reset':
       cshift= getShift()
       if cshift != "old":
-        mylog.logm("Clock shift (%s ns) reset...", cshift)
+        mylog.logm("Clock shift (%s ns) reset..."%cshift)
         checkandsave(cshift,"fineyes", force='yes')
       else:
         mylog.logm("Clock shift measurement is too old, reset not done")

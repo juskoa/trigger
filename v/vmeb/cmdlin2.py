@@ -9,7 +9,7 @@
 #13.5.2004 - parallel thread1,2... windows are iconified when
 #            initialised 
 from Tkinter import *
-import os, popen2, sys, string, signal, time
+import os, subprocess, sys, string, signal, time
 from threading import *
 
 #sys.path.append("/home/juskoa/ALICE/vmeb")
@@ -48,6 +48,7 @@ class ioWindow:
     """
     lastOutput=''; self.lineNumber=0; msg2all=0; self.ignoreall=0
     try:
+      #print "getOutput:",self.io
       while 1:
         line= self.io[0].readline()
         #print '>'+str(self.ixthds)+'>',line,'<<'
@@ -301,12 +302,14 @@ class ioWindow:
       #iow self.lockexe= Lock()
       #von self.lockexe.acquire()
       if (sys.platform == "win32"):
-        print "popen2..."
-        self.io= popen2.popen2(nbcmd, -1)
+        print "popen2 win32 not in..."
+        #self.io= popen2.popen2(nbcmd, -1)
         #self.io= os.popen2(nbcmd, -1)
       else:    # linux, cygwin:
-        self.io= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
-        #nop
+        #self.io= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
+        p= subprocess.Popen(string.split(nbcmd), bufsize=1,
+          stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+        self.io= (p.stdout, p.stdin)
       #print "cmdlin2:",nbcmd,":",os.getcwd(),":"
       #print "cmdlin2:self.io:",self.io
       #pidline=string.split(self.getOutput('out','out'),'\n',1)[0]
@@ -344,7 +347,7 @@ class cmdlint:
   1. start:
   cli= cmdlint(command)
        - creates control window (for command input/output)
-       - starts command through popen2
+       - starts command through subprocess.Popen (was popen2 in run1)
   This should be started only once. 
   In BOARD_u.py, user routine is called with just 1 parameter (vb) 
   which is the instance of corresponding Myw.VmeBoard class.

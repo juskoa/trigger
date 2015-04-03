@@ -32,9 +32,9 @@ Client:
         mallocShared(IDKEY, 0, &segid)
         shmdt(shmbase);   -release (not used by client more)
 */
-w8 *mallocShared(w32 shmkey, int size, int *segid) {
+void *mallocShared(w32 shmkey, int size, int *segid) {
 int segment_id, segment_size, created=0;
-w8 *shared_memory=NULL;
+void *shared_memory=NULL;
 struct shmid_ds shmbuffer;
   
 segment_id = shmget (shmkey, size,
@@ -49,17 +49,16 @@ if( segment_id == -1) {
   22 -if segment of different size exists
   */
   if(errno==22) {
-    printf("Shared memory 0x%x of different size exist, errno:%d requested:%d bytes\n", 
+    printf("ERROR Shared memory 0x%x of different size exist, errno:%d requested:%d bytes\n", 
       shmkey, errno, size);
-    printf("Try: ipcs -m, ipcrm shm SHMID to remove it\n");
+    printf("ERROR Try: ipcs -m, ipcrm shm SHMID to remove it\n");
     goto RET;
   };
-  printf("shm segment 0x%x doesn't exist, errno:%d\n", shmkey, errno);
-  printf("creating it...\n");
+  printf("INFO shm segment 0x%x doesn't exist, errno:%d, creating...\n", shmkey, errno);
   segment_id = shmget (shmkey, size,
     IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR|S_IROTH|S_IWOTH|S_IRGRP|S_IWGRP);
   if( segment_id == -1) {
-    printf("shmget error:%d(0x%x)\n", errno, errno);
+    printf("ERROR shmget error:%d(0x%x)\n", errno, errno);
   } else {
     created=1;
   };
@@ -67,33 +66,33 @@ if( segment_id == -1) {
 *segid= segment_id;
 if(segment_id != -1) {
   /* Attach the shared memory segment.  */
-  shared_memory = (w8*) shmat (segment_id, 0, 0);
-  printf ("shared memory attached at address %p\n", shared_memory);
+  shared_memory = shmat (segment_id, 0, 0);
+  printf ("INFO shared memory attached at address %p\n", shared_memory);
   /* Determine the segment's size.  */
   shmctl (segment_id, IPC_STAT, &shmbuffer);
   segment_size = shmbuffer.shm_segsz;
-  printf ("segment size: %d\n", segment_size);
+  printf ("INFO segment size: %d\n", segment_size);
   if (created==1) {
-    int i;
-    for(i=0; i<size; i++) shared_memory[i]=0;
-    printf("First %d bytes initialized to 0\n", size);
+    int i; w32 *wp= (w32 *)shared_memory;
+    for(i=0; i<size/4; i++) wp[i]=0;
+    printf("INFO First %d 32bits words initialized to 0\n", size/4);
   };
 };
-RET: fflush(stdout); return(shared_memory);
+RET: fflush(stdout); return((void *)shared_memory);
 }
 
-int freeShared(w8 *shmbase, int shmsegid) {
+int freeShared(void *shmbase, int shmsegid) {
 int rc;
 /* Detach the shared memory segment.  */
 shmdt(shmbase);
 rc= shmctl(shmsegid, IPC_RMID, 0);
-printf("rc.shmctl(IPC_RMID):%d\n", rc);
+printf("INFO rc.shmctl(IPC_RMID):%d\n", rc);
 if( rc != 0) {
-  printf("shmctl rc:%d errno:%d(%x)\n", rc, errno, errno);
+  printf("ERROR shmctl rc:%d errno:%d(%x)\n", rc, errno, errno);
 };
 return(rc);
 }
-void detachShared(w8 *shmbase) {
+void detachShared(void *shmbase) {
 shmdt(shmbase);
 }
 /*

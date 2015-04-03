@@ -1,7 +1,7 @@
 #!/bin/bash
 #todo:
 # cd /data/ClientLocalRootFs/alidcsvme001/home/alice/trigger/v/vme/WORK
-hname=`hostname`
+hname=`hostname -s`
 cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
 if [ -n "$1" ] ;then
   vdir=$1
@@ -23,25 +23,27 @@ cat - <<-EOF
 EOF
   exit
 fi
-if [ "$hname" = 'pcalicebhm10' -o "$hname" = 'pcalicebhm05' ] ;then
-  vdv='vd'
-else
-  vdv='v'
-fi
-if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
+#if [ "$hname" = 'pcalicebhm10' -o "$hname" = 'pcalicebhm05' ] ;then
+#  vdv='vd'
+#else
+#  vdv='v'
+#fi
+vdv='stable'
+if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' -o \
  "$hname" = 'pcalicebhm10' -o "$hname" = 'alidcscom188' ] ;then
-  if [ "$hname" = 'alidcscom188' ] ;then
-    CCRFS=/data/dl/root
-    CLRFS=/data/dl/snapshot
-  fi
-  cfgfile=$CCRFS/usr/local/trigger/v/vme/CFG/ctp/DB/ttcparts.cfg
+  #if [ "$hname" = 'alidcscom188' ] ;then
+    #CCRFS=/data/dl/root  or /data/dl6/rootfs
+    #CLRFS=/data/dl/snapshot  or /home/dl6/snapshot (see setenv)
+  #fi
+  cfgfile=$VMECFDIR/CFG/ctp/DB/ttcparts.cfg
   #echo "Server: $hname"
   if [ "$vdir" = 'ctp' ] ;then
     dhost='alidcsvme001'
-    #not necessary -ctp and ttcmi only in the pit
-    #if [ "$hname" = 'pcalicebhm05' ] ;then
-    #  dhost='altri1'
-    #fi
+    if [ "$hname" = 'pcalicebhm10' ] ;then
+      dhost='altri2'
+    elif [ "$hname" = 'avmes' ] ;then
+      dhost='altri1'
+    fi
     rdir=$CLRFS/$dhost/home/alice/trigger/v/vme/WORK
   elif [ "$vdir" = 'ttcmi' ] ;then
     dhost='alidcsvme017'
@@ -54,7 +56,8 @@ if [ "$hname" = 'alidcscom026' -o "$hname" = 'pcalicebhm05' -o \
   else
     dhost=`awk '{if($1==detname) {print $2}}' detname=$vdir $cfgfile`
     if [ -z "$dhost" ] ;then
-      rdir=$CCRFS/usr/local/trigger/$vdv/vme/$vdir
+      #rdir=$CCRFS/usr/local/trigger/$vdv/vme/$vdir
+      rdir=$VMECFDIR/$vdir
     else
       rdir=$CLRFS/$dhost/home/alice/trigger/v/$vdir/WORK
     fi

@@ -1,0 +1,95 @@
+Contents:
+1. Prepare .rpm
+1A. check .rpm
+2. History
+3. Problems
+
+1. Prepare .rpm
+---------------
+modify setup.py:
+  - change version, description 
+modify cphere.sh   
+  -change comment at the end (echo version...)
+  -add new files if needed (3x: p1/p2 + pyfiles  + MANIFEST!)
+modify MANIFEST
+  -add new files if needed
+
+and start ./cphere.sh
+- answer 'y' when asked about removing files in pwd
+
+.noarch.rpm is left in ~/validate/dist directory
+Adding tkinter dependance:
+modify ~/validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
+adding 2 lines after 'Vendor:' line:
+Requires: tkinter
+%define _topdir /home/alice/trigger/validate/build/bdist.linux-x86_64/rpm
+
+rpmbuild -bb validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
+rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.1-1.noarch.rpm
+i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
+
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.1-1.noarch.rpm juskoa@lxplus:www/validate/
+modify www/Welcome.html
+
+1A. check .rpm
+--------------
+avmes:
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-4.0-1.noarch.rpm aj@pcalicebhm11:Downloads/
+
+cd $dbctp
+scp ttcparts.cfg VALID.CTPINPUTS L0.INPUTS VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMASKS VALID.LTUS ttcparts.cfg  gcalib.cfg filter clockshift aj@pcalicebhm11:/home/aj/git/trigger/v/vme/CFG/ctp/DB/
+from 4.0 version:
+scp ttcparts.cfg ctpinputs.cfg VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMASKS VALID.LTUS ttcparts.cfg  gcalib.cfg filter clockshift aj@pcalicebhm11:/home/aj/git/trigger/v/vme/CFG/ctp/DB/
+
+install on 11:
+rpm -e validate
+rpm -ivh ~aj/Downloads/validate-3.0-1.noarch.rpm
+export dbctp_pardefs=~/git/trigger/v/vme/CFG/ctp/pardefs
+export dbctp=~/git/trigger/v/vme/CFG/ctp/DB
+python /usr/lib/python2.6/site-packages/validate/validate.py simple3
+
+2. History
+----------
+1.6. correct filtering (only for PHYSICS_1) of classes using unconnected inputs
+1.7. 26.10.2011 PF possible, firmware L0 >0xAB possible 
+2.0  2.3.2012 vmeb/donscaling.py added
+2.1  bug removed: when cn= missing, it is detected now
+     more than 6 inverted classes allowed for L0 fi > AC
+2.2  19.6.2012
+- 'cn=' parameter not needed in class definitions.
+- 0HWU check (if TRD in readout)
+- bug fixed (missing ')' in class definition )
+2.3. 8.10.2012
+- sync downscaling groups (syncdg.py) added
+2.4. 28.10.2012
+- automatic downscaling, strict validation added
+2.5. 29.10.2012
+- pydim not even imported when strict (ACT/ECS do not have pydim
+  installed)
+30.1.2013
+- FIXPOWER added for automatic downscaling
+27.6.2013
+- build on SLC6 trigger@pcaldctp2, ver. 2.8.1 for python 2.6
+25.8.2014
+- added trgglobs.py, dependance on tkinter: setup_requires does not work!
+- build on avmes, ver. 3.0 (100 classes) for python 2.6
+10.12.2014
+- ctpinputs.cfg used now instead of VALID.CTPINPUTS L0.INPUTS CTP.SWITCH
+26.1.2015 validate-5.0-1.noarch.rpm
+- if filter file not present, use trgInput_* files (content: ON or OFF)
+  prepared and modified for tkinter dependance
+13.2.2015 validate-5.1-1.noarch.rpm
+- 0HWU check removed
+
+3. Problems
+-----------
+Problem with SLC5:
+Checking for unpackaged file(s): /usr/lib/rpm/check-files /var/tmp/validate-1.6-1-buildroot
+error: Installed (but unpackaged) file(s) found:
+   /usr/lib/python2.4/site-packages/validate/myw.pyo
+...
+
+Fix found at https://bugzilla.redhat.com/show_bug.cgi?id=198877
+Following added in ./cphere.sh script:
+echo "%_unpackaged_files_terminate_build 0" >> ~/.rpmmacros
+

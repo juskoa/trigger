@@ -1,0 +1,122 @@
+1. Goal 
+-------
+replace VALID.CTPINPUTS, CTP.SWITCH, L0.INPUTS (old: 3files way) by ctpinputs.cfg (new: 1file way)
+
+ctpfunctions.cfg  -not yet clear if we move l0f* defs to separate file.
+                   For the time being, it is kept at the end of ctpinputs.cfg (as in run1).
+
+2. run1 formats
+---------------
+VALID.CTPINPUTS
+#InName         = Det                 Level   Signature    Inpnum    Dimnum  Configured      Edge     Delay  DeltaMin  DeltaMax
+0VBA            = V0                      0        52         1         1           1         0         3      1000      1000
+0VBC            = DAQ                     0        53         2         2           1         0         3         0         0
+0SMB            = SPD                     0        20         3         1           1         0         1        -3         0
+l0fINT1         = 0SMB | 0VBA | 0VBC
+l0fVBOR         = 0VBA | 0VBC
+l0fNOTV0        = (~0VBA) & (~0VBC)
+l0AVGOR         = 0VGA | 0VGC
+l0BT0OR         = 0T0A | 0T0C
+l0fTEST         = 0SMB & 0SM2
+l0Aanycosmic    = 0OB3 | 0ASL | 0AMU
+
+L0.INPUTS
+#sin detector nameweb namectp eq signature dimnum edge delay configured deltamin deltamax #comments
+1 SPD spdl0_8 0SMB 0 20 1 0 1 1 -3 0 #smb
+#2 SPD spdl0_6 0SX1 0 26 7 0 1 1 1000 1000 #OLD:SPD6 - spd bkgnd
+2 SPD spdl0_6 0SLT 0 36 7 0 1 1 1000 1000 #OLD:SPD6 - spd bkgnd
+
+CTP.SWITCH
+#nameweb InName eq sin Inpnum+1
+V0_1 0VBA 1 30 2
+V0_2 0VBC 1 29 3
+spdl0_8 0SMB 0 1 4
+
+3. used by
+----------
+                        L0   LM0
+  ctp_proxy        ro   old  new
+  switched         rw   old  new
+  vmecrate inputs  ro   old  new
+
+old: old way, i.e. 3 files
+new: new way, i.e. use only ctpinputs.cfg (1file)
+  
+4. New ctpinputs.cfg format
+---------------------------
+int items:    0     1         2    3    4       5    6     7         8
+inp items:
+InName = Det Level Signature InpN DimN SwitchN Edge Delay DeltaMin  DeltaMax ppn nameweb eq dimdns dimservice #anycomment
+M            M               M             M                                        A   A       A  A      A
+
+- Keep the same format (VALID.CTPINPUTS) as far as possible:
+- Use old files with L0, use this file with LM0
+- ctpinputs.cfg will be sorted by level -i.e. connected inputs first, i.e.
+  - connected l(M)/0/1/2
+  - disconnected
+
+5. Modified/added (with regard to the old format of VALID.CTPINPUTS file):
+-----------------
+Modified columns:
+Level:        probably we allow also 'M'. Currently valid 0,1,2
+SwitchN:      this column was called Configured in VALID.CTPINPUTS
+              0: not connected to ctp L0 switch
+              1..48: LM0 switch input number
+InpN:         0: not connected to classes (can be connected to L0 switch)
+              1..10: LM input
+              1..24: L0 input: should not overlap with LM, i.e. switch
+                     cannot split LM0 1..48 input to both LM and L0 signals
+              1..24: L1 input
+              1..12: L2 input
+InName:       the name used last time or NA (Not Assigned) 
+
+Added columns:
+ppn:          PatchPanel number: T|B A|B n   e.g.: TA1 -> EMCAL L1
+              n: 1..20 (numbers engraved on patch panel)
+nameweb:      cable name/number -whatever is written on cable or on our web 'Installation'
+eq:           1: with equalizer 0: no equalizer
+dimdns:       aldaqecs or alidcsdimdns
+dimservice:   name of DIM service (dimsevice/STATUS_OPTIONCODE...)
+#anycomment:  any comment starting with #
+
+6. History of software modifications
+------------------------------------
+18.6.2014
+vmeb/trigdb.py joininputs    -join L0.INPUTS+VALID.CTPINPUTS ->ctpinputs.cfg
+- to be used in the pit in the time when we exchange L0 to LM0
+
+8.12.2014
+Tpartition.h
+#define NCTPINPUTS 84    // 48+24+12
+
+typedef struct Tinput{
+  int inputnum; // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
+  int switchn;  // 0: not switchinput (i.e. L1/2 input or not connected at all)
+                // 1..48 switch input number
+  
+i.e. Tinput length did not change (switchn instead of configured), but nuber of items
+in validCTPINPUTS is 84 now.
+
+ctplib/readTables.c  -file ctpinputs.cfg is read now, nw way of tests 'is configured ?'
+pydim/ctpcnames.c
+
+vmeb/trigdb.py:
+Idea: use classes: TrgVALIDINPUTS() TrgInputs + TrgInp instead of
+classes TrgVALIDINPUTS("run1lm0") TrgL0INPUTS TrgSwitchLTU
+
+class TrgInputs, class TrgInp: seems not used (i.e. we can cope with modified TrgVALIDINPUTS)
+used now only in 'trigdb.py joininputs'
+ -to be filled from ctpinputs.cfg
+
+TRG_DBED:
+ok - remove usage of TrgL0INPUTS (TrgSwitchLTU not used here)
+
+10.12.
+ctpinputs.cfg:
+- check on altri1 if switch programming ok (now ctpinputs.cfg is used)
+- prepare validate, send to Vasco
+- check link/compile
+- lab->p2
+restart dims ctpproxy  pydim, also ipcrm shm shmid , ipcs shm (on alidcsvme001 and alitri)
+
+

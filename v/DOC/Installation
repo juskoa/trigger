@@ -2,24 +2,37 @@ Requirements
 ------------
 Operation system: Linux
 Additional packages: python/tkinter (i.e 'yum install tkinter' on Linux)
+If ltuproxy required (i.e. ALICE DAQ), SMI and DIM installation required
+as well as DAQ-logbook and infoLogger.
 
-Installation (Unix)
---------------------
+rpm installation in /opt/ltusw on CCT VP315 with VMERCC driver:
+------------------------------
+rpm -ivh ltusw-4.2-1.i386.rpm
+Modify:
+/opt/ltusw/vmebse.bash
+  - env. variable VMELIBS defining VMERCC libraries
+
+/opt/ltusw/vme/CFG/ctp/DB/ttcparts.cfg
+  - define where LTU is (computer name and base address)
+
+Private installation in $HOME:
+-----------------------------
 Create directory (let's call it v), and unpack tar file in it:
 cd v
 tar -xvf../vmebltu.tar
 
-Edit following files:
-v/scripts/vmebse.bash -setting of 3 environment variables:
-  VMEDRIVER -VMERCC (Atlas vme driver, Linux)
-  VMECFDIR= ...v/vme   -specific software (ttcvi, ltu,...)
-  VMEBDIR= ...v/vmeb   -common software (for any vme board)
-  VMEWORKDIR= ...v/vme -working directory (temporary and config files)
+Edit following 3 files:
+v/scripts/vmebse.bash -lines setting:
+  vdir         where LTU sw will be installed
+  VMEDRIVER    VMERCC (Atlas VME driver, Linux)
+  VMEINCS,VMELIBS -where include fiels and libraries for VMEDRIVER are placed
+  VMEWORKDIR   working directory (default: $HOME/v/vme).
+
+  For ltuproxy following has to be set also:
   DIMDIR, SMIDIR -you need to install DIM and SMI packages, if you want to
                   use ltuproxy software together with ECS and ltudim
                   client. 
-
-v/vmeb/vmeai.make.$VMEDRIVER   -link and include directories for VME driver
+  DIM_DNS_NODE where DIM name server is running
 
 vme/CFG/ltu/ltuttc.cfg -a template can be found in ltuttc.cfgall 
 
@@ -30,9 +43,9 @@ vme/CFG/ctp/DB/ttcparts.cfg  -specify:
  -the base address of your LTU board
 
 By default, base addresses of LTU is 0x810000. This default
-can be changed by modifying /*BOARD ... lines in source file 
+can be changed by modifying first '/*BOARD ...' line in source file 
 v/vme/ltu/ltu.c before compile/link.
-Modify BASE address: 0x81x000, where x is setting of 
+Modify base address: 0x81x000, where x is setting of 
 the dial switch on your LTU board. 
 
 The line '/*BOARD name base */' has to be the first line in the file, and
@@ -54,18 +67,17 @@ vmecrate nbi ltu          -start ltu software, LTU board is NOT initialised
 vmecrate ltu=0x812000     -working with LTU with base 0x812000 (dial set to 2)
 
 When starting software first time after power up, LTU FPGA is loaded
-from on-board flash memory (unloaded LTU FPGA is indicated by 
-dimming front panel LEDs).
+from on-board flash memory. Unloaded LTU FPGA is indicated by 
+the front panel LEDs -they all just dim.
 
-There is TTCinit button in ->Configuration submenu. It has to be always
-executed after:
+TTCinit button in ->Configuration submenu has to be always pressed
+after:
 - powering up the crate
-- disconnecting fibre between TTCex and your front-end
+- disconnecting/connecting optical fibre between TTCex and your front-end
 
 Starting with ECS:
 -----------------
 ltuproxy has to be started first.
-Modify script v/scripts/ltuproxy.sh (LD_LIBRARY_PATH) and start ltuproxy:
 
 ltuproxy detector_name start
 ltuproxy started without parameters gives short help.
@@ -81,7 +93,7 @@ in this memory, are persistent -i.e. they stay the same even if ltuproxy
 is restarted. These parameters:
 - are loaded to shared memory from file v/detector_name/CFG/ltu/ltuttc.cfg
 - can be modified (in shared memory) in 'Defaults editor' accessed
-  by pressing button: Configuration -> Deafults editor
+  through: Configuration -> Defaults editor
 
 LTU FPGA firmware upgrade
 -------------------------
@@ -91,9 +103,15 @@ Firmware files are placed in v/vme/CFG/ltu/*.rbf.
 
 There is a link to current firmware file in $VMEWORK directory, i.e.:
 FlashMem.cfg -> CFG/ltu/ltu_b5.rbf
-The upgrade to the newest version is done by typing:
+The upgrade to the newest version (this statement is valid 21.6.2013, 
+the latest firmware can be found in vme/CFG/ltu directory)
+is done by typing:
 
-v/vme/scripts/loadLTUfpga ltu_b5.rbf 0x81x000
+Old LTUs (serial number <55):
+v/vme/scripts/loadLTUfpga ltu_b6.rbf 0x81x000
+
+New LTUs manufactured in 2012 (serial number >60):
+v/vme/scripts/loadLTUfpga ltu2_b6.rbf 0x81x000
 
 This script will create FlashMem.cfg link and loads the firmware
 to LTU flash memory.

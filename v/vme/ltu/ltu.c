@@ -2,7 +2,9 @@
 /* BOARD ltu "VXI0::261" 0x800 */
 /*
 23.05.2008 LTUvi
+6.11.2014 scthread added
 */
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,10 +16,9 @@
 #include "vmewrap.h"
 
 #define LTUMAIN
-
 #include "ltu.h"
 
-int mallocShared(w32, int, int *);
+void *mallocShared(w32, int, int *);
 double rnlx();
 w32 dodif32(w32 before, w32 now);
 void setseeds(long,int);
@@ -29,6 +30,9 @@ extern w32 *smsltu;
 extern int quit;
 extern char BoardBaseAddress[];
 extern w32 SSMSCHEDULER;/* SSM recording planning, 2-After, 3-Before, 0-no plan */
+extern int scthread_request;
+int rc_scthread=1;     // 0: ok, started
+pthread_t sc_thread;   // NULL: not started
 
 /*HIDDEN ADC SLM SSM EmuTests FrontPanel ExpertConf ConfiguratioH SHM Browser*/
 
@@ -168,11 +172,12 @@ if(SSMsetom(1)) {   /* VME access, write */
 };
 }
 #define Mega (1024*1024)
-//von Tltushm *shmbase=NULL;
 w32 *shmcnts=NULL;
 /*FGROUP SHM
 rc: 0: ok
     1: error reading counters
+Operation:
+action: read all counters + temperature
 */
 int readCNTS2SHM() {
 w32 secs, mics;
@@ -395,6 +400,27 @@ printf("BUSY_COUNTER:%d\n   BUSY_TIMER:%d(%f ms)\nSUBBUSY1_TIMER:%d(%f ms)\n",
   getCounter(BUSY_COUNTERrp), bt, bt*0.0004, sbt, sbt*0.0004);
 }
 /*FGROUP SimpleTests
+action: Flash memory -> FPGA
+Note: never tested, probably uncomplete ...
+*/
+int loadFPGA() {
+w32 status; int attempts=0;
+//resetFM:
+vmew32(FlashAccessNoIncr,0xF0);
+while(1) {
+  status= vmer32(FlashStatus); attempts++;
+  if(status&0x80) break;
+  if(attempts>=4000) break;
+};
+if(attempts>=4000) return(1);  // cannot resetFM
+printf("resetFM ok after %d attempts\n", attempts);
+status=vmer32(ConfigStatus);
+vmew32(ConfigStart,0x0);
+usleep(300000);   // usually takes 264milsecs
+return(0);
+}
+
+/*FGROUP SimpleTests
 print: 
 CODE_ADD       always 0x56 for LTU
 SERIAL_NUMBER  of the LTU board
@@ -406,7 +432,7 @@ void printversion() {
 w32 serial, code,vmever,ltuver,pll;
 code= 0xff&vmer32(CODE_ADD);
 vmever= 0xff&vmer32(VERSION_ADD);
-serial= 0x3f&vmer32(SERIAL_NUMBER);
+serial= 0x7f&vmer32(SERIAL_NUMBER);  // 7 bits for ltu2 (6 for ltu1)
 ltuver= Gltuver;
 printf("LTUcode:0x%x serial#:0x%x VME ver:0x%x LTUfpga:0x%x\n",
   code, serial, vmever, ltuver);
@@ -425,18 +451,14 @@ if( (pll & BC_STATUSerr) == 0x01) {
 if( (pll & BC_STATUSorbiterr) == BC_STATUSorbiterr ) {
   printf("errorneous Orbit input signal\n");
 };
-pll= vmer32(TEMP_STATUS)&0x2;
-if(serial>=64) {
-  if(pll==0x2) {
-    printf("CRC error bit set, reconfigure!\n");
-  } else {
-    printf("CRC bit ok\n");
-  };
-} else {
-  printf("CRC bit not checked (LTU version 1, manufactured before 2012)\n");
-};
+pll= checkSEU();
 return;
 }
+/*FGROUP SimpleTests
+*/ 
+void printBusyFraction() {
+printf("busy fraction: %6.4f\n", ltushm->busyfraction);
+};
 /* FGROUP SimpleTests
 Generate trigs triggers. Each Trigger is followed by the busy signal wide
 'busylength' miliseconds. Operation:
@@ -508,12 +530,22 @@ for(ix= fromd; ix<=tod; ix++) {
 }
 
 /*--------------------------------------- SLM and ERROR emulation */
+
+#define SLM_BITS 0xffffffff
+#define SLM_BITSN 32
 /*FGROUP SLM 
 filen: see SLMload (e.g. CFG/ltu/SLM/one.seq) */
 int SLMcheck(char *filen) {
 int rc=0;
-int ixx;
+int ixx; int slmbitsn; w32 slmbits;
 w32 slmdata[MAXSLMW];
+if(lturun2) {
+  slmbitsn= SLM_BITSN;
+  slmbits= SLM_BITS;
+} else {
+  slmbitsn= 16;
+  slmbits= 0xffff;
+};
 rc= SLMreadasci(filen, slmdata); if(rc!=0) goto ERRRET;
 if(vmer32(EMU_STATUS)&0x1) {
   printf("ERROR: emulation active\n");
@@ -529,7 +561,7 @@ usleep(1000);
 printf("word file SLM\n");
 for(ixx=0; ixx<MAXSLMW; ixx++) {
   w32 dw;
-  dw= vmer32(SLM_DATA)&0xffff;
+  dw= vmer32(SLM_DATA)&slmbits;
   if(ixx < 10) {
     printf("%3d: %4x %4x\n", ixx, slmdata[ixx], dw);
   }else {
@@ -551,10 +583,19 @@ return(rc);
 read SLM and write its contents to the file WORK/slmasci
 */
 int SLMdump() {
-int rc=0;
-int ixx,ix; w32 erbits;
+int rc=0; int slmbitsn;
+int ixx,ix; w32 erbits, slmbits;
 FILE *sa;
-char l16[17];
+char l16[SLM_BITSN+1];   // 17
+if(lturun2) {
+  //printf("run2... Gltuver:%x\n", Gltuver);
+  slmbitsn= SLM_BITSN;
+  slmbits= SLM_BITS;
+} else {
+  //printf("run1... Gltuver:%x\n", Gltuver);
+  slmbitsn= 16;
+  slmbits= 0xffff;
+};
 if(vmer32(EMU_STATUS)&0x1) {
   printf("ERROR: emulation active, SLM cannot be read.\n");
   rc=3; goto ERRRET;
@@ -579,13 +620,17 @@ for(ix=0; ix<7; ix++) {
 }; fprintf(sa,"%s\n", l16); 
 for(ixx=0; ixx<MAXSLMW; ixx++) {
   w32 dw;
-  dw= vmer32(SLM_DATA)&0xffff;
+  dw= vmer32(SLM_DATA)&slmbits;
   /*if(ixx < 10) {
     printf("%3d: %4x\n", ixx,  dw);
   };*/
-  strcpy(l16,"0000000000000000");
-  for(ix=0; ix<16; ix++) {
-    if((dw & (1<<ix)) != 0) l16[15-ix]='1';
+  if(lturun2) {
+    strcpy(l16,"00000000000000000000000000000000");
+  } else {
+    strcpy(l16,"0000000000000000");
+  };
+  for(ix=0; ix<slmbitsn; ix++) {
+    if((dw & (1<<ix)) != 0) l16[slmbitsn-1-ix]='1';
   };
   fprintf(sa,"%s\n", l16); 
 };
@@ -704,13 +749,42 @@ Counters monitor */
 Signal selection for front panel 
 A,B outputs
 */
+
 void endmain() {
+if(rc_scthread==0) {
+  printf("Joining scthread...\n");
+  if(pthread_join(sc_thread, NULL)) {
+    printf("Error joining scthread\n");
+  };
+} else {
+  printf("scthread was not started, joining skipped\n");
+};
 #ifdef SIMVME
 #else
 //undoreservation();
 #endif
 }
-
+void *scthread(void *dummy) {
+w32 ptime, pbusy,ntime=0,nbusy=0,nloop=0;
+ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGscthread;
+while(1) {
+  float deltatime,deltasbusy;
+  if(quit==888) break;
+  //printf("scthread: readCNTS2SHM...\n");
+  ptime= ntime; pbusy= nbusy;
+  readCNTS2SHM();
+  ntime= ltushm->ltucnts[LTU_TIMErp];
+  nbusy= ltushm->ltucnts[SUBBUSY_TIMERrp];
+  if(nloop>0) {
+    deltatime= dodif32(ptime, ntime);
+    deltasbusy= dodif32(pbusy, nbusy);
+    ltushm->busyfraction= (1.0*deltasbusy)/deltatime;
+  };
+  usleep(1000000); nloop++;
+};
+ltushm->ltucfg.flags= ltushm->ltucfg.flags & (~FLGscthread);
+return(NULL);
+}
 extern char BoardBaseAddress[];
 /*-------------------------------------------------------------- initmain() */
 /* called once, ALWAYS, at the very beginning.
@@ -746,6 +820,18 @@ if( ((Gltuver&0xf0) != 0xb0 ) && (Gltuver!=0xf3) ) {
   setseeds(3,3);
   //regfuns();
 #endif
+if((scthread_request==1) && ((ltushm->ltucfg.flags & FLGscthread)==0)) {
+  printf("Starting scthread...\n");
+  //scthread_start();
+  if((rc_scthread=pthread_create(&sc_thread, NULL, scthread, ltushm))) {
+    printf("Error creating scthread\n");
+  } else {
+    printf("scthread started.\n");
+  };
+} else {
+  printf("Counters reading thread not started (already active or not requested. req:%d).\n",
+    scthread_request);
+};
 }
 /*-------------------------------------------------------------- boardinit() */
 void boardInit() {   /* called once, after initmain, if -noboardInit 
@@ -809,7 +895,7 @@ void TestConnection(){
  w32 mode,w;
  int i,j;
  float f;
- char *pole[]={"ORBIT","PP","L0","L1","L1data","L2s","L2data"};
+ const char *pole[]={"ORBIT","PP","L0","L1","L1data","L2s","L2data"};
  int bit[7]; 
  // 0=orbit,1=pp,2=l0,3=l1,4=l1data,5=l2s,6=l2data
  for(j=0;j<7;j++)bit[j]=0;

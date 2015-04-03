@@ -1,7 +1,7 @@
 #define MNPART 6      // Maximum number of partitions
 #define NCON 4        // # of connectors at FO
 #ifdef DBMAIN
-char errorReason[ERRMSGL];
+//char errorReason[ERRMSGL]; not needed -see main_ctp.c and test.c
 #endif
 //
 //------------------------------------------------------------------
@@ -45,24 +45,25 @@ int Detector2Connector(int idet,int *ifo,int *iconnector);
 void setALLDAQBusy();
 void unsetALLDAQBusy();
 // Set DAQ busy to partition after there was alldaq busy
-int setPartDAQBusy(Tpartition *part);
+int setPartDAQBusy(Tpartition *part, int detectors);
 // Unset DAQ busy to partition
-int unsetPartDAQBusy(Tpartition *part);
+int unsetPartDAQBusy(Tpartition *part, int detectors);
 // enable BC-triggers by disabling RND1
 void ctp_Disablernd1(int usecs);
 // read ctp, ltu counters:
 void readALLcnts(Tpartition *part, char xse);
-int generateXOD(Tpartition *part,char x);
+int generateXOD(Tpartition *part,char x, w32 *orbitn);
 
 /*----------------------------------------------------------------
   Routines for smi:
 ------------------------------------------------------------------*/
 int ctp_Initproxy();
 int ctp_Endproxy();
-int ctp_PausePartition(char *name);
-int ctp_SyncPartition(char *name);
-int ctp_ResumePartition(char *name);
+int ctp_PausePartition(char *name, int detectors);
+int ctp_SyncPartition(char *name, char * errorReason, w32 *orbitn);
+int ctp_ResumePartition(char *name, int detectors);
 int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
+int ctp_InitPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason);
 int ctp_StartPartition(char *name, char *errorReason);
 int ctp_StopPartition(char *name);
 

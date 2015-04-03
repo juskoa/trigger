@@ -44,6 +44,7 @@ int TAGcthread=21;
 #define TAGMONCOUNTERS 22
 #define TAGMONBST 23
 int TAGbstthread=24;
+#define TAGsbm 25
 
 #define MAXFNL 44
 #define MAXCIDAT 80
@@ -103,6 +104,7 @@ w32 *CTPCNTS;
 w32 *LUMCNTS; w32 *prevLUMCNTS; float *LUMCNTSrates;
 w32 *buf1;
 int vspbobr=-1;
+int dimsuggestion=0;     // 1..21 to be taken into account
 w32 beammode=0xffffffff;
 w32 bstmsg[NBSTdcsmsg];
 //-----------------------------------end of MONCOUNTERS info data
@@ -236,7 +238,7 @@ operation:
   if lng request, another request won't be satisfied, but queued only)
 */
 void SWTRGthread(int tagix) {
-w32 detectors;
+w32 detectors, orbitn;
 int succeeded, todo, ncls;
 //printf("SWTRGthread:%d\n",tagix);
 detectors= 1 << findLTUdetnum(actrs[tagix].name);
@@ -251,7 +253,7 @@ while(actrs[tagix].Ngenerated < actrs[tagix].N) {
 // still to be added (in GenSwtrg): pf,bcmask as symb. names
 todo= actrs[tagix].N;
 succeeded=GenSwtrg(todo, actrs[tagix].type, 
-  actrs[tagix].roc, actrs[tagix].bc,detectors,2);
+  actrs[tagix].roc, actrs[tagix].bc,detectors,3, &orbitn);
 actrs[tagix].Ngenerated= succeeded;
 ncls= updateservice(actrs[tagix].cid);
 
@@ -441,7 +443,8 @@ if(clientid==0) {
 running as thread (started once, with dim server)
 */
 #define BSTINTSECS 10
-int seqn=0, nlogbst=0; w32 newbeammode;
+#define MINBEAMMODE 2
+int seqn=0, bmchange=1, nlogbst=0; w32 newbeammode;
 void bstthread(void *tag) {
 w32 l2orbit;
 while(1) {   //run forever
@@ -451,13 +454,41 @@ while(1) {   //run forever
     for(ix=0; ix<NBSTdcsmsg; ix++) {bstmsg[ix]= seqn;}; seqn++;
     bstmsg[iBeamMode]= beammode;
     l2orbit= vmer32(L2_ORBIT_READ);
-    if((nlogbst % (5*60/BSTINTSECS))==0) {    // 1/5min
-      if(bstmsg[iBeamMode]==21) { // alternate between
-        bstmsg[iBeamMode]= 11;    // STABLE BEAMS
-      } else {
-        bstmsg[iBeamMode]= 21;    // NO BEAM
+    if((dimsuggestion>=1) && (dimsuggestion<=21)) {
+      // use suggested CTPDIM/SETBEAMMODE beammode
+      if((w32)dimsuggestion != beammode) {
+        bstmsg[iBeamMode]= dimsuggestion;
       };
-    }
+    } else {
+      /*
+      if((nlogbst % (5*60/BSTINTSECS))==0) {    // 1/5min
+        if(bstmsg[iBeamMode]==21) { // alternate between
+          bstmsg[iBeamMode]= 11;    // STABLE BEAMS
+        } else {
+          bstmsg[iBeamMode]= 21;    // NO BEAM
+        };
+      }*/
+      // alternate among: 2:SETUP -> 14:RAMP DOWN
+      if(nlogbst >= bmchange) {
+        int bm,nxttimeslot;
+        bm= bstmsg[iBeamMode]; 
+        if(bm==14) {
+          bm= MINBEAMMODE;    // SETUP
+        } else {
+          bm= bm+1;
+        }; 
+        bstmsg[iBeamMode]= bm;    // NO BEAM
+        if(bm==7) {   // RAMP
+          nxttimeslot= 2;
+        } else if(bm==9) {   // SQUEEZE
+          nxttimeslot= 4;  // next change in 4*BSTINTSECS secs
+        } else {
+        nxttimeslot= 1; //next change in 10secs
+        };
+        bstmsg[iBeamMode]= bm;
+        bmchange= bmchange + nxttimeslot;
+      };
+    };
   } else {
     //real bst msg:
     l2orbit= vmer32(L2_ORBIT_READ);
@@ -473,14 +504,18 @@ while(1) {   //run forever
     beammode= newbeammode;
     //nclients=dis_selective_update_service(RESULTid, cids);
     nclients= dis_update_service(BEAMMODEid);
-    sprintf(msg,"bstthread:BEAMMODE %d old:%d nclients:%d\n",
-      beammode, oldbeammode, nclients); prtLog(msg);
+    // log only PREPARE RAMP and SQUEEZE:
+    if((beammode==6) || (beammode==9)) {
+      sprintf(msg,"bstthread:BEAMMODE %d old:%d nclients:%d\n",
+        beammode, oldbeammode, nclients); 
+      prtLog(msg);
+    };
   };
   nlogbst++;
   //if((nlogbst % (60/2/BSTINTSECS))==0) {    // monitor every half minute
   if((nlogbst % (600/BSTINTSECS))==0) {    // monitor every 10 mins
     int rc;
-    char buffer[50];
+    char buffer[60];
     sprintf(buffer, "mon ds003:ds004:ds050 N:%d:%d:%d", 
       bstmsg[iBeamMode], bstmsg[iTurnCount], bstmsg[iTurnCount]);
     //following udpsend crashes dims server (sometimes):
@@ -615,9 +650,9 @@ FOUND: return;
 */
 void BEAMMODEcaba(void *tag, void **msgpv, int *size, int *blabla) {
 unsigned int **msgp= (unsigned int **)msgpv;
-char msg[100];
+/*char msg[100];
 sprintf(msg, "BEAMMODEcaba size:%d NBST:%d bm:%d", *size, NBSTdcsmsg, beammode );
-prtLog(msg); 
+prtLog(msg); */
 //updateNMCclients(&......); we do not keep track of these clients
 *msgp= &beammode;
 *size= sizeof(beammode);
@@ -718,7 +753,7 @@ if((strcmp(ReceivedCommand,"ok")==0)) {
   };
 } else if(stringStarts(ReceivedCommand,"STATUS ALLRARE")) {
   w32 arf; char allraretxt[8];
-  arf= vmer32(ALL_RARE_FLAG);
+  arf= vmer32(getLM0addr(ALL_RARE_FLAG));
   if((arf&0x1) == 1) {
     strcpy(allraretxt,"ALL");
   } else {
@@ -859,11 +894,11 @@ if(checkcid()<0) {
 };
 if(strcmp(msg,"qq")==0) ds_stop();
 if(stringStarts(msg,"ALL")) {
-  vmew32(ALL_RARE_FLAG, 1);
-  printf("ALLRARE flag set to ALL\n");
+  vmew32(getLM0addr(ALL_RARE_FLAG), 1);
+  prtLog("ALLRARE flag set to ALL");
 } else if(stringStarts(msg,"RARE")) {
-  vmew32(ALL_RARE_FLAG, 0);
-  printf("ALLRARE flag set to RARE\n");
+  vmew32(getLM0addr(ALL_RARE_FLAG), 0);
+  prtLog("ALLRARE flag set to RARE");
 } else if(stringStarts(msg,"CHECKPHASES")) {
   strcpy(ReceivedCommand, "DO CHECKPHASES");
   // here we should check if allowed...
@@ -926,6 +961,24 @@ if(DBGCMDS) {
    *(int *)tag, *size, cid, cidat);
 };
 readctpcounters(cid,0xffffffff);
+}
+/*--------------------*/ void SBMcmd(void *tag, void *msgv, int *size)  {  
+/* DIM cmd to forece BEAM MODE (available in pit also, but taken
+into account only without BOBR card!) */
+int rc;
+char *msg= (char *)msgv;
+if(*size>=2) {
+  if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
+} else {
+  printf("SBMcmd: bad cmd length: %d\n", *size); return;
+};
+rc= checkcid();
+if(DBGCMDS) {
+ printf("SBMcmd:tag:%d size:%d msg:%s cid:%d cidat:%s\n", 
+   *(int *)tag, *size, msg, cid, cidat);
+};
+dimsuggestion= atoi(msg);
+printf("SBMcmd: required BEAM MODE:%d\n", dimsuggestion);
 }
 /*--------------------------------------------------------- startruncounter */ 
 //void startruncounter(int *tag, char *msg, int *size)  {  
@@ -1157,6 +1210,8 @@ strcpy(command, MYNAME); strcat(command, "/SWTRG");
 dis_add_cmnd(command,NULL, SWTRGcmd, TAGswtrgcmd);  printf("%s\n", command);
 strcpy(command, MYNAME); strcat(command, "/GETCOUNTERS");
 dis_add_cmnd(command,NULL, getcnts, TAGcthread);  printf("%s\n", command);
+strcpy(command, MYNAME); strcat(command, "/SETBEAMMODE");
+dis_add_cmnd(command,NULL, SBMcmd, TAGsbm);  printf("%s\n", command);
 
 /* RUNXCOUNTERS commands:
 */
@@ -1176,7 +1231,7 @@ strcpy(command, MYNAME); strcat(command, "/RESULT");
 RESULTid=dis_add_service(command,0, ResultString, MAXLILE+1, 
   RESULTcaba, 4567);  printf("%s:%d\n", command, RESULTid);
 strcpy(command, MYNAME); strcat(command, "/MONCOUNTERS");
-COUNTERSid=dis_add_service(command,0, CTPCNTS, 4*(NCOUNTERS),
+COUNTERSid=dis_add_service(command,"L", CTPCNTS, 4*(NCOUNTERS),
   MONCOUNTERScaba, 4567);  printf("%s:%d\n", command, COUNTERSid);
 strcpy(command, MYNAME); strcat(command, "/MONLUMCNTS");
 /* see MAXNLUMCNTS 50

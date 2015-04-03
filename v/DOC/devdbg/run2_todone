@@ -1,0 +1,46 @@
+Content
+-------
+1. ctp
+modify ctp for 100 classes:
+- new addresses -see L0_VETO_MASK
+- diff. format of .cfg,.pcfg -see L0_VETO_MASK
+- inversion of all L1/L2 inputs allowed (was only for classes 45..50
+  in run1)
+
+Introduced: NCLASS=100 (ctp.h and ctpcfg.py )
+
+ctpcfg.py, myw.py: problems: 
+- cannot close/open Classes window -fixed
+- scrollbar in canvas not working well -fixed 1.11.2013
+
+modified:
+ctp.c, ctpcfg.py:  100 classes should be ok
+ 
+2. parted
+---------
+trgglobs.py introduced. NCLS= 100 -to be used in *.py
+
+3.  ctp_proxy, ctplib, pydim
+----------------------------
+Tpartition.h (also in ctp/ctp.h): define NCLASS 100
+-modified 13.2. (tested with ctpproxy starttest)
+
+pydim
+-modified 13.2.
+todo: add CTPDIM/CNAMES service
+
+4. counters
+-----------
+- ok (wc $dbctp/cnames.sorted2: 1560, the run1 list of counters is in cnames1.sorted2)
+
+5. web, ctpdims
+---------------
+
+6. ctpinputs.cfg -joined CTP.SWITCH, VALID.CTPINPUTS, L0.INPUTS
+   see devdbg/ctpinputs_cfg
+
+7. L0 board 100 classes version todo:
+------------------------------------
+- RATE_DATA -there is a bug in L0 fi 0xb1: only 50 words allocated (see:SimpleTests/testrates), i.e. writing 1..100 results in 51..100 for first 50 classes.
+
+8. CTPDIM/CNAMES -see mails/lhcint_cnames

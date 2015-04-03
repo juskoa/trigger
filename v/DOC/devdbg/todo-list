@@ -1,8 +1,36 @@
 Contents:
 1. 22.3.2012 4 new FO counters (fi: fo_ae.rbf): TO BE TESTED!
   44..47:   L2a+L2r strobes    -last counters in 0xad version
-  48..51:   L2a flag (message) -4 new counters in 0xea version
-
+  48..51:   L2a flag (message) -4 new counters in 0xae version
+    see CFG/fo/readme +mail from Marian 22.3.2012)
+    -pouziva sa, avsak countre nie su dostupne
+  idea: do not change the length/positions in current big array (970 counters)
+        but use spare counters -at least till LS1. Seems
+        there are enough spares in BUSY (6x4=24, -> use BUSY spares
+        spare871-894
+  Todo: change only:
+      V--- in this column: . -> done 4/5.7.2012
+      ? ctp/ctp.h: NCOUNTERS_BUSY_SP1: to be used in ctpboards.numcnts 
+          for BUSY + corection in readCounters of course -we can
+          spare time reading 55 counters which do not exist anyhow on 
+          BUSY board. NOT DONE YET
+      . ctp/ctpcounters.h: NCOUNTERS_FOae 52
+      . ctplib/readCounters.c
+      . vmeb/counters.py (creating cnames.sorted2)
+      . new dimcdistrib/cnames.sorted2
+      . CNTRRD/cnt.py: foXl2routY corresponds to spare871-894 in RRD
+         fix it directly in cnt.py (i.e. do not change cnames.sorted2, although
+         this would be more general...)
+  Plan:
+  1. 1 board reading -check if counters works well
+     top connector   
+     36 l0
+     40 l1
+     44 l2
+     48 l2r
+     4.7.2012: l2r is counted (not L2a)
+  2. implement the above Todo:
+  done: 5.7.2012 -seems works now (cnames.sorted2 + counter in ctp exp. sw)
 2. 10.2.2012 alidcsvme008 crash (see below)
 3. 2011: from Franco (see below)
 
@@ -10,12 +38,11 @@ Contents:
 5. 22.11.2011 BCmasks see below
 6. modify roman table l1r/l2r from TM and put to daqlogbook entry (55us for trd)
    done 27.3.2012
-7. diffrent calculation of average busy time (using l1r table)
-   - make better comment in ltu ->Simple tests-> measure busy +
-     preapre option using L0 or L2 for busy calculations or global
-    l1r table
+7. different calculation of average busy time (using l1r table)
+   done
 8. DIM services for Giacinto
 8A. DIM services publishing VALID.BCMASKS
+    done: see startClients.bash masksServer
 9: migration 027->707+521
 10. ttcmidaemons
    moreless done in April 2012
@@ -25,16 +52,25 @@ Contents:
 12. gcalib: should not start without shared memory being initialised
 12A. gcalib froze when start thred: see  gcalib1205071211.log
     done: dbg prints, entry in DAQlogbook, seems it is in dim_start_thread()
+    7.9.2012: dim_start_thread() stops to work sometimes, i.e.
+              if detected, gcalib executable should be restarted
 12B. do not send calib. triggers when T0 in global with STABLE BEAM
     done: 30.5.2012 
 13. web-counters: signal names + any time (i.e. create .rrd from archive files)
 14. CPU+IO+Ethernet monitoring for all machines
+    evaluate munin: http://munin.projects.linpro.no/
+    nfs:
+    cat /proc/net/rpc/nfsd 
+    iostat -x -n
+14A. monitor daemons (startClients.bash, vme/monitor)
 15. busy problems when starting global partition
 16. sync management in global runs-see email from end of April 26th 2012
+    done during TS2 in June
 16A. sync in STDALONE see mails from 3.5.2012
     done
 17. infoLogger changed
     done (end of march 2012) -still needs to be checked if ok
+    Todo: see below
 18. parted: modifications required:
     - check descriptor name against class name (also
       cluster name part in class name can be missed out?)
@@ -43,12 +79,50 @@ Contents:
     - check if all classes with 0HWU if TRD in readout
       done
     - check ) (not checked now in validate)
-      16.6.2012 done (new validate to be distributed)
+      16.6.2012 done (new validate distributed)
 19. test l0 synchronous downscaling  l0_logic_verAF.rbf
     see CFG/l0/readme +mail from Marian 16.2.2012)
-20. fo firmware AE (see CFG/fo/readme +mail from Marian 22.3.2012) 
-    -pouziva sa, avsak countre nie su dostupne
---------------------------------
+    DESC(cn=CESC-ABCE-NOPF-ALL, L0pr=, cg=0..9, sdg=
+    done 8.10.2012 in pit, see devdbg/SOLVED/syncdownscaling
+20. 21.08.2012 trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
+    Done: 30.8.2012 peapred for update in the pit
+21. 21.08.2012 INIT_PARTITION command to ctpproxy. Done
+22. 21.08.2012 ~tri sw (dcsFES_putData.sh,.. should be kept in VMECFDIR dimcoff?
+23. 21.08.2012 miclock java:
+- tooltips missing
+- bug: on 20.8.2012 17:20   -clock changed to BEAM1 but CNTRRD/htmls/clockinfo
+  not updated. Cure; quit+start miclock
+24. 23.08.2012 vmeblib/infolog.c new level not set by default
+    07.12.2012 unified logs for trigger + some interface to them?
+25. 24.10.2012 Automatic/Dynamic downscaling
+- see presentation at TM 19.10.2012 and DOC/devdbg/autodynds
+
+26. 31.10.2012 bug in syncdownscaling when .crfg file created
+27. 08.11.2012 backup strategy: what, where to copy how at the end of year
+    see: aj@11:p2/history_backups
+               DOC/eofyear
+28. 15.11.2012 redis: see devdbg/redis
+29. 27.11.2012 measure busy when switching from stdalone -> global. Detector
+               should be ready (maybe LOAD_FAILURE? for ltuproxy?)   see also 
+               3. (mail from Franco)
+30. 27.11.2012 ltu counters archivation (not archived now)
+31. 27.11.2012 web interface for counters (CNTRRD/ananlyse.c) + per min. graphs
+               from any time interval
+32. 07.12.2012 smaq mutual L0/L1 alignment -> see smaq_l01
+33. 07.01.2013 CNTRRD/analyse.c -modify to get any counter for any/list of run/s
+34. 15.01.2013 why readstatus() is presnet in ctp.h (with FGROUP help) ?
+35. 17.01.2013 why smaq sometimes reports: 'BC signal not connected' ?
+WORK/l0_9_16.01.2013_21:29:19.dmp created
+WORK/l0_9_16.01.2013_21:32:06.dmp created
+Warn: BC signal not connected
+WORK/l0_9_16.01.2013_21:32:11.dmp created
+Warn: BC signal not connected
+WORK/l0_9_16.01.2013_21:32:59.dmp created
+...
+
+36. 64bit: vme access, ltu sw
+
+==========================================================================
 
 2. 10.2.2012 alidcsvme008 crash (see below)
 -------------------------------------------
@@ -128,6 +202,53 @@ bcmC
 bcmAC
 bcmACE
 
+7. different calculation of average busy time (using l1r table)
+--------------------------------------------------------------
+done 26.11.2012
+- make better comment in ltu ->Simple tests-> measure busy +
+  prepare option using L0 or L2 for busy calculations or global
+  l1r table
+idea:
+- choose mode of busy calculation by button in busy screen
+- supply separate screen with the history of all 3 ways of busy calculations:
+  busyL0    totalbusy/L0s
+  busyL2a   totalbusy/L2as
+  readout   busyL2a-L1r-L2r: average L1r + L2r times substracted
+- i.e. all 3 sorts of average busy calculated simultaneously
+See CNTRRD/readctpc.c
+
+available counters:
+byin[1-24]         -total busy time in 0.4us units
+fo[1-6]l0out[1-4]  -# of L0s
+fo[1-6]l1out[1-4]  -# of L1s (i.e. L1 accepted events)
+fo[1-6]l2stro[1-4] -# of L2s (i.e. L2accept+L2reject)
+fo[1-4]l2rout[1-4] -# of L2r
+
+
+totalbusy= readout_av*L2as + L2busy_av*L2rs + L1busy_av*L1rs
+
+L1rs= L0s - L1s     # of L1 rejected events
+L2as= L2s - L2r     # of L2 accepted events
+
+busy_L2r=L2busy_av*L2rs  -busy time spent on L2 rejected events
+busy_L1r=L1busy_av*L1rs  -busy time spent on L1 rejected events
+
+readout_av= (totalbusy - busy_L2r - busyL1r)/L2as
+
+L2busy_av/L1busy_av: is measured. 
+Note for detectors with multi-event buffer: measurement was
+done with empty buffers (which does not have to be true during
+datataking).
+Done: 
+25.10.2012
+readctpc.c -now 3 sorts of busy prepared -sort of busy pased to html
+todo: test + control from web
+31.10.2012: readctpc.c, htmlCtpbusys.py modified, producing 3 busys 
+5.11.2012:
+see
+CNTWEB/exs/including.html
+~/wsgi-tutorial/myex3/ctpbusy.py, readme
+
 8. DIM services for Giacinto
 ----------------------------
 see: SOLVED/FixedCounters4dcs -notes about dynamic way
@@ -135,7 +256,7 @@ see: SOLVED/FixedCounters4dcs -notes about dynamic way
 8A. DIM services publishing VALID.BCMASKS
 -----------------------------------------
 seems direct string from VALDI.BCMASKS can be published with its name.
-- better logs fron getdip.py
+- better logs from getdip.py
 Started: pydim server in vme/simpleServer.py
          masksServer...
 
@@ -191,7 +312,7 @@ Starting the BST messages reading thread...
 Also see devdbg counters_notread
 - dimservices.c updated Nupdated counter holding the number of requests 
   from each client
-Soleved: <10secs -becasue 1/min reading update distributed over 7 clients
+Solved: <10secs -because 1/min reading update distributed over 7 clients
 results in average update <10secs
 
 11B. dims looping
@@ -205,6 +326,7 @@ Start daemons in this order:
 30.5. again: load on alidcsvme001: 3
 Cure: enough to KILL ctpproxy and start again
 see: savanah/bugs + 188:aj/problems/ctpproxy_looping
+done - SIGUSR1 (and any signal) is intercepted when killing smaq
 
 15. busy problems when starting global partition
 ------------------------------------------------
@@ -234,7 +356,154 @@ to set the system name
 - infoLogger_setParam_int(INFOLOG_PARAM_FIELD_RUN_NUMBER,12345)
 to set the run number
 
+Another mail from 24.8.2012:
+There is no way to specify a default level.
+The level should be assigned for each message
+by using the function infoLogger_msg_xt().
+
+Messages for the shifter should have level: INFOLOGLEVEL_OPS
+Messages which may help oncalls should have level: INFOLOGLEVEL_DAQ
+Messages intended only for experts should have level: INFOLOGLEVEL_DEV
+You are free to decide in which category they belong (and it's fine
+with me if you want to all put them in OPS as a first quick fix).
+Ideally, one should just try to be clear an not too verbose in the OPS level
+so that shifters are not confused.
+i.e:
+  infoLogS_f(severity, msg);
+//infoLogger_msg_xt(__FILE__,__LINE__,UNDEFINED_INT,UNDEFINED_STRING,severity,INFOLOGLEVEL_OPS,msg);
+-done 31.8.2012, still error reporting needs to be revisited 
+ -see mail from 31.8. + infolog_trg2(...
+
+From: Sylvain Chapeland <sylvain.chapeland@cern.ch>
+To: Anton.Jusko@cern.ch
+Subject: Re: infoLogger problem
+
+Hello Anton,
+
+Indeed, if calling a wrapper function, errsource and errline should be left
+UNDEFINED_STRING and UNDEFINED_INT.
+
+It would be very useful to assign error codes, e.g. to get statistics on
+number of errors or document
+what to do about some errors (e.g. wiki). I have just added the code range
+32000-32999 to use by trigger system,
+so you are free to assign codes as you wish in this range. Actually, this is
+not limited to errors only,
+you can also assign codes to non-error messages, e.g. to spot/count some
+specific situations without having to parse the messages).
+The 'severity' field says if it is an error or not.
+When you have done, could you please provide an array with a short
+description of each error code, so that I can
+add it to infoLogger_errCodes.h ?
+with the format as:
+
+  {1000,"an error occurred in a logbook API call",NULL},
+  {1900,"Not enough memory",NULL},
+  {1901,"Error processing a DIM callback or command",NULL},
+  {1902,"Internal inconsistency",NULL},
+
+(last parameter can be a link to a web page with doc about the error code -
+those of DAQ is always null because there
+is a direct hook in our wiki)
+
+While you are reviewing log messages, I have also the following suggestion:
+'facility' field is currently different for each LTU (LTU_HMPID, LTU_SPD,
+...)
+but it could be the same everywhere (LTU), because there is already the
+'detector' field which is set correctly for each of them (HMP, SPD, ...).
+The facility is usually the same when the source code does not change. (but
+you may keep the existing LTU_SPD... facilities if you prefer,
+this remark was just for consistency with the other packages)
+
+Let me know if you have any question about the log api, or if you need other
+functions/interface for your purpose.
+
 cheers,
-sylvain
+Sylvain
 
+20. trigger aliasses in DAQlogbook, see Vasco's mail from 20.8.2012
+-------------------------------------------------------------------
+DAQlogbook_update_triggerClassName() -one more parameter:
+   const char **alias);  =>  NEW
+The last parameter "alias" should be an array of strings containing the
+names of the trigger alias of the given trigger class.
+The last element of the array must be NULL.
+example:
+char *triggerAlias2[3]={"kSPI7-B","kCalibBarrel",NULL};
+an example of line in aliases.txt file:
+CMLL8-S-NOPF-MUON kMLL8-B,kCalibMuon,kCalibOuter
 
+Todo:
+- aliases.txt act->local when ctp configured 
+  Done in lab: 21.08
+- parse file aliases.txt in: vmeblib/daqlogbook.c 
+  daqlogbook_update_triggerClassName() -called from pydim/server.c
+  I.e. search in aliases.txt should be implemented this way:
+  pydim/server.c:
+  -add aliasesupdate cmd in DOcmd() (like csupdate), updating
+   aliases[] array from aliases.txt, and also when server.c started.
+   Done: 24.8.2012
+  -aliasesupdate is issued from bin/ctpproxy.py (i.e. CTP reconfigured)
+   An example of DIM cmd sent is in colschedule.bash. 
+   Done: 24.8.
+  -this array is searched in daqlogbook_update_triggerClassName(),
+   to prepare alias parameter for daqlogbook. NULL to be passed
+   if alias[es] not found for given class
+   Done: 24.8.
+- modify vmeblib/daqlogbook.c (adding char **aliases parameter to 
+  wrapping function) Done.
+- test in lab with new daq logbook interface:
+  10:vmeblib> make
+     vme/pydim> make
+     startClients.bash ctpproxy stop
+     startClients.bash pydim stop/start
+     startClients.bash ctpproxy start
+  altri1: ctpproxy.sh starttest
+  Done: 30.8.2012, prepared for update in the pit
+
+21. INIT_PARTITION command to ctpproxy. 
+--------------------------------------
+- Goal: update info about triggering detectors in daqlogbook
+- the same set of parameters as LOAD_PARTITION
+- can be invoked more times (before LOAD_PARTITION is received)
+- goes to ERROR if syntax error found (like LOAD_PARTITION)
+
+Notes: 2nd update in daqlogbook may finish with error (i.e. to be ignored)
+Modifications:
+- modify main_ctp.c for "INIT_PARTI..." cmd  (Done:24.8)
+- modify ctp_proxy.c:
+  finding triggerring detectors list in ctp_proxy.c: should be abandoned?
+  - updateDAQClusters() called only from: ctp_LoadPArtition
+    (see mail to Franco from 27.8.2012)...
+!!! They prefer WAY1 _> i.e. just do the same actions in time of INIT
+    and do nothing in time of LOAD.
+    ctp_proxy.c: modified according to this suggestion 28.8.2012
+    30.8.2012: main_ctp.c + ctp_proxy.c:
+    - execute INIT_PARTITION in one case (INIT or LOAD) only, never
+      in both.
+
+Following (WAY2) abandoned 29.8.2012:
+  icfg: modified 'pcfg' DIM cmd to be issued- cannot be the same way as later 
+  in LOAD_PARITION: we do not know yet allocation of classes.
+  Format:
+  "icfg pname runnumber act_config"
+- modify pydim/server.c
+  leave it propageted by stdout to .py phase, where validation is
+  done like in validate.py. Results can be passed back to .c
+  through stdin (like 'class ' command) where they can be used for DAQ update
+- very likely, the update of triggering inputs should be then removed from
+  LOAD_PARTITION phase.
+  
+24. 23.08.2012 vmeblib/infolog.c new level not set by default
+-------------------------------------------------------------
+
+26. 31.10.2012 bug in syncdownscaling when .crfg file created
+-------------
+- appears when Empty cluster results from applying detector mask
+run 191115:
+CSHM8WU-S-NOPF-ALL 25 DSHM8WU ALL {NONE} {BCM2} 2032118 0 0 0 0
+- last column should be 25 (not 0)
+
+36. 64bit: vme access, ltu sw
+-----------------------------
+see bit32_64

@@ -72,6 +72,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     vmever= 0xff&vmer32(VERSION_ADD+adshift);
     sernum= 0xff&vmer32(SERIAL_NUMBER+adshift);
     boardver= 0xff&vmer32(FPGAVERSION_ADD+adshift);
+    if((code==0x50) && (boardver>=0xc0)) {
+      vmever=0xa0;   // LM0 board, force vmever to the standard one
+      strcpy(ctpboards[ix].name, "lm0");
+    };
     ctpboards[ix].vmever= vmever;
     /*
       printf("--->%s (code:0x%x base:0x82%1x000) vmeFPGA:0x%x boardFPGA:0x%x SN:0x%x\n",
@@ -91,7 +95,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     };
   } else {
     printf("Board %s (base:0x82%1x000) missing\n",
-      ctpboards[ix].name,ix);
+      ctpboards[ix].name, ctpboards[ix].dial);
     ctpboards[ix].vmever= 0;
   };
 };
@@ -109,8 +113,16 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   };
   if(bcst!= 2) {
     char msg1[40]="";
-    if(bcst&0x4) {
-      strcpy(msg1,"Bit 0x4:bad external Orbit."); };
+    if(((bcst&0x4)==0x4) && (ix==0)) {   
+      //busy: always external orbit/BC signals checked?
+      w32 lom;
+      lom= vmer32(BUSY_ORBIT_SELECT)&0x2000;
+      if(lom==0x2000) {
+        strcpy(msg1,"Bit 0x4:ON,OK -local orbit used");
+      } else {
+        strcpy(msg1,"Bit 0x4:bad external Orbit.");
+      };
+    };
     sprintf(errnote,"%s BCstatus: 0x2 expected. %s", errnote, msg1);
   };
   /*

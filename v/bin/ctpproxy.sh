@@ -20,30 +20,53 @@ function startproxy() {
     # if following not working, try /etc/security/limits.conf
     #*  hard  core unlimited
     ulimit -c unlimited
-    $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP DAQRO </dev/null >WORK/ctp_proxy.log 2>&1 &
+    #set args NODAQLOGBOOK NODAQRO
+    $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
     #echo "ctp_proxy rc:$? is 0 always (in case ctp_proxy does not exist)"
     pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
     echo "pid:$pid"
+}
+function helpout() {
+cat - <<-EOF
+Bad parameter:$1. One of the following expected:
+status    -check if ctpproxy is started
+stop      -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
+           active partitions (check with ECS operator). 
+kill      -stop ctpproxy immediately. This option should not be used!
+restart =  kill + start (preferred way is: 'ctpproxy [stop status start]')
+
+starttest -debugging: start interactive session without DAQLOGBOOK/readout/SMI
+           i.e. SMI even not linked. Obsolete: use startnd + smicmd cmdline interface.
+startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
+           (Use smicmd to send SMI cmds to ctpproxy)
+startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS)
+EOF
 }
 proxyname="TRIGGER::CTP"
 pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
 if [ -z $pid ] ;then
   echo "TRIGGER::CTP not running"
   if [ -z $1 ] ;then
-    echo "start, status or starttest expected"
+    echo "start, startnd, startnr or status expected (starttest: obsolete)"
   elif [ "$1" = "status" ] ;then
     exit 8
   elif [ "$1" = "start" ] ;then
     startproxy
+  elif [ "$1" = "startnr" ] ;then
+    startproxy NODAQRO
+  elif [ "$1" = "startnd" ] ;then
+    startproxy NODAQLOGBOOK NODAQRO
   elif [ "$1" = "starttest" ] ;then
     cd $VMEWORKDIR
-#set args NODAQLOGBOOK NODAQRO
+#set args [NO]DAQLOGBOOK [NO]DAQRO
+#defaults: DAQLOGBOOK DAQRO
     cat - <<-EOF >.gdbinit
 set args NODAQLOGBOOK NODAQRO
 EOF
     gdb $VMECFDIR/ctp_proxy/linux/test
   elif [ $# -gt 0 ] ;then
-    echo "Bad parameter(s) (start or starttest expected)"
+    #echo "Bad parameter(s) (start or starttest expected)"
+    helpout $1
   fi
 else
   echo "TRIGGER::CTP running. pid:$pid"
@@ -52,18 +75,11 @@ else
   elif [ "$1" = "status" ] ;then
     exit 0
   elif [ "$1" = "kill" ] ;then
-    echo "killing $pid" ; kill -s SIGKILL $pid
+    echo "killing $pid" ; kill -s SIGINT $pid
   elif [ "$1" = "restart" ] ;then
-    echo "restarting $pid" ; kill -s SIGKILL $pid
+    echo "restarting $pid" ; kill -s SIGINT $pid
     startproxy 
   elif [ $# -gt 0 -a "$1" != "status" ] ;then
-    cat - <<-EOF
-Bad parameter:$1. One of the following expected:
-status  -check if ctpproxy is started
-stop    -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
-         active partitions (check with ECS operator). 
-kill    -stop ctpproxy immediately. This option should not be used!
-restart = kill + start (i.e. preferred way is: 'ctpproxy stop ; ctpproxy start')
-EOF
+    helpout $1
   fi
 fi

@@ -117,7 +117,7 @@ to current cabling (in VALID.LTUS file).
       bits=["0=SPD","1=SDD","2=SSD","3=TPC","4=TRD","5=TOF","6=HMPID","7=PHOS","8=CPV","9=PMD","10=MUON_TRK","11=MUON_TRG","12=FMD","13=T0","14=V0","15=ZDC","16=ACORDE","17TRG","18=EMCAL","19=DAQ","20","21","22","23"],
       side=LEFT)
     self.butstart=myw.MywButton(self.fcq, label="Generate\nsw. trigger(s)",
-      helptext="""GenSwtrg() routine is invoked to set and
+      helptext="""GenSwtrg_op() routine is invoked to set and
 generate SW triggers after pressing this button. 
 If this window is closed, the generation of triggers is interrupted.
 The settings are set with each trigger: i.e.
@@ -172,7 +172,7 @@ will be rejected at L0 level.
     #print "moddetectors_hex:",hex(self.detectors)
     #self.vb.io.execute("setTCSET("+hex(self.tcset)+','+str(self.detectors)+")")
   def gensw1(self,ssm=None):
-    cmd="GenSwtrg(1, '%s', %d, %d, 0x%x, 2)"%(self.trigtype,
+    cmd="GenSwtrg_op(1, '%s', %d, %d, 0x%x)"%(self.trigtype,
       self.roc, self.bcmask, self.detectors)
     status=self.vb.io.execute(cmd, log="out",applout='<>')
     #status=1; print "gensw:",cmd
@@ -210,7 +210,7 @@ will be rejected at L0 level.
     self.ntrigs_ok= 0
     if self.t2tms==0:
       self.vb.io.write("WARNING: other sw triggers (i.e. SOD/EOD too) not allowed")
-      cmd="GenSwtrg(%d, '%s', %d, %d, 0x%x, 2)"%(self.ntrigs,self.trigtype,
+      cmd="GenSwtrg_op(%d, '%s', %d, %d, 0x%x)"%(self.ntrigs,self.trigtype,
         self.roc, self.bcmask, self.detectors)
       status=self.vb.io.execute(cmd, log="out",applout='<>')
       if status[0]=="12345678": 

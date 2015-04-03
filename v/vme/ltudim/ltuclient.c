@@ -16,7 +16,9 @@ prerr now OK (before without NL:NL )
 #include <dic.h>
 #endif
  
-#define LTU_CLIENT_VERSION "2.9"   /* see rpms/SPECS/ltuclient.spec */
+//#define LTU_CLIENT_VERSION "2.10"   see v/SPECS/ltuclient.spec
+//#define LTU_CLIENT_VERSION "2.11"   // 30.10.2014 counters increments on client side
+#define LTU_CLIENT_VERSION "2.12"   //  9.12.2014 AD, better increments
 #define notinitialised "Server restarted."
 #define MAXRESULT 1500
 #define MAXLILE 200
@@ -34,7 +36,7 @@ int WAITING=1;
 int WAITINGFC=0;   // 1: waiting for last message after getting file
 int LOGGING=1;     // 1:log   0: no log
 int EXIT=0;        // stop client if >1
-char clienthostname[20]="";
+char clienthostname[SERVERNAMELEN]="";
 char servername[SERVERNAMELEN]="";
 char servercwd[SERVERCWDLEN]="";
 char clientcwd[SERVERCWDLEN]="";
@@ -111,7 +113,7 @@ if(*rc != 1) {
 
 /*--------------------------------------------------*/ int waitinfocall() {
 /* rc: 1: ok   0: timeout */
-#define MAX10ms 500
+#define MAX10ms 900
 int ix,rc;
 for(ix=0; ix<=MAX10ms; ix++) {   // 10 secs =1000 x 10ms
   if(WAITING) {
@@ -230,7 +232,7 @@ if(servername[0]=='\0') {   // we use only 1 server, enough 1st time
   //printf("rc:%d servername:%s clienthostname:%s\n", rc,servername,clienthostname);
 //rc:2 servername:TRIGGER::LTU-HMPID@altri1 clienthostname:altri1
   if(rc==0) {
-    prerr("infocallback error");
+    prerr((char*)("infocallback error"));
   } else {
     int ix;
     for(ix=0; ix<SERVERNAMELEN; ix++) {
@@ -344,7 +346,7 @@ ltuclient DETECTOR_NAME\n\
 ltuclient DETECTOR_NAME/EXIT\n");
   exit(4);
 };
-rc= gethostname(clienthostname, 20);
+rc= gethostname(clienthostname, SERVERNAMELEN);
 if(rc!=0) {
   char errmsg[ERRMSGL];
   sprintf(errmsg,"gethostname rc: %d got:%s",rc, clienthostname);
@@ -390,7 +392,7 @@ if(rc != 1) {
 waitinfocall();*/
 rc= execute(cmd, inpline);
 if(rc != 1) {
-  prerr("/PIPE open not successfull"); goto EXIT4;
+  prerr((char*)"/PIPE open not successfull"); goto EXIT4;
 };
 
 //printf("dic_info_service:rc:%d result:%s:\n", RESULTid, result);
@@ -446,7 +448,7 @@ while(1) {
       char c;
       c= inpline[ix];
       if(c=='\0') {
-        prerr("bad input / line"); waserror=1; break;
+        prerr((char *)"bad input / line"); waserror=1; break;
       } else if(c==' ') {
         ix++; break;   // ix points on 1st char to be in inpline
       } else {
@@ -483,7 +485,7 @@ while(1) {
       fgets(inpline, MAXLILE, stdin);
       inleng= strlen(inpline);
       if( (ix+inleng)>MAXRESULT) {
-        prerr("Too long input in vmeopmr32()"); break;
+        prerr((char *)"Too long input in vmeopmr32()"); break;
       };
       strcpy(&linput[ix], inpline); 
       ix= ix+ inleng; 

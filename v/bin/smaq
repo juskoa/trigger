@@ -3,38 +3,44 @@
 # smaq CTP_INPUT DIRNAME
 #rc: 8: smaq is already running
 # smaq kill
-. $CCRFS/usr/local/trigger/bin/auxfunctions
-getpid '/usr/local/trigger/v/vme/smaq/smaq.exe'
-#echo "$spid user:$user"
+. $VMECFDIR/../bin/auxfunctions
+getpid "$VMECFDIR/smaq/smaq.exe"
+echo ":$spid user:$user"
 if [ $# -eq 0 ] ;then
   echo "Usage:"
   echo "smaq ctp_input DIRNAME"
-  echo "DIRNAME -this directory is created at trigger@$smaqhost:SMAQ/"
+  echo "DIRNAME -this directory is created at trigger@$SMAQ_C:SMAQ/"
   echo "         if missing, 'last' is used (it will be emptied before usage)"
   echo "smaq kill -kill active smaq"
   exit
 fi
+#if [ -n $spid ] ;then ! not working (USE  " " around $par in such test
 if [ -n "$spid" ] ;then
   if [ $1 = 'kill' ] ;then
-    kill -9 "$spid"
-    echo "$spid killed"
+    kill -s USR1 "$spid"
+    echo "$spid USR1 signal sent"
     exit 0
   else
     echo "smaq already running: pid:$spid user:$user"
+    exit 8
+  fi
+else
+  if [ $1 = 'kill' ] ;then
+    echo "smaq not running, i.e. not killed"
     exit 8
   fi
 fi
 sig=$1
 if [ $# -ge 2 ] ;then
   export SMAQDATA="$2"
-  ssh -q2 trigger@$smaqhost "mkdir -p SMAQ/$SMAQDATA"
+  ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
 else
   export SMAQDATA="last"
-  ssh -q2 trigger@$smaqhost "mkdir -p SMAQ/$SMAQDATA"
-  ssh -q2 trigger@$smaqhost "rm -rf SMAQ/$SMAQDATA/*"
+  ssh -q2 trigger@$SMAQ_C "mkdir -p SMAQ/$SMAQDATA"
+  ssh -q2 trigger@$SMAQ_C "rm -rf SMAQ/$SMAQDATA/*"
 fi
-scp -Bq2 $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS trigger@$smaqhost:SMAQ/$SMAQDATA/
-cd ~/v/vme
+scp -Bq2 $VMECFDIR/CFG/ctp/DB/ctpinputs.cfg trigger@$SMAQ_C:SMAQ/$SMAQDATA/
+cd $VMEWORKDIR
 #$VMECFDIR/inputs/inputs.exe <<-EOF
 #inputsSMAQ(0,$sig)
 #EOF

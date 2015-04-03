@@ -8,44 +8,51 @@ WHICHSETUP = CAVERN_SETUP
 else
 WHICHSETUP = CERNLAB_SETUP
 endif
-CFLAGS= $(COMMONCFLAGS) -D$(WHICHSETUP) -D$(VMEDRIVER) \
- -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp -I$(VMECFDIR)/ctp_proxy 
+CFLAGS= $(COMMONCFLAGS) $(daqCCDEFS) -D$(WHICHSETUP) -D$(VMEDRIVER) \
+ $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp -I$(VMECFDIR)/ctp_proxy 
 
 include $(VMEBDIR)/sc.make
 
-S_OBJSCOM = fileManip.o
+S_OBJSCOM = fileManip.o readTables.o ctpshm.o
 ifdef SERVER_LINK
-S_OBJS = $(S_OBJSCOM)
+S_OBJS = $(S_OBJSCOM) actdbctp.o
 else
-#compiled/linked on client:
-S_OBJS = $(S_OBJSCOM) readBICfile.o readTables.o timingpars.o \
- calcOverlap.o bcmask.o Tpartition.o shared.o Partition.o \
+#compiled/linked on client (32bits machine):
+# Partition.o ttcmisubs.o: moved to vme/ttcmi
+S_OBJS = $(S_OBJSCOM) readBICfile.o readTablesClient.o timingpars.o \
+ calcOverlap.o bcmask.o shared.o Tpartition.o \
  checkCTP.o notInCrate.o readCounters.o initCTP.o swtrigger.o \
  scope.o i2ctemp.o  inputsTools.o busyTools.o dumpCTP.o \
- phase.o pfp.o bobr.o ctpshm.o ttcmisubs.o ctpTools.o
+ phase.o pfp.o bobr.o ctpTools.o posixq.o ddr3.o
 # intint.o
 # mysqlwrap.o
 endif
 $(info S_OBJS:$(S_OBJS))
-all: $(S_OBJS)
-	-rm libctp.a
+all: libctp.a
+libctp.a: $(S_OBJS)
+	-rm -f libctp.a
 	ar rs libctp.a *.o
 
-.o: .c 
+*.o: ../ctp.h ../ctpcounters.h ctplib.h Tpartition.h
 bobr.o: bobr.c ctplib.h
-readCounters.o: readCounters.c ctplib.h
+readCounters.o: readCounters.c ctplib.h ../ctpcounters.h
 readBICfile.o: readBICfile.c $(VMECFDIR)/ctp/ctp.h
-swtrigger.o: swtrigger.c $(VMECFDIR)/ctp_proxy/Tpartition.h
-ctpshm.o: ctpshm.c $(VMEBinc)/vmewrap.h $(VMECFDIR)/ctp/ctp.h \
- $(VMECFDIR)/ctp_proxy/Tpartition.h
-readTables.o: readTables.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+swtrigger.o: swtrigger.c $(CTPinc)/Tpartition.h
+#ctpshm.o: ctpshm.c $(VMEBinc)/vmewrapdefs.h $(VMECFDIR)/ctp/ctp.h \
+ctpshm.o: ctpshm.c $(VMEBinc)/vmewrapdefs.h $(VMEBinc)/vmeblib.h \
+ $(CTPinc)/Tpartition.h
+readTables.o: readTables.c $(VMEBinc)/lexan.h $(CTPinc)/Tpartition.h
 	$(CC) $(CFLAGS) $(MYSQLCFLAGS) -c -o $@ $<
-Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+readTablesClient.o: readTablesClient.c $(VMEBinc)/lexan.h $(CTPinc)/Tpartition.h
+	$(CC) $(CFLAGS) $(MYSQLCFLAGS) -c -o $@ $<
+Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h $(CTPinc)/Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
-Partition.o: Partition.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+#Partition.o: Partition.c $(VMEBinc)/lexan.h $(VMECFDIR)/ctp_proxy/Tpartition.h
+#	$(CC) $(CFLAGS) -c -o $@ $<
 mysqlwrap.o: mysqlwrap.c
 	$(CC) $(MYSQLCFLAGS) -c -g -o $@ $<
+#ttcmisubs.o: ttcmisubs.c
+#	$(CC) $(CFLAGS) -I/opt/dim/dim -c -g -o $@ $<
 clean:
-	-rm *.o
+	-rm -f *.o
 

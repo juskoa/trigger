@@ -1,0 +1,85 @@
+Modifications:
+1.
+L0_VETO -different content
+  + L0_SDSCG deleted
+  + L0_MASK  deleted
+RATE_DATA  bit31 moved to bit25  (bit defining downscaling busy/rnd)
+
+L1_DEF: RoI bit (31) -not yet changed but very probably will be...
+
+implications for .cfg (TRG_DBED/
+                 .pcfg
+CLA.* lines in .cfg, .pcfg:  see ctp_proxy/readme
+
+
+2. some addresses changed (i.e. not the same shift as on L1/2 boards)
+
+---------------------------------------------- done around 24.6.:
+
+[trigger@avmes vmeblib]$ grepc L0_VETO
+ok ctp/ctplib/dumpCTP.c:  veto=vmer32(L0_VETO+4*(i+1));
+ok ctp/ctplib/initCTP.c:set L0_CONDITION L0_INVERT L0_VETO (scaler-not used here) 
+ok ctp/ctplib/initCTP.c:    vmew32(L0_VETO+bb, veto&0x1fffff); 
+ok ctp/ctplib/initCTP.c:    vmew32(L0_VETO+bb, veto&0xffff); 
+ok ctp/ctplib/Partition.c:   L0VETO[i]      = new VMEaddress("L0_VETO",     0x9000+4*(0x181+i),0);
+ok ctp/ctplib/Tpartition.c:    vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
+ok ctp/ctplib/Tpartition.c:    vmew32(L0_VETO+bb,(klas->l0vetos)&0xffff);
+ok ctp/ctplib/Tpartition.c:    l0vetos=vmer32(L0_VETO+bb);
+ok ctp/ctp.c:    mskbit2= (vmer32(L0_VETO+bb)&0x1fffff) | (mskbit1<<31);
+ok ctp/ctp.c:    mskbit2= (vmer32(L0_VETO+bb)&0xffff) | (mskbit1<<16);
+ok ctp/ctp.c:get L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
+ok ctp/ctp.c:set L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
+ok ctp/ctp.c:    Klas[klasix].regs[2]= veto; vmew32(L0_VETO+bb, veto&0x1fffff); 
+ok ctp/ctp.c:    Klas[klasix].regs[2]= veto; vmew32(L0_VETO+bb, veto&0xffff); 
+ok ctp/ctp.c:L0_VETO      = 0xfffffff0   (cluster0) bit31:1-> class is disabled
+[trigger@avmes vmeblib]$ cd ../../vme/ctp/ctplib
+
+[trigger@avmes ctplib]$ grepc L0_MASK
+ok ctp_proxy/clgroups.c:  vmew32(L0_MASK+bb, mskbit);
+ok ctp_proxy/clgroups.c:    vmew32(L0_MASK+bb, 1);
+ok ctp/ctplib/dumpCTP.c:  mask=vmer32(L0_MASK+4*(i+1));
+ok ctp/ctplib/initCTP.c:1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
+ok ctp/ctplib/initCTP.c:    mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+ok ctp/ctplib/initCTP.c:    /* 1st L0 version (A0): vmew32(L0_MASK+bb, veto&0x10000); */
+ok ctp/ctplib/initCTP.c:    mskbit= (veto&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
+ok ctp/ctplib/Partition.c:   L0MASK[i]      = new VMEaddress("L0_MASK",     0x9000+4*(0x1c1+i),0);
+ok ctp/ctplib/Partition.c:    // L0_MASK
+ok ctp/ctplib/Tpartition.c:     mskbit= (klas->l0vetos)>>31; vmew32(L0_MASK+bb, mskbit);
+ok ctp/ctplib/Tpartition.c:     mskbit= ((klas->l0vetos)&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
+ok ctp/ctplib/Tpartition.c:    mskbit=vmer32(L0_MASK+bb);
+ok ctp/ctp.c:  mskbit1= vmer32(L0_MASK+bb)&0x1;
+ok ctp/ctp.c:1. bit17 (0x10000) of veto is CLASS MASK bit written into bit0 of L0_MASK
+ok ctp/ctp.c:    mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
+ok ctp/ctp.c:    /* 1st L0 version (A0): vmew32(L0_MASK+bb, veto&0x10000); */
+ok ctp/ctp.c:    mskbit= (veto&0x10000)>>16; vmew32(L0_MASK+bb, mskbit);
+
+/L0_VETO\|L0_MASK
+
+still:
+ok SYNCH_ADD   804 -> 344
+ok see setClassInit veto!
+ok see note in ctp.h about getClass L0_VETO[
+ok zmeny adries samostatnych registrov (yellow in  .pdf)
+ok getLM0addr() for block of addresses...
+   but still todo: 
+ok   L0FUNCTION_34        1fb(7ec) -> 90 (240)
+ok   SCOPE_A_FRONT_PANEL/B  -special, valid only for LM0 board
+ok   SYNCALL (SYNCH_ADD in sw) 201(804) -> D0 (0x340)
+   PFCOMMON... block    219(864).. 228      ->  e8(3a0) .. f7(3dc)
+ok   PF_COMMON 864  -> 3a0
+ok   PFBLOCK_A 868
+ok   PFBLOCK_B 86c
+ok   PFLUT     870
+ok   getLM0PFad() prepared in ctpTools.c
+
+ok   TEST_ADD             1fa(7e8) -> fe(3f8)   (stays 1fa on other boards)
+ok   TC_SET               100(400) -> ff(3fc)    (stays 100 on other boards
+
+L0_SDSCG -disappeared in LM0 !
+python: ok TRG_DBED/parted   -getClass(
+        ctp/ctpcfg.py
+        pydim
+
+
+/L0_INTERACT\|L0_FUNCTION\|RANDOM_\|SCALED_\|ALL_RARE_FLAG
+

@@ -16,8 +16,12 @@ echo '----- rrd status (2 processes):'
 ps -C readctpc -C readltuc -o"%p %a"
 }
 function status_pydim() {
-echo '----- pydim status (2 processes):'
+echo '----- pydim status (2 processes), HAS TO BE STARTED BEFORE ctpproxy!:'
 ps -C pydimserver.py -C server -o"%p %a"
+pids=`ps -C pydimserver.py -C server -o"%p %a" --no-headers |colrm 6`
+#if [ "$pids" != "" ] ;then
+#  echo "pid: $pids"
+#fi
 }
 function status_html() {
 echo '----- html status (1 process):'
@@ -58,7 +62,7 @@ if [ "$action" = "stop" ] ;then
     ssh -2 -q  $remlogin "$script stop"
   fi
   return $?
-elif [ "$action" = "start" ] ;then
+elif [ "$action" = "start" -o "$action" = "startnd" -o  "$action" = "startnr" ] ;then
   #echo "ssh -2 -q -f $remlogin $script start"
   if [ "$remlogin" == 'LOCAL' -o "$remlogin" == "trigger@$hname"  ] ;then
     $script start
@@ -81,17 +85,46 @@ else
   return $?
 fi
 }
+function showpids() {
+s_dnames="pydimserver.py htmlCtpBusys.py readctpc readltuc udpmon irdim xcounters gmonscal masksServer ctpwsgi"
+c_dnames="ctpproxy dims gcalib.exe gdb test"
+mi_dnames="ttcmidims"
+#echo "dnames:$dnames"
+#echo "1,2:$1,$2"
+for dn in $s_dnames ;do
+  pgrep -l $dn
+  [ $? -eq 1 ] && echo ----	$dn
+done
+echo ------------ $ctpvme: $c_dnames
+sshcmd=""
+for dn in $c_dnames ;do
+  sshcmd="pgrep -x -l $dn; $sshcmd"
+done
+#echo $sshcmd
+ssh -2 trigger@$ctpvme "$sshcmd"
+echo ------------ $ttcmivme: $mi_dnames
+sshcmd=""
+for dn in $mi_dnames ;do
+  sshcmd="pgrep -x -l $dn; $sshcmd"
+done
+#echo $sshcmd
+ssh -2 trigger@$ttcmivme "$sshcmd"
+#for dn in $c_dnames ;do
+#  ssh -2 trigger@$ctpvme pgrep -x -l $dn
+#  [ $? -eq 1 ] && echo ----	$dn
+#done
+}
 #--------------------------------------------------
-hname=`hostname`
-if [ "$hname" != 'tp' -a "$hname" != 'pcalicebhm05' \
-     -a "$hname" != 'alidcscom188' -a "$hname" != 'pcalicebhm10' ] ;then
-echo 'This script can be started only on trigger@alidcscom026/188 or trigger@pcalicebhm05/10'
+hname=`hostname -s`
+if [ "$hname" != 'tp' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
+     -a "$hname" != 'alidcscom188' -a "$hname" != 'alidcscom835' ] ;then
+echo 'This script can be started only on trigger@alidcscom835/188 or trigger@pcalicebhm10/avmes'
 exit 8
 fi
 if [ "$VMESITE" = 'ALICE' ] ;then
   ctpvme=alidcsvme001
   ttcmivme=alidcsvme017
-  server=alidcscom188   # alidcscom026  alitri
+  server=alidcscom835   # alidcscom188  alitri
   server27=alidcscom707 # alitrir   see also alidcscom521
 elif [ "$VMESITE" = 'SERVER' ] ;then
   ctpvme=altri1
@@ -103,6 +136,7 @@ if [ "$1" = 'help' ] ;then
 cat - <<-EOF
 Usage:                    
 startClients              -get status of all daemons
+startClients pids         -get pids of all daemons
 startClients help         -this message
 
 startClients pydim stop | start | status
@@ -112,7 +146,6 @@ startClients pydim stop | start | status
              ctpproxy 
              ctpdim 
              gcalib
-             monscal
              masksServer
 
 Available only in P2:
@@ -136,18 +169,20 @@ ttcmidim:  DIM server monitoring/changing global clock (warning when
            miclock: the client controlling ttcmidim server
 irdim:     running on alitrir. DIM server processing Interaction records
 xcounters: creating xcounters files and posting them to DCS XFS
-           updating counters in DAQlogbook
+           updating counters in DAQlogbook.    RUNS in tri account
            see ~tri/readme for more info about compile/start/stop
 diprfrx    DIP service publishing the LHC TTCmi RF -see http://cern.ch/ttcpage1
 gcalib     sending cal. triggers to the detectores during global run
-gmonscal   running on alitrir. Creating: 
+gmonscal   running on trigger@alitrir. Creating: 
            $server:v/vme/WORK/MONSCAL/inputs.png
            $server:v/vme/WORK/MONSCAL/RUNNUMBER_CLUSTER.png
-monscal    running on alitri. Creating:
-           $server:v/vme/WORK/MONSCAL/monscal.log
-           $server:v/vme/WORK/MONSCAL/display.log
-masksServer publication of CTPBCM/A,C,S,SA,...
-
+masksServer running on alitri. Commands: start/stop/status/update
+           See v/vme/WORK/masksServer.log,.pid 
+           DIM publications of CTPBCM/A,C,S,SA,... -masks available 
+           in VALID.CTPINPUTS).
+ctpwsgi    running on alitri. start/stop/status
+           wsgi server. needed for BUSY status screen when the way how
+           busy is calculated needs to be changed. Log: v/vme/WORK
 Problems: see corresponding files in:
    ~/CNTRRD/logs                     -pydim html rrd
    trigger@alidcsvme001:v/vme/WORK/  -ctpproxy ctpdim gcalib
@@ -160,11 +195,15 @@ Problems: see corresponding files in:
 EOF
 exit
 fi
+dnames="pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
 cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
   dmn='all'
   sss='status'
+elif [ $# -eq 1 -a "$1" = "pids" ] ;then
+  showpids
+  dmn=pids
 elif [ $# -eq 1 ] ;then
   echo "Current sttus of $1            (type help to get help message)"
   dmn=$1
@@ -173,8 +212,10 @@ else
   dmn=$1
   sss=$2
 fi
-echo "pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal monscal masksServer all " | grep "$dmn " >/dev/null
-if [ $? -eq 1 ] ;then
+echo $dnames | grep "$dmn " >/dev/null
+rc=$?
+echo "rc:$rc dmn:$dmn:"
+if [ "$dmn" != "all" -a "$rc" = "1" ] ;then
   echo "unknown daemon: $dmn"
   exit 8
 fi
@@ -186,6 +227,12 @@ if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
     else
       echo " not started"
     fi
+  elif [ "$sss" = "update" ] ;then
+    if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
+      kill -s SIGUSR1 `cat $VMEWORKDIR/WORK/masksServer.pid`
+    else
+      echo " not started"
+    fi
   elif [ "$sss" = "start" ] ;then
     if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
       echo " already started"
@@ -193,6 +240,7 @@ if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
       nohup python $VMECFDIR/pydim/masksServer.py >/dev/null &
     fi
   elif [ "$sss" = "status" ] ;then
+    echo '----- masksServer status:'
     if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
       echo '----- masksServer status (1 process):'
       echo "pid: `cat $VMEWORKDIR/WORK/masksServer.pid`"
@@ -206,7 +254,7 @@ if [ $dmn = "pydim" -o "$dmn" = "all" ] ;then
   if [ "$sss" = "stop" ] ;then
     echo "stopping pydim..."
     cd $VMECFDIR/pydim 
-    linux/client CTPRCFG/RCFG stop
+    linux_s/client CTPRCFG/RCFG stop
   elif [ "$sss" = "start" ] ;then
     savelog pydimserver
     #is in vmebse.bash export ACT_DB=daq:daq@aldaqdb/ACT
@@ -279,7 +327,7 @@ END {printf "%s", pids}
 fi
 if [ $dmn = "udpmon" -o "$dmn" = 'all' ] ;then #-------------------- udpmon
   #st3 udpmon udpmon.sh trigger@$server $sss  -we are already on server!
-  #echo '----- udpmon status (1 process):'
+  echo '----- udpmon status (1 process):'
   udpmon.sh $sss
   retc=$?
   [ $dmn = "udpmon" ] && exit $retc
@@ -306,12 +354,18 @@ fi
 if [ $dmn = "ttcmidim" -o "$dmn" = 'all' ] ;then #-------------------- ttcmidim
   st3 ttcmidim ttcmidims.sh trigger@$ttcmivme $sss
 fi
+# group of daemons available only in the pit:
 if [ $dmn = "irdim" -o "$dmn" = 'all' ] ;then #-------------------- irdim
-  st3 irdim irdims.py trigger@alidcscom521 $sss
+  if [ "$VMESITE" != "ALICE" ] ;then
+    echo "irdim available only in the pit"
+  else
+    st3 irdim irdims.py trigger@alidcscom521 $sss
+  fi
 fi
 if [ $dmn = "xcounters" -o "$dmn" = 'all' ] ;then #------------------- xcounters
   if [ "$VMESITE" != "ALICE" ] ;then
-    echo "xcounters available only in the pit"
+    #echo "xcounters available only in the pit"
+    xcounters.sh $sss
   else
     st3 xcounters xcounters.sh tri@$server $sss
   fi
@@ -320,18 +374,22 @@ if [ $dmn = "diprfrx" -o "$dmn" = 'all' ] ;then #------------------- diprfrx
   if [ "$VMESITE" != "ALICE" ] ;then
     echo "diprfrx available only in the pit"
   else
-    st3 diprfrx diprfrx.bash trigger@$ttcmivme $sss
+    st3 diprfrx diprfrx.sh trigger@$ttcmivme $sss
   fi
 fi
+#if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
+#  st3 monscal monscal.sh trigger@$server $sss
+#fi
+if [ $dmn = "gmonscal" -o "$dmn" = 'all' ] ;then #-------------------- gmonscal
+  st3 gmonscal gmonscal.sh trigger@$server27 $sss
+fi
+if [ $dmn = "ctpwsgi" -o "$dmn" = 'all' ] ;then #-------------------- ctpwsgi
+  st3 ctpwsgi ctpwsgi.sh LOCAL $sss
+fi
+#---------------
 if [ $dmn = "gcalib" -o "$dmn" = 'all' ] ;then #------------------- gcalib
   st3 gcalib gcalib.sh trigger@$ctpvme $sss
   retc=$?
   [ $dmn = "gcalib" ] && exit $retc
-fi
-if [ $dmn = "gmonscal" -o "$dmn" = 'all' ] ;then #-------------------- gmonscal
-  st3 gmonscal gmonscal.sh trigger@$server27 $sss
-fi
-if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
-  st3 monscal monscal.sh trigger@$server $sss
 fi
 

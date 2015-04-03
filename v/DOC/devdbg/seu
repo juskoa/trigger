@@ -1,0 +1,13 @@
+ltulib/ltuinit.c checkSEU()
+- called (ERROR message issued in case a LTU reconfig needed) at:
+  SOR, EOR (global or stdalone)
+
+Todo:
+- automatic LTU reconfig (see ltu.c loadFPGA() ):
+  i.e.:
+  if SEU:
+    ltuInit
+    // no need to configure (anyhow will be done at SOR)
+    if EOR:
+    ltuconfigure // configure also (to get LTU in consistent state
+                 // even between 2 runs) 

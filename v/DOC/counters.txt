@@ -1,12 +1,13 @@
 Contents:
-How to prepare list of CTP counter names
+run1: How to prepare list of CTP counter names
+run2: How to prepare list of CTP counter names
 History
 
 
-How to prepare list of CTP counter names (modified 25.10., 5.7.2010):
-----------------------------------------------------------
-1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
-   copy first VALID.LTUS ttcpaerts.cfg from th pit to $dbctp
+run1: How to prepare list of CTP counter names (modified 25.10., 5.7.2010)
+--------------------------------------------------------------------------
+1. create ~/cnames file:  on alidcsvme001 or server (835):
+   copy first VALID.LTUS ttcparts.cfg from th pit to $dbctp
    cd $VMEBDIR ; ./counters.py printnames >~/cnames
    remove Error: lines from ~/cnames
    check number of counters (should be 970):
@@ -45,6 +46,49 @@ Adding new counters (12 counters for each FO board):
 - create new cnames.sorted2 file (see above) and place it to master copy:
 pcalicebhm05:/data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcdistrib
 
+run2: How to prepare list of CTP counter names (19.2.2014, 3.3.)
+----------------------------------------------------------
+0. ctpcounters.h, counters.py modified for new L0 (300 conters)
+0.5. recompile ctplib, vmecomp ctp, ctp_proxy
+1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
+   copy first VALID.LTUS ttcparts.cfg from the pit to $dbctp
+   cp VALID.LTUS.pit VALID.LTUS ; cp ttcparts.cfg.pit ttcparts.cfg
+
+   cd $VMEBDIR ; ./counters.py printnames >~/cnames
+   remove Error: lines from ~/cnames
+   wc ~/cnames
+   check number of counters (should be 970):
+      1072 with L0 0xb1 fw (970+102 expected) 19.2.2014
+      1110 with L0 0xb1 fw (970+140 expected) 19.2.2014
+      1416 L1/2 300 cnts (1110+306  expected) 13.3.2014
+      1560 FO/BUSY  cnts (1416+144  expected) 16.3.2014
+
+Or in lab (we want full version of file from the pit):
+cd $dbctp ; mv VALID.LTUS lab/ ; cp pit/VALID.LTUS .
+cd $dbctp ; mv ttcparts.cfg lab/ ; cp pit/ttcparts.cfg .
+cd $VMEBDIR ; ./counters.py printnames >~/cnames
+cd $dbctp ; cp lab/VALID.LTUS .
+cd $dbctp ; cp  lab/ttcparts.cfg .
+
+2.
+File cnames is OK for PVSS (Jozef). For web interface we need sorted, no holes. 
+sort file by 2nd item (rel. address)
+run1: cd ; sort -n -k 2 -t ' ' cnames >cnames1.sorted2
+run2: cd ; sort -n -k 2 -t ' ' cnames >cnames.sorted2
+usage: cnames.sorted2
+-run1 is called cnames1.sorted2 (trigdb.py can works with both)
+- let's keep cnames1.sorted2 (run1) and cnames.sorted2 (run2) in:
+  $dbctp
+  dimcdistrib/   (link pointing here from /var/www/hml)
+
+3. copy cnames.sorted2:
+[pcalicebhm05] /home/trigger > cp cnames.sorted2 $VMECFDIR/dimcdistrib/cnames.sorted2.pit
+
+4.
+-repeat the same for .lab version (with lab version of VALID.LTUS 
+and ttcparts.cfg):
+...
+[pcalicebhm05] /home/trigger > cp cnames.sorted2 /data/ClientCommonRootFs/usr/local/trigger/vd/vme/dimcdistrib/cnames.sorted2.pit
 History
 -------
 Files cnames.sorted2 created 19.9. and left in DOC directory
@@ -82,3 +126,12 @@ i.e. now:970 before:886 counters
 TSGROUP counter -replacing BUSY spare just before RUNX counters
 8.2.2012
 l0ifun3 and l0ifun4 added (instead of l0int_d and spare99)
+3.3.2014
+$dbctp/ + $VMECFDIR/dimcdistrib/cnames1.sorted2   -old run1 format
+$dbctp/ + $VMECFDIR/dimcdistrib/cnames.sorted2   -new run2 format (now: 1110 lines)
+ls -l $dbctp/cnames1.sorted2 $VMECFDIR/dimcdistrib/cnames1.sorted2
+ls -l $dbctp/cnames.sorted2 $VMECFDIR/dimcdistrib/cnames.sorted2
+13.3.2014
+l1/2 boards (300 counters each) added, tested, seems ok.
+22.2.2015
+AD detector added (just rerunning counter.py printnames...)

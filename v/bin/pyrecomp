@@ -1,0 +1,2 @@
+#   -recompile .pyc in curent directory:
+python -m compileall .

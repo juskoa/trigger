@@ -15,7 +15,7 @@
     // $managerHost is host that can e manager (start,stop,restart)
     // aldaqacr07:
     $managerHost="alidcscom188";
-    $dbctp="/data/dl/root/usr/local/trigger/v/vme/CFG/ctp/DB";
+    $dbctp="/data/dl/root/usr/local/trigger/stable/v/vme/CFG/ctp/DB";
     $vmeCfDir="v/";
   }
   else {

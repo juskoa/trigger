@@ -216,13 +216,14 @@ class aiup:
     self.c.write("Tname allnames[MAXNAMES]={\n");
     #print "dbgsb:",self.board
     #ol= '"%s", tSYMNAME, NULL, 0, NULL, %s, NULL'%(self.board[0],self.board[1]) 
-    ol= '{"%s", tSYMNAME, NULL, (w32)BoardSpaceLength, 0.0, NULL, (w32)BoardBaseAddress, NULL}'%(self.board[0]) 
+    #ol= '{"%s", tSYMNAME, NULL, {.strptr=BoardSpaceLength}, 0.0, NULL, {.bax=BoardBaseAddress}, NULL}'%(self.board[0]) 
+    ol= '{"%s", tSYMNAME, NULL, {0}, 0.0, NULL, {0}, NULL}'%(self.board[0]) 
     self.c.write(ol)
     for x in self.vmeregs:
       if x[2]:
-        ol= ',\n{"%s", tVMEADR|%s, NULL, 0, 0.0, NULL, %s, NULL}'%(x[0],x[2],x[1])
+        ol= ',\n{"%s", tVMEADR|%s, NULL, {0}, 0.0, NULL, {%s}, NULL}'%(x[0],x[2],x[1])
       else:
-        ol= ',\n{"%s", tVMEADR, NULL, 0, 0.0, NULL, %s, NULL}'%(x[0],x[1])
+        ol= ',\n{"%s", tVMEADR, NULL, {0}, 0.0, NULL, {%s}, NULL}'%(x[0],x[1])
       self.c.write(ol)
     for x in self.ifuncs:
       if len(x[NPARDESC]) > 0:
@@ -234,12 +235,12 @@ class aiup:
         usghlp= 'NULL'
       #print "xinifuncs:",x
       if x[NFTYPE]=="GUI":
-        ol= ',\n{"%s", tFUN, %s, 0xdead, 0.0, %s, %d, %s}'% \
+        ol= ',\n{"%s", tFUN, %s, {0xdead}, 0.0, %s, {%d}, %s}'% \
           (x[NFNAME],"NULL",pars,len(x[NPARDESC]),usghlp)
       else:
         ftx= FTYPES[x[NFTYPE]]
         #ol= ',\n{"%s", tFUN+%s, (w32 (*)())%s, 0xdead...
-        ol= ',\n{"%s", tFUN+%s, (funcall)%s, 0xdead, 0.0, %s, %d, %s}'% \
+        ol= ',\n{"%s", tFUN+%s, (funcall)%s, {0xdead}, 0.0, %s, {%d}, %s}'% \
           (x[NFNAME],ftx,x[NFNAME],pars,len(x[NPARDESC]),usghlp)
       self.c.write(ol)
     self.c.write("};\n")
@@ -737,7 +738,9 @@ return: tktype,tkvalue
         #print "tk:",tk
         if tk[0] == SYMNAME:
           t1= tk[1]             # type ?
-          if t1=='void' or t1=='int' or t1=='w8' or t1=='w16' or\
+          if t1=='const':
+            continue
+          elif t1=='void' or t1=='int' or t1=='w8' or t1=='w16' or\
              t1=='w32' or t1=='char' or t1=='float':
             lastType= t1
             tk= self.getToken()

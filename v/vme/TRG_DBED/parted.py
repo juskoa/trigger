@@ -6,64 +6,21 @@ The goal: edit pname.partition file (pname is the name of the partition)
 Operation: load/edit/save pname.partition file
 
 history:
-23.2.2005 P/F protection circuits added
-12.3. parted.py pname   now OK
-16.3. TODO:
- - TrgCTP class (bc1/2 rnd1/2 BCM1-4)
-   DONE. Insteda TrgTCP TrgSHR class created
- - ctp load button (from ctp.py?), or different program for CTP load?
- - better colors (yellow is not working corectly now)
-   DONE. P/F -yellow, Rare -green (new color is kept as long as possible)
- - if partition use shared resource (rnd, bc, l0fun intfun?), 
-   it HAS TO BE DEFINED i.e.:
-   - warning if shrcs defined but not used
-   - error if used but not defined
-   DONE 7.9.2006
-23.4.
- - TrgCLass.clsbut points to button in the list of classes in
-   Cluster window
-24.4.
- - 'show:' button is now MywxMenu (was MywMenuList)
- - RARE has the color assigned
- - full list of class properties implemented in 'show:' button
-27.5. bug bcms fixed, 
- - cluster names added 
- - TrgClass.mycluster points now to cluster wherre class is assigned to
- - top level window for class properties disables Class button
-   (see TrgClass.hideclass)
-28.5. l0prescaler settinag (int) now checked for syntax, better help texts
-11.5. bug 'save partition' fixed (before rnd1,2 was saved as rnd3,4)
-22.5. Menubar added instead of buttons save/cancel/show/quit
-      Class name (initialised to TDS name) added
-      Shared resources now in separate top level window
-23.5. Save/load now valid for shared resources too
-      'Save as' option added
-24.5. Selected cluster: last edited cluster is selected (i.e. for
-      duplicate )
-25.7. cluster deletion (from menu and directly by middle button) now OK
- - VALID.CTPINPUTS supplemented with real CTP inputs connection
-26.9. VALID.LTUS format changed. Now line per LTU=fo#.connector#
- 1. 4. 2006: TRIGDBDIR and TRIGWORKDIR now used
-25.8. .pcfg file created too
-19.8.2008:
-todo:
--do not save if error
--hz,s + baloon window for BC1,2 RND1,2
-11.9.
-Version: 2 now:
-- class mask handled
-- BCM used instead of bcm
-- classgroup attribute added to TrgClass
-4.5.2009
-part.activeclasses dictionary for DAQdb update
 4.9.2011
 Version: 3   L0 firmware AC  (12 BCmasks, 50 inverted L0 inputs, complex l0f)
 23.2.2012
 VERSION: 4 (.rcfg)
 Version: 4 (.partition) just to be the same with .rcfg
+23.9.2012
+VERSION: 5 (both .rcfg .partition): sync downscaling
+22.10.
+VERSION: 6 LINDF REPL added
+25.6.2014
+VERSION: 7 >=7 from now
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
+import trgglobs
 import pdb
 sys.path.append("./")
 if hasattr(sys,'version_info'):
@@ -73,8 +30,8 @@ if hasattr(sys,'version_info'):
     import warnings
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
-import myw, txtproc, trigdb
-
+import myw, txtproc, trigdb, syncdg, preproc
+VERSION="7"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
 COLOR_NORMAL="#d9d9d9"
@@ -84,16 +41,19 @@ COLOR_SHARED="#cc66cc"
 COLOR_WARN="#ff9999"
 COLOR_ACTIVE="#ff00cc"
 COLOR_OK="#00ff00"
+symchars = 'abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
+
 
 # .partition .pcfg files go here:
 CFGDIR=trigdb.CFGDIR       # .partition & .pcfg files are here
 WORKDIR=trigdb.TRGWORKDIR  # archive (PCFG/...)
 TRGDBDIR=trigdb.TRGDBDIR   # trigger DB files (VALID.PFS,...)
 
-PF_NUMBER=4        # 4 PFs
+PF_NUMBER=4         # 4 PFs
 PF_COMDEFSIX=9
-BCMASKS_START=4    # from here, TrgSHR_BCM starts in global SHRRSRCS[]
+BCMASKS_START=4     # from here, TrgSHR_BCM starts in global SHRRSRCS[]
 BCM_NUMBER=12       # 4 before AC, 12: firmAC
+NCLS= trgglobs.NCLS # 50: run1   100:run2
 if BCM_NUMBER==4:
   L0F_NUMBER=4     # number of inputs in l0f function
   PFS_START=8      # from here, TrgSHR_BCM for PF starts in global SHRRSRCS[]
@@ -103,6 +63,7 @@ else:
 lutzero="0x"+ '0'*(2**(L0F_NUMBER-2))
 TRGCTPCFG= trigdb.Trgctpcfg()
 clgtimes= TRGCTPCFG.getTIMESHARING()
+symbols= preproc.symbols()
 
 def IntErr(fstr):
   print "Internal error:",fstr
@@ -114,15 +75,51 @@ def PrintError(fstr, selfmsg=None):
       selfmsg.loaderrors= selfmsg.loaderrors + fstr + "\n"
   else:
     print "Error:",fstr
-def PrintWarning(fstr):
-  print "Warning:",fstr
+def PrintWarning(fstr, selfmsg=None):
+  if selfmsg:
+    if fstr[-1]=="\n":
+      selfmsg.loadwarnings= selfmsg.loadwarnings + fstr
+    else:
+      selfmsg.loadwarnings= selfmsg.loadwarnings + fstr + "\n"
+  else:
+    print "Warning:",fstr
 def PrintInfo(fstr):
   print "Info:",fstr
 def redline(inf):                 # ignore empty lines
+  cltds=""
   while(1):
-    cltds= inf.readline()
+    cl= inf.readline()
+    #print "redline:",cl[:-1]
+    if cl=='\n': continue    
     if len(cltds)>0 and cltds[0]=='#':continue
-    if cltds!='\n': break    
+    if cl[-2:]=='\\\n': 
+      cltds= cltds + cl[:-2]
+      continue
+    else:
+      cltds= cltds + cl
+      break
+  #replace symbols, if any:
+  while True:
+    istart=None
+    for ic in range(len(cltds)):
+      ch= cltds[ic]
+      if ch=='$':   # start of $sym or $sym$sym
+        if istart!=None:   # $sym$sym -end of first $sym found
+          istop=ic-1 ; break
+        istart= ic         # $sym
+        continue
+      if istart!=None:   # looking for end of $sym
+        if not (ch in symchars):
+          istop=ic-1 ; break   # end of $sym found
+    if istart==None: break     # $... not found
+    # istart:istop -first:last character of sym name
+    key= cltds[istart+1:istop+1]
+    val= symbols.get(key)
+    if val==None:
+      PrintError("Unknown symbol %s in line:"%(key)+cltds)
+      break
+    cltds= cltds[:istart] + val + cltds[istop+1:]
+  #print "redline rc:",cltds[:-1]
   return cltds
 def Parse1(clstring):
   """ 
@@ -153,6 +150,8 @@ def Parse1(clstring):
         if par=='': continue
         valpar=string.split(par,'=')
         if len(valpar)==2:
+          if rc.has_key(valpar[0]):
+            PrintWarning("Multiple definition of %s, redefined to: %s"%(valpar[0],valpar[1]))
           rc[valpar[0]]=valpar[1]
         elif len(valpar)==1:
           rc[valpar[0]]="ON"
@@ -247,16 +246,25 @@ class TrgInput:
         if len(li) == 1:   # not connected input
           self.ctpinp=None
         elif len(li) >= 8:
-          # Det Level Signature InpNum Dim Conf Edge Delay
-          # 0   1     2         3      4   5    6    7
+          # Det Level Signature InpNum Dim SwitchN Edge Delay
+          # 0   1     2         3      4   5       6    7
           # example of input from L0.INPUTS (not connected):
           #0ASL = ACORDE 0 1 0 1 0 0 12
-          if li[5]=='1':
+          #if li[5]=='1':
+          if li[3]!='0':   # connected input 
             self.signature= li[2]
             self.dim= li[4]
             self.edge= li[6]
             self.delay= li[7]
             self.ctpinp= int(li[1]), int(li[3])   
+          else:   
+            if li[5]!='0':   # L0 input, connected to the switch only
+              self.signature= li[2]
+              self.dim= li[4]
+              self.edge= li[6]
+              self.delay= li[7]
+              self.ctpinp= int(li[1]), int(li[3])   
+              
           #if li[5]!='1':
           #  self.ctpinp= int(li[1]),0   # not connected
         else:
@@ -358,7 +366,7 @@ class TrgDescriptor:
   """
   name: name of Trigger descriptor
   inps: list of trigger inputs
-        NEGATED inputs (classes 44-50) are prefixed with '*'
+        NEGATED inputs (classes 45-50) are prefixed with '*'
         (i.e. *name)
   return: instance of TrgDescriptor, self.allinputsvalid is True
     In case of error
@@ -804,6 +812,9 @@ class TrgSHR_BCM(TrgSHR):
     inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     return self.BCMPFitems[inx][1]
   def isPFDefined(self,level):
+    """ "0 0 0" ->
+    PF on given level not defined (i.e. not to be used as veto in class def)
+    """
     pfd= string.split(self.getDefinition())
     if len(pfd)!=12:
       IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
@@ -870,7 +881,8 @@ Predefined BC masks in VALID.BCMASKS file:
     self.load_BCMs()
     self.load_PFs()
     self.ltus= trigdb.readVALIDLTUS()
-    f= open(os.path.join(TRGDBDIR, "VALID.CTPINPUTS"),"r")
+    #f= open(os.path.join(TRGDBDIR, "VALID.CTPINPUTS"),"r")
+    f= open(os.path.join(TRGDBDIR, "ctpinputs.cfg"),"r")
     # goal: create self.indets list
     # 1. go through VALID.CTPINPUTS, adding l0/1/2 inputs
     # 2. go through l0inputsdb -info for l0 inputs (we need to know
@@ -883,7 +895,7 @@ Predefined BC masks in VALID.BCMASKS file:
     # are l0function definitions, and will be saved as "L0FUNS" detector
     # inputs
     #VON l0finputs=[]   #list of possible L0fun*
-    PrintError("-------------------------------------------- VALID.CTPINPUTS:",self)
+    PrintError("-------------------------------------------- ctpinputs.cfg:",self)
     for line in f.readlines():
       if line[0] == "\n": continue
       if line[0] == "#": continue
@@ -893,11 +905,11 @@ Predefined BC masks in VALID.BCMASKS file:
       inpAlreadyIn= self.findInput(inpname)
       if inpAlreadyIn:
         #2 definitions with the same name not allowed!
-        PrintError("""Trigger input %s already defined. VALID.CTPINPUTS line:
+        PrintError("""Trigger input %s already defined. ctpinputs.cfg line:
 %s discarded.  """%(inpname, line), self)
         continue
       if (line[:3]=='l0f') or (line[:3]=='l0A') or (line[:3]=='l0B'):
-        #print "l0fun* special function in VALID.CTPINPUTS:",line
+        #print "l0fun* special function in ctpinputs.cfg:",line
         detname= "L0FUNS"
       else:
         detname= string.strip(string.strip(string.split(inp1[1])[0]))
@@ -915,6 +927,7 @@ Predefined BC masks in VALID.BCMASKS file:
       newTID.makeVirtL0f()
       #newTID.tidprt()
     #
+    skipL0INPUTS="""
     alll0s= trigdb.TrgL0INPUTS()   
     for l0in in alll0s.ents:
       if l0in[0][0]=='#': continue
@@ -941,6 +954,7 @@ Predefined BC masks in VALID.BCMASKS file:
           # 0ASL = ACORDE 0 1 0 1 0 0 12
           #print "added L0.INPUT input:",line
           newTID.addInput(newInput)
+"""
     #print "\n-----------------------------------------------------TdsLtus:"
     PrintError("\n-----------------------------------------------------TdsLtus:",self)
     #for tid in self.indets: tid.prt() 
@@ -964,11 +978,12 @@ Predefined BC masks in VALID.BCMASKS file:
       ihk= string.find(line,'#')
       if ihk>0:
         line= line[:ihk]
-      self.tdinps.append(string.split(line[:-1]))
+      stripedline= string.strip(line)
+      self.tdinps.append(string.split(stripedline))
       #
       #print "initTDS:%s:"%line, "len:", len(line)
-      tdname= string.split(line)[0]    
-      tdinps= string.split(line[:-1])[1:]
+      tdname= string.split(stripedline)[0]    
+      tdinps= string.split(stripedline)[1:]
       #if tdname=="DDG1":
       #  import pdb ; pdb.set_trace()
       newtrgdes= TrgDescriptor(tdname, tdinps)
@@ -980,7 +995,7 @@ Predefined BC masks in VALID.BCMASKS file:
           PrintError(newtrgdes.loaderrors, self)
           notreadydescriptors= notreadydescriptors+1
         self.tds.append(newtrgdes)
-        self.validtds.append(string.split(line)[0])    
+        self.validtds.append(string.split(stripedline)[0])    
       else:
         PrintError(newtrgdes.loaderrors, self)
         baddescriptors= baddescriptors+1
@@ -1114,7 +1129,7 @@ l. The list of possible trigger descriptor names - one of them has
       if line[0] == "\n": continue
       (bcm_name, bcm_definition) = string.split(line)
       #print "load_BCMs:",bcm_name, bcm_definition
-      bm=txtproc.BCmask(bcm_definition) ; 
+      bm=txtproc.BCmask(bcm_definition,bcm_name) ; 
       #print "prtBits bm:", bm
       errmsg= bm.checkSyntax()
       if errmsg!= None:
@@ -1196,12 +1211,12 @@ class TrgClass:
       cluspart= mycluster.name
     self.updateClassName(cluspart,composeName=None) # self.clsnamepart[] only
     cn_name=None
-    self.clanumlog= 0   # 1..50 assigned in TrgPartition.loadfile()
+    self.clanumlog= 0   # 1..NCLS assigned in TrgPartition.loadfile()
     #print "TrgClass:",self.clsname,pars
     #print "TrgClass:", self.clsname," trde:" ; if self.trde: self.trde.prt()
     #VON self.clsl0funs=[None,None]
     self.setCluster(mycluster)   #
-    self.L0pr='0'; 
+    self.L0pr='0';   # n, 0xhexa, n%, or syncdg symb. name
     self.bcms=[0,0,0,0,0,0,0,0,0,0,0,0]
     self.optinps=[0,0,0,0]   # rnd1, rnd2, bc1, bc2
     self.pfs=[0,0,0,0]   # [0,1,0,0]: TrgSHR[PFS_START+1].getDefinition()
@@ -1234,6 +1249,10 @@ class TrgClass:
         PrintWarning("bcm in .partition file converted to BCM (valid from 11.9.2008)")
         k= 'BCM'+ k[3:]
       if k[:3]=='BCM':
+        if k[3:]=="":
+          PrintError("BCMXXX, XXX non-empty, expected in:"+clstring)
+          self.trde= None
+          break
         bcmix= int(k[3:])   # 1..12
         if (bcmix>=1) and (bcmix<=12):
           self.bcms[bcmix-1]= 1
@@ -1257,10 +1276,10 @@ class TrgClass:
             PrintError("Undefined PF%s in:"%bcmix,clstring)
             self.trde= None
             break
-          self.clsnamepart[1]= x
+          self.clsnamepart[2]= x
           continue
         else:
-          PrintError("Bad PF%s in:"%bcmix,clstring)
+          PrintError("Bad PF%s (PF1..4 expected) in:"%bcmix,clstring)
           self.trde= None
           break
       if k=='all':
@@ -1277,7 +1296,7 @@ class TrgClass:
       PrintError("Bad TD:"+clstring); break
     # leave None if not defined in .partition (from 3.6.2012):
     if (cn_name!=None) and (cn_name!=self.getclsname()):
-      print "TrgClass:", cn_name, self.getclsname()
+      #print "TrgClass:", cn_name, "default name:", self.getclsname()
       self.clsname=cn_name
   def get_clsnamepart1(self, k):
     bcm= findSHR(k)
@@ -1315,15 +1334,17 @@ class TrgClass:
       p0= self.trde.name.replace('D','C',1)   #default class name
       if p0=='CEMPTY': p0='CTRUE'
       #if cluspart!='CENT ALL MUON TPC FAST':
-      if string.find('CENT ALL ALLNOTRD MUON TPC FAST ALLNOTRD CENTNOTRD',cluspart)<0:
+      if string.find('CENT ALL ALLNOTRD MUON TPC FAST FASTNOTRD CFAST CENTNOTRD',cluspart)<0:
         # only warning pprinted:
         print "Strange cluster name:%s"%cluspart
       self.clsnamepart=[p0, "ABCE", "NOPF", cluspart]
     else:
       self.clsname= self.buildname()
-  def buildname(self):
-      return "%s-%s-%s-%s"%(self.clsnamepart[0], self.clsnamepart[1],\
-        self.clsnamepart[2], self.clsnamepart[3])
+    #print("updateClassName:", self.clsname, self.clsnamepart)
+  def buildname(self,name_part=None):
+    if name_part==None: name_part= self.clsnamepart[0]
+    return "%s-%s-%s-%s"%(name_part, self.clsnamepart[1],\
+      self.clsnamepart[2], self.clsnamepart[3])
   def updateClassName1(self):
     dname= self.trde.name
     ixdash= self.clsname.find('-')
@@ -1627,7 +1648,10 @@ Currently, these times [in seconds] are defined for groups 1..9:
     #  print k,":",event[k]
     #print "l0prcmd.event:",dir(event),event.keycode,event.keysym
     l0txt= self.l0prbut.getEntry()
-    strorNone= myw.frommsL0pr('', l0txt)
+    # check if syncdg:
+    strorNone= self.mycluster.partition.sdgs.find(l0txt)
+    if strorNone==None:   # is it syncdg name?
+      strorNone= myw.frommsL0pr('', l0txt)
     if strorNone:
       self.L0pr=l0txt
     else:
@@ -1909,8 +1933,8 @@ See VALID.LTUS file for available LTUs.""",
       else:
         self.tdshead.setEntry(modix,0)   # reset check button
       totclasses= self.partition.getRR(None)[0]
-      if totclasses>=50:
-        PrintError("Number of classes in this partition reached maximum (50)")
+      if totclasses>=NCLS:
+        PrintError("Number of classes in this partition reached maximum (%d)",NCLS)
         return
       newcls=TrgClass(mwl.items[modix], self, None)
       #here we should check l0fun (if >2 are used, do not allow new class)
@@ -2011,15 +2035,22 @@ See VALID.LTUS file for available LTUs.""",
     self.clfr.configure(bg=COLOR_CLUSTER)
 class TrgPartition:
   clustnames=["one","two","three","four","five","six"]
-  def __init__(self, relpname):
+  def __init__(self, relpname, strict=None):
     """
     relpname: relpath/name
     Create partition object from file 'name.partition'
     if relname=='empty_partition', file is not read, but empty part. object
     is created.
+    strict: luminosity DIM service (see preproc.py) has to be available
     """
+    self.downscaling=None
+    self.strict= strict
+    if strict=="strict":
+      preproc.getlumi()
+    print "initPartition:", strict, preproc.lumi_source,":"
     self.version='0'
     self.loaderrors=''   # ok if ''
+    self.loadwarnings=''   # ok if ''
     self.relpath= os.path.dirname(relpname)
     self.name= os.path.basename(relpname)
     # Important! the use of clusters=[] as default parameter
@@ -2039,12 +2070,13 @@ class TrgPartition:
     self.pclfr=None    # partition 'not shown'
     self.shmaster=None # shared rsrcs not shown
     self.activeclasses= {}  # filled in self.savercfg (for DAQ sqldb)
+    self.sdgs= syncdg.TrgSDG()
     fname=self.name+".partition" ; fname=os.path.join(CFGDIR,self.relpath,fname)
-    #if self.name=="empty_partition" or (not os.path.exists(fname)):
-    if self.name=="empty_partition":
+    print "NAME:%s"%fname
+    if self.name=="empty_partition" or (not os.path.exists(fname)):
+    #if self.name=="empty_partition":
       self.clusters.append(TrgCluster(None, partition=self))
     else:
-     print "NAME:%s:"%fname
      try:
       infile= open(fname, "r")
       if infile: 
@@ -2055,7 +2087,7 @@ class TrgPartition:
        print sys.exc_info()[0]
     #print "TrgPartition:",fname, "created. clusters:", self.clusters
   def donewtd(self):
-    print "MywMenuList -using VALID.CTPINPUTS file"
+    print "MywMenuList -using ctpinputs.cfg file"
   def show(self,master,name=None):
     #print "show2:",self.partfr
     if name:
@@ -2156,6 +2188,8 @@ class TrgPartition:
     return (len(allcls),negcls,len(allpfs),len(allbcms),len(self.clusters),len(alloutdets), len(allindets))
     #return (allcls,allpfs,self.clusters,alloutdets,allindets)
   def save(self, partname):
+    """ savepcfg() has to be called before invoking [shrr,cluster].save() 
+    """
     rc=0
     fnw=os.path.join(self.relpath, partname)
     if os.access(CFGDIR, os.W_OK)==0:
@@ -2165,9 +2199,10 @@ class TrgPartition:
       fnw=os.path.join(CFGDIR, fnw)
     self.savepcfg(name=partname) # has to be called prior .partition creation!
     outfile= open(os.path.join(fnw+".partition"),"w") # (not used resources)
-    outfile.write("Version: 4\n")
+    outfile.write("Version: %s\n"%(VERSION))
     for shrr in SHRRSRCS:
       shrr.save(outfile)
+    self.sdgs.save(outfile)
     outfile.write("Clusters:\n")
     for cluster in self.clusters:
       cluster.save(outfile)
@@ -2194,6 +2229,31 @@ class TrgPartition:
         #cls.prtClass()
         l0inps= l0inps & ~(1<<(lfpos+ixall))   # set l0funs
     return l0inps
+  def findfirst(self, phclasses=None):
+    """ Find first class in SDG group. All the classes in SDG group will
+    point to first class.
+    Invoked from:
+    pcfg (phclasses is None), instead of hw-allocated classes, clanumlog
+         is used. In this case, the result is used for the check if
+         given SDG group was used.
+    rcfg phclasses are known and used. In this case, the result is used
+         for .rcfg info -SDG column in class lines
+    """
+    for sdgn in self.sdgs.sdgs.keys():   # all SDG groups
+      firstc=51
+      for ixclu in range(len(self.clusters)):
+        cluster= self.clusters[ixclu]
+        for cla in cluster.cls:
+          if cla.L0pr==sdgn:
+            if phclasses==None:
+              phcla= cla.clanumlog
+            else:
+              ixclasses= cla.clanumlog-1
+              phcla= phclasses[ixclasses]
+            if int(phcla)<firstc:
+              firstc= int(phcla)
+      if firstc<51:
+        self.sdgs.setl0prsdg(sdgn, firstc)
   def savepcfg(self,wdir=CFGDIR,name=None):
     """wdir:
     is CFGDIR for interactive use (.pcfg just save, NOT USED LATER!)
@@ -2202,6 +2262,7 @@ class TrgPartition:
     return: "": ok, .pcfg saved
             errormessage: the same error message written in .pcfg file
                           preceded with line "Errors:"
+    Notes: savepcfg() has to be called prior save() !
     """
     if name==None: name=self.name
     #print "\n---------------- savepcfg: ",name
@@ -2230,7 +2291,7 @@ class TrgPartition:
       if string.find(cluster.getltunames(), "TRD")== -1:
         check0HWU= False
       else:
-        check0HWU= True
+        check0HWU= False #True
       for cls in cluster.cls:
         if cls.trde.connected[1]>0:   # at least 1 unconnected input
           unconnectedNames= cls.trde.unconnectedNames
@@ -2249,17 +2310,28 @@ class TrgPartition:
               (cluster.name, cls.trde.name)
             continue
         l0inv=0
-        if BCM_NUMBER==4:
-          l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
+        if trgglobs.L0VER>=0xc0:
+          l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
         else:
-          l0vetos=0x7ffffff0 | clunum
+          if BCM_NUMBER==4:
+            l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
+          else:
+            l0vetos=0x7ffffff0 | clunum
         # see ctp_proxy/readme
         if cls.allrare==0: 
           if BCM_NUMBER==4:
             l0vetos= l0vetos & 0xffffefff
           else:
             l0vetos= l0vetos & 0xffefffff
-        l0scaler= int(myw.frommsL0pr('', cls.L0pr))
+        l0scaler= cls.L0pr
+        l0pr= self.sdgs.find(l0scaler)
+        if l0pr==None:
+          #print "l0scaler:", l0scaler,":"
+          rcnone= myw.frommsL0pr('', l0scaler)
+          if rcnone:
+            l0scaler= "0x%x"%(int(rcnone))
+          else:
+            errormsg= errormsg+"Bad L0pr:%s\n"%l0scaler
         l1def= 0x0fffffff | (clunum<<28)
         l1inv= 0
         l2def= 0x0fffffff | (clunum<<28)
@@ -2272,6 +2344,10 @@ class TrgPartition:
         #print "savepcfg1:",cls.optinps
         for ix4 in range(4):        # rnd1/2 bc1/2
           if cls.optinps[ix4]==1:   # cls uses ix4 resource
+            #print "savepcfg2:", cls.trde.name
+            #if (cls.trde.name == "D0HCO") and (ix4==0):
+            #  PrintWarning("ignoring RND1 at L0 level for D0HCO")
+            #else:
             l0inps= l0inps & ~r12b12
             SHRRSRCS[ix4].used= SHRRSRCS[ix4].used+1
           r12b12= r12b12<<1
@@ -2300,7 +2376,7 @@ class TrgPartition:
                 (SHRRSRCS[ix4+PFS_START].name, cls.getclsname())
               continue   
             #print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
-            # check if common definition agrees:
+            # check if common definition agrees (should be improved, can happen not all PFs used):
             comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
             if pf_comdef==None:
               pf_comdef= comdef
@@ -2334,8 +2410,9 @@ class TrgPartition:
         if cls.classgroup>0: clgrouptx=" %d"%cls.classgroup
         if cls.clanumlog != clanum:
           # see comment in self.loadfile.
-          PrintWarning("Class %s CLA%2.2d != %d (clanumlog)"%(cls.getclsname(), clanum, cls.clanumlog))
-        line="CLA.%2.2d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x%s\n"%\
+          PrintWarning("Class %s CLA%3.3d != %d (clanumlog)"%\
+           (cls.getclsname(), clanum, cls.clanumlog))
+        line="CLA.%3.3d 0x%x 0x%x 0x%x %s 0x%x 0x%x 0x%x%s\n"%\
           (clanum, l0inps, l0inv, l0vetos, l0scaler, l1def, l1inv, 
           l2def, clgrouptx)
         CLAlines.append(line)
@@ -2350,6 +2427,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       #print "alldets:",alldets
       clunum= clunum+1
     #
+    self.findfirst()
     # check if all used SHRRSRCS are defined and vice versa:
     for sr in SHRRSRCS:
       if sr.used>0:
@@ -2358,6 +2436,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       else:
         srval= sr.getValue()
         if srval!="None":
+          #if sr.name=="RND1":
+          #  PrintWarning("Value %s of %s not referenced, but ok (LM)"%\
+          #    (srval, sr.name))
+          #else:
           PrintWarning("Value %s of %s ignored (not referenced)"%\
             (srval, sr.name))
           sr.setValue("None")
@@ -2424,6 +2506,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line='PF.%d %s'% (i+1, pfdef)
       outfile.write(line+"\n")
     #
+    self.sdgs.save(outfile, "SDG ")
     # now we can write 'CLA' lines:
     for ix in range(len(CLAlines)): 
       outfile.write(CLAlines[ix])   
@@ -2442,6 +2525,41 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     outfile.close()
     print outfilename," written"
     return ""
+  def prtinputs(self):
+    """ output: WORKDIR/usedinputs
+    """
+    fname=os.path.join(WORKDIR, "usedinputs")
+    of= open(fname,"w")
+    usedinputs={} #; optinputs={}
+    l0defs=[]
+    for ixclu in range(len(self.clusters)):
+      cluster= self.clusters[ixclu]
+      #if phclusters[ixclu] =='0': continue   # masked out
+      if len(cluster.outdets)==0:continue #empty cluster,do not take its classes
+      #print "Classes preparation:" ; cluster.prt()
+      for cla in cluster.cls:
+        for inpname in cla.trde.inputs:
+          inp= TDLTUS.findInput(inpname)
+          #note: inpname is [*]name, inp.name is: name
+          if usedinputs.has_key(inp.name): continue
+          usedinputs[inp.name]= 'ok'
+          if inp.ctpinp==None:            # l0f definition
+            if inp.l0fdefinition:
+              l0defs.append("%s %s\n"%(inpname, inp.l0fdefinition))
+              ok,l0funvars= txtproc.varsInExpr(inp.l0fdefinition)
+              for inpname2 in l0funvars:
+                inp2= TDLTUS.findInput(inpname2)
+                if usedinputs.has_key(inpname2): continue
+                usedinputs[inpname2]= 'ok'
+                if inp2==None:
+                  IntErr("prtinputs: %s input used in %s not found"%(inp2,inpname))
+                  continue
+                self.prtinput1(inp2, of)
+            else:
+              PrintError("%s is not CTPinput neither L0 definition:"%inpname)
+            continue
+          self.prtinput1(inp, of)
+    of.close()
   def savercfg(self, line=""):
     """line: info from ctp_proxy. Format:
     partitionName runNumber detectorMask phys_clusters phys_classes
@@ -2449,7 +2567,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     if line=='': just testing  (i.e.: parted PHYSICS_1 r)
     detectorMask: 0x820  -allow just 2 detecors (0x800 + 0x20)
     phys_clusters: 1 2 3 4 5 6
-    phys_classes:  1 2 ... 49 50
+    phys_classes:  1 2 ... 49 NCLS
     INT*lookup: 0x...  -4 hexadigits
     INT*def:    0x...  -5 bits (0x1f= LUT |BC1|BC2|RND1|RND2)
                                  bit:  0    1   2   3    4
@@ -2469,7 +2587,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line="%s 1234 0xffffff 6 5 4 3 2 1"%(self.name)
       #line="%s 1234 0x2008 1 2 3 4 5 6"%self.name
       #line="%s 1234 0xffffff 0 0 1 2 0 0"%self.name
-      for i in range(1,51,1):
+      for i in range(1,NCLS+1,1):
         line= line+" "+str(i)
       # INT1: 0x1234 LUT|BC1    INT2: 0x1234 LUT|BC2
       line= line+" 0x1234 0x3 0x1234 0x5"
@@ -2483,13 +2601,13 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     if len(lixorig)>=3: detmask= eval(lixorig[2])
     lix= string.split(line)
     phclusters=[]
-    cc650=len(lix)   # should be 3+6+50=59
+    cc650=len(lix)   # should be 3+6+NCLS=59 (109)
     for ix in range(6):
       if (ix+3)>= cc650: phclu='0'   #not given = not assigned
       else: phclu=lix[ix+3]
       phclusters.append(phclu)
-    phclasses=[]   #phclasses[logN]= physN, logN:0..49 physN:1:50
-    for ix in range(50):
+    phclasses=[]   #phclasses[logN]= physN, logN:0..49 physN:1:NCLS
+    for ix in range(NCLS):
       if (ix+9)>= cc650: phcla='0'   #not given = not assigned
       else: phcla=lix[ix+9]
       phclasses.append(phcla)
@@ -2530,9 +2648,11 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     outfilename= dorcfgname(runnumber,rcfg)
     of= open(outfilename,"w")
     if self.downscaling!=None:
-      line='VERSION: 4 %s\n'%self.downscaling.v0and
+      #line='VERSION: 4 %s\n'%self.downscaling.v0and
+      line='VERSION: %s %s\n'%(VERSION,self.downscaling.v0and)
     else:
-      line='VERSION: 4\n'
+      #line='VERSION: 4\n'
+      line='VERSION: %s\n'%VERSION
     of.write(line)
     line='PARTITION: %s\n'%(self.name); of.write(line)
     line='INPUTS:\n' ; of.write(line)
@@ -2543,12 +2663,14 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     atleast1pfnone=0
     l0defs=[]
     trgctpcfg= trigdb.Trgctpcfg(); clgtimes= trgctpcfg.getTIMESHARING()
+    # find first sync downscaling class
+    self.findfirst(phclasses)
     #prepare 4 sections: CLASSES DESCRIPTORS BCMASKS INPUTS(directly written)
     for ixclu in range(len(self.clusters)):
       cluster= self.clusters[ixclu]
       #if phclusters[ixclu] =='0': continue   # masked out
       if len(cluster.outdets)==0:continue #empty cluster,do not take its classes
-      print "Classes preparation:" ; cluster.prt()
+      #print "Classes preparation:" ; cluster.prt()
       for cla in cluster.cls:
         #---------------- prepare optional inputs (for INPUTS: section):
         bcrnd= cla.getTXTbcrnd()
@@ -2559,6 +2681,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         #
         #---------------------------------- prepare classes section: 
         ixclasses= cla.clanumlog-1
+        #print "clanumlog:", cla.clanumlog, phcla, ixclasses, len(phclasses)
         phcla= phclasses[ixclasses]
         #print "cla.trde.name:",cla.trde.name,phcla ; cla.trde.trdprt()
         desname,oins=cla.getrcfgdesname()
@@ -2571,6 +2694,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         if string.find(msk,"NONE") >=0:
           atleast1classNONEbcm= atleast1classNONEbcm+1
         clasname= cla.getclsname()
+        if string.find(clasname,'-') <0:
+          # DTRUE(cn=C0TVX) -convenient for techn. runs
+          clasname= cla.buildname(clasname)
         #line="#%s %s %s %s %s %s %s %d\n"%(clasname, phcla, desname, \
         #  cluster.name, cla.getPFs(), cla.getBCMASKs(), \
         #  myw.frommsL0pr('',cla.L0pr), \
@@ -2580,15 +2706,32 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           clgtime='0'
         else:
           clgtime= clgtimes[int(cla.classgroup)]  # was -1
-        lineclg="%s %s %s %s %s %s %s %d %d %s\n"%(clasname, phcla, desname, \
-          cluster.name, cla.getPFs(), cla.getBCMASKs(), \
-          myw.frommsL0pr('',cla.L0pr), \
-          cla.allrare, cla.classgroup, clgtime)
-        #ixclasses= ixclasses+1
+        l0scaler= self.sdgs.find(cla.L0pr)
+        if l0scaler!=None:   #sync downscaling
+          sdg= self.sdgs.getl0prsdg(cla.L0pr)
+          l0pr= myw.frommsL0pr('',l0scaler)
+        else:
+          l0pr= myw.frommsL0pr('',cla.L0pr)
+          if l0pr==None:
+            print "ERROR:savercfg: claL0pr:", cla.L0pr, clasname, l0pr, type(l0pr)
+          if int(l0pr) & 0x80000000:
+            sdg= 0   # not sync, busy way
+          else:
+            sdg= int(phcla)   # not syncdownscaling, rnd. way
+        #if len(self.sdgs.sdgs.keys())>0:
+        lineclg="%s %s %s %s %s %s %s %d %d %s %d\n"%(
+          clasname, phcla, desname, cluster.name, 
+          cla.getPFs(), cla.getBCMASKs(), l0pr, 
+          cla.allrare, cla.classgroup, clgtime, sdg)
+        #else:
+        #  lineclg="%s %s %s %s %s %s %s %d %d %s\n"%(
+        #    clasname, phcla, desname, cluster.name, 
+        #    cla.getPFs(), cla.getBCMASKs(), l0pr, 
+        #    cla.allrare, cla.classgroup, clgtime)
         if phcla!='0': 
           #usedclasses.append(line); 
           usedclasses.append(lineclg)
-          self.activeclasses[phcla]= (clasname, cla.classgroup, clgtime)   # used in pydim
+          self.activeclasses[phcla]= (clasname, cla.classgroup, clgtime, l0pr)   # used in pydim
           #print "activeclasses:", str(self.activeclasses)
         #--------------------------------- prepare descriptors section:
         if not useddescriptors.has_key(desname):
@@ -2614,7 +2757,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #print "usedbcmasks:", name
         #
         #--------------------------------- create INPUTS: section
-        takewholevalidctpinputs="""
+        takewholevalidctpinputs="""   -see prtinputs(), seems this code is there, i.e. can be thrown out from here
         for inpname in cla.trde.inputs:
           inp= TDLTUS.findInput(inpname)
           #note: inpname is [*]name, inp.name is: name
@@ -2656,7 +2799,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
                 if inp2==None:
                   IntErr("savercfg: %s input used in %s not found"%(inp2,inpname))
                   continue
-                self.prtinput1(inp2, of)
+                #self.prtinput1(inp2, of)   anyhow all put into .rcfg
             else:
               PrintError("%s is not CTPinput neither L0 definition:"%inpname)
             continue
@@ -2749,6 +2892,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     for ix in range(len(usedclasses)):
       of.write(usedclasses[ix])
     of.close()
+    #self.prtinputs() 
     if rcfg=='debug': return
     srcname=os.path.join(CFGDIR,self.relpath,self.name+".partition")
     desname= os.path.join(WORKDIR, "PCFG/r%s.%s"%(runnumber,'partition'))
@@ -2759,9 +2903,11 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     shutil.copyfile(srcname,desname)
     print outfilename," written. .partition and .pcfg files copied to PCFG/"
   def prtinput1(self, inp, of):
-    """not used, instead  trigdb.TrgVALIDINPUTS.prtall() is used
+    """not used in run1 from some time, instead  trigdb.TrgVALIDINPUTS.prtall() is used
+    run2: called from prtinputs() -needed for CTPRCFG/CNAMES service
+    """
     if inp==None:
-      IntErr("savercfg: %s input not found"%inpname)
+      IntErr("prtinput1: None")
       return
     #fix:
     if inp.detectorname=='DAQ':
@@ -2774,7 +2920,6 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       inp.ctpinp[0], inp.signature, inp.ctpinp[1])
     #  inp.ctpinp[0], inp.signature, inp.signature)
     of.write(line)
-    """
   def allocShared(self, pl0funs, lf34=None):
     """
     pl0funs: list of l0funcs ([16bitsvalue,inp_ref] or 
@@ -2822,7 +2967,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
             else:
               plfs[lutval]= [1, ixalloc]; ixalloc= ixalloc+1
               plfsdefs[lutval]= l0def
-    #print "allocShared2:", plfs, ixalloc
+    #print "allocShared3:", plfs, ixalloc
     for i in range(len(pl0funs)):
       if pl0funs[i]==None: break   # nothing to allocate
       lutval= list2str(pl0funs[i][0])
@@ -2830,7 +2975,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         #print "allocShared3:allocated already. ", lutval
         plfs[lutval][0]= plfs[lutval][0]+1
       else:
-        #print "allocShared4:new_allocation.:", lutval, plfs
+        #print "allocShared5:new_allocation.:", lutval, plfs
         plfs[lutval]= [1, ixalloc]; ixalloc= ixalloc+1
       if ixalloc<=2:
         newlf[plfs[lutval][1]]= lutval
@@ -2849,7 +2994,16 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       newlf=None
     #print "allocShared:rc::", newlf,errmsg
     return newlf,errmsg
-          
+  def prt_FIXrc(self, rc, cltds, symbols, shrname):
+    if rc:
+      PrintError(rc,self)
+    else:
+      print string.strip(cltds) + "   -> " + symbols.get(shrname)
+    if (self.strict=="strict") and (preproc.lumi_source != "dim"):
+      #PrintError("strict required, but luminosity DIM service not available.lumi_source:"+str(preproc.lumi_source),self)
+      PrintWarning("Luminosity not available, using default "+\
+        str(preproc.lumi)+"Hz/ub for automatic calculation of downscale factor.",self)
+    return
   def loadfile(self, inf):
     """example of .partition file (spaces only between TDs, LTUs!):
     BC1 2
@@ -2864,6 +3018,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
 """
     section='Shared'
     filter= trigdb.TrgFilter(self.name)
+    print "loadfile:filterents:", self.name, filter.ents
     self.downscaling=None
     while 1:
       cltds= redline(inf)
@@ -2890,13 +3045,44 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         section= 'Clusters'
         continue
       if section == 'Shared':
+        #print "Shared:",cltds
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
-        sr= findSHR(string.split(cltds)[0])
-        if sr!=None: sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
-        else:
-          PrintError("bad shared resource line:"+cltds, self)
-          #print "selfloaderrors:",self.loaderrors
+        cltdsa= string.split(cltds)
+        if len(cltdsa)<2:
+          PrintError("at least 2 items in shared section expected:%s"%cltds,self)
+          break
+        shrname= cltdsa[0]
+        #print "Shared2:",cltdsa
+        if cltdsa[1]=="REPL":               # replacement definition
+          ixstart= cltds.find(" REPL ")+6
+          symbols.add(shrname, cltds[ixstart:-1])
+          print string.strip(cltds)
+        elif (cltdsa[1]=="FIXLUM") or (cltdsa[1]=="FIXLOSS") or \
+          (cltdsa[1]=="FIXPOWER"):
+          for ch in shrname:
+            if not (ch in symchars):
+              PrintError("Bad FIX* name:%s. Allowed chars:%s"%(shrname, symchars))
+          # shrname FIXPOWER n floatlum
+          fixll= " " + cltdsa[1] + " "
+          ixstart= cltds.find(fixll)+len(fixll)
+          # cltds[ixstart:] lum
+          rc= symbols.add_FIXLL(shrname, cltds[ixstart:], cltdsa[1])
+          self.prt_FIXrc(rc, cltds, symbols, shrname)
+        else:                               # BC1/2 RND1/2 BCM* PF* or SDG
+          sr= findSHR(shrname)
+          #print "Shared4:", sr
+          if sr!=None: 
+            sr.setValue(string.strip(cltds[len(sr.name)+1:-1]))
+          else:
+            sr= self.sdgs.find(shrname)
+            if sr!=None: 
+              PrintError("incorrect (double def?) sync downscaling resource line:"+cltds, self)
+            else:
+              rc=self.sdgs.add(shrname, cltdsa[1])
+              if rc:
+                PrintError(rc,self)
+          #print "Shared selfloaderrors:",self.loaderrors
         continue
       # Clusters section 
       if self.version!='0': # (Version>1: 3 lines per cluster):
@@ -2905,7 +3091,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           PrintWarning("Empty line  in Clusters: section ignored")
           continue
           #clusname=str(len(self.clusters))   # "0, 1... ", read from file
-        cltds= redline(inf)
+        cltds= redline(inf)                   # classes line
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
       else:                 # Version 0: 2 lines per cluster (no name stored)
@@ -2919,8 +3105,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       asscls=[]; ltus=[]; 
       for clstring in string.split(cltds):    #-------------TDS
         # clstring: tds(pf1,pf2,...) or tds or tds()
-        if (totclasses+len(asscls))>=50:
-          PrintError(clstring+" -ignored (>50 classes)", self)
+        if (totclasses+len(asscls))>=NCLS:
+          PrintError(clstring+" -ignored (>%d classes)"%NCLS, self)
           continue
         else:
           trgclass=TrgClass(clstring, None, clusname)
@@ -2948,6 +3134,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
                 PrintWarning("%s filtered out (provided by %s)"%\
                   (trgclass.getclsname(),det))
                 filteredout=True; break
+            #print "parted filterdout:", det, filteredout
             if filteredout: continue
         #
         if trgclass.trde:      # EMPTY or known descriptor !
@@ -2955,7 +3142,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         else:
           # test for L0pr,BCM1/2/3/4, all, rare:
           PrintError(clstring+" -unknown Trigger descriptor", self)
-      clltus= redline(inf)
+      clltus= redline(inf)         # LTUs line
       for name in string.split(clltus):   #-------------LTUS
         ltu= TDLTUS.findLTU(name)
         #print "loadfile:",name, ltu.name
@@ -3079,6 +3266,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       IntErr("inventClusterName: cluster name not assigned")
       rc=None
     return rc
+  def sdgGroups(self, minst,ix):
+    self.sdgs.show()
 def getNames():
   """
   return: the list of names of all the partitions in trigger database
@@ -3144,6 +3333,7 @@ Cluster -add new/delete active cluster
     self.filemenu.addcommand('Cancel', self.cancelPart)
     self.filemenu.addcommand('Quit', self.quitPart)
     self.showmenu.addcommand('Shared resources', None)
+    self.showmenu.addcommand('Sync downscaling groups', None)
     self.showmenu.addcommand('Shared resources reservation', None)
     tdsnames=[]
     selshow= self.showmenu.addcascade('Descriptor')
@@ -3183,6 +3373,7 @@ Cluster -add new/delete active cluster
     ["empty_partition","empty_partition", self.loadPartition]]
     #pnames= getNames(); print "pnames:",pnames
     for basen in getNames():
+      print "doNames:", basen
       self.itn.append([basen,basen+'.partition',self.loadPartition])
     #xx
     self.partsbut= myw.MywxMenu(self.clusfr, label="Load partition:",
@@ -3234,7 +3425,7 @@ The window will be closed after saving current configuration.
     self.part.name= newname
     self.lsmaster.title(self.part.name)
   def loadPartition(self,partname=None):
-    #print "loadPartititon:"
+    print "loadPartititon:",partname
     if partname==None:
       ix= self.partsbut.getIndex()
       partname=self.itn[ix][0]
@@ -3248,6 +3439,7 @@ The window will be closed after saving current configuration.
     self.showmenu.setcommand('Shared resources', self.part.showShared)
     self.showmenu.setcommand('Shared resources reservation', 
       self.part.getRR)
+    self.showmenu.setcommand('Sync downscaling groups', self.part.sdgGroups)
     self.clustermenu.setcommand('Add new', self.part.addCluster)
     self.clustermenu.setcommand('Delete active', self.part.delActiveCluster)
     self.clustermenu.setcommand('Rename active', self.part.renActiveCluster)
@@ -3322,21 +3514,26 @@ def main():
   if len(sys.argv)>2:
     if sys.argv[2]=='r':   # create .rcfg file for given partition
       # see v/vme/pydim -production code invoking parted -> .rcfg
-      part= TrgPartition(partname)
-      if len(sys.argv)>3:
+      part= TrgPartition(partname, "strict")
+      #part= TrgPartition(partname)
+      if part.loaderrors:
+        print "Errors:"
+        print part.loaderrors
+      elif len(sys.argv)>3:
         part.savercfg("%s 1234 %s"%(partname, sys.argv[3]))
       else:
         part.savercfg()
         #part.savercfg("a 115812 0x5008a 1 0 2 0 0 0 1 45 2 46 3 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0x0 0x0 0x0 0x0")
       return
     else:                 # srgv[2]: source directory with .partition/.pcfg)
-      print "bad argv[2]:",argv[2]
+      print "bad argv[2]:",sys.argv[2]
       return
   else:     # edit partition
     f= Tk()
     partw= TrgLoadSave(f,partname)
     # print load errors + info what was loaded:
-    partw.part.prt()
+    if partw.part:
+      partw.part.prt()
   #P1.show(f)
   #P2.show(f)
   f.mainloop()

@@ -6,9 +6,11 @@
 bool forever=1;
 void sighandler(int sig)
 {
-    cout<< "Signal " << sig << " caught..." << endl;
-
-	forever = false;
+         if(sig == SIGABRT) cout<< "Signal SIGABRT caught..." << endl;
+    else if(sig == SIGTERM) cout<< "Signal SIGTERM caught..." << endl;
+    else if(sig == SIGINT ) cout<< "Signal SIGINT caught..." << endl;
+    else cout << "Signal " << sig << " caught..." << endl;
+    forever = false;
 }
 int main(int argc, char **argv) {
  //ActiveRun r(81197);
@@ -37,6 +39,7 @@ int main(int argc, char **argv) {
  signal(SIGABRT, &sighandler);
  signal(SIGTERM, &sighandler);
  signal(SIGINT, &sighandler);
+ signal(SIGKILL, &sighandler);
  while(forever) {
    pause();
  };

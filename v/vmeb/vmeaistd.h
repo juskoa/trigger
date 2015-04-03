@@ -1,5 +1,5 @@
 #define MAXNAMELENGTH 81
-#define MAXNAMES 400
+#define MAXNAMES 1200
 
 #define funcall w32 (*)(w32, w32, w32, w32, w32, w32, w32, w32, w32, w32)
 
@@ -14,11 +14,16 @@ typedef struct{
  /* enum Ttokentype namet; */
   w32 fls;        /* see flags description in cmdbase.c */
   w32 (*fp)(w32,w32,w32,w32,w32,w32,w32,w32,w32,w32);    /* pointer to func */
-  w32 intvar;     /* 
-      tSTRING: pointer to string in malloc() memory
+  union {
+    w32 intvar;
+    char *strptr;
+    w32 *intvar_ptr;
+  };
+  /*w32 intvar;     
       tVAR:    variable value or 
       tVMEADR: last read/write value or
       tFUN:    last result (int, w32, char,  NOT float ! )
+      tSTRING: pointer to string in malloc() memory
       tSYMNAME: pointer to string "0x100" -BoardSpaceLength */
   float floatvar;   /* 
       tFUN: last result for tFUN
@@ -27,7 +32,7 @@ typedef struct{
       tFUN: pointer to Tpardesc structure (NULL if no pars) */
                   /* if board name, the number of the board (if more identical
 		     boards) */
-  w32 vmenp;    /* 
+  union{ w32 vmenp; char *bax; };   /* 
       tVMEADR:  vme address
       tFUN:     #of pars,
       tSYMNAME: name is board name, vmenp is the pointer to the

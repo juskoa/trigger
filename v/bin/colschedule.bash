@@ -27,7 +27,7 @@ if [ -e $csn ] ;then
   #ln -sf fs/$csname.alice $CSLINK
   ln -sf $csn $CSLINK
   cd $VMECFDIR/pydim 
-  linux/client CTPRCFG/RCFG csupdate
+  linux_s/client CTPRCFG/RCFG csupdate
 else                                              
   cat - <<-EOF
 $dbctp/$csn 

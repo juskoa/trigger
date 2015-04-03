@@ -21,11 +21,11 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 #include <stdlib.h>
 #include <signal.h>
 
-#ifdef CPLUSPLUS
+/*#ifdef CPLUSPLUS
 #include <dic.hxx>
 #else
 #include <dic.h>
-#endif
+#endif*/
 
 #include "vmewrap.h"
 #include "../ctp/ctplib/ctplib.h"
@@ -58,7 +58,7 @@ signal(signum, gotsignal); siginterrupt(signum, 0);
 sprintf(msg, "got signal:%d", signum); prtLog(msg);
 if((signum==SIGUSR1) || (signum==SIGKILL) ) {
   quit=1;
-};
+};quit=signum;  // for ANY signal
 }
 
 void callback(void *tag, int *retcode){
@@ -87,12 +87,12 @@ void callback(void *tag, int *retcode){
         return;
  }
 }
-void beepni() {
+/*void beepni() {
 int rc;
 char msg[20]="bobr";
 // see trg@aldaqacr07:aj/pydim
 rc= dic_cmnd_callback("ACR07/BOBR", msg, strlen(msg)+1, &callback, 33);
-}
+}*/
 /////////////////////////////////////////////////////////////////////////////////////
 #define MAXCOUNTERS 160
 #define NINP 24
@@ -478,7 +478,7 @@ if(intboard == 2){   // trigger on int1
  if(inpnum)trigold=last[counteroffset+inpnum];  //counting from 1
  else beepcond= (((lhcpp.Byte54)&0x1) != 0);
  //startSSM
- setomSSM(trigboard,0xb);startSSM1(1);   // IN, continuous
+ setomSSM(trigboard,0xb);startSSM1(trigboard);   // IN, continuous
  if(intboard){
   setomSSM(4,0x3);startSSM1(4);  // OUT, continuous
   initprintBCs();
@@ -519,6 +519,7 @@ if(intboard == 2){   // trigger on int1
     };
     if(quit!=0) {
       // the request 'stop smaqing' registered (signal -s SIGUSR1 pid), let's stop
+      fprintf(f, "quitting on signal:%d\n", quit);
       break;
     };
     usleep(1000); // was 200 at the start of Aug (can be much more for 1bobr/48 secs)
@@ -534,6 +535,7 @@ if(intboard == 2){   // trigger on int1
     }    
  }
  if(inpnum==0) bobrClose(vspbobr);
+ fclose(f);
  return 0;
 }
 /*-----------------------------------------------------------

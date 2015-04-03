@@ -3,10 +3,10 @@ from Tkinter import *
 #import os, sys,string
 import myw
 
-class VmeReg(
-def prtbut():
+class VmeReg:
+ def prtbut():
   print 'prtbut'
-def main():
+ def main():
   f=Tk()
   f.title("try mult regs")
   f1= myw.MywEntry(f, label="reg1", defvalue=' ', width=8,

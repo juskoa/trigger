@@ -4,7 +4,7 @@ Content:
 3. how to debug
 4. new rrd database
 4A. new rrd databases for 2012:
-4.1. new rrd mon db:
+4.1. udpmonitor, new rrd mon db:
 4.2. Notes for rrd scripting
 5. maintanance: start/stop all the daemons on alidcscom026
 6. WEB
@@ -42,6 +42,13 @@ htmls   -htmls used (copy of these is in $VMECFDIR/CNTRRD) +
 logs    -logs
 rawcnts -raw counters data (1 file per day)
 rrd     -rrd databases data
+
+cnames.sorted2 -actual list of counter names (cnames1.sorted2: run1)
+Seems there need to be 2 copies of it:
+$dbctp/cnames.sorted2
+dimcdistrib/cnames.sorted2 (/var/www/html/cnames.sorted2 link pointing here)
+
+ltunames.sorted2: only in v/vme/dimcdistrib/ -the same valid for run1/2
 
 2. Daemons
 ----------
@@ -92,6 +99,12 @@ export PYTHONPATH=$PYTHONPATH:$VMECFDIR/TRG_DBED
 nohup $VMECFDIR/pydim/pydimserver.py >logs/pydimserver.log &
 
 nohup ./htmlCtpBusys.py htmlfifo >logs/htmlCtpBusys.log &
+---------- mon debug:
+linux/udpclient mon 2   -update every 2 secs
+look for last 10secs:
+rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -e now -s end-10s
+-dajak nebavi
+
 ---------- Test if running:
 
 ---------- Stop
@@ -129,18 +142,22 @@ mkdir rrd
 $VMECFDIR/CNTRRD/rrd.py cnow ctp
 RRD: ctp # of datasets: 1075            (on pcalicebhm05, 26.11.2008)
 OK u:0.02 s:0.09 r:0.11
+RRD: ctp # of datasets: 1665             avmes 20.3.2014, 835:20.5.2014
+
 
 [alidcscom188] /home/alice/trigger/CNTRRD > $VMECFDIR/CNTRRD/rrd.py cnow ctp
 RRD: ctp # of datasets: 1075
 OK u:0.03 s:0.13 r:0.17
 
-$VMECFDIR/CNTRRD/rrd.py cnow ltu
+$VMECFDIR/CNTRRD/rrd.py cnow ltu   26 datasets (also cpv) on 20.5.2014
 ...
 
 Make sure, ctpdims and ltu_proxies are running:
 startClients.bash    (ctpdim should be running + ltu_proxies)
 The order of daemons starting:
-1. startClients.bash pydim start
+1. startClients.bash pydim start   
+   (not needed for counters, but necessary for ctpproxy)
+
    startClients.bash html start    (or at least cat /tmp/htmlfifo)
 2. ctpproxy start   (initialise ctp hw!)
 3. ctpdims start
@@ -175,8 +192,11 @@ startClients.bash ctpdim start
 startClients.bash rrd start
 startClients.bash html start
 
-4.1. new rrd mon db:
--------------------
+4.1. udpmonitor, new rrd mon db:
+--------------------------------
+udpmon.sh start/stop/status
+log: CNTRRD/logs/udpmon.log
+
 1.
 mon:    ->modify dimcdistrib/monnames.txt
 cd ~/CNTRRD
@@ -254,7 +274,7 @@ rm -f /home/alice/*/v/vme/WORK/ltuclient_*.log
 /var/www/html/CNTWEB/doc   -some doc
 /var/www/html/CNTWEB/cnt.py -script responding to http requests
 /var/www/html/CNTWEB/ltus.py -script responding to http requests
-/var/www/html/CNTWEB/cnames.sorted2, ltunames.sorted2 -links to dimcdistrib
+/var/www/html/cnames.sorted2 -link to dimcdistrib
 /var/www/html/htmls/       -link to ~CNTRRD/htmls (directory)
 /var/www/html/ex/        -some examps
 /var/www/html/publisher/ -some examps
@@ -267,7 +287,7 @@ cd CNTRRD
 ln -sf /dimcdistrib/ctpcounters.h
 cd /var/www/html
 ln -sf ~trigger/dimcdistrib/cnames.sorted2 cnames.sorted2 
-ln -sf ~trigger/dimcdistrib/ltunames.sorted2 ltunames.sorted2 
+# this not needed ? ln -sf ~trigger/dimcdistrib/ltunames.sorted2 ltunames.sorted2 
 ! if not x for everybody, 'ERROR: Permission denied'
 [root@pcalicebhm05 home]# ls -ld trigger
 drwxr-x--x  25 trigger alice 4096 Nov 26 15:33 trigger
@@ -282,6 +302,8 @@ readltu.c   RRDDB IMAGES
 ------------
 rrdtool info rrd/mon.rrd
 rrdtool info rrd/TPCcounters.rrd |grep 'last_update'
+rrdtool last rrd/TPCcounters.rrd
+rrdtool lastupdate rrd/TPCcounters.rrd    -names+values
 
 rra[0].rows = 10080     last week/min 24*60*7
 ds[epochmics].type = "GAUGE"
@@ -294,6 +316,8 @@ ds[epochmics].unknown_sec = 0
 
 rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -s 1163730000 -e 1163736000
 rrdtool fetch rrd/mon.rrd AVERAGE -r 60 -s 1163730000 -e 1163730060
+rrdtool fetch rrd/ctpcounters.rrd AVERAGE -s 14:00 31.01.2013 -e start+60s >znc
+
 CF: AVERAGE only (MIN MAX LAST not possible -not used)
 
 mon:
@@ -310,12 +334,16 @@ graph graf.png -s 1243129900 -e 1243135900 --step 60 -w 600 -u 10000 -l 8000 DEF
 
 [root@pcalicebhm05 imgs]# cp ~trigger/CNTRRD/graf.png testjs.png
 attributes:
--s
--e
--u -r         rigid (forcing upper limit)
--l
+-s        start
+-e        end
+-u -r     rigid (forcing upper limit)   -see cnt.py
+-l        
 --step
 -w 600
+
+VDEF:max=ds0,MAXIMUM
+VDEF:ds1avg=ds1,AVERAGE
+-> see graph.bash
 
 8. analyse
 ----------

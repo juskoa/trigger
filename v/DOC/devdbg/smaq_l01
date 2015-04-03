@@ -1,0 +1,27 @@
+32. 07.12.2012 smaq mutual L0/L1 alignment
+------------------------------------------
+1. I will modify bin/smaq script for 2 synchronous SSMs this way:
+   Now 1st parameter (ctp_input) is number 1..48.
+   Numbers 101..148 would indicate a 'double SSM request', i.e.:
+   - 2 SSMs taken, the L0-SSM started always before the L1-SSM
+   - it is guaranteed, that the time difference between starts
+     is < 88us, i.e. precise delay can be found from Orbit position
+     in both SSMs
+   - resulting file will be 2x longer (4194304 * 2bytes). First half
+     of the file contains the L0-SSM, the L1-SSM is given in 
+     2nd half of the file.
+
+2. prepare application showing the relative shift of any L1 input 
+   (or simply all?) wrt to choosen L0.
+   Is there a chance to prepare it before p-A run?
+
+todo:
+vme/smaq.c: 
+inputsSMAQ(int intboard ,int inpnum012)
+and in 
+getSSMs():
+
+setomSSM(board123,0xb); startSSM1(board123);
+->
+problem with stop, similar to the starting one (orbit time)
+

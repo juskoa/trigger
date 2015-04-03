@@ -1,7 +1,7 @@
 #!/bin/bash
 # $1: start stop or status
 onlyhost='alidcsvme001'
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != "$onlyhost" -a "$hname" != "altri1" ] ;then
   echo "This script can be started only on $onlyhost or altri1"
   exit

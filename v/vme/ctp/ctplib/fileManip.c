@@ -25,7 +25,7 @@ printf("INFO openFile:%s %s\n", fnpath, rw);
 cfgfile=fopen(fnpath,rw);
 if(cfgfile == NULL){
   printf("ERROR fnpath:%s:\n", fnpath);
-  perror(strerror(errno));
+  //perror(strerror(errno));
   return(NULL);
 };
 return(cfgfile);

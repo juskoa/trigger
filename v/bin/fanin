@@ -2,8 +2,9 @@
 #. /data/ClientCommonRootFs/usr/local/trigger/bin/vmebse.bash vnew
 #cd /data/ClientCommonRootFs/usr/local/trigger/v/vme/fanio/dim
 cd $VMECFDIR ; cd fanio/dim
-if [ `hostname` = 'alidcscom707' ] ;then
-  client=~trigger/v/linux64/client
+if [ `uname -i` = 'x86_64' ] ;then
+  #client=~trigger/v/linux64/client
+  client='linux_s/client_64'
 else
   client='linux/client'
 fi

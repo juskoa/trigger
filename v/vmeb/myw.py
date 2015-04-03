@@ -41,7 +41,7 @@ COLOR_DECIMAL="#d9d9ff"
 
 DimLTUservers= {"tpc":0, "trg":0, "hmpid":0, "muon_trk":0, "ssd":0,
 "daq":0, "tof":0, "fmd":0, "spd":0, "sdd":0, "trd":0, "phos":0, "cpv":0,
-"muon_trg":0, "pmd":0, "t0":0, "v0":0, "zdc":0, "acorde":0, "emcal":0 }
+"muon_trg":0, "pmd":0, "t0":0, "v0":0, "zdc":0, "acorde":0, "emcal":0, "ad":0 }
 
 def RiseToplevel(tlw):
     tlw.lift(); tlw.bell()
@@ -58,7 +58,7 @@ def NewToplevel(title, whenDestroyed=None, tlw=None,bg=None):
     tlw.bind("<Destroy>", whenDestroyed)
     return tlw
 def compwidg(event, tlw):
-  if event.widget == str(tlw):
+  if event.widget == tlw:   # was str(tlw) before nov2013
     return 1
   else:
     return None
@@ -157,8 +157,15 @@ Rate reduction can be given as fraction of triggers to go through (%).
 Examples:
 0          -> no prescaling
 1%         -> Rate reduction by 100 times
+1.5%       -> Rate reduction to 1.5%
 40ms       -> Class will be busy 40 miliseconds after each trigger
 1khz       -> Class busy is set to 1 milisecond
+
+Synchronous downscaling:
+-----------------------
+This option is valid, if L0pr if defined by symbolic name.
+Symbolic name has to define n% value (0<=n<=100) -see Show ->
+Synchronous downscaling groups
 """
 def frommsL0pr(oldval, newval):
   """return: None if syntax error
@@ -184,11 +191,16 @@ def frommsL0pr(oldval, newval):
       retval=str(0x80000000 | int(mult/int(retval)/10.))
     elif string.lower(newval[-1])=='%':   # downscaling in %
       pr= newval[:-1]
-      retval= str(int(round((100-float(pr))*0x1fffff/100)))
+      fpr= float(pr)
+      if (fpr<0.0) or (fpr>100.0):
+        retval=None
+      else:
+        retval= str(int(round((100-fpr)*0x1fffff/100)))
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=str(eval(newval))
     else:     # n given directly as int
-      intrep= int(newval)
+      #intrep= int(newval)
+      intrep= string.atoi(newval)
       retval= str(newval)
   except:
     retval=None
@@ -313,23 +325,41 @@ class MywError:
    self.tlm.destroy()
 
 class Kanvas(Canvas):
-  bitWidth=10   # including border lines
-  bitHeight=18
+  bitWidth= 8   # 10   # including border lines
+  bitHeight= 20 # 18 10
   bitBorder=1
   interspace=1
   colHelpBg='#ccffff'
   def __init__(self, tlw, canvasDestroyed=None, ctpcfg=None, **kw):
     self.tlw=tlw
     self.ctpcfg=ctpcfg   # to get help window over L0 scaler entries
-    selfargs=(self,tlw)
+    selfargs=(self,self.tlw)
     apply(Canvas.__init__,selfargs, kw)
     #self.pack(fill='y', side=RIGHT)
     #self.pack(expand='yes', fill='y', side=RIGHT)
-    self.pack(side=RIGHT)
+    #self.pack(side=RIGHT)
+    #frame= Frame(self)    # fr_version
+    self.pack(side=LEFT)
+    # create scrollbar
+    # see http://effbot.org/zone/tkinter-scrollbar-patterns.htm
+    self.scrollbar = Scrollbar(self.tlw)
+    #self.sbfm= Frame(self.tlw)
+    #self.scrollbar = Scrollbar(self.sbfm)
+    self.scrollbar.pack(side=RIGHT, fill=Y)
+    #print "Kanvasinit:", self.scrollbar, self.tlw
+    #self.create_window((0,0),window=frame,anchor='nw')   # fr_version
+    #frame.bind("<Configure>", #   fr_version
+    # attach scrollbar to Canvas:
+    self.config(yscrollcommand=self.scrollbar.set)
+    self.scrollbar.config(command=self.yview)
     if canvasDestroyed!=None:
       self.bind("<Destroy>",canvasDestroyed)
   #def canvasDestroyed(self,ev):
   #  print "myw.Kanvas destroyed"
+  def destroy(self):
+    self.scrollbar.destroy()
+    #print "myw Kanvasdestroy:"
+    Canvas.destroy(self)
   def dobit(self, xy, color=None, helptext=None):
     """ Create box.
     rc: canvas box id
@@ -349,6 +379,7 @@ class Kanvas(Canvas):
   def doEntry(self, xy, klas_method):
     entw= MywEntry(self.tlw,bind='lr', label='',
       cmdlabel=klas_method, width=10)
+    #print "doEntry:",xy
     id= self.create_window(xy[0], xy[1],window=entw,
       anchor=NW, tags="TAGl0pr")
     return entw
@@ -569,7 +600,10 @@ class VmeRW:
     if len(items)>0:
       rt= vboard.findvmeregtyp(items[0][0])
       defx={"w8":0, "w16":1,"w32":2}[rt]
-      self.adrmenu=MywMenu81632(adrframe, items=items,side='right', helptext="""Symbolic name of VME register. 
+      helptext="""Symbolic name of VME register.
+"""
+      if vboard.boardName=='ctp':
+        helptext= helptext+"""
 For some CTP registers add:
 0x8000  for BUSY board
 0x9000  for L0   board
@@ -579,7 +613,37 @@ For some CTP registers add:
 0x1000  for FO1  board
 0x*000  for FO*  board
 0x6000  for FO6  board
-""")
+
+
+NOTE1 for L0: 
+Addresses ending r2 or lm0 (e.g. MASK_MODEr2) are different for
+L0 vs. LM0 board. Choose correct one, according to the currently plugged board
+(r2/lm0 to be used with LM0 board. Addresses without r2/lm0 suffix
+are the same for both boards or they are valid ONLY for L0 board
+if they have also r2/lm0 counterpart).
+
+NOTE2 for L0: 
+when working with LM0 board, the following block of registers
+has addresses given below (the one appearing in addr: field is
+correct for an old L0_100classes board):
+#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> see L0LM0DIFF()
+#define L0_INTERACT2   0x9208
+#define L0_INTERACTT   0x920c
+#define L0_INTERACTSEL 0x9210
+                            
+#define L0_FUNCTION1   0x9214
+#define L0_FUNCTION2   0x9218
+#define RANDOM_1       0x921c
+#define RANDOM_2       0x9220
+#define SCALED_1       0x9224
+#define SCALED_2       0x9228
+#define ALL_RARE_FLAG  0x922c
+
+This is the price, we pay for working with both
+L0+LM0 boards using the same software without recompilation and using
+different addresses for L0/LM0.
+"""
+      self.adrmenu=MywMenu81632(adrframe, items=items,side='right', helptext=helptext)
       self.adrmenu.boardmod=self
       self.addrent= MywEntry(master=adrframe,label='addr:', side='left',\
         helptext=htext, textvariable=self.adrmenu.posval,width=8)
@@ -850,14 +914,14 @@ class MywEntry(Frame,MywHelp):
     #print "MywEntry:",self.getEntry(),event
     ne= self.entry.get()
     if self.nointcheck:
-      self.cmdlabel(ne)
+      if self.cmdlabel: self.cmdlabel(ne)
       return
     try:
       ne_b= eval(ne)
     except:
       MywError("bad value (int or hex expected):"+ne, fw=self.entry)
     else:
-      self.cmdlabel(ne)
+      if self.cmdlabel: self.cmdlabel(ne)
   def setEntry(self, text):
     self.entry.delete(0, 'end')
     if self.conv2dec==1:
@@ -872,14 +936,14 @@ class MywEntry(Frame,MywHelp):
   def getEntry(self):
     tx= self.entry.get()
     return(tx)
-  def getEntryBin(self):
+  def getEntryBin(self, defbin=0xdeadbeaf):
     tx= self.entry.get()
     if tx=='': tx='0'
     try:
       txbin= eval(tx)
     except:
       print "Bad value (int or 0x... expected). Using: 0xdeadbed"
-      txbin=0xdeadbed
+      txbin= defbin
     return(txbin)
   def getEntryHex(self):
     tx= self.entry.get()
@@ -1688,11 +1752,16 @@ class VmeBoard:
     if self.io==None:
       bdir= os.environ['VMECFDIR']
       if self.iamltu('dim'):
-        cm= os.path.join(bdir, "ltudim","linux","ltuclient")+" " + self.boardName
+        import platform
+        if platform.machine()=="x86_64":
+          exdir= "lin64"
+        else:
+          exdir= "linux"
+        cm= os.path.join(bdir, "ltudim",exdir,"ltuclient")+" " + self.boardName
       else:
         cm= os.path.join(bdir, self.boardName, self.boardName)
         cm= cm+'.exe '+self.baseAddr
-      #print ":",cm,":"
+      #print "openCmd:",cm,":"
       self.io= cmdlin2.cmdlint(cmd=cm, board=self)
       if self.io.thds[0].pidexe==None:
         #raise "exiting..."
@@ -1840,9 +1909,11 @@ class VmeBoard:
   def iamltu(self, dim=None):
     """
     self.boardName  dim  rc
+    -----------------------
     ltu            'dim' False
     ltu            None  True
     hmpid           -    True
+    blbina          -    ZDOCHNE
     """
     if DimLTUservers.has_key(self.boardName): 
       return True
@@ -1879,8 +1950,8 @@ class VmeBoard:
       #if self.baseAddr[0:6]=='VXI0::':
       #  self.workdir= os.path.join( os.environ['VMEWORKDIR'],"WORK", self.boardName+self.baseAddr[6:])
       #else:
-      self.workdir= os.path.join( os.environ['VMEWORKDIR'],"WORK", 
-        self.boardName+self.baseAddr)
+      self.workdir= os.path.join( os.environ['VMEWORKDIR'],"WORK")
+      #  self.boardName+self.baseAddr)
       if os.access(self.workdir, os.W_OK)!=1:
         try:
           os.mkdir(self.workdir) 
@@ -1915,8 +1986,9 @@ Main log/cmd window is started by itself if necessary.
     #
     # user funcs:
     self.funbuts()
-    if self.iamltu('dim') or (self.initboard=='nbi' and self.iamltu()):
+    if vbexec==None:
       self.openCmd() ; vbinit(self)
+    if self.iamltu('dim') or (self.initboard=='nbi' and self.iamltu()):
       #print ":", self.io.execute("getsgmode()",applout='<>')[0], ":"
       rcs= self.io.execute("getsgmode()",applout='<>')
       if len(rcs)==1:
@@ -1927,6 +1999,7 @@ Main log/cmd window is started by itself if necessary.
         self.setColor(COLOR_WARNING)
         errmsg="rc:-2, cannot contact server"
         print errmsg
+        return
       elif rc == '-1':
         self.setColor(COLOR_WARNING)
         errmsg="""
@@ -1936,10 +2009,22 @@ Main log/cmd window is started by itself if necessary.
 - unsuccessfull FPGA load from Flash memory on the board after power off/on"""
         self.io.write(errmsg)
         print errmsg
+        return
       elif rc=='0':
         self.io.write("LTU in global mode !\n")
         self.setColor(COLOR_WARNING)
+      #rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)",applout='<>')
     #
+    if self.iamltu():
+      rcs= string.strip(self.io.execute("vmeopr32(LTUVERSION_ADD)"))
+      print "VmeBoard:",rcs
+      rc= eval(rcs)
+      if rc>=0xb7:
+        self.io.write("LTU version %s, (i.e. run2)\n"%rcs)
+        self.lturun2= True
+      else:
+        self.lturun2= False
+        self.io.write("LTU version %s, (i.e. run1)\n"%rcs)
     """ from 23.6. init.mac is called directly from cmdbase.c
     initmac= os.path.join( os.environ['VMEWORKDIR'],"CFG",
       self.boardName, "init.mac")
@@ -2097,8 +2182,8 @@ class Vbexecvoid:
   def printmsg(self,msg):
     print msg
 
-def checklabel():
-  print "here checklabel"
+def checklabel(arg1=None):
+  print "here checklabel. arg1:", arg1
 def checklabel2():
   print "here checklabel2"
   #print event,b
@@ -2110,6 +2195,28 @@ def efdestroy(event):
   print "efdestroy:",event
 def fdestroy(event):
   print "fdestroy:",event
+
+class Testcfg:
+  def __init__(self):
+    self.caclstl= NewToplevel("CTP classes",self.k_destroyed)
+    self.canvas= Kanvas(self.caclstl,self.canvasDestroyed, ctpcfg=self,
+      width=200,height=100,
+      scrollregion=(0, 0, 200, 300),
+      background='yellow', borderwidth=1)
+    for ixl in range(20):
+      id0=self.canvas.create_text(1, 3+10*ixl,
+        anchor=NW,text="Cl#%d"%ixl)
+      self.canvas.doHelp(id0, """Class number and Cluster it belongs to
+help text %d"""%ixl)
+  def k_destroyed():
+    print "k_destroyed:"
+  def canvasDestroyed(self,event):
+    print "canvasDestroyed:",event
+    self.canvas=None
+
+def Test_Kanvas():
+  cfg= Testcfg()
+
 def main():
   global butsFrame
   f = Tk()
@@ -2191,6 +2298,20 @@ piaty")
   #
   #for n in range(1,20):
   #  but.flash()
+  #----------------------------------------------------canvas test:
+  canvFrame=MywFrame(entriesFrame, side=TOP); 
+  canvFrame.config(bg="green")
+  docanvbut= MywButton(canvFrame,label="Test Kanvas",cmd=Test_Kanvas)
+  #----------------------------------------------------switched test:
+  swiFrame=MywFrame(entriesFrame, side=BOTTOM); 
+  swiDet=MywxMenu(swiFrame, 
+    items=(("acorde","ACO"),("SPD","SPD"), ("MUON_TRG","MTR")),
+    side=LEFT,helptext="choose detector")
+  #swidet.radiobut.configure(relief=FLAT)
+  swiInp=MywxMenu(swiFrame, 
+    items=(("None","0"), ("0MUH","16"),("0MUL","17"), ("0MSH","18")),
+    side=LEFT,helptext="choose input to be connected")
+  #swidet.radiobut.configure(relief=FLAT)
   f.mainloop()
 
 if __name__ == "__main__":

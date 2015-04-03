@@ -111,11 +111,16 @@
   Number of words for each group of the B channel data
  */
 
-#define TTC_WORDS_L1M   4    /* Nr of words after L1m header */
-#define TTC_WORDS_L2A   7    /* Nr of words after L2a header */
-#define TTC_WORDS_L2R   0    /* Nr of words after L2r */
-#define TTC_WORDS_ROI   3    /* Nr of words after RoI Header */
-#define TTC_WORDS_RES   0    /* Nr of words for reserved cases, irrelevant */
+#define TTC_WORDS_L1M_O   4    /* Nr of words after L1m header */
+#define TTC_WORDS_L1M_N   8    /* New value, longer message */
+#define TTC_WORDS_L2A_O   7    /* Nr of words after L2a header */
+#define TTC_WORDS_L2A_N   12   /* Longer message */
+#define TTC_WORDS_L2R_O   0    /* Nr of words after L2r */
+#define TTC_WORDS_L2R_N   0    /* same */
+#define TTC_WORDS_ROI_O   3    /* Nr of words after RoI Header */
+#define TTC_WORDS_ROI_N   3    /* same ??? */
+#define TTC_WORDS_RES_O   0    /* Nr of words for reserved cases, irrelevant */
+#define TTC_WORDS_RES_N   0    /* same ??? */
 
 /*
   Max number of words that can be inna trigger message (unknown type)

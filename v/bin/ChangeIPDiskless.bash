@@ -14,7 +14,7 @@ if [ $# -ne 3 ] ;then
   echo "Usage NewIPDiskless.bash Name OldIP NewIP"
   exit
 fi
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" = 'alidcscom026' ] ;then
   CCTDIR=/tftpboot/CCTp2
 elif [ "$hname" = 'pcalicebhm05' ] ;then

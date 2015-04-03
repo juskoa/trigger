@@ -23,12 +23,40 @@ l0_logic_verAC.rbf
 - cal. improved (when phys. trigger together with cal. trigger,
   physics one is supressed)
 - l0f3/4 added + corresponding counters + scope 
+- + 8 BC masks (12 in total)
 NOTE 27.5.2011:
  correct AC version has length 224731 and is from Dec 20th.
 There was other version, with more modifications (more inverted classes,
 more bc masks) which is not valid (is on 05 with length 236886).
+30.6.2011
 l0_logic_verAD.rbf
 New adresses for input polarity group are from H"201" to H"232".
 Wed Feb 15 11:35:28 CET 2012
 l0_logic_verAE.rbf
 spy memory increased 2times (addresses were: 0x1?? now is: 0x1?? or 0x2??)
+16.7.2012
+l0_logic_verAF.rbf -synchronous class downscaling:
+Added DSCG (Down scaling class group) option to RATE module.
+50 registers (dscg 1-50 -> H"233"-H"264") added for setting DSCG values via
+VME.
+Default values for these registers: 0,1,2,3,...,49.
+Setting 0x233:1 leads to synchronous downscaling of first 2 classes.
+see DOC/devdbg/syncdownscaling
+
+6.11.2013
+l0_logic_verB0.rbf
+100 classes, vme addresses reorganized 
+18.2.2014
+l0_logic_verB1.rbf
++102 counters implemented for: class[100..51] before/after, and L0FUN3/4 counters
+24.2.2014
+l0_logic_verB1_1bitslow.rbf
+another version of 0xB1, considering longer inspection (262 counters)
+28.2.2014
+l0_logic_verB1.rbf
+another version of 0xB1, 2bits acumulatro for slow counters, 300 counters
+May 2014:
+FPGA_VERSION for LM0 board starts from 0xc0 ->the way for sw to recognize
+the board (L0 or LM0)
+
+

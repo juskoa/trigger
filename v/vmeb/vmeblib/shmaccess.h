@@ -32,9 +32,9 @@ EXT Tshm *shm;
 EXT int shmsegid;
 */
 #define CTPSHMKEY 0x820000
-w8 *mallocShared(w32 shmkey, int size, int *segid);
-int freeShared(w8 *shmbase, int shmsegid);
-void detachShared(w8 *shmbase);
+void *mallocShared(w32 shmkey, int size, int *segid);
+int freeShared(void *shmbase, int shmsegid);
+void detachShared(void *shmbase);
 /*
 w32 getcnt1(int cntix);
 */

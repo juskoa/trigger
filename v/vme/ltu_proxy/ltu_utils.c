@@ -3,6 +3,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#ifdef CPLUSPLUS
+#include <dic.hxx>
+#else
+#include <dic.h>
+#endif
 
 #include "infolog.h"
 
@@ -56,6 +61,17 @@ void readcounters(w32 *mem, int prt) {
     (int)l0, (int)l2a, (int)start, (int)busyc, avdt);	
   infolog_trg(LOG_INFO, msg);
 }
+
+/*--------------------------------------------------------- busystatus()
+RC: 1: BUSY is ON       0: BUSY is OFF */
+int busystatus() {
+w32 status;
+printf("busystatus:\n");
+status=vmer32(BUSY_STATUS);
+//printf("busystatus:%x\n",status);
+if(status & BUSY_ACTIVE) return(1);
+return(0);
+}
 /*------------------------------------------*/ int ltu_configure(int global) {
 /* initialise LTU and TTC path:
 - at the start of ltu_proxy
@@ -71,7 +87,7 @@ Note: mode (stdalone or global) is always set -even in case of rc!=0
 */
 w32 ltu_downscaling,emustat;
 int ixpptime, rc=0;
-char sgmode[12], msg[200];
+char bsystat[4]="?", sgmode[12], msg[200];
 emustat= vmer32(EMU_STATUS);
 if(emustat != 0) {   
   int rcq;
@@ -112,8 +128,13 @@ if(global==0) {
   strcpy(sgmode,"GLOBAL");
 };
 if(templtucfg->ttcrx_reset==0) {
-  sprintf(msg, "TTCinit() suppressed (by option ttcrx_reset)");
-  infolog_trg(LOG_INFO, msg);
+  if( busystatus()) { strcpy(bsystat, "ON"); } else { strcpy(bsystat, "OFF"); }; 
+  sprintf(msg, "TTCinit() suppressed (by option TTCRX_RESET NO). BUSY:%s", bsystat);
+  infolog_trgboth(LOG_INFO, msg);
+} else if((global==1) and (templtucfg->ttcrx_reset==4)) {
+  if( busystatus()) { strcpy(bsystat, "ON"); } else { strcpy(bsystat, "OFF"); }; 
+  sprintf(msg, "TTCinit() suppressed for global (by option TTCRX_RESET STDALONE). BUSY:%s",bsystat);
+  infolog_trgboth(LOG_INFO, msg);
 } else {
   char datetime[20];
 
@@ -130,26 +151,14 @@ if(templtucfg->ttcrx_reset==0) {
     } else {
       sprintf(msg, "TTCinit() retcode:%d in %s mode", rc, sgmode);
     };
-    infolog_trg(LOG_INFO, msg);
+    infolog_trgboth(LOG_INFO, msg);
   };
   //printf("Sleeping 3 secs after TTCinit...\n"); usleep(3000000);
 };
-//clearCounters();   // removed (to avoid spikes in monitoring)
 // following moved to startemu()
 //copyltucfg(templtucfg, ltc);   // restore defaults (if overwritten by ECS, to be prepared)
 readcounters(memstart, 0);     // for next run -they can be rewritten differently
 return(rc);
-}
-
-/*--------------------------------------------------------- busystatus()
-RC: 1: BUSY is ON       0: BUSY is OFF */
-int busystatus() {
-w32 status;
-printf("busystatus:\n");
-status=vmer32(BUSY_STATUS);
-//printf("busystatus:%x\n",status);
-if(status & BUSY_ACTIVE) return(1);
-return(0);
 }
 
 /*----------------------------------------------*/ void busy12(int enable) {
@@ -167,20 +176,21 @@ if(enable) {
 
 /* master/slave or standalone mode */
 void Setstdalonemode() {
-w32 b2; char msg[100];
+w32 b2;
 //von infolog_SetStream(dimservernameCAP,-1);
 SLMsetstart(templtucfg->ltu_LHCGAPVETO);          /* START not selected */ 
 PARTITION_NAME[0]='\0';   // has to come with GLOBAL mode
 readcounters(memend, 1);
 if(templtucfg->flags & FLGextorbit) { b2=3; } else { b2=1;};
 setstdalonemode(b2);
+/*
 if(templtucfg->flags & FLGfecmd12) {
-  int rc;
+  int rc; char msg[100];
   // send FEEcmd 12 for hmpid
   sprintf(msg, "hmpid STDALONE: sending feecmd 12...");
   infolog_trg(LOG_INFO, msg);
   rc= ttcFEEcmd(12);
-};  
+}; */  
 }
 int Setglobalmode() {
 /* initialise ttcvi: */
@@ -189,6 +199,26 @@ int rc;
 rc= ltu_configure(1);
 return(rc);
 }
+int SLMloadrun2(char *vcfname) {
+int rc,lng; char vcfname_run1[190];
+char msg[250];
+lng= strlen(vcfname);
+if(!lturun2) {
+  // "xxx.seq" -> "xxx_run1.seq"
+  if(strcmp(&vcfname[lng-4], ".seq")!=0) {
+    infolog_trg(LOG_FATAL, (char *)"SLM sequence does not finish with .seq");
+    return(10);
+  };
+  strncpy(vcfname_run1, vcfname, lng-4); vcfname_run1[lng-4]='\0';
+  strcat(vcfname_run1, "_run1.seq");
+} else {
+  strcpy(vcfname_run1, vcfname);
+};
+sprintf(msg, "Loading SLM:%s", vcfname_run1);
+infolog_trgboth(LOG_INFO, msg);
+rc=SLMload(vcfname_run1);
+return(rc);
+};
 
 /*----------------------------------------------- */ int sodeod(char *seqfile) {
 /* Input: seqfile: sod.seq or eod.seq
@@ -196,17 +226,19 @@ return(rc);
 */
 #define WAITBUSYOFF 5000000       // in micsecs (was 3000000 before 24.4.2012 )
 #define WAITBUSY_STEP 200000  
-w32 emustat, waiting=0;
-int rc, killsodeod;
+w32 emustat, waiting=0; w32 waitbusyoff=WAITBUSYOFF;
+int rc, killsodeod,swattmpts;
 char datetime[20];
 char vcfname[180];
   char msg[200];
 /* ltu_proxy is started from WORKDIR, i.e. relative path to
    its .seq files is: CFG/ltu/SLMproxy */
 getdatetime(datetime);
-printf("%s:sodeod:%s loading...\n",datetime,seqfile);
+if(strcmp(dimservernameCAP,"TPC")==0) waitbusyoff=10000000;
+printf("%s:sodeod:%s WAITBUSYOFF:%d us, loading...\n",
+  datetime,seqfile,waitbusyoff);
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); strcat(vcfname, seqfile);
-rc=SLMload(vcfname);
+rc=SLMloadrun2(vcfname);
 if(rc!=0) {
   sprintf(msg, "Can't load file %s SLMload rc:%d", vcfname, rc);
   infolog_trg(LOG_FATAL, msg);
@@ -216,7 +248,7 @@ SLMsetstart(templtucfg->ltu_LHCGAPVETO);          /* START not selected */
   //readcounters(0);
   //busytime= mem[BUSY_TIMERrp]; busys= mem[BUSY_COUNTERrp];
 SLMstart(); 
-SLMswstart(1,0); usleep(1000);          /* SW trigger */
+SLMswstart(1,0); swattmpts=1; usleep(1000);          /* SW trigger */
 while(1) {
   /* if BUSY is ON, STARTsignal derived from SWtrigger is killed.
    The waiting for 'SOD/EOD success should match the waiting
@@ -226,23 +258,24 @@ while(1) {
   if(emustat == 0) {   
     killsodeod=0; break;  // SOD/EOD was generated
   };
-  SLMswstart(1,0);          /* SW trigger */
+  SLMswstart(1,0); swattmpts++; /* SW trigger */
   usleep(WAITBUSY_STEP);   //give some time for SOD/EOD generation
   waiting=waiting+WAITBUSY_STEP;
-  if(waiting > WAITBUSYOFF) {
+  if(waiting > waitbusyoff) {
     killsodeod=1; break;
   };
 };
 getdatetime(datetime);
 if(killsodeod == 1) {
   SLMquit();
-  sprintf(msg, "%s killed. Waiting:%d micsecs", seqfile, waiting);
+  sprintf(msg, "%s killed after %d attempts, %d micsecs",
+    seqfile, swattmpts, waiting);
   infolog_trg(LOG_ERROR, msg);
-  printf("%s:%s killed. Waiting:%d micsecs\n", datetime, seqfile, waiting);
+  //printf("%s:%s killed. Waiting:%d micsecs\n", datetime, seqfile, waiting);
 } else {
   sprintf(msg, "%s generated. Waiting:%d micsecs", seqfile, waiting);
   infolog_trg(LOG_INFO, msg);
-  printf("%s:%s generated. Waiting:%d micsecs\n", datetime, seqfile, waiting);
+  //printf("%s:%s generated. Waiting:%d micsecs\n", datetime, seqfile, waiting);
 };
 return(killsodeod);
 }
@@ -258,7 +291,7 @@ if(rc!=0) goto RET;
 usleep(1000);   // SDD get stuck in BUSY after 1st event without this line
 /*-------------------------------------- Start of Data event */
 if (templtucfg->ltu_sodeod_present) {
-  rc=sodeod("sod.seq");
+  rc=sodeod((char *)"sod.seq");
   //printf("waiting in startemu after sod: 1 secs\n"); usleep(1000000);
 };
 /*
@@ -275,7 +308,7 @@ fflush(stdout);
    from directory: CFG/ltu/SLMproxy */
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); 
 strcat(vcfname, templtucfg->mainEmulationSequence);
-rc= SLMload(vcfname);
+rc= SLMloadrun2(vcfname);
 if(rc!=0) {
   sprintf(msg, "startemu: %s: bad file. SLMload rc:%d", vcfname, rc);
   infolog_trg(LOG_FATAL, msg);
@@ -295,7 +328,7 @@ if(  templtucfg->ltu_autostart_signal==3) {
 } else {
   strcpy(msg, "Unknown trigger source,");
 };
-infolog_trg(LOG_INFO, msg);
+infolog_trgboth(LOG_INFO, msg);
 SLMsetstart(templtucfg->ltu_autostart_signal | templtucfg->ltu_LHCGAPVETO);
 SLMstart();
 RET:
@@ -323,17 +356,17 @@ int syncemu() {
 !!! check templtucfg
 */
 int rc,rc1; char vcfname[180];
-rc=sodeod("sync.seq");
+rc=sodeod((char *)"sync.seq");
 if(rc!=0) {
-  infolog_trg(LOG_FATAL, "SYNC not sent");
+  infolog_trg(LOG_FATAL, (char *)"SYNC not sent");
 };
 strcpy(vcfname, "CFG/ltu/SLMproxy/"); 
 strcat(vcfname, templtucfg->mainEmulationSequence);
 printf("loading original sequence+start signal:%s\n",vcfname);
-rc1= SLMload(vcfname);
+rc1= SLMloadrun2(vcfname);
 printf("SLMload rc:%d\n",rc1); fflush(stdout);
 if(rc1!=0) {
-  infolog_trg(LOG_FATAL, "LTU SLM not loaded with original sequence after SYNC");
+  infolog_trg(LOG_FATAL, (char *)"LTU SLM not loaded with original sequence after SYNC");
 } else {
   SLMsetstart(templtucfg->ltu_autostart_signal | templtucfg->ltu_LHCGAPVETO);
   printf("SLMsetstart ok.\n");
@@ -352,7 +385,7 @@ if (sodeodecs) {
   //w32 emustat, busys, busytime, avdt;
   //readcounters(0);
   //busytime= mem[BUSY_TIMERrp]; busys= mem[BUSY_COUNTERrp];
-  rc=sodeod("eod.seq");
+  rc=sodeod((char *)"eod.seq");
   //readcounters(0);
   //busys= dodif32(busys, mem[BUSY_COUNTERrp]);   // number of BUSYS
   //busytime= dodif32(busytime, mem[BUSY_TIMERrp]);
@@ -360,4 +393,9 @@ if (sodeodecs) {
 };
 readcounters(memend,1);
 return(rc);
+}
+int ltucfg2daq(Tltucfg1 *lcp) {
+int rc;
+rc= dic_cmnd_service((char *)"CTPRCFG/LTUCCFG", (void *)lcp, sizeof(Tltucfg1));
+return(rc);   // 1: ok  !=1 dim problem?
 }

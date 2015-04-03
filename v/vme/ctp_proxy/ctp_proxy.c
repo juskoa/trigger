@@ -24,26 +24,29 @@ prepareRunConfig/registerRunConfig
 #include "infolog.h"
 #ifdef CPLUSPLUS
 #include <dic.hxx>
-#ifndef TEST
+/*von #ifndef TEST
 extern "C" {
 #include "DAQlogbook.h"
 }
-#endif
+#endif */
 #else
 #include <dic.h>
-#ifndef TEST
+/*von #ifndef TEST
 #include "DAQlogbook.h"
-#endif
+#endif */
 #endif
 
 #include "vmewrap.h"
 #include "shmaccess.h"
 #include "vmeblib.h"
 #include "lexan.h"
+#include "daqlogbook.h"
 #include "ctp.h"
 #include "ctplib.h"
 #include "ssmctp.h"
 #include "Tpartition.h"
+int getDAQClusterInfo(Tpartition *part, TDAQInfo *daqi);
+
 #include "ctp_proxy.h"
 //#include "../ltu/ltu.h"     from ltu.h file:
 #define LTUNCOUNTERS   21
@@ -62,6 +65,191 @@ Hardware HWold;
 int get_fixed(char *rcfg, int *fixpos);
 int lenfixpos=2;
 int fixpos[53];   // run, clgroup, rel1,rel2,...,-2
+static TDAQInfo daqi;
+
+#define TAGstartcount 333
+#define TAGstopcount 334
+#define TAGprintruns 335
+#define TAGrcfgdo 336
+#define TAGrcfgdelete 337
+#define TAGctprestart 338
+#define TAGpcfg 339
+#define TAGstartcountforced 340
+#define TAGglobalcal 350
+#define TAGresetclock 351
+int pydimok=0;
+void callback(void *tag, int *retcode){
+ char command[100]; char emsg[300];
+ //printf("callback: %li %i \n",*tag,*retcode);
+ switch(*(int *)tag){
+   case(TAGstartcount):
+   case(TAGstartcountforced):
+        strcpy(command,"STARTRUNCOUNT");
+        break;
+   case(TAGstopcount):
+        strcpy(command,"STOPRUNCOUNT");
+        break;
+   case(TAGrcfgdo):
+        strcpy(command,"CTPRCFG/RCFG");
+        break;
+   case(TAGrcfgdelete):
+        strcpy(command,"CTPRCFG/RCFG delete");
+        break;
+   case(TAGctprestart):
+        strcpy(command,"CTPRCFG/RCFG delete(testifpydimON)");
+        break;
+   case(TAGpcfg):
+        strcpy(command,"CTPRCFG/RCFG pcfg");
+        break;
+   case(TAGglobalcal):
+        strcpy(command,"CTPCALIB/DO u");
+        break;
+   case(TAGresetclock):
+        strcpy(command,"CTPRCFG/RCFG resetclock");
+        break;
+   default:
+        printf("callback: Unknown tag %i \n",*(int *)tag);
+        return;
+ }
+ if(*retcode){
+   if(*(int *)tag!=TAGstartcountforced) {
+     sprintf(emsg, "timestamp:callback:%s successful.",command); 
+     prtLog(emsg);
+   };
+   if(*(int *)tag==TAGctprestart) pydimok=1;
+ } else {
+   sprintf(emsg, "timestamp:callback:DIM command %s failed.",command); 
+   prtError(emsg);
+ };
+}
+/*
+Input:
+part: pointer to Tpartition
+      NULL: move  all .rcfg files in RCFG directory to delmeh/
+dodel: 
+1: prepare file. Called from:
+  - _LoadPartition(, 1)
+0: delete file   called from:
+  - _LoadPartition( ,0) -in case of error and if it was created
+  - _StartPartition( ,0) -in case of error 
+  - _StopPartition( ,0)
+rc: 0: ok .rcfg prepared, (confirmed from parted)
+       or all .rcfg files moved to delmeh/
+    1
+    2 -bad dodel
+    3 rc from dic_cmnd_servcie !=1 (i.e. dim problem)
+daqi: global structure seen in ctp_proxy only
+*/
+int prepareRunConfig(Tpartition *part, int dodel) {
+/* 17.12.2007: just copy
+$VMECFDIR/CFG/ctp/pardefs/partname.pcfg ->
+$VMEWORKDIR/RCFG/rRUNNUMBER.rcfg
+*/
+int rc=0, icla, tag, rcdic; w32 ilog;
+char namemode[80];
+//char *environ; char runcfg[100];
+char cmd[400];
+char dimcom[40];
+char msg[500];
+if(part == NULL){ dodel=2;
+ /*intError("prepareRunConfig: part=NULL");
+ rc=1;return(rc);*/
+} else {
+  if(part->hwallocated != 0x3) {
+    char emsg[300];
+    sprintf(emsg, "hwallocated:%x (0x2 expected) for part:%s", 
+      part->hwallocated, part->name);
+    intError(emsg);
+    rc=1; return(rc);
+  };
+  if(part->partmode[0]!='\0') {
+    strcpy(namemode, part->partmode);
+  } else {
+    strcpy(namemode, part->name);
+  };
+};
+if(dodel==1) {
+  w32 int1lookup,int1def,int2lookup,int2def;
+  tag=TAGrcfgdo;
+  //printTpartition("prepareRunConfig1", part);
+  sprintf(cmd,"rcfg %s %d 0x%x", namemode, part->run_number,
+    part->MaskedDetectors);
+  for(ilog=0;ilog<NCLUST;ilog++){
+    int hwclu, ihw;
+    hwclu=0;
+    for(ihw=0;ihw<NCLUST;ihw++){
+      if(part->ClusterTable[ihw]==0) continue;
+      if(part->ClusterTable[ihw]==(ilog+1)) {hwclu=ihw+1; break;};
+    };
+    printf("%i -> %i hwclu:%d,",ilog,part->ClusterTable[ilog], hwclu);
+    sprintf(cmd, "%s %d", cmd, hwclu);
+  }; printf("\n");
+  for(icla=0;icla<NCLASS;icla++){
+    TKlas *klas;
+    klas=part->klas[icla];
+    if(klas!=NULL) {
+      printTKlas(klas,icla);
+      sprintf(cmd,"%s %d", cmd, klas->hwclass+1);
+    } else {
+      sprintf(cmd,"%s 0", cmd);
+    };
+  };
+  // int1lookup int1def int2lookup int2def
+  //int2lookupdef bug
+  int1lookup= getLM0addr(L0_INTERACT1);
+  int2lookup= getLM0addr(L0_INTERACT2);
+  int2def= getLM0addr(L0_INTERACTSEL);
+  int1def= int2def & 0x1f; int2def= int2def >> 5;
+  sprintf(cmd, "%s 0x%x 0x%x 0x%x 0x%x", cmd, int1lookup, int1def, int2lookup, int2def);
+  strcat(cmd,"\n");
+  //printf("prepareRunConfig:%s \n",cmd);
+} else if(dodel==0) {
+  tag=TAGrcfgdelete;
+  sprintf(cmd,"rcfgdel %s %d\n", namemode, part->run_number);
+} else if(dodel==2) {
+  tag=TAGrcfgdelete;
+  sprintf(cmd,"rcfgdel ALL 0\n");
+} else {
+  char emsg[300];
+  sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
+  intError(emsg);
+  rc=2; return(rc);
+};
+sprintf(msg,"timestamp:prepareRunConfig1: %s", cmd); prtLog(msg);
+if(dodel==1) {
+  // new way for rcfg command:
+  //
+  strncpy(daqi.run1msg, cmd, MAXRUN1MSG);
+  rcdic= dic_cmnd_service("CTPRCFG", (void *)&daqi, sizeof(TDAQInfo));
+} else {
+  strcpy(dimcom,"CTPRCFG/RCFG");
+  //dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, tag);
+  rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
+};
+if(rcdic!=1) rc= 3;   // dim problem?
+sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
+return(rc);
+}
+
+/*------------------------------------------------ preparepcfg()
+*/
+void preparepcfg(char *partname, int runnumber, char *ACT_CONFIG) {
+int rcdic;
+char cmd[400];
+char dimcom[40];
+char msg[500];
+if(strcmp(ACT_CONFIG,"NO")==0) {
+  sprintf(cmd,"Ncfg %s %d\n", partname, runnumber);
+} else {
+  sprintf(cmd,"pcfg %s %d\n", partname, runnumber);
+};
+sprintf(msg,"timestamp:pcfg1: %s", cmd); prtLog(msg);
+strcpy(dimcom,"CTPRCFG/RCFG");
+//dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, TAGpcfg);
+rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
+sprintf(msg,"timestamp:pcfg1:rc %d", rcdic); prtLog(msg);
+return;
+}
 /*----------------------------------------------void getNAllPartitions();
 */
 int getNAllPartitions() {
@@ -741,131 +929,13 @@ for(iclu=0; iclu<6 iclu++) {
 }
 */
 int updateDAQClusters(Tpartition *partit) {
-int idet, iclu, iclass, rc;
-int rco;    // 0: DAQlogbook opened    -1: not opened/do not update it
+//int rc; //idet, iclu, iclass, rc;
+//int rco;    // 0: DAQlogbook opened    -1: not opened/do not update it
 int rcdaqlog=0;    // rc from updateDAQClusters(). 0: ok  >1 stop the run
-w32 daqonoff;
-w32 masks[NCLUST];      // detectors in each CLUSTER
-w32 inpmasks[NCLUST];   // input detectors feeding each CLUSTER
-w32 l0finputs=0;          // L0 inputs referenced by l0functions 
-w32 l0finputs1;         // L0 inputs referenced by l0functions for 1 class (filled in getInputDets)
-unsigned long long classmasks[NCLUST];  // classes for each CLUSTER
-unsigned long long ULL1=1;
-char *vmesite;
-char DAQlogbookDB[120]="", emsg[ERRMSGL];
+char emsg[ERRMSGL];
 /* only if we need verbose output:
 DAQlogbook_verbose(1);     */
-if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) {
-  infolog_trgboth(LOG_INFO, "DAQlogbook not used (FLGignoreDAQLOGBOOK)");
-} else {
-  vmesite=getenv("VMESITE");
-  if(vmesite !=NULL) {
-    if(strcmp(vmesite,"ALICE")==0) {
-      strcpy(DAQlogbookDB, "daq:daq@aldaqdb/LOGBOOK");
-    } else if(strcmp(vmesite,"SERVER")==0) {   // REF setup
-      strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_2");
-    } else {
-      strcpy(DAQlogbookDB, "");
-      rco=-1;
-    };
-    if(DAQlogbookDB[0]!='\0') {
-      sprintf(emsg, "Opening DAQlogbook:%s", DAQlogbookDB); prtLog(emsg);
-      //rco= DAQlogbook_open(DAQlogbookDB);
-      rco= daqlogbook_open();
-      if(rco==-1) {
-        infolog_trgboth(LOG_FATAL, "DAQlogbook_open failed");
-        return(8);
-      };
-    };
-  };
-};
-
-//if(partit->run_number<10) { return(0); };
-for(iclu=0;iclu<NCLUST;iclu++){
-  masks[iclu]=0;
-  inpmasks[iclu]=0;
-  classmasks[iclu]=0;
-};
-//--------------------- masks:
-for(idet=0;idet<NDETEC;idet++){
-  int pclu, pclust, hwclust;
-  pclust= partit->Detector2Clust[idet]; // det. can belong to more clusters!
-  if(pclust ==0) continue;
-  // idet is in pclust, find HWclust:
-  for(pclu=0; pclu<NCLUST; pclu++) {
-    if(pclust & (1<<pclu)) {
-      //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", partit->name, pclust, pclu);
-      hwclust= findHWCluster(partit, pclu+1);
-      if(hwclust>0) {
-        masks[hwclust-1]= masks[hwclust-1] | (1<<idet);
-      };
-    };
-  };
-};
-if(DBGlogbook) 
-  printf("updateDAQClusters:masks[0-5]:0x:%x %x %x %x %x %x\n",
-  masks[0], masks[1], masks[2], masks[3], masks[4], masks[5]);
-//--------------------- classmasks and inpmasks:
-for(iclass=0; iclass<NCLASS; iclass++) {
-  int hwclass; int indets; TKlas *klas;
-  if((klas=partit->klas[iclass]) == NULL) continue;
-  hwclass= partit->klas[iclass]->hwclass;  // 0..49
-  if(hwclass>49) {
-    intError("updateDAQClusters: hwclass>49"); rcdaqlog=10;
-  };
-  iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
-  classmasks[iclu]= classmasks[iclu] | (ULL1<<hwclass);
-  indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1); l0finputs= l0finputs|l0finputs1;
-  // l0finputs will be usd later when ctp_alignment called
-  if(indets<0) rcdaqlog=2;   
-  if(DBGlogbook) printf("updateDAQClusters:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
-    partit->hwallocated, iclu, iclass, indets);
-  inpmasks[iclu]= inpmasks[iclu] | indets;
-};
-daqonoff= vmer32(INT_DDL_EMU) &0xf;
-for(iclu=0;iclu<NCLUST;iclu++){
-  if(masks[iclu]==0) continue;
-  if(daqonoff==0) { // ctp readout active, set TRIGGER bit17 
-    masks[iclu]= masks[iclu] | (1<<17);
-  };
-  printf("updateDAQClusters:run#:%d cluster:%d det/inp/class mask:0x:%x %x %llx\n", 
-    partit->run_number, iclu+1, masks[iclu], inpmasks[iclu], classmasks[iclu]);
-  if(rco==0) {
-    int rc;
-    if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rc=0;
-    } else {
-      rc=DAQlogbook_update_cluster(partit->run_number, iclu+1, 
-        masks[iclu], partit->name, inpmasks[iclu], classmasks[iclu]);
-    };
-    if(rc!=0) {
-      infolog_trgboth(LOG_FATAL, "DAQlogbook_update_cluster failed");
-      rcdaqlog=4;
-    };
-  };
-};
-{// inputs -> DAQ
-int level,maxinp,ix,ind,rcu;
-for(level=0; level<3; level++) {
-  if(level==2) {maxinp=12; }
-  else         {maxinp=24; }
-  for(ix=0; ix<maxinp; ix++) {
-    ind= findInput(level, ix+1);
-    if(ind==-1) continue;
-    if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rcu=0;
-    } else {
-      rcu= daqlogbook_insert_triggerInput(partit->run_number,   
-        ix+1, validCTPINPUTs[ind].name, level);
-    };
-    if(rcu != 0) {
-      sprintf(emsg, "daqlogbook_insert_triggerInput(%d,%d,%s,%d) rc:%d",
-        partit->run_number,ix+1, validCTPINPUTs[ind].name, level, rcu);
-      infolog_trgboth(LOG_FATAL, emsg);
-      rcdaqlog=6;
-      break;
-    };
-  }; 
-};
-};
+prtProfTime("get inps2daq");
 {
   int len;
   char *mem;
@@ -878,11 +948,11 @@ for(level=0; level<3; level++) {
   //sprintf(name,"WORK/RCFG/r%d.rcfg", partit->run_number);
   //getruncfgname(partit->run_number, name);
   sprintf(name, "/tmp/r%d.rcfg", partit->run_number);
-  len= detectfile(name, 25);    // wait max. 25 (was 9) secs for file
+  len= detectfile(name, 8);    // wait max. 8 (was 25 before LS1) secs for file
+  // len=0;
   /*sprintf(emsg, "updateDAQClusters: Run: %d file:%s len:%d",
     partit->run_number, name, len); prtLog(emsg); */
   /*if(len<=0) {
-    printf("%s not found, trying /tmp/r%d.rcfg\n",name, partit->run_number);
     printf("%s not found, trying /tmp/r%d.rcfg\n",name, partit->run_number);
   }; */
   if(len>0) {
@@ -893,18 +963,6 @@ for(level=0; level<3; level++) {
       rcdaqlog=3;
     } else {
       int ix, rl;
-/* ------------- moved to pydim/server.c
-#define MAXALIGNMENTLEN 4000
-      char alignment[MAXALIGNMENTLEN];
-      //getctp_alignment(partit, alignment, MAXALIGNMENTLEN, l0finputs);
-      getctp_alignment(NULL, alignment, MAXALIGNMENTLEN, l0finputs);
-      if(alignment=='\0') {
-        infolog_trgboth(LOG_FATAL, "Alignment info in DAQlogbook is empty");
-      };
-      prtLog(alignment);
-      //sprintf(emsg, "updateDAQClusters: Run: %d file:%s opened",
-      //  partit->run_number, name); prtLog(emsg);
-moved*/
       mem= (char *)malloc(len+1);
       ix=0; mem[0]='\0';
       rl=fread((void *)mem, 1, len, ifile); mem[rl]='\0';
@@ -912,23 +970,8 @@ moved*/
         sprintf(emsg, "updateDAQClusters: File: %s read error\n",name); 
         infolog_trgboth(LOG_FATAL, emsg);
       };  
-/* move ->
-      //printf("%s\n", mem);
-      if(rco==0) {
-        //from logbook-6.45.:
-        if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rc=0;
-        } else {
-          rc= DAQlogbook_update_triggerConfig(partit->run_number, 
-            mem, alignment);
-        };
-        if(rc!=0) {
-          sprintf(emsg, "DAQlogbook_update_triggerConfig: rc:%d\n",rc); 
-          infolog_trgboth(LOG_FATAL, emsg);
-          rcdaqlog=5;
-        };
-      };
------- moved to pydim/server.c
-*/
+      prtProfTime("got rcfg");
+      /* todo: This is the only reason we need .rcfg file in ctpproxy? */
       if(strcmp(partit->name,"PHYSICS_1")==0) {
         int fixl;
         fixl= get_fixed(mem, &fixpos[2]);
@@ -947,12 +990,13 @@ moved*/
     };
   } else {
     sprintf(emsg, "updateDAQClusters: Partition:%s file %s not found.\n", partit->name, name);
-    prtError(emsg);
-    infolog_trgboth(LOG_FATAL, emsg);
+    prtWarning(emsg);   // was prtError
+    //infolog_trgboth(LOG_FATAL, emsg);
     rcdaqlog=3;
   };
 };
 //-------------------------------- close
+/*
 if(rco==0) {
   if(cshmGlobFlag(FLGignoreDAQLOGBOOK)) { rc=0;
   } else {
@@ -961,17 +1005,8 @@ if(rco==0) {
   if(rc==-1) {
     infolog_trgboth(LOG_ERROR, "DAQlogbook_close failed");
   };
-};
+};*/
 return(rcdaqlog);
-/*von
-if(rcdaqlog==0) {
-  if(rco== -1) rcdaqlog=8;
-};
-if(rco== -1) {
-  return(rcdaqlog);
-} else {
-  return(0); // we are in the lab, do not stop run
-}; */
 }
 /*---------------------------------------------------clusterPart2HW()
   Purpose: to convert clustercodes in partition frame to
@@ -1128,14 +1163,14 @@ return 0;
            Table is stored in part->ClusterTable[]        
 */  
 int addClasses2HW(Tpartition *parray[]){
- int i,ip,pclass,hwclass,rcode=0;
+ int i,ip,ips,pclass,hwclass,rcode=0;
  Tpartition *part;
  TKlas *klas;
  // merge classes from partitions *parray[]
 if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
  // First loop over 'old' partitions (to keep the same hw for running partitions):
  for(ip=0;ip<MNPART;ip++){           //loop over old partitions
-   char oldclasses[600]="";   // 600> 11*50
+   char oldclasses[1200]="";   // 1200> 11*100
    if(parray[ip] == NULL) continue;
    part=parray[ip]; if((part->hwallocated&0x2)==0) continue;
    if(DBGac2HW) printf("  old Partition %i hwallocated:%x \n",
@@ -1145,10 +1180,10 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
    for(pclass=0; pclass<NCLASS; pclass++) {
      if((klas=part->klas[pclass]) == NULL) continue;
      if(DBGac2HW) printf(" hwallocated. pclass: %i \n",pclass);
-     hwclass= part->klas[pclass]->hwclass;  // 0..49
-     if(hwclass>49) {
+     hwclass= part->klas[pclass]->hwclass;  // 0..49/99
+     if(hwclass >= NCLASS) {
        char errmsg[400];
-       sprintf(errmsg, "addClasses2HW: intError: hwclass>49"); rcode=1;
+       sprintf(errmsg, "addClasses2HW: intError: hwclass>= 50/100"); rcode=1;
        infolog_trgboth(LOG_FATAL, errmsg); goto ERRRET;
      };
      /* If partition cluster (pcluster) is different 
@@ -1167,7 +1202,7 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
  };
  // Now loop over 'new' partitions (to allocate the rest of resources)
  for(ip=0;ip<MNPART;ip++){           //loop over new partitions
-   char newclasses[600]="";
+   char newclasses[1200]="";
    if(parray[ip] == NULL) continue;
    part=parray[ip]; if((part->hwallocated&0x2)==0x2) continue;
    if(DBGac2HW) printf("  new Partition: %i \n",ip);
@@ -1209,6 +1244,52 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
      printf("\n"); 
    };
  }; // over all new partitions
+// find first class for each SDG group:
+for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
+  int firstc;
+  char errmsg[150];
+  if(SDGS[ips].name[0]=='\0') continue;     // empty entry
+  firstc= 51;
+  for(ip=0;ip<MNPART;ip++){           //find our partition
+    part= parray[ip];
+    if(part == NULL) continue;
+    if(strcmp(part->name, SDGS[ips].pname)==0) goto OKPART;
+  };
+  sprintf(errmsg,"addClasses2HW:SDGS with illegal partition %s",
+    SDGS[ips].pname);
+  infolog_trgboth(LOG_ERROR, errmsg);
+  rcode=2; goto ERRRET;
+  OKPART:
+  for(pclass=0; pclass<NCLASS; pclass++) { // all classes
+    klas=part->klas[pclass];
+    if(klas == NULL) continue;
+    if(klas->sdg == -1) continue;
+    if(klas->sdg == ips) {
+      if(klas->hwclass < firstc) firstc= klas->hwclass+1;   // 0..49-> 1..50/100
+    };
+  };
+  if(firstc<51) {
+    SDGS[ips].firstclass= firstc;
+  };
+  printf("addClasses2HW:SDGS[%d]:%s %s: 1st clas:%d\n", ips,
+    SDGS[ips].name, SDGS[ips].pname, SDGS[ips].firstclass);  
+};
+// put results from SDGS in HW.sdgs
+for(ip=0;ip<MNPART;ip++){ 
+  part= parray[ip];
+  if(part == NULL) continue;
+  for(pclass=0; pclass<NCLASS; pclass++) { // all classes
+    klas=part->klas[pclass];
+    if(klas == NULL) continue;
+    if(klas->sdg != -1) {
+      int hwclass;
+      hwclass= klas->hwclass;  // 0..49/99
+      HW.sdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;
+      printf("addClasses2HW:hwclass0..49/99:sdgs[%d]:%d\n", 
+        hwclass, HW.sdgs[hwclass]);
+    };
+  };
+};
 ERRRET:
 return(rcode);
 }
@@ -1258,6 +1339,13 @@ Tpartition *getPartitions(char *name, Tpartition *parray[]){
   }
  }
  return NULL;
+}
+/*------------------------*/ int getPartitionsN(Tpartition *parray[]){
+int i, rc=0;
+for(i=0;i<MNPART;i++){
+  if(parray[i]) rc++; 
+};
+return rc;
 }
 /*------------------------------------------------deletePartitions()
   Purpose: remove partition from both lists: AllPartitions[] StartedPartitions[]
@@ -1378,10 +1466,18 @@ int addStartedPartitions(Tpartition *part) {
 // called like: hwcontrol (i.e. used for CTP control (not partition config))
 struct daqbusys {
   w32 activebusys; // valid (i.e. in BUSY_DAQBUSY) outside of 'GLOBAL BUSY'
+                   // clusters mask 1:cluster is paused
+                   // MUST always be set according to paused_dets/_dts
   int global;      // 1: global busy ON. activebusys keeps info about
                    // active busys), BUSY_DAQBUSY is set to 0x3f
                    // 0: global busy OFF. activebusys is copy of BUSY_DAQBUSY
-} DAQBUSY={0,0};   // Initialised in ctp_Initproxy
+                   // Used only: Start/Stop part 
+  int paused_dets; // detectors in PAUSED state for all parts
+  int paused_dts;  // detectors in short PAUSED state (during SYNC) -MUST NOT
+                   // overlap with paused_dets
+  int clust_dts;   // clusters in short PAUSED state (during SYNC) -MUST NOT
+                   // overlap with activebusys
+} DAQBUSY={0,0,0,0,0};   // Initialised in ctp_Initproxy
 
 //--------------------------------------------------------setALLDAQBusy()
 void setALLDAQBusy(){
@@ -1390,7 +1486,7 @@ void setALLDAQBusy(){
  } else {
    cshmSetGlobFlag(FLGignoreGCALIB);
    DAQBUSY.activebusys=vmer32(BUSY_DAQBUSY)&0x3f;
-   vmew32(BUSY_DAQBUSY,0x3f); usleep(100);  //the must (L2 pipeline flush)
+   vmew32(BUSY_DAQBUSY,0x3f); usleep(110);  //the must (L2 pipeline flush)
    DAQBUSY.global=1;
    if(DBGbusy) printf("setALLDAQBusy: old BUSY_DAQBUSY:0x%x \n",DAQBUSY.activebusys);
  };
@@ -1400,48 +1496,149 @@ void unsetALLDAQBusy(){
  if(DAQBUSY.global!=1) {
    intError("unsetALLDAQBusy: setALLDAQBusy was not called before. No action taken");
  } else {
-   cshmClearGlobFlag(FLGignoreGCALIB);
    vmew32(BUSY_DAQBUSY,DAQBUSY.activebusys);
+   cshmClearGlobFlag(FLGignoreGCALIB);   // enable calibration
    DAQBUSY.global=0;
    if(DBGbusy) printf("unsetALLDAQBusy: old BUSY_DAQBUSY:0x%x \n",DAQBUSY.activebusys);
  };
 }
 //--------------------------------------------------------setPartDAQBusy()
-// Set partition daq busy after alldaq busy
-int setPartDAQBusy(Tpartition *part) {
+/* Set partition daq busy after alldaq busy. 
+detectors: 
+- only clusters, detectors are included in, to be paused 
+  (bit pattern already checked for correctness, i.e. not checked here)
+- 0: pause all clusters of part
+ -1: detto, + store info about 'fast' paused_dts/clust_dts
+Note:
+*/
+int setPartDAQBusy(Tpartition *part, int detectors) {
 w32 newbusy, clustbusy;
-clustbusy=getBusyMaskPartition(part);
+/* we do not need bakery-lock yet, clustbusy returned in following line
+   is 'static' -i.e. always the same, depends only on part. config */
  if(DAQBUSY.global==1) {
    intError("setPartDAQBusy: called when GLOBAL busy ON. No acion taken");
  } else {
-   newbusy=clustbusy+DAQBUSY.activebusys;
-   vmew32(BUSY_DAQBUSY,newbusy);
+   int p_detectors; 
+   //bakery_lock
+   if(detectors==0) {
+     clustbusy=getBusyMaskPartition(part, 0);
+     p_detectors= getPartDetectors(part);
+   } else if(detectors==-1) {
+     int d_dts; w32 c_dts;
+     clustbusy=getBusyMaskPartition(part, 0);
+     p_detectors= getPartDetectors(part);
+     d_dts= p_detectors &  DAQBUSY.paused_dets;
+     if(d_dts!= p_detectors) {  
+       // some dets still need to be paused
+       if(DAQBUSY.paused_dts!=0) {
+         prtError("setPartDAQBusy:DAQBUSY.paused_dts should be 0");
+       };
+       DAQBUSY.paused_dts= (~d_dts) & p_detectors;   // 1: these need to be paused/released
+     };
+     c_dts= clustbusy &  DAQBUSY.activebusys;
+     if(c_dts!= clustbusy) {  
+       DAQBUSY.clust_dts= (~c_dts) & clustbusy;   // 1: these need to be released
+     };
+     if(DBGbusy) {printf("setPartDAQBusy:paused_dts/clust_dts:0x%x 0x%x\n",
+       DAQBUSY.paused_dts,DAQBUSY.clust_dts); 
+     };
+   } else {
+     clustbusy=getBusyMaskPartition(part, detectors);
+     p_detectors= detectors;
+   };
+   newbusy=clustbusy | DAQBUSY.activebusys;
+   vmew32(BUSY_DAQBUSY,newbusy); usleep(110);  //the must (L2 pipeline flush)
    DAQBUSY.activebusys=newbusy;
-   if(DBGbusy) printf("setPartDAQBusy: BUSY_DAQBUSY=0x%x \n",newbusy); 
+   DAQBUSY.paused_dets= DAQBUSY.paused_dets | p_detectors;
+   //bakery_unlock
+   if(DBGbusy) printf("setPartDAQBusy: clustbusy:0x%x BUSY_DAQBUSY=0x%x \n",clustbusy,newbusy); 
  };
  return 0;
 }
 //-------------------------------------------------------------unsetPartDAQBusy()
-int unsetPartDAQBusy(Tpartition *part){
+/*
+detectors: 
+- make ready all clusters but clusters containing detectors 
+- == 0: enable all clusters(i.e. all detectors) of part
+  ==-1: release only those marked '1' in DAQBUSY.paused_dts/clust_dts
+  =! 0: detectors defines the clusters to be left 'paused'
+
+operation:
+ALL= DAQBUSY.activebusys   -all clusters paused
+     DAQBUSY.paused_dets   -all detectors paused
+1. find clustpatt for 'release all detectors in partition' case (DPap)
+        detpatt                                                 (DPap_dets)
+2. find clustpatt for 'leave detectors paused' case (clust)
+        detpatt                                     (pdets=detectors 
+                                                          =DPap_dets if 0)
+3. new set of busy clusters: ALL & (~DPap) | ((~clust) & DPap)
+                             outside         inside partition
+              paused_dets:   paused_dets | ( ~DPap_dets | pdets)
+   i.e.
+   ~DPap:  '0' for all part. clusters, i.e. we want to make them active at SOR
+   clust:  '1' for all part. clusters
+   ~DPap & clust:   '0': go active  '1': stay off 
+   ALL & ~DPap  :  other ctp clusters, not in part (0:active 1:off)
+   ~clust & DPap: in clusters mask to be paused (0:active, 1:off)
+rc: always 0
+*/
+int unsetPartDAQBusy(Tpartition *part, int detectors){
 w32 clust;
-clust=getBusyMaskPartition(part);
- if(DAQBUSY.global==1) {
-   if(part-> remseconds != -1) {
-     if(part->cshmpart->paused==0) {
-       intError("unsetPartDAQBusy: called when GLOBAL busy ON. No acion taken");
-     } else {
-       prtError("unsetPartDAQBusy: called when GLOBAL busy ON,paused partition. No acion taken");
-     };
-   };
-   DAQBUSY.activebusys= DAQBUSY.activebusys & (~clust); 
-   if(DBGmask)printf("unsetPartDAQBusy: called when GLOBAL busy ON. Daqbusy.activebusys:%x\n",DAQBUSY.activebusys);
- } else {
-   clust = DAQBUSY.activebusys & (~clust); 
-   vmew32(BUSY_DAQBUSY,clust);
-   DAQBUSY.activebusys= clust;
-   if(DBGbusy) printf("unsetPartDAQBusy BUSY_DAQBUSY=0x%x \n",clust); 
- };
- return 0;
+if(part==NULL) {
+  prtWarning("unsetPartDAQBusy: NULL partition..."); return(0);
+};
+if(DAQBUSY.global==1) {
+  w32 dbab;
+  clust=getBusyMaskPartition(part,detectors);
+  if(part-> remseconds != -1) {
+    if(part->cshmpart->paused==0) {
+      intError("unsetPartDAQBusy: called when GLOBAL busy ON. No acion taken");
+    } else {
+      prtError("unsetPartDAQBusy: called when GLOBAL busy ON,paused partition. No acion taken");
+    };
+  };
+  dbab= DAQBUSY.activebusys;
+  DAQBUSY.activebusys= DAQBUSY.activebusys & (~clust); 
+  if(DBGmask) {
+    printf("unsetPartDAQBusy: called when GLOBAL busy ON. Daqbusy.activebusys:0x%x and ~0x%x = 0x%x\n",
+      dbab, clust, DAQBUSY.activebusys);
+  };
+} else {
+  w32 dbab, newdbab, DPap; int origdets, DPap_dets, pdets;
+  clust=getBusyMaskPartition(part,detectors);
+  DPap= getBusyMaskPartition(part,0);   // part clusters (1:in 0:out)
+  DPap_dets= getPartDetectors(part);
+  //bakery_lock
+  if(detectors==0) {
+    pdets= DPap_dets;   // 1: for those to be released (made active)
+    // clust -the same for clusters
+  } else if(detectors==-1) {
+    pdets= DAQBUSY.paused_dts;
+    clust= (DAQBUSY.clust_dts) & DPap;
+    DAQBUSY.paused_dts=0; DAQBUSY.clust_dts=0;
+  } else {
+    pdets= (~detectors) & DPap_dets;
+    // now clust: 1: for those to be left busy
+    clust= (~clust) & DPap;
+    // now clust: 1: for those to be released
+  };
+  dbab= DAQBUSY.activebusys;
+  newdbab= (DAQBUSY.activebusys & (~DPap)) | ((~clust) & DPap);
+  //       outsiders                         insiders
+  //old clust = DAQBUSY.activebusys & (~clust); 
+  //old vmew32(BUSY_DAQBUSY,clust); DAQBUSY.activebusys= clust;
+  vmew32(BUSY_DAQBUSY,newdbab); DAQBUSY.activebusys= newdbab;
+  origdets= DAQBUSY.paused_dets;
+  DAQBUSY.paused_dets= (DAQBUSY.paused_dets & (~DPap_dets)) | ((~pdets) & DPap_dets);
+  //bakery_unlock
+  if(DBGbusy) {
+    printf("unsetPartDAQBusy clsts _dts:0x%x org/all/leavebusy:0x%x 0x%x 0x%x ->0x%x\n",
+      DAQBUSY.clust_dts, dbab, DPap, clust, newdbab); 
+    printf("unsetPartDAQBusy  dets _dts:0x%x org/all/leavebusy:0x%x 0x%x 0x%x ->0x%x\n",
+      DAQBUSY.paused_dts, origdets, DPap_dets, pdets, DAQBUSY.paused_dets); 
+  };
+};
+return 0;
 }
 /*------------------------------------------------ readLTUcntsInCraDIM()
 read LTU counters if they ar in the same crate (to be thrown away
@@ -1603,23 +1800,24 @@ if(xse2=='P') {
     //sprintf(msg,"%s %12s %10d %10d\n", msg, validLTUs[idet].name, validLTUs[idet].ctpl2stro, validLTUs[idet].ltul2a);
     sprintf(msg,"%s %12s %10u %10u %10u \n", msg, validLTUs[idet].name, 
       cl0, cl1, cl2);
-    if( (cl0 < cl1) || (cl1 > cl2) ) {
+    if( (cl0 < cl1) || (cl1 < cl2) ) {   // was cla>cl2 till 20.1.2015
       sprintf(msgmism, "%s %s", msgmism, validLTUs[idet].name);
     };
   };
-  infolog_trg(LOG_INFO, msg);
+  infolog_trgboth(LOG_INFO, msg);
   if( msgmism[0]!='\0') {
     sprintf(msg, "L0/L1/L2 mismatch for %s", msgmism);
-    infolog_trg(LOG_ERROR, msg);
+    infolog_trgboth(LOG_ERROR, msg);
   };
 };
 }
 /*------------------------------------------------ generateXOD()
-  Purpose: to generate SOD/EOD
+  Purpose: to generate SOD/EOD/SYNC
   Parameters: input: part
-                     x = 'S' for SOD, 'E' for EOD
-                         'Y' for SYNC
-  Globals: VME
+                     x = 'S' for SOD, 'E' for EOD 'Y' for SYNC
+  Partition's clusters/detectors are assumed to be paused (do not
+  have to, but with high physics rate, it can happen sw. trigger won't go through).
+
   Return: 0 if succes, errorReason not touched
           1 if fails, errorReason filled
   Comment: 
@@ -1629,7 +1827,7 @@ if(xse2=='P') {
   Calls: GenSwtrg()
   Called by: ctp_Start/Stop/Sync Partition();
 */
-int generateXOD(Tpartition *part,char x, char *errorReason){
+int generateXOD(Tpartition *part,char x, char *errorReason, w32 *orbitn){
 int i,ifo, idet, iattempt, iconnector, ret=0;
 w32 xod,detectors=0;
 w32 busyclusterT;
@@ -1696,25 +1894,24 @@ char emsg[ERRMSGL];
  }
  //software trigger with default setings
 #define MAX_XOD_ATTEMPTS 2
- iattempt=0;/*
- if(x=='E') {
+iattempt=0;/*
+if(x=='E') {
    setomSSM(5,0x202);   //26 ms, FO L2 monitor mode
    startSSM1(5);
- };*/
- /* SYN: because we want to have it in the middle of the orbit to set
+};*/
+/* SYN: because we want to have it in the middle of the orbit to set
  correctly orbit counter on INT board (synchronisation with L2) 
  The waiting time for 'SOD/EOD success' should match the waiting
  time in STD_ALONE mode -see ltu_proxy/ltu_utils.c sodeod().   
- */
+*/
 if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
-
 #ifndef TEST   
- while((GenSwtrg(1,'s', xod, 1750, detectors, 0) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
+ while((GenSwtrg(1,'s', xod, 1750, detectors, 0, orbitn) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
    iattempt++;
    usleep(100000);
  };
 #else
-  prtLog("generateXOD; TEST mode: no attempt to generate.");
+ prtLog("generateXOD; TEST mode: no attempt to generate.");
 #endif
  if(iattempt>=MAX_XOD_ATTEMPTS){
    w32 deadbusys;
@@ -1785,70 +1982,41 @@ int generateXODSSM(char x){
  stopSSM(5);
  return ret;
 }*/
-/*----------------------------------------------------- xcounters */
-#define TAGstartcount 333
-#define TAGstopcount 334
-#define TAGprintruns 335
-#define TAGrcfgdo 336
-#define TAGrcfgdelete 337
-#define TAGctprestart 338
-#define TAGpcfg 339
-#define TAGstartcountforced 340
-#define TAGglobalcal 350
-int pydimok=0;
-void callback(void *tag, int *retcode){
- char command[100]; char emsg[300];
- //printf("callback: %li %i \n",*tag,*retcode);
- switch(*(int *)tag){
-   case(TAGstartcount):
-   case(TAGstartcountforced):
-        strcpy(command,"STARTRUNCOUNT");
-        break;
-   case(TAGstopcount):
-        strcpy(command,"STOPRUNCOUNT");
-        break;
-   case(TAGrcfgdo):
-        strcpy(command,"CTPRCFG/RCFG");
-        break;
-   case(TAGrcfgdelete):
-        strcpy(command,"CTPRCFG/RCFG delete");
-        break;
-   case(TAGctprestart):
-        strcpy(command,"CTPRCFG/RCFG delete(testifpydimON)");
-        break;
-   case(TAGpcfg):
-        strcpy(command,"CTPRCFG/RCFG pcfg");
-        break;
-   case(TAGglobalcal):
-        strcpy(command,"CTPCALIB/DO u");
-        break;
-   default:
-        printf("callback: Unknown tag %i \n",*(int *)tag);
-        return;
- }
- if(*retcode){
-   if(*(int *)tag!=TAGstartcountforced) {
-     sprintf(emsg, "timestamp:callback:%s successful.",command); 
-     prtLog(emsg);
-   };
-   if(*(int *)tag==TAGctprestart) pydimok=1;
- } else {
-   sprintf(emsg, "timestamp:callback:DIM command %s failed.",command); 
-   prtError(emsg);
- };
+/*----------------------------------------------------- resetclock */
+void resetclock() {
+int tag,rcdic;
+char msg[80], cmd[40], dimcom[40];
+tag=TAGrcfgdelete;
+sprintf(cmd,"resetclock\n");
+sprintf(msg,"timestamp:resetclock:"); prtLog(msg);
+strcpy(dimcom,"CTPRCFG/RCFG");
+rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 }
+/*----------------------------------------------------- gcalibUpdate */
 void gcalibUpdate() {
 //    res= pydim.dic_cmnd_service("CTPCALIB/DO", arg, "C")
 //dic_cmnd_service("CTPCALIB/DO", (void *)"u", 2);
 dic_cmnd_callback("CTPCALIB/DO", (void *)"u", 2,&callback,TAGglobalcal);
 };
+/*----------------------------------------------------- xcounters */
 void xcountersStart(w32 run, w32 clgroup) {
 char com[100],msg[254];
 int size; int tag; int runcg[2];
+//int xrc; char xpid[20]="";
 //                       printf("xcountersStart removed\n"); return;
+/* check xcountersdaq active:
+moved to DOrcfg in pydim (xcounters is running there)
+xrc= popenread((char *)"ps --no-headers -C xcountersdaq -o pid=", xpid, 20);
+if(xpid[0]=='\0') {
+  infolog_trgboth(LOG_FATAL, "xcounters problem, stop all global runs, call CTP expert");
+  quit=1;
+};*/
 if(run != 0) { // do not print log for 'forced counters reading'
- sprintf(msg,"Run %i: starting xcounters.",run); prtLog(msg);
- tag=TAGstartcount;
+  /*sprintf(msg,"Run %i: starting xcounters. clgroup:%d xpid:%s popen rc:%d",
+    run, clgroup, xpid, xrc);  */
+  sprintf(msg,"Run %i: starting xcounters. clgroup:%d", run, clgroup);
+  prtLog(msg);
+  tag=TAGstartcount;
 } else {
  tag=TAGstartcountforced;
 };
@@ -1886,124 +2054,6 @@ void xcountersStop(w32 run) {
  This client should invoke (after closing the xcounters file)
  dcsFES_putData.sh to register it on DCS FES */
 }
-/*
-Input:
-part: pointer to Tpartition
-      NULL: move  all .rcfg files in RCFG directory to delmeh/
-dodel: 
-1: prepare file. Called from:
-  - _LoadPartition(, 1)
-0: delete file   called from:
-  - _LoadPartition( ,0) -in case of error and if it was created
-  - _StartPartition( ,0) -in case of error 
-  - _StopPartition( ,0)
-rc: 0: ok .rcfg prepared, (confirmed from parted)
-       or all .rcfg files moved to delmeh/
-    1
-    2 -bad dodel
-*/
-int prepareRunConfig(Tpartition *part, int dodel) {
-/* 17.12.2007: just copy
-$VMECFDIR/CFG/ctp/pardefs/partname.pcfg ->
-$VMEWORKDIR/RCFG/rRUNNUMBER.rcfg
-*/
-int rc=0, icla, tag, rcdic; w32 ilog;
-char namemode[80];
-//char *environ; char runcfg[100];
-char cmd[400];
-char dimcom[40];
-char msg[500];
-if(part == NULL){ dodel=2;
- /*intError("prepareRunConfig: part=NULL");
- rc=1;return(rc);*/
-} else {
-  if(part->hwallocated != 0x3) {
-    char emsg[300];
-    sprintf(emsg, "hwallocated:%x (0x2 expected) for part:%s", 
-      part->hwallocated, part->name);
-    intError(emsg);
-    rc=1; return(rc);
-  };
-  if(part->partmode[0]!='\0') {
-    strcpy(namemode, part->partmode);
-  } else {
-    strcpy(namemode, part->name);
-  };
-};
-if(dodel==1) {
-  w32 int1lookup,int1def,int2lookup,int2def;
-  tag=TAGrcfgdo;
-  //printTpartition("prepareRunConfig1", part);
-  sprintf(cmd,"rcfg %s %d 0x%x", namemode, part->run_number,
-    part->MaskedDetectors);
-  for(ilog=0;ilog<NCLUST;ilog++){
-    int hwclu, ihw;
-    hwclu=0;
-    for(ihw=0;ihw<NCLUST;ihw++){
-      if(part->ClusterTable[ihw]==0) continue;
-      if(part->ClusterTable[ihw]==(ilog+1)) {hwclu=ihw+1; break;};
-    };
-    printf("%i -> %i hwclu:%d,",ilog,part->ClusterTable[ilog], hwclu);
-    sprintf(cmd, "%s %d", cmd, hwclu);
-  }; printf("\n");
-  for(icla=0;icla<NCLASS;icla++){
-    TKlas *klas;
-    klas=part->klas[icla];
-    if(klas!=NULL) {
-      printTKlas(klas,icla);
-      sprintf(cmd,"%s %d", cmd, klas->hwclass+1);
-    } else {
-      sprintf(cmd,"%s 0", cmd);
-    };
-  };
-  // int1lookup int1def int2lookup int2def
-  //int2lookupdef bug
-  int1lookup= vmer32(L0_INTERACT1);
-  int2lookup= vmer32(L0_INTERACT2);
-  int2def= vmer32(L0_INTERACTSEL);
-  int1def= int2def & 0x1f; int2def= int2def >> 5;
-  sprintf(cmd, "%s 0x%x 0x%x 0x%x 0x%x", cmd, int1lookup, int1def, int2lookup, int2def);
-  strcat(cmd,"\n");
-  //printf("prepareRunConfig:%s \n",cmd);
-} else if(dodel==0) {
-  tag=TAGrcfgdelete;
-  sprintf(cmd,"rcfgdel %s %d\n", namemode, part->run_number);
-} else if(dodel==2) {
-  tag=TAGrcfgdelete;
-  sprintf(cmd,"rcfgdel ALL 0\n");
-} else {
-  char emsg[300];
-  sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
-  intError(emsg);
-  rc=2; return(rc);
-};
-sprintf(msg,"timestamp:prepareRunConfig1: %s", cmd); prtLog(msg);
-strcpy(dimcom,"CTPRCFG/RCFG");
-//dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, tag);
-rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
-sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
-return(rc);
-}
-
-/*------------------------------------------------ preparepcfg()
-*/
-void preparepcfg(char *partname, int runnumber, char *ACT_CONFIG) {
-int rcdic;
-char cmd[400];
-char dimcom[40];
-char msg[500];
-if(strcmp(ACT_CONFIG,"NO")==0) {
-  sprintf(cmd,"Ncfg %s %d\n", partname, runnumber);
-} else {
-  sprintf(cmd,"pcfg %s %d\n", partname, runnumber);
-};
-sprintf(msg,"timestamp:pcfg1: %s", cmd); prtLog(msg);
-strcpy(dimcom,"CTPRCFG/RCFG");
-//dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, &callback, TAGpcfg);
-rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
-sprintf(msg,"timestamp:pcfg1:rc %d", rcdic); prtLog(msg);
-return;
-}
 
 /*int registerRunConfig(w32 run) {
 // Offline tag: CTP_runconfig
@@ -2031,18 +2081,23 @@ return(rc);
 //--------------------------------------------------------------------
 // Initialise
 //w8 *mallocShared(w32 shmkey, int size, int *segid);
+extern char TRD_TECH[];   // partition name in case it is TRD technical partition
 int ctp_Initproxy(){
 int sp,rc; char *environ;
 char msg[300], cmd[100], dimcom[40], alipath[120];
 #define MAXALIGNMENTLEN 4000
 char alignment[MAXALIGNMENTLEN];
+TRD_TECH[0]='\0';
 rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
 };
-printf("ctp_proxy ver: 24.11.2011\n");
+printf("ctp_proxy ver: 10.02.2013\n");
+xcountersStop(0);           // clear list of active runs
+SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
-readTables(); // enough only in ctp_proxy
+cshmClear();
+readTables(); // onlly in ctp_proxy and pydim/server.c
 if(initHW(&HWold)) return 1; // initialise and clean HWold structure
 if(initHW(&HW)) return 1;   // initialise and clean HW structure
 initCTP();    /* has to be after initHW(&HW). Init system pars in CTP boards + INT* in HW */
@@ -2065,10 +2120,12 @@ if(alignment=='\0') {
  load2HW(&HW, "");
  /* initialise hardware ('not configurable' part i.e.: busy, TC_CLEAR):
  */
- DAQBUSY.global=0;  
- DAQBUSY.activebusys=0; vmew32(BUSY_DAQBUSY, DAQBUSY.activebusys);
- clearflags();
- printf("ctp_Initproxy: cleaning CTP hw (all classes \
+DAQBUSY.global=0; DAQBUSY.paused_dets=0xffffff;
+DAQBUSY.paused_dts=0; DAQBUSY.clust_dts=0;  // 'fast' pause for SYNC
+DAQBUSY.activebusys=0x3f; 
+vmew32(BUSY_DAQBUSY, DAQBUSY.activebusys);  // was 0x0 before LS1!
+clearflags();
+printf("ctp_Initproxy: cleaning CTP hw (all classes \
 disabled, all BUSYs cleaned, swtrg flags cleaned.\n");
 
 /* check DIM server is running: */
@@ -2082,7 +2139,6 @@ strcpy(dimcom,"CTPRCFG/RCFG");
 rc= dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, callback, TAGctprestart);
 printf("rc from \"CTPRCFG/RCFG rcfgdel ignore/useDAQLOGBOOK\":%d (1 is OK,but check callback)\n", rc);
 usleep(1000000);
-xcountersStop(0);           // clear list of active runs
 prepareRunConfig(NULL,2);  // mv all lurking .rcfg to delmeh/
 usleep(1000000);
 if(pydimok==1) {rc=0; } else {rc=1;};
@@ -2112,21 +2168,41 @@ return(rc+rc1);
 /*---------------------------------------------ctp_PausePartition()
  * Standard Pause
 */
-int ctp_PausePartition(char *name){
- Tpartition *part;
- infolog_SetStream(name,-1);
- part=getPartitions(name, StartedPartitions);   //only Started can be paused
- if(part == NULL) return 1;
- infolog_SetStream(name, part->run_number);
- cshmPausePartition(part);
- setPartDAQBusy(part);
- if(part->nclassgroups  > 0 ) {
-   part->remseconds= stopTimer(part, 255);   // TS group 255 after reading
- };
- usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');
- //printf("\n ctp_PausePartition: SUCCES \n");
- infolog_SetStream("", 0);
- return 0;
+int ctp_PausePartition(char *name, int detectors){
+Tpartition *part; int ix, rc=0;
+infolog_SetStream(name,-1);
+part=getPartitions(name, StartedPartitions);   //only Started can be paused
+if(part == NULL) { rc=1; goto ERR; };
+infolog_SetStream(name, part->run_number);
+for(ix=0; ix<NDETEC; ix++) {   // let's check first
+  if((detectors & (1<<ix))==0) continue;
+  if(part->Detector2Clust[ix]==0) {   // if belongs to this partition
+    Tdetector *ltup; char emsg[300];
+    ltup= findLTUdaqdet(ix);
+    sprintf(emsg,"attempt to pause the detector %s not included in %s",
+      ltup->name,name);
+    infolog_trgboth(LOG_ERROR, emsg);
+    rc=2; goto ERR;
+  };
+  if((DAQBUSY.paused_dets & (1<<ix))==1) {   // if paused already
+    Tdetector *ltup; char emsg[300];
+    ltup= findLTUdaqdet(ix);
+    sprintf(emsg,"pausing the detector %s already paused in partition %s",
+      ltup->name,name);
+    infolog_trgboth(LOG_WARNING, emsg);
+  };
+};
+//paused_dets= DAQBUSY.paused_dets | detectors; <-done in setPartDAQBusy
+cshmPausePartition(part);   // just flag 'paused' (no info about clusters)
+setPartDAQBusy(part, detectors);
+if(part->nclassgroups  > 0 ) {
+  part->remseconds= stopTimer(part, 255);   // TS group 255 after reading
+};
+usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');
+//printf("\n ctp_PausePartition: SUCCES \n");
+ERR:
+infolog_SetStream("", 0);
+return(rc);
 }
 /*----------------------------------------------------------------
  Pause when in FO outgen mode
@@ -2137,28 +2213,36 @@ int ctp_PausePartition(char *name,char *mask){
 }
 */
 /*---------------------------------------------ctp_SyncPartition()
- * sync
+before LS1: allowed only when whole partition paused
+after LS1: allowed at any time for all detectors (paused/unpaused) of partition
 */
-int ctp_SyncPartition(char *name) {
-Tpartition *part; int rc=0;
+int ctp_SyncPartition(char *name, char *errorReason, w32 *orbitn) {
+Tpartition *part; int rc=0; int src;
 char emsg[300];
 infolog_SetStream(name,-1);
-part=getPartitions(name, StartedPartitions);   //only Started can be paused
+part=getPartitions(name, StartedPartitions);   //only Started can be synced
 if(part == NULL) return 1;
 infolog_SetStream(name, part->run_number);
-if(cshmQueryPartition(part)!=1) {
-  sprintf(emsg,"SYNC not sent (partition is not PAUSED)");
+/* von if(cshmQueryPartition(part)!=1) {
+  sprintf(emsg,"SYNC not sent (partition not PAUSED)");
   infolog_trgboth(LOG_ERROR, emsg);
-  rc=2;
-} else {
-  if(generateXOD(part,'Y', emsg )==0) {
-    sprintf(emsg,"SYNC sent."); 
+  strncpy(errorReason, emsg,ERRMSGL); rc=2;
+} else {   */
+//bakery lock  -should be combined with detectors== -1 (i.e. not done in setPartDAQbusy, but here)
+setPartDAQBusy(part, -1);
+src=generateXOD(part,'Y', errorReason, orbitn);
+unsetPartDAQBusy(part, -1);
+//bakery unlock
+  if(src==0) {
+    //src= generateXOD(part,'S', emsg ); bug -was here till 11.7.2012 !!!
+    sprintf(emsg,"SYNC sent, orbitn:%u.", *orbitn); 
     infolog_trgboth(LOG_INFO, emsg);
   } else {
+    sprintf(emsg,"SYNC not sent. generateXOD() rc:%d orbitn:%u", src, *orbitn); 
     infolog_trgboth(LOG_ERROR, emsg);
     rc=3;
   };
-};
+//};
 //usleep(200); // temporary: from 24.11.2011 15:15 readALLcnts(part, 'P');
 //printf("\n ctp_PausePartition: SUCCES \n");
 infolog_SetStream("", 0);
@@ -2167,20 +2251,40 @@ return(rc);
 /*---------------------------------------------ctp_ResumePartition()
  * Standard resume
 */
-int ctp_ResumePartition(char *name){
- Tpartition *part;
- infolog_SetStream(name, -1);
- part=getPartitions(name, StartedPartitions);
- if(part == NULL) return 1;
- infolog_SetStream(name, part->run_number);
- if(part->nclassgroups  > 0 ) {
-   startTimer(part, part->remseconds, part->active_cg); part->remseconds=-1;
- };
- unsetPartDAQBusy(part); 
- cshmResumePartition(part); gcalibUpdate();
- //printf("\n ctp_ResumePartition: SUCCES \n");
- infolog_SetStream("", 0);
- return 0;
+int ctp_ResumePartition(char *name, int detectors){
+Tpartition *part; int ix,rc=0;
+infolog_SetStream(name, -1);
+part=getPartitions(name, StartedPartitions);
+if(part == NULL) { rc=1; goto ERR; };
+infolog_SetStream(name, part->run_number);
+for(ix=0; ix<NDETEC; ix++) {   // let's check first
+  if((detectors & (1<<ix))==0) continue;
+  if(part->Detector2Clust[ix]==0) {   // if belongs to this partition
+    Tdetector *ltup; char emsg[300];
+    ltup= findLTUdaqdet(ix);
+    sprintf(emsg,"attempt to leave detector %s paused not included in %s",
+      ltup->name,name);
+    infolog_trgboth(LOG_ERROR, emsg);
+    rc=2; goto ERR;
+  };
+  if((DAQBUSY.paused_dets & (1<<ix))==0) {   // if paused already
+    Tdetector *ltup; char emsg[300];
+    ltup= findLTUdaqdet(ix);
+    sprintf(emsg,"attempt to leave active detector %s paused. Partition: %s",
+      ltup->name,name);
+    infolog_trgboth(LOG_ERROR, emsg);
+    rc=3; goto ERR;
+  };
+};
+if(part->nclassgroups  > 0 ) {
+  startTimer(part, part->remseconds, part->active_cg); part->remseconds=-1;
+};
+unsetPartDAQBusy(part, detectors); 
+cshmResumePartition(part); gcalibUpdate();
+//printf("\n ctp_ResumePartition: SUCCES \n");
+ERR:
+infolog_SetStream("", 0);
+return(rc);
 }
 /*------------------------------------------------ctp_StopPartition()
 Stop the trigger.
@@ -2193,7 +2297,7 @@ rc: 0: OK, EOD generated, partition unloded
 */
 int ctp_StopPartition(char *name){
  int ret, rc=0;
- w32 run_number;
+ w32 run_number, orbitn;
  Tpartition *part, *tspart;
  char tsname[MAXNAMELENGTH]="";
  char emsg[ERRMSGL]="";
@@ -2208,7 +2312,7 @@ int ctp_StopPartition(char *name){
      infolog_SetStream(name, part->run_number);
      prepareRunConfig(part,0);
    };
-   ret= deletePartitions(part);
+   ret= deletePartitions(part); part=NULL;
    if(ret != 1){
      sprintf(emsg,"deletePartition %s inconsitent: %d",name,ret);
      goto RETSTOP_badsyntax; //nothing to do,partition never existed
@@ -2222,8 +2326,9 @@ int ctp_StopPartition(char *name){
  };
  // started partition: delete in All/Started + reload HW
  run_number= part->run_number;
- setALLDAQBusy();
- usleep(100);   /* to be sure CTP is quiet when reading counters at the EOR */
+setPartDAQBusy(part, 0);   //von setALLDAQBusy();  
+usleep(150);   /* 100-> 150 4.9.2012  L2time is 105.2us */
+                /* to be sure CTP is quiet when reading counters at the EOR */
  xcountersStop(run_number);
  if(part->nclassgroups  > 0 ) {
    ret= stopTimer(part,0xfffffffe);  // do not read counters
@@ -2232,14 +2337,20 @@ int ctp_StopPartition(char *name){
 usleep(1000000);  /* asked by DAQ -see mail/daq from 12.12.2009 */
 cshmDelPartition(part->name);
 // xcountersStop(run_number);   moved up
-unsetPartDAQBusy(part);    // in case it was 'paused'
-if(generateXOD(part,'E', emsg )) {
+//von unsetPartDAQBusy(part, 0);    // in case it was 'paused'
+if(generateXOD(part,'E', emsg, &orbitn )) {
   infolog_trgboth(LOG_INFO, emsg);
   sprintf(emsg,"EOD failure for partition %s.",name); 
   printf("%s\n",emsg); emsg[0]='\0';
   //goto RETSTOPunset;  anyhow, we have to relese hw
 };
 prepareRunConfig(part,0);
+if(strcmp(part->name, TRD_TECH)==0) {
+  // disconnect RNT1
+  vmew32(RND1_EN_FOR_INPUTS, 0);
+  vmew32(RND1_EN_FOR_INPUTS+4, 0);
+  prtLog("RND1_EN_FOR_INPUTS cleared");
+};
 ret=deletePartitions(part); tspart= checkTS();
 if(tspart!=NULL) {
   strcpy(tsname, tspart->name);
@@ -2262,7 +2373,7 @@ if(tspart!=NULL) {
  };
  //registerRunConfig(run_number);
 //RETSTOPunset:
- unsetALLDAQBusy();
+//von unsetALLDAQBusy();
  //printf("\n ctp_StopPartition: SUCCES \n");
 RETSTOP_badsyntax:
 if(emsg[0]!='\0') printf("%s\n",emsg);
@@ -2279,7 +2390,34 @@ if(quit==1) {
 infolog_SetStream("",0);
 return rc;
 }
+#define MAXMSG 1000
 /*---------------------------------------------ctp_LoadPartition()
+*/
+int ctp_LoadPartition(char *name,char *mask, int run_number, 
+    char *ACT_CONFIG, char *errorReason) {
+int rc=0;
+Tpartition *part;
+char msg[MAXMSG];
+errorReason[0]='\0';
+part=getPartitions(name, AllPartitions); 
+if(part==NULL) { 
+  rc= ctp_InitPartition(name,mask,run_number,ACT_CONFIG, errorReason);
+} else {
+  infolog_SetStream(name,0);
+  part=getPartitions(name, StartedPartitions); 
+  if(part==NULL) { 
+    sprintf(msg, "%s already loaded (earlier by INIT_PARTITION)",name);
+    infolog_trgboth(LOG_INFO, msg); 
+  } else {
+    sprintf(msg, "Attempt to load %s, which is already started",name);
+    infolog_trgboth(LOG_ERROR, msg); 
+    strncpy(errorReason, msg,ERRMSGL); rc=5;
+  };
+  infolog_SetStream("",0);
+};
+return rc;
+}
+/*---------------------------------------------ctp_InitPartition()
 Timeout when loading partition is 20 seconds (including
 the switch of all LTUs global->stdalone).
 
@@ -2322,10 +2460,10 @@ rc: if !=0, errorReason set
 3: applyMask problem 
 4: addPartitions() problem
 */
-int ctp_LoadPartition(char *name,char *mask, int run_number, char *ACT_CONFIG, char *errorReason) {
+int ctp_InitPartition(char *name,char *mask, int run_number, 
+    char *ACT_CONFIG, char *errorReason) {
 int ret=0, rc=0;
 char name2[80];
-#define MAXMSG 1000
 char msg[MAXMSG];
 Tpartition *part;
 /* 
@@ -2333,10 +2471,13 @@ way of masking: mask is applied in memory directly
     after part. definition is read in
  */
 errorReason[0]='\0';
+if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
+  resetclock();
+}; 
 infolog_SetStream(name,0);
 part=getPartitions(name, AllPartitions); 
 if(part!=NULL) { 
-  sprintf(msg, "Attempt to load %s, which is already loaded or started",name);
+  sprintf(msg, "Attempt to Init %s, which is already loaded or started",name);
   infolog_trgboth(LOG_ERROR, msg); 
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RET2;
 };
@@ -2344,9 +2485,10 @@ infolog_SetStream(name, run_number);
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };
 sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);
+prtProfTime("get pcfg");
 preparepcfg(name2, run_number, ACT_CONFIG);
 sprintf(msg, "/tmp/%s.pcfg", name2);
-ret= detectfile(msg, 39);  // wait max. 19 (was 9) secs for file
+ret= detectfile(msg, 3);  // wait max. 3 (was 39 at the end of run1) secs for file
 sprintf(msg,"timestamp:pcfg2: name2:%s name:%s...", name2, name); prtLog(msg);
 if(ret<=0) {
   sprintf(msg, "Wrong partition definition (cannot create .pcfg file) ret:%d",ret);
@@ -2366,39 +2508,45 @@ if(msg[0]!='\0') {
   strncpy(errorReason, "partition definition incorrect",ERRMSGL); 
   rc=1; goto RET2;
 };
+prtProfTime("got pcfg");
 copyHardware(&HWold,&HW);   // HWold <- HW
 sprintf(msg,"timestamp:reading partition %s %d", name, run_number); prtLog(msg);
 
 part=readDatabase2Tpartition(name); 
 if(part == NULL) {  
-  strncpy(errorReason, "Cannot read partition definition file (.pcfg)", ERRMSGL); rc=2;goto RET2; };
+  strncpy(errorReason, "Cannot read partition definition file (.pcfg)", ERRMSGL); 
+  rc=2;goto RET2; };
 part->run_number= run_number;
- // convention mask="" - mask is not used: applymask creates mask
- //                      acoording to partition
- printTpartition("Before mask applied", part);
- if(applyMask(part, mask)) { 
-   strncpy(errorReason, "Are the readout detectors subset of detectors allowed in partition?", ERRMSGL);
-   rc=3; goto RET2; };
- if(DBGparts) { printTpartition("After mask applied", part); };
- sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
- if((ret=checkResources(part))) {
+// convention mask="" - mask is not used: applymask creates mask
+//                      acoording to partition
+printTpartition("Before mask applied", part);
+if(applyMask(part, mask)) { 
+  strncpy(errorReason, "Are the readout detectors a subset of detectors allowed in partition being started?", ERRMSGL);
+  rc=3; goto RET2; };
+if(DBGparts) { printTpartition("After mask applied", part); };
+sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
+if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
-   rc=ret; goto RET2; };
- // If resources available, continue and add part to Partitions[]
- // From now on, no checks necessary (all checks already done)
- if(addPartitions(part)) { 
-   strncpy(errorReason, "Cannot add partition", ERRMSGL);
-   rc=4; prtError("addPartitions eror."); goto RET2; };
- if(DBGparts) {
-   printf("Partitions after adding partition:%s\n",part->name);
-   printAllTp();
- };
+   rc=ret; ret=deletePartitions(part); part=NULL;
+   goto RET2; };
+//printTpartition("After checkResources", part);
+checkmodLM(part);   // not good idea (better: in START_PARTITION)
+// If resources available, continue and add part to Partitions[]
+// From now on, no checks necessary (all checks already done)
+if(addPartitions(part)) { 
+  strncpy(errorReason, "Cannot add partition", ERRMSGL);
+  rc=4; ret=deletePartitions(part); part=NULL;
+  prtError("addPartitions error."); goto RET2; };
+if(DBGparts) {
+  printf("Partitions after adding partition:%s\n",part->name);
+  printAllTp();
+};
 sprintf(msg,"timestamp:partition merged: %s %d", name, run_number); prtLog(msg);
 
 if((ret=addPartitions2HW(AllPartitions))){ //just check if enough resources
   printf("addPartitions2HW error: %i \n", ret);   
-  strncpy(errorReason, "Cannot load partition", ERRMSGL); rc=ret; 
-  ret=deletePartitions(part); 
+  strncpy(errorReason, "Cannot load partition", ERRMSGL);
+  rc=ret; ret=deletePartitions(part); part=NULL;
   copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
   goto RET2;
 };
@@ -2409,6 +2557,9 @@ if(DBGparts) {
 
 sprintf(msg,"timestamp:partition inHW: %s %d", name, run_number); prtLog(msg);
 //we already know HW configuration (allocation of physics resources):
+rc= getDAQClusterInfo(part, &daqi);
+daqi.daqonoff= vmer32(INT_DDL_EMU) &0xf;
+prtProfTime("get rcfg");
 prepareRunConfig(part,1); 
 //has to be here (2 secs for pydimserver to prepare .rcfg file
 // 27.1.2012: following usleep commented:
@@ -2419,13 +2570,13 @@ sprintf(msg, "timestamp:rc:%d from updateDAQClusters()\n", rc); prtLog(msg);
 if(rc!=0) {
  strncpy(errorReason, "updateDAQClusters() problem", ERRMSGL);
  prepareRunConfig(part,0);
- ret=deletePartitions(part); 
+ ret=deletePartitions(part); part=NULL;
 };
-//printHardware(&HW,"ctp_LoadPartition");
+//printHardware(&HW,"ctp_InitPartition");
 copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
 RET2:
 infolog_SetStream("",0);
-sprintf(msg, "timestamp:ctp_LoadPartition finished %s %d", name, run_number);
+sprintf(msg, "timestamp:ctp_InitPartition finished %s %d", name, run_number);
 prtLog(msg);
 return rc;
 }
@@ -2438,7 +2589,7 @@ Return : 0 ok
          5 CTP readout enabled, but DDL link not ready
 */
 int ctp_StartPartition(char *name, char *errorReason) {
-int ret,rc=0, clgroup; w32 intddlemu;
+int ret,rc=0, clgroup; w32 intddlemu, orbitn;
 Tpartition *part, *tspart;
 char tsname[MAXNAMELENGTH]="";
 char emsg[ERRMSGL];
@@ -2470,11 +2621,21 @@ addPartitions2HW(StartedPartitions);
 /* todo: it is sufficient to call setALLDAQBusy just before load2HW()
    i.e. generateXOD() can be called 'on the fly'
 */
-setALLDAQBusy(); 
+//von setALLDAQBusy(); 
 clearflags();
 intddlemu= vmer32(INT_DDL_EMU);
 if((intddlemu&0xf)==0) {   //check DDL if DAQ is active
   if((intddlemu&0x70)!=0x30) {
+/* note 17.11.2014:
+when switch off/on the crate, or disconnect/connect DDL,
+fiBEN bit (0x10) goes to 0 and cannot be set to 1 from our side
+by enabling DAQ readout. It gets set only when CTP server at other
+side of DDL is restarted (tested today with Sylvain in lab).
+Fix: 
+CTPserver will go down automatically when DDL is not ready
+(Sylavain is going to modify it this way). When ctp reconnects DDL,
+CTPserver needs to be restarted, which set fiBEN bit ON
+*/
     char msg[200];
     sprintf(msg,"Run %d: CTP DDL link full or in bad state before sending SOD.\
  INT_DDL_EMU:0x%x expected: 0x30",
@@ -2482,11 +2643,12 @@ if((intddlemu&0xf)==0) {   //check DDL if DAQ is active
     infolog_trgboth(LOG_FATAL, msg);
     //von prtLog(msg);
     strncpy(errorReason, msg, ERRMSGL);
-    rc= 5; goto UNSETRET;
+    rc= 5; goto UNSETRETddl;
   };  
 };
+setPartDAQBusy(part, 0);   // added 13.2 2015  (seems we did not pause at start!)
 usleep(200);   // be sure, CTP is quiet when reading counters at SOR
-if(generateXOD(part,'S', errorReason)) {
+if(generateXOD(part,'S', errorReason, &orbitn)) {
   // SOD was not delivered (busy)
   //infolog_trgboth(LOG_ERROR, "SOD not sent (busy)");
   rc= 3; goto UNSETRET;
@@ -2515,18 +2677,27 @@ if(clgroup > 0) {
   clgroup= 0xffffffff; // if this part not using TS, do not update shm
 };
 xcountersStart(part->run_number, clgroup);
-UNSETRETadb: 
-unsetALLDAQBusy();
+//UNSETRETadb: 
+unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
 gcalibUpdate();
 //printf("\n ctp_StartPartitions: SUCCESS \n");
 RET:
 infolog_SetStream("",0);
 return rc;
+UNSETRETddl:
+  prepareRunConfig(part,0);
+  copyHardware(&HW,&HWold);
+  ret= deletePartitions(part);part=NULL;
+  /*goto UNSETRETadb;
+  no gcalib/busys -they were not updated anyhow (UNSETRET) */
+  goto RET;
 UNSETRET:
   prepareRunConfig(part,0);
-  ret= deletePartitions(part);
   copyHardware(&HW,&HWold);
-  goto UNSETRETadb;
+  unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
+  ret= deletePartitions(part); part=NULL;
+  gcalibUpdate();
+  goto RET;  //UNSETRETadb;
 }
 
 

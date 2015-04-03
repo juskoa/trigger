@@ -1,22 +1,39 @@
 include $(VMEBDIR)/com_defs.make
-
 include $(VMEBDIR)/sc.make
 
 CFLAGS += -I$(DIMinc) -I$(VMEBinc)
 LIBS = $(DIMLD) $(VMEBLD)
 
-ifdef SERVER_LINK
-allEXES=$(EXEDIR)/client
+HW := $(shell uname -i)
+ifeq ($(HW), x86_64)
+# on server, make client_64 in linux/
+CLNAME = client_64
 else
-allEXES=$(EXEDIR)/server
+CLNAME = client
+endif
+
+ifdef SERVER_LINK
+allEXES=$(EXEDIR)/$(CLNAME)
+else
+@echo VMESITE: $(VMESITE)
+ifneq ($(VMESITE), ALICE)
+CFLAGS += -DSIMHW
+endif
+allEXES=$(EXEDIR)/server $(EXEDIR)/$(CLNAME)
 endif
 all: $(EXEDIR) $(allEXES)
 $(EXEDIR):
-	mkdir $(EXEDIR)
+	mkdir -p $(EXEDIR)
 $(EXEDIR)/server:server.c $(DIMDIR)/linux/libdim.a
+ifneq ($(VMESITE), ALICE)
+	@echo VMESITE: $(VMESITE)
+#	$(CC) -DSIMHW $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
+else
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) $(VMERCCLD) -o $@
+endif
 	
-$(EXEDIR)/client:client.c $(DIMDIR)/linux/libdim.a
+$(EXEDIR)/$(CLNAME):client.c $(DIMDIR)/linux/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 clean:
-	-rm $(allEXES)
+	-rm -f $(allEXES)

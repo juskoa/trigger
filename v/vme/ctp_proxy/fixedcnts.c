@@ -31,7 +31,11 @@ char name[40];   // input/class name without cluster (0TSC,CMUS1-AC-NOPF-)
 
 /* after the change of this table, recompile/relink/restart 
    ctp_proxy (enough, unless more than 50 counters reached).
-Commented: was valid before (May VDM). Last change: 17.10.2011
+Commented: was valid before (May VDM). Last change: 28.01.2013
+DCS test:
+check CTPDIM/MONLUMCNTS service
+.../v/vme/dimcdistrib > linux/dimccounters CTPDIM
+or start the same client on gfoxtrot@alidcscom707 through alias counters
  */
 TFixedCnts FixedCnts[]= {
 {0, 1, CSTART_SPEC, "epochsecs"},     // 921
@@ -103,7 +107,7 @@ TFixedCnts FixedCnts[]= {
 {32, 101, CSTART_L0+16, "CDG5-B-NOPF-"},
 {33, 101, CSTART_L0+16, "CDG5-AC-NOPF-"},
 {34, 101, CSTART_L0+16, "CDG5-E-NOPF-"}, */
-// pp12 April 16th
+/* pp12 April 16th
 {3, 101, CSTART_L0+16, "CMSL7-B-NOPF-"},
 {4, 101, CSTART_L0+16, "CMSL7-AC-NOPF-"},
 {5, 101, CSTART_L0+16, "CMSL7-E-NOPF-"},
@@ -136,7 +140,66 @@ TFixedCnts FixedCnts[]= {
 {32, 101, CSTART_L0+16, "CDG-B-NOPF-"},
 {33, 101, CSTART_L0+16, "CDG-AC-NOPF-"},
 {34, 101, CSTART_L0+16, "CDG-E-NOPF-"},
-{0,0,0,""}
+{0,0,0,""} */
+/* pp12 July 17th 
+{3, 101, CSTART_L0+16, "C0TVX-B-NOPF-"},
+{4, 101, CSTART_L0+16, "C0TVX-A-NOPF-"},
+{5, 101, CSTART_L0+16, "C0TVX-C-NOPF-"},
+{6, 101, CSTART_L0+16, "C0TVX-E-NOPF-"},
+{7, 101, CSTART_L0+16, "CT0OR-B-NOPF-"},
+{8, 101, CSTART_L0+16, "CT0OR-A-NOPF-"},
+{9, 101, CSTART_L0+16, "CT0OR-C-NOPF-"},
+{10, 101, CSTART_L0+16, "CT0OR-E-NOPF-"},
+{11, 101, CSTART_L0+16, "CVBAND-B-NOPF-"},
+{12, 101, CSTART_L0+16, "CVBAND-A-NOPF-"},
+{13, 101, CSTART_L0+16, "CVBAND-C-NOPF-"},
+{14, 101, CSTART_L0+16, "CVBAND-E-NOPF-"},
+{15, 101, CSTART_L0+16, "CVBAND-ABCE-NOPF-"},
+{16, 101, CSTART_L0+16, "CVBANOTC-B-NOPF-"},
+{17, 101, CSTART_L0+16, "CVBANOTC-A-NOPF-"},
+{18, 101, CSTART_L0+16, "CVBANOTC-C-NOPF-"},
+{19, 101, CSTART_L0+16, "CVBANOTC-E-NOPF-"},
+{20, 101, CSTART_L0+16, "CVBCNOTA-B-NOPF-"},
+{21, 101, CSTART_L0+16, "CVBCNOTA-A-NOPF-"},
+{22, 101, CSTART_L0+16, "CVBCNOTA-C-NOPF-"},
+{23, 101, CSTART_L0+16, "CVBCNOTA-E-NOPF-"},
+{24, 101, CSTART_L0+16, "CINT1-B-NOPF-"},
+{25, 101, CSTART_L0+16, "CINT1-A-NOPF-"},
+{26, 101, CSTART_L0+16, "CINT1-C-NOPF-"},
+{27, 101, CSTART_L0+16, "CINT1-E-NOPF-"},
+{28, 101, CSTART_L0+16, "CSPI7-B-NOPF-"},
+{29, 101, CSTART_L0+16, "CSPI7-A-NOPF-"},
+{30, 101, CSTART_L0+16, "CSPI7-C-NOPF-"},
+{31, 101, CSTART_L0+16, "CSPI7-E-NOPF-"},
+{0,0,0,""} */
+/* Jan28 2013  for vdm 7.2.: C0VGO -> CVGO */
+{3, 101, CSTART_L0+16, "C0TVX-B-NOPF-"},
+{4, 101, CSTART_L0+16, "C0TVX-A-NOPF-"},
+{5, 101, CSTART_L0+16, "C0TVX-C-NOPF-"},
+{6, 101, CSTART_L0+16, "CT0OR-B-NOPF-"},
+{7, 101, CSTART_L0+16, "CT0OR-A-NOPF-"},
+{8, 101, CSTART_L0+16, "CT0OR-C-NOPF-"},
+{9, 101, CSTART_L0+16, "CVBAND-B-NOPF-"},
+{10, 101, CSTART_L0+16, "CVBAND-A-NOPF-"},
+{11, 101, CSTART_L0+16, "CVBAND-C-NOPF-"},
+{12, 101, CSTART_L0+16, "CVBANOTC-B-NOPF-"},
+{13, 101, CSTART_L0+16, "CVBANOTC-A-NOPF-"},
+{14, 101, CSTART_L0+16, "CVBANOTC-C-NOPF-"},
+{15, 101, CSTART_L0+16, "CVBCNOTA-B-NOPF-"},
+{16, 101, CSTART_L0+16, "CVBCNOTA-A-NOPF-"},
+{17, 101, CSTART_L0+16, "CVBCNOTA-C-NOPF-"},
+{18, 12, CSTART_L1+6, "1ZED"},
+{19, 101, CSTART_L0+16, "C0TVX-E-NOPF-"},
+{20, 101, CSTART_L0+16, "CT0OR-E-NOPF-"},
+{21, 101, CSTART_L0+16, "CVBAND-E-NOPF-"},
+{22, 101, CSTART_L0+16, "CVBANOTC-E-NOPF-"},
+{23, 101, CSTART_L0+16, "CVBCNOTA-E-NOPF-"},
+{24, 101, CSTART_L0+16, "CVGO-ABCE-NOPF-"},
+{0,0,0,""} 
+/* abort gap measurements
+{3, 101, CSTART_L0+16, "C0TVX-GA-NOPF-"},
+{4, 101, CSTART_L0+16, "C0TVX-GC-NOPF-"},
+{0,0,0,""} */
 };
 
 /*

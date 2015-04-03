@@ -12,7 +12,7 @@ if [ $# -gt 0 ] ;then
   cd $VMECFDIR/ctp_proxy
   #ls -l $dbctp/../pardefs/$1.partition
   ls -l $fpat
-  linux/act.exe $1 $2
+  linux_s/act.exe $1 $2
   #ls -l $fpat    let's leave rc from linux/act.exe returned (-2->254)
 else
 cat - <<-EOF

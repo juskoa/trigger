@@ -42,7 +42,9 @@ ifeq (BNAME,ADCI)
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
 ifeq (BNAME,ttcmi)
-  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
+#  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp -L$(DIMDIR)/linux -ldim
+  LDFLAGS +=-L$(DIMDIR)/linux -ldim
+  INCDIRS=-I$(DIMDIR)/dim
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
 ifeq (BNAME,ctpt)
@@ -50,15 +52,15 @@ ifeq (BNAME,ctpt)
   LDFLAGS +=-Lctplib/linux_c -lctp
   CFLAGS +=-DSSMCONNECTIONS
 endif
-ifdef DATE_INFOLOGGER_DIR
-INCDIRS=-I$(DATE_INFOLOGGER_DIR)
-LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb -L$(DATE_INFOLOGGER_DIR) -lInfo
-else
+# ctplib has to be before vmeblib
 LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb
+ifdef DATE_INFOLOGGER_DIR
+INCDIRS +=-I$(DATE_INFOLOGGER_DIR)
+LDFLAGS +=-L$(DATE_INFOLOGGER_DIR) -lInfo
 endif
 ifdef DATE_DAQLOGBOOK_DIR
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
-INCDIRS=-I$(DATE_DAQLOGBOOK_DIR)
+INCDIRS +=-I$(DATE_DAQLOGBOOK_DIR)
 LDFLAGS +=-L$(DATE_DAQLOGBOOK_DIR) -lDAQlogbook $(MYSQLLIBS)
 endif
 LDFLAGS +=-lpthread
@@ -74,4 +76,4 @@ BNAME_cf.o: BNAME_cf.c $(VMEBDIR)/vmeaistd.h
 $(VMEBDIR)/cmdbase.o: $(VMEBDIR)/cmdbase.c $(VMEBDIR)/vmeaistd.h
 	cd $(VMEBDIR); $(VMECC) -g -c $(CFLAGS) cmdbase.c -o $(VMEBDIR)/cmdbase.o
 clean:
-	rm BNAME_cf; rm BNAME_cf.c; rm BNAME_cf.py; rm BNAME.make; rm *.o *.pyc *.exe
+	rm -f BNAME_cf BNAME_cf.c BNAME_cf.py BNAME.make *.o *.pyc *.exe

@@ -1,5 +1,5 @@
 /*  ctp.h */
-#define CTP_SW_VER "1.2 05.03.2008"
+#define CTP_SW_VER "3.0 23.07.2014"
 
 /* CTP boards in ctpboards[] table (ix):
       base        +     code ix I2Caddr
@@ -34,6 +34,8 @@ Max.  block size of Interaction record is 458 752 words
 #define BICfile "/root/NOTES/boardsincrate" 
 #define MAXLINE 256
 #define ORBITLENGTH 3564
+
+#define NCLASS 100
 
 typedef struct {
   char name[8];
@@ -71,49 +73,115 @@ typedef struct {
 
 /* common board logic FPGA addresses for all CTP boards: */
 #define FPGAVERSION_ADD 0x80 /* board's FPGA version */
-/*#define TEST_ADD        0xc0  was till 12.3.2008 */
-#define TEST_ADD        0x7e0  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 #define BC_STATUS       0xc4   /* [2:0] Orbit error, PLL-locked, BC-error */
 /* Orbit error: set even BUSY board programmed for local orbit*/
-#define SSMcommand  0x19c  /* 0x0: VMEREAD   0x1: VMEWRITE */
-                           /* 0x2 RECAFTER  0x3: RECBEFORE */
-#define SSMstart    0x1a0  /* dummy wr */
-#define SSMstop     0x1a4  /* dummy wr */
-#define SSMaddress  0x1a8  /* w/r */
+#define SSMcommand  0x19c
+/* L0 board:
+0x0: VMEREAD   0x1: VMEWRITE
+0x2 RECAFTER  0x3: RECBEFORE 
+LM0 board (from 0xc1):
+mask  meaning
+0x1   mode 1: continuous (before) mode  0: 1-pass (after mode)
+*/
+#define SSMstart    0x1a0  /* dummy wr, valid for both L0,LM0 boards */
+#define SSMstop     0x1a4  /* dummy wr, L0/LM0 */
+#define SSMaddress  0x1a8  /* w/r ,LM0: set to 0 before start recording*/
 #define SSMdata     0x1ac  /* w/r */
 #define SSMstatus   0x1b0  /* read only. Bits[2:0]: BUSY, OPERATION, MODE */
+/* SSMstatus on LM0 notes:
+- the same address, valid bits 7.11.2014:
+mask meaning
+0x1  -copy of mode (mask: 0x1) bit from SSMcommand
+0x2  - 1: overflow when recording, can be cleared by writing to SSMaddress
+0x4  - n/a
+0x8  - n/a
+0x100  -1: busy (i.e. recording) 0: ready (i.e. for VME access)
+*/
+
 #define SSMenable   0x1b4  /* 00: normal, 10 in enabled, 01 out enabled */
 
 #define PLLreset   0x1bc  /* dummy write */
 
 /* common for L0/L1/L2/FO (busy,int) boards: */
 #define ADC_START       0xcc   /* ADC (not for FO) */
-#define ADC_DATA        0xd0 
+#define ADC_DATA        0xd0   /* 0x10: busy flag   0xff: ADC data */
 #define SOFT_LED        0x15c  /* soft LED (busy board too)*/
 #define COPYCOUNT      0x1d4   /*dummy wr. copy counters CMD */
 #define COPYBUSY       0x1d8   /*ro [0] copy-busy status */
 #define COPYCLEARADD   0x1dc   /*dummy wr. clear copy mem. add. */
 #define COPYREAD       0x1e0   /*ro copy memory data */
-#define CLEARCOUNTER   0x5ac /* clear counters CMD */
+/* clear counters: write 1, usleep(4us), write 0 */
+#define CLEARCOUNTER   0x5ac /* clear counters CMD NOT FOR LM0!*/
+#define CLEARCOUNTER_lm0   0x91f4 /* clear counters CMD ONLY FOR LM!*/
 
-#define SPY_MEMORY     0x400
-#define SCOPE_SELECT   0x4f8  /* groupB: 0x1e0 groupA: 0x01f */
+#define SPY_MEMORY     0x400  /* spy memory length: 
+L1/2 boards: (0x100 - 0x2ff)*4 from November 2013.
+L0 board: increased length (max. adr 0x1ff*4 -> 0x2ff*4) implemented earlier.
+          From November 2013 max. addr. in spy mem was increased to 
+          0x3ff*4 on L0 board. */
+
+//#define SCOPE_SELECT   0x4f8
+#define SCOPE_SELECT   0x5b0  /* For L0/L1/L2 boards
+                                  groupB: 0x1e0 groupA: 0x01f */
                                /* 0x17+0x17-not selected                */
                                /* 0x800: enableB, 0x400: enableA        */
-#define ADC_SELECT     0x500 /*ADC mode, ADC input selector. 0x100:ADCmode */
+#define SCOPE_SELECTbfi 0x4f8  /* BSY,FO,INT: different address */
+#define SCOPE_SELECTlm0 0x1f8  /* LM0       : different address */
+#define ADC_SELECTlm0  0x1fc /*ADC mode, ADC input selector. 
+0x100:ADCmode -seems n/a for lm0 board
+*/
+#define ADC_SELECT     0x5b4 /*ADC mode, ADC input selector. 0x100:ADCmode */
   /* not FOs, only L0/1/2.      0x100 GND (before A2 version: Orbit (toggle))
                                 0x1NN NN:01-18 i: Input1-Input24
                                 0x119: Vhigh
                                 0x11a: (Vhigh-Vlow)/2 
                                 0x11b: ADC test -new way (ver. A2 from 14.12)
-                                0x11c: Vlow   */
-#define SYNCH_ADD      0x504 /*Synch/delay adds: 0x504-0x560    not FO*/
+                                0x11c: Vlow   
+LM0 board:
+[5..0] selector code:
+1..48  ADC input 1..48
+49     Vcc
+50     ORBIT
+51     ORBIT & !TEST
+52     ADC Test input (local phase)  (28 on old L0 board)
+53     BUSY/INT clock phase input
+*/
+#define RND1_EN_FOR_INPUTS 0x93f0 /* only on LM0:
+Temporary solutuion for RND1 trigger: it can be connected to any
+1..48 input defining following mask in 2 words:
+bits 23..0: for first 24 inputs
+RND1_EN_FOR_INPUTS+4
+bits 23..0  for inputs 48..25
+*/
+/*#define TEST_ADD        0xc0  was till 12.3.2008 */
+/*#define TEST_ADD        0x7e0 was till  6.11.2013 */
+#define TEST_ADDr2      0x93f8 /* LM0, L0 */
+#define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
+/* #define SYNCH_ADD      0x504 */
+#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board shifted 
+(i.e. 0x340 for 1st input)
+LM0:
+ 3.. 0   Input delay for inputs 1..24
+ 7       Edge Selector flag inputs 1..24   (was 4 before 12.2.2015)
+11.. 8   Input delay for inputs 25..48
+15       Edge Selector flag inputs 25..48  (was 12 before 12.2.2015)
+21..16   Selection of the input: 0:not connected 1..48 connected to this one
+*/
+#define SYNCH_ADD      0x804 /*Synch/delay adds: 0x804-0x860    not FO
+0x804:inp1,..., 0x860:inp24
+L0, L1, L2:
+ 8.. 8   Edge Selector flag inputs 1..24
+ 7.. 4   not used
+ 3.. 0   Input delay for inputs 1..24 (12 for L2)
+*/
 
-#define PF_COMMON      0x564  /* 1 word per L0/L1/L2 board */
-#define PFBLOCK_A      0x568  /* 5*3 words per L0/L1/L2 board */
+//#define PF_COMMON      0x564
+#define PF_COMMON      0x864  /* 1 word per L0/L1/L2 board */
+//#define PFBLOCK_A      0x568
+#define PFBLOCK_A      0x868  /* 5*3 words per L0/L1/L2 board */
 			      /* Circuit1. 2,3,4,T      -> +0xc */
-#define PFBLOCK_B      0x56c
-#define PFLUT          0x570
+#define PFBLOCK_B      0x86c
+#define PFLUT          0x870
 
 /* FO boards */
 /* not valid for A3 (from 2.3.2006) -> use common SCOPE_SELECT
@@ -128,11 +196,13 @@ typedef struct {
                                  0x1ff bits: TL1-1 -see calcFO_FILTER_L1() */
 /*REGEND */
 
-/* SSMsetom() modes: */
+/* SSMsetom() modes:
+For LM0 only first 4 modes possible (20.11.2014)
+ */
 #define SSMomvmer 0
 #define SSMomvmew 1
-#define SSMomreca 2
-#define SSMomrecb 3
+#define SSMomreca 2     // 1-pass
+#define SSMomrecb 3     // continuous
 #define SSMomgens 4
 #define SSMomgenc 5
 
@@ -143,7 +213,7 @@ typedef struct {
 				     [13..12]: 
                                      0 -> ORBIT input, positive BC edge 
                                      1 -> ORBIT input, neg+pos. BC edge 
-				     2 -> LocalORBIT  option
+				     2 -> LocalORBIT  option (i.e. 0x2deb)
 				     3 -> instead ORBIT produce BC/2 to
 				          test ADCs on L0/1/2 
 				     [14] RO EDGE. 0:negBC   1:posBC */
@@ -165,92 +235,205 @@ typedef struct {
 #define BUSY_L0L1DEADTIME 0x8620  /* [8..0] -L0L1 deadtime is (N+2) BCs.
                                      default: 202 */
 #define BUSY_CTPDEADTIME 0x8624   /* [6..0] -ctp deadtime is (N+2) BCs.
-                         default: 52. 60 (1.6us) for ctp readout version */
+                         default: 52. 60.:run1, 110 from 30.1.2014 */
 #define BUSY_OVERLAP     0x8640   /* [20..0] bits.1:overlap 0: not overlap for
                                      12 13 14 15 16 1T 23 24 ... 6T */
 /* L0 board: */
 #define L0_CLEAR_RND   0x90c8 /*dummywr: clear RND1/2 (according to L0_ENA_CRND)*/
-#define L0_TCSTATUS    0x91c0   /*R/O*/
+#define L0_TCSTATUS    0x91c0   /*R/O: bits:
+0: Test Class Cluster BUSY flag
+1: Test Class PP Request flag
+2: Test Class L0 Request flag
+3: Test Class L0 Acknowledge flag
+4: Test Class BUSY flag: goes ON with L0_TCSTART
+ */
 #define L0_TCSTART     0x91c4   /*dummy wr. */
 #define L0_TCCLEAR     0x91c8   /*dummy wr. */
 #define RATE_DATA      0x91cc   /*w/r L0 rate data word:
 bit31=0: 21bits data pseudo-random pattern-repetition period
          bits 24..21 read 0 if 0 was written
 bit31=1: 25bits for L0-class busy time in steps of 10micsecs
-         i.e. max. busy time: is  cca 5.58 minutes */
+         i.e. max. busy time: is  cca 5.58 minutes
+LM0: bit25 (not 31) -see RATE_DATABTMr2
+ */
+/* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
+Read request:
+------------
+1. set REG1
+2. set REG2  -this second write will trigger the read operation.
+
+Write request:
+-------------
+16 VME words (32 bits wide) must be written
+VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
+*/
+#define DDR3_CONF_REG0      0x9280   /* 31..23 readonly: 
+31..28: mem_init,            rdi_fifo_empty,      rdi_fifo_has_space, full_flag, 
+27..24: ddr3_ext_rd_itf_rdy, ddr3_ext_wr_itf_rdy, rst_logic,          rd_done, 
+    23: wr_done
+ 2.. 0: writeonly: Errors_reset, Logic_reset, DDR3_reset */
+#define DDR3_CONF_REG1      0x9284   /* Start address, read operation */
+#define DDR3_CONF_REG2      0x9288   /* Number of readings, read operation */
+#define DDR3_CONF_REG3      0x928c   /* Start address, write operation */
+#define DDR3_CONF_REG4      0x9290   /* Number of writings, write operation */
+
+#define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
+
 #define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
                                 /*   fy>=0xAC           4Kwordxx12bits*/
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
+#define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
+#define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
+#define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
+#define SEL_SPARE_OUT  0x93e0  
+/* 4 registers 0x93e0,4,8,c reserved for 4 output signals -copy
+of any 1..48 inputs. Should be programmed with number 1..48.
++0 -spare  see initCTP.c
++4 -spare
++8 -0AMU
++c -LM */
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
                                    11..0: BCnumber (valid for Synch. trigger)*/
-#define L0_CONDITION   0x9400    /* +4*n n=1,2,...,50 
+#define L0_TCSETr2     0x93fc
+
+#define L0_CONDITION   0x9400    /* +4*n n=1,2,...,100
 bits    newMeaning (>=AC)            meaning before AC
 ----    ----------                   --------------
 31..30  Select Scaled-down BC2..1    not used
 29..28  Select Random RND2..1        Select Scaled-down BC2..1
 27..24  Select L0F4..1               Select Rnd2..1 + L0f2..1
 23..0   Select L0 input 24..1        Select L0 input 24..1
-
 */
-#define L0_VETO        0x9600    /* +4*n n=1,2,...,50 
+
+/*von #define L0_INVERT      0x9500     old (before AC) +4*n n=45,....,50 
+bit23..0: 1: invert L0 input   0: use original polarity
+firmAC:
+all classes can use inverted inputs, use L0_INVERTac symbol.
+*/
+/* see PF_COMMON... */
+#define MASK_MODE      0x95a4 /* L0: BCMask memory mode 1:vme 0:normal */
+#define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
+#define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
+//#define L0_ENA_CRND    0x94fc
+#define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
+#define L0_ENA_CRNDlm0 0x9200 /* detto for LM0. In fy called:  ENABLE_CLEAR */
+//#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
+//
+//----------------- L0. The block of LM0 addresses below...
+#define L0_INTERACT1   0x95bc    /* 16 bits thruth table */
+#define L0_INTERACT2   0x95c0
+#define L0_INTERACTT   0x95c4
+#define L0_INTERACTSEL 0x95c8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
+                              /* [5..9]-> ... for INTERACT2 */
+#define L0_FUNCTION1   0x95cc
+#define L0_FUNCTION2   0x95d0
+#define RANDOM_1       0x95d4 /* bit31: 1: Enable filter (for FPGAVER>=A5) */
+#define RANDOM_2       0x95d8
+#define SCALED_1       0x95dc
+#define SCALED_2       0x95e0
+#define ALL_RARE_FLAG  0x95e4
+//----------------- 
+
+/*----------------- LM0. The block of L0 addresses see above...
+#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> see L0LM0DIFF
+#define L0_INTERACT2   0x9208
+#define L0_INTERACTT   0x920c
+#define L0_INTERACTSEL 0x9210
+                            
+#define L0_FUNCTION1   0x9214
+#define L0_FUNCTION2   0x9218
+#define RANDOM_1       0x921c
+#define RANDOM_2       0x9220
+#define SCALED_1       0x9224
+#define SCALED_2       0x9228
+#define ALL_RARE_FLAG  0x922c WRITE ONLY on LM0 board!
+                       1: all (take all classes)
+                       0: take only classes without ALL/rare flag set 
+                          (=red in ctp)
+*/
+//----------------- 
+//
+/*   L0_SCOPE_SELECT   0x94f8 see SCOPE_SELECT*/
+//#define RATE_MODE      0x9700
+#define RATE_MODE      0x95fc /* Rate mem. mode 1:vme 0:normal */
+#define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal */
+//#define L0_INVERTac    0x9800
+#define DAQ_LED        0x9600    /* reserved for SW use */
+#define DAQ_LEDlm0     0x9234
+#define L0_INVERTac    0x9600    /* +4*n n=1,....,100, 0x9604..0x9790 */ 
+/* bit23..0: 1: invert L0 input   0: use original polarity */
+//#define L0_VETO        0x9600
+#define L0_VETO        0x9900    /* +4*n n=1,2,...,100
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
                                  19..8: BCmask[12..1]
 11..8: Select BCmask[4..1]
  7..4: Select PFprot[4..1]        7..4: the same
  2..0: Cluster code (1-6)         2..0: the same
+Note: in ctp.c getClass L0_VETO[bit31] is set according to L0_MASK[0] bit
 */
-#define DAQ_LED        0x9600    /* reserved for SW use */
-#define L0_MASK        0x9700    /* +4*n n=1,2,...,50 
-bit0: 1: the class is disabled */
+#define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
+                                LM0 note
+31     spare
+30..24 DSCG group (7bits)       new
+23     class mask (1:disabled)  new
+22..21 spare
+20     1:Select All/Rare input  the same
+19..8: Select BCmask[12..1]     the same
+ 7..4: Select PFprot[4..1]      the same
+ 2..0: Cluster code (1-6)       the same
 
-#define L0_INVERT      0x9500    /* old (before AC) +4*n n=45,....,50 
-bit23..0: 1: invert L0 input   0: use original polarity
-firmAC:
-all classes can use inverted inputs, use L0_INVERTac symbol.
+Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
+L0_VETOr2[23] bit is used. L0_MASK is not used in LM0 board!
+
 */
-#define L0_INVERTac    0x9800    /* +4*n n=1,....,50 */ 
-#define L0_INTERACT1   0x94cc    /* 16 bits thruth table */
-#define L0_INTERACT2   0x94d0
-#define L0_INTERACTT   0x94d4
-#define L0_INTERACTSEL 0x94d8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
-                              /* [5..9]-> ... for INTERACT2 */
-#define L0_FUNCTION1   0x94dc
-#define L0_FUNCTION2   0x94e0
-#define RANDOM_1       0x94e4 /* bit31: 1: Enable filter (for FPGAVER>=A5) */
-#define RANDOM_2       0x94e8
-#define SCALED_1       0x94ec
-#define SCALED_2       0x94f0
-#define ALL_RARE_FLAG  0x94f4
-#define L0_ENA_CRND    0x94fc /* 1..0: enable RND2, RND1 clear */
-/* see PFCOMMON... */
-#define MASK_MODE      0x95a4 /* BCMask memory mode 1:vme 0:normal */
-#define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
-#define RATE_MODE      0x9700 /* Rate mem. mode 1:vme 0:normal */
-/*   L0_SCOPE_SELECT   0x94f8 see SCOPE_SELECT*/
-#define L0_FUNCTION34  0x97ec /* New L0 functions of first 12 inputs*/ 
-//#define L0_FUNCTION3  0x97ec
-//#define L0_FUNCTION4  0x97f0
+#define L0_MASK        0x9b00    /* +4*n n=1,2,...,100   NOT used in LM0
+bit0: 1: the class is disabled 
+LM0: this word dos not exist (bit is in L0_VETOr2 now) 
+*/
+//#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
+#define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
+LM0: does not exist (is in L0_VETOr2)
+*/
 
 /* L1 board */
 #define L1_TCSTATUS    0xa1c0   /*R/O*/
 #define L1_TCCLEAR     0xa1c8   /*dummy wr. */
 #define L1_TCSET       0xa400   /* 18: P/F */
-#define L1_DEFINITION  0xa400    /* +4*n n=1,2,...,50 */
-#define L1_DELAY_L0    0xa4cc
-#define L1_INVERT      0xa500    /* +4*n n=45,....,50 */
-#define ROIP_BUSY      0xa600 /* RoI Processor BUSY flag */
+#define L1_DEFINITION  0xa400    /* +4*n n=1,2,...,100 */
+/* bits:
+31 RoI Veto Flag. 1: segmented readout (RoI) is suspended if class triggered
+30..28 Cluster code
+27..24 Select P/F[4..1] protection veto
+23.. 0 Select L1 triggr input
+*/
+//#define L1_DELAY_L0    0xa4cc
+#define L1_DELAY_L0    0xa5b8
+//#define L1_INVERT      0xa500    /* +4*n n=45,....,50 */
+#define L1_INVERT      0xa600    /* +4*n n=1,...,100 */
+/* bits: 23..0: 0: original polarity, 1: corresponding input is inverted
+*/
+//#define ROIP_BUSY      0xa600
+#define ROIP_BUSY      0xa5bc /* RoI Processor BUSY flag. Should be set to 1,
+  unless RoI is implemented */
 
 /* L2 board */
 #define L2_DEFINITION  0xb400    /* +4*n n=1,2,...,50 */
+/* bits:
+30..28   Cluster code
+27..24 Select P/F[4..1] protection veto
+23..12 Invert L1 trigger input (0: original polarity, 1: inverted)
+11.. 0 Select L2 trigger input
+*/
 #define L2_ORBIT_READ  0xb140    /* synced with INT */
 #define L2_ORBIT_CLEAR 0xb144
 #define L2_TCSTATUS    0xb1c0   /*R/O*/
 #define L2_TCCLEAR     0xb1c8   /*dummy wr. */
 #define L2_TCSET       0xb400   /* 24: P/F 23..0:Subdetector [24..1] */
-#define L2_DELAY_L1    0xb4cc
 #define L2_BCOFFSET    0xb5a8 /* BC/Orbit offset data */
+//#define L2_DELAY_L1    0xb4cc
+#define L2_DELAY_L1    0xb5b8
 
 /* INT board */
 #define INT_ORBIT_READ 0xc140   /* orbit counter synced with L2 */
@@ -268,9 +451,12 @@ set:
 read:
      0x30: ok, DAQ active, link not full */
 
-#define INT_DISB_CTP_BUSY 0xc150 /* 1: SW generated CTPbusy output, 
-                                    0:normal operation.
-                               Bit1(ro): reflects CTPreadout NEARLYFULL */
+#define INT_DISB_CTP_BUSY 0xc150 /* 
+bit0:
+1: SW generated CTPbusy output, 0:normal operation.
+bit1(ro): reflects CTPreadout NEARLYFULL
+bit4: phase enable
+*/
 #define I2C_MUXWR      0xc154   /* dummy wr */
 #define I2C_MUXRD      0xc158
 #define I2C_ADCWR      0xc174  /* 0xc15c from version A5 */
@@ -286,14 +472,33 @@ read:
                                 /* 06:r0EnaCIT,CIT, EnaRoC,RoC for TestCntr1*/
 #define INT_BCOFFSET  0xc5a8
 /*REGEND */
+#define L0_FUNCTION34    0x97ec
+#define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs.
+deliberately after REGEND becasue it is different for L0/LM0*/ 
+#define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
+#define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
 #define DUMMYVAL 0xffffffff   /* recommended for DUMMY writes */
 #define RATE_MASK 0x81ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
+#define RATE_MASKr2 0x03ffffff   /* firmware C0: bit25:0 rnddownscale */
+#define RATE_DATABTM    0x80000000   // where class mask is 
+#define RATE_DATABTMr2  0x2000000
+
+#define DDR3_mem_init 0x80000000
+#define DDR3_rdi_fifo_empty 0x40000000
+#define DDR3_rdi_fifo_has_space 0x20000000
+#define DDR3_full_flag 0x10000000
+#define DDR3_rd_itf_rdy 0x8000000
+#define DDR3_wr_itf_rdy 0x4000000
+#define DDR3_rst_logic 0x2000000
+#define DDR3_rd_done 0x1000000
+#define DDR3_wr_done 0x0800000
 
 #define MAXL0REGS 7
 typedef struct{
   w32 regs[MAXL0REGS];   /* 7 regs: condition invert veto prescaler
 			            L1definition L1invert L2definition */
-                         /* veto[16/31] -> bit0 copied from L0_MASK word */
+ /* L0: veto[16/31] -> bit0 copied from L0_MASK word
+   LM0: veto[23] is classmask, L0_MASK word not used */
 } Tklas;
 typedef struct{
   w32 cluster;
@@ -307,23 +512,22 @@ typedef struct{
 Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
-  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xa8,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xab,NCOUNTERS_L0, CSTART_L0},
-  {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa4,NCOUNTERS_L1, CSTART_L1},
-  {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa6,NCOUNTERS_L2, CSTART_L2},
-  {"int", 0x55,12,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_INT, CSTART_INT},
-  {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xad,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
-  {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xad,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
-  {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xad,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},
-  {"fo4", 0x53, 4,NOTINCRATE,0,0xff,0xad,NCOUNTERS_FO, CSTART_FO+ 3*NCOUNTERS_FO},
-  {"fo5", 0x53, 5,NOTINCRATE,0,0xff,0xad,NCOUNTERS_FO, CSTART_FO+ 4*NCOUNTERS_FO},
-  {"fo6", 0x53, 6,NOTINCRATE,0,0xff,0xad,NCOUNTERS_FO, CSTART_FO+ 5*NCOUNTERS_FO}
+  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_BUSY, CSTART_BUSY},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc3,NCOUNTERS_L0, CSTART_L0},
+  {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa6,NCOUNTERS_L1, CSTART_L1},
+  {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa8,NCOUNTERS_L2, CSTART_L2},
+  {"int", 0x55,12,NOTINCRATE,0,0xff,0xac,NCOUNTERS_INT, CSTART_INT},
+  {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
+  {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
+  {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},
+  {"fo4", 0x53, 4,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 3*NCOUNTERS_FO},
+  {"fo5", 0x53, 5,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 4*NCOUNTERS_FO},
+  {"fo6", 0x53, 6,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 5*NCOUNTERS_FO}
   };
 
 #else
 extern Tctpboards ctpboards[NCTPBOARDS];
 #endif
-/* all FGROUP declarations are in ctp_expert.h from 5.6.2012 */
 
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
 int setL0f34c(int lutn, char *m4);
@@ -366,8 +570,10 @@ w32 i2cread(int channel, int branch);
 int i2cgetaddr(int board0_34, int *channel, int *branch);
 
 int getEdgeDelayDB(int level, int input, int *edge, int *delay);
-void setEdge(int board,w32 input,w32 edge);
+int getSwnDB(int input);
 int getedge(int board,w32 input,w32 *del);
+int getedgerun1(int board,w32 input,w32 *del);
+int getedgerun2(int board,w32 input,w32 *del);
 
 void loadBCmasks(w16 *bcmasks);
 
@@ -444,16 +650,15 @@ set INTERACTSEL ALL_RARE_FLAG
 */
 void setShared2(w32 intsel, w32 allrare);
 /*----------------------------libctp.a subroutines for new firmware  */
-/*FGROUP DbgNewFW 
+/* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
-*/
-void loadRun(w32 runnumber);
-/*FGROUP DbgNewFW 
+
+void loadRun(w32 runnumber); */
+/* FGROUP DbgNewFW 
 Prints static class CTPHardware.
-*/
-void printHW();
-/*FGROUP DbgNewFW */
-void unloadRun(w32 runnumber);
+void printHW(); */
+/* FGROUP DbgNewFW 
+void unloadRun(w32 runnumber); */
 /*FGROUP DbgNewFW */
 void printL0FUN34();
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
@@ -500,7 +705,8 @@ rc: busy pattern: [0..23] bits set to 1 correspond to Dead busy inputs
 w32 findDeadBusys(w32 dets);
 
 /*FGROUP DebCon */
-int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, int customer);
+int  GenSwtrg(int n,char trigtype, int roc, w32 BC,w32 detectors, 
+  int customer, w32 *orbitn);
 /*FGROUP DebCon */
 int getCALIBBC2(w32 ctprodets);
 void clearflags();
@@ -535,10 +741,16 @@ void setEdge(int board,w32 input,w32 edge);
 set Edge/Delay 
 Inputs:
 board: 1:L0 2:L1 3:L2
-input: 1..24 (1..12 for L2)
+input: 1..24 (1..12 for L2)   1..48 for LM0
 edge:  0:positive 1:negative
 delay: 0..15*/
 void setEdgeDelay(int board, int input, int edge, int delay);
+/*FGROUP inputsTools
+* i48->i24 */
+void setSwitch(int i48, int i24);
+/*FGROUP inputsTools
+*/
+void printSwitch();
 
 /*FGROUP inputsTools
 Read edge/delay info from hw for all the inputs (clk edge for ORbit
@@ -552,6 +764,8 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
 
 */
 void printEdgeDelay(int board);
+void printEdgeDelayrun1(int board);
+//void printEdgeDelayrun2(int board);
 
 // bcmask.c
 /*FGROUP L0
@@ -569,6 +783,10 @@ words: if 0 than check whole BCmask memory (3564)
 void checkBCmasks(int ntimes, int words);
 /*FGROUP SimpleTests
 return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT
+9.9.2014 in lab: 
+38 113 117 123 126   -with LM0 board in altri1 crate, also in P2
+114 114 116 120 123  -with L0  board in altri2 crate
+
 */
 void checkPhasesPrint();
 /* Find out toggling FO connectors.
@@ -587,16 +805,56 @@ Resets PLL clock on all boards
 void resetPLLS();
 
 /* PF in pfp.c: */
-/*FGROUP SimpleTests 
+/*FGROUP PF 
+Read the recent PF setting
+circuit: 1..5. 0: read all 5 circuits
 */
-void ReadPF();
-/*FGROUP SimpleTests 
+void ReadPF(int circuit);
+/*FGROUP PF 
+Read the recent PF setting from hw and print string appropriate
+for TRIGGER.PFS file.
+circuit: 1..5
+*/
+void ReadPF2str(int circuit);
+/*FGROUP PF 
+Decode the string defining PF in TRIGGER.PFS 
+pfstr: PF definition in format given in TRIGGER.PFS, i.e. 12 0xN in one line:
+     L0_PFBLOCK_A L0_PFBLOCK_B L0_PFLUT
+     L1_PFBLOCK_A L1_PFBLOCK_B L1_PFLUT
+     L2_PFBLOCK_A L2_PFBLOCK_B L2_PFLUT
+     L0_PF_COMMON L1_PF_COMMON L2_PF_COMMON
+or 1-character string 1..4 (enclosed in double quotation marks):
+1 -PF definition taken from PF1 circuit from CTP L0/1/2 boards
+
+Output:
+PF_COMMON
+intA/B    IR1 (0xa) or IR2(0xc)
+                             L0       L1           L2
+delLT     Delayed INT LUT  ignored
+delSD     signal delay     ignored    max.512    4095
+
+PF_BLOCK+PFLUT
+th1/2     0..63
+dT        0->257BCs, n->n+1 BCs. Protection interval width
+del       On L0: del and f ALWAYS IGNORED
+          f=0: Protection end: (del+ PFinterval) before T0
+          f=1: del ignored. 
+               Protection end: PFinterval before T0
+f         Delay flag, see above
+dsf       Downscale factor 0..31 in hw shown, corresponding to 1..32 BCs
+PLUT      ?
+*/
+void DecodePF(char *pfstr);
+/*FGROUP PF 
+Set the PFCOMMON word
 */
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT);
-/*FGROUP SimpleTests 
+/*FGROUP PF 
+Set the PFBLOCK A and B and PFLUT
+dTa and dTb should be in BC
 */
 void WritePF(w32 icircuit,w32 THa1,w32 THa2,w32 THb1,w32 THb2,int dTa,int dTb,w32 P_signal);
-/*FGROUP SimpleTests 
+/*FGROUP PF 
 Set PF circuit for INT1 only (for INT1/2 combinations, another
 function should be prepared). Note that INT1 should be defined in Shared Resources!
 Examples of INT1 definition: it can be BC1,BC2,RND1,RND2 or any logical combination of 
@@ -610,9 +868,16 @@ bcs: 1..4096 - protected interval in BCs.
 For example: 10mus = 400 BC.
 
 threshold: 0..63 - number of allowed interactions in protected interval 
+For PF protection activation N(dT) > Threshold (interaction in question included in N)
+
 For example: 0: kill this event  1: only this event   2: max. 1 additional event
 */
 void WritePFuser(w32 icircuit, w32 threshold, w32 bcs);
-/*FGROUP SimpleTests
+/*FGROUP PF
+Setting for PF on all trigger levels. 
+Ncoll - number of collisions
+dT1 - protection time interval before interaction
+dT2 - protection time interval after interactions
+ipf - index to pf {1,2,3,4} for all boards where pf is set
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 icircuit,w32 plut);

@@ -4,6 +4,6 @@ export dbctp='.'
 if [ ! -d CFG/ctp/DB ] ;then
 mkdir -p CFG/ctp/DB
 fi
-actexe=$VMECFDIR/ctp_proxy/linux/act.exe
+actexe=$VMECFDIR/ctp_proxy/linux_s/act.exe
 VMECFDIR='.'
 $actexe aliases.txt

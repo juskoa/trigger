@@ -1,9 +1,9 @@
 #!/bin/bash
 # starting TTCMI server controlling the ALICE clock
 #usage: ttcmidims.sh
-. $CCRFS/usr/local/trigger/bin/auxfunctions
+. $VMECFDIR/../bin/auxfunctions
 #
-hname=`hostname`
+hname=`hostname -s`
 if [ "$hname" != 'alidcsvme017' -a "$hname" != 'altri1' ] ;then
   echo 'This script can be started only on alidcsvme017 (or altri1 for test)'
   exit
@@ -28,8 +28,8 @@ elif [ "$1" == 'start' ] ;then    #----------------------- start
   logdir=$VMEWORKDIR/WORK
   cd $logdir
   savelog ttcmidims
-  cd $VMECFDIR/ttcmidaemons
-  nohup linux/ttcmidims >$logdir/ttcmidims.log &
+  cd $VMEWORKDIR
+  nohup $VMECFDIR/ttcmidaemons/linux/ttcmidims >$logdir/ttcmidims.log &
   #nohup linux/ttcmidims $no1min >$logdir/ttcmidims.log &
   cat - <<-EOF 
   ttcmidim server ($VMECFDIR/ttcmidaemons/linux/ttcmidims) started. 

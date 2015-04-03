@@ -180,7 +180,7 @@ RET:
 //printf("nxtoken:%s.\n    cmd:%s. tt: %d ix:%d\n", &line[*ix],cmd, tt, *ix);  
 return(tt);
 }
-int str2int(char *str) {
+unsigned int str2int(char *str) {
 int i=0; unsigned int var4=0; char c;
 while( (c=str[i]) != '\0') {
     int ic;

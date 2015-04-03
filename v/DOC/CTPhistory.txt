@@ -1,194 +1,401 @@
-See CTPhistory2011.txt for notes before January 2012
-27.1.2012
-ctp_proxy.c: ctp_PausePartition:  stopTimer(255 instead of 0 
-- now, the class counters in DAQlogbook during PAUSE should be treated
- the same way as they are when disabled due to time sharing
-31.1.2012
-in the pit:
-1.
-copy sync.seq/slm files to all CFG/ltu/SLM/directories:
-doRightSeqs.bash  
- rcmd 7 'makeSLMproxylinks.bash v0' for all dets on all (2-7) machines  -
-create link sync.seq -> /usr/local/trigger/v/vme/ltu_proxy/noclasses/sync.seq
-in lab:
--scripts(unchange) copied from pit, 
--SLMproxy/sync.seq links for daq,ssd created
--SLM/sync.seq/slm files for daq,ssd created
+21.3.2013
+git tag pAend
 
-7.2.2012
-parted.py: BCMASKS: section in .rcfg contains ONLY used BCmasks (before:
-also mask definitions of classes masked out when detectors masked out)
-8.2.2012
-l0ifun3/4 counters now ok (in vmeb/counters.py and cnames.sorted2)
-17.2.2012
-6 bits [30..25] are initialised to 0..49 in RATE_DATA -prepared for firmware
-AF.
-Modified: ctplib/dumpCTP,initCTP,Tpartition
-Still todo: 
-TRG_DBED/   
-ctp_proxy/
-ctp -classes widget
+8.4.2013
+bin/vmebse.bash -echoint() added (no stdout when non-interactive shell)
+8.4.2013
+batch of new LTUs tested by Graham.
+8.4.2013
+devel/archived introduced for archived packages (not used generally).
+archived/ltutests.tgz -testing new LTUs (with special firmware).
+Prepared from na62 LTU testing sw.
+See: Bigtest/doBackup.bash   -how backup was done on altrip2 + install notes
 
-=============================20.2.2012        lab->pit
-AE version of l0 board in the pit + sw updated in the pit
-I.e. sw in lab+pit is now in sync, monscal++ still to be checked.
-Notes from update: see trigger@alidcscom188:aj/f20/readme
+also to be kept in mind (not in devel/archived):
+devel/../rf2ttc.tgz
+      ../atlas/BOBR
 
-21.2.2012
-monscal++ in sync also
-
-22.2.2012
-bug fixed in parted.py: when .rcfg created, it could happen not all BC masks
-wer shown in BCMASKS: section
-22.2.2012
-switched.py -adjusted for l0A/B (in addition to l0f in VALDI.CTPINPUTS)
-23.2.
-bug fixed (seems): problem: l0f34 LUTs have reversed order of bits -
-i.e. vmeb/txtproc.py changed:
-<5 bits table: returns normal bit string (as till now)
->4 bits table: returns reversed bit string
-24.2.
-vmeb/trigdb.py: bug fixed in getINT12(): return None is INT1/2 not defined
-Now: in case INT1/2 not defined in ctp.cfg, .rcfg contains just 
-INTERACTION: section line without NONE line
-26.2. 
-bcmasks processing for AB version bug fixed
-CNTWEB/chlocpart.py ok (still needs better html)
-27.2.
-monitor/monitor.py html added
-27.2.
-vmeb/vmeblib/make707, vme/fanio/dim/make707.bash ->prepare
-alidcscom707:v/linux64/client for bin/fanin script started on 707 machine
-from fmd,daq,ssd,hmpid (or trigger) account
-see p2/cavern: 707
-
-1.3.2012 l+p
-parted.py fixed: l0f34 consisting only from 1 part (12 inputs used only)
-now load correctly (i.e. empty LUT is encoded with 0x00000... in .pcfg file)
-14.3.2012
-svn commit: rev. 208
-15.3.
-showRCFG -ok for 2011/2012 runs
-19.3.
-smaq -bug fixed (using now bakery)
-20.3.
-see clockhistory.txt for ttcmi,corde, clock shift,...
-22.3.
-CNTRRD/readctpc.c -short intervals (<=59) not considered for
-calib monitoring caclculations
-26.3.
-infolog.c -modified (new infoLogger API...)
-27.3.
-707: smaq ok
-521: IRS installation ongoing (by Ivan)
-27.3.
-switched.py modified: 
-How to create new CTP.SWITCH/VALID.CTPINPUTS without affecting 
-current run/configuration in the pit?
-Use script switched4act.bash. This script operations:
-- L0.inputs, CTP.SWITCH, VALID.CTPINPUTS are copied into temporary directory
-- switched gui is started with these copies
-- now change switch config (in gui) and
-- Save only files (CTP SWITCH not loaded) and Quit
-- updated CTP.SWITCH and VALID.CTPINPUTS are left in temporary directory
-  (they can be uploaded into ACT)
-28.3.2012
-clgroups.c -ug fixed -l0vetos bit16 vs. bit 31 (AC) now correctly tested
-30.3.2012
-CTP LDC installed in lab.
-6.4.
-miclock.py: reset command added (only in the pit)
-11.4.
-parted.py -bug fixed: cn=classname -when cn= missing, validate did not
-issue error message!
-11.4.
-gcalib.c -bug possibly removed (.e. should not give messages:
-addDET:WARN 5 already active
-).
-12.4.
-monitor/monitor.py improved
-12.4.
-VDM April pp12 preparation: ctp_proxy/fixedcnts.c modified
-13.4.
-gfoxtrot user added on 707, 64bit client is in:
-707:~trigger/v/vme/dimcdistrib/dimccounters
-see dimcdistrib/make707.bash
-16.4.2012
-New version of validate deployed in pit:
-- cn= missing now reported
-- more than 6 inverting classes allowed (AC)
-16.4.2012
-sync: SLMproxy/L2async.seq link + L2async.slm in all SLM dirs -see
-- bin/doRightSeqssync.bash
-- https://twiki.cern.ch/twiki/bin/viewauth/ALICE/SyncStdAloneTest
+17.4.2013
+[pcalicebhm10] /home/dl/root/usr/local/trigger/devel/v/vme/ltu_proxy/noclasses >
+cp *ync* $VMECFDIR/CFG/ltu/SLMproxy/
+cp *ync*.slm $VMECFDIR/CFG/ltu/SLM/
+i.e. *ync* files kept preferrably in  $VMECFDIR/CFG/ltu/SLMproxy/
+(not in ltu_proxy/noclasses/)
 17.4.
-filling/lhc2ctp.py: now automatic approach to mainmain vs. mainsat mode:
-if at least 1 colliding bunch: mainmain, else we are in mainsat mode.
-Summary: line now printed (in both nmodes) giving mode, B,A,C bunches.
-18.4. pit only
-- dimservices.c updated Nupdated counter holding the number of requests 
-  from each client
-18.4.
-CNTWEB/csmap.py preapred (also cntwebenv.py created, filling/lhc2ctp.py
-modified) showing 'orbit profile' -link from main trigger web page. 
-2.5.2012
-vmeb/pylog.py, ttcmidaemons/miclock.py:
-now operator gets FATAL error if clock not BEAM1 from 
-INJECTION PHYSICS BEAM to UNSTABLE BEAM modes
-3.5.
-sync for STDALONE done. Modifications in vd/vme/ltu_proxy/ltu_utils.c,ltu_proxy.c
-10.5.
-bug in ltu_proxy/ltu_proxy,ltu_utils fixed (sync not ok in PAUSED state)
--REMMEBER: nvoke always smi_set_state() after finishing SMI action!
-11.5.
-CNTRRD/alanyse.c -modified: now possible output to binary file -the same
-format as published by DIM service
-11.5.
-parted.py improvement started in aj@11:git/trigger
-check TRG_DBED/readme.txt
-16.5.
-vme/pydim/simpleServer,simpleClient, masksServer -started for new
-DIM service publishing CTP masks
-19.5.
-pydim/server.c,pydimserver.py + ttcmidaemons/ttcmidims.c modified.
-- ttcmidims.c: log when newclok thread started
-- pydim: NLs are ignored  (before: when server.c received CTPRCFG/RCFG
-  message consisting just from NL, pydimserver.py exited
-21.5.
-ttcmidims.c: FATAL issued if thread changing clock does not start
-24.5.
-ctp_proxy/gcalib.c,dimservices, vmeblib/dimwrap.c: 
-T0 is not calibrated during STABLE BEAMS
-BEAM MODE alternates in lab every 5 mins between STABLE BEAM and NO BEAM
-30.5.
-bug fixed in ctpproxy/dimservices: size of BEAMMODE service is 4 (was 16) !
-30.5.
-gcalib.c: T0 only gets triggers in tehcnical runs (during STABLE BEAM
-no calib. triggers are sent).
-1.6.2012
-git:
-/home/dl/root/usr/local/trigger/devel
-/home/dl/root/usr/local/trigger/vd    -still used by diskless
-todo:
-/home/dl/root/usr/local/trigger/stable  -sync with pit
-
-4.6.
-pit + devel/git:
-- smaq bug fixed
-- ltudimservices: "ttcrxrest fee" added
-5.6.
-tr10:/usr/local/trigger/devel  -development version, git. COmpile all: bin/makeall
+VMELIBS env. variable introduced (default: /lib/modules/daq)
+26.4.
+v/SPECS/ directory introduced for .spec files (currently for ltuclient+ltusw)
+26.4.
+bin/vmebse_lab.bash  -use ideas for vmebse.bash (todo)
+17.5.2013
+getDAQClusterInfo()
+daqlogbook_update_clusters()
+called in ctp_proxy. Idea: move these calls later to pydimserver -i.e.
+DAQlogbook (and hence mysql) needed ONLY on server.
+Steps:
+- find alternative way to DIM (seems UDT is ok also for 1GB smaqs)
+- measure current InitPartition phases
+- improve pydimserver.py (now .partition loaded 2x for
+  pcfg and rcfg)
+- move the DAQlogbook operations to server
+- after the move of DAQlogbook operations to server, measure again
+20.5.
+some testing with UDP-based Data Transfer (UDT) Library - version 4
+done (available from git server). 
+Goal: to be used with SSM esp. after LS1 with new L0 10G ethernet readout.
+See:
+aj@pcalicebhm11:git/udt-git
+trigger@altri1:udt4
+22.5.
+prtProfTime() added in ctp_proxy
+28.5.
+ctp_proxy linked without mysql! (i.e. all daqlogbook updates
+were moved to pydim). pysidm/server.c uses cshm* like ctpproxy
+(i.e. not complete usage, only validLTUs and validCTPinputs)
+28.5.
+linux/ctpshm.exe  -compiled/linked on client+server -i.e. only the last one
+(i.e. according to where compile/link done) works
+DAQlogbook opened/closed in pydim/server.c always when ctpproxy restarted
+according to DIM message received from ctpproxy
+31.5.2013
+CNTRRD/analyse.c, option  gnu/dec/hexa added
 6.6.
-smaq.c (pit +devel): now kill i(i.e. -9) operation should let
-bakery lock/unlock finish properly -signal used to catch the interrupt
-in smaq.c
-7.6.
-parted.py: cn=name skipped if name is standard name
-20.6. ================================ lab->pit
-see git commit messages...
-- new validate.rpm deployed also
-trigger/devel in lab  -git repository juskoa/trigger
-trigger/stable in pit -accessible through git (ssh tunneled)
-also see git repository lietava/triggerapp -for applications
-running on 707 (smaq,correlations,gmonscal,...)
-T0 calib: only in technical runs (outside of STABLE BEAMS)
+pac demo (for PAC with clusters) is in aj@11:h/wsgi.
+17.6.
+git commit -a
+24.6.
+monitor/monitor.py -the server disk temperature monitoring added
+28.6.
+backup of /data/dl/root + snapshot to /mnt/alidcsfs001/Scratch/tri/2013
+Idea: make it alice on diffrent computer (virtual?)
+16.7.
+monitor/monitor.py -hddtemp now hysteresis
+CNTRRD/analyse.c   -bug fixed, header in output ascii file added
+CNTRRD/analyse.py  -processing of data file obtained with analyse.c
+pydim/bcmcheck.c   - added
+17.7.
+improved fanio/dim/server.c. Compiles+runs also in lab without hw (using
+VMESITE env. vaiable).
+22/23.7. PauseResume for clusters ongoing...
+31.7. startswtrig() -> returns L2_ORBIT of event generation
+5.8. new version of daqlogbook -used for slc6, Vasco compiled it for slc5
+64bit. For 32bit: we do not need it (but in pit we have 32bit server) 
+-all daqlogbook access should be done from
+server
+7.8.
+ctp_Pause/ctp_Resume: more checks done, 
+still todo: bakery locks (look for bakery) for Pause/Resume/Sync/clgroups
+git pull
+git commit --author Jusko
+git push
+3.10.
+trigger/devel/archived moved up 1 level and emoved from git, i.e. is now in
+trigger/
+git commit -a  and push , new clone created on avmes /home/dl6/local/trigger
+
+29.10.2013
+plan:
+/home/dl6/local/trigger -development version (git r/w) for altri1/2 avmes
+/home/dl6/local/trigger_run1 -to be used for other diskless on CERN network.
+                       - can be used also for the pit (if needed)
+avmes: slc6 with altri1/2 -seems works from today -let's use it
+                       for some days before:
+update pcalicebhm10 to slc6 and move diskless server from avmes on it
+30.10.2013
+run1 user and branch created. whole trigger project cloned, i.e. now
+in /home/dl6/trigger -> development
+   /home/dl6/trigger_run1 -> with old (50 classes) boards + CERN public
+     this one always branch run1 !
+31.10.
+'ctp' should work with new L0/L1/L2 (100 classes, see devdbg run1_todone).
+run1 user seems ok. 6 commands compiling everything (3 on run1@avmes + 3 on
+run1@altri1).
+script -c 'makeall allctp' ~/allctp.make
+script -c 'makeall allltu' ~/allltu.make
+script -c 'makeall others' ~/others.make
+Problem with 'Classes' widget in ctp is seen also with old sw (i.e. cannot
+be open again when closed)
+3.11.2013
+vmeaistd.h MAXNAMES 400 -> 600
+11.11.2013
+bakery: the swtrigger lock now separated for ctp (2) and dims (3).
+GenSwtrg_op() -special for ctp interface
+Note: slightly different for run1 version (also modified)
+11.11.2013
+vmeb/trigdb.py cables   -added, printing the names of all L0+L1+L2 inputs
+in L0.INPUTS + VALID.CTPINPUTS.
+18.11.
+trigger@aldaqctp2 -daq readout ok (see
+trigger@altri1:$VMEWORKDIR/WORK/pat1.txt)
+20.11.2013
+ssmbrowser: allows save/restore including SSMs content
+yet todo: stdalone browser for browsing on any comp (not vme)
+28.11.
+python -m compileall .   -recompile 
+3.11.
+ltu_proxy: daqlogbook usage moved to pydim/server.c (see history.txt)
+ctplib/ttcmisubs.c moved to ttcmi/ttcmisubs.c (vme/ttcmidaemons linking
+also modified accordingly)
+3.12.
+makeall ok on bhm10+altrip2, i.e.:
+script -c 'makeall allctp clean' ~/makeall_allctp.log
+script -c 'makeall allltu clean' ~/makeall_allltu.log
+script -c 'makeall others clean' ~/makeall_others.log
+13.1.2014
+git push. We do not know about errors in LTU firmware (seems 100 classes
+ok)
+14.1.
+FOs --> BUSY button in FOs action changed:
+before: when pressed 'HW not updated indication' was not done
+now: when the button pressed, 'HW not updated' indicator
+     goes red and BUSY_CLUSTER word is than reprogrammed when HW written.
+     This happens even if BUSY_CLUSTER words were not changed (but
+     we are sure the displayed info agrees with HW).
+23.1.2014 trigger@avmes:~/rpmbuild/RPMS/ltuclient-2.10-1.x86_64.rpm preapred
+30.1.2014
+BUSY_CTPDEADTIME was 60 before 30.1.2014
+From now is 60+50=110 which corresponds to real deadtime (minimal
+distance of 2 L0 in 2 non overlaping clusters) to 112BCs= 2.8us
+todo: measure with scope
+7.2.
+rl@avmes,altri1: git way added. I.e.:
+main development: trigger@avmes,altri1
+Roman: rl@avmes,altri1
+production for CERN public net: trigger@pcalicebhm10,altri2
+12.2.
+CNTWEB/ltus.py -grouping added
+13.3.
+CNTWEB/ltus.py -Yaxis logarithmic/linear added
+19.2.2014
+vme/fanio/dim  exportsc.bash added
+12.3.
+modifications for l1,l2 counters (300 counters each, 2-bit accumulators for slow counters)
+15.3.
+mod. for busy/fo. cnames.sorted2: 1560 lines, fo: 0xB0 problem with timing
+18.3.
+bug fixed in ltulib/ltuinit.c (did not recognize correctly ltuver2 boards
+with numbers > 64)
+18.3.
+small bug fixed in ssmbrowser.py: now a ssm dump written only once
+when asked to be saved together with signal names
+21.3.
+New rrd db created on avmes (1560 ctp counters). 
+Conversion rrddb->dsiplayname (spare17->l0LMbv) done in CNTRRD/cnt.py.
+Counter.co2rrdname() -changed. Now doing nothing, i.e. cnames.sorted2 names
+are equal to those used in rrddb.
+Prgrams using cnames.sorted2 should:
+- recognize TSGROUP counter by looking for 'spare*TSGROUP'
+- recognize 6 runx counters by looking for 'spare*runx'
+1.4.2013
+vme/fanio/dim/server.c -modified. 
+-now it works together with PVSS SSD client.
+-STATUS service automatically updated (no polling required from dim client)
+3.4.2013
+pydim/act_main.c ok now (using shm on server)
+3.4.2013
+ctpproxy start problem:
+03.04.2014 14:34:22: timestamp:TAGctprestart: rcfgdel useDAQLOGBOOK
+rc from "CTPRCFG/RCFG rcfgdel ignore/useDAQLOGBOOK":1 (1 is OK,but check callback)
+PID 25131 - Thu Apr  3 14:34:22 2014 - (ERROR) Client Connecting to CTPRCFG on avmes.cern.ch: No route to host
+03.04.2014 14:34:22: ***  Error:timestamp:callback:DIM command CTPRCFG/RCFG delete(testifpydimON) failed.
+03.04.2014 14:34:23: timestamp:prepareRunConfig1: rcfgdel ALL 0
+is casued by firewall preventing DIM servcie on avmes!
+fixed by adding 2 lines to /etc/sysconfig/iptables:
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 2505 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 5100:5200 -j ACCEPT
+
+7.4.2014
+local/trigger_run1 -cloned from github on bhm10. I.e. from now:
+run1@altri1   -running run1 sw with new firmware
+run1@altri2   -running run1 sw with old firmware -problematic, 
+  only makeall allctp done, todo: better environment set...
+10.4.2014
+miclock_fifo.py -takes inputs from /tmp/micfifo instead of stdin. I.e. 
+  prepared now to be driven from httpd and html intrface.
+6.6.2014
+ctplib/notInCrate.c/l0C0()    0: L0 board   >0: LM0 board
+10.6.
+altri2 crate: all baords fy loaded as in altri1 crate:
+       run1  un2:10.6.2014
+busy   a8    a9
+l0     ae    b1
+l1     a4    a6
+l2     a7    a8
+int    a8    ac
+fo     ac    b1
+10.6.
+vmecrate inputs
+- modified for LM0 (works also with old L0)
+12.6.
+caenvme.setup added to bin/distrib, vmewrap.c modified for caenvme (Pietro's request)
+12.6.
+ctplib/initCTP.c: LM0 ctp switch defaults to: 1->1 2->2 ...
+12.6.
+ctplib/scopeab.c
+SCOPE_SELECT is different (SCOPE_SELECTbfi) for BSY,FO, INT boards
+19.6.
+vme/simple/  -rndtest testing an array of VME regs in a loop
+ctp.h:
+L0_VETOr2 -used for LM0, L0_VETO -to be used with L0 board
+L0_MASK   -use ONLY for L0
+L0_INVERTac -the same for L0/LM0
+L0_CONDIION -the same for L0/LM0
+24.6.
+ctp.printsetDSCG() -works for L0 + LM0
+-> git push -> pit
+25.6
+ctp.cfg reading in 'vmecrate ctp': sometimes not ok -seems
+  this happens when dos format of ctp.cfg (use dos2unix to convert it to unix
+  format)
+vmeb/cmdlin2 -deprecated popen2 replaced by subprocess
+ctp.printsetDSCG() -bug fixed (never worked in run1)
+25.6.
+simple.partition -started using 'ctpproxy startest' (class1 only)
+30.6.
+http://cern.ch/juskoa/ltu/ltuclient-2.10-1.x86_64.rpm published to
+alice-daq-support
+6.7.
+1st start of run with satrttest+LM0 seems ok:
+- 1 class: BC1 50% downscale (simple.partition)
+11.7.
+diprfrx
+[trigger@alidcsvme017 WORK]$ diprfrx.sh start
+[trigger@alidcsvme017 WORK]$ cat diprfrx.log
+log4cxx: No appender could be found for logger (dip.system.factory).
+log4cxx: Please initialize the log4cxx system properly.
+
+14.7.
+ctpwsgi: 
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
+3.8.2014
+act.exe: bug fixed (actdb_close() was called prematurelly
+4.8.2014 (around)
+posix queues introduced in ctp_proxy/main_ctp.c
+14.8 (around)
+TDAQInfo in vmeblib/daqlogbook.h... adjusted for 100 classes (was 50)
+(2x unsigned long long instead of 2x w32)
+26.8.
+validate.rpm -now for 100 classes (implemented in the pit)
+1.9.2014
+pydim/ctpcnames.c added. 
+ATTENTION! Tpartition.h MAXCTPINPUTLENGTH 16 (was 40) -> i.e.
+recompile all + reload SHM . shm length (ipcs -m) changed from 12300 -> 10860
+2.9.2014
+CTPRCFG/CNAMES service is included in pydim. 
+todo: Does not supply runN for inputs (parted.py contains code finding
+      the inputs used by given partition)
+5.9.
+test:
+[trigger@avmes pydim]$ linux_s/client CTPRCFG/RCFG
+todo: ALICE, SERVER, SERVER2 -3 CTP setups in pit altri1, altri2
+5.9.
+bin/smicmd
+8.9.
+VMESITE:
+        where, DIM_DNS_NODE
+ALICE    p2, aldaqecs
+SERVER   avmes+altri1, avmes
+SERVER2  bhm10+altri2/p2, pcald30
+PRIVATE  other comps
+8.9. --->p2
+13.9.
+bug L1_INVERT fixed (still checks, sometimes bad, for classes >=44/45)
+23.9.
+git p2->lab
+26.9.
+vmeb/counters.py changed. 
+Goal: 
+ctp counters: 
+no modification (i.e. accruals done in c code in 
+ctplib/readCounters.c/readCounters. dims.exe -counters read 1/min for RRD.
+ltu counters: 
+1. accruals calculation is now in vmeb/counters.py
+Before: in ltulib/... -i.e. in ltu.exe started from ltuproxy over popen -not
+correct when interactive usage from 2 clients.
+2. counters readings done 1/sec into shared memory -i.e. only 
+every 60th reading used for rrd.
+1/sec reading used for new dim service det/MONBUSY signaling
+a detector busy time as a float number 0 - 100.
+3. getCounters(), in ltulib/ltuCounters.c: 2nd, accr. parameter 
+is not meaningfull.
+getCounters(), does'not read real LTU counters -
+they are taken from shared memory, if available. Consequence:
+2 readings, i.e. calling getCounters(), less than 1 sec apart are the same.
+2.10.2014
+still finish updateMONBUSY in ltu_proxy/ltudimservices.c
+2.10.2014
+avmes ->github ->bhm10
+9.10.2014
+ltu_proxy/ltudimservices.c -seems ok (i.e. only 1 thread reading
+ltu counters and shared by all ltuclients).
+13.10.
+avmes ->github->p2
+24.10.
+vme/ltut added (development, also compile/link is in trd@alidcsme004)
+27.10.
+ctplib/busyTools.c -bug fixed (bad bytime from run1 reladr, and bakery added)
+27.10.
+vmeb/myw.py frommsL0pr(): L0pr class parameter now checked 0<xx%<100
+29.10.
+hmpid feecmd12 removed (when switching LTU to stdalone in ltu_proxy.c and
+ltu_utils.c)
+ctpproxy.py -should be ok now (still programming CTPswitch and
+starting ctpproxy with: startnr NO READOUT !)
+30.10.
+ddr3 regs added in ctp.h, first simple tests with ddr3 (button DDR3 in ctp
+exp. available)
+30.10.
+ltuclient-2.11-1.x86_64.rpm preapred for ARCC (also on web) on avmes
+5.11.
+DDR3 basics (ctp.c) prepared. Random test with 64MB ok
+25.11.
+alignment2daq fixed in pydim (was not written to daq till now)
+3.12.2014
+pydim/simpleClient.py   -testing det/MONBUSY possible
+3.12.2014
+ctp switch: only in code: ctplib/initCTP.c + vmeb/trigdb.py
+10.12.
+ctpinputs.cfg now instead of L0.INPUTS VALID.CTPINPUTS CTP.SWITCH
+(see devdbg/ctpinputs_cfg)
+10.12.
+AD introduced - see devdbg/ad
+15.1.2015
+ctp_proxy.c: ctp_StartPartition() modified (case when SOD cannot be sent)
+14.01.2015 17:40:31: timestamp:prepareRunConfig2:rc 1
+getBusyMaskPartition: detectors:0x0 0PåÐãp
+- now it should be ok, i.e. not seen in the log
+16.1.2015
+ltudimservices.c: ttcFEEcmd( allowed
+16.1.2015
+- stopSSM(), condstopSSM(): in case of L0/LM0 always try to stop also L1
+- SEL_LM changed: now 4 regs (see ctp.h, ctplib/initCTP.c)
+20.1.2015
+- not good idea to stop always L1 after L0 stopped, abandoned
+26.1.2015
+validate 5.  (distribution on web cern.ch/juskoa)
+28.1.2015
+CNTWEB - Upper limit added for CTP counters
+28.1.
+ttcmidaemons/ttcmidims.c: bug fixed in log msgs: 'QPLLcaba qpllnow'
+instead of 'SHIFTcaba shiftnow'
+1.2.2015
+ctp_proxy.c, xcountersStart: check if xcounters active, if not: quit
+1.2.2015
+xcounters check moved on server (xcountersdaq is running there) to
+pydim/server.c check_xcounters()
+11.2.2015
+xcounters.sh runs in lab too (as trigger, in p2 as tri)
+11.2.
+hostname -s -> everywhere
+12.2.
+SYNCH_ADDr2: edge is shifted by 3 bits to the left (bits 15+7 instead of 12+4)
+and delay is now 5 bits (0..31 BCs)
+23.2.
+ttcmidims - services added
+ssm[].lopmo added (for LM0 ssm status)
+25.2.
+Tpartition.c: modified to acomodate change of LM from 32 ->11 switch input
+1.3.
+TTCMI(/RFRX service added, ttcmidaemons,ttcmi reshuffled a bit (i.e. 
+now better for debug in lab)
+

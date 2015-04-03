@@ -3,6 +3,7 @@ from mywrl import *
 #import ROOT
 import ssmbrowser,myw,types
 import os,os.path
+from time import gmtime, strftime
 COLOR_SSMC='#ffffcc'
 COLOR_normal='#dcdcdc'
 COLOR_error='red'
@@ -29,7 +30,7 @@ class Detectors2Choose:
   self.window=Toplevel(vb.master)
   dets=' '
   self.dets=myw.MywEntry(self.window, side=LEFT, width=30,defvalue=dets,
-      expandentry='no',label='Detectors', 
+      expandentry='no',label='Detectors',bind='r',cmdlabel=self.getDetectors, 
       helptext="List of detectors separated by commas")
   myw.MywButton(self.window,side=LEFT,label='OK',
            cmd=self.getDetectors,helptext='Values read')
@@ -37,7 +38,7 @@ class Detectors2Choose:
   self.window.grab_set()
   self.window.protocol("WM_DELETE_WINDOW", self.window.destroy)
   self.window.wait_window(self.window)
- def getDetectors(self):
+ def getDetectors(self, fromdetsentry=None):
   inp=self.dets.getEntry()
   for i in inp.split(','):
       det=i.replace(" ","")
@@ -70,12 +71,12 @@ class AllInputs:
   #print self.Detectors
   dbinputs.append(orbit) 
   self.tl=Toplevel(vb.master)
-  self.tl.title("L0,L1 and L2 inputs")
+  self.tl.title("LM,L0,L1 and L2 inputs")
   self.addinp=[];   
   self.inputsframe= myw.MywFrame(self.tl, side=TOP,relief=FLAT, bg=COLOR_SSMC) 
   header= myw.MywLabel(self.inputsframe, side=TOP, anchor='w',
       helptext=mainhelp, label=
-      ' Input  Level          Name                     Det                          Action                  Signature      Status     Activity  Edge Delay   Phase   Last Rare') 
+      "InSwitch    Level \t     Name \t\t Det    \t\t    Action  \t \t    Signature      Status          Activity  Edge Delay   Phase   Last Rare") 
   self.inputs=[]
   self.rare=StringVar()
   self.last=StringVar()
@@ -317,9 +318,17 @@ class AllInputs:
  #
  def findinput(self,inpnum,board):
   """
+     find inputs for signature snapshot analysis
+     L0 - ctpnum should be used
   """
   for i in self.inputs:
-    if i.inpnum == inpnum and i.board == board:
+    #if i.inpnum == inpnum and i.board == board:
+    if i.board == '1':
+       ctpnum=i.ctpnum
+    else:
+       ctpnum=i.ctpnum
+    #print ctpnum,' ctpnum,inpnum ' ,inpnum
+    if ctpnum == inpnum and i.board == board:
        return self.inputs.index(i)
   return None
  #
@@ -336,8 +345,9 @@ class AllInputs:
  #
  def checkallinputs(self):
   """
+     active inputs works with ctpnum
   """
-  activeinputs=self.getactiveinputs()
+  activeinputs=self.getactiveinputs()   
   self.checksignature(activeinputs)
   self.showsignatureM()
   self.showactiveinputs(self.inputs,activeinputs)
@@ -353,19 +363,21 @@ class AllInputs:
      for j in activeinputs[i]:
        inps=inps+(int(j[0])-start)*'0'+'1'
        start=int(j[0])+1
-     #print 'inps= ',inps
+     print 'checksignature inps= ',inps
      if inps != '': 
        cmd="FindSignatures("+i+","+'"'+inps+'"'+")"
        output=self.vb.io.execute(cmd,log="out",applout="<>")
-       #print i,'output=',output,len(output)
+       print i,'output=',output,len(output)
        for j in range(0,len(output)-1,2):
          k=self.findinput(output[j],i)
+         print k,' k j ',j
          if k != None:
            print 'checksignature: ',j,output[j],k,self.inputs[k].name
            self.inputs[k].signatureM=output[j+1]
  #
  def showsignatureM(self):
   """
+     show measured signature
   """
   for i in self.inputs:
     if i.name=='ORBIT':continue
@@ -384,7 +396,8 @@ class AllInputs:
     i.activity='0'
     for k in activeinputs[i.mode]:
         #print k[0],i.inpnum
-        if k[0]==i.inpnum:
+        #if k[0]==i.inpnum:
+        if k[0]==i.ctpnum:
            i.inputactivity['text']=k[1]
            i.activity=k[1]
            activeinputs[i.mode].remove(k)
@@ -442,17 +455,18 @@ class AllInputs:
       Get active inputs: take snapshot memory and 
       check if any signal present
       Also BUSY board is added due to the orbit, otherwise is not necessary.
+      Returns sssm channels, i.e. inputs number (NOT swicth)
   """
   boards=['0','1','2','3']
   activeinputs={'0':[],'1':[],'2':[],'3':[],'1o':[]}
   for i in boards:
     cmd="checkInputsActivity("+i+")"
-    #output=self.vb.io.execute(cmd,log="out",applout="<>")
-    output=self.vb.io.execute(cmd,log="no",applout="<>")
-    #print i,' output= ',output
+    output=self.vb.io.execute(cmd,log="out",applout="<>")
+    #output=self.vb.io.execute(cmd,log="no",applout="<>")
+    print i,' output= ',output
     for j in range(0,len(output)-1,2):
         activeinputs[i].append([output[j],output[j+1]])
-  #print 'active inputs: ',activeinputs
+  print 'active inputs: ',activeinputs
   CTPinternalsignals=0 
   if CTPinternalsignals:
     cmd="checkInputsActivityRB()"
@@ -517,9 +531,11 @@ class AllInputs:
   return Detectors 
  def readVCTPINPUTS(self):
   """
-     Read file in $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS
+     //Read file in $VMECFDIR/CFG/ctp/DB/VALID.CTPINPUTS
+     Read file in $VMECFDIR/CFG/ctp/DB/ctpinputs.cfg
   """ 
-  fname= os.environ['VMECFDIR'] +"/CFG/ctp/DB/VALID.CTPINPUTS"
+  #fname= os.environ['VMECFDIR'] +"/CFG/ctp/DB/VALID.CTPINPUTS"
+  fname= os.environ['VMECFDIR'] +"/CFG/ctp/DB/ctpinputs.cfg"
   try:
     database=open(fname,"r") 
   except IOError:
@@ -559,12 +575,16 @@ class AllInputs:
           break
     if flag: continue
     db={}
-    db['number']=items[5]
-    db['numberDIM']=items[6]
-    db['level']='L'+items[3]
     db['name']=items[0]
     db['detector']=items[2]
+    db['level']='L'+items[3]
     db['signature']=items[4]
+    #db['number']=items[5]
+    db['number']=items[7]
+    db['numberDIM']=items[6]
+    db['ctpnum']=items[5]
+    db['Edge'] = items[8]
+    db['Delay'] = items[9]
     dbinputs.append(db)
     #print "Adding: ", db
   return dbinputs
@@ -710,18 +730,18 @@ class AddModInput:
      MywError("Wrong level: "+level)
      return 0
    num=input['number']
-   valid = []
-   for i in range(1,13,1):
-     valid.append(str(i))
-   if level in ['L2'] and num not in valid:
-     MywError("Wrong input: "+num)
-     print "Wrong input ",num  
-     return 0
-   sig=input['signature']
-   if int(sig) < 1 or int(sig) > 119:
-      print "Wrong signature"
-      MywError('Wrong signature: '+sig)
-      return 0
+   #valid = []
+   #for i in range(1,13,1):
+   #  valid.append(str(i))
+   #if level in ['L2'] and num not in valid:
+   #  MywError("Wrong input: "+num)
+   #  print "Wrong input ",num  
+   #  return 0
+   #sig=input['signature']
+   #if int(sig) < 1 or int(sig) > 119:
+   #   print "Wrong signature ", sig
+   #   MywError('Wrong signature: '+sig)
+   #   return 0
    return 1
  def cancel(self):
    self.tl.destroy()
@@ -749,6 +769,7 @@ class Input:
   self.inpnumall='O'
   if self.name == 'ORBIT':
     self.inpnum='0'  
+    self.ctpnum='0'
     self.inpnumDIM='0'  
     self.level='-'
     self.detector='LHC'
@@ -760,6 +781,7 @@ class Input:
     self.actions=["Get Status","Get Edge","Measure Phase"]
   else:
     self.inpnum=dbinput['number']
+    self.ctpnum=dbinput['ctpnum']
     self.inpnumDIM=dbinput['numberDIM']
     self.detector=dbinput['detector']
     self.level=dbinput['level']
@@ -779,6 +801,9 @@ class Input:
     #self.actions=["Get Status (DIM)","Get Edge/Delay","Set Status (DIM)","Measure Phase","Check Signature","Set Delay"]
     self.actions=["Get Status (DIM)","Set Status (DIM)","Check Signature","Get Edge/Delay","Set Edge","Set Delay","Measure Phase"]
   #print dbinput
+  self.inpedge=self.ctpnum
+  if self.board == '1': 
+    self.inpedge=self.inpnum
   self.show()
   if self.name == 'ORBIT': self.inputsignatureM['text']='-'
  def printme(self):
@@ -794,7 +819,7 @@ class Input:
       Input actions: Get Status (DIM), ....
    """
    om=self.bactions.getEntry()
-   print "action",ix,om
+   print "Input action",ix,om
    if om == "Get Status (DIM)":
     self.getstatus()
    elif om == "Measure Phase":
@@ -872,9 +897,10 @@ Everything OK!
    """
    fr1= myw.MywFrame(self.toplevel, side=TOP,relief=FLAT, bg=COLOR_SSMC)
    self.fr1=fr1 
+   inpctpnum=self.ctpnum+' '+self.level
    self.inputnumber = MywCheckButton(fr1, side=LEFT, label=self.inpnum, 
                       helptext="Input number")
-   self.inputlevel = myw.MywLabel(fr1, side=LEFT, label=self.level,
+   self.inputlevel = myw.MywLabel(fr1, side=LEFT, label=inpctpnum,
       width=4, expand='no',fill='y',borderwidth=1, 
       helptext="Input trigger level")
    self.inputname = myw.MywLabel(fr1, side=LEFT, label=self.name,
@@ -996,7 +1022,7 @@ Everything OK!
       SYNCAL word (Pedja nomenclature)=SYNCH_ADD (Anton nomenclature).
       /ApplicatioInput/Orbit difference is in C.
   """
-  cmd="getEdge("+self.board+","+self.inpnum+")"
+  cmd="getEdge("+self.board+","+self.inpedge+")"
   output=self.vb.io.execute(cmd,log="out",applout="<>")
   #print 'edge= ',output
   self.edge=output[0]
@@ -1009,7 +1035,7 @@ Everything OK!
       Set delay according to value in get entry
   """
   delay=self.inputdelay.getEntry()
-  cmd="setDelay("+self.board+','+self.inpnum+','+delay+')'
+  cmd="setDelay("+self.board+','+self.inpedge+','+delay+')'
   self.vb.io.execute(cmd,log="out",applout="<>")
  def setedge(self):
   edgeA=self.inputedge.getEntry()
@@ -1018,7 +1044,7 @@ Everything OK!
   else:
      print 'Unknown edge ',edgeA,' no action.'
      return
-  cmd="setEdge("+self.board+','+self.inpnum+','+edge+')'
+  cmd="setEdge("+self.board+','+self.inpedge+','+edge+')'
   self.vb.io.execute(cmd,log="out",applout="<>")
   self.inputedge.entry['bg']=COLOR_normal
   self.edge=edgeA       
@@ -1027,9 +1053,11 @@ Everything OK!
     If the status is not error check signature
   """
   if(self.name=='ORBIT'): return
-  cmd="CheckSignature("+self.board+","+self.signature+","+self.inpnum+")"
+  if(self.ctpnum==0): return
+  cmd="CheckSignature("+self.board+","+self.signature+","+self.ctpnum+")"
   output=self.vb.io.execute(cmd,log="out",applout="<>")
-  #print output
+  print "input checksignature: ",output
+  #self.signatureM=
 #-----------------------------------------------------
 class Measure:
    """
@@ -1038,10 +1066,19 @@ class Measure:
    """
    #def __init__(self,vb,board,input,name):
    def __init__(self,input):
-    #print "Measuring ",board,input
+    print "Measuring board:", input.board
     self.vb=input.vb
-    self.board=input.board
-    self.input=input.inpnum
+    self.board=input.board   # 1:L0  2:L1  3:L2
+    self.lm0board= None      # FPGA version of LM0 board in case of LM0 board
+    self.input=input.ctpnum
+    if self.board=='1':
+      self.input=input.inpnum
+      cmd='vmeopr32(0x9080)'   # FPGAVERSION_ADD
+      output= string.strip(self.vb.io.execute(cmd,log="out"))
+      print "Measure:l0C0:", output,":"
+      if output >= "0xc0":
+        self.lm0board= output
+        print "Measure:lm0board:", output
     self.name=input.name
     self.inp=input
     self.inputphase=input.inputphase
@@ -1050,6 +1087,7 @@ class Measure:
       self.tl.title("ADC "+self.name)
       self.ytitle='ADC'
       self.cmd="measurephase("+self.board+","+self.input+")"
+      print "Debug: Measure ",self.cmd
     else:
       self.tl.title("ORBIT phase (EDGE)")
       self.ytitle='EDGE %'
@@ -1058,16 +1096,19 @@ class Measure:
     boardhelp="""
 0 = BUSY board: measures phase of the input ORBIT
     wrt to BC clock by edge mechanism (see busy board doc)     
-1 = L0 board: measures the phases of the input signal
-    wrt to BC closck
+1 = L0 or LM0 board: measures the phases of the input signal
+    wrt to BC clock
 2 = L1 board
 3 = l2 board"""
     inputhelp="""
-(1-24) = input number to scan
-  0    = ground
-  25   = Vcc ~ 255
-  26   = 20 MHz ~ 126
-  27   = ADC test input ~  /|/"""         
+                                L0        LM0
+  input number to scan         1..24      1-48
+  ground                        0         0
+  Vcc ~ 255                     25       49
+  20 MHz ~ 126                  26       50
+  ADC test input                27       -
+  OBIT & !TEST                  -        51
+"""         
 ##########################################################
     if(self.checkbcclock(0)):
      self.f1=MywFrame(self.tl,side=TOP)
@@ -1078,7 +1119,7 @@ class Measure:
      self.c1.pack()
      f2=MywFrame(self.tl)
      b0=MywButton(f2,label='Cancel',cmd=self.tl.destroy,side=LEFT,
-        helptext='Close the window without accepteng the value.')
+        helptext='Close the window without accepting the value.')
      b2=MywButton(f2,label="Measure",cmd=self.measure,side=LEFT,
         helptext="""Measure points again.
 Edge: choose negative (for delay:0) if unstability is found around delay 0.
@@ -1102,10 +1143,23 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
     output=self.vb.io.execute(cmd,log="out",applout="<>")
     #print "output=",output,' ',output[0]
     if (output[0] != '0x2'):
-       MywError(errmsg="BC clock is not present, staus="+output[0])
-       self.tl.destroy()
-       return 0
+       #MywError(errmsg="BC clock is not present, staus="+output[0])
+       print("BC clock is not present, staus="+output[0])
+       #self.tl.destroy()
+       return 1
     return 1
+   def saveauto(self):
+    """
+        Save file for every succesfull measurement 
+    """
+    ss=ss=strftime("_%Y-%m-%d_%H:%M:%S", gmtime())
+    fn=os.environ['VMEWORKDIR'] +"/WORK/phases/"+self.name+ss+".ps"
+    rc=self.c1.postscript(file=fn)
+    if rc is not '':
+     MywError(errmsg="File "+fn+" cannot be created.")
+     print "rc=",rc,len(rc)
+    else:
+     print "File ",fn, " saved."
    def save(self):
     """
        Save the postscript file of the plot to WORK directory.
@@ -1124,7 +1178,7 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
       self.c1=None
     if(self.checkbcclock(0)):
      output=self.vb.io.execute(self.cmd,log="out",applout="<>")
-     #print 'output=',output
+     print 'output=',output
      if output[len(output)-1] != '0':
         self.vb.io.write('Error in measurephase.c')
      xy=self.xy(output)
@@ -1136,6 +1190,8 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
      self.c1.ylabel(text=self.ytitle)
      self.c1.pack()
      self.en.setEntry(str(max))
+     self.c1.update_idletasks()
+     self.saveauto()
    def ok(self):
     """
        Accept phase value and destroy ADC window.
@@ -1201,7 +1257,7 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
         #print listx[i],listy[i][0],der
         if(abs(der)>30.):
           delay.append(int(listx[i]-1))
-      print "delay=",delay
+      #print "delay=",delay
       if (delay==[]): delay=None
       return delay
      else:

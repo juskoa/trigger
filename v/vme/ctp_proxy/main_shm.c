@@ -2,9 +2,10 @@
 SHM: ipcs -m, ipcrm shm SHMID
 */
 #include <stdio.h>
-#include "vmewrap.h"
+#include <string.h>
+#include "vmewrapdefs.h"
 #include "shmaccess.h"
-#include "ctp.h"
+//#include "ctp.h"
 #define DBMAIN
 #include "Tpartition.h"
 

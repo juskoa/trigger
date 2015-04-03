@@ -1,6 +1,9 @@
 #ifndef LTU_H_INCLUDED
 #define LTU_H_INCLUDED
 
+//karim
+void myscan(int micseconds, int* & buf);
+
 /* LTU VME registers.
 LTUVERSION_ADD: 0xf3 ltu   -see vme/ltu. Last LTU+TTCVI version.
                 0xc1 trigger input generator   -see vme/ltu

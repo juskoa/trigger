@@ -1,3 +1,2 @@
-# configuration file to access using CAEN V2718/V1718 driver
-# card type: (0=V1718, 1=V2718)  link  board nr 
-1  0  0
+# configuration file for CAEN VME Bridge: type/link/chained link (type: 0 V1718 , 1 V2718)  
+1 1 0 

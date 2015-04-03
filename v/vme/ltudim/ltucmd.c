@@ -78,11 +78,12 @@ return(rc);
 /*----------------------------------*/ int main(int argc, char **argv) {
 int rc, RESULTid;
 int calibbc=6666, calibbcfailed=4444;
-strcpy(DETNAME,"t0");
+strcpy(DETNAME,"hmpid");
+//strcpy(DETNAME,"t0");
 strcpy(DNDO,DETNAME); strcat(DNDO, "/DO");
 strcpy(DNCMD,DETNAME); strcat(DNCMD, "/CMD");
 
-/*------------------------------------ 1.             DO (pipe)+RESULT
+//------------------------------------ 1.             DO (pipe)+RESULT
 //Before all, we have to register with /RESULT service: 
 strcpy(cmd,DETNAME); strcat(cmd, "/RESULT");
 WAITING=1;
@@ -97,7 +98,7 @@ if(rc==1) { printf("%s<\n", result);
   printf("not executed. rc:%d\n", rc);
 };
 //------------------------------------ 1.             DO+RESULT 
-*/
+//
 /*------------------------------------ 2.             DO only
 rc=execute(DNDO, "TTCinit()\n");
 if(rc==1) { printf("OK, sent over DIM\n"); 
@@ -105,7 +106,6 @@ if(rc==1) { printf("OK, sent over DIM\n");
 } else {
   printf("not executed. rc:%d\n", rc);
 };
-//------------------------------------ 2.             DO only
 */
 /*------------------------------------ .             EXEC (service)
 not used
@@ -120,7 +120,7 @@ if(rc==1) { printf("OK, sent over DIM\n");
 */
 //------------------------------------ 3.             CMD only
 //
-//------------------------------------ 4.   only service, ONCE_ONLY
+/*------------------------------------ 4.   only service, ONCE_ONLY
 strcpy(cmd,DETNAME); strcat(cmd, "/CALIBBC");
 while(1) {
   rc= dic_info_service(cmd, ONCE_ONLY, 2, &calibbc,sizeof(int),
@@ -130,7 +130,7 @@ while(1) {
   sleep(1);
   //sleep(3);
 };
-//------------------------------------ 4. only service, ONCE_ONLY 
+*/
 
 }
 

@@ -37,6 +37,7 @@ typedef struct {
   int syncflag;/* set by syncSSM, set to -1 by readSSM */
   w32 orbit;   /* channel or mask for orbit for this board */
   Signal *signal; /* signal list */
+  w32 lopmode;    /* last op. mode (set in setomSSM).The must for LM0 board! */
 } Tsms;
 
 EXTRN Tsms sms[NSSMBOARDS];
@@ -50,16 +51,17 @@ EXTRN int SYNCFLAG;  /* used to set sms[].syncflag for synced SSMs.
 
 #undef EXTRN
 
-
-
 /*int setSSM(int board,char *mode, w32 omiocs); */
 void initSSM();
+void gettableSSM();
 w32 getswSSM(int board);
 void setsmssw(int board, char *newmode);
 int setomSSM(int board, w32 omiocs);    // rc=0 -> OK
 int startSSM(int n, int *boards);
 int startSSM1(int board);
 int stopSSM(int board);
+int condstopSSM(int board, int cntpos, int maxloops, 
+  int sleepafter, int customer);
 int readSSM(int board);
 int writeSSM(int board);
 int dumpSSM(int board, char *filename);

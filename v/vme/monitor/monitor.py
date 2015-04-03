@@ -3,20 +3,30 @@ import os,sys,string,popen2,time,types,signal,socket,smtplib,pylog
 from threading import Thread
 
 UDP_TIMEOUT=70
+ALARMhddtemp=35   # if >=, issue sms
+OKhddtemp=33      # as soon it goes back to this temp., sms: 'ok temp'
 log=None
 quit=None
-
+pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
+pitlab="lab"
+if string.find(os.environ["HOSTNAME"],"alidcscom")==0:
+  pitlab="pit"
 def signal_handler(signal, stack):
   global quit
   log.logm("signal:%d received, quitting monitor.py..."%signal)
+  log.logm("anyhow, waiting till udp timeout elapses...")
+  log.flush()
   quit="quit"
+  #time.sleep(2)
+  os.remove(pidpath)
+  #sys.exit(8)
 
-def mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
+def send_mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
   """
   Usage:
-  mail('This is a test', 'subj')
+  send_mail('This is a test', 'subj')
   """
-  sender="Anton.Jusko@cern.ch"
+  sender="Anton.Jusko@cern.ch"   #must, or error: 5.1.7 Invalid address
   headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (sender, to, subject)
   message = headers + text
   mailServer = smtplib.SMTP("cernmx.cern.ch")
@@ -24,7 +34,7 @@ def mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
   mailServer.quit()
 
 def gcalib_onfunc(inm):
-  """ inm: gcalib 18.08.2011 09:57:50 TOF 92.917  4.903  MUON_TRG 88.031  0.017  
+  """ inm: gcalib 18.08.2011 09:57:50  TOF 92.917 4.903  MUON_TRG 88.031 0.017  
   T0 0.000  0.000  ZDC 0.000  0.000  EMCAL 0.000  0.000
   rc:
   [None] -cannot decide
@@ -73,12 +83,12 @@ class Udp(Thread):
       else:
         log.logm("unknown udp:"+data)
   def waitudp(self):
-    #try:
-    data,addr = self.UDPSock.recvfrom(1024)
-    #except:
-    #  print sys.exc_info()[0]
-    #  log.logm("waitudp except")
-    #  data=""
+    try:
+      data,addr = self.UDPSock.recvfrom(1024)
+    except:
+      print sys.exc_info()[0]
+      log.logm("waitudp except")
+      data=""
     return data
   def close(self):
     #self.UDPSock.shutdown(socket.SHUT_RD) 
@@ -95,15 +105,36 @@ class Daemon:
   DOWN=0
   RESTARTED=1
   OK=2
-  def __init__(self,name, scb="scb", onfunc=None):
-    """scb: "scb": startClients.bash way
+  def __init__(self,name, scb="scb", onfunc=None, autor='y'):
+    """
+    scb: 
+    "scb": startClients.bash way check (i.e. name used 
+          with startClietns.bash to check status/start)
+    "udp" check last udp message arrived from this Daemon (name still
+          used for status/start with startClients.bash)
+    "hddtemp" just execute self.hddtemp.
+          ["OFF"] in case onfunc could not run correctly
+          do_check returns: 
+            [self.ON, msg_temp]    -temperature ok
+            [self.HUNG, msg_temp]  -high temperature (msg sent)
+            [self.OFF]             -cannot measure
+
+    onfunc: execute with each UDP message (scb="udp")
+            onfunc() should return: [None], [ON,msg] or [HUNG]
+
+    autor: 'y' automatic restart
+           'n' action done (i.e. mail), but not restarted
     """
     self.name= name
+    self.autor= autor
     self.scb= scb
+    if scb=="hddtemp":
+      self.autor='n'
+      self.hightempstate= False
     self.onfunc= onfunc 
     self.state= None   # ok, restarted, down
-    self.d1= self.d2= None    # dates of last 2 actions (d2: older)
-    self.a1= self.a2= None    # last 2 actions done
+    self.d1= self.d2= None    # 'dates' of last 2 actions (d2: older)
+    self.a1= self.a2= None    # last 2 'actions' done
     self.last_state= None
     self.udplast= None        # or [time,data]
     self.sms_sent= 0
@@ -123,19 +154,46 @@ class Daemon:
     "scb" (StartClients.Bash way) -run localy (this script
           is supposed to run on server) startClients.bash
     "udp" check last udp message arrived from this Daemon
+    "hddtemp" check temp against ALARMhddtemp/OKhddtemp
+
     rc: 0: on, msg
         1: idle (e.g.: gcalib on, but no calib. triggers needed)
         2: off (= not running)
     """
     rc=[None]
-    if self.udplast:
+    if self.scb=="hddtemp":
+      rline= self.iopipe("hddtemp /dev/hda",lookfor="/dev/hda")
+      if rline:
+        #self.logm(rline)
+        tempC= string.split(rline)[-1]
+        temp= int(tempC[:-3])
+        if temp>=ALARMhddtemp:
+          msg="temp alarm:%d >= %d C"%(temp,ALARMhddtemp)
+          if not self.hightempstate:
+            self.hightempstate= True
+            self.logm_mail(msg)
+            #rc= [self.ON, msg]
+        elif temp>OKhddtemp:
+          msg="temp high:%d > %d C"%(temp,OKhddtemp)
+          #rc= [self.ON, msg]   # state: OK all the time
+          #rc= [self.HUNG, msg]
+        else:
+          msg= "temp ok:%d C"%temp
+          if self.hightempstate:
+            self.hightempstate= False
+            self.logm_mail(msg)
+          #rc= [self.ON, msg]
+        rc= [self.ON, msg]
+      else:
+        rc= [self.OFF]
+    elif self.udplast:
       difsec= time.time()- self.udplast[0]
       if difsec<UDP_TIMEOUT: # we got fresh udp message
         if self.onfunc:
           rc= self.onfunc(self.udplast[1])
           # should return: [None], [ON,msg] or [HUNG]
-    else:
-      rc= [None]
+    #else:
+    #  rc= [None]
     if (rc[0]==None) and (self.scb=="scb"): 
       # we could not decide from udp, check at least status if possible,
       # i.e. 'scb':
@@ -152,7 +210,7 @@ class Daemon:
     self.logm("started")
   def do_restart(self):
     """ 
-    rc: new status of Daemon after action
+    kill + start
     """
     rc= self.iopipe("startClients.bash "+self.name+" kill","killing:")
     self.logm(rc)
@@ -164,8 +222,8 @@ class Daemon:
     if newstat==Daemon.OK: self.sms_sent=0
   def logm(self, msg, state=None):
     """ 
-    log msg. Keep last 2 messages in self.a1/2 and their times in self.d1/2
-    .log   -all msgs, but only when changed
+    log msg ONLY WHEN CHANGED. Keep last 2 messages in 
+    self.a1/2 and their times in self.d1/2
     """
     ltime= log.gettimenow()
     if msg != self.a1:
@@ -175,22 +233,28 @@ class Daemon:
         log.flush()
       self.a2= self.a1 ; self.d2= self.d1
       self.a1= msg ; self.d1= ltime
-      print "logm:",self.name, msg
+      #print "logm:",self.name, msg
       self.last_state= state
   def logm_mail(self, msg):
+    global pitlab
+    msg2= pitlab+' '+self.name + ': ' + msg
     if self.sms_sent<2:   # send max. 2 messages
-      self.logm(msg)
-      mail(msg)
       self.sms_sent= self.sms_sent+1
+      self.logm(msg) #self.logm("mail:"+msg)
+      if self.sms_sent==2:
+        msg2= msg2+". SMSs DISABLED (max. 2)"
+      send_mail(msg2)
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
     if self.a1!=None: log.logm(self.name+': '+self.a1, ltime= self.d1)
   def do_html(self):
-    lin= "%s: %s:%s %s:%s\n"%(self.name, str(self.a1), str(self.d1), str(self.a2), str(self.d2))
+    lin= "%8s | %s | %s:%24s | %s:%24s\n"%(self.name, self.autor, 
+      str(self.d1), str(self.a1), str(self.d2), str(self.a2))
     return lin
   def getpid(self):
     self.pid= None
     pidline= self.iopipe("startClients.bash "+self.name+" status", "pid:")
+    #self.logm("getpid:pidline:"+pidline+":")
     if pidline:
       pid= string.split(pidline)[1]
       self.pid= pid
@@ -200,6 +264,7 @@ class Daemon:
     rc=None
     while(1):
       line= iop[0].readline()
+      #self.logm("iopipe:"+line+":")
       if line =='':
         break
       if lookfor:
@@ -213,35 +278,58 @@ class Daemon:
 
 def main():
   global log
-  pidpath= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.pid")
   if os.path.exists(pidpath):
     pidf=open(pidpath,"r"); pid= pidf.readline().rstrip(); pidf.close()
   else:
     pid=None
   if (len(sys.argv)>1) and ((sys.argv[1]=='stop') or (sys.argv[1]=='restart') ):
-    print "stopping %s..."%pid
-    os.kill(int(pid), signal.SIGHUP)
-    return
+    if pid: 
+      print "stopping %s..."%pid
+      os.kill(int(pid), signal.SIGHUP)
+      #os.remove(pidpath)
+    else:
+      print "monitor.py not active"
     if sys.argv[1]=='stop': return
     else: time.sleep(1) ; pid=None
   if pid!=None:
-    print "monitor.py running. kill -s SIGHUP %s or start with stop"%pid
+    print "monitor.py running. kill -s SIGHUP %s ; rm %s or use stop"%(pid,pidpath)
     return
+  else:
+    if (len(sys.argv)>1) and (sys.argv[1][-5:]=='start'):
+      print "starting..."
+    else:
+      print """
+nohup ./monitor.py start >$VMEWORKDIR/WORK/monitor.nohup &
+monitor.py stop
+"""
+      return
   mypid= str(os.getpid())
   pidf=open(pidpath,"w"); pid= pidf.write(mypid); pidf.close()
-  log=pylog.Pylog("monitor", tty="tty")
-  log.logm("mypid: "+mypid)
+  log=pylog.Pylog("monitor") #, tty="tty")
+  log.logm("mypid: "+mypid+ " ALARMhddtemp: %d"%ALARMhddtemp)
   htmlfn= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.html")
   signal.signal(signal.SIGUSR1, signal_handler)  # 10
   signal.signal(signal.SIGHUP, signal_handler)   # 1  kill -s SIGHUP mypid
   signal.signal(signal.SIGINT, signal_handler)   # 2  CTRL-C
+  # all monitorable:
+  #allds={"udpmon":Daemon("udpmon"), 
+  #  "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
+  #  "pydim":Daemon("pydim"), "html":Daemon("html")}
+  # in lab:
+  #allds={"udpmon":Daemon("udpmon"), 
+  #  "gcalib":Daemon("gcalib"),
+  #  "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
+  #  "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+  #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   allds={"udpmon":Daemon("udpmon"), 
-    "gcalib":Daemon("gcalib", onfunc=gcalib_onfunc),
-    "html":Daemon("html")}
+    "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
+    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
+  #  "gcalib":Daemon("gcalib"),
+  #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "
-  log.logm("daemons: "+lin)
+  log.logm("monitored daemons: "+lin)
   udpmsg=Udp(allds)   # starts thread reading udp messages
   while 1:
     for dmName in allds:
@@ -252,23 +340,31 @@ def main():
       rc= dm.do_check()
       if rc[0]==Daemon.OFF:
         if dm.state != Daemon.RESTARTED:   # was DOWN or OK
-          dm.do_start()
-          dm.set_state(Daemon.RESTARTED)
+          if dm.autor=='y':
+            dm.do_start()
+            dm.set_state(Daemon.RESTARTED)
+            dm.logm_mail("DOWN/OK->OFF. restarted")
+          else:
+            dm.logm_mail("DOWN/OK->OFF. not restarted (autor:NO)")
         else:
           dm.logm_mail("DOWN/OK->OFF cannot restart")
       elif rc[0]==Daemon.HUNG:
         dm.logm("hung "+rc[1])
         if (dm.state == Daemon.OK) or (dm.state == Daemon.DOWN):
-          dm.do_restart()
-          dm.set_state(Daemon.RESTARTED)
+          if dm.autor=='y':
+            dm.do_restart()
+            dm.set_state(Daemon.RESTARTED)
+          else:
+            dm.logm_mail("DOWN/OK->HUNG. not restarted (autor:NO)")
         elif dm.state == Daemon.RESTARTED:
           dm.logm_mail("RESTARTED->HUNG cannot restart")
       elif rc[0]==Daemon.IDLE:
         dm.set_state(Daemon.OK)
         dm.logm("idle")
       elif rc[0]==Daemon.ON:
-        dm.set_state(Daemon.OK)
-        dm.logm("ok   "+rc[1], Daemon.OK)
+        if dm.state!= Daemon.OK:
+          dm.set_state(Daemon.OK)
+          dm.logm("ok   "+rc[1], Daemon.OK)
       else:
         dm.logmsg= str(rc)
       if quit: 
@@ -283,14 +379,15 @@ def main():
       htmlf.write(htm)
     htmlf.close()
     log.flush()
-    time.sleep(5)   #
+    time.sleep(30)   # was 5 before 11.7.2013
     if quit:
       #for dm in allds: no need (a1,a2 are logged in the time of their creation)
       #  dm.flush()
-      log.logm("removing %s..."%pidpath)
+      log.logm("quitting pid: %s..."%pidpath)
       log.flush()
-      os.remove(pidpath)
       udpmsg.close()
+      time.sleep(1)   #
+      #os.remove(pidpath)
       break
 if __name__ == "__main__":
   main()

@@ -132,8 +132,10 @@ return(rco+rcc);
 int main(int argn, char **argv) {
 int rc,i,ifrom,nboards;
 char **wanted;
-#define NBOARDS 8
-char *bnames[NBOARDS]={"ltu","fo","busy","l0","l1","l2","int", "ttcvi"};
+//#define NBOARDS 8
+#define NBOARDS 7
+//char *bnames[NBOARDS]={"ltu","fo","busy","l0","l1","l2","int", "ttcvi"};
+char *bnames[NBOARDS]={"ltu","fo","busy","l0","l1","l2","int"};
 char foundboards[400];
 char allboards[400];
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);

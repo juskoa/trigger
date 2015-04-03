@@ -20,18 +20,20 @@ ifdef SERVER_LINK
 ifneq ($(HOSTNAME), alidcscom707)
 MAKE_CLIENT_DIR := $(subst $(SERVER_PREF),,$(shell pwd))
 #MAKE_CLIENT_CMD := '(. /usr/local/trigger/bin/vmebse.bash $(SERVER_BASEDIR) ; cd $(MAKE_CLIENT_DIR) ; make)' 
-MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux; make)' 
+#MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux; make)' 
+MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux_c; make)' 
 endif
 endif
 endif
 $(GOALS):
-#	@echo t: $@ making:$(ODIR) pwd:`pwd`
-	mkdir -p $(ODIR)
+	@echo lib_stuff.make: $@ $(MAKECMDGOALS) making:$(ODIR) pwd:`pwd`
+	@mkdir -p $(ODIR)
 	- cd $(ODIR) && $(MAKE) -f ../make_new $@
 ifdef MAKE_CLIENT_DIR
 #	echo $(MAKE_CLIENT_DIR)
-	echo
-	ssh trigger@$(CLIENT_HOST) $(MAKE_CLIENT_CMD)
+	@echo
+#	ssh trigger@$(CLIENT_HOST) $(MAKE_CLIENT_CMD)
+	ssh $(CLIENT_HOST) $(MAKE_CLIENT_CMD)         # trigger or run1
 endif
 #%: force
 #	cd $(ODIR) && $(MAKE) -f ../make_new $@

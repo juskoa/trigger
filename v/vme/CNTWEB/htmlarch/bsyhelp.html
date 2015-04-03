@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>BUSY status doc </title>
+<style type="text/css">
+.bsyTable { background-color:#FFFFE0;border-collapse:collapse; }
+.bsyTable th { background-color:#BDB76B;color:black; }
+.bsyTable td, .bsyTable th { padding:5px;border:1px solid #BDB76B; }
+</style>
+<!-- Place the above styles between the document's <head></head> tags -->
+</head>
+<body>
+  <!--
+  <img src="helloworld.jpg" align="right"/>
+  -->
+    <h2>Busy status screen options</h2>
+<em>busy</em> in formulas below is the time of detector's busy measured
+between two recent counters readings. It is measured in 0.4us units.
+<dl>
+<dt><b>bsy/L0[us]</b>= busy/L0 </dt> <dd>
+<em>L0</em>: number of L0 signals received by detector
+</dd><br>
+<dt><b>bsy/L2s[us]</b>= busy/L2s</dt> <dd>
+<em>L2s</em>: number of (L2accept+L2reject) signals received by detector.<br>
+This is the way of average busy calculation before November 2012.
+</dd><br>
+<dt><b>readout[us]</b>= (busy - L1rbsy - L2rbsy)/L2a</dt><dd>
+<em>L2a</em>: number of L2accept (readout) events.<br> 
+<em>L1rbsy, L2rbsy</em>: L1reject and L2reject correction estimated by:<br>
+<ul>
+<dl> L1rbsy= L1r * avl1rbsy</dl>
+<dl> L2rbsy= L2r * avl2rbsy</dl>
+<dl> where:
+<ul> 
+<li><em>L1r,L2r</em> is a number of L1reject resp. L2reject signals, sent to detector, between two recent counters readings</li>
+<li><em>avl1rbsy, avl2rbsy</em> are detector's attributes expressing an average reaction time to L1r or L2r signals. They were measured earlier (beginning of 2012) with pure L1reject resp. L2reject trigger sequences. Both values, in [us], are shown in following table:</li>
+</ul>
+<!--#include file="l12rtimes.html" -->
+</ul>
+</dd><br>
+<dt><b>totalbusy[%]</b>= (busy/time)*100</dt><dd>
+<em>time</em>: the time between two recent counters readings, i.e. the time when <em>busy</em> was measured.<br>
+<em>time</em> is usually 60 seconds, but can be considerably shorter for partition using time sharing.
+</dd><br>
+</dl>
+    <A href="busyL0.html">Back to BUSY status screen</A>
+</body>
+</html>
+

@@ -10,7 +10,7 @@ Input file (file.seq):
   Order of the bits in file:
   PP L0 L1 L1M L1&L1M L2aM L2rWord
   Order of the bits in ERROR_STATUS word is reversed!
-- 1 sequence is encoded in 8 lines
+- 1 sequence is encoded in 8 (or 15 in case of run2a -obsolete) lines
   1 word of the sequence is encoded in 1 line, which
   consists of '0'/'1' chars
     1. char in the line corresponds to bit15, 
@@ -43,16 +43,21 @@ word bits
       2.. 0 not used (set to 0 in SLM)
 
 11.5.2006 spare3 4.13 is now ESR (i.e. should == 0.9)
+11.12.2013 run2 data is default
 """
 #import os.path, os, string, sys, glob
-import os.path, os, string
+import os.path, os, string, slmdefs
+sdf= slmdefs.Slmdefs_run2
 class Seq:
   SNAME=['ZERO', 'L0  ', 'L2A ', 'L2R ', 'CPP ', 'CL0 ', 'CL2A', 'CL2R']
-  def __init__(self):
-    self.s=[0,0,0,0,0,0,0,0]   # 8 words of 1 trg. sequence
+  def __init__(self, swidth):
+    self.swidth= swidth      # 16 or 32
+    self.s=[]   # 8/15 words of 1 trg. sequence
+    for ix in range(sdf.wordseq):
+      self.s.append(0)
     self.l1c=[]
     self.l2c=[]
-    for i in range(51): 
+    for i in range(sdf.L1cls[2]+1): 
       self.l1c.append(0)
       self.l2c.append(0)
     self.errs=self.warns=''
@@ -60,23 +65,32 @@ class Seq:
     return self.s[0]&0x7
   def RoC(self):
     #print "RoC:", (self.s[0]&0x3c00)>>10
-    return (self.s[0]&0x3c00)>>10
+    return (self.s[0]&0x3c00)>>sdf.rocsh
   def ESR(self):
     return (self.s[0]&0x200)>>9
   def L1SwC(self):
     return (self.s[0]&0x100)>>8
   def L2SwC(self):
-    return (self.s[4]&0x800)>>10
+    #return (self.s[4]&0x800)>>10
+    if (self.s[sdf.l2swc[0]]&sdf.l2swc[1]) == sdf.l2swc[1]:
+      return 1
+    return 0
   def ClT1(self):
-    return (self.s[0]&0x4000)>>14
+    #return (self.s[0]&0x4000)>>14
+    if (self.s[sdf.CITflg[0]]&sdf.CITflg[1]) == sdf.CITflg[1]:
+      return 1
+    return 0
   def ClT2(self):
-    return (self.s[4]&0x1000)>>12
+    #return (self.s[4]&0x1000)>>12
+    if (self.s[sdf.CITflg[2]]&sdf.CITflg[3]) == sdf.CITflg[3]:
+      return 1
+    return 0
   def spare1(self):
     return (self.s[0]&0x8000)>>15
   def spare2(self):
-    return (self.s[4]&0x4000)>>14 #13
+    return (self.s[sdf.spare23w[0]]&sdf.spare23w[1])>>14 #13
   def spare3(self):
-    return (self.s[4]&0x2000)>>13 #12
+    return (self.s[sdf.spare23w[0]]&sdf.spare23w[2])>>13 #12
   def ErrorProne(self):
     return (self.s[0]&0x20)>>5
   def Last(self):
@@ -86,31 +100,57 @@ class Seq:
   def warn(self, m):
     self.warns=self.warns+', '+m
   def word(self,ix,line):
-    """
-    ix: 0,1,...,7 -sequence word index
+    """ set self.s bit + self.l1c self.l2c bits
+    ix: 0,1,...,7/15 -sequence word index
     ret: 0-OK, 1-error
     """
     bit=0   # bit number in the word (0..15)
-    for i in range(15,-1,-1):
+    cn= sdf.L1cls[2]
+    for i in range(self.swidth-1,-1,-1):
       if line[i]=='1':
         self.s[ix]= self.s[ix] | 1<<bit
         if ix==0:
-          if bit==7: self.l1c[50]=1
-          if bit==6: self.l1c[49]=1
-        elif ix==1:
-          self.l1c[33+bit]=1
-        elif ix==2:
-          self.l1c[17+bit]=1
-        elif ix==3:
-          self.l1c[1+bit]=1
-        elif ix==4:
-          if bit<=4: self.l2c[46+bit]=1
-        elif ix==5:
-          self.l2c[30+bit]=1
-        elif ix==6:
-          self.l2c[14+bit]=1
-        elif ix==7:
-          if bit>=3: self.l2c[bit-2]=1
+          if bit==7: self.l1c[cn]=1
+          if bit==6: self.l1c[cn-1]=1
+          if (self.swidth==32) and (bit>=16) and (bit<=18): # L2 data:
+            self.l2c[cn-2+(bit-16)]=1
+        elif (ix==1) or (ix==2) or (ix==3):
+          #self.l1c[33+bit]=1
+          if bit<16:
+            self.l1c[cn-1-16*ix+bit]=1
+          if (bit>=16) and (bit<=31): # L2 data:
+            self.l2c[cn-2-16*ix+(bit-16)]=1
+        else:
+          if cn==50:
+            if ix==4:
+              if bit<=4: self.l2c[46+bit]=1
+            elif (ix==5) or (ix==6):
+              #self.l2c[30+bit]=1
+              self.l2c[30-(ix-5)*16+bit]=1
+            #elif ix==6:
+            #  self.l2c[14+bit]=1
+            elif ix==7:
+              if bit>=3: self.l2c[bit-2]=1
+          else:   # 100 classes
+            if bit<16:            # i.e. low bits of 16 or 8 words
+              if (ix==4) or (ix==5) or (ix==6):
+                self.l1c[cn-1-16*ix+bit]=1
+              elif ix==7:
+                if bit>=14: 
+                  self.l1c[cn-1-16*ix+bit]=1
+                # 7[13..0] -spare bits in slm
+              elif ix==8:
+                if bit<=2: self.l2c[98+bit]=1
+              elif (ix>=9) and (ix<=14):
+                self.l2c[(98-16*(ix-8))+bit]=1
+              elif ix==15:
+                if bit==15: self.l2c[1]=1
+            else:   # i.e. 8x32 bits words -high bits
+              if (ix>=4) and (ix<=7):
+                self.l2c[cn-2-16*ix+(bit-16)]=1
+                # 7[30..16] -spare bits in slm
+              else:
+                print "Error: ix:%d"%ix
       elif line[i]!='0':
         return 1
       bit= bit+1
@@ -120,15 +160,20 @@ class Seq:
     #  self.Restart= bit & 0x8
     #elif ix==1:
     return 0
-  #def longhex(self,*args):
+  #def longhex(self,*args):h
   def longhex(self,l12c):
     """
-    l12c -list. l12c[0] -not used, l12c[1..50] - 0 or 1
+    l12c -list. l12c[0] -not used, l12c[1..50/100] - 0 or 1
+    rc: "0xabcd..."
     """
-    together=''
-    a= (l12c[50]<<1) | l12c[49] 
-    together= together+"%.1x"%(a)
-    for i in range(48,0,-1):
+    if sdf.L1cls[2]==50:
+      a= (l12c[50]<<1) | l12c[49] 
+      together= "%.1x"%(a)
+      remcls= 48
+    else:
+      together=''
+      remcls= 100
+    for i in range(remcls,0,-1):
       if i%4==0: 
         a= (l12c[i]<<3) | (l12c[i-1]<<2) | \
           (l12c[i-2]<<1) | l12c[i-3] 
@@ -137,7 +182,7 @@ class Seq:
       #print "longhex:",a
     # following is OK with python 2.2.2:
     #together= together.lstrip('0')
-    for i in range(len(together)):
+    for i in range(len(together)):   # skip leading 0s
       if together[i] != '0': break
     together= together[i:]
     if together=='': together='0'
@@ -150,7 +195,9 @@ class Seq:
     #print 'l2c:',self.l2c 
     l1class= self.longhex(self.l1c)
     l2class= self.longhex(self.l2c)
-    l2cluster= "0x%x"%((self.s[4]&0x7e0)>>5)
+    #l2cluster= "0x%x"%((self.s[4]&0x7e0)>>5)
+    l2cluster= "0x%x"%((self.s[sdf.Clust[0]] & \
+      (sdf.Clust[3]<<sdf.Clust[1]))>>sdf.Clust[1])
     flags=''
     roc= self.RoC()
     if roc:
@@ -177,6 +224,11 @@ class Seq:
       flags= flags+ 'spare2 '
     #if self.spare3():
     #  flags= flags+ 'ESR '
+    #
+    l2pat= eval(l2class)
+    l12pat= eval(l1class) & l2pat
+    if l12pat != l2pat:
+      self.warn("L2 classes are not a subset of L1 classes")
     #check ESR:
     if self.spare3() != self.ESR():
       self.warn("ESR flag missing (in word0.bit9 or word4.bit13)")
@@ -194,7 +246,14 @@ class Seq:
     return instrline,seqok
 class Disslm:
   ALERRS= ["PP", "L0", "L1", "L1M", "L1&L1M", "L2aM", "L2rWord"]
-  def __init__(self, seqfile):
+  def __init__(self, seqfile, run="-run2"):
+    global sdf
+    if run=="-run1":
+      sdf= slmdefs.Slmdefs
+    elif run=="-run2a":
+      sdf= slmdefs.Slmdefs_run2a
+    elif run=="-run2":
+      sdf= slmdefs.Slmdefs_run2
     self.loglist= ''
     self.AllowedErrors= 0
     self.fileok= 1   # 0 if load not recommended
@@ -206,7 +265,8 @@ class Disslm:
     sf= open(seqfile, 'r')
     ln=-4   #ignore first 3 lines
     for line in sf.readlines():
-      if line=='' or line==None or len(line)<=1: 
+      lenline= len(line)
+      if line=='' or line==None or lenline<=1: 
         self.error("Error:too short line");
         self.fileok=0
       ln= ln+1
@@ -217,22 +277,39 @@ class Disslm:
         continue
       #if ln>20: break
       #print ln,':',line[:-1]
-      if (ln % 8) == 0:
+      if lenline==17:
+        slmcodeix= 13; 
+        if run=="-run2":
+          self.error("Error: bad .seq file (seems run1 format)");
+          self.fileok=0
+          break
+      elif lenline==33:
+        slmcodeix= 29    #version3 .seq file
+        if sdf.version!=3:
+          self.error("Error: strange line (length:%d)"%lenline);
+          self.fileok=0
+          break
+      else:
+        self.error("Error: strange line (length:%d)"%lenline);
+        self.fileok=0
+        break
+      swidth= lenline-1
+      if (ln % sdf.wordseq) == 0:
         #print ln,'::',line[:-1]
-        if line[13:16]=='000': 
+        if line[slmcodeix:slmcodeix+3]=='000':
           self.error("Warning: seq. code 0 found in input file")
           #break
         #s=Seq()
-        self.slm.append(Seq())
-      if self.slm[-1].word(ln%8, line):
+        self.slm.append(Seq(swidth))
+      if self.slm[-1].word(ln%sdf.wordseq, line):
         self.error("Error: incorrect format of input file")
         del(self.slm[-1])
         self.fileok=0
         break
-      if (ln % 8) == 7:
+      if (ln % sdf.wordseq) == (sdf.wordseq-1):
         if self.slm[-1].Last(): break
-    if ln<(11-4):
-      self.error("Error:not enough lines (at least 11 expected)");
+    if(self.fileok==1) and (ln<((sdf.wordseq+3)-4)):
+      self.error("Error:not enough lines (at least %d+3 expected)"%sdf.wordseq);
       self.fileok=0
     sf.close()
   def a2bin(self,line,bits):
@@ -289,7 +366,9 @@ Reverse compilation of .seq file (text file consisting from 0,1
 representing bits in LTU-sequencer memory). The format of .seq
 file is described in file slmcomp.py.
 
-Usage: slmcomp.py name.seq
+Usage: slmcomp.py [-run2] name.seq
+                  [-run1] name.seq
+                  [-run2a] name.seq
 Expected abs. path or relative path. name  to VMECFDIR 
 (e.g. CFG/ltu/SLM/all.seq)
 Operation: .slm file printed to stdout
@@ -298,8 +377,18 @@ Operation: .slm file printed to stdout
     #print a.getlist()
   else:
     #os.chdir(os.environ['VMECFDIR'])
+    run="-run2"
     for bn in sys.argv[1:]:
-      a= Disslm(bn)
+      if bn=="-run1":
+        run= "-run1"
+        continue
+      elif bn=="-run2":
+        run= "-run2"
+        continue
+      elif bn=="-run2a":
+        run= "-run2a"
+        continue
+      a= Disslm(bn, run)
       print a.getlist()
 
 if __name__ == "__main__":

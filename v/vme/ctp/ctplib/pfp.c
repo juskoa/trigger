@@ -1,7 +1,9 @@
-
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "vmewrap.h"
 #include "ctp.h"
+#include "ctplib.h"
 
 typedef struct {
   w32 pPF_COMMON;
@@ -28,7 +30,12 @@ int bb,ixa; w32 val;
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
-val= vmer32(PF_COMMON+bb); PF[ixa].pPF_COMMON= val;
+if(ix==1) {
+  val= vmer32(getLM0PFad(PF_COMMON)+bb); 
+} else {
+  val= vmer32(PF_COMMON+bb); 
+};
+PF[ixa].pPF_COMMON= val;
 printf("0x%x\n", PF[ixa].pPF_COMMON);
 }
 void getprtPF(int ix) {
@@ -36,7 +43,12 @@ int bb,ixa; w32 val,INTa,INTb,dINT,delay;
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
-val= vmer32(PF_COMMON+bb); PF[ixa].pPF_COMMON= val;
+if(ix==1) {
+  val= vmer32(getLM0PFad(PF_COMMON)+bb); 
+} else {
+  val= vmer32(PF_COMMON+bb); 
+};
+PF[ixa].pPF_COMMON= val;
 //printf("0x%x\n", PF[ixa].pPF_COMMON);
 INTa= val & 0xf; INTb= (val>>4) & 0xf;
 dINT= (val>>8) & 0xf;
@@ -51,7 +63,12 @@ char os[80]="";
 
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
-ixa=ix-1; ixc=circ-1; adr0= PFBLOCK_A+bb+(ixc*12);
+ixa=ix-1; ixc=circ-1;
+if(ix==1) {
+  adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+} else {
+  adr0= PFBLOCK_A+bb+(ixc*12);
+};
   /* instead get from memory for dbg: 
   vals[0]=PF[ixa].pPFBLOCK_A[ixc];
   vals[1]=PF[ixa].pPFBLOCK_B[ixc];
@@ -74,7 +91,12 @@ char os[120]="";
 
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
-ixa=ix-1; ixc=circ-1; adr0= PFBLOCK_A+bb+(ixc*12);
+ixa=ix-1; ixc=circ-1;
+if(ix==1) {
+  adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+} else {
+  adr0= PFBLOCK_A+bb+(ixc*12);
+};
   /* instead get from memory for dbg: 
   vals[0]=PF[ixa].pPFBLOCK_A[ixc];
   vals[1]=PF[ixa].pPFBLOCK_B[ixc];
@@ -118,7 +140,11 @@ ixa=ix-1;
 /*if(pfc != PF[ixa].pPF_COMMON ) { */
 /*  printf("POZOR\n"); */
   PF[ixa].pPF_COMMON= pfc;
-  vmew32(PF_COMMON+bb, pfc);
+  if(ix==1) {
+    vmew32(getLM0PFad(PF_COMMON)+bb, pfc);
+  } else {
+    vmew32(PF_COMMON+bb, pfc);
+  };
 /*}; */
 }
 
@@ -129,7 +155,12 @@ w32 *vala[3];
 
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
-ixa=ix-1; ixc=circ-1; adr0= PFBLOCK_A+bb+(ixc*12);
+ixa=ix-1; ixc=circ-1;
+if(ix==1) {
+  adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+} else {
+  adr0= PFBLOCK_A+bb+(ixc*12);
+};
 vals[0]= A; vals[1]= B; vals[2]= LUT;
 vala[0]= PF[ixa].pPFBLOCK_A;
 vala[1]= PF[ixa].pPFBLOCK_B; 
@@ -166,25 +197,159 @@ return(rc);
 */
 }
 
-/*FGROUP SimpleTests
-Read the recent PF setting
+/*FGROUP PF
 */
-void ReadPF() {
+void ReadPF(int circuit) {
+int i,mi,ma;
 /* Read PF_COMMON */
 getprtPF(1); getprtPF(2); getprtPF(3);
 /* Read PF_BLOCK and PF_LUT */
-int i;
-for (i=1; i<6; i++)
-{
-    getprtPFc(1,i);
-    getprtPFc(2,i);
-    getprtPFc(3,i);
+if(circuit==0) {
+  mi=1; ma=5;
+} else {
+  mi=circuit; ma=circuit;
+};
+for (i=mi; i<=ma; i++) {
+  getprtPFc(1,i);
+  getprtPFc(2,i);
+  getprtPFc(3,i);
+};
 }
 
+void ReadPF2str2(int circuit, char *line) {
+int bb,ixa, ixc, ix;
+w32 adr0, val, vals[3];
+char os[160]="";
+
+for(ix=1; ix<=3; ix++) {
+  int i;
+  if(notInCrate(ix)) return;
+  bb= BSP*ctpboards[ix].dial;
+  ixa=ix-1; ixc=circuit-1; 
+  if(ix==1) {
+    adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+  } else {
+    adr0= PFBLOCK_A+bb+(ixc*12);
+  };
+  for(i=0; i<3; i++) {
+    vals[i]= vmer32(adr0); 
+    adr0= adr0+4;
+  };
+  //sprintf(os,"%sL%d.%d:%x %x %x\n",os,ixa,circuit,vals[0],vals[1],vals[2]);
+  sprintf(os,"%s0x%x 0x%x 0x%x ",os,vals[0],vals[1],vals[2]);
+}; 
+// common
+for(ix=1; ix<=3; ix++) {
+  bb= BSP*ctpboards[ix].dial;
+  if(ix==1) {
+    val= vmer32(getLM0PFad(PF_COMMON)+bb);
+  } else {
+    val= vmer32(PF_COMMON+bb);
+  };
+  sprintf(os,"%s0x%x ", os, val);
+};
+strcpy(line, os);
+}
+/*FGROUP PF
+*/
+void ReadPF2str(int circuit) {
+char line[160];
+ReadPF2str2(circuit, line);
+printf("%s\n", line);
+};
+
+void decintAB(int intab, char *outs) {
+if(intab==0xa) {
+  strcpy(outs,"IR1");
+} else if(intab==0xc) {
+  strcpy(outs,"IR2");
+} else {
+  sprintf(outs,"0x%1x", intab);
+};
+}
+void decPFC(w32 pfc, char *intA, char *intB, char *delLT, char *delSD){
+decintAB(pfc&0xf, intA);
+decintAB((pfc>>4)&0xf, intB);
+sprintf(delLT,"0x%1x", (pfc>>8)&0xf);
+sprintf(delSD,"%4d", (pfc>>12)&0xfff);
 }
 
-/*FGROUP SimpleTests
-Set the PFCOMMON word
+int dT2ns(int dT, int sd_factor){
+int width;
+if(dT==0) {
+  width= 257;
+} else {
+  width= dT+1;
+};
+return(width*(sd_factor+1));
+};
+int del2ns(int delay, int sd_factor) {
+return((delay+1)*(sd_factor+1));
+}
+void  decPFBL(int level, char AB, int pfb, int pflut, char *line){
+int dT, dtns, dsf, delbcs,delay; char ABL[4]; char pflutstr[8];
+dT= (pfb>>12) & 0xff;
+delay= (pfb>>20) & 0x3ff;
+if(AB=='A') {
+  sprintf(ABL, "%1dA", level);
+  dsf= (pflut>>8)&0x1f;
+  sprintf(pflutstr,"0x%2x", pflut&0xff);
+} else {
+  sprintf(ABL, " B");
+  dsf= (pflut>>13)&0x1f;
+  pflutstr[0]='\0';
+};
+dtns= dT2ns(dT, dsf);
+delbcs= del2ns(delay, dsf);
+//printf("    th1 th2 dT -> [BCs]  del->[BCs] f dsf PLUT       PFBLOCK+PFLUT\n");
+sprintf(line,"%s:  %2d  %2d %3d    %4d %4d   %4d %1d  %2d %s",
+  ABL, pfb & 0x3f, (pfb>>6) & 0x3f, dT, dtns,
+  delay, delbcs, (pfb>>31)&0x1, dsf, 
+  pflutstr);
+};
+
+/*FGROUP PF */
+void DecodePF(char *pfstr) {
+int nwds,ix;
+w32 pfbA[3], pfbB[3], pflut[3];
+w32 pfc[3];
+char intA[4], intB[4], delLT[4], delSD[5];
+char pfstrdef[160];
+char line[160];
+//printf("PF definition:\n%s\n",pfstr);
+if((strcmp(pfstr,"1")>=0) && (strcmp(pfstr,"4")<=0)) {
+  ReadPF2str2(atoi(pfstr), pfstrdef);
+} else {
+  strcpy(pfstrdef, pfstr);
+};
+nwds= sscanf(pfstrdef,
+  "0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x",
+  &pfbA[0], &pfbB[0], &pflut[0],
+  &pfbA[1], &pfbB[1], &pflut[1],
+  &pfbA[2], &pfbB[2], &pflut[2],
+  &pfc[0], &pfc[1], &pfc[2]);
+printf(
+  "PF def,%d words:\n0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+  nwds,
+  pfbA[0], pfbB[0], pflut[0],
+  pfbA[1], pfbB[1], pflut[1],
+  pfbA[2], pfbB[2], pflut[2],
+  pfc[0], pfc[1], pfc[2]);
+printf("    intA intB delLT delSD                            PF_COMMON\n");
+for(ix=0; ix<3; ix++) {
+  decPFC(pfc[ix], intA, intB, delLT, delSD);
+  printf("L%1d: %s  %s  %s    %s\n", ix, intA, intB, delLT, delSD);
+};
+printf("    th1 th2 dT -> [BCs]  del->[BCs] f dsf PLUT       PFBLOCK+PFLUT\n");
+for(ix=0; ix<3; ix++) {
+  decPFBL(ix, 'A', pfbA[ix], pflut[ix], line);
+  printf("%s\n", line);
+  decPFBL(ix, 'B', pfbB[ix], pflut[ix], line);
+  printf("%s\n", line);
+};
+}
+
+/*FGROUP PF
 */
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT) {
 
@@ -241,9 +406,7 @@ setPF(3,PFcommon);
 
 }
 
-/*FGROUP SimpleTests
-Set the PFBLOCK A and B and PFLUT
-dTa and dTb should be in BC
+/*FGROUP PF
 */
 void WritePF(w32 icircuit,w32 THa1,w32 THa2,w32 THb1,w32 THb2,int dTa,int dTb,w32 P_signal) {
 
@@ -459,15 +622,7 @@ setPFc(3,icircuit,PFblock_A,PFblock_B,PFlut);
 
 }
 
-/*FGROUP SimpleTests
-Set the PF from user's point of view
-icircuit  - circuit number (1..4)
-dTa       - protected interval in BCs
-THa1      - number of allowed interactions in protected interval. 
-INTa = INT1
-INTb any
-
-For PF protection activation N(dT) > Threshold (interaction in question included in N)
+/*FGROUP PF
 */
 void WritePFuser(w32 icircuit,w32 THa1,w32 dTa) 
 {
@@ -554,11 +709,6 @@ int setPFL(w32 ilevel,int ipf,w32 THa1,w32 THa2,w32 THb1,w32 THb2,int dTa,int dT
  return ret;
 }
 /*FGROUP SimpleTests
-Setting for PF on all trigger levels. 
-Ncoll - number of collisions
-dT1 - protection time interval before interaction
-dT2 - protection time interval after interactions
-ipf - index to pf {1,2,3,4} for all boards where pf is set
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 ipf,w32 plut)
 {

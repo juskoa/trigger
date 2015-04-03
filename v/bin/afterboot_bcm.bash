@@ -2,7 +2,7 @@
 # configure LTU board (alidcsvme003) and TTCit board (alidcsvme056)
 export HOME=/home/alice/trigger
 . /usr/local/trigger/bin/vmebse.bash
-hn=`hostname`
+hn=`hostname -s`
 if [ "$hn" = "alidcsvme056" ] ;then
 $VMECFDIR/ttcit/ttcit.exe <<-EOF
 ScopeSelect_AB(1,20)

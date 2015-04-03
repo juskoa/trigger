@@ -29,7 +29,7 @@ int QUIT=0;
 
 void gotsignal(int signum) {
 signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);
-printf("got SIGINT signal:%d\n", signum);
+printf((char *)"got SIGINT signal:%d\n", signum);
 QUIT=signum;
 }
 
@@ -44,9 +44,11 @@ if(rrdpipe==NULL) {
   printf("Cannot open /usr/bin/rrdtool -\n");
   exit(8);
 };
-printf("rrdpipe opened, starting udp server...\n");
-udpsockr= udpopenr(PORTr); if(rc==-1) {printf("udpopenr() error\n"); exit(8);};
+printf("rrdpipe opened, starting udp server port:%d...\n", PORTr);
+udpsockr= udpopenr(PORTr); 
+if(udpsockr==-1) {printf("udpopenr() error\n"); exit(8);};
 //setlinebuf(htmlpipe);
+fflush(stdout);
 while(1) {
   char bufrec[BUFLEN];
   char rrdname[40];
@@ -54,27 +56,30 @@ while(1) {
   if(QUIT!=0) break;
   ixwait++;
   rc= udpwaitr(udpsockr, (unsigned char *)bufrec, BUFLEN); 
+  nsp=0; dsstart= -1;
   if(rc==-1) {
     printf("udpwaitr() problem %d waiting on port:%d\n",ixwait,send2PORT); 
     fflush(stdout);sleep(1); 
     continue;
   };
-  printf("got %d bytes:%s\n", rc, bufrec);
+  printf("got %d bytes :%s:\n", rc, bufrec);
   fflush(stdout);
   //rrdname ds001:ds002:ds003 N:val1:U:val2
   if(strncmp((char *)bufrec, "quit ",5)==0) break;
-  rrdname[0]='\0';
   for(ix=0; ix<rc; ix++) {   // check number of spaces
     if(bufrec[ix]==' ') {                // and find rrdname
       nsp++; 
       if(dsstart==-1) {
         dsstart=ix+1;
-        strncpy(rrdname, (char *)bufrec, ix);
+        strncpy(rrdname, (char *)bufrec, ix); rrdname[ix]='\0';
       };
     };
   };
   if(nsp==2) {
-    fprintf(rrdpipe, "update rrd/%s.rrd -t %s\n", rrdname, &bufrec[dsstart]);
+    char msg[BUFLEN+20];
+    sprintf(msg, "update rrd/%s.rrd -t %s\n", rrdname, &bufrec[dsstart]);
+    //printf("%s", msg); fflush(stdout);
+    fprintf(rrdpipe, msg); 
     fflush(rrdpipe);   // has to be here!
   } else {
     printf("Bad message:%s nsp:%d\n", bufrec, nsp);

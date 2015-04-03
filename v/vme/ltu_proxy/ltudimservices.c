@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <sys/shm.h>
 #include "vmewrap.h"
+#include "vmeblib.h"   // dodif32
 #include "lexan.h"
 #include "ltu.h"
 
@@ -22,7 +23,7 @@
 #define MAXRESULT 1500
 #define MAXLILE 1500
 #define MAXCIDAT 80
-#define MAXMCclients 12 
+#define MAXMCclients 14    // was 12 before MONBUSY added
 
 #define TAGcmdDO 18
 #define TAGcmdPIPE 19
@@ -39,7 +40,10 @@ unsigned int CALIBBCid;
 
 // counters reading:
 unsigned int COUNTERSid;
-w32 *buf1=NULL;
+unsigned int MONBUSYid;
+w32 *buf1=NULL;     // shm
+w32 prevcnts[LTUNCOUNTERSall];   // counters 1sec before
+float busytime1sec=0.0;
 
 int actcid=0;         /* active client id. 0: nobody active */
 FILE *PUTFILE;   // !=NULL upload active
@@ -59,7 +63,7 @@ char actcidat[80];  /* active client: pid@host */
 typedef struct mcc{
   int cid;
   char cidat[MAXCIDAT];    // free item if cidat[0]=='\0'
-  char type ;   // 'm' -MONCOUNTERS   'r' -result
+  char type ;   // 'm' -MONCOUNTERS   'r' -result   'b' -MONBUSY
 } TMCclient;
 
 int NMCclients;
@@ -159,8 +163,8 @@ dimlogprt("exit_handler",msg1);
 void client_exit_handler(int *tag) {
 char msg1[100];
 if((*tag<MAXMCclients) && (MCclients[*tag].cidat[0]!='\0')) {
-  sprintf(msg1,"deleting:%c:%d:%s", 
-    MCclients[*tag].type, *tag, MCclients[*tag].cidat);
+  sprintf(msg1,"deleting:%c:%d %d/%s", 
+    MCclients[*tag].type, *tag, MCclients[*tag].cid, MCclients[*tag].cidat);
   MCclients[*tag].cidat[0]='\0';
   NMCclients--;
 } else {
@@ -208,7 +212,9 @@ if((ml + totlenResult + 3)>=MAXRESULT) {
   finishResult();
   rc=1;
 } else {
-  strcat(ResultString, msg); totlenResult= totlenResult+ml;
+  /*strcat(ResultString, msg); totlenResult= totlenResult+ml;
+   strcat nebavi */
+  strcpy(&ResultString[totlenResult], msg); totlenResult= totlenResult+ml;
 };
 return(rc);
 }
@@ -230,7 +236,7 @@ for(ix=0; ix<MAXMCclients; ix++) {
 finishResult();
 }
 /*----------------------------------------------- updateNMCclients
-Input: type: 'm' -MONCOUNTERS   'r' -RESULT
+Input: type: 'm' -MONCOUNTERS   'r' -RESULT   'b' -MONBUSY
 Operation:
 1. find curent client's or free item in MCclients table
 2. if client not in the table:
@@ -262,17 +268,17 @@ for(ix=0; ix<MAXMCclients; ix++) {
     ixfree=ix; break;
   };
 };
-sprintf(msg,"ixfreemsg:%d\n",ixfree);
+sprintf(msg,"ixfreemsg:%d",ixfree);
 dimlogprt("ixfree",msg);
 if(ixfree == -1) {
   sprintf(msg,"Table not large enough:now %d nclients, maximum.\n", NMCclients);
   dimlogprt("MCclients",msg);
 } else {                // new client, or 'new replacing' client
   if(MCclients[ixfree].cidat[0]=='\0') {
-    sprintf(msg,"new client:%c:%d %s\n", type, cid, cidname);
+    sprintf(msg,"new client:%c:%d %d %s", type, ixfree, cid, cidname);
     NMCclients++;
   } else {
-    sprintf(msg,"%c:%d replacement: %s -> %c:%s\n",
+    sprintf(msg,"%c:%d replacement: %s -> %c:%s",
       MCclients[ix].type, cid, MCclients[ix].cidat, type, cidname);
   }; firstcaba=1;
   dimlogprt("updateNMCclients",msg);
@@ -548,7 +554,7 @@ dimlogprt("MONCOUNTERScaba",msg); */
 rc=updateNMCclients('m');
 if(rc==-1) {
   *msgp= ResultString;
-  strcpy(ResultString, "XERROR: Too many clients. Stop this and possibly others clients\n");
+  strcpy(ResultString, "XERROR: Too many clients. Stop this and possibly other clients\n");
   *size= strlen(ResultString)+1;   // "" -empty string is 1 byte message
   return;
 };
@@ -557,6 +563,32 @@ if(rc==-1) {
 /*sprintf(msg,"MONCOUNTERScaba size:%d LTUNCOUNTERSall:%d \n", 
   *size, LTUNCOUNTERSall);
 dimlogprt("MONCOUNTERScaba2",msg); */
+}
+/*----------------------------------------------------------- MONBUSYcaba
+*/
+#ifdef CPLUSPLUS
+void MONBUSYcaba(void *tagvoid, void **msgpvoid, int *size, int *blabla) {
+/*int *tag= (int *)tagvoid; */ char **msgp= (char **)msgpvoid;
+#else
+void MONBUSYcaba(int *tag, unsigned int **msgpint, int *size) {
+char **msgp= (char **)msgint;
+#endif
+int rc;
+char msg[ERRMSGL];
+/*sprintf(msg, "sizeorig:%d LTUNCOUNTERSall:%d\n", *size, LTUNCOUNTERSall);
+dimlogprt("MONCOUNTERScaba",msg); */
+rc=updateNMCclients('b');
+if(rc==-1) {
+  *msgp= ResultString;
+  strcpy(ResultString, "XERROR: Too many clients. Stop this and possibly other clients\n");
+  *size= strlen(ResultString)+1;   // "" -empty string is 1 byte message
+  return;
+};
+*msgp= (char *)&busytime1sec;  // better?:
+//*msgpvoid= (void *)&busytime1sec;
+*size= 4;
+sprintf(msg,"size:%d float contnt:%6.4f \n", *size, busytime1sec);
+dimlogprt("MONBUSYcaba",msg);
 }
 /*--------------------------------------------------------- readUntilColon()
 if us==1: update service() called, i.e. ResultString is 
@@ -573,9 +605,10 @@ finishResult()
 */
 void readUntilColon(int us) {
 char partResult[MAXRESULT];
+char Result[MAXRESULT];
 char logmsg[MAXRESULT+MAXLILE];
 int outl;
-startResult();
+Result[0]='\0'; //startResult();
 while(1) { // read until ":\n"
   outl=read(outfp, partResult, MAXRESULT);
   if(outl== -1) {   /* pipe closed */
@@ -586,16 +619,21 @@ while(1) { // read until ":\n"
     break;
   } else {
     partResult[outl]='\0';
-    if(outl==0) { usleep(1000000); continue; };
+    if(outl==0) { usleep(10); continue; };
     if(us==1) {
+      /*
       if(appendResult(partResult)) {
         break;   // short ResultString variable
-      };
+      };*/
+      strcat(Result, partResult);
     };
-    /* sprintf(logmsg,"Ooutl:%d us:%d ResultString:%s<---\n", 
-       outl,us,ResultString); dimlogprt("rUC", logmsg); */
+    /*sprintf(logmsg,"Ooutl:%d us:%d partResult:%s ResultString:%s<---\n", 
+      outl,us,partResult, ResultString); dimlogprt("rUC", logmsg);  */
   };
-  if(strcmp(&partResult[outl-2],":\n")==0) break;
+  if(strcmp(&partResult[outl-2],":\n")==0) {
+    strncpy(ResultString,Result,MAXRESULT);
+    break;
+  };
 };
 if(us==1)updateservice();
 }
@@ -666,7 +704,7 @@ if(strncmp(msg,"open ", 5)==0) {   /*--------------------------------- open */
     dimlogprt(typs, msg);
     goto RTRNupdated;
 } else {
-    sprintf(ResultString, "Error:got:%s, but open or close expected\n:\n", msg);
+    sprintf(ResultString, "Error:got:\"%s\", but open or close expected\n:\n", msg);
     prerr(ResultString);
 };
 RTRN: //printf("=%s=", ResultString); 
@@ -684,8 +722,8 @@ EXTRN char BoardSpaceLength[40];
 
 */
 char *msg=(char *)msgv;
-printf("cmdCMD: tag:%d size:%d msg:%s<\n", *(int *)tag, *size, msg);
-fflush(stdout); 
+/*printf("cmdCMD: tag:%d size:%d msg:%s<\n", *(int *)tag, *size, msg);
+fflush(stdout); */
 /*ixlast= strlen(msg)-1;
 if(msg[ixlast]!='\n') {
   msg[ixlast]= '\n';
@@ -694,17 +732,21 @@ if(msg[ixlast]!='\n') {
 if(checkcid()<0) return;
 if(vmeopen(BoardBaseAddress,BoardSpaceLength) ) {
   printf(" Cannot open vme access for LTU %s\n", BoardBaseAddress);
+  dimlogprt("cmdCMD", " Cannot open vme access for LTU\n");
   return;
 };
 if(strcmp(msg,"ttcrxreset")==0) {
   TTCrxreset(); usleep(10000); TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxreset ok\n");
-  printf("ttcrxreset ok\n");
+  //printf("ttcrxreset ok\n");
 } else if(strcmp(msg,"ttcrxreset fee")==0) {
-  int rc;
+  int rc; char imsg[100];
   rc= TTCinit();
-  printf("ttcrxreset fee rc:%d\n", rc);
-  fflush(stdout);
+  sprintf(imsg, "ttcrxreset fee rc:%d\n", rc);
+  dimlogprt("cmdCMD", imsg);
+  /* stdout is lost (not seen in ltudimserver.log neither in LTU-MUON_TRK.log)
+  sprintf(imsg, "ttcrxreset fee rc:%d\n", rc); fflush(stdout);
+  */
 } else if(strcmp(msg,"ttcrxregs")==0) {
   TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxregs ok\n");
@@ -763,8 +805,12 @@ if(strcmp(msg,"logon\n")==0) {
      (strncmp(msg, "vmeopw", 6)!=0) &&
      (strncmp(msg, "setBC_DELAY_ADD(", 16)!=0) &&
      (strncmp(msg, "SLMsetstart(", 12)!=0) &&
-     (strncmp(msg, "TTCinit(", 8)!=0) &&
+     (strncmp(msg, "TTCinit()", 9)!=0) &&
+     (strncmp(msg, "ttcFEEcmd(", 10)!=0) &&
      (strncmp(msg, "ERenadis(", 9)!=0) &&
+     (strncmp(msg, "ERgetselector(", 14)!=0) &&
+     (strncmp(msg, "ERsetselector(", 14)!=0) &&
+     (strncmp(msg, "SLMbreak(", 9)!=0) &&
      (strncmp(msg, "ERdemand(", 9)!=0) && 
      (strcmp(msg, "qs\n")!=0)
     )) {  /* setBC_DELAY_ADD  allowed -we may use it when run active to find
@@ -772,7 +818,7 @@ if(strcmp(msg,"logon\n")==0) {
 TTCinit() -allowed for MUON_TRK (always busy) -to test TTCrxreset protocol
 ERenadis/ERdemand -for tests with detectors (to be disabled later)
 */
-    strcpy(ResultString,"Error: LTU is not in STANDALONE_STOPPED\n:\n");
+    sprintf(ResultString,"Error: LTU is not in STANDALONE_STOPPED, or bad cmd:\"%s\"\n:\n", msg);
     updateservice();
   } else {              // STDALONE_STOPPED
     if(strcmp(msg,"qs\n")==0) strcpy(msg,"q\n");
@@ -799,39 +845,34 @@ ERenadis/ERdemand -for tests with detectors (to be disabled later)
 actcid= 0;
 }
 int oldnclients=0;
-/*-------------------------------------------------------- readltucounters()
+int oldnbusyclients=0;
+
+/*----------------------------------------------------- updateMONCOUNTERSservice 
 clientid: 0: update all subscribing clients
         !=0: update only clientcid client (forced counters read)
 */
-void readltucounters(int clientid) {
+void updateMONCOUNTERSservice(int clientid) {
 int nclients; 
 w32 ix;
 w32 *ResultStringBin= (w32 *)ResultString;
 char msg[ERRMSGL];
-
 if(buf1==NULL) {
-  prerr("shared memory alloc problem in readltucounters");
+  prerr("shared memory alloc problem in updateMONCOUNTERSservice");
   return;
 };
-strcpy(msg,"readCNTS2SHM()\n");
-writepipe(msg, strlen(msg));   //NO TRAILING '\0'!
-readUntilColon(0);
-                           // dimlogprt("readCNTS2SHMd", ResultString);
 for(ix=0; ix<LTUNCOUNTERSall; ix++) {
   ResultStringBin[ix]=buf1[ix];
 };
-/*  sprintf(msg, "readltucounters: %d %d %d\n", buf1[23],buf1[24], buf1[25]); 
-    dimlogprt("readltucounters",msg);*/
 if(clientid==0) {
   nclients= dis_update_service(COUNTERSid);
-  /*printf("readltucounters: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
+  /*printf("updateMONCOUNTERSservice: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
     difmics, nclients, ltuc[13], ctpc[CSTART_L1+5]);
-  printf("readltucounters spec secs, mics:%d %d\n", 
+  printf("updateMONCOUNTERSservice spec secs, mics:%d %d\n", 
     ctpc[CSTART_SPEC], ctpc[CSTART_SPEC+1]); */
   if(oldnclients != nclients) {   // # of client changed
     int ix;
     sprintf(msg, "clients now: %d\n", nclients); 
-    dimlogprt("readltucounters",msg);
+    dimlogprt("updateMONCOUNTERSservice",msg);
     for(ix=0; ix<NMCclients; ix++) {
       printf("%c:%3d: %s\n", MCclients[ix].type, 
         MCclients[ix].cid, MCclients[ix].cidat);
@@ -844,23 +885,27 @@ if(clientid==0) {
   nclients= dis_selective_update_service(COUNTERSid, cids);
   /*nclients:0 if this clinet has not subsribed to MONCOUNTERS service */ 
   sprintf(msg,"Forced update for client:%d nclients:%d\n", clientid, nclients);
-  dimlogprt("readltucounters",msg);
+  dimlogprt("updateMONCOUNTERSservice",msg);
 };
 }
-/*-------------------------------------------------------- cthread
-running as thread (started once, with dim server)
-*/
-void cthread( void *blabla) {
-while(1) {   //run forever
-  readltucounters(0);
-  dtq_sleep(60);
-  if(QUIT==1) {
-    // freeShared(buf1,...);     -for SSM yes, but not for counters
-    buf1=NULL;
-    shmdt(ltushm);
-    break;
-  };
-};
+void updateMONBUSY(float newbt) {
+char msg[ERRMSGL];
+int nclients;
+sprintf(msg, "oldbusy: %6.4f newbusytime:%6.4f", busytime1sec, newbt);
+busytime1sec= newbt;
+nclients= dis_update_service(MONBUSYid);
+sprintf(msg,"%s nclients:%d\n", msg, nclients);
+dimlogprt("updateMONBUSY", msg);
+/*if(oldnbusyclients != nclients) {   // # of clients changed
+    int ix;
+    sprintf(msg, "clients now: %d\n", nclients); 
+    dimlogprt("updateMONBUSY",msg);
+    for(ix=0; ix<NMCclients; ix++) {
+      printf("%c:%3d: %s\n", MCclients[ix].type, 
+        MCclients[ix].cid, MCclients[ix].cidat);
+    }; fflush(stdout);
+    oldncbusylients= nclients;
+  }; */
 }
 /*------------*/ void cmdGETCOUNTERS(void *tag, void *msgv, int *size)  {  
 /* Forced counters reading. */
@@ -879,7 +924,7 @@ if(DBGCMDS) {
  printf("cmdGETCOUNTERS:cid:%d cidat:%s\n", cid, cidat);
 };
 */
-readltucounters(actcid);
+updateMONCOUNTERSservice(actcid);
 }
 /* -----------------------following routines used from outside (ltu_proxy) */
 /*----------------------------------------------------- setRWMODE(char rwmode)
@@ -904,7 +949,7 @@ Return code:
 >0 -error found when registering
 */
 int ds_register(char *detname, char *base) {
-char logmsg[1500];
+char logmsg[1500]="";
 int pidt, segid, ix, rc=0;
 w32 shmkey;
 char *environ;
@@ -931,10 +976,11 @@ if(environ ==NULL) {
   dimlogprt("ds_register", logmsg);
   return(10);
 };
-sprintf(logmsg, "DIM_DNS_NODE:%s   DETECTOR:%s\n", environ, MYDETNAME);
+sprintf(logmsg, "compiled:%s %s DIM_DNS_NODE:%s   DETECTOR:%s\n",__DATE__, __TIME__, environ, MYDETNAME);
+dimlogprt("ds_register", logmsg); strcpy(logmsg, "");
 environ=getcwd(servercwd, 80); environ= getenv("VMECFDIR"); 
 if(environ !=NULL) {
-  sprintf(logmsg, "%sVMECFDIR:%s\ncurrdir:%s\n", logmsg,environ, servercwd);
+  sprintf(logmsg, "VMECFDIR:%s\ncurrdir:%s\n", environ, servercwd);
 };
 dimlogprt("ds_register", logmsg);
 dis_add_error_handler(error_handler);
@@ -956,9 +1002,9 @@ if (pidt <= 0) {
 ltushm= (Tltushm *)mallocShared(shmkey, 0, &segid);  //only attch
 buf1= ltushm->ltucnts;
 if(ltushm->id==0) {   //just allocated
-  prerr("shared memory alloc problem in ds_register()");
   ltushm->id=shmkey;
-  //strcpy(logmsg, "shared memory alloc problem in readltucounters\n");
+  strcpy(logmsg, "shared memory alloc problem in ds_register()\n");
+  prerr(logmsg);
 } else {
   strcpy(logmsg, "got shared memory\n");
 };
@@ -966,10 +1012,10 @@ if(ltushm->id==0) {   //just allocated
 strcpy(ResultString,notinitialised); strcat(ResultString, servercwd); 
 strcat(ResultString,"\n");
 */
-sprintf(logmsg,"%spopen ok.\n",logmsg);
+sprintf(logmsg,"%spopen pid:%d.\n",logmsg, pidt);
 dimlogprt("ds_register", logmsg);
 
-sprintf(logmsg, "\nServices:\n");
+sprintf(logmsg, "\nServices :\n");
 strcpy(command, MYDETNAME); strcat(command, "/RESULT");
 RESULTid=dis_add_service(command,"C", ResultString, MAXLILE+1, 
   RESULTcaba, 4567);  
@@ -979,6 +1025,10 @@ strcpy(command, MYDETNAME); strcat(command, "/MONCOUNTERS");
 COUNTERSid=dis_add_service(command,0, buf1, 4*LTUNCOUNTERSall,
   MONCOUNTERScaba, 4568);  
 sprintf(logmsg, "%s%s COUNTERSid:%d\n", logmsg, command,COUNTERSid);
+strcpy(command, MYDETNAME); strcat(command, "/MONBUSY");
+MONBUSYid=dis_add_service(command,"F", &busytime1sec, 4,
+  MONBUSYcaba, 4571);  
+sprintf(logmsg, "%s%s MONBUSYid:%d\n", logmsg, command,MONBUSYid);
 
 strcpy(command, MYDETNAME); strcat(command, "/CALIBBC");
 //CALIBBCid= dis_add_service(command,"I:1", NULL, sizeof(int), CALIBBCcaba, 4569);  
@@ -1016,8 +1066,8 @@ dis_start_serving(MYDETNAME);
 environ= getenv("VMESITE"); 
 if((strcmp(environ,"ALICE")==0) ||
    (strcmp(environ,"SERVER")==0)) {
-  dimlogprt("ds_register", "Starting the LTUcounters reading thread...\n");
-  dim_start_thread(cthread, (void *)TAGcthread);
+  dimlogprt("ds_register", "Starting cthread reading LTU cnts from SHM is in main...");
+  //dim_start_thread(cthread, (void *)TAGcthread);
 } else {
   sprintf(logmsg, "LTUcounters reading thread not started:VMESITE:%s\n", environ);
   dimlogprt("ds_register", logmsg);
@@ -1033,8 +1083,10 @@ QUIT=1;   // stop thread reading ltu counters
 close(infp); close(outfp); popen2active=0; 
 dis_remove_service(RESULTid);
 dis_remove_service(COUNTERSid);
+dis_remove_service(MONBUSYid);
 dis_remove_service(CALIBBCid);
 dis_stop_serving();
+shmdt(ltushm);
 if(logfile !=NULL) fclose(logfile);
 exit(0);
 }

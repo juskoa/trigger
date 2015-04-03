@@ -407,7 +407,7 @@ if(strcmp(argv[1],"c")==0) {   //------------------------------------- client
   int ix;
   printf("Client, server should be active already,...\n");
   udpsocks= udpopens(CTP_IP); if(udpsocks==-1) diep("udpopens CTP_IP");
-  udpsockr= udpopenr(); if(rc==-1) diep("udpopenr()"); 
+  udpsockr= udpopenr(); if(udpsockr==-1) diep("udpopenr()"); 
   //
   //rc= vmxopenam(&vsp, "0xb00000","0x4000","A24");
   //if(rc!=0) { printf("bobr vmeopen rc:%d\n", rc); exit(8); };
@@ -443,7 +443,7 @@ if(strcmp(argv[1],"c")==0) {   //------------------------------------- client
     if(strcmp(argv[2],"u")==0) unblockingmode=1;
   };*/
   udpsocks= udpopens(TTCMI_IP); if(udpsocks==-1) diep("udpopens TTCMI_IP");
-  udpsockr= udpopenr(); if(rc==-1) diep("udpopenr()"); 
+  udpsockr= udpopenr(); if(udpsockr==-1) diep("udpopenr()"); 
   rc= vmxopenam(&vsp, "0x820000","0xd000","A24");
   if(rc!=0) { printf("ctp vmeopen rc:%d\n", rc); exit(8); };
   while(1) {

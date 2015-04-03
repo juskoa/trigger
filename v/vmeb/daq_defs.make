@@ -22,5 +22,6 @@ daqINCDIRS += -I/opt/act
 daqCCDEFS +=-DACT_DB
 actLD = -L/opt/act -lACT
 daqLD += $(actLD)
+MYSQLLIBS=`/usr/bin/mysql_config --libs`
 endif
 
