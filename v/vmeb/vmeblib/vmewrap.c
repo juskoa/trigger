@@ -101,21 +101,22 @@ typedef struct {
   w32 am;
   int handle;
   u_long vmeptr;    /* 0: this item in vxsp[] is empty (not opened) */
+  VME_MasterMap_t master_map; // = {0xa00000, 0xCB, VME_A24, 0};
 } Tvmespace;
 Tvmespace vxsp[MAXVMESPACES]=
-{{0,0,0,0,0},
- {0,0,0,0,0},
- {0,0,0,0,0},
- {0,0,0,0,0},
- {0,0,0,0,0},
- {0,0,0,0,0},
- {0,0,0,0,0},
+{{0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
  /*
  {0,0,0,0,NULL},
  {0,0,0,0,NULL},*/
- {0,0,0,0,0},
- {0,0,0,0,0},
- {0,0,0,0,0}};
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}},
+ {0,0,0,0,0,{0,0,0,0}}};
 
 #ifdef VMERCC 
 /*-------------------------------*/int VME_MasterMapVirtualDummyLongAddress(int lochandle, u_long *locvmeptr){
@@ -160,7 +161,7 @@ retval= (w8)cv.value;
 #endif
 
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
-retval= *(w8 *)(vmeptr+offset);
+retval= *(w8 *)(vxsp[0].vmeptr+offset);
 #endif
 /*printf("vmer8 from %x value:%x\n", offset, retval);*/
 return(retval);
@@ -214,7 +215,7 @@ retval= (w16)cv.value;
 #endif
 
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
-retval= *(w16 *)(vmeptr+offset);
+retval= *(w16 *)(vxsp[0].vmeptr+offset);
 #endif
 /*printf("vmer16 from %x value:%x\n", offset, retval);*/
 return(retval);
@@ -253,7 +254,7 @@ retval= (w32)cv.value;
 #endif
   
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
-retval= *(w32 *)(vmeptr+offset);
+retval= *(w32 *)(vxsp[0].vmeptr+offset);
 /*printf("vmer32 vmeptr:%x from %x value:%x\n", vmeptr, offset, retval); */
 #endif
 return(retval);
@@ -269,7 +270,7 @@ if (cv.status < 0) printf("CAENVME_WriteCycle8 error:%li\n", cv.status);
  printf("CAENVME_WriteCycle8:%li %lx %lx\n", cv.status, cv.adr, cv.value);
 #endif
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
-*(w8 *)(vmeptr+offset)=value;
+*(w8 *)(vxsp[0].vmeptr+offset)=value;
 #endif
 return;
 }
@@ -285,7 +286,7 @@ if (cv.status < 0) printf("CAENVME_WriteCycle16 error:%li\n", cv.status);
 #endif
 
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
-*(w16 *)(vmeptr+offset)=value;
+*(w16 *)(vxsp[0].vmeptr+offset)=value;
 #endif
 return;
 }
@@ -312,7 +313,7 @@ if (cv.status < 0) printf("CAENVME_WriteCycle32 error:%li at %lx\n", cv.status,c
 #endif
 
 #if defined(AIX) || defined(VMERCC) || defined(VMECCT)
-*(w32 *)(vmeptr+offset)=value;
+*(w32 *)(vxsp[0].vmeptr+offset)=value;
 #endif
 return;
 }
@@ -392,7 +393,7 @@ w32 BoBaAd,BoBaLength;
 #ifdef VMERCC
 int lochandle;
 u_long locvmeptr;
-static VME_MasterMap_t master_map = {0xa00000, 0xCB, VME_A24, 0};
+//static VME_MasterMap_t master_map = {0xa00000, 0xCB, VME_A24, 0};
 #endif
 #ifdef VMECCT
 w8 *locvmeptr;
@@ -439,10 +440,10 @@ if((rccret=VME_Open()) != VME_SUCCESS) {
   printf("VME_Open() error: %d\n",rccret);
   goto EXIT8;
 };
-master_map.vmebus_address= BoBaAd;
-master_map.window_size= BoBaLength;
-master_map.address_modifier= getvmeaddmod(VMEAM);
-rccret = VME_MasterMap(&master_map, &lochandle);
+vxsp[*vsp].master_map.vmebus_address= BoBaAd;
+vxsp[*vsp].master_map.window_size= BoBaLength;
+vxsp[*vsp].master_map.address_modifier= getvmeaddmod(VMEAM);
+rccret = VME_MasterMap(&vxsp[*vsp].master_map, &lochandle);
 if (rccret != VME_SUCCESS) {
   printf("VME_MasterMap() error: %d\n",rccret);
   VME_ErrorPrint(rccret);

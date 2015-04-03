@@ -146,8 +146,14 @@ vmew32(bb+COPYCOUNT,DUMMYVAL);
 usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
-for(cix=0; cix<=reladr; cix++) {
-  mem[cix]= vmer32(copyread);
+/* 25.3.2014: ALL counters have to be readout! */
+for(cix=0; cix<ctpboards[board].numcnts; cix++) {
+  w32 ignore;
+  if(cix<=reladr) {
+    mem[cix]= vmer32(copyread);
+  } else {
+    ignore= vmer32(copyread);
+  };
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 }

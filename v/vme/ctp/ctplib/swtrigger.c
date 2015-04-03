@@ -142,6 +142,8 @@ switch(trigtype){
     if(BC==0xfff) { 
       BC= getCALIBBC2(ctprodets);
     };
+    //BC= BC - 97;   // CALIB_BC: 3011 ORBIT_BC: 91
+    BC= BC - 2;   // CALIB_BC: 3011 ORBIT_BC: 3560
     word=word+(1<<12)+(1<<13)+BC;
     INTtcset= INTtcset | 1;
     //printf("setswtrig: calib trigger 0x%x \n",word);
@@ -160,7 +162,8 @@ word=(1<<24)+ctprodets;
     // ctp readout active or emulated, set TRIGGER bit 
     //the bit has to be set for CALIBRATION events too!
     // if not set, EVB complains (run 67492)
-    word= word | (1<<17);
+    word= word  | (1<<17);   // from Monday 23rd bit17 back
+    //word=word ;        // temporary suppress bit17 till Monday 23rd
     //printf("setswtrig: bit17 not set\n");
     //};
   };

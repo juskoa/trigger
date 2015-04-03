@@ -552,6 +552,7 @@ class AllInputs:
   #print "look for me if you want different inputs range..."
   for i in lines:
    if(i[0] == 'l' and i[1] == '0'): continue
+   if i == "\n": continue
    if(i[0] != '#'):
     items=string.split(i)
     #print 'items= ',items,len(items)
@@ -574,6 +575,8 @@ class AllInputs:
           flag=0;
           break
     if flag: continue
+    # input not connected
+    if items[7] == '0' and items[3] == '0': continue
     db={}
     db['name']=items[0]
     db['detector']=items[2]
@@ -979,7 +982,7 @@ Everything OK!
     if self.detector =='SPD': ninps='10' 
     cmd="getDetInputStatus("+'"'+self.detector+'",'+ninps+")"
     output=self.vb.io.execute(cmd,log="out",applout="<>")
-    #print 'Detector input status:',output,len(output)
+    print 'Detector input status:',output,len(output)
     if(output != []):
       numDIM=int(self.inpnumDIM)-1
       try:

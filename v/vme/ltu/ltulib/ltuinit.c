@@ -542,17 +542,34 @@ if(ltuviyes) {
   } else if(((del>=5) && (del<=17)) || (del==31)) { 
     newttin=0x1;
   } else if((del>=18) && (del<=30)) { 
-    newttin=0x2; */
-  if(((del<=6) && (del>=0)) || ((del >=20) && (del<=31))) {
-    newttin=0x2;   // chanA +BC/2
-  } else if((del>=8) && (del<=18)) { 
-    newttin=0x1;   // chanB +BC/2
-  } else if(del==7 ) { 
-    newttin=0x3;   // both TTC chans A/B +BC/2
-  } else if(del== 19) { 
-    newttin=0x0; 
-  } else { newttin=0;
-    printf("BC_DELAY_ADD out of the allowed range (0-31)\n");
+    newttin=0x2; 
+  */
+  if((vmer32(LTUVERSION_ADD)&0xff)<0xbb) {
+    //following valid till 17.3.2015 (ltuver <=0xba)
+    if(((del<=6) && (del>=0)) || ((del >=20) && (del<=31))) {
+      newttin=0x2;   // chanA +BC/2
+    } else if((del>=8) && (del<=18)) { 
+      newttin=0x1;   // chanB +BC/2
+    } else if(del==7 ) { 
+      newttin=0x3;   // both TTC chans A/B +BC/2
+    } else if(del== 19) { 
+      newttin=0x0; 
+    } else { newttin=0;
+      printf("BC_DELAY_ADD out of the allowed range (0-31)\n");
+    };
+  } else {
+    // following valid from 17.3.2015 (ltuver >=0xbb)
+    if(((del<=7) && (del>=0)) || ((del >=21) && (del<=31))) {
+      newttin=0x2;   // chanA +BC/2
+    } else if((del>=9) && (del<=19)) { 
+      newttin=0x1;   // chanB +BC/2
+    } else if(del==8 ) { 
+      newttin=0x3;   // both TTC chans A/B +BC/2
+    } else if(del== 20) { 
+      newttin=0x0; 
+    } else { newttin=0;
+      printf("BC_DELAY_ADD out of the allowed range (0-31)\n");
+    };
   };
 } else {   // TTCvi
   strcpy(ttcorltu,"TTCvi");
@@ -601,10 +618,11 @@ vmew32(PREPULSE_BC,128);
 vmew32(CALIBRATION_BC,ltc->calibbc);
 vmew32(GAP_BC,3446);
 //vmew32(L1_DELAY,223);   // TL1-2 from 4.6.2008 (should give 224 ns L0-L1 on LTU)
-vmew32(L1_DELAY,259);   // TL1-1 (see ctplib/timingpars.c) 224
-//vmew32(L2_DELAY,3520);  till 11.6.2008
+//vmew32(L1_DELAY,259);   // TL1-1 (see ctplib/timingpars.c) 224
+vmew32(L1_DELAY,279);   // from 16.3.2015
+//vmew32(L2_DELAY,3520);  till 11.6.2008 (see ctplib/timigpars.c)
 //vmew32(L2_DELAY,3952);  till 29.8.2011
-vmew32(L2_DELAY,4208);  // TL2 (see ctplib/timigpars.c)
+vmew32(L2_DELAY,4274);  // from 16.3.2015
 /* With run2 ctp+ltu firmwares, equal L1-L2 delay (global == stdalone) 
 reached when:
 ltu L2_DELAY modified from 4208 -> 810 and

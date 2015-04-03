@@ -674,6 +674,8 @@ w32 d, ssmoffset;
 int vsp,i,retcode=0;
 char fn[100]="WORK/";
 FILE *dump;
+w32 ts1,ts2,us1,us2, cntr_us;
+GetMicSec(&ts1, &us1);
 ssmoffset= BSP*ctpboards[board].dial;
 strcat(fn,fname);
 dump= fopen(fn,"w");
@@ -685,18 +687,28 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   w32 status,enable,mod;
   /* don't touch InOut, ConfSel bits and SSMenable word when VME access*/
   status= vmer32(SSMstatus+ssmoffset);
-  enable= (status&0xc0)<<2;
-  mod= SSMomvmer | (status&0x38) | enable;
-  /*printf("readSSM: status enable mod: %x %x %x\n", status,enable,mod); */
-  retcode= setomvspSSM(0, ssmoffset, mod);
-  if(retcode!=0) return(retcode);
-  vmew32(SSMaddress+ssmoffset,(w32)-1);
-  d= vmer32(SSMdata+ssmoffset);
-  d= vmer32(SSMdata+ssmoffset);
-  for(i=0; i<Mega; i++) {
-    /*   *buf= vmer32(SSMdata+ssmoffset); buf++; */
-    d= vmer32(SSMdata+ssmoffset);            /* 32 bits wide */
-    fwrite(&d, sizeof(w32), 1, dump);
+  if((board==1) && (l0C0()!=0)) {   // LM0 board
+    w32 opmod;
+    opmod= sms[board].lopmode;
+    //todo here: check if ddr3 filled
+    // following: just to be compatible with getswSSM ?
+    retcode= setomvspSSM(0, ssmoffset, SSMomvmer);
+    retcode= ddr3_ssmdump(opmod, dump);
+    //printf("dumpSSM: %d from ddr3_ssmdump()\n",retcode);
+  } else {      // BSY L0/1/2 Fo INT
+    enable= (status&0xc0)<<2;
+    mod= SSMomvmer | (status&0x38) | enable;
+    /*printf("readSSM: status enable mod: %x %x %x\n", status,enable,mod); */
+    retcode= setomvspSSM(0, ssmoffset, mod);
+    if(retcode!=0) return(retcode);
+    vmew32(SSMaddress+ssmoffset,(w32)-1);
+    d= vmer32(SSMdata+ssmoffset);
+    d= vmer32(SSMdata+ssmoffset);
+    for(i=0; i<Mega; i++) {
+      /*   *buf= vmer32(SSMdata+ssmoffset); buf++; */
+      d= vmer32(SSMdata+ssmoffset);            /* 32 bits wide */
+      fwrite(&d, sizeof(w32), 1, dump);
+    };
   };
 } else {                            /* ltu board */
   vsp=Openvsp(sms[board].ltubase);
@@ -715,7 +727,8 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
 /* ssma= vmxr32(vsp, SSMaddress);
   printf("SSMaddress end:%x\n",ssma); */
 fclose(dump);
-printf("%s created\n", fn);
+GetMicSec(&ts2, &us2); cntr_us= DiffSecUsec(ts2,us2,ts1,us1);
+printf("%s created in time:%d us\n", fn, cntr_us);
 RET:return(retcode);
 }
 #define NOCOMPRESS

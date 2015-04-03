@@ -4,8 +4,8 @@
 . $VMECFDIR/../bin/auxfunctions
 #
 hname=`hostname -s`
-if [ "$hname" != 'alidcsvme017' -a "$hname" != 'altri1' ] ;then
-  echo 'This script can be started only on alidcsvme017 (or altri1 for test)'
+if [ "$hname" != 'alidcsvme017' -a "$hname" != 'altri2' ] ;then
+  echo 'This script can be started only on alidcsvme017 (or altri2 for test)'
   exit
 fi
 getpid 'linux/ttcmidims'

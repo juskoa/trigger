@@ -7,6 +7,8 @@ $(ODIR):
 	mkdir -p $(ODIR)
 $(ODIR)/server:	$(SDIR)/server.c $(DIMDIR)/$(ODIR)/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/server.c -L${SMIDIR}/linux -lsmi -L$(DIMDIR)/linux -ldim -o $(ODIR)/server $(LIBS)
+$(ODIR)/server2:	$(SDIR)/server2.c $(DIMDIR)/$(ODIR)/libdim.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/server2.c -L${SMIDIR}/linux -lsmi -L$(DIMDIR)/linux -ldim -o $(ODIR)/server2 $(LIBS)
 	
 $(ODIR)/client:	$(SDIR)/client.c $(DIMDIR)/$(ODIR)/libdim.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDIR)/client.c -L$(DIMDIR)/linux -ldim \

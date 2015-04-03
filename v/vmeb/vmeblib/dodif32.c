@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "vmewrap.h"
 /*------------------------------------------------------- dodif32()
 Substract 2 32 bits values (representing counters)
@@ -13,7 +14,8 @@ return(dif);
 w32 rounddown(float f) {
 #ifdef CPLUSPLUS
 w32 ret;
-ret= (unsigned int)(f);
+//ret= (unsigned int)(f);
+ret= floor(f);
 //printf("f:%f ret:%d\n",f,ret);
 return(ret);
 #else

@@ -44,3 +44,6 @@ makefile
 
 19.3.2012
 smaq.c  -now corect shm is used (before private one was used!)
+
+16.3.2015
+attempt to use smaq2.c with LM0

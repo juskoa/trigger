@@ -308,10 +308,9 @@ int ix;
 char bc12rmansel[4]="III";
 w32 adrpol, adrlen, pol, len, bc1man, orb1man, wwm, wmm, pol1;
 printf("PROGRAM_ID:%x\n", vmer32(PROGRAM_ID));
-printf("ref bc1 orbit1\n");
-printRFRX((char *)"0x300000");
-printf("--- bc2 orbit2\n");
-printRFRX((char *)"0x400000");
+printf("readall: not calling printRFRX... (to be replaced by gerRFRX?)\n");
+//printf("ref bc1 orbit1\n"); printRFRX((char *)"0x300000");
+//printf("--- bc2 orbit2\n"); printRFRX((char *)"0x400000");
 /*von
 vsp=-1; rc= vmxopenam(&vsp, "0x400000", "0x100", "A24");
 printf("rc:%d vsp:%d\n", rc, vsp);

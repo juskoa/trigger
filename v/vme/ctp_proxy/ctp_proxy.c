@@ -2081,7 +2081,8 @@ return(rc);
 //--------------------------------------------------------------------
 // Initialise
 //w8 *mallocShared(w32 shmkey, int size, int *segid);
-extern char TRD_TECH[];   // partition name in case it is TRD technical partition
+extern char TRD_TECH[];   /* partition name in case it is TRD technical partition
+                             see checkmodLM() */
 int ctp_Initproxy(){
 int sp,rc; char *environ;
 char msg[300], cmd[100], dimcom[40], alipath[120];
@@ -2346,10 +2347,11 @@ if(generateXOD(part,'E', emsg, &orbitn )) {
 };
 prepareRunConfig(part,0);
 if(strcmp(part->name, TRD_TECH)==0) {
-  // disconnect RNT1
+  // disconnect RND1, connected becasue of TRD in techn. partition
   vmew32(RND1_EN_FOR_INPUTS, 0);
   vmew32(RND1_EN_FOR_INPUTS+4, 0);
-  prtLog("RND1_EN_FOR_INPUTS cleared");
+  TRD_TECH[0]='\0';
+  prtLog("RND1_EN_FOR_INPUTS and TRD_TECH cleared");
 };
 ret=deletePartitions(part); tspart= checkTS();
 if(tspart!=NULL) {

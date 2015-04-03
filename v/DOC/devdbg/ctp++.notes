@@ -2,3 +2,4 @@ To compile type
 make ctpda.e
 in ctp++.
 
+ctpro.e  -reads SSM from L2/FO and shows IR vs. L2a

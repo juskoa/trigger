@@ -27,5 +27,11 @@ CLUSTERS:
 Detectors:HMPID:0x3 PHOS:0x3 
 Masked detectors: 0x0 
 
-see: Tpartition.c checkmodLM()  -invokde from ctp_proxy.c ctp_InitPartition
+see: ctplib/Tpartition.c checkmodLM()  -invoked from ctp_proxy.c ctp_InitPartition
+
+16.3.2015
+getDAQClusterInfo() -odstraneny TRD ako trigger detector ak techn. run
+17.3.
+TRD_TECH cleared when TRD_TECH stopped
+
 -still todo: move hw changes to 'START_PARTITION time (now in INIT_PARTITION...)

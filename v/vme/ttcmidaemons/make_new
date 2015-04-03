@@ -26,7 +26,7 @@ endif
 all: $(allEXES)
 
 #------------------------------------------- ttcmidims
-$(EXEDIR)/ttcmidims: ttcmidims.o $(VMECFDIR)/ttcmi/ttcmisubs.o
+$(EXEDIR)/ttcmidims: ttcmidims.o $(VMECFDIR)/ttcmi/ttcmisubs.o $(VMEBLIB)/libvmeb.a
 	$(CC) $(LDFLAGS) $< $(VMECFDIR)/ttcmi/ttcmisubs.o $(LIBS) -o $@
 ttcmidims.o:ttcmidims.c
 	$(CC) $(NOVME) $(CFLAGS) -c -o $@ $<

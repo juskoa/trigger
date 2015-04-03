@@ -17,21 +17,26 @@ typedef unsigned int w32;
 
 
 static int ORBITLENGTH=3564;
-static int TL1=260;                          
+static int TL1=280;                          
 /* see ltu/ltulib/ltuinit.c: L1_DEALY is TL1-1= 259 which should give 260
    BCs distance on LTUoutput
-before 24.8.2008 225
 from 31.8.2007. 225 corresponds to LTU.L1_DELAY=TL1-1=224
-from 4.6.2008 (LTUvi): 225 LTU.L1_DELAY= TL1-2= 223 which should give real 224bcs
+before 24.8.2008 225
+from 4.6.2008 (LTUvi): 225 
+LTU.L1_DELAY= TL1-2= 223 which should give real 224bcs
+LTU.L1_DELAY=(TL1-1)= 279 from 16.3.2015 
+
+*/
+static int TL2=4208;
+/*static int TL2=3472;  till 11.6.2008
+TL2=3952; till 29.8.2011. Changed to 4208 in ctp.cfg
+21.10.2011: changed also here (or pfp and timingpars should be updated
+when ctp started by calling setTimeParsDB() after reading ctp.cfg)
 
 LTU.L2_DELAY should be TL2 
 LTU.L2_DELAY = TL2 + 65   from 10.3.2015
+LTU.L2_DELAY = TL2 + 66   from 16.3.2015
 */
-//static int TL2=3472;  till 11.6.2008
-// TL2=3952; till 29.8.2011. Changed to 4208 in ctp.cfg
-// 21.10.2011: changed also here (or pfp and timingpars should be updated
-// when ctp started by calling setTimeParsDB() after reading ctp.cfg)
-static int TL2=4208;
 static int TBCL0=0;   // L0_BCOFFSET from allignment measurement
 // 31.3.2011: 3556 -> 3011
 static int CALIBRATION_BC=3011;  //the same as LTU.CALIBRATION_BC
@@ -69,20 +74,21 @@ return(TBCL0);
 /*--------------------------------*/ w32 calcL1_DELAY_L0() {
 /* L1_DELAY_L0 register, L1 board */
 //return(TL1-55);   // changed 4.6.2008 to -55
-return(TL1-105);   // changed 7.3.2014 to -105
+//return(TL1-105);   // changed 7.3.2014 to -105
+return(TL1-104);   // changed 18.3.2014 to -105
 }
 /*--------------------------------*/ w32 calcL2_DELAY_L1() {
 /* L2_DELAY_L1 register, L2 board */
 //return(TL2-TL1-56);   // changed 4.6.2008 to -56
 //return(TL2-TL1-64);   // changed 24.8.2008) to -64
-//return(TL2-TL1-114);    // changed  7.3.2014  to -114
-//return(TL2-TL1-116);    // changed  9.3.2014  to -116
-return(TL2-TL1-108);   // changed 9.3.2014 to -108: measured TL2:4208 yes it is L0-L2 time
+//return(TL2-TL1-114);    // changed  7.3.2015  to -114
+//return(TL2-TL1-116);    // changed  9.3.2015  to -116
+return(TL2-TL1-108);   // changed 9.3.2015 to -108: measured TL2:4208 yes it is L0-L2 time
 }
 /*--------------------------------*/ w32 calcBUSY_L0L1DEADTIME() {
 /* BUSY_L0L1DEADTIME register, BUSY board */
-//return(TL1-1);
-return(TL1);      //changed 1.8.2008
+//return(TL1);      //changed 1.8.2008
+return(TL1-1);      // changed 18.3.2015
 }
 /*--------------------------------*/ w32 calcFO_DELAY_L1CLST() {
 /* FO_DELAY_L1CLST register, FO boards */
@@ -94,14 +100,18 @@ return ((TL1-1)+(1<<12));}     //+enable L1spurious FILTER (bit 0x1000)
 /*--------------------------------*/ w32 calcL2_BCOFFSET() {
 /* L2_BCOFFSET register, L2 board */
 //return((TBCL0+TL2+1)%ORBITLENGTH);
-return((TBCL0+TL2-5)%ORBITLENGTH); //26.8.2008
+//return((TBCL0+TL2-5)%ORBITLENGTH); //26.8.2008
+return((TBCL0+TL2+4)%ORBITLENGTH); //18.3.2015
 }
 /*--------------------------------*/ w32 calcINT_BCOFFSET() {
 /* INT_BCOFFSET register, INT board p.6 */
-return((TBCL0+3559)%ORBITLENGTH);       // 11.3.2015
-//return((TBCL0+3)%ORBITLENGTH);       // 26.8.2008
-//return((TBCL0+2)%ORBITLENGTH);       // 20.8.2008
 //return((TBCL0+TL2+1)%ORBITLENGTH); // 1.8.2008
+//return((TBCL0+2)%ORBITLENGTH);       // 20.8.2008
+//return((TBCL0+3)%ORBITLENGTH);       // 26.8.2008
+//return((TBCL0+3559)%ORBITLENGTH);       // 11.3.2015
+//return((TBCL0+3560)%ORBITLENGTH);       // 12.3.2015
+// from 18.3.: (L2_BCOFFSET+2920)%ORBITLENGTH , i.e.:
+return((calcL2_BCOFFSET()+2920)%ORBITLENGTH);
 }
 /*--------------------*/ w32 calcPFisd(int level) {
 w32 rc;

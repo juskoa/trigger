@@ -1,0 +1,54 @@
+#!/bin/bash
+#pname="PHYSICS_1"
+pname="$2"
+if [ "$1" = 'init' ] ;then
+  if [ -z "$4" ] ;then
+    echo "smicmd init partname decmask RUNN"
+  else
+# ACO 65536 PHOS: 128   HMPID:64    PHOS+HMPID:128+64=192
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK $3 -ps RUN_NUMBER $4 -ps ACT_CONFIG NO
+  fi
+elif [ "$1" = "start" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP START_PARTITION -ps PARTITION $pname
+elif [ "$1" = "pause" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP PAUSE_PARTITION -ps PARTITION $pname
+elif [ "$1" = "resume" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP RESUME_PARTITION -ps PARTITION $pname
+elif [ "$1" = "sync" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP SYNC -ps PARTITION $pname
+elif [ "$1" = "stop" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION $pname
+elif [ "$1" = "ack" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP ACKNOWLEDGE -ps PARTITION $pname
+elif [ "$1" = "reset" ] ;then
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP RESET -ps PARTITION $pname
+elif [ "$1" = "TRIGGER" ] ;then
+# /opt/smi/linux/smiPreproc TRIGGER.smipp TRIGGER.smi
+# /opt/smi/linux/smiTrans TRIGGER.smi TRIGGER.sobj
+# following cmd takes .sobj as input
+   /opt/smi/linux/smiSM TRIGGER $dbctp/TRIGGER 2>&1>$VMEWORKDIR/WORK/smicmd.log &
+cat - <<-EOF
+
+see $VMEWORKDIR/WORK/smicmd.log
+EOF
+else
+cat - <<-EOF
+partname: partition name (without .partition suffix)
+smicmd init partition decmask RUNN
+smicmd start/stop/pause/resume/sync/ack/reset partition
+
+General usage:
+1. make sure dns is running on avmes (/opt/dim/linux/dns)
+2.  smicmd TRIGGER      -start private TRIGGER domain (on avmes or altri1)
+    ONLY 1 instance can be active (it will crash if another instance is running already)
+3. use smicmd partition init/start/stop/.... as suggested above
+4. Note about mask:  Give it in decimal notation, i.e:
+0x80 128 PHOS
+0x40  64 HMPID
+0xc0 192 PHOS HMPID
+0x10  16 TRD
+0x90 144 TRD PHOS
+0x50  80 TRD HMPID
+EOF
+fi
+echo "smiSendCommnad rc:" $?
