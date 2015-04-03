@@ -2,22 +2,52 @@
 L0BOARD2::L0BOARD2(int vsp)
 :
 	L0BOARD(vsp),
-	L0VETO(0x800),
+	MASK_DATA(0x1e4),MASK_CLEARADD(0x1e8),MASK_MODE(0x1ec),
 	SCALED_1(0x224),SCALED_2(0x228),
         DDR3_CONF_REG0(0x280),DDR3_CONF_REG1(0x284),DDR3_CONF_REG2(0x288),DDR3_CONF_REG3(0x28c),DDR3_CONF_REG4(0x290),
-        DDR3_BUFF_DATA(0x2c0)
+        DDR3_BUFF_DATA(0x2c0),
+        SYNCAL(0x340),
+        //L0_CONDITION(0x400),
+        //L0_INVERT(0x600),
+	L0_VETO(0x800),
+        LM_CONDITION(0xa00),
+        LM_INVERT(0xc00),
+	LM_INV_VETO(0xe00)
 {
 }
 //----------------------------------------------------------------------------
 /* 
  * set single class at index with cluster,vetoes, no PF
+ * Version before LM - to be obsolete
 */ 
 void L0BOARD2::setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask)
 {
  w32 word=0;
  // Downscaling to be added
  word=cluster + (0xf<<4) + (bcm<<8)+(rare<<20) + (clsmask<<23);
- vmew(L0VETO+4*index,word);
+ vmew(L0_VETO+4*index,word);
+}
+/* 
+ * set single class L0 vetoes at index with cluster,vetoes, no PF
+ * Version with LM level
+*/ 
+void L0BOARD2::setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 pf)
+{
+ w32 word=0;
+ // Downscaling to be addeda
+ word=cluster + (pf<<4)+(lml0busy<<8) + (clsmask<<23);
+ vmew(L0_VETO+4*index,word);
+}
+/* 
+ * set single class L0 vetoes at index with cluster,vetoes, no PF
+ * Version with LM level
+*/ 
+void L0BOARD2::setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask,w32 alrare,w32 pf)
+{
+ w32 word=0;
+ // Downscaling to be addeda
+ word=cluster+(lmdeadtime<<8)+(alrare<<9)+(pf<<10)+(clsmask<<16);
+ vmew(LM_INV_VETO+4*index,word);
 }
 //----------------------------------------------------------------------------
 /* 
@@ -28,6 +58,48 @@ void L0BOARD2::setClassVetoes(w32 index,w32 cluster)
  setClassVetoes(index,cluster,0xfff,0x1,0x0);
 }
 //----------------------------------------------------------------------------
+void L0BOARD2::setClassConditionL0(w32 index,w32 inputs,w32 rndtrg, w32 bctrg,w32 l0fun)
+{
+ w32 word=0;
+ word=inputs+(l0fun<<24)+(rndtrg<<28)+(bctrg<<30);
+ vmew(L0_CONDITION+4*index,word);
+}
+//---------------------------------------------------------------------------------
+void L0BOARD2::setClassConditionLM(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 bcmask,w32 lmfun)
+{
+ w32 word=0;
+ word=inputs+(lmfun<<12)+(rndtrg<16)+(bctrg<<18)+(bcmask<<20);
+ vmew(LM_CONDITION+4*index,word);
+}
+//----------------------------------------------------------------------------
+void L0BOARD2::setClassInvert(w32 index, w32 invert)
+{
+ vmew(LM_INVERT+4*index,invert);
+}
+//----------------------------------------------------------------------------
+void L0BOARD2::writeBCMASKS(w32* pat)
+{
+ vmew(MASK_MODE,1); // vme access
+ vmew(MASK_CLEARADD,0x0);
+ for(int i=0;i<3564;i++){
+   vmew(MASK_DATA,pat[i]);
+ }
+ vmew(MASK_MODE,0);
+}
+//----------------------------------------------------------------------------
+void L0BOARD2::readBCMASKS()
+{
+ vmew(MASK_MODE,1); // vme access
+ vmew(MASK_CLEARADD,0x0);
+ for(int i=0;i<3564;i++){
+   w32 word=vmer(MASK_DATA);
+   printf("%03x",word);
+   if(((i+1)%66)==0)printf("\n");
+ }
+ printf("\n");
+ vmew(MASK_MODE,0);
+}
+//----------------------------------------------------------------------------
 /* 
  * read and print all classes
 */
@@ -35,8 +107,8 @@ void L0BOARD2::printClasses()
 {
  printf("CTP classes from hardware:\n");
  for(w32 i=0; i<kNClasses; i++){
-    w32 cond=vmer(L0CONDITION+4*(i+1));
-    w32 veto=vmer(L0VETO+4*(i+1));
+    w32 cond=vmer(L0_CONDITION+4*(i+1));
+    w32 veto=vmer(L0_VETO+4*(i+1));
     printf("%i  0x%x 0x%x \n",i+1,cond,veto);
     //if((i+1)%10 == 0)printf("\n");
  }
