@@ -526,7 +526,7 @@ var refint="refinterval is %d";
 </tr>
 </table>
 <br>
-
+<img src="pngs/inputs.png" title="CTP inputs" alt="CTP inputs" width="100%" />
 </body>
 </html>
 """
