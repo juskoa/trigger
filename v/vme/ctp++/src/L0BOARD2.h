@@ -7,16 +7,18 @@ class L0BOARD2: public L0BOARD
  public:
 	L0BOARD2(int vsp);
 	void setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask); // obsolete
-	void setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 pf=0xf);
-	void setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask,w32 alrare=0,w32 pf=0xf);
+	void setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare=1,w32 pf=0xf);
+	void setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask,w32 alrare=1,w32 pf=0xf);
 	void setClassVetoes(w32 index,w32 cluster);
-	void setClassConditionL0(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 l0fun=0xf);
+	void setClassConditionL0(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 bcmask,w32 l0fun=0xf);
 	void setClassConditionLM(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 bcmask,w32 lmfun=0xf);
 	void setClassInvert(w32 index,w32 invert=0xfff);
 	void setBC1(w32 T){vmew(SCALED_1,T);};
 	void setBC2(w32 T){vmew(SCALED_2,T);};
 	w32 getBC1(){return vmer(SCALED_1);};
 	w32 getBC2(){return vmer(SCALED_2);};
+	// lm level
+	void configL0classesonly();
 	// ssm methods from ctp
         void ddr3_reset();
         void ddr3_status();
@@ -31,7 +33,7 @@ class L0BOARD2: public L0BOARD
 	void printClasses();
 	void readBCMASKS();
 	void writeBCMASKS(w32* pat);
-
+	enum {NCLASS=100};
  private:
 	enum{DDR3_TO=30, DDR3_BLKL=16, 
 	     DDR3_rd_done=0x1000000,

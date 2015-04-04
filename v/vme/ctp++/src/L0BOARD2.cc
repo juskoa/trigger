@@ -27,15 +27,16 @@ void L0BOARD2::setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask
  word=cluster + (0xf<<4) + (bcm<<8)+(rare<<20) + (clsmask<<23);
  vmew(L0_VETO+4*index,word);
 }
-/* 
+/* ------------------------------------------------------------------------------------
  * set single class L0 vetoes at index with cluster,vetoes, no PF
  * Version with LM level
 */ 
-void L0BOARD2::setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 pf)
+void L0BOARD2::setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare,w32 pf)
 {
- w32 word=0;
+ w32 word=0,bcmask=0;
+ bcmask = vmer(L0_VETO+4*index)&0x000fff00;
  // Downscaling to be addeda
- word=cluster + (pf<<4)+(lml0busy<<8) + (clsmask<<23);
+ word=cluster + (pf<<4)+(bcmask<<0)+(alrare<<20)+(lml0busy<<21) + (clsmask<<23);
  vmew(L0_VETO+4*index,word);
 }
 /* 
@@ -58,17 +59,22 @@ void L0BOARD2::setClassVetoes(w32 index,w32 cluster)
  setClassVetoes(index,cluster,0xfff,0x1,0x0);
 }
 //----------------------------------------------------------------------------
-void L0BOARD2::setClassConditionL0(w32 index,w32 inputs,w32 rndtrg, w32 bctrg,w32 l0fun)
+void L0BOARD2::setClassConditionL0(w32 index,w32 inputs,w32 rndtrg, w32 bctrg,w32 bcmask,w32 l0fun)
 {
  w32 word=0;
  word=inputs+(l0fun<<24)+(rndtrg<<28)+(bctrg<<30);
  vmew(L0_CONDITION+4*index,word);
+ word = vmer(L0_VETO+4*index);
+ word = word & 0xfff000ff;
+ word = word+(bcmask<<8);
+ vmew(L0_VETO+4*index,word);
 }
 //---------------------------------------------------------------------------------
 void L0BOARD2::setClassConditionLM(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 bcmask,w32 lmfun)
 {
  w32 word=0;
- word=inputs+(lmfun<<12)+(rndtrg<16)+(bctrg<<18)+(bcmask<<20);
+ word=inputs+(lmfun<<12)+(rndtrg<<16)+(bctrg<<18)+(bcmask<<20);
+ //printf("setClassConditionLM: 0x%x 0x%x 0x%x \n",LM_CONDITION+4*index,word,rndtrg);
  vmew(LM_CONDITION+4*index,word);
 }
 //----------------------------------------------------------------------------
@@ -295,4 +301,15 @@ int L0BOARD2::DumpSSM(const char *name,int issm)
  if(issm==1)SetSSM(ssm1); else SetSSM(ssm2); 
  return BOARD::DumpSSM(name);
 }
+//-----------------------------------------------------------------------------
+void L0BOARD2::configL0classesonly()
+{
+ for(w32 i=0;i<NCLASS;i++){
+    //printf("seting class %i \n",i);
+    setClassConditionLM(i,0xfff,0x3,0x3,0xfff);
+    setClassVetoesLM(i,0xff,1,1,1);
+    setClassConditionL0(i,0xffffff,0x3,0x3,0xfff);
+    setClassVetoesL0(i,0x7,1,1,1);
 
+ }
+}
