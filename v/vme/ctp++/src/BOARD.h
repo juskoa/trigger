@@ -49,7 +49,7 @@ class BOARD: public BOARDBASIC
 	 deque<L2Data>& getL2DataBackplaneList(){return ql2backplane;};
 	 deque<L2Data>& getL2SerialList(){return ql2backplane;};
 	 enum {kNClasses=100};
-         enum {NCOUNTERS_MAX=300};
+         enum {NCOUNTERS_MAX=500};
  protected:
 	 ifstream modefile;
          int NCounters;
