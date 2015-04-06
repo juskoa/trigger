@@ -8,7 +8,7 @@
 include $(VMEBDIR)/com_defs.make
 include $(VMEBDIR)/daq_defs.make
 #LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS) $(VMERCCLD)
-PROXYLIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(VMERCCLD)
+PROXYLIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(VMERCCLD) -lrt  -lpthread
 
 CFLAGS += $(daqCCDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/.. -I$(DIMinc) -I$(SMIinc)
 
@@ -34,8 +34,7 @@ $(EXEDIR):
 	mkdir $(EXEDIR)
 #------------------------------------------ ctp_proxy
 $(EXEDIR)/ctp_proxy: main_ctp.o $(proxyOBJS) $(LIBDEP)
-	$(CC) $(LDFLAGS) -lrt $< $(proxyOBJS) $(PROXYLIBS) $(SMILD) -o $@ 
-
+	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) $(SMILD) -o $@ 
 $(EXEDIR)/main_fixedcnts: main_fixedcnts.c fixedcnts.o
 	$(CC) $(LDFLAGS) $< fixedcnts.o $(DIMLD) $(VMEBLD) -o $@
 	
@@ -84,7 +83,8 @@ $(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
 gcalib.o:gcalib.c 
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/gcalib.exe: gcalib.o $(LIBDEP)
-	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) -o $@
+#	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) -o $@
+	$(CC) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) $(LDFLAGS) -o $@
 
 #------------------------------------------- ctpshm
 main_shm.o:main_shm.c Tpartition.h $(VMEBLIB)/../shmaccess.h

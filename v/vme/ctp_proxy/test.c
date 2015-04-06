@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <semaphore.h>
 #include "vmewrap.h"
 #include "vmeblib.h"
 #include "infolog.h"

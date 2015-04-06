@@ -76,8 +76,8 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   if(line[0]=='\n') continue;
   ix=0; token= nxtoken(line, value, &ix);
   if(token!=tSYMNAME) {
-    sprintf(emsg, "ERROR ctp.cfg line ignored:%s\n",line); 
-    printf(emsg);
+    sprintf(emsg, "ERROR ctp.cfg line ignored:%s\n",line);
+    printf("%s", emsg);
     continue;
   };
   value[MAXPARNAME-1]='\0'; strcpy(parname, value); 

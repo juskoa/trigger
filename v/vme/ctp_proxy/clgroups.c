@@ -71,7 +71,7 @@ part->active_cg= setclgroup;
 for(iclass=0; iclass<NCLASS; iclass++) {
   //w32 l0inps;
   w32 mskbit;
-  int hwclass, clgroup, bb; TKlas *klas;
+  int hwclass, clgroup; TKlas *klas;  // int bb;
   if((klas=part->klas[iclass]) == NULL) continue;
   pcfgn++;
   // 0: class always active:
@@ -85,7 +85,7 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   };
   hwclass= part->klas[iclass]->hwclass;  // 0..49
   //l0inps= part->klas[iclass]->l0inputs;
-  bb=4*(hwclass+1);
+  //bb=4*(hwclass+1);
   if(clgroup == setclgroup) {
     // activate   (i.e. use whatever was given in .pcfg file for this class)
     if(mskbit==0) rc++;

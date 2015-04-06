@@ -452,7 +452,8 @@ rc: 0: ok
 */
 int PF2Partition(char *line,TRBIF *rbif){ 
 int ixdef,ixx;
-enum Ttokentype tok; w32 ixpf=0; char hexw[20];
+//enum Ttokentype tok; 
+w32 ixpf=0; char hexw[20];
 
 //printf("len= %i\n",strlen(&line[8]));
 //printf("%s",&line[8]);
@@ -462,7 +463,7 @@ if((line[3]<'1') || (line[3]>'4')) {
 char2i(line[3],&ixpf); ixpf--; ixx=5;   // "PF.x 0x..."
 for(ixdef=0; ixdef< (ixMaxpfdefs+ixMaxpfdefsCommon); ixdef++) {
   w32 pfdef1; int rc1;
-  tok= nxtoken(line, hexw, &ixx);
+  /*tok=*/ nxtoken(line, hexw, &ixx);
   rc1= gethexdec(hexw, &pfdef1);
   if(rc1!=0) {
     goto BADLINE;

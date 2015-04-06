@@ -227,7 +227,7 @@ if(dodel==1) {
   rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 };
 if(rcdic!=1) rc= 3;   // dim problem?
-sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
+sprintf(msg,"timestamp:prepareRunConfig2:tag:%d rc %d", tag, rcdic); prtLog(msg);
 return(rc);
 }
 
@@ -962,9 +962,9 @@ prtProfTime("get inps2daq");
       infolog_trgboth(LOG_FATAL, emsg);
       rcdaqlog=3;
     } else {
-      int ix, rl;
+      int rl;
       mem= (char *)malloc(len+1);
-      ix=0; mem[0]='\0';
+      mem[0]='\0';
       rl=fread((void *)mem, 1, len, ifile); mem[rl]='\0';
       if(rl != len) {
         sprintf(emsg, "updateDAQClusters: File: %s read error\n",name); 
@@ -1407,13 +1407,13 @@ void ctp_StopAllPartitions() {
 int i; Tpartition *part; char pname[40];
 for(i=0;i<MNPART;i++){
   if((part=AllPartitions[i])){
-   int rc1;
+   //int rc1;
    char msg[200];
    strcpy(pname, part->name);
    infolog_SetStream(pname, part->run_number);
    sprintf(msg, "Stop forced for partition %s", pname); 
    infolog_trgboth(LOG_FATAL, msg);
-   rc1= ctp_StopPartition(pname);
+   ctp_StopPartition(pname);
    //rc1= deletePartitions(Tpartition *part);
   };
 };
@@ -1984,13 +1984,12 @@ int generateXODSSM(char x){
 }*/
 /*----------------------------------------------------- resetclock */
 void resetclock() {
-int tag,rcdic;
 char msg[80], cmd[40], dimcom[40];
-tag=TAGrcfgdelete;
+//tag=TAGrcfgdelete;
 sprintf(cmd,"resetclock\n");
 sprintf(msg,"timestamp:resetclock:"); prtLog(msg);
 strcpy(dimcom,"CTPRCFG/RCFG");
-rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
+/*rcdic=*/ dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 }
 /*----------------------------------------------------- gcalibUpdate */
 void gcalibUpdate() {
@@ -2093,7 +2092,7 @@ rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
 };
-printf("ctp_proxy ver: 10.02.2013\n");
+printf("ctp_proxy ver: 06.04.2015\n");
 xcountersStop(0);           // clear list of active runs
 SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
@@ -2548,7 +2547,7 @@ sprintf(msg,"timestamp:partition merged: %s %d", name, run_number); prtLog(msg);
 if((ret=addPartitions2HW(AllPartitions))){ //just check if enough resources
   printf("addPartitions2HW error: %i \n", ret);   
   strncpy(errorReason, "Cannot load partition", ERRMSGL);
-  rc=ret; ret=deletePartitions(part); part=NULL;
+  rc=ret; deletePartitions(part); part=NULL;
   copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
   goto RET2;
 };
@@ -2572,7 +2571,7 @@ sprintf(msg, "timestamp:rc:%d from updateDAQClusters()\n", rc); prtLog(msg);
 if(rc!=0) {
  strncpy(errorReason, "updateDAQClusters() problem", ERRMSGL);
  prepareRunConfig(part,0);
- ret=deletePartitions(part); part=NULL;
+ deletePartitions(part); part=NULL;
 };
 //printHardware(&HW,"ctp_InitPartition");
 copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
@@ -2689,7 +2688,7 @@ return rc;
 UNSETRETddl:
   prepareRunConfig(part,0);
   copyHardware(&HW,&HWold);
-  ret= deletePartitions(part);part=NULL;
+  deletePartitions(part);part=NULL;
   /*goto UNSETRETadb;
   no gcalib/busys -they were not updated anyhow (UNSETRET) */
   goto RET;
@@ -2697,9 +2696,8 @@ UNSETRET:
   prepareRunConfig(part,0);
   copyHardware(&HW,&HWold);
   unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
-  ret= deletePartitions(part); part=NULL;
+  deletePartitions(part); part=NULL;
   gcalibUpdate();
   goto RET;  //UNSETRETadb;
 }
-
 

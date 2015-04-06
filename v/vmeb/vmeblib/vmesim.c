@@ -30,58 +30,11 @@ typedef struct {
 TRegAddrs RegAddrs[MAXSPECVMEF];
 
 extern int errno;
-/*
-w8 *mallocShared(w32 shmkey, int size, int *segid) {
-int segment_id, segment_size, created=0;
-w8 *shared_memory=NULL;
-struct shmid_ds shmbuffer;
 
-segment_id = shmget (shmkey, size,
-  S_IRUSR|S_IWUSR|S_IROTH|S_IWOTH|S_IRGRP|S_IWGRP);
-if( segment_id == -1) {
-  printf("shm segment doesn't exist, errno:%d\n", errno);
-  printf("creating it...\n");
-  segment_id = shmget (shmkey, size,
-    IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR|S_IROTH|S_IWOTH|S_IRGRP|S_IWGRP);
-  if( segment_id == -1) {
-    printf("shmget error:%d(%x)\n", errno, errno);
-  } else {
-    created=1;
-  };
-};
-*segid= segment_id;
-if(segment_id != -1) {
-  // Attach the shared memory segment.
-  shared_memory = (w8*) shmat (segment_id, 0, 0);
-  printf ("shared memory attached at address %p\n", shared_memory);
-  // Determine the segment's size.
-  shmctl (segment_id, IPC_STAT, &shmbuffer);
-  segment_size = shmbuffer.shm_segsz;
-  printf ("segment size: %d\n", segment_size);
-  if (created==1) {
-    int i;
-    for(i=0; i<size; i++) shared_memory[i]=0xfe; 
-    printf("First %d bytes initialized to 0xfe\n", size);
-  };
-};
-return(shared_memory);
-}
-int freeShared(Tvmespace *vsp) {
-int rc;
-// Detach the shared memory segment. 
-shmdt (vsp->simspace);
-rc= shmctl (vsp->shmsegid, IPC_RMID, 0);
-printf("rc.shmctl(IPC_RMID):%d\n", rc);
-if( rc != 0) {
-  printf("shmctl rc:%d errno:%d(%x)\n", rc, errno, errno);
-};
-return(rc);
-}
-*/
-int checkaddr(int vmespace, w32 offset, int *exityes) {
+/*------------------*/ int checkaddr(int vmespace, w32 offset, int *exityes) {
 /* ret: 0 -address is Ok
         1 -address is Ok, user routine was called, offset registered
-	   in exityes is the index into RegAddrs table
+	   exityes: the index into RegAddrs table
  *      10-bad address
  */
 int i;
@@ -94,17 +47,18 @@ if (offset >= (w32)vsps[vmespace]->size) {
 for(i=0; i<MAXSPECVMEF; i++) {
   if((RegAddrs[i].specaddr == offset) &&
     (RegAddrs[i].vmespace == vmespace)) {
-    /*int rcf;
-    printf("checkaddr: vme registered address found for %x\n", offset); */
+    /*int rcf; */
+    printf("checkaddr: vme registered address found for %x\n", offset); 
     *exityes=i;
     return(1);
   };
 };
 return(0);
 }
-/* vmesimreg should be called after vmesimOpen to register
- * all the special vme addresses processing
- */
+/*------------------------------------------------------- vmesimreg 
+should be called after vmesimOpen to register
+all the special vme addresses processing
+*/
 int vmesimreg(TspecVmeF pf, int vmespace, w32 vmeaddr, w32 rw) {
 int i,rc=0;
 for(i=0; i<MAXSPECVMEF; i++) {
@@ -132,7 +86,7 @@ printf("vmesimreg: rc:%x vmespace:%d vmeaddr:%x rw:%x\n",rc,
   vmespace,vmeaddr,rw);
 return(rc);
 }
-int vmesimOpen(int vmespace, w32 baseaddr, w32 size, w32 am) {
+/*-----------*/ int vmesimOpen(int vmespace, w32 baseaddr, w32 size, w32 am) {
 int i,ret=0;
 if( (vmespace >=0) && (vmespace <MAXVMESPACES) && 
   (vsps[vmespace]==NULL) ) {
@@ -159,7 +113,7 @@ for(i=0; i<MAXSPECVMEF; i++) {   /* no spec. vme funcs registered */
 };
 ERR: return(ret);
 }
-int vmesimClose(int vmespace) {
+/*---------------------------------------*/ int vmesimClose(int vmespace) {
 int ret=0;
 if( (vmespace >=0) && (vmespace <MAXVMESPACES) && 
   (vsps[vmespace]!=NULL) ) {
@@ -173,6 +127,7 @@ if( (vmespace >=0) && (vmespace <MAXVMESPACES) &&
 };
 ERR:return(ret);
 }
+
 w8  vmesimr8(int vmespace,w32 offset){
 w8 rv=0xf2; int exityes;
 if (checkaddr(vmespace,offset, &exityes) <= 1) {

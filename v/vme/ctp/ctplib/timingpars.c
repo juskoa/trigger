@@ -132,12 +132,12 @@ return(rc);
       dt: DeltaT (half of the PF protection interval) in BC
    O: ablut[4-7] or ablut[8-11] (in accordance with T12)
 */
-int ix12; char c12;
+int ix12; // char c12;
 w32 pfinterval, CLKfactor, CLKperiod, pfdelay;
-if(T12==TL1) {ix12=4; c12='1'; 
+if(T12==TL1) {ix12=4; //c12='1'; 
   ablut[ix12+3]= calcPFisd(1)<<12;   // not used (see calcPFisd() )
 };
-if(T12==TL2) {ix12=8; c12='2'; 
+if(T12==TL2) {ix12=8; //c12='2'; 
   ablut[ix12+3]= calcPFisd(2)<<12;
 };
 if(dt<T12) {

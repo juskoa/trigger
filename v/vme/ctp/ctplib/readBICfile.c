@@ -60,10 +60,17 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   if(ctpboards[ix].vmever!=NICRATE) continue; 
   adshift=BSP*ctpboards[ix].dial;
 #ifdef SIMVME
+  /*
   ctpboards[ix].boardver= ctpboards[ix].lastboardver;
   ctpboards[ix].vmever= 0xa3; 
   code=ctpboards[ix].code;
   continue; 
+  */
+  vmew32(CODE_ADD+adshift, ctpboards[ix].code);
+  vmew32(VERSION_ADD+adshift, 0xa0);
+  vmew32(SERIAL_NUMBER+adshift, 8);
+  vmew32(FPGAVERSION_ADD+adshift, ctpboards[ix].lastboardver);
+  vmew32(BC_STATUS+adshift, 2);
 #else
   code= 0xff&vmer32(CODE_ADD+adshift);
 #endif

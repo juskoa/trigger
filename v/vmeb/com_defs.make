@@ -7,8 +7,11 @@ COMMONCFLAGS +=-DCPLUSPLUS
 endif
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
+$(info comdes: goals:$(MAKECMDGOALS) deps:$@)
 SERVER_BASEDIR := 
 odl64 := /opt/dip/lib64
+SERVER_LINK := yes
+CLIENT_HOST := localhost
 HOSTNAME:=$(shell hostname -s)
 ifeq ($(HOSTNAME), alidcscom188)
 SERVER_LINK := yes
@@ -42,6 +45,9 @@ SERVER_PREF :=
 SERVER_BASEDIR := v
 endif
 
+ifeq ($(MAKECMDGOALS),CLIENT)
+SERVER_LINK=
+endif
 ifdef SERVER_LINK
 ODIR = linux_s
 #  all exe on 64 bit machines go to _s:

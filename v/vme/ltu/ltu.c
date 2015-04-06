@@ -537,13 +537,14 @@ for(ix= fromd; ix<=tod; ix++) {
 filen: see SLMload (e.g. CFG/ltu/SLM/one.seq) */
 int SLMcheck(char *filen) {
 int rc=0;
-int ixx; int slmbitsn; w32 slmbits;
+int ixx; //int slmbitsn; 
+w32 slmbits;
 w32 slmdata[MAXSLMW];
 if(lturun2) {
-  slmbitsn= SLM_BITSN;
+  //slmbitsn= SLM_BITSN;
   slmbits= SLM_BITS;
 } else {
-  slmbitsn= 16;
+  //slmbitsn= 16;
   slmbits= 0xffff;
 };
 rc= SLMreadasci(filen, slmdata); if(rc!=0) goto ERRRET;
@@ -759,10 +760,6 @@ if(rc_scthread==0) {
 } else {
   printf("scthread was not started, joining skipped\n");
 };
-#ifdef SIMVME
-#else
-//undoreservation();
-#endif
 }
 void *scthread(void *dummy) {
 w32 ptime, pbusy,ntime=0,nbusy=0,nloop=0;
@@ -817,6 +814,7 @@ if( ((Gltuver&0xf0) != 0xb0 ) && (Gltuver!=0xf3) ) {
 #ifdef SIMVME
   /*printf("initmain: now calling regfuns() (SIMVME mode)...\n"); */
   vmew32(BC_STATUS,0x2);
+  vmew32(LTUVERSION_ADD,0xb7);
   setseeds(3,3);
   //regfuns();
 #endif
@@ -837,7 +835,8 @@ if((scthread_request==1) && ((ltushm->ltucfg.flags & FLGscthread)==0)) {
 void boardInit() {   /* called once, after initmain, if -noboardInit 
                         parameter was not given when calling ./ltu/ltu.exe */
 #ifdef SIMVME
-printf("LTU reservation not made in SIMVME mode\n");
+printf("LTU in SIMVME mode\n");
+printversion();
 #else
 printversion();
 #endif

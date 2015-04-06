@@ -219,12 +219,14 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         vmew32(adr, val);
       }
       infolog_trgboth(LOG_INFO, (char *)"LM0 CTP switch set to default 1-1 2-2...24-24");
+
       vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
       infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       vmew32(SEL_SPARE_OUT+0xc, 11);
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 11:0HCO -LM");
+
       vmew32(SEL_SPARE_OUT+0x8, 45);
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[2]) set to 45:0AMU");
       /*vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);

@@ -9,9 +9,9 @@ COMMONCFLAGS += $(daqCCDEFS) $(daqINCDIRS)
 include $(VMEBDIR)/sc.make
 
 ifeq ($(VMEDRIVER),SIMVME)
-vmewro:=vmesim.o
+#von vmewro:=vmesim.o
 else
-vmewro:=
+#von vmewro:=
 endif
 ifdef DIMDIR
 dimwrapo:=dimwrap.o
@@ -29,7 +29,8 @@ S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o \
 endif
 
 all: libvmeb.a
-libvmeb.a: $(vmewro) $(S_OBJS)
+#libvmeb.a: $(vmewro) $(S_OBJS)
+libvmeb.a: $(S_OBJS)
 	-rm -f libvmeb.a
 	ar rs libvmeb.a *.o
 #ifeq ($(notdir $(CURDIR)), linux_s)
