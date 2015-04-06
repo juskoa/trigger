@@ -1448,7 +1448,7 @@ TKlas *klas;
 TRBIF *rbif;
 w32 l0invAC, minAC;
 w32 rate_mask;
-int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
+//int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
 char skipped[200]="";
 if(l0C0()) {
   rate_mask= RATE_MASKr2;
@@ -1458,7 +1458,8 @@ if(l0C0()) {
 
 l0invAC=L0_INVERTac; minAC=0;
 // find out TIMESHARING classes, using StartedPartitions:
-for(i=0;i<NCLASS;i++) parthwclasses[i]=0;
+// seems this serves to nothing...
+//for(i=0;i<NCLASS;i++) parthwclasses[i]=0;
 for(isp=0;isp<MNPART;isp++){
   Tpartition *part;
   if(StartedPartitions[isp] == NULL) continue;

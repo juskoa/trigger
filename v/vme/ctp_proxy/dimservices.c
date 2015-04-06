@@ -239,7 +239,7 @@ operation:
 */
 void SWTRGthread(int tagix) {
 w32 detectors, orbitn;
-int succeeded, todo, ncls;
+int succeeded, todo; //, ncls;
 //printf("SWTRGthread:%d\n",tagix);
 detectors= 1 << findLTUdetnum(actrs[tagix].name);
 /*
@@ -255,7 +255,7 @@ todo= actrs[tagix].N;
 succeeded=GenSwtrg(todo, actrs[tagix].type, 
   actrs[tagix].roc, actrs[tagix].bc,detectors,3, &orbitn);
 actrs[tagix].Ngenerated= succeeded;
-ncls= updateservice(actrs[tagix].cid);
+/*ncls=*/ updateservice(actrs[tagix].cid);
 
 //printf("SWTRGthread ix:%d for %s finished:\n",tagix,actrs[tagix].name);
 actrs[tagix].cidat[0]='\0';   // release actrs entry
@@ -284,9 +284,9 @@ return(retval);
 }
 /*--------------------------------------------------------------- */
 void prtNupdates(Tmonclient *mc, char *outmsg) {
-int ix, cid;
+int ix; //, cid;
 char cidname[MAXCIDAT];
-cid=dis_get_client(cidname); outmsg[0]='\0';
+/*cid=*/dis_get_client(cidname); outmsg[0]='\0';
 for(ix=0; ix<MAXMCclients; ix++) {
   if(mc->MCclients[ix].cidat[0]=='\0') continue; // this one is free
   //printf("%3d: %d %s %d", ix, mc->MCclients[ix].cid, mc->MCclients[ix].cidat,
@@ -827,7 +827,7 @@ printf("num. of updated clients:%d cid:%d cidat:%s\n", nclients, cid, cidat);
 /*--------------------*/ //void SWTRGcmd(int *tag, Tswtrg *msg, int *size)  {
 /*--------------------*/ void SWTRGcmd(void *tag, void *msgv, int *size)  {
 /* msg: detectorname[8] roc[4] N[4] bc[4]*/
-int ix, nclients; Tswtrg *msg= (Tswtrg *)msgv;
+int ix; Tswtrg *msg= (Tswtrg *)msgv;
 Tdetector *ixp;
 strcpy(ReceivedCommand, "SWTRG");
 ResultString[0]='\0';
@@ -871,7 +871,7 @@ SWTRGthread(ix);
 return;
 RETERR:
 strcpy(ReceivedCommand, "SWTRGerror");
-nclients= updateservice(cid); return;
+/*nclients=*/ updateservice(cid); return;
 }
 /*--------------------*/ //void DOcmd(int *tag, char *msg, int *size)  {
 /*--------------------*/ void DOcmd(void *tag, void *msgv, int *size)  {
@@ -974,8 +974,8 @@ if(*size>=2) {
 };
 rc= checkcid();
 if(DBGCMDS) {
- printf("SBMcmd:tag:%d size:%d msg:%s cid:%d cidat:%s\n", 
-   *(int *)tag, *size, msg, cid, cidat);
+ printf("SBMcmd:tag:%d size:%d msg:%s cid:%d cidat:%s rc:%d\n", 
+   *(int *)tag, *size, msg, cid, cidat, rc);
 };
 dimsuggestion= atoi(msg);
 printf("SBMcmd: required BEAM MODE:%d\n", dimsuggestion);

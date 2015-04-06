@@ -1,6 +1,6 @@
 # .o in linux_s or linux_c directory:
 ifeq ($(findstring linux_, $(notdir $(CURDIR))), linux_)
-$(info ===================== running make from $(notdir $(CURDIR)) directory. Host:$(HOSTNAME) $(vmewro))
+$(info ===================== running make from $(notdir $(CURDIR)) directory. Host:$(HOSTNAME) vmewro:$(vmewro))
  ifdef SERVER_LINK
   ifneq ($(findstring linux_s, $(notdir $(CURDIR))), linux_s)
    $(error run make from linux_s directory: make -f ../makefile)

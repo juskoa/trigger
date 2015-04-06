@@ -139,7 +139,7 @@ I: board: 0(busy),1(L0),2(L1), 3(L2), 4(INT), 5(FO1), 6(FO2),...
    mem: memory[MAXCOUNTERS]
 */
 void getCountersBoard(int board, int reladr,w32 *mem, int customer) {
-int bb,cix; w32 copyread;
+int bb,cix; w32 copyread; //w32 ignore;
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
@@ -148,11 +148,10 @@ vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 /* 25.3.2014: ALL counters have to be readout! */
 for(cix=0; cix<ctpboards[board].numcnts; cix++) {
-  w32 ignore;
   if(cix<=reladr) {
     mem[cix]= vmer32(copyread);
   } else {
-    ignore= vmer32(copyread);
+    /*ignore=*/ vmer32(copyread);
   };
 };
 unlockBakery(&ctpshmbase->ccread, customer);

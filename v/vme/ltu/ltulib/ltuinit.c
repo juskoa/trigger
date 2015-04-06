@@ -484,6 +484,11 @@ rc: 0 not LTU  (or cannot load FPGA)
    >0 LTU version. Should be: 0xf3 or 0x?  */
 int fpgainit() {
 w32 code,ver, rc=0;
+#ifdef SIMVME
+vmew32(CODE_ADD, 0x56);
+vmew32(LTUVERSION_ADD, 0xb9);
+vmew32(VERSION_ADD, 0xa8);   // a0 for ctp boards
+#endif
 code= 0xff&vmer32(CODE_ADD);
 ver= 0xff&vmer32(LTUVERSION_ADD);
 if(code==0x56) {

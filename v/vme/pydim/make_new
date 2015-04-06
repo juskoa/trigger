@@ -39,7 +39,7 @@ $(EXEDIR)/bcmcheck: bcmcheck.c
 
 #client: client.c $(DIMDIR)/linux/libdim.a
 $(EXEDIR)/client: client.c $(DIMDIR)/linux/libdim.a
-	$(CC) $(CFLAGS) $(LDFLAGS) -L$(DIMDIR)/linux -ldim $< -o $@
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -L$(DIMDIR)/linux -ldim -lpthread -o $@
 #	$(CC) $(CFLAGS) $(LDFLAGS) $< $(DIMLD) -o $@
 
 $(EXEDIR)/comment2daqlog: comment2daqlog.c

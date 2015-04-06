@@ -93,8 +93,11 @@ int handle;
 #endif
 u_long vmeptr=0;
 
+
 /* max. 10 for VMERCC (or increase VME_MAX_BERR_PROCS in VMERCC driver srcs) */
+
 #define MAXVMESPACES 10    
+#ifdef VMERCC 
 typedef struct {
   w32 baseaddr;
   int size;
@@ -117,7 +120,27 @@ Tvmespace vxsp[MAXVMESPACES]=
  {0,0,0,0,0,{0,0,0,0}},
  {0,0,0,0,0,{0,0,0,0}},
  {0,0,0,0,0,{0,0,0,0}}};
-
+#endif
+#ifdef SIMVME
+typedef struct {
+  w32 baseaddr;
+  int size;
+  w32 am;
+  int handle;
+  u_long vmeptr;    /* 0: this item in vxsp[] is empty (not opened) */
+} Tvmespace;
+Tvmespace vxsp[MAXVMESPACES]=
+{{0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0},
+ {0,0,0,0,0}};
+#endif
 #ifdef VMERCC 
 /*-------------------------------*/int VME_MasterMapVirtualDummyLongAddress(int lochandle, u_long *locvmeptr){
 int ret;
@@ -226,13 +249,14 @@ w32 retval=0xdeaddead;
 
 #ifdef SIMVME
   //printf("vmer32 sim: returning offset:%x\n", offset);
-  //retval=vmesimr32(0,offset);
+  retval=vmesimr32(0,offset);
+  /*
   retval=offset;
   if(offset==0x4) { // CODE_ADD
     retval=0x56;   // always ltu
   } else if(offset==0x80) { //LTUVERSION_ADD
     retval=0xb6;
-  };
+  };*/
 #endif
 
 #ifdef CAENVME
@@ -386,15 +410,12 @@ vsp: 0,1,2,..., -> open given vmespace (0, 1, 2, ...)
     10 - *vsp==-1 on input, but all the vme spaces opened
     16 -*vsp>MAXVMESPACES
  */
-int i;
 int rccret=0; /* For checking errors */
 w32 BoBaAd,BoBaLength;
+BoBaAd=hex2ui(&BoardBaseAddress[2]);
+BoBaLength=hex2ui(&BoardSpaceLength[2]);
+/*printf("base:%x Length:%x\n",BoBaAd,BoBaLength); */
 
-#ifdef VMERCC
-int lochandle;
-u_long locvmeptr;
-//static VME_MasterMap_t master_map = {0xa00000, 0xCB, VME_A24, 0};
-#endif
 #ifdef VMECCT
 w8 *locvmeptr;
 int lsifdi, ctl_fd, loclsi_fd;
@@ -402,6 +423,18 @@ char version[200];
 w8 swapMode;
 PCI_IMAGE_DATA idata;
 #endif
+#ifdef SIMVME
+if( (rccret= vmesimOpen(*vsp, BoBaAd, BoBaLength, 1))!=0 ) {
+  printf("vmesimOpen() error: %d\n",rccret);
+  goto EXIT8;
+};
+vxsp[*vsp].vmeptr= BoBaAd;   //just for vmxclose()
+goto RCRET;
+#endif
+#ifdef VMERCC
+int lochandle, i;
+u_long locvmeptr;
+//static VME_MasterMap_t master_map = {0xa00000, 0xCB, VME_A24, 0};
 
 if(*vsp>(MAXVMESPACES-1)) {
   printf("vmxopen(*vsp,...), vsp>%d\n",MAXVMESPACES-1);
@@ -424,18 +457,6 @@ if(*vsp==-1) {
     rccret= 4; goto RCRET;
   };
 };
-BoBaAd=hex2ui(&BoardBaseAddress[2]);
-BoBaLength=hex2ui(&BoardSpaceLength[2]);
-/*printf("base:%x Length:%x\n",BoBaAd,BoBaLength); */
-#ifdef SIMVME
-  if( (rccret= vmesimOpen(*vsp, BoBaAd, BoBaLength, 1))!=0 ) {
-    printf("vmesimOpen() error: %d\n",rccret);
-    goto EXIT8;
-  };
-vxsp[*vsp].vmeptr= BoBaAd;   //just for vmxclose()
-#endif
-//von #else 
-#ifdef VMERCC
 if((rccret=VME_Open()) != VME_SUCCESS) {
   printf("VME_Open() error: %d\n",rccret);
   goto EXIT8;
@@ -604,7 +625,6 @@ vmeptr=(w8 *)MapVME(BoBaAd,BoBaLength);
 printf("AIX MapVME() (length 0x1000) ok, boardbase:%x(%s) vmeptr:%x\n",
   BoBaAd, BoardBaseAddress, vmeptr); */
 #endif
-//von #endif   /* SIMVME */
 
 #ifdef CAENVME
   int type,link,num,rc;
