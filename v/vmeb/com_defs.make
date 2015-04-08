@@ -7,11 +7,11 @@ COMMONCFLAGS +=-DCPLUSPLUS
 endif
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
-$(info comdes: goals:$(MAKECMDGOALS) deps:$@)
+#$(info com_defs: goals:$(MAKECMDGOALS) deps:$@)
 SERVER_BASEDIR := 
 odl64 := /opt/dip/lib64
-SERVER_LINK := yes
-CLIENT_HOST := localhost
+#SERVER_LINK not defined by defaults (the must!)
+#CLIENT_HOST := localhost
 HOSTNAME:=$(shell hostname -s)
 ifeq ($(HOSTNAME), alidcscom188)
 SERVER_LINK := yes

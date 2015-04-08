@@ -422,4 +422,19 @@ the board -evenm if not need -see readCountersBoard()
 bin/smaq ok -trg account created on avmes + alidcscom707/835 for shifter
 smaq: to be started on trigger@alidcsvme001 ->scp-> trg@707,
 i.e. smaq root should run on trg@707
+7.4.
+0xc5:
+inputsTools.c: get/set lmdelay() and LM+L0 switches programming
+               todo: ctpinputs.cfg not: LM vals not yet taken
+initCTP.c: LM_L0_TIME:17, LM_RANDOM1/2 desync
+           ALL_RARE_FLAG: common for LM+L0
+           rates2hwinit(): LM+L0
+ctpcfg.py: see: lmrnds lmbcds constants 
+  hw -> py: reshuf used in readShared (getShared() + 4 values)
+  hw <- py: setShared3() added (for lm_ rnd1/2 bc1/2), see def writeShared
+    RBIF, INTSEL lines in .cfg file: not changed!, LMRB line added
+  py-> file: def writeShared
+  file->py: def loadfile,readSharedline modified
 
+
+          

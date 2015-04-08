@@ -146,7 +146,7 @@ LM0 board:
 52     ADC Test input (local phase)  (28 on old L0 board)
 53     BUSY/INT clock phase input
 */
-#define RND1_EN_FOR_INPUTS 0x93f0 /* only on LM0:
+#define RND1_EN_FOR_INPUTS 0x93f0 /* only on LM0, valid also for 0xc5:
 Temporary solutuion for RND1 trigger: it can be connected to any
 1..48 input defining following mask in 2 words:
 bits 23..0: for first 24 inputs
@@ -158,16 +158,16 @@ bits 23..0  for inputs 48..25
 #define TEST_ADDr2      0x93f8 /* LM0, L0 */
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADDr2    0x340 /*SYNCAL in fw.
+#define SYNCH_ADDr2    0x340 /*SYNCAL in fw. 24 words
 Synch/delay adds for LM0 board shifted (i.e. 0x340 for 1st input)
 LM0>=0xc5:
  4.. 0   Input delay(0..31) for inputs 1..24
  7       Edge Selector flag inputs 1..24
 12.. 8   Input delay for inputs 25..48
 15       Edge Selector flag inputs 25..48
-21..16   6bits. Selection of the input: 0:not connected 1..48 connected here
+21..16   6bits. Selection of the input: 0:not connected 1..48: connected here
 26..24   LM input delay (0..7) for first 12, i.e. LM inputs
-31..28   4bits. Selection of 12 from first 12
+31..28   4bits. Selection of 12 from first 12 inputs on CTPswitch
 
 LM0<=0xc4:
  3.. 0   Input delay for inputs 1..24
@@ -279,12 +279,13 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
 #define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
+
 #define LM_L0_TIME 0x924c           /* 17 BCs ? */
-#define LM_RANDOM_1 0x9250
-#define LM_RANDOM_2 0x9254
-#define LM_SCALED_1 0x9258
-#define LM_SCALED_2 0x925c
-#define LM_ENABLE_CLEAR  0x9260  /* see L0_ENA_CRNDlm0 */
+#define LM_RANDOM_1 0x9250       /* L0 counterpart: RANDOM_1 */
+#define LM_RANDOM_2 0x9254       /*     RANDOM_2 */
+#define LM_SCALED_1 0x9258       /*     SCALED_1 */
+#define LM_SCALED_2 0x925c       /*     SCALED_2 */
+#define LM_ENABLE_CLEAR  0x9260  /*     L0_ENA_CRNDlm0  */
 #define LM_CLEAR_RANDOM  0x9264  /*     L0_CLEAR_RND  */
 #define LM_RATE_MODE     0x9268  /*     RATE_MODElm0 */
 #define LM_RATE_DATA     0x926c  /*     RATE_DATA    */
@@ -335,7 +336,7 @@ bits    newMeaning (>=AC)            meaning before AC
 #define LM_CONDITION   0x9a00    /* +4*n n=1,2,...,100
 bits    Meaning
 ----    -------
-31..20  Select BCMASK 12..1
+31..20  Select BCMASK 12..1         also in L0_VETOr2
 19..18  Select Scaled-down BC2..1
 17..16  Select Random RND2..1
 15..12  Select LMF4..1     
@@ -398,7 +399,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 22     spare
 21     Select LM-L0 BUSY
 20     1:Select All/Rare input  the same
-19..8: Select BCmask[12..1]     the same
+19..8: Select BCmask[12..1]     the same  also in LM_CONDITION
  7..4: Select PFprot[4..1]      the same
  2..0: Cluster code (1-6)       the same
 
@@ -616,8 +617,12 @@ int i2cgetaddr(int board0_34, int *channel, int *branch);
 int getEdgeDelayDB(int level, int input, int *edge, int *delay);
 int getSwnDB(int input);
 int getedge(int board,w32 input,w32 *del);
-int getedgerun1(int board,w32 input,w32 *del);
-int getedgerun2(int board,w32 input,w32 *del);
+int getlmdelay(w32 swin12);
+/*FGROUP inputsTools
+swin: LM switch input 1..12
+delay: LM delay 0..7 bcs
+*/
+void setlmdelay(w32 swin12, int delay);
 
 void loadBCmasks(w16 *bcmasks);
 
@@ -693,6 +698,10 @@ void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0f
 set INTERACTSEL ALL_RARE_FLAG
 */
 void setShared2(w32 intsel, w32 allrare);
+/*FGROUP L0
+set LM_rnd1/2 LM_bcd1/2
+*/
+void setShared3(w32 lmr1, w32 lmr2, w32 lmbc1, w32 lmbc2);
 /*----------------------------libctp.a subroutines for new firmware  */
 /* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
@@ -792,6 +801,9 @@ void setEdgeDelay(int board, int input, int edge, int delay);
 /*FGROUP inputsTools
 * i48->i24 */
 void setSwitch(int i48, int i24);
+/*FGROUP inputsTools
+* in12: CTP LM switch input(1..12) -> out12: CTP LM switch output(1..12)*/
+void setLMSwitch(int in12, int out12);
 /*FGROUP inputsTools
 */
 void printSwitch();
