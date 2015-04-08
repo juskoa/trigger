@@ -85,6 +85,10 @@ An example of output:
 0x8      L0_INTERACTSEL & 0x1f
 0x1      (L0_INTERACTSEL >>5) & 0x1f
 0x1      All/Rare flag
+0x3      LM rnd1
+0x3            2
+0x3      LM scaled1
+0x3               2
 */
 void getShared() {
 w32 w;
@@ -101,6 +105,10 @@ w= vmer32(getLM0addr(L0_FUNCTION2)); printf("0x%x\n", w);
 w= vmer32(getLM0addr(L0_INTERACTSEL)); 
 printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
 w= vmer32(getLM0addr(ALL_RARE_FLAG)); printf("0x%x\n", w&0x1);
+w= vmer32(LM_RANDOM_1); printf("0x%x\n", w);
+w= vmer32(LM_RANDOM_2); printf("0x%x\n", w);
+w= vmer32(LM_SCALED_1); printf("0x%x\n", w);
+w= vmer32(LM_SCALED_2); printf("0x%x\n", w);
 }
 /*
 Read 4 LUTs LUT31/2 LUT41/2 from shared memory (they are not accessible
@@ -177,7 +185,7 @@ if(lutout==1) {
 };
 }
 /*FGROUP L0
-set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
+set rnd1 rnd2 lmrnd1 lmrnd2 bcsc1 bcsd2 lmbcd1 lmbcd2 int1 int2 intt L0fun1 L0fun2
 */
 void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2,
                w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2) {
@@ -193,12 +201,18 @@ vmew32(getLM0addr(L0_FUNCTION1), l0fun1);
 vmew32(getLM0addr(L0_FUNCTION2), l0fun2);
 }
 /*FGROUP L0
-set INTERACTSEL ALL_RARE_FLAG
+set INTERACTSEL ALL_RARE_FLAG lmrnd1 lmrnd2 lmbcd1 lmbcd2
 */
 void setShared2(w32 intsel, w32 allrare) {
 if(notInCrate(1)) return;
 vmew32(getLM0addr(L0_INTERACTSEL), intsel);
 vmew32(getLM0addr(ALL_RARE_FLAG) , allrare);
+}
+void setShared3(w32 lmrnd1, w32 lmrnd2, w32 lmbcd1, w32 lmbcd2) {
+vmew32(LM_RANDOM_1, lmrnd1);
+vmew32(LM_RANDOM_2, lmrnd2);
+vmew32(LM_SCALED_1, lmbcd1);
+vmew32(LM_SCALED_2, lmbcd2);
 }
 /* set L0f34 in hw. 
 Input:

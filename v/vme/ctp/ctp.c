@@ -1178,10 +1178,11 @@ void micsleep(int mics) {
 usleep(mics);
 }
 /*FGROUP SimpleTests 
-Synchronise/desynchronise random generators
+Synchronise/desynchronise 4 (2xLM 2xL0) random generators
 mask:
 3 synchronise RND1 and RND2 generators on L0 board
 1 desynchronise RND1 and RND2 generators on L0 board
+other: show current setting
 */
 void RNDsync(int mask);
 

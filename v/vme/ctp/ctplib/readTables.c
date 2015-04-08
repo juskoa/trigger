@@ -455,6 +455,8 @@ if(ix==-1) return(-1);
 return(0);
 }
 /*------------------------------------------------------------getSwnDB(inp)()
+input: CTP input (after L0 switch), i.e. 1..24
+rc: Switch input (1..48)
 */
 int getSwnDB(int input) {
 int ix;
