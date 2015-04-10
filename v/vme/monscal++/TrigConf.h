@@ -15,6 +15,7 @@ class InteractionwCount
  private:
          // function definition not necessary now
          Counter Int1,Int2;
+	 string fname1,fname2;
          //Counter IntT,IntA,IntB,IntD; do we need these also ?
  public:
          InteractionwCount();
@@ -23,6 +24,11 @@ class InteractionwCount
          void DisplayInt2(char* text);
          double GetRate1(){return Int1.GetRate();};
          double GetRate2(){return Int2.GetRate();};
+	 string& GetName1(){return fname1;};
+	 string& GetName2(){return fname2;};
+	 void SetName1(string& name){fname1=name;};
+	 void SetName2(string& name){fname2=name;};
+
 };
 //#########################################################################
 class TrigTimeCounters{

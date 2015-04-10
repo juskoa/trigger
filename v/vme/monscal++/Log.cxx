@@ -32,6 +32,23 @@ sprintf(dmyhms,"%2.2d.%2.2d.%4.0d %2.2d:%2.2d:%2.2d",
   LT->tm_hour,LT->tm_min,LT->tm_sec);
   for(int i=0; i<28; i++) { if(dmyhms[i] == ' ') dmyhms[i] = '_'; }; 
 }
+void Log::gettime(char *hhmm)
+{
+ time_t T;
+ struct tm *LT;  /*LocalTime */
+ T=time(&T); LT = localtime(&T);
+ sprintf(hhmm,"%2.2d:%2.2d",
+  LT->tm_hour,LT->tm_min);
+}
+void Log::gettimeI(int *t)
+{
+ time_t T;
+ struct tm *LT;  /*LocalTime */
+ T=time(&T); LT = localtime(&T);
+ //cout << (LT->tm_hour+23) % 24 << " " << LT->tm_min << endl;
+ *t=  (((LT->tm_hour+23) % 24)*60*60+LT->tm_min*60); // -1 seems to be some summer time problem in root
+ //*t=  ((LT->tm_hour)*60*60+LT->tm_min*60); // -1 seems to be some summer time problem in root
+}
 void Log::PrintLog(string& text)
 {
  //*log << *this << " " << text << endl;
