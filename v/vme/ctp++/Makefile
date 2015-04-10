@@ -1,4 +1,4 @@
-FILE          = ltustart
+#FILE          = ltustart
 
 CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -Isrc

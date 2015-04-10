@@ -22,7 +22,7 @@ void INTBread(CTP* ctp)
  //intb->ssmtools.dumpSSM("intboard");
  intb->getCTPReadOutList();
  intb->printReadOutList();
- //intb->printIRList();
+ intb->printIRList();
  l2->ReadSSM();
  //l2->ssmtools.dumpSSM("l2board");
  l2->L2DataBackplane();
