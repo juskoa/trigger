@@ -1228,10 +1228,10 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
   if(strcmp(TRD_TECH, partit->name)==0) { // LM correction for techn. run:
     int newindets;
-    // actually. l0inp5 is used with RND generator, i.e. we
-    // do not want to tell DAQECS T0 is readout detector:
-    newindets= indets & 0xffdfff;   // d=1101 -exclude T0!
-    printf("getDAQClusterInfo:correction (no T0) for technical %s 0x%x -> 0x%x\n",
+    // actually, 0HCO is used with RND generator, i.e. we
+    // do not want to tell DAQECS TRD is readout detector in technical run:
+    newindets= indets & 0xffffef;   // e=1110 -exclude TRD
+    printf("getDAQClusterInfo:correction (no TRD) for technical %s 0x%x -> 0x%x\n",
       TRD_TECH, indets, newindets);
     indets= newindets;
   };

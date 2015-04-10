@@ -680,7 +680,7 @@ printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->
 Check if there are classes feeding TRD. Do these modifications for them:
 - check rnd1 bit in L0_CONDITION word for this class
   if ON and 'downscaling 0' and 'no other input definition in this class':
-    - remove RND1 from L0_CONDITION AND ADD l0inp5
+    - remove RND1 from L0_CONDITION AND ADD l0inp22
     - connect swinp32/11 to RND1 generator
   else
     nothing, but make sure RND1 connection to swinp32/11 is disabled at EOR
@@ -717,9 +717,18 @@ for(i=0;i<NCLASS;i++){
       if(((klas->l0inputs & RND1MASK) == 0) &&  // RND1 used in this class
          (klas->scaler==0 ) &&                  // downscaling 0
          (klas->l0inputs & 0xe0ffffff)==0xe0ffffff)  {  // no other input
-        w32 rndw1, rndw2, rndw3, ninps;
+        w32 rndw1, rndw2, rndw3, ninps; int ixdb;
         ninps= klas->l0inputs | RND1MASK;  // do not use it at L0
-        ninps= ninps & (~0x10);  // AND USE l0inp5 !
+        /*ninps= ninps & (~0x200000);  // AND USE l0inp22:0HCO (was l0inp5) !
+          instead, better is to find where 0HCO is: */
+        ixdb= findInputName("0HCO");
+        if(ixdb==-1) {
+          infolog_trgboth(LOG_ERROR, "0HCO not connetted for technical with TRD.");
+        } else {
+          int ctpin;
+          ctpin= validCTPINPUTs[ixdb].inputnum;
+          ninps= ninps & ( ~( 1<< (ctpin-1)));   // to be connected to RND1
+        };
         klas->l0inputs= ninps;
         /*rndw1= vmer32(RND1_EN_FOR_INPUTS);
         rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
