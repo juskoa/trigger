@@ -1,9 +1,13 @@
 /*  ctpcounters.h */
 /* the number of counters per 1 CTP board: */
-#define NCOUNTERS_L0 300      //  3 spares. run1:160 run2:262
+//#define NCOUNTERS_L0 300      //  3 spares. run1:160 run2:262
+#define NCOUNTERS_L0 300      // But last 200 cnts go to the end of big array!
+#define NCOUNT200_L0 200      // length of the 2nd chunk lmclass[BA]1..100
 #define NCOUNTERS_L0_SP1 17   // run1:15 run2: 17..18 (2 spares)
-#define NCOUNTERS_L0_SP2 178  // run2: 178..186. not defined in run1.
-#define NCOUNTERS_L0_SP3 298  // run2: 298..299 run1: 159
+/* #define NCOUNTERS_L0_SP2 178  // run2: 178..186. not defined in run1.
+from 9.4.2015 reserved for lmclst[1..8], lm_out
+*/
+#define NCOUNTERS_L0_SP3 298  // run2: 298..299 (2 spares) run1: 159
 
 #define NCOUNTERS_L1 300      // run1: 160,14 spares  run2: 300
 #define NCOUNTERS_L1_SP1 38   // run1/2: 2 spares
@@ -42,13 +46,17 @@
 25: 24 words: volts for 24 LTUs
 together: 49 WORDS
 */
-#define NCOUNTERS_MAX 300   // max. number of counters on 1 board (run1: 160)
+//#define NCOUNTERS_MAX 300
+#define NCOUNTERS_MAX 500   // max. number of counters on 1 board (run1: 160)
 
 #define NCOUNTERS (NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
-        NCOUNTERS_BUSY+NCOUNTERS_INT+NCOUNTERS_SPEC)
+        NCOUNTERS_BUSY+NCOUNTERS_INT+NCOUNTERS_SPEC+NCOUNT200_L0)
 // i.e.: 320+134+6*34+48+19+2+23+24=774
 //       320+134+6*34+160+19+2+23+24=886
 //       320+134+6*48+160+19+2+23+24=970     11.11.2008
+//       600+300+6*72+160+19+2+23+24=1560    till 9.4.2015
+//       600+300+6*72+160+19+2+23+24+200=1760    from 9.4.2015
+//
 #define CSTART_L0   0
 #define CSTART_L1   NCOUNTERS_L0
 #define CSTART_L2   (NCOUNTERS_L0+NCOUNTERS_L1)
@@ -58,6 +66,8 @@ together: 49 WORDS
         NCOUNTERS_BUSY)
 #define CSTART_SPEC  (NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
         NCOUNTERS_BUSY+NCOUNTERS_INT)
+#define CSTART_L0200 (NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
+        NCOUNTERS_BUSY+NCOUNTERS_INT+NCOUNTERS_SPEC)
 #define CSTART_LTUVOLTS CSTART_SPEC+25
 #define CSTART_RUNX (CSTART_BUSY+NCOUNTERS_BUSY_RUNX1)
 #define CSTART_TSGROUP (CSTART_BUSY+NCOUNTERS_BUSY_TSGROUP)

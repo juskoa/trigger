@@ -34,4 +34,19 @@ getDAQClusterInfo() -odstraneny TRD ako trigger detector ak techn. run
 17.3.
 TRD_TECH cleared when TRD_TECH stopped
 
+---------------9.4.2015 TRD is not getting triggers in  CTP_rnd1khz.v4
+notes for dbg: TRD: ecs number 4
+TRD=4 4 1 9 trd 4 0
+      fo
+          bsy
+
+cfg2part.c getDAQClusterInfo
+  -excluding T0 for TRD_TECH
+
+Tpartition.c checkmodLM
+  -check if class feeding TRD, modify it
+
+RND1_EN_FOR_INPUTS
+
+fixed 9.4.2015 (l0inp5 -> l0inp11/22 0HCO)
 -still todo: move hw changes to 'START_PARTITION time (now in INIT_PARTITION...)

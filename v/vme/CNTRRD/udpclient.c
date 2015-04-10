@@ -29,7 +29,7 @@ if(argn>2) {
   printf("Automatic update every %d secs\n", seconds);
 };
 //sock= udpopens("localhost", 9931);
-sock= udpopens("localhost", send2PORT);
+sock= udpopens((char *)"localhost", send2PORT);
 if(sock==-1) {printf("udpopens error\n"); exit(8); };
 while(1) {
   int rc;

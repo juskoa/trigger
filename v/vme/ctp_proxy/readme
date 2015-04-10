@@ -71,7 +71,7 @@ ctp_proxy.c                -ctp_ actions
 
 3.The description of .pcfg file
 -----------------------------
-.pcfg file is created by parted.py. It is more condensed form of
+.pcfg file is created by parted.py. It is a condensed form of
 .partition file. The main difference between them is, that
 in the later one the information from TRGDB is included also, which
 means, .pcfg should be recreated if there was change in TRGDB.
@@ -176,6 +176,7 @@ XX: 31 for L0 board
 identifier   -in case of synchronous downscaling (not starting with 0x)
 
 Summary of differencies between .cfg and .cfg-LM0
+-------------------------------------------------
 - VER line added   (not present with L0 board!)
 - Two words differ in each CLA line:
 l0scaler     bit25 (was 31)

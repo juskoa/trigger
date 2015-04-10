@@ -73,6 +73,7 @@ if(notInCrate(1)==0) {   // L0 board
   if(l0AB()==0) {   //firm AC or higher
     if(l0C0()) {
       vmew32(L0_VETOr2+bb, veto);
+      vmew32(LM_VETO+bb, 0xffffffff);
     } else {
       vmew32(L0_VETO+bb, veto&0x1fffff); 
       mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
@@ -170,6 +171,7 @@ for(ix=1; ix<=NCLASS; ix++) {
     setClassInit(ix,0xffffffff,0x0,0x801ffff0, 0, 0x8fffffff, 0x0, 0xf000fff);
   };
 }; 
+infolog_trg(LOG_INFO, (char *)"setClassInit: 1..100, also LM_VETO set to '1's");
 //dbgssm("classes set");
 /*
 printf("omitting IR and L0F12 init to 0, on L0/LM0 board (programmed elsewhere).\n");
