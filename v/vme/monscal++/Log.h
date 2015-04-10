@@ -13,6 +13,8 @@ class Log{
           ~Log();
           ofstream* GetLog(){return log;};
           void getdatetime(char *time);
+          void gettime(char *time);
+          void gettimeI(int *time);
           void PrintLog(string& text);
           void PrintLog(const char* text);
           void PrintLog(char* text);
