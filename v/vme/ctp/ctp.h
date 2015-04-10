@@ -398,7 +398,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
                                 LM0 note
 31     spare
 30..24 DSCG group (7bits)       new
-23     class mask (1:disabled)  new
+23     class mask (1:disabled)  new   see also class mask in LM_VETO
 22     spare
 21     Select LM-L0 BUSY
 20     1:Select All/Rare input  the same
@@ -431,16 +431,21 @@ LM0: this word dos not exist (bit is in L0_VETOr2 now)
 LM0: does not exist (is in L0_VETOr2)
 */
 #define LM_VETO        0x9e00
-/*
+/* veto bits: 1: don't care   0:consider this veto
 31     spare
 30..24 LM down scaling Class group (DSCG) 7bits
-23..17 spare
-16     class mask
+23     class mask: 1:class disabled on LM 
+22..16 spare
+     see also L0_VETOr2 class mask. Meaning of both bits:
+     LM L0
+     1  0   pure L0class
+     0  0   LMclass
+
 15..14 spare veto bits
 13..10 Select PFprot[4..1]      the same
  9     All/Rare input
  8     LM deadtime
- 7..0  Cluster BUSY enabled 8..1
+ 7..0  Cluster BUSY enabled 8..1  not connected yet (10.4.)
 */
 
 /* L1 board */
@@ -561,7 +566,7 @@ Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
   {"busy",0x54, 8,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc5,NCOUNTERS_L0, CSTART_L0},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc5,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
   {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L1, CSTART_L1},
   {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L2, CSTART_L2},
   {"int", 0x55,12,NOTINCRATE,0,0xff,0xae,NCOUNTERS_INT, CSTART_INT},

@@ -435,6 +435,11 @@ ctpcfg.py: see: lmrnds lmbcds constants
     RBIF, INTSEL lines in .cfg file: not changed!, LMRB line added
   py-> file: def writeShared
   file->py: def loadfile,readSharedline modified
-
-
-          
+8.4.
+200 L0 counters in separeate chunk (at the end of big array) added
+modified: ctp/ctp.c ctp.h ctpcounters.h ctplib/readCounters
+          vmeb/counters.py
+new cnames.sorted2 created (old one: cnamesLS1.sorted2).
+todo: new RRD database needed
+      recompile rd
+      class names (for Gacinto) to be checked

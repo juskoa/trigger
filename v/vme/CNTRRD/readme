@@ -134,7 +134,7 @@ production:
 
 4. new rrd database
 -------------------
-startClients.bash stop rrd
+startClients.bash rrd stop
 check $VMECFDIR/dimcdistrib/cnames.sorted2 ltunames.sorted2
 cd ~/CNTRRD
 mv rrd rrdBefore25oct2007
@@ -143,7 +143,9 @@ $VMECFDIR/CNTRRD/rrd.py cnow ctp
 RRD: ctp # of datasets: 1075            (on pcalicebhm05, 26.11.2008)
 OK u:0.02 s:0.09 r:0.11
 RRD: ctp # of datasets: 1665             avmes 20.3.2014, 835:20.5.2014
-
+[trigger@avmes CNTRRD]$ $VMECFDIR/CNTRRD/rrd.py cnow ctp
+RRD: ctp # of datasets: 1865             avmes 9.4.2015 (1760 cnts)
+OK u:0.02 s:0.41 r:0.80
 
 [alidcscom188] /home/alice/trigger/CNTRRD > $VMECFDIR/CNTRRD/rrd.py cnow ctp
 RRD: ctp # of datasets: 1075

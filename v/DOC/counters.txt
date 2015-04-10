@@ -46,13 +46,17 @@ Adding new counters (12 counters for each FO board):
 - create new cnames.sorted2 file (see above) and place it to master copy:
 pcalicebhm05:/data/ClientCommonRootFs/usr/local/trigger/v/vme/dimcdistrib
 
-run2: How to prepare list of CTP counter names (19.2.2014, 3.3.)
+run2: How to prepare list of CTP counter names (19.2.2014, 3.3.2014, 9.4.2015:)
 ----------------------------------------------------------
-0. ctpcounters.h, counters.py modified for new L0 (300 conters)
+0. ctpcounters.h, vmeb/counters.py modified for new L0 (300 conters)
+   9.4.2015                                       (500 conters)
+   Plan:
+   - uses spares where needed
+   - add 200 counters to the end of all counters
 0.5. recompile ctplib, vmecomp ctp, ctp_proxy
-1. create ~/cnames file:  on alidcsvme001 or server (26 or pcalicebhm05):
-   copy first VALID.LTUS ttcparts.cfg from the pit to $dbctp
-   cp VALID.LTUS.pit VALID.LTUS ; cp ttcparts.cfg.pit ttcparts.cfg
+1. create ~/cnames file:  on avmes:
+avmes>   cp VALID.LTUS VALID.LTUS.lab ; cp ttcparts.cfg ttcparts.cfg.lab
+[jusko1@pcalicebhm11 t]$ scp ttcparts.cfg VALID.LTUS trigger@avmes:\$dbctp/
 
    cd $VMEBDIR ; ./counters.py printnames >~/cnames
    remove Error: lines from ~/cnames
@@ -63,12 +67,7 @@ run2: How to prepare list of CTP counter names (19.2.2014, 3.3.)
       1416 L1/2 300 cnts (1110+306  expected) 13.3.2014
       1560 FO/BUSY  cnts (1416+144  expected) 16.3.2014
 
-Or in lab (we want full version of file from the pit):
-cd $dbctp ; mv VALID.LTUS lab/ ; cp pit/VALID.LTUS .
-cd $dbctp ; mv ttcparts.cfg lab/ ; cp pit/ttcparts.cfg .
 cd $VMEBDIR ; ./counters.py printnames >~/cnames
-cd $dbctp ; cp lab/VALID.LTUS .
-cd $dbctp ; cp  lab/ttcparts.cfg .
 
 2.
 File cnames is OK for PVSS (Jozef). For web interface we need sorted, no holes. 
