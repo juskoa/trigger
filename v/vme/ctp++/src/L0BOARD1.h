@@ -13,11 +13,13 @@ class L0BOARD1: public L0BOARD
 	w32 getBC1(){return vmer(SCALED_1);};
 	w32 getBC2(){return vmer(SCALED_2);};
 	void printClasses();
+	void readBCMASKS(){}; // To be implemented or same as L0BOARD2 ?
+	void writeBCMASKS(w32* pat){}; // To be implemented or same as L0BOARD2 ?
 
  private:
          // vme addresses
-	 w32 const L0VETO;
-	 w32 const L0MASK;
+	 w32 const L0_VETO;
+	 w32 const L0_MASK;
 	 w32 const SCALED_1;
 	 w32 const SCALED_2;
 };

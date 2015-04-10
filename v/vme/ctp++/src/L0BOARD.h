@@ -10,14 +10,18 @@ class L0BOARD: public BOARD
 	void setClass(w32 index,w32 inputs);
 	void SetClass(w32 index,w32 inputs,w32 cluster);
 	void setClassesToZero();
+	void setClassInvert(w32 index,w32 invert=0xffffff);
 	virtual void setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask)=0;
 	virtual void setClassVetoes(w32 index,w32 cluster)=0;
 	virtual void setBC1(w32 T)=0;
 	virtual void setBC2(w32 T)=0;
 	virtual w32 getBC1()=0;
 	virtual w32 getBC2()=0;
+        virtual void readBCMASKS()=0;
+        virtual void writeBCMASKS(w32* pat)=0;
 	virtual void printClasses()=0;
 	int CheckCountersNoTriggers();
+	virtual void configL0classesonly(){error();};
 	enum{CL0TIME=15,CL0CLSB=19,CL0STR=171,CL0CLSA=187,CL0CLST=289};
         // SSM
         int AnalSSM();
@@ -36,7 +40,7 @@ class L0BOARD: public BOARD
  protected:
  
          // vme addresses
-         w32 const L0CONDITION;
-         w32 const L0INVERT;
+         w32 const L0_CONDITION;
+         w32 const L0_INVERT;
 };
 #endif

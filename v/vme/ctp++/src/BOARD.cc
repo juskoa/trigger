@@ -42,7 +42,8 @@ int BOARD::readAllCountersNames()
    return 1;
  }
  string envi(environ);
- string file("/CFG/ctp/DB/cnames.sorted2");
+ //string file("/CFG/ctp/DB/cnames.sorted2");
+ string file("/CFG/ctp/DB/cnamesLM.sorted2");
  file=envi+file;
  printf("Reading file %s \n",file.c_str());
  counternamesfile.open(file.c_str());

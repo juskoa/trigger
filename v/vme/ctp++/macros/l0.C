@@ -2,9 +2,26 @@
 #include <cmath>
 int main()
 {
+ // lm level test 
  CTP *ctp=new CTP;
  L0BOARD* l0=ctp->l0;
+ l0->configL0classesonly();
+ l0->readcopyCounters();
+ usleep(10000);
+ l0->readcopyCounters();
+ l0->printCountersDiff();
+ return 0;
+ // bcmask tests
+ w32 pat[3564];
+ for(int i=0;i<3564;i++){
+   pat[i]=0xfff;
+ }
+ pat[0]=0;
+ l0->writeBCMASKS(pat);
+ l0->readBCMASKS();
  //printf("BC1: %i \n",l0->getBC1());
+ return 0;
+ // ssm tests
  l0->ddr3_reset();
  l0->ddr3_status();
  usleep(1000000);

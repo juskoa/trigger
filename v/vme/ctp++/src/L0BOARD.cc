@@ -2,8 +2,8 @@
 L0BOARD::L0BOARD(int vsp)
 :
 	BOARD("l0",0x829000,vsp,4),
-	L0CONDITION(0x400),
-	L0INVERT(0x600)
+	L0_CONDITION(0x400),
+	L0_INVERT(0x600)
 {
   this->AddSSMmode("inmon",0); 
   this->AddSSMmode("outmon",1); 
@@ -54,7 +54,7 @@ int L0BOARD::CheckCountersNoTriggers()
 void L0BOARD::setClass(w32 index,w32 inputs,w32 l0f,w32 rn,w32 bc)
 {
  w32 word=inputs+(l0f<<24) + (rn<<28)+(bc<<30);
- vmew(L0CONDITION+4*index,word);
+ vmew(L0_CONDITION+4*index,word);
 }
 //----------------------------------------------------------------------------
 /*
@@ -86,6 +86,11 @@ void L0BOARD::setClassesToZero()
     setClass(i+1,0xffffff,0xf,0x3,0x3);
     setClassVetoes(i+1,0,0xfff,0x1,0x1);
  }
+}
+//-----------------------------------------------------------------------------------
+void L0BOARD::setClassInvert(w32 index,w32 invert)
+{
+ vmew(L0_INVERT+4*index,invert);
 }
 //-----------------------------------------------------------------------------------
 //

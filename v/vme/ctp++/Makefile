@@ -18,7 +18,8 @@ OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
 HFILES =   $(SRCS:.cc=.h)
 .SECONDARY: $(OBJFILES)
 
-all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e ltuttcit.e ttcit1ssm.e l0.e
+all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e ltuttcit.e \
+ttcit1ssm.e l0.e ctpda.e ctpltuttcit.e int.e
 # debugging
 #all: $(FILE).e
 #	@echo SRCS    : $(SRCS)
