@@ -1210,7 +1210,7 @@ printf("updated TL2 L2_DELAY_L1 FO_DELAY_L1CLST L2_BCOFFSET:%d: %d %d %d\n",
 #define MEGA 1024*1024
 w32 seqdata[16];
 /*FGROUP DDR3 
-Read DDR3  16 words from DDR3.
+Read DDR3  16 words (i.e. 1 block) from DDR3.
 blockad: 0,1,2,...  corresponds to ddr3 addrees 0,16,32,... in 32bits words
        block length: 512 bits
 */
@@ -1230,7 +1230,7 @@ for(ix=0; ix<nwords; ix++) {
 };
 }
 /*FGROUP DDR3 
-Write 16 words to DDR3 from blockad.
+Write 16 words (i.e. 1 block) to DDR3 from blockad.
 block: 0,1,2,...  corresponds to ddr3 addreses 0,16,32,... in 32bits words
        block length: 512 bits
 */
@@ -1273,16 +1273,23 @@ w32 *bigarray;
 write,read,compare
 ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). If not,
          it will be rounded down
-nws: number of words (1word: 32 bits). n*16, if not
+nws: number of words (1word: 32 bits). n*16, if not, it will be
      rounded up for allocation, but test done for nws words
      only
+
+pattern (todo): 
+0: all 0s
+1: all 1 (i.e. each word set to 0xffffffff
+2: random
+3: each block (16 words = 64  bytes) set this way:
+
 Notes: SSM is 2GB, max. allocated memory:
 i.e. ddr3 chunks:
            ddr3_ad, nws
            ------------
 0..   1MB  0, 0x40000
-1..   2MB  0x40000, 0x40000
-0..  16MB  0, 0x400000     cca 4.4 secs writing, 5.7secs reading
+1..   2MB  0x40000, 0x40000    i.e. 2nd 1 MB chunk tested
+0..  16MB  0, 0x400000         4.4 secs writing, 5.7secs reading
 0..  64MB  0, 0x1000000        17 secs           23 secs 
 0.. 256MB  0, 0x4000000
 0.. 512MB  0, 0x8000000
