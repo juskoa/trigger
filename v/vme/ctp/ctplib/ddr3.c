@@ -201,7 +201,8 @@ for(ixb=lowix; ixb<=highix; ixb++) {
     printf("%2d: %d\n", ixb, bits[ixb]);
   };
 };
-printf("ddr3_ssmdump bits:%d details above\n", allbitn);
+printf("ddr3_ssmdump opmod:0x%x bits:%d details above (SSMbit8..31:count)\n",
+  opmod, allbitn);
 return(0);
 }
 void ddr3_ssmstart(int secs) {

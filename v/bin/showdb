@@ -4,24 +4,32 @@ echo 'VALID.DESCRIPTORS:'
 tdef=`grep "^$td " $dbctp/VALID.DESCRIPTORS`
 echo $tdef
 if [ -z "$tdef" ] ;then
-  echo "The name of descriptor or L0 function expected"
+  #echo "The name of descriptor or L0 function expected"
+  echo 'ctpinputs.cfg'
+  head -2 'ctpinputs.cfg' |tail -1
+  grep -e "$td" $dbctp/ctpinputs.cfg
   exit
 fi
 declare -a ardef=($tdef)
-echo 'VALID.CTPINPUTS:'
+#echo 'VALID.CTPINPUTS:'
+echo 'ctpinputs.cfg'
+#echo inps:${#ardef[@]}
+head -2 'ctpinputs.cfg' |tail -1
 for (( j = 1 ; j < ${#ardef[@]} ; j++ ))
 do
-  echo "Entry $j has the value ${ardef[$j]}"
+  #echo "Entry $j has the value ${ardef[$j]}"
   lf=${ardef[$j]}
   if [ `expr match $lf l0f` -eq 3 ] ;then  #check ONLY from START of the string!
     #l0f:
-    grep $lf $dbctp/VALID.CTPINPUTS
+    grep $lf $dbctp/ctpinputs.cfg
   else
     if [ `expr match $lf \*` -ne 1 ] ;then
-      tdef=`grep -e "^#sin" $dbctp/L0.INPUTS`
-      echo $tdef
-      tdef=`grep -e "$lf " $dbctp/L0.INPUTS`
-      echo $tdef
+      #tdef=`grep -e "^#sin" $dbctp/ctpinputs.cfg`
+      #echo $tdef
+      #grep -e "^#sin" $dbctp/ctpinputs.cfg
+      #tdef=`grep -e "$lf " $dbctp/ctpinputs.cfg`
+      #echo $tdef
+      grep -e "$lf " $dbctp/ctpinputs.cfg
     fi
   fi
 done
