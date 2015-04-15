@@ -1243,6 +1243,8 @@ for(iclass=0; iclass<NCLASS; iclass++) {
     partit->hwallocated, iclu, iclass, indets);
   daqi->inpmasks[iclu]= daqi->inpmasks[iclu] | indets;
 };
+//daqi->inpmasks[iclu]= 0x82020;
+//printf("DBGlogbook: indets forced to: 0x%x\n",daqi->inpmasks[iclu]);
 for(iclu=0;iclu<NCLUST;iclu++){
   //daqi->classmasks01_32[iclu]= classmasks_l[iclu];
   //daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;

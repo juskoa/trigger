@@ -85,7 +85,10 @@ mask  meaning
 */
 #define SSMstart    0x1a0  /* dummy wr, valid for both L0,LM0 boards */
 #define SSMstop     0x1a4  /* dummy wr, L0/LM0 */
-#define SSMaddress  0x1a8  /* w/r ,LM0: set to 0 before start recording*/
+#define SSMaddress  0x1a8  /* w/r ,
+LM0: -set it to 0 before the start of recording
+     -should point after the last word written (when cont. recording stopped)
+*/
 #define SSMdata     0x1ac  /* w/r */
 #define SSMstatus   0x1b0  /* read only. Bits[2:0]: BUSY, OPERATION, MODE */
 /* SSMstatus on LM0 notes:

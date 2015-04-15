@@ -33,8 +33,8 @@
 #define DBGbusy  1     // busy handling
 #define DBGswtrg 0     // SW trigger (generateXOD)
 #define DBGcnts  0     // read and print counters (LTU, CTP)
-#define DBGlogbook 0   // updateDAQClusters()
-#define DBGgetInputDets 0   // getInputDets()
+#define DBGlogbook 1   // updateDAQClusters()
+#define DBGgetInputDets 1   // getInputDets()
 #define DBGcumRBIF 0   // cumRBIF()
 #define DBGCLGROUPS 1  // class groups (time slots on/off for class groups)
 #define DBGrbif 0

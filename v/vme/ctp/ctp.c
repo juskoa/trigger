@@ -1451,7 +1451,7 @@ while(1) {
     rcssmr= ddr3_ssmread(ssm1, ssm2);
     if(rcssmr==0) {
       getdatetime(dati);
-      sprintf(fname,"WORK/%s_%d.dump", idn, loops);
+      sprintf(fname,"WORK/%s_%d.dmp", idn, loops);
       rc= ddr3_dump(fname);
       fprintf(logf, "%s 0x%x %s %d\n", dati, stopadr, fname, rc);
     };
