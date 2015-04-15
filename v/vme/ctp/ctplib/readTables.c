@@ -422,7 +422,15 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
   //printf("%s %d\n", validCTPINPUTs[ix].name, validCTPINPUTs[ix].detector);
   if((validCTPINPUTs[ix].level==level) &&
      (validCTPINPUTs[ix].inputnum==input)  // && (validCTPINPUTs[ix].configured==1) 
-    ) return(ix);
+    ) {
+    if(level==0) {
+      if(validCTPINPUTs[ix].switchn!=0) {   // conneted
+        return(ix);
+      };
+    } else {   // do not care about switchn
+      return(ix);
+    };
+  };
 }; //printf("\n");
 return(-1);
 }
@@ -465,7 +473,15 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
   //printf("%s %d\n", validCTPINPUTs[ix].name, validCTPINPUTs[ix].detector);
   if((validCTPINPUTs[ix].level==level) &&
      (validCTPINPUTs[ix].inputnum==input)  // && (validCTPINPUTs[ix].configured==1) 
-    ) return(validCTPINPUTs[ix].detector);
+    ) {
+    if(level==0) {
+      if(validCTPINPUTs[ix].switchn!=0) {   // conneted
+        return(validCTPINPUTs[ix].detector);
+      };
+    } else {   // do not care about switchn
+      return(validCTPINPUTs[ix].detector);
+    };
+  };
 }; //printf("\n");
 return(rc);
 }
