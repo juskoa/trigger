@@ -726,12 +726,10 @@ Middle-> modify the invert bit (only for classes 45-50)
   def writeShared(self, cf=None):
     """ cf!=None: write to cONFIG fILE
 """
-<<<<<<< HEAD
     intselw= (self.sharedrs[Ctpconfig.lastshrgrp1+1].getbinval()&0x01f) | \
              ((self.sharedrs[Ctpconfig.lastshrgrp1+2].getbinval()&0x01f)<<5)
     allrare= self.sharedrs[Ctpconfig.lastshrgrp1+3].getbinval()&1
     if (Gl0AB==None) and (Gl0C0==None):   #firmAC and NOT LM0
->>>>>>> LM features, ctp.h: added new regs, .cfg: LMRB line added
       # we cannot do the following:
       lut34= vbexec.getsl("getSharedL0f34(1)")[0]
       #print "writeShared_shared:lut34:",lut34
