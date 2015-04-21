@@ -627,7 +627,8 @@ while(1){
   } else {         // we trigger on CTP inputs counter change
     GetMicSec(&ts1, &us1);
     getCountersBoard(trigboard,countermax,last,3); 
-    GetMicSec(&ts2, &us2);
+    //GetMicSec(&ts2, &us2); when here, we do not see signal we 
+    // are triggering on! Got better when moved down (trigcond fulfilled)
     time=last[timeadr]; trigcur=last[inpnum_ix];
     trigcond= (trigcur != trigold);
     //printf("trigcond:%d %d %d trigcur:%u time:%u\n", trigcond, trigboard, countermax,trigcur, time);
@@ -638,6 +639,7 @@ while(1){
   if(trigcond){
     int rc; w32 trigdif; double td; char msg[200];
     //beepni(); cicolino not used recently
+    GetMicSec(&ts2, &us2);
     rc= getSSMs(boards, trigboard, inpnum,intboard,flog);
     trigdif= dodif32(trigold,trigcur);
     td= getTime(timebefore, time);

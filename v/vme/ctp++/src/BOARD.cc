@@ -67,7 +67,8 @@ int BOARD::getCounterNames(const string& board)
  }
  int nc=0;
  for(w32 i=0;i<AllCounterNames.size();i++){
-   if(i==1511) break;
+   //if(i==1511) break;
+   if(i==1711) break;
    vector<string> items;
    splitstring(AllCounterNames[i],items," ");
    if(items.size() == 0) continue;
@@ -154,7 +155,9 @@ void BOARD::printCountersDiff()
     countdiff[i]=dif;
  }
  printf("Board %s counters:\n",getName().c_str());
- for(int i=0;i<NCounters;i++)printf("%s %i %u \n",CounterNames[i].c_str(),i,countdiff[i]);
+ for(int i=0;i<NCounters;i++){
+   if(countdiff[i]) printf("%s %i %u \n",CounterNames[i].c_str(),i,countdiff[i]);
+ }
 }
 //---------------------------------------------------------------------------
 string *BOARD::GetChannels(string const &mode) const
@@ -283,7 +286,9 @@ int BOARD::DumpSSM(const char *name) const
   exit(1);
  }
  for(int i=0; i<Mega; i++) {
-    w32 d=ssm[i]&0x3ffff;
+    //w32 d=ssm[i]&0x3ffff;
+    //w32 d=ssm[i]&0xffffffff;
+    w32 d=ssm[i];
     fwrite(&d, sizeof(w32), 1, dump);
   };
  fclose(dump); 
@@ -445,6 +450,7 @@ int BOARD::SetMode(w32 const modecode) const
 //---------------------------------------------------------------------------
 int BOARD::StartSSM() const{
    vmew(SSMaddress,0x0);
+   vmer(SSMstatus);   // not used but follow anton
    vmew(SSMstart,0xffffffff);
    return 0;
 }

@@ -13,7 +13,8 @@ import pylog
 
 def main(action):
   rc=0
-  mylog= pylog.Pylog("",tty='yes')   # no info, only tty
+  #mylog= pylog.Pylog("",tty='yes')   # no infoLogger, only tty
+  mylog= pylog.Pylog("getfsdip",tty='yes')   # file+tty
   #mylog= pylog.Pylog("getfsdip",info='yes')
   sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
   #print os.environ["PYTHONPATH"]
@@ -35,7 +36,7 @@ def main(action):
     # 50ns_1374_1368_0_1262_144bpi12inj 1374/2748
     #dipout=string.split("fs 50ns_1374_1368_0_1262_144bpi12inj 1374 2748")
     dipout= string.split("fs Single_16b_8_7_7")
-  #print dipout
+  print "dipout:",dipout,"end of dipout"
   if len(dipout) != 5:  # "fs fs_name FillNumber N_fromdip N_written
     if len(dipout) == 2:  # "fs badtime"
       if dipout[0]=="fs" and dipout[1]=="badtime":  # "fs badtime"

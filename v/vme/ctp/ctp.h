@@ -566,7 +566,7 @@ Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
   {"busy",0x54, 8,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc5,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc601,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
   {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L1, CSTART_L1},
   {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L2, CSTART_L2},
   {"int", 0x55,12,NOTINCRATE,0,0xff,0xae,NCOUNTERS_INT, CSTART_INT},

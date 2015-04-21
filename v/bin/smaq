@@ -8,13 +8,21 @@
 trgusr=trg
 getpid "$VMECFDIR/smaq/smaq2.exe"
 if [ $# -eq 0 ] ;then
-  echo "Usage:"
-  echo "smaq ctp_input DIRNAME"
-  echo "DIRNAME -this directory is created at $trgusr@$SMAQ_C:SMAQ/"
-  echo "         if missing, 'last' is used (it will be emptied before usage)"
-  echo "smaq kill -kill active smaq"
-  echo
-  echo "smaq pid:$spid user:$user"
+  cat - <<-EOF
+Start SSM dataking scp-ing the files to $trgusr@$SMAQ_C
+
+Usage:
+smaq ctp_input DIRNAME
+
+DIRNAME -this directory is created at $trgusr@$SMAQ_C:SMAQ/
+         if missing, 'last' is used (it will be emptied before usage)
+         if "" scp is not done, instead .dmp files are left in WORK directory
+smaq kill -kill active smaq
+
+In case smaq is running, its PID and user is given in following line:
+smaq pid:$spid user:$user
+
+EOF
   exit
 fi
 #if [ -n $spid ] ;then ! not working (USE  " " around $par in such test
@@ -24,7 +32,7 @@ if [ -n "$spid" ] ;then
     echo "$spid USR1 signal sent"
     exit 0
   else
-    echo "smaq already running: pid:$spid user:$user"
+    echo "smaq already running: pid:$spid user:$user exiting..."
     exit 8
   fi
 else

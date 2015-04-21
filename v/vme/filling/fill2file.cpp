@@ -165,8 +165,11 @@ public:
 public:
   Client() {
     string clientName = "client_ctp"; 
+    cout << "Client Dip::create... " <<  clientName << endl;
     dip = Dip::create(clientName.c_str());
+    cout << "Client new DipSubscription..." << endl;
     sub = new DipSubscription*[4];
+    cout << "Client new GeneralDataListener..." << endl;
     handler = new GeneralDataListener(this);
     sub[3] = dip->createDipSubscription("dip/acc/LHC/RunControl/BeamMode", handler);
     sub[0] = dip->createDipSubscription("dip/acc/LHC/RunControl/RunConfiguration", handler);

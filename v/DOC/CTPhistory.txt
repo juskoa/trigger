@@ -443,3 +443,12 @@ new cnames.sorted2 created (old one: cnamesLS1.sorted2).
 todo: new RRD database needed
       recompile rd
       class names (for Giacinto) to be checked
+15.4. hofix-phpmon
+bug in readTables.c fixed: if L0 input not connected to CTPswitch (0)
+and CTPinput column is not 0 this input is regarded as 'unconnected'.
+Anyhow, we should keep following rule (ctpinputs.cfg is read
+also from python, it is not clear how such case is interpreted!):
+if L0 is not connected to CTPswitch (0) the 0 has to be put
+also to the ctp input(1..24) column.
+17.4.
+LM0: FPGA version occupies 2 bytes (0xc601) -readBICfile.c changed

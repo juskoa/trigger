@@ -48,10 +48,10 @@ int LTUBOARD::longsignal(w32 &lsigflag,w32 bit,w32 issm,w32 &icount)
     else{
          //printf("Orbit %i \n",issm);
 	 ssmrecord *orb = new ssmrecord(issm-icount,icount);
-	 if(icount != 37){
+	 if(icount != 39){
           //printf("Warning: Longsignal: ORBIT length != 39 instead %i at bc= %i\n",icount,issm);
           // why it changed ?
-          printf("Warning: Longsignal: ORBIT length != 37 instead %i at bc= %i\n",icount,issm);
+          printf("Warning: Longsignal: ORBIT length != 39 instead %i at bc= %i\n",icount,issm);
          }
          qorbit.push_back(orb);
 	 icount=0;

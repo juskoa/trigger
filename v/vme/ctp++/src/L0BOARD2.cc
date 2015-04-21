@@ -258,6 +258,8 @@ int ddr3ad, ix, rc;
 w32 block[DDR3_BLKL];
 if (!ssm1) ssm1 = new w32[Mega];
 if (!ssm2) ssm2 = new w32[Mega];
+if (!ssm3) ssm3 = new w32[Mega];
+if (!ssm4) ssm4 = new w32[Mega];
 for(ix=0; ix< Mega; ix++) {
   ddr3ad= ix*16;
   rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
@@ -265,9 +267,14 @@ for(ix=0; ix< Mega; ix++) {
     printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
     return(rc);
   };
-  ssm1[ix]= block[14];
-  ssm2[ix]= block[15];
+  //ssm1[ix]= block[14];
+  //ssm2[ix]= block[15];
+  ssm1[ix]= block[15];
+  ssm2[ix]= block[14];
+  ssm3[ix]= block[13];
+  ssm4[ix]= block[12];
 };
+printf("LM ssm read \n");
 return(0);
 }
 void L0BOARD2::ddr3_ssmstart(int secs) {
@@ -294,12 +301,26 @@ if(secs>0) {
 };
 GetMicSec(&seconds2, &micseconds2);
 diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
-printf("%d micsecs\n", diff);
+printf("ddr3_ssmstart: %d micsecs\n", diff);
 }
 int L0BOARD2::DumpSSM(const char *name,int issm)
 {
  if(issm==1)SetSSM(ssm1); else SetSSM(ssm2); 
  return BOARD::DumpSSM(name);
+}
+int L0BOARD2::DumpSSMLM(const char *name)
+{
+ int rc=0;
+ //printf("%x %x %x %x \n",ssm1,ssm2,ssm3,ssm4);
+ SetSSM(ssm1);
+ rc=BOARD::DumpSSM("ssm1"); 
+ SetSSM(ssm2); 
+ rc+=BOARD::DumpSSM("ssm2"); 
+ SetSSM(ssm3); 
+ rc+=BOARD::DumpSSM("ssm3"); 
+ SetSSM(ssm4); 
+ rc+=BOARD::DumpSSM("ssm4"); 
+ return rc;
 }
 //-----------------------------------------------------------------------------
 void L0BOARD2::configL0classesonly()
@@ -312,4 +333,15 @@ void L0BOARD2::configL0classesonly()
     setClassVetoesL0(i,0x7,1,1,1);
 
  }
+}
+//-------------------------------------------------------------------
+int L0BOARD2::AnalSSM()
+{
+ w32 l0b=0,l0a=0;
+ for(w32 i=0;i<Mega;i++){
+   if(ssm2[i]&(1<<19))l0b++;
+   if(ssm2[i]&(1<<16))l0a++;
+ }
+ printf("l0b=%i l0a=%i \n",l0b,l0a);
+ return 0;
 }
