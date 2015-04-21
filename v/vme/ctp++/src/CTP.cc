@@ -87,12 +87,14 @@ void CTP::printboards()
             (*from)->printboardinfo("no text");
             string name=(*from)->getName();
             w32 bcstatus = (*from)->getBCstatus();
-            if(name != "busy"){
+            bcstatus=bcstatus & 0x3;
+            //if(name != "busy"){
               if(bcstatus != 2){
-               cout << endl << "Incorrect BC status" << endl;
+               //cout << endl << name << " Incorrect BC status" << endl;
+               printf("Incorrect BC status: 0x%x , board %s \n",bcstatus,name.c_str());
                //exit(1);
               }
-            }
+            //}
          }
 }
 //----------------------------------------------------------------------------

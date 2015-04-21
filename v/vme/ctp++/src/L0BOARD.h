@@ -24,7 +24,7 @@ class L0BOARD: public BOARD
 	virtual void configL0classesonly(){error();};
 	enum{CL0TIME=15,CL0CLSB=19,CL0STR=171,CL0CLSA=187,CL0CLST=289};
         // SSM
-        int AnalSSM();
+        virtual int AnalSSM();
         virtual void ddr3_reset(){error();};
         virtual void ddr3_status(){error();};
         virtual int ddr3_wrdone(){error(); return 1;};
@@ -34,6 +34,7 @@ class L0BOARD: public BOARD
 	virtual int ddr3_ssmread(){return 1;};
         virtual void ddr3_ssmstart(int sec){error();};
  	virtual int DumpSSM(const char *name,int issm){error();return 1;};
+ 	virtual int DumpSSMLM(const char *name){error();return 1;};
 
  private:
         void error(){printf("Error: this method should be never called\n");exit(1);};

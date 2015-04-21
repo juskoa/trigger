@@ -1,39 +1,33 @@
-0 Orbit
-1 l0clstt
-2 l0clst1
-3 l0clst2
-4 l0clst3
-5 l0clst4
-6 l0clst5
-7 l0clst6
-8 l0strobe
-9 l0data
-10 pp
-11 int1
-12 int2
-13 inttest
-14 pf1
-15 pf2
-16 pf3
-17 pf4
-18 pft
-19 bcmask1
-20 bcmask2
-21 bcmask3
-22 bcmask4
-23 scaledbc1
-24 scaledbc2
-25 rndtrg1
-26 rndtrg2
-27 l0funct1
-28 l0funct2
-29 swtrg
-30 deadtime
-32 01000000
-33 mopicsoi
-34 0           mode: 0/1 recording after/before
-35  10         operation: recording
-36    0        inout:     InOut
-37     00      ConfSel:   Output Monitor mode
-38       00    SSMenable: output(0) from SSM, input(0)
+0   lm_l0_busy
+1   l0_dead_time
+2   byclst_7
+3   byclst_8
+4   pf_1
+5   pf_2
+6   pf_3
+7   pf_4
+8   l0_scaled_bc_1
+9   l0_scaled_bc_2
+10   l0_random_trg_1
+11   l0_random_trg_2
+12   l0_function_1
+13   l0_function_2
+14   l0_function_3
+15   l0_function_4
+16   l0_class_a_1
+17   l0_class_a_2
+18   l0_class_a_3
+19   l0_class_b_1
+20   l0_class_b_2
+21   l0_class_b_3
+22   l0strobe_with_l0inputs
+23   l0data
+24   l0clst_1
+25   l0clst_2
+26   l0clst_3
+27   l0clst_4
+28   l0clst_5
+29   l0clst_6
+30   l0clst_7
+31   l0clst_8
 

@@ -47,7 +47,8 @@ BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
  d_codeaddress=vmer(CODE_ADD)&0xff;
  d_serialnumber=vmer(SERIAL_NUMBER)&0xff;
  d_vmeversion=vmer(VERSION_ADD)&0xff;
- d_fpgaversion=vmer(FPGAVERSION_ADD)&0xff;
+ //d_fpgaversion=vmer(FPGAVERSION_ADD)&0xff;
+ d_fpgaversion=vmer(FPGAVERSION_ADD);
 }
 //----------------------------------------------------------------------------
 BOARDBASIC::~BOARDBASIC(){
