@@ -330,7 +330,7 @@ Goal: prepare:
     if dipfile: dipfile.close();
     print "Max. train:", trainlenmax
     return errs
-  def read_dip(self, fn):
+  def read_dipsmaq(self, fn, smaq=None):
     """ rc: err message or ""
     """
     errs=""
@@ -341,12 +341,17 @@ Goal: prepare:
       if len(ll)<2: 
         errs= errs+ "Bad line:%s\n"%line
         continue
-      beamac= ll[0] ; buc= int(ll[1])
+      beamac= ll[0] ; 
       if (beamac=='A'): beam=1
       elif (beamac=='C'): beam=2
       else:
         errs= errs+ "Bad beam in line:%s\n"%line
         continue
+      if smaq==None:
+        buc= int(ll[1])
+      else:
+        bc= int(ll[1])
+        buc= bc2buc_shift(SHIFTS[beam-1], bc)
       bc=bu2bc(beam, buc)
       err=self.__storebc(bc, beam, buc,None)
       if err: 
@@ -402,16 +407,22 @@ later time (when .mask cretaed)
            disable all the others AC
   '''
   ##global abcs
-  errs=''
+  #print "bu2bcstr: %s format:"%fsname, format
+  errmsg=errs=''
   alice=fsname+'\n'; 
   lhcfs= LHCinfo(fsname)
   if format == "from sch":
     #errmsg= lhcfs.read_sch(fn,fsname)   create also fsname.schdip file
     errmsg= lhcfs.read_sch(fn)
-  if format == "from dip":
-    errmsg= lhcfs.read_dip(fn)
+  elif format == "from dip":
+    errmsg= lhcfs.read_dipsmaq(fn)
+  elif format == "from smaq":
+    errmsg= lhcfs.read_dipsmaq(fn,"smaq")
+  else:
+    errmsg="from what  (sch dip or smaq) ?"
   if errmsg!="":
-    return alice+format+'\n'+errmsg
+    print alice+format+'\n'+errmsg
+    return ""
   abcs= lhcfs.abcs; buckets= lhcfs.buckets
   # sortedB: list of bcs used to find biggest gaps, i.e:
   # B-bunches if at least 1 colliding bunch
@@ -1162,6 +1173,10 @@ def main():
           alicef="from dip"
           schname= namsuf[0]
           lsf= open(schname+".dip"); ee=lsf.read(); lsf.close;
+        elif namsuf[1]=="smaq":
+          alicef="from smaq"
+          schname= namsuf[0]
+          lsf= open(schname+".smaq"); ee=lsf.read(); lsf.close;
         elif namsuf[1]=="sch":
           alicef="from sch"
           schname= namsuf[0]
@@ -1192,11 +1207,14 @@ positions
 prepares 2 files, taking file lhc_fs.sch, in working directory:
 lhc_fs.alice (ALICE collisions schedule)
    -to be copied to $dbctp/fs:
-   alidcscom188:/data/dl/root/usr/local/trigger/v/vme/CFG/ctp/DB/fs
+   alitri:/data/dl/root/usr/local/trigger/v/vme/CFG/ctp/DB/fs
 lhc_fs.mask (VALID.BCMASK instance for ACT)
 
 2.
 lhc2ctp.py lhc_fs.dip [empty1] [empty2]
+prepares 2 files (see case 1. above)
+or
+lhc2ctp.py lhc_fs.smaq [empty1] [empty2]
 prepares 2 files (see case 1. above)
 
 3.
@@ -1215,8 +1233,9 @@ lhc2ctp.py bc2buc ABCE bc
 shows the bucket(s) for 'ABC or E-bunch' bc
 """
     return
-  if (alicef=="from sch") or (alicef=="from dip"):
+  if (alicef=="from sch") or (alicef=="from dip") or (alicef=="from smaq"):
     alice= bu2bcstr(ee, schname, empty1=empty1,empty2=empty2, format=alicef)
+    if alice=="": return
     lsf= open(schname+".alice","w"); lsf.write(alice); lsf.close;
     print "Alice collisions schedule written in file:\n",schname+".alice"
   #return

@@ -137,14 +137,16 @@ class Ctpconfig:
   AllRarebits=["All"]
   lastshrgrp1=8   # index in self.sharedrs: eof LUTs
   if Gl0AB==None:
-    firstshrgrp2= lastshrgrp1+8    # BCM1...
-    lastshrgrp2= firstshrgrp2+12
     grp3start= lastshrgrp1+4
     dbgbits=12 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
     BCMASKN=12
     if Gl0C0==None:
+      firstshrgrp2= lastshrgrp1+8    # BCM1...
+      lastshrgrp2= firstshrgrp2+12
       mskCLAMASK=0x80000000
     else:
+      firstshrgrp2= lastshrgrp1+4    # no L0F34 for lm0
+      lastshrgrp2= firstshrgrp2+8
       mskCLAMASK=0x00800000
   else:
     firstshrgrp2= lastshrgrp1+4
@@ -184,8 +186,8 @@ class Ctpconfig:
       AttrBCmask('BCM3','bitmap',TrgSHR.BCMxHelp, self),
       AttrBCmask('BCM4','bitmap',TrgSHR.BCMxHelp, self)
       ]
-    else: #firmAC
-      print "l0AC..."
+    elif Gl0C0==None:
+      print "l0AC... not lm0"
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
       AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
@@ -204,6 +206,39 @@ class Ctpconfig:
       AttrLUT('L0fun32',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
       AttrLUT('L0fun41',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
       AttrLUT('L0fun42',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),#eof grp1, pointed by lastshrgrp1+7
+      AttrBCmask('BCM1','bitmap',TrgSHR.BCMxHelp, self),  #firstshrgrp2
+      AttrBCmask('BCM2','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM3','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM4','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM5','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM6','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM7','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM8','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM9','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM10','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM11','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM12','bitmap',TrgSHR.BCMxHelp, self),
+      ]
+    else:
+      print "lm0..."
+      self.sharedrs= [
+      AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
+      AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
+      Attr('BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),
+      Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
+      AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('L0fun1',["a|b|c|d",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('L0fun2',["a|b|c|d",4,0], TrgSHR.L0FUNxHelp), #lastshrgrp1
+      AttrBits('INT1',0, helptext=TrgSHR.INTxHelp,bits=Ctpconfig.int1bits),
+      AttrBits('INT2',0, helptext=TrgSHR.INTxHelp,bits=Ctpconfig.int2bits),
+      AttrBits('All/Rare',0, helptext=TrgSHR.AllRareHelp,
+        bits=Ctpconfig.AllRarebits),   # lastshrgrp1+3
+      #AttrLUT('L0fun31',["a|b|c|d|e|f",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
+      #AttrLUT('L0fun32',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
+      #AttrLUT('L0fun41',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
+      #AttrLUT('L0fun42',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),#eof grp1, pointed by lastshrgrp1+7
       AttrBCmask('BCM1','bitmap',TrgSHR.BCMxHelp, self),  #firstshrgrp2
       AttrBCmask('BCM2','bitmap',TrgSHR.BCMxHelp, self),
       AttrBCmask('BCM3','bitmap',TrgSHR.BCMxHelp, self),
@@ -454,7 +489,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       vbexec.printmsg("Cannot load file:"+fname+"\n")
       return
     newcanvas=None
-    if Gl0AB==None:   #firmAC
+    if Gl0AB==None:   #firmAC -> 12 BCmasks
       llongs= ORBITLENGTH*3
     else:
       llongs= ORBITLENGTH
@@ -489,8 +524,10 @@ Middle-> modify the invert bit (only for classes 45-50)
         self.readSharedline(rest, 
           Ctpconfig.lastshrgrp1+1, Ctpconfig.lastshrgrp1+3)
       elif lab=='LUT34':
-        if Gl0AB==None:
+        if (Gl0AB==None) and (Gl0C0==None):   # >AC and not lm0
           self.str2L0f34(rest[:(2**Ctpconfig.dbgbits)])
+        else:
+          vbexec.printmsg("bad cfg file: LUT34 allowed only for C0>=fy>AB\n")
       elif lab=='BCMASKS':
         self.str2masks(rest[:llongs])
       elif lab[:7]=='BCMASK.':
@@ -626,7 +663,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
       self.sharedrs[ishr].setattrfo(eval(v), 1)
       #self.sharedrs[ishr].hwwritten(1)
-    if Gl0AB==None:   #firmAC
+    if (Gl0AB==None) and (Gl0C0==None):   #firmAC and not lm0
       shr= vbexec.getsl("getSharedL0f34(4)")
       for ishr in range(12,16):
         v= shr[ishr-12]
@@ -644,7 +681,7 @@ Middle-> modify the invert bit (only for classes 45-50)
     intselw= (self.sharedrs[9].getbinval()&0x01f) | \
              ((self.sharedrs[10].getbinval()&0x01f)<<5)
     allrare= self.sharedrs[11].getbinval()&1
-    if Gl0AB==None:   #firmAC
+    if (Gl0AB==None) and (Gl0C0==None):   #firmAC and NOT LM0
       # we cannot do the following:
       lut34= vbexec.getsl("getSharedL0f34(1)")[0]
       #print "writeShared_shared:lut34:",lut34
@@ -824,7 +861,7 @@ Middle-> modify the invert bit (only for classes 45-50)
     self.canvas.destroy(); self.doCanvas()
   def masks2str(self):
     s=''
-    if Gl0AB==None:   #firmAC
+    if Gl0AB==None:   #firm>AC -> 12 BCmasks
       for v in self.bcmasks:
         s= s+"%3.3x"%v
     else:
@@ -832,7 +869,7 @@ Middle-> modify the invert bit (only for classes 45-50)
         s= s+"%x"%v
     return s
   def str2masks(self,longs):
-    if Gl0AB==None:   #firmAC
+    if Gl0AB==None:   #firmAC -> 12 BCmasks
       llongs= ORBITLENGTH*3
       z13=3
     else:
