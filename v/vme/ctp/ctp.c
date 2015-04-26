@@ -61,7 +61,8 @@ Tfanout FOs[6];   /* place for 6 fanouts, see getFO(), setFO() */
 int ReadTemp(int ix);
 
 /* HIDDEN Common dbghw ConfiguratioH DbgScopeCalls DebCon L012 DbgSSMBROWSERcalls */
-/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
+/* HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
+/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls */
 /*FGROUP TOP GUI CTP_Classes "Classes"
 The Classes definition, i.e. for each (1-NCLASS) class: 
  -enabling/disabling
@@ -1494,7 +1495,7 @@ initSSM();
 #ifdef SSMCONNECTIONS 
 initNames();
 #endif
-gettableSSM();
+gettableSSM(0);
 }
 void endmain() {
 }

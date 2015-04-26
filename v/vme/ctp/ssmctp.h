@@ -9,7 +9,8 @@
 /* the following number defines max. number of snapshot memories
  * analysed in 1 time (including LTUs plugged in other crates)
  */
-#define NSSMBOARDS (NCTPBOARDS+6)   // + 4xltu + test + none
+#define NLM0SSM 4  //  number of used blocks of LM0 ssm
+#define NSSMBOARDS (NCTPBOARDS+6+NLM0SSM)   // + 4xltu + test + none
 #define MAXNAMES 300      /* max. number of all names in CFG/ctp/ssmsigs/backplanefp.names */
 #define NAMESIZE 20       /* length of name in char*/
 #define MAXSSMMODE 20       /* length of mode in char*/
@@ -53,7 +54,7 @@ EXTRN int SYNCFLAG;  /* used to set sms[].syncflag for synced SSMs.
 
 /*int setSSM(int board,char *mode, w32 omiocs); */
 void initSSM();
-void gettableSSM();
+void gettableSSM(int flag);
 w32 getswSSM(int board);
 void setsmssw(int board, char *newmode);
 int setomSSM(int board, w32 omiocs);    // rc=0 -> OK

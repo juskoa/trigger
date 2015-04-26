@@ -18,16 +18,20 @@ mode -mode of the ssm or:
       _nomode if sms[ix].mode is epmty string
       notin  board is not in the crate
       nossm  if board or sms[ix].sm==NULL
+      flag = 1 include 4 ssm for browser,exclude lm0
+      flag = 0 only lm0 for ssmcontrol
 */
-void gettableSSM() {
+void gettableSSM(int flag) {
 int ix; 
 char mode[MAXSSMMODE];
 for(ix=0; ix<NSSMBOARDS; ix++) {
 /*  printf("ix:%d\n",ix); */
   if((ix<NCTPBOARDS) && (ctpboards[ix].vmever==NOTINCRATE)) {
       strcpy(mode, "notin");
-  } else {   /* CTPboard in crate or LTU */
+  } else {   /* CTPboard in crate or LTU ot (test/none) or lm0_**/
      /*  printf(ol,"%s %s_%s\n",ol, sms[ix].name, sms[ix].modeSW); */
+    // LTU 
+    //printf("ix %i %p %c\n",ix,sms[ix].sm,sms[ix].mode[0]);
     if(sms[ix].mode[0]=='\0') {
       strcpy(mode, "_nomode");
     } else {
@@ -36,10 +40,17 @@ for(ix=0; ix<NSSMBOARDS; ix++) {
     if(sms[ix].sm==NULL) {
       strcpy(mode, "nossm");
     };
-    if((ix>=NCTPBOARDS) && (sms[ix].ltubase[0]!='0') && (ix != (NCTPBOARDS+4))) {
-      strcpy(mode, "notin");
-    };
+    //if((ix>=NCTPBOARDS) && (sms[ix].ltubase[0]!='0') && (ix != (NCTPBOARDS+4))) {
+    //  strcpy(mode, "notin");
+    //};
+    if((ix>=NCTPBOARDS) && (ix<(NCTPBOARDS+4)) && (sms[ix].ltubase[0] != '0')) strcpy(mode,"notin");
+    if(ix==(NCTPBOARDS+4))strcpy(mode,"notin");
+    if(ix==(NCTPBOARDS+5))strcpy(mode,"notin");
   };
+  bool lm0=strcmp(sms[ix].name,"lm0")==0;
+  bool lm0_x=strncmp(sms[ix].name,"lm0_",4)==0;
+  if((flag==0) && lm0_x) continue;  
+  if((flag==1) && lm0  ) strcpy(mode,"nossm");
   printf("%s %s\n", sms[ix].name, mode);
 };
 }
@@ -59,17 +70,22 @@ n1,n2 -numbers of items (indexes into sms[])
 */
 void getsyncedSSM() {
 int ix,maxsf;
+int ilm0=0;
 char ol[18*NSSMBOARDS]="";
 /* find highest syncflag: */
 maxsf=0;
 for(ix=0; ix<NSSMBOARDS; ix++) {
+  if((strcmp(sms[ix].name,"lm0")==0))ilm0=ix;
   if(sms[ix].syncflag>maxsf) {
     maxsf= sms[ix].syncflag;
   };
 };
 sprintf(ol,"%d",maxsf);
 for(ix=0; ix<NSSMBOARDS; ix++) {
+  //printf("get synced: %i %i \n",ix,sms[ix].syncflag);
   if(sms[ix].syncflag==maxsf) {
+    //if(ix<ilm0)sprintf(ol,"%s %d",ol, ix);
+    //else if(ix>ilm0)sprintf(ol,"%s %d",ol, ix-1);
     sprintf(ol,"%s %d",ol, ix);
   };
   if(strlen(ol)>18*(NSSMBOARDS-2)) {
@@ -104,6 +120,7 @@ adr1=frombc+sms[board].offset;
 /*adr2= adr1+ bits -1; */
 adr2=Mega;
 ssmbase= sms[board].sm;
+//printf("board=%i, ssmbas=%p \n",board,ssmbase);
 if(ssmbase==NULL) {
   printf("-1\n"); return;
 };

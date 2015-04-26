@@ -19,6 +19,7 @@ Max.  block size of Interaction record is 458 752 words
 */ 
 #define BSP 0x1000
 #define NCTPBOARDS 11
+#define NLM0SSM 4
 #define FO1BOARD 5     /* index of first FO board in ctpboards */
 
 #define BUSYcode 0x54

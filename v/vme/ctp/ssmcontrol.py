@@ -98,7 +98,8 @@ class SSM:
     "intim00":"int_inmon",  
     "intim01":"int_i2c",  
     "intom00":"int_ddldat",  
-    "intom01":"int_ddllog"  
+    "intom01":"int_ddllog",  
+    "lm000"  :"lm0_1_ssm1"
      }  
   def __init__(self,name,smsix):
     self.name=name
@@ -190,7 +191,10 @@ CS2 CS1  command      ssmsigs_file
     self.status= self.lstatus.getEntry()
     self.lname.setEntry(hex(self.status))
   def readssmst(self):
-    hexstr= vb.io.execute("getswSSM(%d)"%self.smsix,applout="<>")[0]
+    print "getswSSM ",self.smsix,self.name
+    hexstr= vb.io.execute("getswSSM(%d)"%self.smsix,applout="<>")
+    print "hexstr= ",hexstr
+    hexstr= hexstr[0]
     self.lname.setEntry(hexstr)
     self.status= eval(hexstr)
     if self.name[:3]=='ltu':
@@ -252,6 +256,7 @@ CS2 CS1  command      ssmsigs_file
     if SSM.modenames.has_key(key):
       vb.io.execute('setsmssw(%d,"%s")'%(self.smsix, SSM.modenames[key]))
     else:
+      #print "key not found"
       if iomg != '':
         #errmsg="ssmcontrol.py: key %s missing in SSM.modenames"%key
         errmsg="ssmcontrol.py: mode %s doesn't exist\n"%key
@@ -296,9 +301,9 @@ Flags: symbolic meaning of SSMstatus bits.
     vb=vbcmdlin
     self.tlfr=tlfr
     self.sms=[]   # list of all SSMs  [name, smsix]
-    lines= string.split(vb.io.execute("gettableSSM()","no"),"\n")
+    lines= string.split(vb.io.execute("gettableSSM(0)","no"),"\n")
     #lines=["busy nossm","l0 outgen", "ltu1 nossm","ltu2 notin"]
-    #print "SSMcontrol:",lines,':'
+    print "SSMcontrol:lines:",lines,':'
     for ix in range(len(lines)):
       nm= string.split(lines[ix])
       #print "SSMcontrol nm:", nm

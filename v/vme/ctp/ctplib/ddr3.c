@@ -149,10 +149,29 @@ for(ix=0; ix< MEGA; ix++) {
     return(rc);
   };
   if(ssm1!=NULL) ssm1[ix]= block[14];
-  if(ssm2!=NULL) ssm2[ix]= block[15];
+  if(ssm2!=NULL) ssm2[ix]= block[15];  // 0xa, inmon
 };
 vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);   // clear 0x2 flag in SSMstatus
 return(0);
+}
+int ddr3_ssmreadall(w32 *ssms[]){
+ int ddr3ad, ix, rc;
+w32 block[DDR3_BLKL];
+//for(ix=0; ix<= MEGA; ix++) {
+for(ix=0; ix< MEGA; ix++) {
+  ddr3ad= ix*16;
+  rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
+  if(rc!=0) {
+    printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
+    return(rc);
+  };
+  for(int i=0;i<16;i++){
+     ssms[i][ix]= block[15-i];
+  }
+  //if(ssm2!=NULL) ssm2[ix]= block[15];  // 0xa, inmon
+};
+vmew32(SSMaddress+BSP*ctpboards[1].dial, 0);   // clear 0x2 flag in SSMstatus
+return 0;
 }
 int ddr3_ssmdump(w32 opmod, FILE *dump) {
 int ddr3ad, ix, rc, opmoix;

@@ -1,0 +1,34 @@
+0   lm_l0_busy
+1   l0_dead_time
+2   byclst_7
+3   byclst_8
+4   pf_1
+5   pf_2
+6   pf_3
+7   pf_4
+8   l0_scaled_bc_1
+9   l0_scaled_bc_2
+10   l0_random_trg_1
+11   l0_random_trg_2
+12   l0_function_1
+13   l0_function_2
+14   l0_function_3
+15   l0_function_4
+16   bcmask1_del
+17   bcmask2_del
+18   bcmask3_del
+19   bcmask4_del
+20   bcmask5_del
+21   bcmask6_del
+22   l0_class_a_1
+23   l0_class_a_2
+24   l0_class_a_3
+25   l0_class_b_1
+26   l0_class_b_2
+27   l0_class_b_3
+28   l0strobe
+29   l0data
+30   l0clst_1
+31   l0clst_2
+
+
