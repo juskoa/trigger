@@ -10,6 +10,7 @@
 #   - calculate new VALID.BCMASK (at the start of FLAT TOP?)
 # - follows user input (in man or in auto mode)
 #   - clock change
+# 26.4.2015 CTPDIM/BEAMMODE replaced by ALICEDAQ_LHCBeamMode (100chars)
 import sys,os,os.path,string,pylog
 import signal,time,popen2,threading
 
@@ -36,12 +37,16 @@ def signal_handler(signal, stack):
   #os.remove(MICLOCKID) ; sys.exit(0)
 
 def rmzero(strg):
-  if strg[-1]=='\0':
-    rcstr= strg[:-1]
-    #print "rmzero:%s:%s:"%(strg,rcstr)
-  else:
-    #print 'rmzero:%s'%strg
-    rcstr= strg
+  rcstr=""
+  for ix in range(len(strg)):
+    if strg[ix]=='\0': break
+    rcstr= rcstr+strg[ix]
+  #if strg[-1]=='\0':
+  #  rcstr= strg[:-1]
+  #  #print "rmzero:%s:%s:"%(strg,rcstr)
+  #else:
+  #  #print 'rmzero:%s'%strg
+  #  rcstr= strg
   return rcstr
 class web:
   def __init__(self):
@@ -109,6 +114,7 @@ bm2clock={
 19:(0,'CYCLING'), 
 20:(0,'BEAM DUMP WARNING'), # seems never happen
 21:(0,'NO BEAM')}
+bm2clocknames= {}   # { 'NO MODE':1, 'SETUP':2,... }
 def callback1(now):
   #mylog.logm("callback1: '%s' (%s)" % (now, type(now)))
   WEB.miclock= rmzero(now) 
@@ -191,10 +197,26 @@ def checkandsave(csf_string, fineshift="None", force=None):
 def checkShift():
   cshift= getShift()
   mylog.logm("checkShift: after 10 secs:"+ cshift)
-def callback_bm(bm):
-  #print "callback_bm: '%s' (%s)" % (bm, type(bm))
+def callback_bmold(bm):
+  #print "callback_bmold: '%s' (%s)" % (bm, type(bm))
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
+  if bm2clock.has_key(bm):
+    i01= bm2clock[bm][0]
+    if i01==0:
+      expclock= "LOCAL"
+    else:
+      expclock= "BEAM1"
+    bmname= bm2clock[bm][1]
+  else:
+    expclock= "?" ; bmname="???"
+  mylog.logm("callback_bmold: "+bmname)
+def callback_bm(ecsbm):
+  #print "callback_bm: '%s' (%s)" % (p2, type(p2))
+  #WEB.miclock= rmzero(now) ; WEB.save()
+  bmname= rmzero(ecsbm)
+  print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
+  bm= bm2clocknames[bmname]
   if bm2clock.has_key(bm):
     i01= bm2clock[bm][0]
     if i01==0:
@@ -288,6 +310,9 @@ def main():
     sys.exit(1)
   #signal.signal(signal.SIGKILL, signal_handler)
   #signal.signal(signal.SIGUSR1, signal_handler)
+  for bmix in bm2clock.keys():
+    bmnamx= bm2clock[bmix][1]
+    bm2clocknames[bmnamx]= bmix
   # authenticate:
   ##if os.environ['USER']=="##trigger":
   if os.environ['USER']=="trigger" or os.environ['USER']=="oerjan":
@@ -318,7 +343,8 @@ Than start miclock again.
   res = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback1)
   restran = pydim.dic_info_service("TTCMI/MICLOCK_TRANSITION", "C", cbtran)
   # next line after res service (i.e. current clock retrieved already)
-  resbm = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bm)
+  resbm = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
+  resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
   #print "res...:", resbm, res, restran
   if not res or not restran or not resbm:
     mylog.logm("Error registering with info_services"%d(resbm, res, restran))

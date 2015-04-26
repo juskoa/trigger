@@ -385,20 +385,17 @@ return(rcscp);
 O: get ssms of l0/1/2 board  (board123: 1,2 or 3) AND INT board if intboard>0
 boards[2] -number of boards
 boards[0..1] -boards to be stoped+readout+started
-rc: 10 stp_ssm problem
+rc: from scp
 */
 int getSSMs(int *boards, int board123, int inpnum,int intboard,FILE *f){
 int rcscp;
 //usleep(4000); // fine even for triggering with BOBR signal
 // which is coming 19 orbits before interaction
-rcscp= stop_ssm(boards);   if(rcscp == 10) goto RTRN;
-if(intboard)stopSSM(4);
 //dumpSSM(1,filename);
 //read_ssm(boards);
 rcscp= rdumpscp_ssm(boards, board123, inpnum, f);
 // onl in the pit:
 //if(strcmp(SMAQ_C,"pcalicebhm10")!=0) checkInputs2(board123,f,inpnum);
-setstart_ssm(boards);
 /*
  if(intboard){  
    CTPRIRDList *INTlist=NULL; 
@@ -416,7 +413,7 @@ setstart_ssm(boards);
  fflush(flog);
  usleep(30000);  // 30ms should be enough
 */
-RTRN: return(rcscp);
+return(rcscp);
 }
 //------------------------------------------------------------
  w32 prevRead[NINP];
@@ -486,6 +483,10 @@ if(trigboard==3) {
            101..148 -take 2 ssms triggering on 1..48 input of L0
            151..174 -take 2 ssms triggering on 1..24 input of L1
            0: trigger on LHCpp (BOBR card in the CTP crate)
+  rc: 0: ok
+      1: cannot open BOBR vme
+      2. input not onnected (LM0)
+      3: cannot stop SSM
   Output:
          - log file - contains also BC of interaction records
          - l0 ssm dump
@@ -509,6 +510,7 @@ int inpnum, inpnum_ix; // triggering on this input, rel. position in board count
  char *environ;
  char fnpath[1024],logname[1024];
  char dt[32];
+  int nottriggered=0;
 w32 timebefore;
 // Open the log file
  getdatetime(dt);
@@ -614,7 +616,6 @@ setstart_ssm(boards);
  usleep(100000); */
 while(1){
   int rc; 
-  int nottriggered=0;
   w32 ts1,ts2,us1,us2, cntr_us;
   if(inpnum==0) {  // we trigger on lhcpp
     rc= getlhcpp(vspbobr,1, PP_PERIOD, &lhcpp); 
@@ -633,11 +634,13 @@ while(1){
     trigcond= (trigcur != trigold);
     //printf("trigcond:%d %d %d trigcur:%u time:%u\n", trigcond, trigboard, countermax,trigcur, time);
   };
-  //printf("inpnum bobr: %i %x\n",inpnum,(lhcpp.Byte54));
-  //beep=last[counteroffset+BEEPPOS];
-  //printf("trig: %i old %u new %u \n",inpnum,trigold,trig);
   if(trigcond){
     int rc; w32 trigdif; double td; char msg[200];
+    rc= stop_ssm(boards);   
+    if(rc== 10) {
+      sprintf(msg, "cannot stop ssm(s)"); prtLog(msg); return(3);
+    };
+    if(intboard)stopSSM(4);
     //beepni(); cicolino not used recently
     GetMicSec(&ts2, &us2);
     rc= getSSMs(boards, trigboard, inpnum,intboard,flog);
@@ -647,10 +650,15 @@ while(1){
     cntr_us= DiffSecUsec(ts2,us2,ts1,us1);
     /*sprintf(msg, "inpnum:%d empty loops:%d old: %u new: %u td:%9.2f ms",
       inpnum,nottriggered,trigold,trigcur, td); prtLog(msg);*/
+    printf("trigdif:0x%x 0x%x %d inpnum_ix:%d\n", trigold, trigcur, trigdif, inpnum_ix);
     sprintf(msg, "empty loops:%d td:%9.2f ms getSSMs rc:%d cnts reading %d us",
       nottriggered, td, rc, cntr_us); prtLog(msg);
     nottriggered= 0;
-    trigold=trigcur;
+    setstart_ssm(boards);
+    // following should be after start -better to throw out rare signal and wait for other than
+    // to take empty ssm
+    getCountersBoard(trigboard,countermax,last,3);
+    time=last[timeadr]; trigcur=last[inpnum_ix]; trigold=trigcur;
     if(rc!=0) {
       break;
     };
@@ -673,7 +681,7 @@ while(1){
     getdatetime(dt); dt[10]='_';
     printf("time: diff %f %s\n",timediff,dt);
     timeold=time;
-  }    
+  };
 }
 if(inpnum==0) bobrClose(vspbobr);
 //fclose(flog);
