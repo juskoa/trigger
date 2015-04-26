@@ -2,7 +2,7 @@
 import sys,string,types
 ORBITL=3564
 CALIBbc=3009   #1st bc in orbit is 0
-SHIFTS=(345, 3018)
+SHIFTS=(343, 3016)   # run1: SHIFTS=(345, 3018)
 #SHIFTS=(2610, 1719)   BEAM2 clock
 BCS_BEFORE=85   # was 16, TRD request: 85
 DIS_BEFORE=3

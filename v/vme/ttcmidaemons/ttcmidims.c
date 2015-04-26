@@ -267,7 +267,7 @@ for(ix=0; ix<80; ix++) {
     break;
   };
 };
-if(( strncmp(hname,"alidcscom188",12)==0) 
+if(( strncmp(hname,"alidcscom835",12)==0) 
    || ( strncmp(hname,"avmes",12)==0)
    || ( strncmp(hname,"pcalicebhm10",12)==0)) {
   rc=0; goto OK;    // clock shift also from pydimserver!

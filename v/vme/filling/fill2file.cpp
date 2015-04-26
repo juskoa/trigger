@@ -39,6 +39,12 @@ ACTIVE_INJECTION_SCHEME "Single_13b_8_8_8"
 #include <fstream>   // ofstrem
 #include <iomanip>
 #include <sstream>
+#include <boost/algorithm/string.hpp>
+
+#define offsetA_run1 346
+#define offsetC_run1 3019
+#define offsetA 344
+#define offsetC 3017
 
 using namespace std;
 
@@ -80,8 +86,12 @@ public:
          const char **tags = message.getTags(noFields);
          for (int i = 0; i < noFields; i++) {
            item= message.extractString(*tags);
-           if(strcmp(*tags,"ACTIVE_INJECTION_SCHEME")==0) {
+           if(strcmp(*tags,"ACTIVE_INJECTION_SCHEME")==0) { 
+           //if(strcmp(*tags,"ACTIVE_FILLING_SCHEME")==0) { // changed 24.4.2015, but returns ""
              fillsch= item; //cout << "ACTIVE_INJECTION_SCHEME " << fillsch << endl;
+             boost::erase_all(fillsch, " ");
+             // following does not work properly:
+             //fillsch.replace(fillsch.begin(), fillsch.end(), ' ', '_');
            };
            if(strcmp(*tags,"FILL_NO")==0) {
              fillno= atoi(item.c_str());  //cout << "FILL_NO " << item << endl;
@@ -95,10 +105,10 @@ public:
          }
        } else if (subscription == client->sub[1]) {   // Beam1
          bc = message.extractIntArray(size, "value");
-         beamname = "A"; offset = 346; beams++;
+         beamname = "A"; offset = offsetA; beams++;
        } else if (subscription == client->sub[2]) {   // Beam2
          bc = message.extractIntArray(size, "value");
-         beamname = "C"; offset = 3019; beams++;
+         beamname = "C"; offset = offsetC; beams++;
        } else {   // BeamMode
          int noFields;
          const char **tags = message.getTags(noFields);
@@ -147,6 +157,8 @@ public:
       }
     }
     int beammodeok() {
+      // remove following line when LHC testing finished:
+      if((beammode == "INJECTION PHYSICS BEAM")) return(1);   // just for testing in April 2015
       if((beammode == "PREPARE RAMP") or (beammode == "RAMP") or
          (beammode == "FLAT TOP") or (beammode == "SQUEEZE") or
          (beammode == "ADJUST") or (beammode == "STABLE BEAMS")) {
