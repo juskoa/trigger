@@ -233,8 +233,12 @@ class Ctpconfig:
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
       AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
+      AttrRndgen('LM_RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),   # lmrnds
+      AttrRndgen('LM_RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 LM_RND inputs
       Attr('BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
+      Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
+      Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
       AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),

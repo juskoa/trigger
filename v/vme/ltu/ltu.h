@@ -141,11 +141,13 @@ bit0: 0: L1_DATA toggle (default) (FO BC phase measured)
 #define TTC_INTERFACE   0x530  /* L1/PP polarity and delay 
 bit3=1 -> 'L0 over TTC' mode
 LTUvi:
-  bit0: Delay CahnnelB flag (+BC/2)
-  bit1: Delay CahnnelA flag
+  bit0: Delay CahnnelA flag (+BC/2)
+  bit1: Delay CahnnelB flag
   bit2: 0: normal LTU, 1: the copy of TTC-A/B sent over L0-LVDS-2/3 outputs
         -valid from version BB see TRD_TTCINT_BIT
-LTUf3:
+  Note: using 1 (strobing data 12.5ns later) shifts L0 signal at FE by 1
+        BC later or make it 2BCs wide  -measured with TTCit
+LTUf3: (obsolete)
   bits[1..0]
   00  for BC_DELAY_ADD: 0,1,20-27
   01                    15-19
@@ -389,9 +391,9 @@ The 4 least significant bits of this register are used for setting:
 - the polarity of L1 output      
 - 'L0 over TTC' mode
 
-TTC_INTERFACE bits:
-0  'Delay Orbit' flag. 0: no delay, 1: 12.5ns delay
-1  'Delay L1' flag. 0: no delay, 1: 12.5ns delay
+TTC_INTERFACE bits:   (table was ok, but 0<->1 change only in doc)
+0  'Delay L1' flag. 0: no delay, 1: 12.5ns delay
+1  'Delay Orbit' flag. 0: no delay, 1: 12.5ns delay
    Both bits depends on BC_DELAY_ADD.
 2   L1 polarity.    0: positive (TTCex, default)   1: negative (TTCvi)
 3  'L0 over TTC' flag. 
