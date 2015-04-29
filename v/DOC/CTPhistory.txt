@@ -452,3 +452,10 @@ if L0 is not connected to CTPswitch (0) the 0 has to be put
 also to the ctp input(1..24) column.
 17.4.
 LM0: FPGA version occupies 2 bytes (0xc601) -readBICfile.c changed
+29.4.
+in p2 changed link for clockshift. Now:
+835:$dbctp/clockshift -> /home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/CFG/clockshift
+before
+017:v/vme/CFG/clockshift -> /local/trigger/v/vme/CFG/ctp/DB/clockshift
+i.e. now writtable from 017 (before from 835). I.e. ttcmidims.c
+running on 017 can update clockshift
