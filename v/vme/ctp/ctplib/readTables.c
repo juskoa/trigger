@@ -387,6 +387,8 @@ return;
 /*------------------------------------------------------------findInputName()
 Input: name
 Out:   index (0..) pointing to validCTPINPUTs[]. -1 in case of error
+!Note: check validCTPINPUTs[ix].inpnum for L0 (it can be 0 i.e. not connected
+in case of L0 input)
 */
 int findInputName(char *name) {
 int ix;

@@ -249,6 +249,9 @@ while(clocktran>=0) {
   if(quit==1) clocktran=0;
 };
 }
+int  getclientid(char *procid){
+return(dis_get_client(procid));
+}
 int authenticate(char *subdir) {   // "" or "oerjan/"
 /* Only client which wrote its pid to server's 
 VMEWORKDIR/WORK/miclockid file is allowed to change the clock
@@ -267,6 +270,16 @@ for(ix=0; ix<80; ix++) {
     break;
   };
 };
+if( strncmp(hname,"alidcscom835",12)==0) {
+  rc=0; goto OK;
+};
+if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
+   ( strncmp(hname,"alidcscom835",12)==0) ||
+   ( strncmp(hname,"ALIDCSCOM779.cern.ch",20)==0)) {
+  rc=0; goto OK;
+}; 
+rc=3;
+/*
 if(( strncmp(hname,"alidcscom835",12)==0) 
    || ( strncmp(hname,"avmes",12)==0)
    || ( strncmp(hname,"pcalicebhm10",12)==0)) {
@@ -286,8 +299,10 @@ if(strcmp(procid,line)==0) {
 } else {
   rc=3;
 };
+*/
 OK:
 //printf("procid:%s wd:%s line:%s< hname:%s rc:%d\n", procid, envwd,line, hname, rc);
+printf("procid:%s wd:%s hname:%s rc:%d\n", procid, envwd, hname, rc);
 fflush(stdout);
 return(rc);
 }
@@ -307,10 +322,10 @@ if ((errno == ERANGE && (shift == LONG_MAX || shift == LONG_MIN))
 };
 sprintf(errmsg, "CORDE_SETcmd: size:%d msg:%5.5s :%s:%d\n", 
   *size, msg, sshift, shift); prtLog(errmsg); 
-//rc= authenticate();
-rc=0; //prtLog("CORDE_SET not authenticated!\n");
+rc= authenticate("");
+//rc=0; //prtLog("CORDE_SET not authenticated!\n");
 if(rc!=0) {
-  sprintf(errmsg, "Only miclock can change the CORDE shift\n"); prtLog(errmsg); 
+  sprintf(errmsg, "CORDE shift forbidden\n"); prtLog(errmsg); 
   return;  
 };
 if(shift==0) {
@@ -353,9 +368,13 @@ char errmsg[200];
 char *msg= (char *)msgv; int rc; 
 sprintf(errmsg, "DLL_RESYNCcmd: tag:%d size:%d msg:%5.5s\n", 
   *(int *)tag, *size, msg); prtLog(errmsg); 
-rc=0; //rc= authenticate();
+rc= authenticate("");
+//rc=0;
 if(rc!=0) {
-  sprintf(errmsg, "DLL_RESYNC not authenticated, but executed");prtLog(errmsg); 
+  //sprintf(errmsg, "DLL_RESYNC not authenticated, but executed");prtLog(errmsg); 
+  char clientid[100];
+  getclientid(clientid);
+  sprintf(errmsg, "DLL_RESYNC not allowed from client %s", clientid);prtLog(errmsg); 
 };
 if(clocktran!=0)  {
   sprintf(errmsg, "newclock thread already started. Trigger expert should restart ttcmidim and miclock client!"); prtLog(errmsg); 
@@ -378,11 +397,11 @@ msg[*size]='\0';   // with python client ok
 //if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
 };
 */
-//rc= authenticate(""); rc2=1; //rc2= authenticate("oerjan/");
-rc=0;
+rc= authenticate(""); rc2=1; //rc2= authenticate("oerjan/");
+//rc=0;
 if((rc!=0) and (rc2!=0) ) {
   //sprintf(errmsg, "Only trigger/oerjan user can change the clock"); prtLog(errmsg); 
-  sprintf(errmsg, "Only trigger user can change the clock"); prtLog(errmsg); 
+  sprintf(errmsg, "Only alidcscom779 can request the change of the clock"); prtLog(errmsg); 
   return;  
 };
 if(strncmp(msg,"qq", 2)==0) ds_stop();
@@ -417,13 +436,15 @@ dim_start_thread(newclock, (void *)&newclocktag);
 /*----------------------------------------------------------- MICLOCKcaba
 */
 void MICLOCKcaba(void *tag, void **msgpv, int *size, int *blabla) {
-char **msgp= (char **)msgpv;
-char msg[100];
+char **msgp= (char **)msgpv; int rc;
+char msg[100], clientid[100];
 // readVME:
 getclocknow();
+rc= getclientid(clientid);
 *msgp= clocknow;
 *size= strlen(clocknow)+1;
-sprintf(msg, "MICLOCKcaba clocknow:%s size:%d", clocknow, *size); prtLog(msg); 
+sprintf(msg, "MICLOCKcaba clocknow:%s size:%d clientid:%s rc:%d",
+  clocknow, *size, clientid, rc); prtLog(msg); 
 }
 /*----------------------------------------------------------- SHIFTcaba
 */
@@ -508,7 +529,7 @@ if(stat != qpllstat) {
   prtLog(buffer); */
 };
 nlogqpll++;
-if((nlogqpll % 3600)==0) {    // 60/600:log 1/hour
+if((nlogqpll % 36000)==0) {    // 3600:log 1 per 2 hours
   char msg[100];
   sprintf(msg, "qpllstat:0x%x", qpllstat);
   prtLog(msg);

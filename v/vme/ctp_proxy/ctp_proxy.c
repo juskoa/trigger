@@ -2461,6 +2461,7 @@ rc: if !=0, errorReason set
 2: pcfg cannot be processed
 3: applyMask problem 
 4: addPartitions() problem
+5: checkmodLM (TRD technical) partition problem
 */
 int ctp_InitPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
@@ -2512,6 +2513,11 @@ if(msg[0]!='\0') {
 };
 prtProfTime("got pcfg");
 copyHardware(&HWold,&HW);   // HWold <- HW
+/* From now: seems HW is touched ONLY in addPartitions2HW !
+i.e. we restore HW in case of:
+- not error found
+- addPrtitions2HW error
+*/
 sprintf(msg,"timestamp:reading partition %s %d", name, run_number); prtLog(msg);
 
 part=readDatabase2Tpartition(name); 
@@ -2532,7 +2538,10 @@ if((ret=checkResources(part))) {
    rc=ret; ret=deletePartitions(part); part=NULL;
    goto RET2; };
 //printTpartition("After checkResources", part);
-checkmodLM(part);   // not good idea (better: in START_PARTITION)
+ret= checkmodLM(part);   // not good idea (better: in START_PARTITION)
+if(ret!=0) {
+  rc=5; ret=deletePartitions(part); part=NULL;
+  goto RET2; };
 // If resources available, continue and add part to Partitions[]
 // From now on, no checks necessary (all checks already done)
 if(addPartitions(part)) { 

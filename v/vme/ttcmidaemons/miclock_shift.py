@@ -53,11 +53,11 @@ class web:
     self.miclock='none'
     self.transition='none'
     self.newclock='none'
-    self.clockchangemode='man'   #'man' (manual) or  'auto': automatic
+    self.clockchangemode='???'   #'man' (manual) or  'auto': automatic
     self.lastbmname='none'
   def save(self):
-    if self.clockchangemode=='man':
-      ccm='<FONT COLOR="red">/man</FONT>'
+    if self.clockchangemode=='MANUAL':
+      ccm='<FONT COLOR="red">/MANUAL</FONT>'
     else:
       ccm=''
     fn= os.path.join(os.environ['HOME'],"CNTRRD/htmls/clockinfo")
@@ -83,7 +83,7 @@ class web:
     #print "Saving to:",fn
     #print line
     f.close()
-    #mylog.logm("web.save:"+line, 1)
+    mylog.logm("web.save:"+line, 1)
   def show(self):
     mylog.logm("miclock:%s transition:%s newclock:%s bmname:%s mode::%s"%\
       (self.miclock, self.transition, self.newclock, 
@@ -120,6 +120,12 @@ def callback1(now):
   WEB.miclock= rmzero(now) 
   WEB.save() ; mylog.logm("TTCMI/MICLOCK: %s."%(WEB.miclock))
   ##mylog.logm("TTCMI/MICLOCK: %s. -WEB NOT UPDATED ##"%(now))
+def callback_manauto(auma):
+  #if auma=='AUTO' or auma=='MANUAL':
+  aumanz= rmzero(auma)
+  mylog.logm("callback_manauto:%s:%s:"%(auma,aumanz))
+  WEB.clockchangemode= aumanz
+  WEB.save()
 
 def getShift():
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
@@ -156,8 +162,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
   csps_applied_new= int(eval(csf_string)*10000)   #ns-> 0.1ps
   #if ((csps < -250) or (csps > 250)) or (force != None):
   if ((csps < -10) or (csps > 10)) or (force != None):
-    if ((csps < -1900) or (csps > 1900)) and (force == None):
-      mylog.logm("csps:%dps too big (max 1500ps allowed). No action."%csps)
+    if ((csps < -10000) or (csps > 10000)) and (force == None):
+      mylog.logm("csps:%dps too big (max 1500(now 10000) ps allowed). No action."%csps)
     else:
       fn= os.path.join(os.environ['dbctp'],"clockshift")
       f= open(fn,"r")
@@ -215,7 +221,7 @@ def callback_bm(ecsbm):
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
   bmname= rmzero(ecsbm)
-  print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
+  #print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
   bm= bm2clocknames[bmname]
   if bm2clock.has_key(bm):
     i01= bm2clock[bm][0]
@@ -226,6 +232,9 @@ def callback_bm(ecsbm):
     bmname= bm2clock[bm][1]
   else:
     expclock= "?" ; bmname="???"
+  if bmname == WEB.lastbmname:
+    #mylog.logm("No change in BM, no action")
+    return
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
   ## 
@@ -269,13 +278,13 @@ def callback_bm(ecsbm):
     #print "%s bad clock:%s for beam mode:%s(%d) clock_change_mode:%s"%\
     #  (ltim, WEB.miclock, bmname,bm, WEB.clockchangemode)
     if (bm>=5) or (bm<=12):
-      if WEB.clockchangemode=="auto":
+      if WEB.clockchangemode=="AUTO":
         wf='f'
       else:
         wf='w'
       mylog.infolog( "BEAM MODE:%s, clock %s not correct. miclock mode:%s"%\
       (bmname, WEB.miclock,WEB.clockchangemode), level=wf )
-    if WEB.clockchangemode=='auto':
+    if WEB.clockchangemode=='AUTO':
       # change clock
       mylog.logm("changing clock to %s. Wait 3 half-minutes please..."%(expclock))
       WEB.newclock= expclock; WEB.save()
@@ -341,9 +350,10 @@ Than start miclock again.
   time.sleep(2)   # 1sec was enough
   WEB=web()
   res = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback1)
+  maid = pydim.dic_info_service("ALICE/LHC/TTCMI/CLOCK_MODE", "C", callback_manauto)
   restran = pydim.dic_info_service("TTCMI/MICLOCK_TRANSITION", "C", cbtran)
   # next line after res service (i.e. current clock retrieved already)
-  resbm = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
+  resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
   resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
   #print "res...:", resbm, res, restran
   if not res or not restran or not resbm:
@@ -351,18 +361,19 @@ Than start miclock again.
     sys.exit(1)
   while True:
     #time.sleep(10)
+    #man/auto     -change operation mode (manual or automatic) now:%s
+    #             auto is forbidden from 28.4.2015
     try:
       #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
       a= raw_input("""
    enter:
    BEAM1       	-change the ALICE clock to BEAM1
    LOCAL       	-change the ALICE clock to LOCAL
-   man/auto     -change operation mode (manual or automatic) now:%s
    getshift    	-display current clock shift
    reset       	-reset current clock shift to 0
    q            -quit this script
-"""%\
-        WEB.clockchangemode)
+""")
+      #%WEB.clockchangemode)
     except:
       a='q'
       mylog.logm("exception:"+str(sys.exc_info()[0]))
@@ -375,10 +386,11 @@ Than start miclock again.
     if a=='q': break
     if a=='': continue
     if a=='auto':
-      WEB.clockchangemode='auto'
-      WEB.save()
+      mylog.logm("Attempt to go to auto... Fobidden, no action")
+      #WEB.clockchangemode='auto'
+      #WEB.save()
     elif a=='man':
-      WEB.clockchangemode='man'
+      WEB.clockchangemode='MANUAL'
       WEB.save()
     elif a=='show':
       WEB.show()
