@@ -688,13 +688,13 @@ Check if there are classes feeding TRD. Do these modifications for them:
 Consequence: it is nonsense to start TRD cluster with
 more classes mixing rnd1 usage.
 */
-void checkmodLM(Tpartition *part){
+int checkmodLM(Tpartition *part){
 #define RND1MASK 0x10000000
 //#define SWIN32MSK (1<<(32-25))
 #define SWIN11MSK (1<<(11-1))
-int i;
+int i, retcode=0;
 for(i=0;i<NCLASS;i++){
-  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100]; char msg[200];
   if((klas=part->klas[i])) {
     printTKlas(klas,i);
   } else {
@@ -711,24 +711,38 @@ for(i=0;i<NCLASS;i++){
     int clsts;
     //printDetsInCluster(part, cluster);
     clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+    sprintf(msg, "checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
+    infolog_trg(LOG_INFO, msg);
     if(clsts & clustermask) {
       sprintf(txdets, "%s %d", txdets, ixdet);
       // class feeding TRD:
       if(((klas->l0inputs & RND1MASK) == 0) &&  // RND1 used in this class
          (klas->scaler==0 ) &&                  // downscaling 0
          (klas->l0inputs & 0xe0ffffff)==0xe0ffffff)  {  // no other input
-        w32 rndw1, rndw2, rndw3, ninps; int ixdb;
+        w32 rndw1, rndw2, rndw3, ninps; int ixdb, ctpin;
         ninps= klas->l0inputs | RND1MASK;  // do not use it at L0
         /*ninps= ninps & (~0x200000);  // AND USE l0inp22:0HCO (was l0inp5) !
           instead, better is to find where 0HCO is: */
         ixdb= findInputName("0HCO");
         if(ixdb==-1) {
-          infolog_trgboth(LOG_ERROR, "0HCO not connetted for technical with TRD.");
+          infolog_trgboth(LOG_FATAL, "0HCO not found for technical with TRD + rnd1.");
+          // we need to know the input where to connect rnd1!
+          retcode=1;
         } else {
-          int ctpin;
           ctpin= validCTPINPUTs[ixdb].inputnum;
-          ninps= ninps & ( ~( 1<< (ctpin-1)));   // to be connected to RND1
+          if(ctpin==0) {
+            infolog_trgboth(LOG_FATAL, "0HCO not connected for technical with TRD.");
+            // it has to be connected ( to a 1-24 ctp input becasue we need to control a class)
+            retcode=1;
+          } else if((ctpin<1) || (ctpin>24)) {
+            sprintf(msg, "0HCO not found. Internal error: ixdb/ctpin:%d/%d)", ixdb,ctpin);
+            infolog_trgboth(LOG_FATAL, msg);
+            retcode=1;
+          } else {
+            ninps= ninps & ( ~( 1<< (ctpin-1)));   // to be connected to RND1
+          };
         };
+        if(retcode!=0) return(retcode);
         klas->l0inputs= ninps;
         /*rndw1= vmer32(RND1_EN_FOR_INPUTS);
         rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
@@ -740,8 +754,8 @@ for(i=0;i<NCLASS;i++){
         rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
         rndw3= rndw1 | (SWIN11MSK);
         vmew32(RND1_EN_FOR_INPUTS, rndw3);
-        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x 0x%x\n", 
-          i, ninps, rndw1, rndw2, rndw3, rndw2);
+        printf("checkmodLM:%d ctpin:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x 0x%x\n", 
+          i, ctpin, ninps, rndw1, rndw2, rndw3, rndw2);
         strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
       };/* else {
         w32 rndw2, rndw3; */
@@ -761,6 +775,7 @@ for(i=0;i<NCLASS;i++){
   };
   printf("    fed dets: %s\n", txdets);
 };
+return(retcode);
 }
 /*----------------------------------------------------------- checkRES 
 I:
