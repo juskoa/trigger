@@ -924,7 +924,11 @@ printf("INFO DIM cmd:%s id:%d\n", cmd, LTUCFGid);
 sprintf(cmd, "%s/COM2DAQ", servername);   // CTPRCFG/COM2DAQ
 C2Did= dis_add_cmnd(cmd,NULL, DOcom2daq, 91);
 printf("INFO DIM cmd:%s id:%d\n", cmd, C2Did);
-
+/*
+sprintf(cmd, "%s/FSUPDATE", servername);   // CTPRCFG/FSUPDATE
+FSUid= dis_add_cmnd(cmd,NULL, DOfsupdate, 92);
+printf("INFO DIM cmd:%s id:%d\n", cmd, FSUid);
+*/
 // services:
 sprintf(cmd, "%s/INT1", servername);   // CTPRCFG/INT1
 INT1id=dis_add_service(cmd,"C:99", INT1String, MAXINT12LINE, NULL, 4567);

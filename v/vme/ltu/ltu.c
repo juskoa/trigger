@@ -779,8 +779,14 @@ while(1) {
     deltatime= dodif32(ptime, ntime);
     deltasbusy= dodif32(pbusy, nbusy);
     ltushm->busyfraction= (1.0*deltasbusy)/deltatime;
+    if( (ltushm->busyfraction<0.0) || ( ltushm->busyfraction > 1.0)) {
+      printf("ERROR in scthread: %d 0x%x 0x%x 0x%x 0x%x\n",
+        nloop, ptime, ntime, pbusy, nbusy);
+      ltushm->busyfraction= 1.0;
+    };
   };
   usleep(1000000); nloop++;
+  if(nloop>0x7ffffffe) nloop=1;
 };
 ltushm->ltucfg.flags= ltushm->ltucfg.flags & (~FLGscthread);
 return(NULL);
