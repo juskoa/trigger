@@ -268,7 +268,7 @@ if(cfgfile == NULL) return;
 for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   validCTPINPUTs[ixtab].name[0]='\0';
   validCTPINPUTs[ixtab].detector=-1;
-  validCTPINPUTs[ixtab].level=-1;
+  validCTPINPUTs[ixtab].level=-2;
   validCTPINPUTs[ixtab].signature=0xffffffff;
   validCTPINPUTs[ixtab].inputnum=-1;  // 0..24 (0..12 for L2)
   validCTPINPUTs[ixtab].dimnum=-1;
@@ -352,7 +352,8 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   validCTPINPUTs[ixtab].delay= a3[6];
   validCTPINPUTs[ixtab].deltamin= a3[7];
   validCTPINPUTs[ixtab].deltamax= a3[8];
-  printf("INFO readTables:%s %d L%d %d in:%d %d switch:%d edge:%d del:%d deltas:%d %d\n", 
+  printf("INFO readTables:%d:%s %d L%d %d in:%d %d switch:%d edge:%d del:%d deltas:%d %d\n", 
+    ixtab,
     validCTPINPUTs[ixtab].name,
     validCTPINPUTs[ixtab].detector, validCTPINPUTs[ixtab].level,
     validCTPINPUTs[ixtab].signature, validCTPINPUTs[ixtab].inputnum,
@@ -457,6 +458,8 @@ if(ix==-1) return(-1);
 return(0);
 }
 /*------------------------------------------------------------getSwnDB(inp)()
+input: CTP input (after L0 switch), i.e. 1..24
+rc: Switch input (1..48)
 */
 int getSwnDB(int input) {
 int ix;

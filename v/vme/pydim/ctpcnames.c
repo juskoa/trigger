@@ -1,5 +1,7 @@
 /* ctpc_ routines supporting CTPRCFG/CNAMES DIM service
 debug: see main below
+29.4.2015 bug fixed: we work with 48 switch input numbers
+          still: where is 'inpupd' command activated (see server.c)
 */
 #include <stdio.h>
 #include <string.h>
@@ -45,7 +47,7 @@ typedef struct ctpin_item {
 } Tctpin_item;
 
 Tclass_item ctpclasses[NCLASS];   //1..100 -> 0..99
-Tctpin_item ctpins[NCTPINPUTS];   //l0inp1..24 l1inp1..24 l2inp1..12 -> 0..59
+Tctpin_item ctpins[NCTPINPUTS];   //l0inp1..48 l1inp1..24 l2inp1..12 -> 0..83
 
 /*---------------------------------------------------------------------
 I: classN:1..100   runn: run number 
@@ -63,7 +65,9 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
 for(ix=0; ix<NCTPINPUTS; ix++) {
   int level, inputnum, ixx;
   //if(validCTPINPUTs[ix].configured!=1) continue;
-  if(validCTPINPUTs[ix].inputnum==0) continue;
+  if(validCTPINPUTs[ix].name[0]=='\0') continue;
+  if((validCTPINPUTs[ix].switchn==0) &&
+     (validCTPINPUTs[ix].inputnum==0)) continue;
   level= validCTPINPUTs[ix].level;
 #ifdef mainp
   if(level<0 || level >2) {
@@ -71,8 +75,20 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
       validCTPINPUTs[ix].name);
   };
 #endif
-  inputnum=  validCTPINPUTs[ix].inputnum;
-  ixx= level*24 + (inputnum-1);
+  if(level==0) {
+    ixx=0;
+    inputnum=  validCTPINPUTs[ix].switchn;
+    if(validCTPINPUTs[ix].inputnum==0) continue;
+  };
+  if(level==1) {
+    ixx=48;
+    inputnum=  validCTPINPUTs[ix].inputnum;
+  };
+  if(level==2) {
+    ixx=48+24;
+    inputnum=  validCTPINPUTs[ix].inputnum;
+  };
+  ixx= ixx + (inputnum-1);
   ctpins[ixx].logname= 'Y';
 };
 for(ix=0; ix<NCLASS; ix++) {
@@ -95,9 +111,32 @@ ctpclasses[classN-1].runn= runn;
 
 /*---------------------------------------------------------------------
 I: inn:1..60   runn: run number 
+   i.e. L0: 1..24 (ctp inputs, NOT switch inputs)
+        L1: 25.. 48
+        L2: 49.. 60
 */
-void ctpc_addinp(int inn, int runn) {
-int ix,ixfree,allocated=0;
+void ctpc_addinp(int inn60, int runn) {
+int ix,ixfree,allocated=0,inn;
+// find corresponding index (1..84) in ctpins from inn60 (1..60)
+if(inn60<=24) { // L0
+  int ix;
+  ix= findInput(0, inn60);
+  if(ix==-1) {
+    printf("ERROR ctpc_addinp: unconnected L0 ctp inp. number(1..24):%d run:%d\n", inn60, runn);
+    goto RET;
+  };
+  inn=  validCTPINPUTs[ix].switchn;
+  //printf("inn60:%d inn(switch):%d\n",inn60, inn);
+} else if(inn60<=48) { // L1
+  inn= inn60+24;
+  //printf("inn60:%d inn:%d\n",inn60, inn);
+} else if(inn60<=60) { // L2
+  inn= inn60+24;
+  //printf("inn60:%d inn:%d\n",inn60, inn);
+} else {
+  printf("ERROR ctpc_addinp: bad inp. number:%d run:%d\n", inn60, runn);
+  goto RET;
+};
 ixfree=-1;
 for(ix=0; ix<MNPART; ix++) {
   if(ctpins[inn-1].runlist[ix] == 0) {
@@ -113,8 +152,9 @@ if(ixfree==-1) {
   //ctpins[inn-1].logname= 'Y';   // is there for all connected inputs anyhow
   allocated++;
 };
+RET: ;
 #ifdef mainp
-//printf("ctpc_addinp: %d runn:%d in position:%d allocated inps:%d\n", inn, runn, ixfree, allocated);
+printf("INFO ctpc_addinp: %d runn:%d in position:%d allocated inps:%d\n", inn, runn, ixfree, allocated);
 #endif
 }
 /*---------------------------------------------------------------------
@@ -144,9 +184,15 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
 }
 /*---------------------------------------------------------------------
 */
-int gethw_inp(int level, int input, char *hwname) {
-sprintf(hwname, "l%dinp%d", level, input);
-return(inp_positions[level] + (input-1));
+int gethw_inp(int level, int ixvci, char *hwname) {
+int icnames;
+if(level==0) {
+  icnames=  validCTPINPUTs[ixvci].switchn;
+} else {
+  icnames=  validCTPINPUTs[ixvci].inputnum;
+};
+sprintf(hwname, "l%dinp%d", level, icnames);
+return(inp_positions[level] + (icnames-1));
 }
 /*---------------------------------------------------------------------
 levelba: 0..5 corresponding to 0b 0a 1b 1a 2b 2a
@@ -169,6 +215,7 @@ return(class_positions[levelba]+ (classn-1));
 print following lines:
 index type logname hwname run_number_list
 index type logname hwname
+            -
 
 */
 void ctpc_print(char *dimpublication) {
@@ -183,16 +230,31 @@ strcat(dimpublication, line);
 for(ix=0; ix<NCTPINPUTS; ix++) {
   int level, inputnum, insix, ix2;
   //if(validCTPINPUTs[ix].configured!=1) continue;
-  if(validCTPINPUTs[ix].inputnum==0) continue;
+  if(validCTPINPUTs[ix].name=='\0') continue;
   level= validCTPINPUTs[ix].level;
-  inputnum=  validCTPINPUTs[ix].inputnum;
-  position= gethw_inp(level, inputnum, hwname);
-  insix= level*24 + (inputnum-1);
+  if(level==0) {
+    inputnum= validCTPINPUTs[ix].switchn;
+  } else {
+    inputnum= validCTPINPUTs[ix].inputnum;
+  };
+  if((inputnum==0) || (inputnum==-1)) continue;   // L0/1/2 not connected
+  //ix= findInput(0, inn60);
+  position= gethw_inp(level, ix, hwname);
+  if(level==0) {
+    insix=0;
+  } else if(level==1) {
+    insix=48;
+  } else if(level==2) {
+    insix=72;
+  };
+  insix= insix + (inputnum-1);
   if(ctpins[insix].logname=='\0') {
     strcpy(logname, "-");   // should not happen! (i.e. error should be issued!)
-  } else {
-    //von strcpy(logname, ctpins[insix].logname);
+  } else if(ctpins[insix].logname=='Y') {
+    //strcpy(logname, ctpins[insix].logname);
     strcpy(logname, validCTPINPUTs[ix].name);
+  } else {
+    printf("ctpcnames: interr\n"); continue;
   };
   runlist[0]= '\0';
   for(ix2=0; ix2<MNPART; ix2++) {
@@ -225,7 +287,7 @@ for(ix=0; ix<NCLASS; ix++) {
 };
 }
 /* 
-g++ -g -Wall -Dmainp -DCPLUSPLUS -I/home/dl6/local/trigger/v/vmeb/vmeblib -I/home/dl6/local/trigger/v/vme/ctp/ctplib ctpcnames.c -lpthread -L/home/dl6/local/trigger/v/vme/ctp/ctplib/linux_s -lctp -L/home/dl6/local/trigger/v/vmeb/vmeblib/linux_s -lvmeb -o linux_s/ctpcnames.exe
+g++ -g -Wall -Dmainp -DCPLUSPLUS -I$VMEBDIR/vmeblib -I$VMECFDIR/ctp/ctplib ctpcnames.c -lpthread -L$VMECFDIR/ctp/ctplib/linux_s -lctp -L$VMEBDIR/vmeblib/linux_s -lvmeb -o linux_s/ctpcnames.exe
 */
 #ifdef mainp
 #define MAXCNAMESDIM (100*6 + 60 + 5)*80  // (100 classes, 60 inps, 1: epoch)
@@ -234,9 +296,9 @@ int main() {
 cshmInit();
 readTables();
 ctpc_clear();
-ctpc_addinp(25, 188);   // l1inp1
+ctpc_addinp(49, 188);   // l2inp1
 ctpc_addinp(24, 188);   // l0inp24
-ctpc_addinp(25, 189);   // l0inp24
+ctpc_addinp(25, 189);   // l1inp1
 ctpc_addclass(10, (char *)"class-10-ALL-BLA", 188);
 ctpc_addclass(11, (char *)"class-10-ALL-BLA", 189);
 ctpc_print(dimpublication); printf(":%s:", dimpublication);
@@ -244,6 +306,6 @@ ctpc_delrun(188);
 ctpc_print(dimpublication);
 
 cshmDetach(); printf("INFO shm detached.\n");
-printf(":%s:", dimpublication);
+//printf(":%s:", dimpublication);
 } 
 #endif
