@@ -22,6 +22,8 @@ int[2808] -probably this one -grows during 'INJECTION PHYSICS BEAM' mode:
 "dip/acc/LHC/RunControl/RunConfiguration"
 FILL_NO "1226"
 ACTIVE_INJECTION_SCHEME "Single_13b_8_8_8"
+
+Seems BEAM
 */
 #ifdef WIN32
 #include <windows.h>
@@ -99,8 +101,8 @@ public:
            if(strcmp(*tags,"NO_BUNCHES")==0) {
              bunches= atoi(item.c_str()) ; //cout << "bunches " << item << endl;
            };
-/*           cout << "Tag " << *tags << " type " << message.getValueType(*tags) 
-           << " dim: " << message.getValueDimension(*tags) << " :" << item << endl;*/
+           /*cout << "Tag " << *tags << " type " << message.getValueType(*tags) 
+           << " dim: " << message.getValueDimension(*tags) << " :" << item << endl; */
            tags++;
          }
        } else if (subscription == client->sub[1]) {   // Beam1
@@ -109,7 +111,7 @@ public:
        } else if (subscription == client->sub[2]) {   // Beam2
          bc = message.extractIntArray(size, "value");
          beamname = "C"; offset = offsetC; beams++;
-       } else {   // BeamMode
+       } else if (subscription == client->sub[3]) {   // BeamMode
          int noFields;
          const char **tags = message.getTags(noFields);
          for (int i = 0; i < noFields; i++) {
@@ -118,6 +120,8 @@ public:
              beammode= item;
            };
          };
+       } else {   // not expected
+         cout << "Unexpected subscription, ignored" << endl;
        }
       } catch (DipException e) {
 	cout << "Unexpected exception occured: " << e.what() << endl;
@@ -143,7 +147,7 @@ public:
         //cout << "written:" << wlines <<" " << fillsch << " " << fillno <<" " << beamname << " " << size << endl;
         /* stdout line:
         When fill2file invoked in correct time (see bemmodeok() ):
-        fs shema_name fill_number DIPbunches Written_bunches
+        fs shema_name fill_number DIPbunches Written_bunches(lines_in_dip_file)
         When fill2file invoked in bad time:
         fs badtime
         */
@@ -158,6 +162,8 @@ public:
     }
     int beammodeok() {
       // remove following line when LHC testing finished:
+      cout << "beammodeok:" << beammode << ": ok (not checked)" << endl;
+      return(1);
       if((beammode == "INJECTION PHYSICS BEAM")) return(1);   // just for testing in April 2015
       if((beammode == "PREPARE RAMP") or (beammode == "RAMP") or
          (beammode == "FLAT TOP") or (beammode == "SQUEEZE") or

@@ -217,6 +217,10 @@ def callback_bmold(bm):
   else:
     expclock= "?" ; bmname="???"
   mylog.logm("callback_bmold: "+bmname)
+def callback_fsn(fnum_name):
+  fsn= rmzero(fnum_name)   # number or filling sheme name
+  #if fsn!="" :mylog.logm("FSN:%s:"%fsn)
+  #print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
 def callback_bm(ecsbm):
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
@@ -256,9 +260,9 @@ def callback_bm(ecsbm):
         t.start()
       else:
         arg=("none",)
-        res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-        #mylog.logm("DLL_RESYNC started...")
-        mylog.logm("DLL_RESYNC NOT started...")   # CJI
+        #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+        #mylog.logm("DLL_RESYNC after clock shift started...")
+        mylog.logm("DLL_RESYNC after clock shift NOT started...")   # CJI
     mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP":
       if os.environ['VMESITE']=='ALICE':
@@ -355,6 +359,8 @@ Than start miclock again.
   # next line after res service (i.e. current clock retrieved already)
   resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
   resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
+  resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
+  resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
   #print "res...:", resbm, res, restran
   if not res or not restran or not resbm:
     mylog.logm("Error registering with info_services"%d(resbm, res, restran))
