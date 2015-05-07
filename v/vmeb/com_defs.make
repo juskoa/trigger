@@ -37,6 +37,11 @@ SERVER_LINK := yes
 CLIENT_HOST := altri1
 SERVER_PREF := /home/dl6
 endif
+ifeq ($(HOSTNAME), zenaj)
+SERVER_LINK := yes
+#CLIENT_HOST := altri1   leave undefined
+SERVER_PREF := "NEEDED_WHERE?"
+endif
 
 EXEDIR= ../linux
 ifeq ($(HOSTNAME), alidcscom707)
@@ -80,6 +85,6 @@ LTULD= -L$(LTULIB) -lltu
 DIMLD= -L$(DIMDIR)/linux -ldim
 SMILD= -L$(SMIDIR)/linux -lsmi
 VMEBLD= -L$(VMEBLIB) -lvmeb
-LDFLAGS += -lpthread
+LDFLAGS += -pthread
 
 

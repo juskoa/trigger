@@ -32,8 +32,9 @@ EXTERN char *vmecfdir;
 int actdb_open();
 int actdb_close();
 int actdb_getdbstring(char *fn, int openclose, char *value, int maxl);
+#ifdef ACT_DB
 void cpNameVer(ACT_instance *instance, char *actname, char *actversion);
-
+#endif
 /*--------------------------------------------------------- actdb_getff()
 Get filter to file and also return it in filter 
 actopcls: 1: open/close act   0: already opened

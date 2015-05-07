@@ -116,7 +116,7 @@ ssh -2 trigger@$ttcmivme "$sshcmd"
 }
 #--------------------------------------------------
 hname=`hostname -s`
-if [ "$hname" != 'tp' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
+if [ "$hname" != 'zenaj' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
      -a "$hname" != 'alidcscom188' -a "$hname" != 'alidcscom835' ] ;then
 echo 'This script can be started only on trigger@alidcscom835/188 or trigger@pcalicebhm10/avmes'
 exit 8

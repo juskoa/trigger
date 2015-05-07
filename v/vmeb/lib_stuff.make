@@ -36,7 +36,7 @@ ifdef MAKE_CLIENT_DIR
 	ssh $(CLIENT_HOST) $(MAKE_CLIENT_CMD)         # trigger or run1
  else
 	@echo no ssh...
-	$(MAKE_CLIENT_CMD)
+	#sh -c $(MAKE_CLIENT_CMD)   -cannot (recursive no end)
  endif
 endif
 #%: force
