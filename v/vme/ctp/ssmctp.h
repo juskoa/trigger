@@ -9,7 +9,7 @@
 /* the following number defines max. number of snapshot memories
  * analysed in 1 time (including LTUs plugged in other crates)
  */
-#define NLM0SSM 4  //  number of used blocks of LM0 ssm
+#define NLM0SSM 5  //  number of used blocks of LM0 ssm
 #define NSSMBOARDS (NCTPBOARDS+6+NLM0SSM)   // + 4xltu + test + none
 #define MAXNAMES 300      /* max. number of all names in CFG/ctp/ssmsigs/backplanefp.names */
 #define NAMESIZE 20       /* length of name in char*/
