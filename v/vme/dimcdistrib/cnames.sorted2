@@ -296,7 +296,7 @@ l0clst5 294 l0 C ctp
 l0clst6 295 l0 C ctp
 l0clst7 296 l0 C ctp
 l0clst8 297 l0 C ctp
-spare298 298 l0 S N
+lmclstT 298 l0 C ctp
 spare299 299 l0 S N
 l1pfT 300 l1 T ctp
 l1pf1 301 l1 T ctp

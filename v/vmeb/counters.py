@@ -11,7 +11,7 @@ NCOUNTERS_L0=300
 NCOUNT200_L0=200   # 2nd L0 chunk (lm*)
 NCOUNTERS_L0_SP1=17  # 2 spares
 # reserved from 9.4.02015. NCOUNTERS_L0_SP2=178 # 9 spares. run1: was commented out (spare99 becomes l0infun4)
-NCOUNTERS_L0_SP3=298 # 2 spares
+NCOUNTERS_L0_SP3=299 # 1 spare
 L1SH=NCOUNTERS_L0
 #
 NCOUNTERS_L1=300 #160
@@ -517,8 +517,8 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     #for irp in range(lix,lix+9):
     #  print "spare%d %d l0 S N"%(irp, irp)
     lix= 0+NCOUNTERS_L0_SP3
-    #2 spares
-    for irp in range(lix,lix+2):
+    #1 spare
+    for irp in range(lix,lix+1):
       print "spare%d %d l0 S N"%(irp, irp)
     lix= L1SH+NCOUNTERS_L1_SP1
     # 2 spares
@@ -596,11 +596,11 @@ in 16BCs intervals""")
     self.makeit1("l0","l0ifun", ("1","2","3","4"), "L0 input functions")
     self.makeit1("l0","l0int", ["1","2","T","A","B", "D"],
       "Interaction signals: 1,2,T and  P/F Interaction signals A,B,D")
-    self.makeit1("l0","lmclst", CTPcnts.i16, "LM cluster1-8")
+    self.makeit1("l0","lmclst", CTPcnts.iT6, "LM cluster1-8, T")
     #self.makeit1("l0","l0int", ["1","2","T","A","B"],
     #  "Interaction signals: 1,2,T and  P/F Interaction signals A,B")
     self.makeit1("l0","l0counters", ["l0strobe0","prepulse","s_soft","lm_out"],
-      "L0 strobe (ANYCLST), Prepulse and SW trigger counters")
+      "L0 strobe (ANYCLST), Prepulse, SW trigger and lm_out")
     self.makeit1("l0","l0clst", CTPcnts.t9, "Test, 1-8 cluster trigger")
     #------------------------------------------------------ L1
     self.l1frame= myw.MywFrame(self.addw,side=LEFT); 
@@ -821,6 +821,8 @@ orc_error  -Orbit record with error
       board="l0"; c= cntlabel[6];
       if c>="1" and c<="8":   # 178..185
         n= (178-1)+ int(c)
+      elif c=="T":
+        n=298
       else: 
         myw.errorprint(self,"Bad l0 counter name:"+cntlabel)
     elif string.find(cntlabel,"lm_out")==0:
