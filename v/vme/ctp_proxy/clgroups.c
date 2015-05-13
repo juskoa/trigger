@@ -169,12 +169,13 @@ showTotals(part);
 void cgInterrupt(void *tagv) {
 //void cgInterrupt(int tag) {
 Tpartition *part;
-w32 clgroup, oldclgroup, tag= (int)tagv; //tag=(int)tag;;
+w32 clgroup, tag= *(int *)tagv; //tag=(int)tag;;
+//w32 oldclgroup;
 part= AllPartitions[tag];
 if(DBGCLGROUPS) {
   printf("cgInterrupt, tag:%d part:%s\n", tag, part->name);
 };
-oldclgroup= part->active_cg;
+//oldclgroup= part->active_cg;
 clgroup= nextclassgroup(part);
 if(clgroup > 0) {
   int waitcr;
@@ -240,7 +241,7 @@ if(DBGCLGROUPS) {
 if(clgroup!=0xfffffffe) {
   xcountersStart(0, clgroup);    // force xcounters read 
 };
-dtq_start_timer(cginterval, cgInterrupt, (void *)tag);
+dtq_start_timer(cginterval, cgInterrupt, (void *)&tag);
 //dtq_start_timer(cginterval, cgInterrupt, tag);
 }
 
@@ -257,7 +258,8 @@ called from:
 */
 int  stopTimer(Tpartition *part, w32 clgroup) {
 int remsecs,waserr=0;
-remsecs= dtq_stop_timer((void *)part->positionInAllPartitions);
+//remsecs= dtq_stop_timer((void *)part->positionInAllPartitions);
+remsecs= dtq_stop_timer((void *) &part->positionInAllPartitions);
 if(remsecs==-1) {
   if(part->cshmpart->paused==0) {
     char msg[200];

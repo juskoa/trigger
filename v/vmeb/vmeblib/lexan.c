@@ -4,6 +4,29 @@
 #include "lexan.h"
 
 int floatON=1;
+
+/*-------------------------*/ int remove_char_from_string(char c, char *str) {
+/* Nremovedchars= remove_char_from_string('\r',string);
+*/
+int i=0, rc=0;
+int len = strlen(str);
+while(1) {
+  if(i>=len) break;
+  if(str[i]=='\0') break;
+  if(str[i] == c) {
+    int i2;
+    // Move all the chars following the char "c" by one to the left.
+    //strncpy(&str[i],&str[i+1],len-i); does not work 
+    for(i2=i; i2<len; i2++) {
+      str[i2]= str[i2+1];
+    };
+    rc++;    // number of removed chars
+  } else {
+    i++;
+  };
+};
+return(rc);   // number of removed chars
+}
 /*------------------------*/ void copy2nl(char *dest, char *src, int maxl) {
 int ix=0;
 while(1) {

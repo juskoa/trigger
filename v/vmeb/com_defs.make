@@ -38,8 +38,12 @@ CLIENT_HOST := altri1
 SERVER_PREF := /home/dl6
 endif
 ifeq ($(HOSTNAME), zenaj)
+ifeq ($(SERVERLINK), NO)
+SERVER_LINK := 
+else
 SERVER_LINK := yes
-#CLIENT_HOST := altri1   leave undefined
+endif
+#CLIENT_HOST := localhost   # needs: id_dsa.pub->authorized_keys
 SERVER_PREF := "NEEDED_WHERE?"
 endif
 
@@ -50,9 +54,9 @@ SERVER_PREF :=
 SERVER_BASEDIR := v
 endif
 
-ifeq ($(MAKECMDGOALS),CLIENT)
-SERVER_LINK=
-endif
+#von? ifeq ($(MAKECMDGOALS),CLIENT)
+#SERVER_LINK=
+#endif
 ifdef SERVER_LINK
 ODIR = linux_s
 #  all exe on 64 bit machines go to _s:

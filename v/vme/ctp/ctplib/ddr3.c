@@ -93,8 +93,8 @@ if( llb>0 ) {   // arrange dummy reads for last block
       mem_ad++;
       //printf("%3d read 0x%x\n", ix, *mem_ad);
     } else {
-      w32 dummyr;
-      dummyr= vmer32(DDR3_BUFF_DATA+ix*4);
+      //w32 dummyr;
+      /*dummyr=*/ vmer32(DDR3_BUFF_DATA+ix*4);
       //printf("%3d dummy read 0x%x\n", ix, dummyr);
     };
   };

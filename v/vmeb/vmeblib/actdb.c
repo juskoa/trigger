@@ -263,9 +263,9 @@ return(rc);
 /*----------------------------------------------------- actdb_getInstances()
 */
 int actdb_getInstances(char *itemname) {
-int err,ix;
 int instancesNumber=0;
 #ifdef ACT_DB
+int err,ix;
 ACT_instance *instancesArray;
 
 if((err=actdb_open())!=0) {

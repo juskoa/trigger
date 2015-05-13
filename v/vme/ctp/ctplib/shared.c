@@ -291,13 +291,13 @@ if(lutn==0) {   // all 4 LUTs operations:
 return(0);
 };
 void setSharedL0f34() {
-int rc,strl; char m4[LEN_l0f34+3];  //enough LEN_l0f34+1 because
+int strl; char m4[LEN_l0f34+3];  //enough LEN_l0f34+1 because
 // this routine is casued with (hexnum without '0x' +NL) on stdin
 fgets(m4,LEN_l0f34+1,stdin); //MUST BE LIKE THIS (i.e.4096+1)
 strl= strlen(m4);
 m4[strl]='\0';
 //printf("setSharedL0f34:%d\n",strl);   //64 for dbg version with 64 bits
-rc=setL0f34c(0,m4);
+/*rc=*/setL0f34c(0,m4);
 }
 /* Combine luts (from .pcfg file) into 4096 chars (input for setL0f34c(0,str4096))
 See:
@@ -307,13 +307,14 @@ I: lut34[0 or 1]: 2x1024 4bits (each in unsigned char), see Tpartition.h TRBIF.l
 O: m4: LEN_l0f34+1 chars array
 */
 void combine34(w8 *lut34, char *m4) {
-int ix,ixa,ixd;
+int ix;
 //for(ix=0; ix<LEN_l0f34/4; ix++) {
 for(ix=(LEN_l0f34/4-1); ix>=0; ix--) {   // ix: 1023..0
+int ixd; //,ixd;
   int base,bases[4],lutn;
   int iy;
   ixd= ix*4+3;                      // descending: 4095, 4091...
-  ixa= ((LEN_l0f34/4-1) - ix)*4;  // ascending   0,4..4095
+  //ixa= ((LEN_l0f34/4-1) - ix)*4;  // ascending   0,4..4095
   //for(base=0; base<LEN_l0f34; base=base+LEN_l0f34/4) {
   base=0;
   for(lutn=0; lutn<4; lutn++) {
@@ -337,6 +338,6 @@ for(ix=(LEN_l0f34/4-1); ix>=0; ix--) {   // ix: 1023..0
     m4[ixd]= l41; ixd-- ; //printf("ixa:%d %x=%c\n", ixd+1, l4bits, l41);
   };
 }; m4[LEN_l0f34]='\0';
-printf("combine34:len:%d:%s\n", strlen(m4), m4);
+printf("combine34:len:%d:%s\n", (int)strlen(m4), m4);
 }
 

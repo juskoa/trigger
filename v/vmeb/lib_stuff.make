@@ -21,22 +21,24 @@ ifneq ($(HOSTNAME), alidcscom707)
  MAKE_CLIENT_DIR := $(subst $(SERVER_PREF),,$(shell pwd))
  #MAKE_CLIENT_CMD := '(. /usr/local/trigger/bin/vmebse.bash $(SERVER_BASEDIR) ; cd $(MAKE_CLIENT_DIR) ; make)' 
  #MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux; make)' 
- MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux_c; make)' 
+ MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux_c; make SERVERLINK=NO)' 
 endif
+else
+ MAKE_CLIENT_CMD := '(cd $(MAKE_CLIENT_DIR) ; mkdir -p linux_c; make)' 
 endif
 endif
 $(GOALS):
 #	@echo lib_stuff.make: $@ mcmdg:$(MAKECMDGOALS) making:$(ODIR) pwd:`pwd`
 	@mkdir -p $(ODIR)
-#	@sleep 2
+	@sleep 1
 	@cd $(ODIR) && $(MAKE) -f ../make_new $@
 ifdef MAKE_CLIENT_DIR
- #	@echo "making client" $(MAKE_CLIENT_DIR)
+	@echo "making client" $(MAKE_CLIENT_CMD)
  ifdef CLIENT_HOST
 	ssh $(CLIENT_HOST) $(MAKE_CLIENT_CMD)         # trigger or run1
  else
-	@echo no ssh...
-	#sh -c $(MAKE_CLIENT_CMD)   -cannot (recursive no end)
+	@echo 'no ssh (client/server: zenaj)...'
+	sh -c $(MAKE_CLIENT_CMD) 
  endif
 endif
 #%: force

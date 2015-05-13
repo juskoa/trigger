@@ -330,7 +330,7 @@ of any 1..48 inputs. Should be programmed with number 1..48.
 #define L0_TCSETr2     0x93fc
 
 #define L0_CONDITION   0x9400    /* +4*n n=1,2,...,100
-bits    newMeaning (>=AC)            meaning before AC
+bits    newMeaning (>=AC, +LM0)      meaning before AC
 ----    ----------                   --------------
 31..30  Select Scaled-down BC2..1    not used
 29..28  Select Random RND2..1        Select Scaled-down BC2..1
@@ -408,7 +408,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
  2..0: Cluster code (1-6)       the same
 
 Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
-L0_VETOr2[23] bit is used. L0_MASK is not used in LM0 board!
+L0_VETOr2[23] bit is used. L0_MASK register not used on LM0 board!
 */
 #define L0_VETO        0x9900    /* +4*n n=1,2,...,100
        fy<0xAC                   fy>=0xAC
@@ -429,12 +429,12 @@ LM0: this word dos not exist (bit is in L0_VETOr2 now)
 */
 //#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
 #define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
-LM0: does not exist (is in L0_VETOr2)
+LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_VETO word
 */
 #define LM_VETO        0x9e00
 /* veto bits: 1: don't care   0:consider this veto
 31     spare
-30..24 LM down scaling Class group (DSCG) 7bits
+30..24 LM down scaling Class group (SDSCG) 7bits
 23     class mask: 1:class disabled on LM 
 22..16 spare
      see also L0_VETOr2 class mask. Meaning of both bits:
@@ -534,7 +534,7 @@ bit4: phase enable
 #define DUMMYVAL 0xffffffff   /* recommended for DUMMY writes */
 #define RATE_MASK 0x81ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
 #define RATE_MASKr2 0x03ffffff   /* firmware C0: bit25:0 rnddownscale */
-#define RATE_DATABTM    0x80000000   // where class mask is 
+#define RATE_DATABTM    0x80000000   // where the bit rnd/busy downscaling is
 #define RATE_DATABTMr2  0x2000000
 
 #define DDR3_mem_init 0x80000000
@@ -547,10 +547,12 @@ bit4: phase enable
 #define DDR3_rd_done 0x1000000
 #define DDR3_wr_done 0x0800000
 
-#define MAXL0REGS 7
+#define MAXL0REGS 11
 typedef struct{
-  w32 regs[MAXL0REGS];   /* 7 regs: condition invert veto prescaler
-			            L1definition L1invert L2definition */
+  w32 regs[MAXL0REGS];   /* 7+4 regs: 
+    condition invert veto prescaler L1definition L1invert L2definition 
+    LM_CONDITION LM_INVERT LM_VETO LM_RATE_DATA
+*/
  /* L0: veto[16/31] -> bit0 copied from L0_MASK word
    LM0: veto[23] is classmask, L0_MASK word not used */
 } Tklas;
@@ -606,6 +608,8 @@ w32 calcINT_BCOFFSET();
 void readBICfile();
 void checkCTP();   // configure
 void initCTP();    // initialise system parameters
+void setClassInitLM(int klas, w32 lmcondition, w32 lminvert, w32 lmveto);
+
 int softLEDimplemented(int board);
 w32 dodif32(w32 before, w32 now);    // substract 2 counters
 

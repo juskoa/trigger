@@ -55,15 +55,17 @@ see dims.c dimservices.c
 ////////////////////////////////////////////////////////////////////////
 typedef struct Tinput{
   char name[MAXCTPINPUTLENGTH];   // "" empty item
-  int detector;      // ECS/DAQ Detector number (0..) or -1 if not found
-  int level;         // 0,1,2
+  int detector;    // ECS/DAQ Detector number (0..) or -1 if not found
+  int level;       // 0,1,2
   w32 signature;
-  int inputnum; // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
-  int dimnum;        // order number of cable. 1 if only 1 input cable given
-  int switchn; // 0: not switchinput (i.e. L1/2 input or not connected at all)
-               // 1..48 switch input number
-  int edge;          // 0:positive  1: negative -1: notdefined
-  int delay;         // 0-15 in BCs   -1:not defined
+  int inputnum;    // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
+  int dimnum;      // order number of cable. 1 if only 1 input cable given
+  int switchn;     /* 1..48 switch input number
+         0: not switchinput (i.e. L1/2 input or not connected at all) */
+  int edge;        // 0:positive  1: negative -1: notdefined
+  int delay;       // 0-31 in BCs   -1:not defined
+  int lminputnum;  // 1-12. 0: not used at/not connected to LM level
+  int lmdelay;     // 0-7
   int deltamin;
   int deltamax;
 }Tinput;

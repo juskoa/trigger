@@ -96,7 +96,7 @@ $(EXEDIR)/ctpshm.exe: main_shm.o $(LIBDEP)
 #------------------------------------------- act.exe
 main_act.o:main_act.c Tpartition.h 
 	$(CC) $(CFLAGS) $< -c -o $@
-$(EXEDIR)/act.exe: main_act.o cfg2part.o $(LIBDEP) /opt/act/libACT.a 
+$(EXEDIR)/act.exe: main_act.o cfg2part.o $(LIBDEP) $(actDEP)
 	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(actLD) $(MYSQLLIBS) -o $@
 #-------------------------------------------- dimc
 dimc.o:dimc.c dimtypes.h
@@ -108,7 +108,7 @@ $(EXEDIR)/dimc: dimc.o
 sendcomm.o:sendcomm.c dimtypes.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/sendcomm: sendcomm.o
-	$(CC) $(LDFLAGS) $(DIMLD) -o $@ $<
+	$(CC) $< $(LDFLAGS) $(DIMLD) -o $@
 
 #-------------------------
 $(CTPLIB)/libctp.a:$(CTPLIB)/../*.c

@@ -132,8 +132,8 @@ w8  vmesimr8(int vmespace,w32 offset){
 w8 rv=0xf2; int exityes;
 if (checkaddr(vmespace,offset, &exityes) <= 1) {
   if( exityes>=0 ) {
-    int rcf;
-    rcf= RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
+    //int rcf;
+    RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
 	 vsps[vmespace]->size, offset, VMEDAR|VMEDA8);
   };
   rv= vsps[vmespace]->simspace[offset];
@@ -145,8 +145,8 @@ w16 rv=0xf1f1;
 w16 *ptr; int exityes;
 if (checkaddr(vmespace,offset, &exityes) <= 1) {
   if( exityes>=0 ) {
-    int rcf;
-    rcf= RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
+    //int rcf;
+    RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
 	 vsps[vmespace]->size, offset, VMEDAR|VMEDA16);
   };
   ptr= (w16 *)&vsps[vmespace]->simspace[offset];
@@ -159,8 +159,8 @@ w32 vmesimr32(int vmespace,w32 offset){
 w32 rv=0xf0f0f0f0; int exityes;
 if (checkaddr(vmespace,offset, &exityes) <= 1) {
   if( exityes>=0 ) {
-    int rcf;
-    rcf= RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
+    //int rcf;
+    RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
 	 vsps[vmespace]->size, offset, VMEDAR|VMEDA32);
   };
   rv= *(w32 *)&vsps[vmespace]->simspace[offset];
@@ -175,8 +175,8 @@ crc= checkaddr(vmespace,offset, &exityes);
 if (crc <= 1) {
   vsps[vmespace]->simspace[offset]=value;
   if( exityes>=0 ) {
-    int rcf;
-    rcf= RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
+    //int rcf;
+    RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
 	 vsps[vmespace]->size, offset, VMEDAW|VMEDA8);
   };
 };
@@ -191,8 +191,8 @@ if (crc <= 1) {
   ptr= (w16 *)&vsps[vmespace]->simspace[offset];
   *ptr= value;
   if( exityes>=0 ) {
-    int rcf;
-    rcf= RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
+    //int rcf;
+    RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
 	 vsps[vmespace]->size, offset, VMEDAW|VMEDA16);
   };
 };
@@ -206,8 +206,8 @@ if (crc <= 1) {
   ptr= (w32 *)&vsps[vmespace]->simspace[offset];
   *ptr= value;
   if( exityes>=0 ) {
-    int rcf;
-    rcf= RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
+    //int rcf;
+    RegAddrs[exityes].specVmeF(vsps[vmespace]->simspace,
 	 vsps[vmespace]->size, offset, VMEDAW|VMEDA32);
   };
 };

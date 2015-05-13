@@ -29,6 +29,7 @@ w32 rounddown(float f);
 int w32toint(w32 w);
 
 // lexan.c
+int remove_char_from_string(char c, char *str);
 int hex12int(char c);
 char int12hex(int numint);
 void UPPER(char *);

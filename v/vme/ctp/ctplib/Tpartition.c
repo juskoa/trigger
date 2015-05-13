@@ -835,7 +835,7 @@ if((mask & (~cls->l0inputs))) {   // resource used by a class
       printf("checkRES:rbif/use:%d/%d srclen:%d ixres:%d\n", 
         part->rbif->rbif[ixres],
         part->rbif->rbifuse[ixres],
-        strlen(srcstr), ixres); fflush(stdout);
+        (int)strlen(srcstr), ixres); fflush(stdout);
       printf("checkRES:str:%s:\n", srcstr); fflush(stdout);
       strncpy(dststr, srcstr, maxlen);
       if( strlen(srcstr)>=maxlen ) {
@@ -844,7 +844,7 @@ if((mask & (~cls->l0inputs))) {   // resource used by a class
         dststr[maxlen-1]='\0';
         sprintf(emsg, "checkRES:rbif/use:%d/%d srclen:%d \n", 
         part->rbif->rbif[ixres], part->rbif->rbifuse[ixres],
-        strlen(srcstr));
+        (int)strlen(srcstr));
         prtError(emsg); infolog_trg(LOG_ERROR, emsg);
       };
     };

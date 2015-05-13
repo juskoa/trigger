@@ -326,7 +326,7 @@ Flags: symbolic meaning of SSMstatus bits.
       helptext="""Relative position of the counter (starting from 0).
 When 'Conditional stop' applied, this counter is read and tested for the change.
 Relative position of the counter can be find in
-trigger@alidcscom026:$dbctp/cnames.sorted2
+trigger@alitri:$dbctp/cnames.sorted2
 The name of the counter (as seen in Counters widget) can be entered
 too -its relative position will be displayed in ctp log-window.
 

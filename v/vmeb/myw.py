@@ -450,8 +450,9 @@ class Kanvas(Canvas):
             #print "Kanvas-upper:", cls.linenumber
             #cls.scalentry.lower(self.ovalhelp) #not working
             #cls.scalentry.lower(self.tlw)     #not working
-            self.toliftback.append(cls.scalentry)
-            cls.scalentry.lower(self)         # scalentry disappears
+            pass
+            #ok self.toliftback.append(cls.scalentry)
+            #ok cls.scalentry.lower(self)         # scalentry disappears
     self.tag_raise(thlptxt, self.ovalhelp)
   def ifnegorge(self,value, upperlimit, newifneg, newifge):
     if value<0:return newifneg

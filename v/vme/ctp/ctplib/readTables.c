@@ -23,6 +23,7 @@ int msSelect1(char *fields, char *table, char *whereexp, char *outstr);
 #endif
 
 #define MaxIntItems 9
+int findSwitchInput(int swinput);
 
 /*-------------------------------------------------------copyDetector2Clust()
 */
@@ -271,10 +272,12 @@ for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   validCTPINPUTs[ixtab].level=-2;
   validCTPINPUTs[ixtab].signature=0xffffffff;
   validCTPINPUTs[ixtab].inputnum=-1;  // 0..24 (0..12 for L2)
+  validCTPINPUTs[ixtab].lminputnum=-1;  // 0..12
   validCTPINPUTs[ixtab].dimnum=-1;
   validCTPINPUTs[ixtab].switchn=-1;   // 1..48 for L0, 0: for others
   validCTPINPUTs[ixtab].edge=-1;
   validCTPINPUTs[ixtab].delay=-1;
+  validCTPINPUTs[ixtab].lmdelay=-1;
   validCTPINPUTs[ixtab].deltamin=-1;
   validCTPINPUTs[ixtab].deltamax=-1;
 };
@@ -318,6 +321,58 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
       // level, signature, InpN DimN SwitchN(was Configured) Edge Delays DeltaMin DeltaMax
       // 0      1          2    3    4                       5    6      7        8
       a3[ixx]= str2int(value);
+    } else if(token==tSYMNAME) {
+      // possible M-line or error
+      if(strcmp(value, "M")==0) {
+        int ixtb;
+        a3[0]=3;   // M level, we need to fill a3[2] a3[4]  a3[6]
+        token=nxtoken(line, value, &ix);
+        token=nxtoken(line, value, &ix);   // lminput 1..12
+        if(token==tINTNUM) { 
+          a3[2]= str2int(value);
+          if(a3[2] > 12) {
+            sprintf(em1, "M-line: bad LM input (number 0..12 expected) ");
+            goto ERRctp;
+          };
+        } else {
+          sprintf(em1, "M-line: bad LM input after LM switch (0..12 expected) ");
+          goto ERRctp;
+        };
+        token=nxtoken(line, value, &ix);
+        token=nxtoken(line, value, &ix);   // switch input 1..12
+        if(token==tINTNUM) { 
+          a3[4]= str2int(value);
+          if(a3[4] > 12) {
+            sprintf(em1, "M-line: bad switch input (number 1..12 expected) ");
+            goto ERRctp;
+          };
+        } else {
+          sprintf(em1, "M-line: bad switch input (1..12 expected) ");
+          goto ERRctp;
+        };
+        ixtb= findSwitchInput(a3[4]);
+        if(ixtb<0) {
+          sprintf(em1, "M-line not preceeded by L0 line definition)");
+          goto ERRctp;
+        };
+        token=nxtoken(line, value, &ix);
+        token=nxtoken(line, value, &ix);   // lmdelay 0..7
+        if(token==tINTNUM) { 
+          a3[6]= str2int(value);
+          if(a3[6] > 7) {
+            sprintf(em1, "M-line: bad delay (number 0..7 expected) ");
+            goto ERRctp;
+          };
+        } else {
+          sprintf(em1, "M-line: bad delay (0..7 expected) ");
+          goto ERRctp;
+        };
+        validCTPINPUTs[ixtab].lminputnum= a3[2];
+        validCTPINPUTs[ixtab].lmdelay= a3[6];
+      } else {
+        sprintf(em1, "Incorrect 4th item (0, 1, 2 or M expected)");
+        goto ERRctp;
+      };
     } else {
       if( (ixx==5) || (ixx==6) ) {
         sprintf(emsg, "Missing edge or delay"); prtWarning(emsg);
@@ -326,7 +381,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
         if(token==tMINUS) {
           negv=-1;
           token=nxtoken(line, value, &ix);
-          if(token==tINTNUM) { // level, signature, InpNum Dimnum Configured
+          if(token==tINTNUM) { // level, signature, InpNum Dimnum swin edge del
             a3[ixx]= negv*str2int(value);
           } else {
             sprintf(emsg, "Bad deltamin or deltamax:int expected after - sign"); prtWarning(emsg);
@@ -341,6 +396,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     };
   };
   if( (a3[4]==0) and (a3[2]==0) ) continue;   // not configured
+  if(a3[0]==3) break;   // LM-line processed already
   strcpy(validCTPINPUTs[ixtab].name, inpname);
   validCTPINPUTs[ixtab].detector= detnum;
   validCTPINPUTs[ixtab].level= a3[0];

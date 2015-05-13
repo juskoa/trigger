@@ -73,7 +73,6 @@ if(notInCrate(1)==0) {   // L0 board
   if(l0AB()==0) {   //firm AC or higher
     if(l0C0()) {
       vmew32(L0_VETOr2+bb, veto);
-      vmew32(LM_VETO+bb, 0xffffffff);
     } else {
       vmew32(L0_VETO+bb, veto&0x1fffff); 
       mskbit= veto>>31; vmew32(L0_MASK+bb, mskbit);
@@ -103,6 +102,17 @@ if(notInCrate(3)==0) {
   vmew32(L2_DEFINITION+bb, l2def);
 };
 }
+void setClassInitLM(int klas, w32 lmcondition, w32 lminvert, w32 lmveto) {
+int bb,klasix;
+bb= klas*4; klasix=klas-1;
+if(notInCrate(1)==0) {   // L0 board
+  printf("setClassInitLM:%d:%x %x %x\n", klas, lmcondition,lminvert,lmveto);
+  vmew32(LM_CONDITION+bb, lmcondition);
+  vmew32(LM_INVERT+bb, lminvert);
+  vmew32(LM_VETO+bb, lmveto);
+};
+}
+
 /* init LM/L0 downscaling: */
 void rates2hwInit() {
 int ix;
@@ -167,6 +177,7 @@ for(ix=1; ix<=NCLASS; ix++) {
   //setClassInit(ix, 0x3fffffff, 0x0, 0x11ff0, 0, 0xffffffff, 0x0, 0xf000fff);
   if(l0C0()){
     setClassInit(ix,0xffffffff,0x0,0x009ffff0 | (ix-1)<<24, 0, 0x8fffffff, 0x0, 0xf000fff);
+    setClassInitLM(ix,  0xffffffff, 0, 0x803f00 | ((ix-1)<<24));
   }else {
     setClassInit(ix,0xffffffff,0x0,0x801ffff0, 0, 0x8fffffff, 0x0, 0xf000fff);
   };
@@ -238,26 +249,31 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     infolog_trgboth(LOG_INFO, (char *)"LM+L0 class downscaling initialised to 0");
     lmversion= l0C0();
     if(lmversion) {
-      // init CTP LM0 switch to 1->1, 2->2,..., 24->24
+      // init CTP L0 switch to 1->1, 2->2,..., 24->24
+      //          LM switch to 1->1... 12->12
       int lminp=1; w32 lminpadr;
       lminpadr= SYNCH_ADDr2 + BSP*ctpboards[ix].dial;
       for(lminp=1; lminp<=24; lminp++) {
         w32 val,adr;
         val= lminp<<16;   // positive edge(s), delay(s): 0
+        if(lminp<=12) {
+          w32 lmw;
+          lmw= (lminp<<28); val= val | lmw;
+        };
         adr= lminpadr+ 4*(lminp-1);
         vmew32(adr, val);
       }
-      infolog_trgboth(LOG_INFO, (char *)"L0 switch set to default 1-1...24-24, pos. edge. LM switch:all unconnected");
+      infolog_trgboth(LOG_INFO, (char *)"L0 switch set to 1-1...24-24, pos. edge. LM switch:the same");
       vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
       infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       if(lmversion>=0xc5) {
         vmew32(LM_L0_TIME, 17);
-        infolog_trgboth(LOG_INFO, (char *)"LM0ver:0xc5 LM_L0_TIME:17");
+        infolog_trgboth(LOG_INFO, (char *)"LM0ver:>=0xc5 LM_L0_TIME:17");
       } else {
         vmew32(SEL_SPARE_OUT+0xc, 11);
-        infolog_trgboth(LOG_INFO, (char *)"LM0ver:0xc4 SEL_SPARE[3]) set to 11:0HCO -LM");
+        infolog_trgboth(LOG_INFO, (char *)"LM0ver:<=0xc4 SEL_SPARE[3]) set to 11:0HCO -LM");
       };
       vmew32(SEL_SPARE_OUT+0x8, 45);
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[2]) set to 45:0AMU");

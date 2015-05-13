@@ -71,9 +71,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   vmew32(SERIAL_NUMBER+adshift, 8);
   vmew32(FPGAVERSION_ADD+adshift, ctpboards[ix].lastboardver);
   vmew32(BC_STATUS+adshift, 2);
-#else
-  code= 0xff&vmer32(CODE_ADD+adshift);
 #endif
+  code= 0xff&vmer32(CODE_ADD+adshift);
   /*printf("code:%x adshift:%x\n",code,adshift); fflush(stdout);  */
   if(code==ctpboards[ix].code) {
     vmever= 0xff&vmer32(VERSION_ADD+adshift);
