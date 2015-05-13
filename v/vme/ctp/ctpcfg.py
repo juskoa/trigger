@@ -1223,7 +1223,7 @@ class Klas(Genhw):
   colCluster=('black','brown','red','orange','yellow','green','blue')
   def __init__(self, ctpcfg, number, inputs=0, vetos=0, scaler=0):
     Genhw.__init__(self)
-    self.clnumber=number      # hw. number of the class (1-NCLASS)
+    self.clnumber=number      # hw. number of the class (1..NCLASS)
     self.linenumber= 0        # line number on Canvas (1...) 0-not displayed
     self.ctpcfg=ctpcfg
     self.l0inputs=inputs
@@ -1256,21 +1256,28 @@ class Klas(Genhw):
     self.l0vetos= c5[2]     #16 bits. , 31 bits for lm0
     # bit16:CLassMask,bit0-12->see hw. not for LM0
     self.l0scaler.set(c5[3])
-    #print "readhw:%d: 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0vetos)
+    self.l1definition= c5[4]
+    self.l1inverted= c5[5]
+    self.l2definition= c5[6]
+    if self.clnumber<3:
+      print "readhw:%d: 0x%x 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0inverted, self.l0vetos)
     if len(c5)<=7:   #old format -before L1.L2
       vbexec.printmsg("class%d:: LM definitions missing, taking defaults\n"%self.clnumber)
-      self.lmcondition= 0xfffffff
+      self.lmcondition= 0xffffffff
       self.lminvert= 0
       self.lmveto= 0x803f00 | ((self.clnumber-1)<<24)
       self.lmscaler.set(0)
     else:
-      self.l1definition= c5[4]
-      self.l1inverted= c5[5]
-      self.l2definition= c5[6]
       self.lmcondition= c5[7]
       self.lminvert= c5[8]
       self.lmveto= c5[9]
       self.lmscaler.set(c5[10])
+    # check LM vs L0 BCmasks:
+    if self.clnumber<3:
+      if ((self.l0vetos>>8)&0xfff) != ((self.lmcondition>>20)&0xfff):
+        print "Class:%d L0veto BCmask: 0x%x LM_CONDITION BCmasks:0x%x different"%\
+         (self.clnumber, ((self.l0vetos>>8)&0xfff), ((self.lmcondition>>20)&0xfff))
+
   def writehw(self,cf=None):
     if cf:
       fmt="CLA.%03d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
@@ -1353,7 +1360,7 @@ class Klas(Genhw):
     return htext
   def clusterhandler(self,event, clustern):
     #print "clusterhandler: class# cluster",self.clnumber,clustern,self.linenumber
-    xy= [Klas.l0x0-myw.Kanvas.bitWidth/2,
+    xy= [Ctpconfig.lmx0-myw.Kanvas.bitWidth/2,
          Ctpconfig.l0y0+ myw.Kanvas.bitHeight*self.linenumber]
     #self.clentry= self.ctpcfg.doEntry(xy, self.modCluster)
     self.newclss=[]

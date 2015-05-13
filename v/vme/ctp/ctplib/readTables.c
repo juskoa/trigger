@@ -313,10 +313,12 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   for(ixx=0; ixx<MaxIntItems; ixx++) a3[ixx]=0;
     a3[5]=-1; a3[6]=-1;  // edge, delay not defined
     a3[7]=1000; a3[8]=1000;  // delta min/max not defined
+  // inpname, detname
   for(ixx=0; ixx<MaxIntItems; ixx++) {
     int negv;
     negv=1;
     token=nxtoken(line, value, &ix);
+    //printf("INFO inpname:%s %s :%s:\n", inpname, detname, value);
     if(token==tINTNUM) { 
       // level, signature, InpN DimN SwitchN(was Configured) Edge Delays DeltaMin DeltaMax
       // 0      1          2    3    4                       5    6      7        8
@@ -367,10 +369,11 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
           sprintf(em1, "M-line: bad delay (0..7 expected) ");
           goto ERRctp;
         };
-        validCTPINPUTs[ixtab].lminputnum= a3[2];
-        validCTPINPUTs[ixtab].lmdelay= a3[6];
+        validCTPINPUTs[ixtb].lminputnum= a3[2];
+        validCTPINPUTs[ixtb].lmdelay= a3[6];
+        break;
       } else {
-        sprintf(em1, "Incorrect 4th item (0, 1, 2 or M expected)");
+        sprintf(em1, "Incorrect 4th item (0, 1, 2 or M expected got:%s)",value);
         goto ERRctp;
       };
     } else {
@@ -396,7 +399,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     };
   };
   if( (a3[4]==0) and (a3[2]==0) ) continue;   // not configured
-  if(a3[0]==3) break;   // LM-line processed already
+  if(a3[0]==3) continue;   // LM-line processed just now
   strcpy(validCTPINPUTs[ixtab].name, inpname);
   validCTPINPUTs[ixtab].detector= detnum;
   validCTPINPUTs[ixtab].level= a3[0];
@@ -423,8 +426,17 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   };
   continue;
   ERRctpignore:
-  sprintf(emsg, "ctpinputs.cfg line ignored:%s\n %s",line,em1); 
+  sprintf(emsg, "ERROR ctpinputs.cfg line ignored:%s\n %s",line,em1); 
   prtWarning(emsg);
+};
+printf("INFO readTables LM inputs:\n");
+for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
+  int lmin;
+  lmin=validCTPINPUTs[ixtab].lminputnum;
+  if(lmin > 0) {
+    printf("INFO %d:%s -> %d %d\n", ixtab,validCTPINPUTs[ixtab].name, lmin,
+      validCTPINPUTs[ixtab].lmdelay);
+  };
 };
 goto RTRNctp;
 ERRctp:

@@ -683,7 +683,7 @@ if((what%10)==0) {              // RATE_DATA
   MAXIX=NCLASS;
   clearad= RATE_CLEARADD;
   datad= RATE_DATA;
-else if((what%10)==1) {              // MASK_DATA
+} else if((what%10)==1) {              // MASK_DATA
   if(l0C0()) {
     vmemode= MASK_MODEr2;
   } else {
@@ -873,7 +873,7 @@ for(sync=0; sync<=15; sync++) {
 }
 
 w32 getSDSGr2(int cls) {
-w32 adr, adrlm, rc;
+w32 adr, adrlm; //, rc;
 adr= L0_VETOr2+4*cls;
 adrlm= LM_VETO+4*cls;
 // rc: 0xMM00   MM: LM-SDSCG   00:L0-SDSCG
@@ -892,12 +892,12 @@ clas:
 0:         print L0_SDSCG+4,8,...  ('group' par. has no sense in this case,
            but some number has to be provided). Format: class:SDSCG
            In case L0_SDSCG != LM_SDSCG, both groups are printed in format
-           class:L0_SDSCG:L0_SDSCG           
+           class:LM_SDSCG:L0_SDSCG           
 1,2,3,...: class number of class to be set in group 'group'
-951: set all classes to 'group'
-952: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,99
+951: set all classes to 'group' (LM+L0)
+952: set all classes to init state (no sync downscaling), i.e. 0,1,2,...,49,0,0...
 group: Set class' group to group (meaningfull only for classes 1..100)
-       Should be : 1,2,3,...,NCLASS
+       Should be : 1,2,3,...,50
 LM0: set in 2 places: L0_VETOSr2[30..24] + LM_VETO[30..24]
 */
 void printsetSDSCG(int clas, int group) {
@@ -936,11 +936,15 @@ if(clas==0) {
     };
   };
 } else if(clas==952) {
-  printf("setting SDSCG for all classes to default: 0,1,...,99\n");
+  printf("setting SDSCG for all classes to default: 0,1,...49, 0,0,\n");
   int ixc;
   if(l0C0()) {
     for(ixc=1; ixc<=NCLASS; ixc++) {
-      putSDSGr2(ixc, ixc-1);
+      if(ixc>=51) {
+        putSDSGr2(ixc, ixc-1);
+      } else {
+        putSDSGr2(ixc, 0);
+      };
     };
   } else {
     for(ixc=1; ixc<=NCLASS; ixc++) {
@@ -951,8 +955,8 @@ if(clas==0) {
 } else if(clas>NCLASS) {
   printf("clas: 0..100 allowed\n");
 } else {
-  if((group<0) || (group>99)) {
-    printf("group: 0..100 allowed (0: allowed but should not be used)\n");
+  if((group<0) || (group>49)) {
+    printf("group: 0..49 allowed (0: allowed but should not be used)\n");
   } else {
     w32 adr;
     if(group==0) {
