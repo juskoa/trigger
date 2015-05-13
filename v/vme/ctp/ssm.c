@@ -70,10 +70,12 @@ strcpy(sms[NCTPBOARDS+6].name,"lm0_1");
 strcpy(sms[NCTPBOARDS+7].name,"lm0_2");
 strcpy(sms[NCTPBOARDS+8].name,"lm0_3");
 strcpy(sms[NCTPBOARDS+9].name,"lm0_4");
+strcpy(sms[NCTPBOARDS+10].name,"lm0_5");
 //strcpy(sms[NCTPBOARDS+6].mode,"lm0_ssm1");
 //strcpy(sms[NCTPBOARDS+7].mode,"lm0_ssm2");
 //strcpy(sms[NCTPBOARDS+8].mode,"lm0_ssm3");
 //strcpy(sms[NCTPBOARDS+9].mode,"lm0_ssm4");
+//strcpy(sms[NCTPBOARDS+10].mode,"lm0_ssm5");
 printf("initSSM: The number of boards is %i : \n",NSSMBOARDS);
 for(ix=0; ix<NSSMBOARDS; ix++) printf(" %s",sms[ix].name);printf("\n");
 printf("LTU boards in the crate:\n");
@@ -243,10 +245,13 @@ set sms[].mode
 void setsmssw(int ix, char *newmode) {
 /*printf("setsmssw:%d %s:\n",ix,newmode); */
 if(ix==1){ 
- strcpy(sms[NCTPBOARDS+6+0].mode,"lm0_ssm1");
- strcpy(sms[NCTPBOARDS+6+1].mode,"lm0_ssm2");
- strcpy(sms[NCTPBOARDS+6+2].mode,"lm0_ssm3");
- strcpy(sms[NCTPBOARDS+6+3].mode,"lm0_ssm4");
+ //strcpy(sms[NCTPBOARDS+6+4].mode,"lm0_ssm5");
+ char mode[9];
+ for(int i=0;i<NLM0SSM;i++){
+    sprintf(mode,"lm0_ssm%i",i+1);
+    //printf("%s \n",mode);
+    strcpy(sms[NCTPBOARDS+6+i].mode,mode);
+ }
  //for(int i=0;i<NSSMBOARDS;i++)printf("setsmssw: %s %s \n",sms[i].name,sms[i].mode);
 }else{
  strcpy(sms[ix].mode, newmode);
