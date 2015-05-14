@@ -38,6 +38,7 @@
 #define DBGcumRBIF 0   // cumRBIF()
 #define DBGCLGROUPS 1  // class groups (time slots on/off for class groups)
 #define DBGrbif 0
+#define DBGpriv 1   // offline testing (VMESITE=PRIVATE)
 
 #include "bakery.h"
 /* the following symbol defined only for development:
@@ -119,6 +120,10 @@ typedef struct TKlas{
  char *partname;  // !can be not valid (in load2HW when STOP partition)
  int classgroup;  // index to ClassGroup[]. 0: no classgroup assigned
  int sdg;         // index into SDGS. -1 if not SDG class
+ w32 lmcondition;
+ w32 lminverted;
+ w32 lmvetos;
+ w32 lmscaler;
 }TKlas;
 
 /* old definition (w.r.t. level, never used):

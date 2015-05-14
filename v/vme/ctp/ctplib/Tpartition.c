@@ -475,8 +475,12 @@ void cleanTKlas(TKlas *klas){
 if(klas != NULL){
   klas->l0inputs=0;
   klas->l0inverted=0;
+  klas->lmcondition=0xffffffff;
+  klas->lminverted=0;
   klas->l0vetos=getCLAMASK();// disabale klas by default
+  klas->lmvetos= 0x803f00;
   klas->scaler=0;
+  klas->lmscaler=0;
   klas->l1definition=0;
   klas->l1inverted=0;
   klas->l2definition=0;
@@ -494,7 +498,8 @@ void printTKlas(TKlas *klas,int i){
   printf("0x%x 0x%x ",klas->scaler,klas->l1definition);
   printf("0x%x 0x%x hwcl:%d ",klas->l1inverted,
     klas->l2definition, klas->hwclass);
-  printf("classgroup:%d %s \n",klas->classgroup, klas->partname);
+  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %s \n",klas->classgroup,
+    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->partname);
 }
 /*------------------------------------------------------checkCluV0TKlas()
 */
@@ -676,7 +681,67 @@ if(part->name != NULL){
 printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->run_number);
 }
 }
-/*-------------------------------------------------------------- checmodLM
+int checkmodLM(Tpartition *part){
+#define L0RNDBCMASK 0xf0000000
+int icla, retcode=0;
+for(icla=0;icla<NCLASS;icla++){
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100]; char msg[200];
+  if((klas=part->klas[icla])) {
+    printTKlas(klas,icla);
+  } else {
+    continue;
+  };
+  //else break;   // classes are always allocated 1,2,3,...
+  // the above is not valid after mask is applied !!!
+  cluster= klas->l0vetos & 0x7;
+  clustermask= 1<<(cluster-1);
+  txdets[0]='\0';
+  //printf("dbg_printTpar: clu:%d mask:%d...\n", cluster, clustermask);
+  //for(ixdet=0; ixdet<NDETEC; ixdet++) {
+  ixdet= 4 ; { // TRD ECS#
+    int clsts;
+    //printDetsInCluster(part, cluster);
+    clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+    sprintf(msg, "checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
+    infolog_trg(LOG_INFO, msg);
+    if(clsts & clustermask) {
+      w32 inpmsk; int ixvci;
+      sprintf(txdets, "%s %d", txdets, ixdet);
+      // class feeding TRD:
+      inpmsk= (~(klas->l0inputs & L0RNDBCMASK))>>28;   // e.g: 0xf
+      if(inpmsk) {   // RND/BC used in this class
+        // use LM copy of RND/BC (i.e. effectively allow only 4 generators not 8):
+        // instead of L0 generators:
+        klas->lmcondition= klas->lmcondition & (~(inpmsk<<16));  // use at LM
+        klas->l0inputs= klas->l0inputs | (inpmsk)<<28;   //do not use at L0
+      };
+      for(ixvci=0; ixvci<24; ixvci++) {
+        //if(klas->l0inputs & 0x0fffffff)==0x0fffffff)  {  // no other input
+        w32 actinps;
+        actinps= ~(klas->l0inputs & 0x00ffffff);   // 1: active input, 0: not used
+        if((validCTPINPUTs[ixvci].level==0) &&
+           (validCTPINPUTs[ixvci].switchn!=0) &&
+           (validCTPINPUTs[ixvci].inputnum!=0) && 
+           (validCTPINPUTs[ixvci].lminputnum!=0)) {    // LM input
+          inpmsk= 1<<(validCTPINPUTs[ixvci].inputnum-1);
+          if(inpmsk & actinps) {
+            // L0: leave as it is, LM: set lmcondition
+            klas->lmcondition= klas->lmcondition & (~inpmsk);
+          };
+        };
+      };
+      // todo: check LM functions
+      // finally set LM_DEADTIME and LM_L0_BUSY flags
+      klas->l0vetos= klas->l0vetos & (~0x100000);  // LM-L0 BUSY
+      klas->lmvetos= klas->lmvetos & (~0x100);  // LM deadtime
+      strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
+    };
+  };
+  printf("    fed dets: %s\n", txdets);
+};
+return(retcode);
+}
+/*-------------------------------------------------------------- checmodLM TECHNICAL (old)
 Check if there are classes feeding TRD. Do these modifications for them:
 - check rnd1 bit in L0_CONDITION word for this class
   if ON and 'downscaling 0' and 'no other input definition in this class':
@@ -688,7 +753,7 @@ Check if there are classes feeding TRD. Do these modifications for them:
 Consequence: it is nonsense to start TRD cluster with
 more classes mixing rnd1 usage.
 */
-int checkmodLM(Tpartition *part){
+int checkmodLMold(Tpartition *part){
 #define RND1MASK 0x10000000
 //#define SWIN32MSK (1<<(32-25))
 #define SWIN11MSK (1<<(11-1))
@@ -744,12 +809,8 @@ for(i=0;i<NCLASS;i++){
         };
         if(retcode!=0) return(retcode);
         klas->l0inputs= ninps;
-        /*rndw1= vmer32(RND1_EN_FOR_INPUTS);
-        rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
-        rndw3= rndw2 | (SWIN32MSK);
-        vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
-        printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x \n", 
-          i, ninps, rndw1, rndw2, rndw3); */
+        //printf("checkmodLM:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x \n", 
+        //  i, ninps, rndw1, rndw2, rndw3);
         rndw1= vmer32(RND1_EN_FOR_INPUTS);
         rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
         rndw3= rndw1 | (SWIN11MSK);
@@ -757,20 +818,7 @@ for(i=0;i<NCLASS;i++){
         printf("checkmodLM:%d ctpin:%d l0inputs:0x%x RND1_EN_FOR_INPUTS:0x%x 0x%x->0x%x 0x%x\n", 
           i, ctpin, ninps, rndw1, rndw2, rndw3, rndw2);
         strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
-      };/* else {
-        w32 rndw2, rndw3; */
-        /*rndw2= vmer32(RND1_EN_FOR_INPUTS+4);
-        rndw3= rndw2 & (~(SWIN32MSK));
-        vmew32(RND1_EN_FOR_INPUTS+4, rndw3);
-        printf("checkmodLM off32:%d l0inputs:0x%x RND1_EN_FOR_INPUTS+4: 0x%x->0x%x \n", 
-          i, klas->l0inputs, rndw2, rndw3); */
-        /* bad idea anyhow (other class or class in another partition disconnects RND1!
-        rndw2= vmer32(RND1_EN_FOR_INPUTS);
-        rndw3= rndw2 & (~(SWIN11MSK));
-        vmew32(RND1_EN_FOR_INPUTS, rndw3);
-        printf("checkmodLM off11:%d l0inputs:0x%x RND1_EN_FOR_INPUTS: 0x%x->0x%x \n", 
-          i, klas->l0inputs, rndw2, rndw3);
-      }; */
+      };
     };
   };
   printf("    fed dets: %s\n", txdets);

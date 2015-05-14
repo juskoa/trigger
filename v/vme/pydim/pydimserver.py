@@ -79,6 +79,9 @@ def main():
       copyit=True ; acchost='trigger@altri1'
       strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
+    elif os.environ['VMESITE'] == 'PRIVATE':
+      copyit=True ; acchost='localhost'
+      strict= "strict"
   executable= os.path.join( os.environ['VMECFDIR'],"pydim","linux_s","server")
   #io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
   print "ver: %s Popen %s..."%(VERSION,executable)

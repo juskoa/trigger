@@ -1913,6 +1913,7 @@ if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
 #else
  prtLog("generateXOD; TEST mode: no attempt to generate.");
 #endif
+ if(DBGpriv) {iattempt=0; infolog_trg(LOG_WARNING, "DBGpriv, ignore sw trigger failure"); };
  if(iattempt>=MAX_XOD_ATTEMPTS){
    w32 deadbusys;
    char emsg[ERRMSGL];
@@ -2080,7 +2081,7 @@ return(rc);
 //--------------------------------------------------------------------
 // Initialise
 //w8 *mallocShared(w32 shmkey, int size, int *segid);
-extern char TRD_TECH[];   /* partition name in case it is TRD technical partition
+extern char TRD_TECH[];   /* partition name in case it is TRD partition
                              see checkmodLM() */
 int ctp_Initproxy(){
 int sp,rc; char *environ;
@@ -2460,7 +2461,7 @@ rc: if !=0, errorReason set
 2: pcfg cannot be processed
 3: applyMask problem 
 4: addPartitions() problem
-5: checkmodLM (TRD technical) partition problem
+5: checkmodLM (TRD in) partition problem
 */
 int ctp_InitPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {

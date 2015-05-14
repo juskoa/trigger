@@ -246,9 +246,9 @@ RET: *ix=iline; return(tt);
 &line[0] -start search from here (skip leading ' ' '\t')
 delim    -finish just before this char or '\0', '\n'
 --------------------*/ void getRestLine(char *line, char delim, char *rest) {
-int start,lng=0,iline=0;
+int lng=0,iline=0;
 while( (line[iline] == ' ') || (line[iline] == '\t') ) iline++;
-start=iline;
+//start=iline;
 while(1) {
   if(line[iline]=='\0') break;
   if(line[iline]=='\n') break;

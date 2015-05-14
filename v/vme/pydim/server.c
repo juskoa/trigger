@@ -264,6 +264,9 @@ printf("INFO CNAMES update for %d clients\n", nclients);
 int check_xcounters() {
 int ix, xrc; char xpid[20]="";
 char emsg[ERRMSGL];
+char *environ;
+environ= getenv("VMESITE"); 
+if(strcmp(environ,"PRIVATE")==0) return(0);
 // check xcountersdaq active:
 xrc= popenread((char *)"ps --no-headers -C xcountersdaq -o pid=", xpid, 20);
 for(ix=0; ix< (int)strlen(xpid); ix++) {

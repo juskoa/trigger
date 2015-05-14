@@ -28,7 +28,7 @@ else
 endif
 endif
 $(GOALS):
-#	@echo lib_stuff.make: $@ mcmdg:$(MAKECMDGOALS) making:$(ODIR) pwd:`pwd`
+	@echo lib_stuff.make: $@ mcmdg:$(MAKECMDGOALS) making:$(ODIR) pwd:`pwd`
 	@mkdir -p $(ODIR)
 	@sleep 1
 	@cd $(ODIR) && $(MAKE) -f ../make_new $@
@@ -37,7 +37,7 @@ ifdef MAKE_CLIENT_DIR
  ifdef CLIENT_HOST
 	ssh $(CLIENT_HOST) $(MAKE_CLIENT_CMD)         # trigger or run1
  else
-	@echo 'no ssh (client/server: zenaj)...'
+	@echo "no ssh client=server:" $(HOSTNAME) 
 	sh -c $(MAKE_CLIENT_CMD) 
  endif
 endif
