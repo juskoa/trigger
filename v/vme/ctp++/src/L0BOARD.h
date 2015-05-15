@@ -15,6 +15,11 @@ class L0BOARD: public BOARD
 	virtual void setClassVetoes(w32 index,w32 cluster)=0;
 	virtual void setBC1(w32 T)=0;
 	virtual void setBC2(w32 T)=0;
+	virtual void setTCSET(w32 w){error();};
+	virtual void setTCCLEAR(){error();};
+	virtual w32 getTCSTATUS(){error(); return 1;};
+	virtual w32 getL0rqst(){error(); return 1;};
+	virtual w32 getl0ackn(){error(); return 1;};
 	virtual w32 getBC1()=0;
 	virtual w32 getBC2()=0;
         virtual void readBCMASKS()=0;
@@ -22,6 +27,10 @@ class L0BOARD: public BOARD
 	virtual void printClasses()=0;
 	int CheckCountersNoTriggers();
 	virtual void configL0classesonly(){error();};
+        virtual void printClassConfiguration(){error();};
+        virtual void convertL02LMClassAll(){error();};
+        virtual void readHWClasses(){error();};
+        virtual void writeHWClasses(){error();};
 	enum{CL0TIME=15,CL0CLSB=19,CL0STR=171,CL0CLSA=187,CL0CLST=289};
         // SSM
         virtual int AnalSSM();

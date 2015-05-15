@@ -1,12 +1,17 @@
 #include "CTP.h"
 #include <cmath>
-int main()
+int main(int argc, char* argv[]) 
 {
+ printf("# fo args: %i \n",argc);
+ for(int i=0;i<argc;i++) printf("%i  %s \n",i,argv[i]);
+ int iwhat=256;
+ if(argc==2)iwhat=atoi(argv[1]);
  // lm level test 
  CTP *ctp=new CTP;
  L0BOARD* l0=ctp->l0;
  L1BOARD* l1=ctp->l1;
- switch(1){
+ L2BOARD* l2=ctp->l2;
+ switch(iwhat){
  case 0:
     // prepare l1
     //l1->StopSSM();
@@ -30,7 +35,7 @@ int main()
     //l1->StopSSM();
     //l1->ReadSSM();
     return 0;
- case (1):
+ case 1:
     // bcmask tests
     w32 pat[3564];
     for(int i=0;i<3564;i++){
@@ -44,7 +49,8 @@ int main()
     //printf("BC1: %i \n",l0->getBC1());
     printf("bcmasks written \n");
     return 0;
- case(2):
+ case 2:
+    {
     // ssm tests
     l0->ddr3_reset();
     l0->ddr3_status();
@@ -54,6 +60,27 @@ int main()
     string ssm("test1");
     //l0->DumpSSM(ssm.c_str(),2);
     l0->DumpSSM(ssm.c_str(),1);
+    return 0;
+    }
+  case 3:
+    l0->readHWClasses();
+    l0->printClassConfiguration();
+    l0->convertL02LMClassAll();
+    l0->writeHWClasses();
+    l0->readHWClasses();
+    l0->printClassConfiguration();
+    return 0; 
+  case 4:
+    ctp->setSWtrigger('s',0xff,7,1);
+    ctp->startSWtrigger('s',1);
+    //ctp->clearSWTriggerFlags();
+    return 0;
+  default:
+    printf("0 = read counters,ssm; dump ssm\n");
+    printf("1 = write bcmasks \n");
+    printf("2 = simple ssm read and dump\n");
+    printf("3 = convert didier config to LM level\n");
+    printf("4 = software trigger\n");
     return 0;
  }
 }

@@ -6,6 +6,7 @@ class FOBOARD: public BOARD
  public:
 	FOBOARD(w32 basehex,int vsp);
 	FOBOARD(w32 basehex,int vsp,string const name);
+	void setTESTCLUSTER(w32 w){vmew(TEST_CLUSTER,w);};
 	int CheckCountersNoTriggers();
 	// FO counters start at 900
 	enum{CTIME=0};
@@ -16,5 +17,7 @@ class FOBOARD: public BOARD
 	int AnalSSMinmonl0();
  private:
 	void SetFile(string const &modename); 
+	// vme words
+	w32 const TEST_CLUSTER;
 };
 #endif

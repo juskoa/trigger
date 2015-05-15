@@ -2,7 +2,8 @@
 L1BOARD::L1BOARD(int vsp)
 :
 	BOARD("l1",0x82a000,vsp,4),
-	L1CONDITION(0x400),
+	TCSET(0x400),TCSTATUS(0x1c0),TCCLEAR(0x1c8),
+	L1DEFINITION(0x400),
 	L1INVERT(0x600),
 	L1DELAYL0(0x4cc)
 {
@@ -53,7 +54,7 @@ void L1BOARD::printClasses()
 {
  printf("CTP classes from hardware:\n");
  for(w32 i=0; i<kNClasses; i++){
-    w32 word=vmer(L1CONDITION+4*(i+1));
+    w32 word=vmer(L1DEFINITION+4*(i+1));
     printf("0x%x ",word);
     if((i+1)%10 == 0)printf("\n");
  }
