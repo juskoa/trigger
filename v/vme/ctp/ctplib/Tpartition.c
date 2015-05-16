@@ -334,6 +334,10 @@ void copyTKlas(TKlas *toklas,TKlas *fromklas){
  toklas->classgroup=fromklas->classgroup;
  toklas->hwclass=fromklas->hwclass;
  toklas->partname=fromklas->partname;
+ toklas->lmcondition=fromklas->lmcondition;
+ toklas->lminverted=fromklas->lminverted;
+ toklas->lmvetos=fromklas->lmvetos;
+ toklas->lmscaler=fromklas->lmscaler;
 }
 /*---------------------------------------------------- findHWCluster()
 Input: part, pcluster:1-6.
@@ -467,23 +471,27 @@ toklas->l2definition= l2def;
 }
 /*---------------------------------------- getCLAMASK() */
 w32 getCLAMASK() {
-if(l0C0()) { return(0x800000); } else {return(0x80000000);};
+if(l0C0()) { 
+  //return(0x800000);
+  //return(0x800000);
+  return(0x9ffff0);
+} else {return(0x80000000);};
 }
 /*----------------------------------------------------------cleanTKlas()
 */
 void cleanTKlas(TKlas *klas){
 if(klas != NULL){
-  klas->l0inputs=0;
+  klas->l0inputs=0xffffffff;   //0;
   klas->l0inverted=0;
   klas->lmcondition=0xffffffff;
   klas->lminverted=0;
-  klas->l0vetos=getCLAMASK();// disabale klas by default
-  klas->lmvetos= 0x803f00;
+  klas->l0vetos=getCLAMASK();// disable klas by default
+  klas->lmvetos= 0x803f00; //class mask, PF1..4, all, LM deadtime
   klas->scaler=0;
   klas->lmscaler=0;
-  klas->l1definition=0;
+  klas->l1definition=0x8fffffff; //0;
   klas->l1inverted=0;
-  klas->l2definition=0;
+  klas->l2definition=0x0f000fff;  //0;
   klas->hwclass=0;
   klas->classgroup=0;   // always IN
   klas->partname=NULL;
@@ -725,15 +733,24 @@ for(icla=0;icla<NCLASS;icla++){
            (validCTPINPUTs[ixvci].lminputnum!=0)) {    // LM input
           inpmsk= 1<<(validCTPINPUTs[ixvci].inputnum-1);
           if(inpmsk & actinps) {
-            // L0: leave as it is, LM: set lmcondition
+            // L0: do not use it (although should not matter), LM: set lmcondition
+            klas->l0inputs= klas->l0inputs | inpmsk;
             klas->lmcondition= klas->lmcondition & (~inpmsk);
           };
         };
       };
       // todo: check LM functions
-      // finally set LM_DEADTIME and LM_L0_BUSY flags
-      klas->l0vetos= klas->l0vetos & (~0x100000);  // LM-L0 BUSY
-      klas->lmvetos= klas->lmvetos & (~0x100);  // LM deadtime
+      // pure LM-function: use it only on LM level (i.e. remove from L0)
+      //      problem: how/where to find out if pure?
+      //      L0-fun (or mixed inputs): leave as it is (only on L0 level)
+      //
+      // copy L0-allrare flag (bit20) to LM_VETO (bit9):
+      inpmsk= ((klas->l0vetos & 0x100000) >> 20) << 9;
+      klas->lmvetos= (klas->lmvetos & (~0x200)) | inpmsk;
+      // finally set LM_DEADTIME for LM class:
+      klas->lmvetos= klas->lmvetos & (~0x800100);  // LM clmask+deadtime
+      // LM-L0 BUSY flag for LM class to 1  (init to 0 (for L0-classes) in cleanTKlas).
+      klas->l0vetos= klas->l0vetos | 0x200000;  // LM-L0 BUSY
       strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
     };
   };
@@ -1556,6 +1573,11 @@ for(isp=0;isp<MNPART;isp++){
  vmew32(getLM0addr(RANDOM_2), rbif->rbif[ixrnd2]);
  vmew32(getLM0addr(SCALED_1), rbif->rbif[ixbc1]);
  vmew32(getLM0addr(SCALED_2), rbif->rbif[ixbc2]);
+ printf("loadHW: 4 L0 gens -> 4 LM gens...\n");
+ vmew32(LM_RANDOM_1, rbif->rbif[ixrnd1]);
+ vmew32(LM_RANDOM_2, rbif->rbif[ixrnd2]);
+ vmew32(LM_SCALED_1, rbif->rbif[ixbc1]);
+ vmew32(LM_SCALED_2, rbif->rbif[ixbc2]);
  vmew32(getLM0addr(L0_FUNCTION1), rbif->rbif[ixl0fun1]);
  vmew32(getLM0addr(L0_FUNCTION2), rbif->rbif[ixl0fun2]);
 //------------------------------------------- L0f34 + BCmasks
@@ -1627,7 +1649,22 @@ for(i=0;i<NCLASS;i++){
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
   if(l0AB()==0) {   //firmAC or >C0
     if(l0C0()) {
+      w32 lmm, l0m, lmcond, l0vets;
+      l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
       vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
+      lmcond= klas->lmcondition;
+      l0m= (klas->l0vetos & 0xfff00)>>8;
+      lmm= (klas->lmcondition & 0xfff00000) >> 20;
+      if(l0m != lmm) {
+        lmcond= lmcond & 0x000fffff;
+        lmcond= lmcond | (l0m<<20);
+        printf("load2HW: cl:%d BCm lmcond:0x%x corrected to l0veto:0x%x \n", i+1,lmm, l0m);
+      };
+      vmew32(LM_CONDITION+bb, lmcond);
+      vmew32(LM_INVERT+bb,klas->lminverted);
+      vmew32(LM_VETO+bb,klas->lmvetos);
+      printf("load2HW: l0c+v: 0x%x 0x%x lmc+v: 0x%x 0x%x\n",
+        klas->l0inputs, l0vets, lmcond, klas->lmvetos);
     } else {
       vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
     };
@@ -1655,7 +1692,7 @@ for(i=0;i<NCLASS;i++){
     };
   };
 };
-printf("loadHW:skipped:%s\n", skipped);
+if(skipped[0]!='\0') printf("loadHW:skipped classes:%s\n", skipped);
 if(l0C0()==0) {
 for(i=0;i<NCLASS;i++){
   vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
@@ -1673,6 +1710,16 @@ for(i=0;i<NCLASS;i++){
    vmew32(RATE_DATA, (hw->klas[i]->scaler & rate_mask));
  };
  vmew32(getRATE_MODE(),0);   /* normal mode */
+ //--------------------------------------------- LM downscalers
+ vmew32(LM_RATE_MODE,1);   /* vme mode */
+ vmew32(LM_RATE_CLEARADD,DUMMYVAL);
+ for(i=0; i<NCLASS; i++) {
+   /* 23.6.2014: no reason to set 0..49 in bits 30..25,
+      although see note in ctp.h at RATE_MASK). From now, put 0 above bit 25
+   vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK)); */
+   vmew32(LM_RATE_DATA, (hw->klas[i]->lmscaler & rate_mask));
+ };
+ vmew32(LM_RATE_MODE,0);   /* normal mode */
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {

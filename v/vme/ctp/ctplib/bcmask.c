@@ -83,19 +83,6 @@ vmew32(MASK_CLEARADD,DUMMYVAL);
 for(ix=0; ix<ORBITLENGTH; ix++) {
   w32 val; w16 c;
   c=bcmasks[ix]; val=c;
-  /*von
-  if((c>='a') && (c<='f')) val= c - 'a' +10; else val= c-'0';
-  if(l0AB()==0) {
-    if((ix%3)==0) {val3= val;
-    } else if((ix%3)==1) {val3= (val3<<4) | val;
-    } else if((ix%3)==2) {val3= (val3<<4) | val; 
-      vmew32(MASK_DATA,val3);
-    };
-  } else {
-    //  if(ix<80) printf("%x",val);
-    vmew32(MASK_DATA,val);
-    //  printf("%x",vmer32(MASK_DATA)&0xf);
-  };*/
   vmew32(MASK_DATA,val);
 };
 vmew32(getMASK_MODE(),0);   /* normal mode */

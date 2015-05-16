@@ -13,7 +13,7 @@
 
 int inplm=-1;   // -1: not connected 1..24: l0inp number of 0HCO input
 int inplm_swn;   // -1: not connected 1..24: l0inp number of 0HCO input
-extern char TRD_TECH[];   // partition name in case it is TRD technical partition
+/*extern char TRD_TECH[];   // partition name in case it is TRD technical partition */
 
 //ctplib.h:
 int l0AB();
@@ -1227,6 +1227,7 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   }
   //
   indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  /*
   if(strcmp(TRD_TECH, partit->name)==0) { // LM correction for techn. run:
     int newindets;
     // actually, 0HCO is used with RND generator, i.e. we
@@ -1236,6 +1237,7 @@ for(iclass=0; iclass<NCLASS; iclass++) {
       TRD_TECH, indets, newindets);
     indets= newindets;
   };
+  */
   l0finputs= l0finputs|l0finputs1;
   // l0finputs will be usd later when ctp_alignment called
   if(indets<0) rcdaqlog=2;   

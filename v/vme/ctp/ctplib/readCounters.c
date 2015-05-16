@@ -43,10 +43,10 @@ int cix, memshift, b123, bb, NCNTS;
 w32 copyread;
 w32 *bufp;
 int countsread=0;
-if(NCOUNTERS>NCNTStbr) {
+/*if(NCOUNTERS>NCNTStbr) {
   printf("ERROR: readCounters a buffer at %d words, only %d available.\n", 
     NCOUNTERS,NCNTStbr); return; 
-};
+}; */
 //printBakery(&ctpshmbase->ccread);
 lockBakery(&ctpshmbase->ccread, customer);
 //printBakery(&ctpshmbase->ccread);
@@ -82,7 +82,9 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
       } else {
         dif= (0xffffffff - prev) + cur +1;
       };
-      mem[cixc]= dif;
+      if(cixc < NCNTStbr) {
+        mem[cixc]= dif;
+      };
     };
   } else {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
@@ -92,7 +94,11 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
       } else {
         cixc= cix;
       };
-      mem[cixc]= vmer32(copyread);
+      if(cixc < NCNTStbr) {
+        mem[cixc]= vmer32(copyread);
+      } else {
+        printf("readCounters: attempt to write too far (%d)...\n", cixc);
+      };
       //countsread++; if(countsread>NCNTStbr) break;
     };
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */

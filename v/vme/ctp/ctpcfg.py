@@ -2,7 +2,7 @@
 """
 22.11. -write2hw only modified ctp config. values
 2 phases:
-1.  Classes Klas,PFboard,PFcircuit,Fanout, Attr (Attr2, AttrLUT)
+1.  ClassesKlas,PFboard,PFcircuit,Fanout, Attr (Attr2, AttrLUT)
 have variable 'writeme' and corresponding methods (dedicated from
 class Genhw). Their methods readhw/writehw update writeme
 variable automatically:
@@ -80,6 +80,11 @@ def CopyBit2(iword, ibit, oword, obit):
     datao= oword & (~(1<<obit))   # 0
   print "CopyBit2: 0x%x[%d] -> 0x%x[%d] = 0x%x"%(iword, ibit, oword, obit, datao)
   return datao
+def CopyBits(iword, oword, mask, ishift, oshift):
+  bits= (iword & (mask<<ishift))>>ishift    # copied bits on right
+  oword= oword & (~(mask<<oshift))    # 0s in bits where copied bits are coming
+  bits= bits << oshift
+  return oword | bits
 
 vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
@@ -753,7 +758,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       print "Error readShared:",shr
     for ishr in range(len(shr)-1):   #0..11
       v=shr[reshuf[ishr]]
-      print "readShared:",ishr, self.sharedrs[ishr].atrname, v
+      #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
       self.sharedrs[ishr].setattrfo(eval(v), 1)
       #self.sharedrs[ishr].hwwritten(1)
     if (Gl0AB==None) and (Gl0C0==None):   #firmAC and not lm0
@@ -1183,7 +1188,7 @@ class Klas(Genhw):
     else:
       #iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
       iinvetos= range(4,22)+[23]   # bit numbers in self.vetos
-      iinlmvetos= range(8,14)+[23]   # bit numbers in self.lmveto 
+      iinlmvetos= range(8,14)+[23]   # bit numbers in self.lmvetos 
       lmClassMaskBit= 23
       l0ClassMaskBit= 23
       l0ClassMaskBitcabi=18
@@ -1259,32 +1264,36 @@ class Klas(Genhw):
     self.l1definition= c5[4]
     self.l1inverted= c5[5]
     self.l2definition= c5[6]
-    if self.clnumber<3:
-      print "readhw:%d: 0x%x 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0inverted, self.l0vetos)
     if len(c5)<=7:   #old format -before L1.L2
       vbexec.printmsg("class%d:: LM definitions missing, taking defaults\n"%self.clnumber)
       self.lmcondition= 0xffffffff
       self.lminvert= 0
-      self.lmveto= 0x803f00 | ((self.clnumber-1)<<24)
+      self.lmvetos= 0x803f00 | ((self.clnumber-1)<<24)
       self.lmscaler.set(0)
     else:
       self.lmcondition= c5[7]
       self.lminvert= c5[8]
-      self.lmveto= c5[9]
+      self.lmvetos= c5[9]
       self.lmscaler.set(c5[10])
+    if self.clnumber==1:
+      print "   class: %10s %10s %10s %10s %10s %10s"%("l0inputs", "l0inverted", "l0vetos",
+        "lmcond", "lminvert", "l0veto")
+    if self.clnumber<=3:
+      print "readhw:%2d: 0x%8.8x 0x%8.8x 0x%8.8x 0x%8.8x 0x%8.8x 0x%8.8x"%(self.clnumber, \
+        self.l0inputs, self.l0inverted, self.l0vetos,
+        self.lmcondition, self.lminvert, self.l0vetos)
     # check LM vs L0 BCmasks:
-    if self.clnumber<3:
-      if ((self.l0vetos>>8)&0xfff) != ((self.lmcondition>>20)&0xfff):
-        print "Class:%d L0veto BCmask: 0x%x LM_CONDITION BCmasks:0x%x different"%\
-         (self.clnumber, ((self.l0vetos>>8)&0xfff), ((self.lmcondition>>20)&0xfff))
-
+    if ((self.l0vetos>>8)&0xfff) != ((self.lmcondition>>20)&0xfff):
+      self.lmcondition= CopyBits(self.l0vetos, self.lmcondition,0xfff, 8, 20)
+      print "Repaired L0->LM for class:%d L0vetos: 0x%8.8x LM_CONDITION:0x%8.8x"%\
+        (self.clnumber, self.l0vetos, self.lmcondition)
   def writehw(self,cf=None):
     if cf:
       fmt="CLA.%03d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
       cmdout= cf.write
       cmd=fmt%(self.clnumber, self.l0inputs,self.l0inverted, 
         self.l0vetos,self.l0scaler.scaler,self.l1definition,self.l1inverted,
-        self.l2definition, self.lmcondition, self.lminvert, self.lmveto, self.lmscaler.scaler)
+        self.l2definition, self.lmcondition, self.lminvert, self.lmvetos, self.lmscaler.scaler)
       cmdout(cmd)
     else:
       fmt="setClass(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
@@ -1294,7 +1303,7 @@ class Klas(Genhw):
         self.l2definition)
       vbexec.get2(cmd)
       cmd="setClassLM(%d,0x%x,0x%x,0x%x,0x%x)"%\
-        (self.clnumber, self.lmcondition, self.lminvert, self.lmveto, self.lmscaler.scaler)
+        (self.clnumber, self.lmcondition, self.lminvert, self.lmvetos, self.lmscaler.scaler)
       vbexec.get2(cmd)
       self.hwwritten(1)
   def doClass(self):
@@ -1604,7 +1613,7 @@ green:0 -killed if AllRare is Rare"""
   def refreshVetobit(self, ibit):
     vetobit= self.canv2hwveto(ibit) 
     if ibit>=300:
-      vetoword= self.lmveto
+      vetoword= self.lmvetos
     elif ibit>=200:
       vetoword= self.l2definition
     elif ibit>=100:
@@ -1641,12 +1650,12 @@ green:0 -killed if AllRare is Rare"""
     if canvbit>=300:
       # when choosing LM class mask (->0), automatically choose also L0 class mask
       if hwbit== Klas.lmClassMaskBit: 
-        if (self.lmveto & (1<<Klas.lmClassMaskBit))== (1<<Klas.lmClassMaskBit):
+        if (self.lmvetos & (1<<Klas.lmClassMaskBit))== (1<<Klas.lmClassMaskBit):
           # changing 1->0
           self.l0vetos= self.l0vetos & ~(1<< Klas.l0ClassMaskBit)
           self.refreshVetobit(Klas.l0ClassMaskBitcabi)
           print "L0 class mask forced to 0"
-      self.lmveto=InvertBit(self.lmveto, hwbit )
+      self.lmvetos=InvertBit(self.lmvetos, hwbit )
     elif canvbit>=200:
       self.l2definition=InvertBit(self.l2definition, hwbit )
     elif canvbit>=100:
@@ -1655,7 +1664,7 @@ green:0 -killed if AllRare is Rare"""
       self.l0vetos= InvertBit(self.l0vetos, hwbit )
       if canvbit==Klas.AR_cabi:
         # L0 All/rare changed, copy it to LM all/rare:
-        self.lmveto= CopyBit2(self.l0vetos, Klas.l0allrareBit, self.lmveto, Klas.lmallrareBit)
+        self.lmvetos= CopyBit2(self.l0vetos, Klas.l0allrareBit, self.lmvetos, Klas.lmallrareBit)
         self.refreshVetobit(Klas.AR_cabilm)
         print "An All/rare bit change done also at LM level"
       if hwbit in Klas.rangel0BCMaskBits: 

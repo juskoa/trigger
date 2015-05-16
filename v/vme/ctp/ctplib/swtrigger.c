@@ -74,6 +74,7 @@ void clearflags(){
  vmew32(L2_TCCLEAR,0x0);
 }
 char TRIGTYPE;
+int LMSTART=0;   // 0: L0 start   1:LM start
 /*FGROUP DebCon---------------------------------------------------setswtrig
  This routine should be called to set trigger 
  before the repetitive call of startswtrig().
@@ -99,6 +100,7 @@ Inputs:
             - L2 board
             - BUSY board 
             - FO boards
+            - for decision if trigger starts from LM level (i.e. TRD in)
 Operation:
 ----------
 Set:
@@ -114,14 +116,15 @@ RC: 0: if successfully set
 */
 int setswtrig(char trigtype, int roc, w32 BC, w32 ctprodets){
 w32 daqonoff, word, INTtcset, busyclusterT, overlap, bsysc[NCLUST+1];
-int i, idet, ifo, iconnector;
+int rc=0, i, idet, ifo, iconnector;
 w32 testclust[NFO],rocs[NFO];
-
+#define TRDECSM 0x10
 if( (((BC>3563) && (BC!=0xfff)) && (trigtype !='a')) 
   ){
   printf("Error: setswtrig: BC>3563 %i \n",BC);
-  return 1;
+  rc=1; goto RET;
 };
+if(ctprodets & TRDECSM) { LMSTART=1; } else { LMSTART=0;};
 INTtcset= roc<<1;   // INT board
 // L0 board   p/f, masks off
 //     P/F      BCM4   BCM3    BCM2    BCM1
@@ -149,11 +152,16 @@ switch(trigtype){
     //printf("setswtrig: calib trigger 0x%x \n",word);
     break;
   default:
-       printf("Error: setswtrig: unknown type of trigger %c \n",trigtype);
-       return 1;
+    printf("Error: setswtrig: unknown type of trigger %c \n",trigtype);
+    rc=1; goto RET;
 }; TRIGTYPE= trigtype;
 // L0 board -p/f prot. off
-if(l0C0()) { vmew32(L0_TCSETr2,word); } else { vmew32(L0_TCSET,word); };
+if(l0C0()) { 
+  if(LMSTART != 0) word= word | 0x80000;
+  vmew32(L0_TCSETr2,word); 
+} else { 
+  vmew32(L0_TCSET,word); 
+};
 word=(1<<18);
 vmew32(L1_TCSET,word);        // L1 board p/f prot. off
 word=(1<<24)+ctprodets;
@@ -212,7 +220,8 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
     vmew32(vmeaddr, rocs[ifo] | testclust[ifo]);
   }
 };
-return 0;
+RET:
+return(rc);
 }
 void vmew32f(w32 adr, w32 data) {
 printf("vmew32f:%8x = %x\n", adr, data);
@@ -220,6 +229,9 @@ printf("vmew32f:%8x = %x\n", adr, data);
 
 /*---------------------------------------------------------getlxackn
 */
+w32 getlMackn(){
+return (vmer32(L0_TCSTATUS)&0x80)/0x80;
+}
 w32 getl0ackn(){
 return (vmer32(L0_TCSTATUS)&0x8)/0x8;
 /*w32 rc;
@@ -245,6 +257,9 @@ if(l0C0()) {
  rc= vmer32(L0_TCSTATUS)&0x2)/0x2;
 }; return(rc); */
 }
+w32 getLMrqst(){
+return (vmer32(L0_TCSTATUS)&0x40)/0x40;
+}
 w32 getL0rqst(){
 return (vmer32(L0_TCSTATUS)&0x4)/0x4;
 /* w32 rc;
@@ -269,6 +284,8 @@ Operation:
           6 = L0 timeout
           7 = L2a/r timeout (>120micsec)
           8 = bad request (neither of: c s a)
+          9 = LM request timeout
+         10 = killed at LM
 */
 char reason[9][40]={"Fail", "killed at L0", "killed at L1", "L2r", "OK",
   "PP timeout", "L0 timeout", "L2a/r timeout","bad TRIGTYPE (!= c s a)"};
@@ -287,26 +304,28 @@ if(TRIGTYPE == 'c'){ i=0;
 if(TRIGTYPE == 's' || TRIGTYPE == 'c'){
   usleep(180);   // for SYNC we should wait for sure 2 orbits
   //usleep(380); printf("startswtrig:380us\n");
-  i=0;
-  while(getL0rqst() && i<TIMEOUT)i++;
-  if(i>=TIMEOUT){
-    ret=6; goto RETERR;
-  } 
-} else if( TRIGTYPE != 'a'){
-  ret=8; goto RETERR;
+} else {
+  if( TRIGTYPE != 'a'){ ret=8; goto RETERR; };
 };
-ret=3;
+if(LMSTART!=0) {
+  i=0; while(getLMrqst() && i<TIMEOUT)i++;
+  if(i>=TIMEOUT){ ret=9; goto RETERR; };
+  i=0; while(!getlMackn() && (i<TIMEOUT))i++;
+  if(i>=TIMEOUT){ 
+    w32 l0status;
+    l0status=vmer32(L0_TCSTATUS);
+    ret=10; goto RETERR;
+  };
+};
+i=0; while(getL0rqst() && i<TIMEOUT)i++;
+if(i>=TIMEOUT){ ret=6; goto RETERR; };
  //time[itime++]=CountTime();
  //printf("l0ackn: %i \n",getl0ackn());
 i=0; while(!getl0ackn() && (i<TIMEOUT))i++;
  //time[itime++]=CountTime();
 if(i>=TIMEOUT){
   w32 l0status;
-  if(l0C0()) {
-    l0status=vmer32(L0_TCSTATUS);
-  } else {
-    l0status=vmer32(L0_TCSTATUS);
-  };
+  l0status=vmer32(L0_TCSTATUS);
   //printf("startswtrig: L0 TC_STATUS:0x%x\n", l0status);
   ret= 1; goto RETERR;
 };
@@ -318,8 +337,7 @@ if(i>=TIMEOUT){
   ret= 2; goto RETERR;
 };
  //usleep(120);
-flag=getl2ackn();
-i=0;
+flag=getl2ackn(); i=0;
  //while((flag != 8) && (flag != 4) && i<TIMEOUT){
 while(((flag&0xc) == 0) && i<TIMEOUT) {   //wait L2a/L2r ACK
   flag=getl2ackn();

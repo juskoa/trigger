@@ -38,7 +38,7 @@
 #define DBGcumRBIF 0   // cumRBIF()
 #define DBGCLGROUPS 1  // class groups (time slots on/off for class groups)
 #define DBGrbif 0
-#define DBGpriv 1   // offline testing (VMESITE=PRIVATE)
+#define DBGpriv 0   // offline testing (VMESITE=PRIVATE)
 
 #include "bakery.h"
 /* the following symbol defined only for development:

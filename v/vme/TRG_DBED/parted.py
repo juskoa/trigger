@@ -1220,7 +1220,7 @@ class TrgClass:
     self.bcms=[0,0,0,0,0,0,0,0,0,0,0,0]
     self.optinps=[0,0,0,0]   # rnd1, rnd2, bc1, bc2
     self.pfs=[0,0,0,0]   # [0,1,0,0]: TrgSHR[PFS_START+1].getDefinition()
-    self.allrare=1   # 0-> rare   1-> all
+    self.allrare=0   # 0-> rare   1-> all
     self.classgroup=0   # 0..9    0: class is always active 9: never active?
     # 1..9: class is active only in certain time slot (1..9)
     #for k,vv in pars.iteritems():
@@ -1455,10 +1455,11 @@ class TrgClass:
     bcrnd= self.getTXTbcrnd(text='saving')
     bcms= self.getTXTbcms()
     if self.allrare==1:                       # all/rare
-      #allrare='all,'
-      allrare=''
+      allrare='all,'
+      #allrare=''
     else:
-      allrare='rare,'
+      #allrare='rare,'
+      allrare=''
     if self.L0pr=='0':
       l0pr=''
     else:

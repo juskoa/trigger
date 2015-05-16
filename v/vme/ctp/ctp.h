@@ -256,9 +256,14 @@ For LM0 only first 4 modes possible (20.11.2014)
 #define L0_TCSTATUS    0x91c0   /*R/O: bits:
 0: Test Class Cluster BUSY flag
 1: Test Class PP Request flag
-2: Test Class L0 Request flag
-3: Test Class L0 Acknowledge flag
-4: Test Class BUSY flag: goes ON with L0_TCSTART
+2: Test Class L0 Request flag                      0x4
+3: Test Class L0 Acknowledge flag                  0x8
+4: Test Class BUSY flag: goes ON with L0_TCSTART   0x10
+
+5: LM PP Request   0x20
+6: LM Request      0x40
+7: LM ACK          0x80
+8: LM BUSY
  */
 #define L0_TCSTART     0x91c4   /*dummy wr. */
 #define L0_TCCLEAR     0x91c8   /*dummy wr. */
@@ -328,7 +333,9 @@ of any 1..48 inputs. Should be programmed with number 1..48.
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
                                    11..0: BCnumber (valid for Synch. trigger)*/
 #define L0_TCSETr2     0x93fc
-
+/* like L0_TCSET +
+19:  0: L0 test cluster    1: LM test cluster
+*/
 #define L0_CONDITION   0x9400    /* +4*n n=1,2,...,100
 bits    newMeaning (>=AC, +LM0)      meaning before AC
 ----    ----------                   --------------
@@ -475,7 +482,7 @@ LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_V
 /* bits:
 30..28   Cluster code
 27..24 Select P/F[4..1] protection veto
-23..12 Invert L1 trigger input (0: original polarity, 1: inverted)
+23..12 Invert L2 trigger input (0: original polarity, 1: inverted)
 11.. 0 Select L2 trigger input
 */
 #define L2_ORBIT_READ  0xb140    /* synced with INT */
