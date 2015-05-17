@@ -299,6 +299,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define LM_RATE_MODE     0x9268  /*     RATE_MODElm0 */
 #define LM_RATE_DATA     0x926c  /*     RATE_DATA    */
 #define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
+#define LM_FUNCTION1 0x9274  /* FN2:278 FUN3:27c FUN4:280 */
 
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
 Read request:

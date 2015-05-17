@@ -65,7 +65,7 @@ typedef struct Tinput{
          0: not switchinput (i.e. L1/2 input or not connected at all) */
   int edge;        // 0:positive  1: negative -1: notdefined
   int delay;       // 0-31 in BCs   -1:not defined
-  int lminputnum;  // 1-12. 0: not used at/not connected to LM level
+  int lminputnum;  // 1-12. 0 or -1: not used at/not connected to LM level
   int lmdelay;     // 0-7
   int deltamin;
   int deltamax;

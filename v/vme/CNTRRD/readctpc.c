@@ -42,7 +42,7 @@ extern "C" {
 
 FILE *rrdpipe;
 FILE *htmlpipe;
-//FILE *dbgout=NULL;
+FILE *dbgout=NULL;
 FILE *spurfile=NULL;
 int csock_gcalib=-1;   // sending gcalib messages to monitor
 
@@ -349,10 +349,10 @@ prevl0time= bufw32[l0timeix];
 measnum++; if(measnum>=10) measnum=1;
 
 /*------------------------------------------------------------ rrd */
-fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
-//fprintf(dbgout, "update rrd/ctpcounters.rrd ");
-fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
-//fprintf(dbgout, "%u:", bufw32[epochsecs]);
+//fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
+fprintf(dbgout, "update rrd/ctpcounters.rrd ");
+//fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
+fprintf(dbgout, "%u:", bufw32[epochsecs]);
 for(ix=0; ix<=(NCOUNTERS-1); ix++) {
   int ixspec;
   if((( (ix>=CSTART_SPEC+4) && (ix<=CSTART_SPEC+4+20) ) 
@@ -364,23 +364,23 @@ for(ix=0; ix<=(NCOUNTERS-1); ix++) {
     for(ixspec=0; ixspec<4; ixspec++) {
       //printf("ix:%d ixspec:%d NCOUNTERS:%d\n", ix, ixspec,NCOUNTERS);
       if((ix==(NCOUNTERS-1)) && (ixspec==3)) {
-        fprintf(rrdpipe, "%u \n", volts[ixspec]);
-        //fprintf(dbgout, "%u \n", volts[ixspec]);
-        fflush(rrdpipe);   // has to be here!
-        //fflush(dbgout);   // has to be here!
+//        fprintf(rrdpipe, "%u \n", volts[ixspec]);
+        fprintf(dbgout, "%u \n", volts[ixspec]);
+//        fflush(rrdpipe);   // has to be here!
+        fflush(dbgout);   // has to be here!
       } else {
-        fprintf(rrdpipe, "%u:", volts[ixspec]);
-        //fprintf(dbgout, "%u:", volts[ixspec]);
+//        fprintf(rrdpipe, "%u:", volts[ixspec]);
+        fprintf(dbgout, "%u:", volts[ixspec]);
       };
     };
   } else {
-    fprintf(rrdpipe, "%u:", bufw32[ix]);
+//    fprintf(rrdpipe, "%u:", bufw32[ix]);
+      fprintf(dbgout, "%u:", bufw32[ix]);
     /*if((ix>869) && (ix<890)) {
       fprintf(dbgout, "%d=%u:", ix, bufw32[ix]); fflush(dbgout);
-    };fprintf(dbgout,"\n");*/
+    };fprintf(dbgout,"\n"); fflush(dbgout); */
   };
 }; 
-//fprintf(rrdpipe, "%u \n", bufw32[NCOUNTERS-1]); fflush(rrdpipe); see above
 epoch2date(bufw32[epochsecs], dat);
 
 /*------------------------------------------------------------ html */
@@ -597,7 +597,7 @@ csock_gcalib= udpopens((char *)"localhost", 9931);
 if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };
 
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
-//dbgout= fopen("logs/dbgout.log", "w");
+dbgout= fopen("logs/dbgout.log", "w");
 inforc= dic_info_service((char *)"CTPDIM/MONCOUNTERS", MONITORED, 0, 
   cnts,4*(NCOUNTERS), gotcnts, 137, &cntsFailed, 4); 
 //printf("CTPDIM/MONCOUNTERS service id:%d\n", inforc);
@@ -605,7 +605,7 @@ while(1) {
   sleep(100);
 };
 pclose(rrdpipe); pclose(htmlpipe);
-//fclose(dbgout);
+fclose(dbgout);
 dic_release_service(inforc);
 //udpclose(csock_gcalib);
 return(0);

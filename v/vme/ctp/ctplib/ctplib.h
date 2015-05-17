@@ -31,6 +31,7 @@ int isTrigDet(char *name);
 FILE *openFile(char *fname, char *rw);
 int readdbfile(char *fname, char *mem, int maxlen);
 int writedbfile(char *fname, char *mem);
+int findSwitchInput(int swinput);
 
 /*readCounters.c:
 customer:

@@ -97,7 +97,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
       if(cixc < NCNTStbr) {
         mem[cixc]= vmer32(copyread);
       } else {
-        printf("readCounters: attempt to write too far (%d)...\n", cixc);
+        ;//printf("readCounters: attempt to write too far (%d)...\n", cixc);
       };
       //countsread++; if(countsread>NCNTStbr) break;
     };

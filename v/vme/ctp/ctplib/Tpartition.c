@@ -334,10 +334,10 @@ void copyTKlas(TKlas *toklas,TKlas *fromklas){
  toklas->classgroup=fromklas->classgroup;
  toklas->hwclass=fromklas->hwclass;
  toklas->partname=fromklas->partname;
- toklas->lmcondition=fromklas->lmcondition;
- toklas->lminverted=fromklas->lminverted;
- toklas->lmvetos=fromklas->lmvetos;
- toklas->lmscaler=fromklas->lmscaler;
+toklas->lmcondition= fromklas->lmcondition;
+toklas->lminverted= fromklas->lminverted;
+toklas->lmvetos= fromklas->lmvetos;
+toklas->lmscaler= fromklas->lmscaler;
 }
 /*---------------------------------------------------- findHWCluster()
 Input: part, pcluster:1-6.
@@ -689,6 +689,7 @@ if(part->name != NULL){
 printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->run_number);
 }
 }
+/*-------------------------------------------------- checkmodLM */
 int checkmodLM(Tpartition *part){
 #define L0RNDBCMASK 0xf0000000
 int icla, retcode=0;
@@ -713,7 +714,7 @@ for(icla=0;icla<NCLASS;icla++){
     sprintf(msg, "checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
     infolog_trg(LOG_INFO, msg);
     if(clsts & clustermask) {
-      w32 inpmsk; int ixvci;
+      w32 inpmsk; int ixvci, Nlm;
       sprintf(txdets, "%s %d", txdets, ixdet);
       // class feeding TRD:
       inpmsk= (~(klas->l0inputs & L0RNDBCMASK))>>28;   // e.g: 0xf
@@ -723,38 +724,56 @@ for(icla=0;icla<NCLASS;icla++){
         klas->lmcondition= klas->lmcondition & (~(inpmsk<<16));  // use at LM
         klas->l0inputs= klas->l0inputs | (inpmsk)<<28;   //do not use at L0
       };
-      for(ixvci=0; ixvci<24; ixvci++) {
+      // check if at least 1 LM input!
+      Nlm=0;
+      for(ixvci=0; ixvci<NCTPINPUTS; ixvci++) {
         //if(klas->l0inputs & 0x0fffffff)==0x0fffffff)  {  // no other input
-        w32 actinps;
+        w32 actinps; int lminpn;
         actinps= ~(klas->l0inputs & 0x00ffffff);   // 1: active input, 0: not used
-        if((validCTPINPUTs[ixvci].level==0) &&
-           (validCTPINPUTs[ixvci].switchn!=0) &&
+        if(validCTPINPUTs[ixvci].level!=0) continue;
+        if(validCTPINPUTs[ixvci].inputnum>24) {
+          printf("ERROR (bad validCTPINPUTs) in checkloadLM: %d %s \n",
+            ixvci, validCTPINPUTs[ixvci].name);
+          retcode= 1;
+        };
+        lminpn= validCTPINPUTs[ixvci].lminputnum;
+        if((validCTPINPUTs[ixvci].switchn!=0) &&
            (validCTPINPUTs[ixvci].inputnum!=0) && 
-           (validCTPINPUTs[ixvci].lminputnum!=0)) {    // LM input
+           (lminpn>0)) {    // LM input
+          printf("checkmodLM: LM swin:%d inputnum:%d lminputnum:%d\n",
+            validCTPINPUTs[ixvci].switchn, validCTPINPUTs[ixvci].inputnum,
+            validCTPINPUTs[ixvci].lminputnum);
           inpmsk= 1<<(validCTPINPUTs[ixvci].inputnum-1);
           if(inpmsk & actinps) {
-            // L0: do not use it (although should not matter), LM: set lmcondition
+            // L0level: do not use it (although should not matter)
+            // LMlevel: set lmcondition considering LM switch
+            Nlm++;
             klas->l0inputs= klas->l0inputs | inpmsk;
-            klas->lmcondition= klas->lmcondition & (~inpmsk);
+            klas->lmcondition= klas->lmcondition & (~(1<<(lminpn-1)));
           };
         };
       };
-      // todo: check LM functions
+      if(Nlm==0) {
+        char msg[200];
+        sprintf(msg, "no LM input for TRD class (i.e. 40mhz at LM level) in class %d",icla+1);
+        infolog_trgboth(LOG_WARNING, msg);
+      };
+      // todo: check LM functions  (now: do nothing, i.e. leave at L0)
       // pure LM-function: use it only on LM level (i.e. remove from L0)
-      //      problem: how/where to find out if pure?
+      //      problem: how/where to find out if it is pure LM?
       //      L0-fun (or mixed inputs): leave as it is (only on L0 level)
       //
       // copy L0-allrare flag (bit20) to LM_VETO (bit9):
       inpmsk= ((klas->l0vetos & 0x100000) >> 20) << 9;
       klas->lmvetos= (klas->lmvetos & (~0x200)) | inpmsk;
-      // finally set LM_DEADTIME for LM class:
+      // set LM_DEADTIME for LM class:
       klas->lmvetos= klas->lmvetos & (~0x800100);  // LM clmask+deadtime
-      // LM-L0 BUSY flag for LM class to 1  (init to 0 (for L0-classes) in cleanTKlas).
+      // LM-L0 BUSY flag for LM class to 1  (init to 0 (for L0-classes) in cleanTKlas):
       klas->l0vetos= klas->l0vetos | 0x200000;  // LM-L0 BUSY
       strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
     };
   };
-  printf("    fed dets: %s\n", txdets);
+  printf(" ECS numbers of fed dets: %s\n", txdets);
 };
 return(retcode);
 }
@@ -1573,13 +1592,20 @@ for(isp=0;isp<MNPART;isp++){
  vmew32(getLM0addr(RANDOM_2), rbif->rbif[ixrnd2]);
  vmew32(getLM0addr(SCALED_1), rbif->rbif[ixbc1]);
  vmew32(getLM0addr(SCALED_2), rbif->rbif[ixbc2]);
- printf("loadHW: 4 L0 gens -> 4 LM gens...\n");
+ printf("load2HW: 4 L0 gens -> 4 LM gens...\n");
  vmew32(LM_RANDOM_1, rbif->rbif[ixrnd1]);
  vmew32(LM_RANDOM_2, rbif->rbif[ixrnd2]);
  vmew32(LM_SCALED_1, rbif->rbif[ixbc1]);
  vmew32(LM_SCALED_2, rbif->rbif[ixbc2]);
  vmew32(getLM0addr(L0_FUNCTION1), rbif->rbif[ixl0fun1]);
  vmew32(getLM0addr(L0_FUNCTION2), rbif->rbif[ixl0fun2]);
+// following perhaps works if the same signals copied to first 4 inputs
+// on L0 vs LM levels
+ vmew32(LM_FUNCTION1, rbif->rbif[ixl0fun1]);
+ vmew32(LM_FUNCTION1+4, rbif->rbif[ixl0fun2]);
+ vmew32(LM_FUNCTION1+8, 0);    //LMF3/4 <- 0
+ vmew32(LM_FUNCTION1+12, 0);
+
 //------------------------------------------- L0f34 + BCmasks
 //todo:
 flag=0;
@@ -1589,6 +1615,7 @@ if(l0AB()==0) {
     printf("load2HW: l0f%d: allocated in %d\n", i-ixlut3132+3,rbif->rbifuse[i]);
     flag++;
   };
+  printf("load2HW: l0f34 not available on LM0 board\n"); /*
   if(flag) {
     int rc;
     char m4[LEN_l0f34+1];
@@ -1597,7 +1624,7 @@ if(l0AB()==0) {
     if(rc!=0) {
       printf("load2HW:load l0f34 rc:%d\n", rc);
     };
-  };
+  }; */
 } else {bcmaskn=4;};
 
 flag=0;
@@ -1638,7 +1665,7 @@ for(i=0;i<NCLASS;i++){
   w32 mskbit; int skip=0;
   if(hw->klas[i] == NULL){
    char msg[200];
-   sprintf(msg,"loadHW sw error: unexpected HW.klas[%i]=NULL \n",i);
+   sprintf(msg,"load2HW sw error: unexpected HW.klas[%i]=NULL \n",i);
    intError(msg);
    return 1;
   }
@@ -1658,7 +1685,7 @@ for(i=0;i<NCLASS;i++){
       if(l0m != lmm) {
         lmcond= lmcond & 0x000fffff;
         lmcond= lmcond | (l0m<<20);
-        printf("load2HW: cl:%d BCm lmcond:0x%x corrected to l0veto:0x%x \n", i+1,lmm, l0m);
+        printf("load2HW: cl:%d BCmsks lmcond:0x%x corrected to l0veto:0x%x \n", i+1,lmm, l0m);
       };
       vmew32(LM_CONDITION+bb, lmcond);
       vmew32(LM_INVERT+bb,klas->lminverted);
@@ -1692,7 +1719,7 @@ for(i=0;i<NCLASS;i++){
     };
   };
 };
-if(skipped[0]!='\0') printf("loadHW:skipped classes:%s\n", skipped);
+if(skipped[0]!='\0') printf("load2HW:skipped classes:%s\n", skipped);
 if(l0C0()==0) {
 for(i=0;i<NCLASS;i++){
   vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);

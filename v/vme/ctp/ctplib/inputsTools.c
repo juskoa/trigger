@@ -204,10 +204,11 @@ synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(i24-1));
 synch= (synch & 0xffc0ffff) | ((i48 & 0x3f)<<16);
 vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(i24-1), synch);
 }
-/* i12 -> i12  Set LM CTP switch only */
+/* i12 -> i12  Set LM CTP switch only 
+out12:0 -> not connected */
 void setLMSwitch(int in12, int out12) {
 w32 synch;
-if((in12>12) || (out12>12)) {
+if(((in12>12) || (in12<1)) || ((out12<0) || (out12>12))) {
   printf("ERROR setLMdSwitch: in12:%d out12:%d\n", in12, out12); return;
 };
 synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1));

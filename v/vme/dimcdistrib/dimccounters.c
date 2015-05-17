@@ -25,7 +25,8 @@ typedef struct {
   char name[24];
 } Tcnt1;
 
-#define NCS 10   // elapsed time for BUSY, L0,1,2,FO1, FO3
+#define NCS 14   // elapsed time for BUSY, L0,1,2,FO1, FO3
+                 // + lmclassB1/2 lmclassA1/2
 Tcnt1 cs[NCS];
 #define NCSv 24   // volts (4 in 1 word)
 Tcnt1 csv[NCSv];
@@ -65,7 +66,11 @@ cs[5].reladdr= CSTART_FO+1*NCOUNTERS_FO+0;strcpy(cs[5].name, "fo2time");
 cs[6].reladdr= CSTART_SPEC; strcpy(cs[6].name, "epochsecs");
 cs[7].reladdr= CSTART_SPEC+1; strcpy(cs[7].name, "epochmics");
 cs[8].reladdr= CSTART_TSGROUP; strcpy(cs[8].name, "spare895TSGROUP");
-cntsprinted=9;
+cs[9].reladdr= CSTART_L0200; strcpy(cs[9].name, "lmclassB1");
+cs[10].reladdr= CSTART_L0200+1; strcpy(cs[10].name, "lmclassB2");
+cs[11].reladdr= CSTART_L0200+100; strcpy(cs[11].name, "lmclassA1");
+cs[12].reladdr= CSTART_L0200+101; strcpy(cs[12].name, "lmclassA2");
+cntsprinted=13;   //9;
 for(ix=0; ix<24; ix++) {
   char ltuname[24];
   sprintf(ltuname,"ltu%2.0d",ix+1);

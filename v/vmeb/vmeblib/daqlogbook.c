@@ -350,6 +350,7 @@ for(iclu=0;iclu<NCLUST;iclu++) {
   };
 #else
 printf("INFO DAQlogbook_update_cluster(%d,...) not called\n", runn);
+rc=0;
 #endif
 };
 return(rc);

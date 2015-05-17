@@ -145,12 +145,30 @@ if(board==3) {
   if(l0C0()) {
     //printf(" ERROR: setEdgesDelays: does not work for LM0 board!\n"); return;
     ninp=48;
-    // switch:
+    // L0 switch:
     for(ixinp=1; ixinp<=24; ixinp++) {
       int swn;
       swn= getSwnDB(ixinp);
       if(swn==-1) continue;
       setSwitch(swn, ixinp);
+    };
+    // LM switch:
+    for(ixinp=1; ixinp<=12; ixinp++) {
+      int ixvci,lminp,lmdel;
+      ixvci= findSwitchInput(ixinp);
+      lmdel=0; lminp=0;
+      if(ixvci>=0) {   // connected
+        lminp=validCTPINPUTs[ixvci].lminputnum;
+        lmdel=validCTPINPUTs[ixvci].lmdelay;
+        if(lminp<=0) {
+          lminp=0;
+        };
+        if(lmdel<=0) {
+          lmdel=0;
+        };
+      };
+      setLMSwitch(validCTPINPUTs[ixvci].switchn, lminp);
+      setlmdelay(ixinp, lmdel);
     };
   };
 };
@@ -288,7 +306,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       ddr3_reset(); printf("DDR3 reset done\n");
       vmew32(SCOPE_A_FRONT_PANEL, 14); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
     };
-    setEdgesDelays(1); printf("L0 CTPswitch, edges, delays set from ctpinputs.cfg (LM not yet)\n");
+    setEdgesDelays(1); printf("L0+LM CTPswitch: edges, delays set from ctpinputs.cfg\n");
     vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     vmew32(ALL_RARE_FLAG, 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     printf("ALL_RARE_FLAG:ALL (common for LM+L0 level)\n");
