@@ -22,6 +22,7 @@ int main(int argc, char* argv[])
     usleep(10000);
     l0->readcopyCounters();
     l0->printCountersDiff();
+    return 0;
     l0->ddr3_reset();
     l0->SetMode("outmon",'a');
     usleep(5000000);
