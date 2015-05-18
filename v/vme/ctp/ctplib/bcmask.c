@@ -19,6 +19,7 @@ if(l0C0()) {
 */
 void getBCmasks() {
 int ix, hchars; w32 m4_12; char m4[3*ORBITLENGTH+1];
+int bcmoffset=ORBITLENGTH-BCM_SHIFT;
 vmew32(getMASK_MODE(),1);   /* vme mode */
 vmew32(MASK_CLEARADD,DUMMYVAL);
 if(l0AB()==0) {   //firmAC
@@ -31,11 +32,13 @@ if(l0AB()==0) {   //firmAC
     w32 c12,c;
     c12=vmer32(MASK_DATA)&m4_12;
     c= (c12 & 0xf00)>>8;
-    if(c>=10) m4[3*ix+0]= c-10+'a'; else m4[3*ix+0]= c+'0';
+    // bcmoffset instead of ix from LM: c605
+    if(c>=10) m4[3*bcmoffset+0]= c-10+'a'; else m4[3*bcmoffset+0]= c+'0';
     c= (c12 & 0x0f0)>>4;
-    if(c>=10) m4[3*ix+1]= c-10+'a'; else m4[3*ix+1]= c+'0';
+    if(c>=10) m4[3*bcmoffset+1]= c-10+'a'; else m4[3*bcmoffset+1]= c+'0';
     c= (c12 & 0x00f);
-    if(c>=10) m4[3*ix+2]= c-10+'a'; else m4[3*ix+2]= c+'0';
+    if(c>=10) m4[3*bcmoffset+2]= c-10+'a'; else m4[3*bcmoffset+2]= c+'0';
+    bcmoffset++; if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
     /*  printf("%x",vmer32(MASK_DATA)&0xf); */
   };
 } else {
@@ -55,7 +58,7 @@ stdout: message about the number of bytes (and possible errors) written
 */
 void loadBCmasks(w16 *bcmasks) {
 int ix;
-int bcmoffset=OBITLENGTH-BCM_SHIFT;
+int bcmoffset=ORBITLENGTH-BCM_SHIFT;
 /* abandoned (not char * but w16 *)
 int hchars, strl;
 if(l0AB()==0) {   //firmAC
@@ -103,6 +106,7 @@ if(DBGmask) {
 */
 void setBCmasks() {
 int ix,c3, il,strl,hchars; char m4[3*ORBITLENGTH+3]; w16 bytes[ORBITLENGTH];
+//int bcmoffset=ORBITLENGTH-BCM_SHIFT;
 if(l0AB()==0) {   //firmAC
   hchars= 3*ORBITLENGTH;
   c3=3;
@@ -121,6 +125,7 @@ for(ix=0; ix<ORBITLENGTH; ix++) {
   w16 hx; char hx3[4];
   strncpy(hx3, &m4[il],c3); hx=hex2int(hx3);
   bytes[ix]= hx; il=il+c3;
+  //bytes[bcmoffset]= hx; il=il+c3; bcmoffset++; if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
 };
 loadBCmasks(bytes);
 }

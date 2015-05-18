@@ -544,7 +544,7 @@ bit4: phase enable
 #define RATE_MASKr2 0x03ffffff   /* firmware C0: bit25:0 rnddownscale */
 #define RATE_DATABTM    0x80000000   // where the bit rnd/busy downscaling is
 #define RATE_DATABTMr2  0x2000000
-#define BCM_SHIFT 20
+#define BCM_SHIFT 0
 
 #define DDR3_mem_init 0x80000000
 #define DDR3_rdi_fifo_empty 0x40000000
