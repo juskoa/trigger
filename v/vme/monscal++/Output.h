@@ -55,10 +55,12 @@ class DAQlogbook : public Log
          ofstream file;
          int log;  
          int count;
+         w32 version;
  public:
         static int daqnotopen;
-	DAQlogbook(const int runnum,int log);
+	DAQlogbook(const int runnum,int log,w32 ver);
 	~DAQlogbook();
+ 	void SetVersion(w32 ver){version=ver;};
         void UpdateClasses(const int nclass,TriggerClasswCount* tclass[]);
 	void UpdateClusters(const int nclust,TriggerClusterwCount* tclust[]);
         void UpdateDetectors(const int ndet,DetectorwCount* dets[]);

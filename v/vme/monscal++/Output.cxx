@@ -230,13 +230,14 @@ void DisplaySCAL::DisplayInputs2C(const int ninp, TriggerInputwCount* inps[])
 }
 //---------------------------------------------------------------------------------
 int DAQlogbook::daqnotopen=1;
-DAQlogbook::DAQlogbook(const int runnum,int log)
+DAQlogbook::DAQlogbook(const int runnum,int log,w32  ver)
 :
 runnum(runnum),
 log(log),
-count(0)
+count(0),
+version(ver)
 {
- cout << "Starting DAQlogbook for run: " << runnum << " log=" << log << endl;
+ cout << "Starting DAQlogbook for run: " << runnum << " log=" << log << " version" << version << endl;
  if(daqnotopen){
     cout << "Opening daqlogbook ..." << endl;
     int rcdaq= daqlogbook_open();
@@ -312,7 +313,20 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
    w32 l2b=cnts[4].GetCountTot32G();
    w32 l2a=cnts[5].GetCountTot32G();
    float time = cnts[5].GetTimeSecG(); // time should be same for all class counters
-   ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+
+   w64 lma=0,lmb=0;
+   if(version < 1){
+     ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+   }
+   else
+   {
+     Counter* lmB=tclass[i]->GetCounterlmB();
+     Counter* lmA=tclass[i]->GetCounterlmA();
+     lmb=lmB->GetCountTotG();
+     lma=lmb;
+     if(tclass[i]->GetTRD()==1) lma=lmA->GetCountTotG();
+     //ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), lmb,lma,l0b,l0a,l1b,l1a,l2b,l2a,time); 
+   }
 
    if(ret){
      char text[255];
@@ -323,7 +337,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
    if(log){
      char text[255];
      //sprintf(text,"%i %i %i %i \n",count++, runnum ,tclass[i]->GetIndex0(), (w32)tclass[i]->GetL2aCount());
-     sprintf(text,"Classes: %i %i %i %i %lli %lli %i %i %i %i %f\n",count++, runnum,tclass[i]->GetGroup() ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+     sprintf(text,"Classes: %i %i %i %i %lli %lli %lli %lli %i %i %i %i %f\n",count++, runnum,tclass[i]->GetGroup() ,tclass[i]->GetIndex0(),lmb,lma, l0b,l0a,l1b,l1a,l2b,l2a,time);
      file << text;
      file.flush();
    }
@@ -495,6 +509,14 @@ int CountersOCDB::WriteRecord(TrigTimeCounters* time, const int nclass,TriggerCl
  for(int i=0;i<nclass;i++){
   Counter* cnts=tclass[i]->GetCounters();
   for(int j=0;j<6;j++)file << cnts[j].GetNow() << " ";
+  if(version>2){
+    Counter* lmB=tclass[i]->GetCounterlmB();
+    Counter* lmA=tclass[i]->GetCounterlmA();
+    w32 lmb=lmB->GetNow();
+    // if not TRD class lmA=lmB
+    if(tclass[i]->GetTRD()==1) file << lmb << " " << lmA->GetNow();
+    else file << lmb << " " << lmb;
+  }
   file << endl;
  }
  //cout << "OCDB record " << time->GetSecs() << " written" << endl;

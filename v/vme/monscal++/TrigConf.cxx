@@ -238,6 +238,13 @@ TriggerCluster::~TriggerCluster()
  for(int i=0;i<ndet;i++)fDetectors[i].erase(); 
  if(fcname) delete [] fcname;
 }
+w32 TriggerCluster::GetTRD()
+{
+ for(int i=0;i<ndet;i++){
+    if(fDetectors[i].find("TRD") != string::npos) return 1;
+ }
+ return 0;
+}
 void TriggerCluster::PrintDets()
 {
  for(int i=0;i<ndet;i++)cout << fDetectors[i] << " ";
@@ -350,6 +357,7 @@ TriggerClass::TriggerClass(string &name,w8 index, TriggerCluster *cluster)
 :
 fname(name),
 fIndex(index),
+fTRDclass(0),
 fCluster(cluster)
 {
 }
@@ -400,6 +408,11 @@ fGroup(0),fTime(0)
  cnts[3].SetName("L1after"); cnts[3].SetIXs(CSTART_L1+139+GetIndex(),CSTART_L1+ 5);
  cnts[4].SetName("L2before"); cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
  cnts[5].SetName("L2after"); cnts[5].SetIXs(CSTART_L2+125+GetIndex(),CSTART_L2+ 5);
+ lmB.SetName("LMbefore"); lmB.SetIXs(CSTART_L0200-1+GetIndex(),CSTART_L0+15);
+ lmA.SetName("LMafter"); lmA.SetIXs(CSTART_L0200+99+GetIndex(),CSTART_L0+15);
+ //lmB.SetName("LMbefore"); lmB.SetIXs(1561-2+GetIndex(),CSTART_L0+15);
+ //lmA.SetName("LMafter"); lmA.SetIXs(1561-2+100+GetIndex(),CSTART_L0+15);
+ cout << "1CSTART " << CSTART_L0200 << endl;
  if(TriggerClass::GetName().at(2)=='S'){
   cout << "TriggerClasswCount: Factor NOT set to 4 for L0B for class " << GetName() << endl;
   //cout << "TriggerClasswCount: Factor set to 4 for L0B for class " << GetName() << endl;
@@ -424,6 +437,9 @@ fGroup(groupname),fTime(grouptime),isActive(0)
  cnts[3].SetName("L1after"); cnts[3].SetIXs(CSTART_L1+139+GetIndex(),CSTART_L1+ 5);
  cnts[4].SetName("L2before"); cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
  cnts[5].SetName("L2after"); cnts[5].SetIXs(CSTART_L2+125+GetIndex(),CSTART_L2+ 5);
+ lmB.SetName("LMbefore"); lmB.SetIXs(CSTART_L0200-1+GetIndex(),CSTART_L0+15);
+ lmA.SetName("LMafter"); lmA.SetIXs(CSTART_L0200+99+GetIndex(),CSTART_L0+15);
+ cout << "2CSTART " << CSTART_L0200 << endl;
  if(TriggerClass::GetName().at(2)=='S'){
   cout << "TriggerClasswCount: Factor NOT set to 4 for L0B for class " << GetName() << endl;
   //cout << "TriggerClasswCount: Factor set to 4 for L0B for class " << GetName() << endl;
@@ -452,6 +468,8 @@ void TriggerClasswCount::CreateShortName()
 void TriggerClasswCount::Update(w32* buffer)
 {
  for(int i=0;i<6;i++)cnts[i].Update(buffer);
+ lmA.Update(buffer);
+ lmB.Update(buffer);
  isActive=(buffer[CSTART_TSGROUP]==fGroup);
 }
 void TriggerClasswCount::DisplayClass(ofstream* file)
@@ -467,6 +485,10 @@ void TriggerClasswCount::DisplayClass(ofstream* file)
   char text[256];
   sprintf(text,"%5s:%3i %7i %8i %10.3f %10.3f %10.3f ",display.c_str(),GetIndex(),cnts[0].GetCount(),cnts[5].GetCount(),cnts[0].GetRate(),cnts[5].GetRate(),livetime);
   sprintf(text,"%s%7lli %8lli %10.3f %10.3f %10.3f\n",text,cnts[0].GetCountTot(),cnts[5].GetCountTot(),cnts[0].GetRateA(),cnts[5].GetRateA(),alivetime);
+  *file << text;
+  strcpy(text,"");
+  sprintf(text,"LM %5s:%3i %u %u %10.3f %10.3f %10.3f ",display.c_str(),GetIndex(),lmB.GetCount(),lmA.GetCount(),lmB.GetRate(),lmA.GetRate(),livetime);
+  sprintf(text,"%s%7lli %8lli %10.3f %10.3f %10.3f\n",text,lmB.GetCountTot(),lmA.GetCountTot(),lmB.GetRateA(),lmA.GetRateA(),alivetime);
   *file << text;
 }
 void TriggerClasswCount::Print()
