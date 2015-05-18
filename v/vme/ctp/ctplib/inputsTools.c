@@ -211,9 +211,11 @@ w32 synch;
 if(((in12>12) || (in12<1)) || ((out12<0) || (out12>12))) {
   printf("ERROR setLMdSwitch: in12:%d out12:%d\n", in12, out12); return;
 };
-synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1));
-synch= (synch & 0x0fffffff) | ((in12 & 0xf)<<28);
-vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1), synch);
+if(out12>0) { // do nothing fo not connected
+  synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1));
+  synch= (synch & 0x0fffffff) | ((in12 & 0xf)<<28);
+  vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1), synch);
+};
 }
 /* Print info about L0 + LM CTP switches */
 void printSwitch() {

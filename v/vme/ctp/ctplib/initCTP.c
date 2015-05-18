@@ -155,7 +155,7 @@ if(board==3) {
     // LM switch:
     for(ixinp=1; ixinp<=12; ixinp++) {
       int ixvci,lminp,lmdel;
-      ixvci= findSwitchInput(ixinp);
+      ixvci= findSwitchInput(ixinp);   // only first 12 switch inputs
       lmdel=0; lminp=0;
       if(ixvci>=0) {   // connected
         lminp=validCTPINPUTs[ixvci].lminputnum;
@@ -276,12 +276,13 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         val= lminp<<16;   // positive edge(s), delay(s): 0
         if(lminp<=12) {
           w32 lmw;
-          lmw= (lminp<<28); val= val | lmw;
+          //lmw= (lminp<<28); val= val | lmw;
+          lmw= val= val & 0x0fffffff;   // all 0s
         };
         adr= lminpadr+ 4*(lminp-1);
         vmew32(adr, val);
       }
-      infolog_trgboth(LOG_INFO, (char *)"L0 switch set to 1-1...24-24, pos. edge. LM switch:the same");
+      infolog_trgboth(LOG_INFO, (char *)"L0 switch set to 1-1...24-24, pos. edge. LM switch:all 0s");
       vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
       infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
