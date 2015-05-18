@@ -55,6 +55,7 @@ stdout: message about the number of bytes (and possible errors) written
 */
 void loadBCmasks(w16 *bcmasks) {
 int ix;
+int bcmoffset=OBITLENGTH-BCM_SHIFT;
 /* abandoned (not char * but w16 *)
 int hchars, strl;
 if(l0AB()==0) {   //firmAC
@@ -80,9 +81,11 @@ vmew32(MASK_CLEARADD,DUMMYVAL);
 /* this is shifted by 2. Correct programming of BCmask memory is:
 3562, 3563, 0, 1,...
 */
+//for(ix=0; ix<ORBITLENGTH; ix++) {
 for(ix=0; ix<ORBITLENGTH; ix++) {
   w32 val; w16 c;
-  c=bcmasks[ix]; val=c;
+  //c=bcmasks[ix]; val=c;
+  c=bcmasks[bcmoffset]; val=c; bcmoffset++; if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
   vmew32(MASK_DATA,val);
 };
 vmew32(getMASK_MODE(),0);   /* normal mode */
@@ -123,7 +126,7 @@ loadBCmasks(bytes);
 }
 
 /* set/read/check ntimes
-words: if 0 than checj whole BCmask memory (3564)
+words: if 0 than check whole BCmask memory (3564)
 */
 void checkBCmasks(int ntimes, int words) {
 w32 val,m4_12,mask_mode;
