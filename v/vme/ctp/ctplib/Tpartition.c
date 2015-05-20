@@ -692,7 +692,9 @@ printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->
 /*-------------------------------------------------- checkmodLM */
 int checkmodLM(Tpartition *part){
 #define L0RNDBCMASK 0xf0000000
-#define L0FUNSMASK  0x03000000
+#define L0FUNSMASK  0x0f000000
+#define LMRNDBCMASK 0x000f0000
+#define LMFUNSMASK  0x0000f000
 int icla, retcode=0;
 for(icla=0;icla<NCLASS;icla++){
   TKlas *klas; int cluster, clustermask, ixdet;char txdets[100]; char msg[200];
@@ -712,35 +714,45 @@ for(icla=0;icla<NCLASS;icla++){
     int clsts;
     //printDetsInCluster(part, cluster);
     clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
-    printf(msg, "checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
+    printf("checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
     if(clsts & clustermask) {
       w32 Ngens,Nfuns,inpmsk; int ixvci, Nlm, Ngenslm, Nfunslm;
       sprintf(txdets, "%s %d", txdets, ixdet);
       // class feeding TRD:
+      // by default, disable all LMFUN* LMRND/BC:
+      printf("checkmodLM1:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
+        klas->lmcondition);
+      klas->lmcondition= klas->lmcondition | (LMRNDBCMASK | LMFUNSMASK);
+      printf("checkmodLM2:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
+        klas->lmcondition);
       Ngens= (~(klas->l0inputs & L0RNDBCMASK))>>28;   // e.g: 0xf
       if(Ngens) {   //===================  RND/BC used in this class
         // use LM copy of RND/BC (i.e. effectively allow only 4 generators not 8):
         // instead of L0 generators:
         klas->lmcondition= klas->lmcondition & (~(Ngens<<16));  // use at LM
-        klas->l0inputs= klas->l0inputs | (Ngens)<<28;   //do not use at L0
+        klas->l0inputs= klas->l0inputs | (Ngens<<28);   //do not use at L0
         Ngenslm= Ngens;
       };
+      printf("checkmodLM3:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
+        klas->lmcondition);
       // todo: check LM functions  (now: do nothing, i.e. leave at L0)
       // pure LM-function: use it only on LM level (i.e. remove from L0)
       //      problem: how/where to find out if it is pure LM?
       //      L0-fun (or mixed inputs): leave as it is (only on L0 level)
       //
       Nfuns= (~(klas->l0inputs & L0FUNSMASK))>>24;   // e.g: 0xf
-      if(Nfuns) {   //===================  RND/BC used in this class
+      if(Nfuns) {   //===================  LMFUN used in this class
         // use LM copy of L0F1/2
-        klas->lmcondition= klas->lmcondition & (~(Nfuns<<12));  // use at LM
-        klas->l0inputs= klas->l0inputs | (Nfuns)<<24;   //do not use at L0
+        klas->lmcondition= klas->lmcondition & (~(0xf<<12));  // use at LM, first 0s
+        klas->lmcondition= klas->lmcondition | (~(Nfuns<<12));  // use at LM
+        klas->l0inputs= klas->l0inputs | ((Nfuns)<<24);   //do not use at L0
         Nfunslm= Nfuns;
       };
+      printf("checkmodLMa:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
+        klas->lmcondition);
       //================================= check if at least 1 LM input!
       Nlm=0;
       for(ixvci=0; ixvci<NCTPINPUTS; ixvci++) {
-        //if(klas->l0inputs & 0x0fffffff)==0x0fffffff)  {  // no other input
         w32 actinps; int lminpn;
         actinps= ~(klas->l0inputs & 0x00ffffff);   // 1: active input, 0: not used
         if(validCTPINPUTs[ixvci].level!=0) continue;
@@ -761,12 +773,16 @@ for(icla=0;icla<NCLASS;icla++){
           if(inpmsk & actinps) {
             // L0level: do not use it (although should not matter)
             // LMlevel: set lmcondition considering LM switch
+            printf("checkmodLMi:inp:%d l0inputs:0x%x lmcondition:0x%x\n", validCTPINPUTs[ixvci].inputnum-1, 
+              klas->l0inputs, klas->lmcondition);
             Nlm++;
             klas->l0inputs= klas->l0inputs | inpmsk;
             klas->lmcondition= klas->lmcondition & (~(1<<(lminpn-1)));
           };
         };
       };
+      printf("checkmodLM4:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
+        klas->lmcondition);
       if((Nlm==0) && (Ngenslm==0)) {
         char msg[200];
         sprintf(msg, "no LM input for TRD class (i.e. 40mhz at LM level) in class %d",icla+1);
@@ -1690,7 +1706,7 @@ for(i=0;i<NCLASS;i++){
       vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
       lmcond= klas->lmcondition;
       l0m= (klas->l0vetos & 0xfff00)>>8;
-      lmm= (klas->lmcondition & 0xfff00000) >> 20;
+      lmm= (klas->lmcondition & 0xfff00000) >> 20;   // 
       if(l0m != lmm) {
         lmcond= lmcond & 0x000fffff;
         lmcond= lmcond | (l0m<<20);
