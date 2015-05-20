@@ -692,6 +692,7 @@ printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->
 /*-------------------------------------------------- checkmodLM */
 int checkmodLM(Tpartition *part){
 #define L0RNDBCMASK 0xf0000000
+#define L0FUNSMASK  0x03000000
 int icla, retcode=0;
 for(icla=0;icla<NCLASS;icla++){
   TKlas *klas; int cluster, clustermask, ixdet;char txdets[100]; char msg[200];
@@ -713,18 +714,30 @@ for(icla=0;icla<NCLASS;icla++){
     clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
     printf(msg, "checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
     if(clsts & clustermask) {
-      w32 Ngens,inpmsk; int ixvci, Nlm, Ngenslm;
+      w32 Ngens,Nfuns,inpmsk; int ixvci, Nlm, Ngenslm, Nfunslm;
       sprintf(txdets, "%s %d", txdets, ixdet);
       // class feeding TRD:
       Ngens= (~(klas->l0inputs & L0RNDBCMASK))>>28;   // e.g: 0xf
-      if(Ngens) {   // RND/BC used in this class
+      if(Ngens) {   //===================  RND/BC used in this class
         // use LM copy of RND/BC (i.e. effectively allow only 4 generators not 8):
         // instead of L0 generators:
         klas->lmcondition= klas->lmcondition & (~(Ngens<<16));  // use at LM
         klas->l0inputs= klas->l0inputs | (Ngens)<<28;   //do not use at L0
         Ngenslm= Ngens;
       };
-      // check if at least 1 LM input!
+      // todo: check LM functions  (now: do nothing, i.e. leave at L0)
+      // pure LM-function: use it only on LM level (i.e. remove from L0)
+      //      problem: how/where to find out if it is pure LM?
+      //      L0-fun (or mixed inputs): leave as it is (only on L0 level)
+      //
+      Nfuns= (~(klas->l0inputs & L0FUNSMASK))>>24;   // e.g: 0xf
+      if(Nfuns) {   //===================  RND/BC used in this class
+        // use LM copy of L0F1/2
+        klas->lmcondition= klas->lmcondition & (~(Nfuns<<12));  // use at LM
+        klas->l0inputs= klas->l0inputs | (Nfuns)<<24;   //do not use at L0
+        Nfunslm= Nfuns;
+      };
+      //================================= check if at least 1 LM input!
       Nlm=0;
       for(ixvci=0; ixvci<NCTPINPUTS; ixvci++) {
         //if(klas->l0inputs & 0x0fffffff)==0x0fffffff)  {  // no other input
@@ -759,11 +772,6 @@ for(icla=0;icla<NCLASS;icla++){
         sprintf(msg, "no LM input for TRD class (i.e. 40mhz at LM level) in class %d",icla+1);
         infolog_trgboth(LOG_WARNING, msg);
       };
-      // todo: check LM functions  (now: do nothing, i.e. leave at L0)
-      // pure LM-function: use it only on LM level (i.e. remove from L0)
-      //      problem: how/where to find out if it is pure LM?
-      //      L0-fun (or mixed inputs): leave as it is (only on L0 level)
-      //
       // copy L0-allrare flag (bit20) to LM_VETO (bit9):
       inpmsk= ((klas->l0vetos & 0x100000) >> 20) << 9;
       klas->lmvetos= (klas->lmvetos & (~0x200)) | inpmsk;

@@ -19,7 +19,9 @@ if(l0C0()) {
 */
 void getBCmasks() {
 int ix, hchars; w32 m4_12; char m4[3*ORBITLENGTH+1];
-int bcmoffset=ORBITLENGTH-BCM_SHIFT;
+//int bcmoffset=ORBITLENGTH-BCM_SHIFT;
+int bcm_shift=ORBITLENGTH-vmer32(LM_L0_TIME)-3;
+int bcmoffset=ORBITLENGTH-bcm_shift;
 vmew32(getMASK_MODE(),1);   /* vme mode */
 vmew32(MASK_CLEARADD,DUMMYVAL);
 if(l0AB()==0) {   //firmAC
@@ -29,8 +31,10 @@ if(l0AB()==0) {   //firmAC
 };
 if(l0AB()==0) {   //firmAC
   for(ix=0; ix<ORBITLENGTH; ix++) {
+    if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
     w32 c12,c;
-    c12=vmer32(MASK_DATA)&m4_12;
+    //c12=vmer32(MASK_DATA)&m4_12;
+    c12= ~vmer32(MASK_DATA)&m4_12;   // inverted in hw fro 19.5.2015
     c= (c12 & 0xf00)>>8;
     // bcmoffset instead of ix from LM: c605
     if(c>=10) m4[3*bcmoffset+0]= c-10+'a'; else m4[3*bcmoffset+0]= c+'0';
@@ -38,8 +42,9 @@ if(l0AB()==0) {   //firmAC
     if(c>=10) m4[3*bcmoffset+1]= c-10+'a'; else m4[3*bcmoffset+1]= c+'0';
     c= (c12 & 0x00f);
     if(c>=10) m4[3*bcmoffset+2]= c-10+'a'; else m4[3*bcmoffset+2]= c+'0';
-    bcmoffset++; if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
-    /*  printf("%x",vmer32(MASK_DATA)&0xf); */
+    bcmoffset++; 
+    //printf("ix=%i 0x%03x",ix,c12);
+    //if(((ix+1)%66)==0)printf("\n");
   };
 } else {
   for(ix=0; ix<ORBITLENGTH; ix++) {
@@ -58,7 +63,9 @@ stdout: message about the number of bytes (and possible errors) written
 */
 void loadBCmasks(w16 *bcmasks) {
 int ix;
-int bcmoffset=ORBITLENGTH-BCM_SHIFT;
+//int bcmoffset=ORBITLENGTH-BCM_SHIFT;
+int bcm_shift=ORBITLENGTH-vmer32(LM_L0_TIME)-3;
+int bcmoffset=ORBITLENGTH-bcm_shift;
 /* abandoned (not char * but w16 *)
 int hchars, strl;
 if(l0AB()==0) {   //firmAC
@@ -88,8 +95,11 @@ vmew32(MASK_CLEARADD,DUMMYVAL);
 for(ix=0; ix<ORBITLENGTH; ix++) {
   w32 val; w16 c;
   //c=bcmasks[ix]; val=c;
-  c=bcmasks[bcmoffset]; val=c; bcmoffset++; if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
-  vmew32(MASK_DATA,val);
+  if(bcmoffset>=ORBITLENGTH) bcmoffset=0;
+  c=bcmasks[bcmoffset]; val=c; 
+  bcmoffset++; 
+  //vmew32(MASK_DATA,val);
+  vmew32(MASK_DATA,~val);   // inverted in hw from 19.5.2015
 };
 vmew32(getMASK_MODE(),0);   /* normal mode */
 //if(DBGmask) printf("loadBCmasks:written to hw:%d words\n",ORBITLENGTH);
