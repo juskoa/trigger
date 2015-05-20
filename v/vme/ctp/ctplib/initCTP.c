@@ -275,9 +275,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
         w32 val,adr;
         val= lminp<<16;   // positive edge(s), delay(s): 0
         if(lminp<=12) {
-          w32 lmw;
+          //w32 lmw;
           //lmw= (lminp<<28); val= val | lmw;
-          lmw= val= val & 0x0fffffff;   // all 0s
+          //lmw= val= val & 0x0fffffff;   // all 0s
+          val= val & 0x0fffffff;   // all LM unconnected (0s)
         };
         adr= lminpadr+ 4*(lminp-1);
         vmew32(adr, val);

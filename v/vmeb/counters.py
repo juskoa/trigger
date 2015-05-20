@@ -1309,7 +1309,7 @@ class VMEcnts(CTPcnts):
     #for i in range(len(self.regs)):
     #  addr= self.regs[i][1]
     #  cmd2=cmd2+','+str(addr)
-    print 'allread:', self.ctpltu, self.numberofcounters, self.showaccrual
+    #print 'allread:', self.ctpltu, self.numberofcounters, self.showaccrual
     # sep2014 change: getCounters returns always abs. values. Calculate increments here.
     cmd="getCounters("+str(self.numberofcounters)+","+str(self.showaccrual)+",2)"
     thdrn=myw.vbexec.vbinst.io.execute(cmd,ff=self.doout)

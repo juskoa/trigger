@@ -40,7 +40,7 @@ extern "C" {
 #define byin1 CSTART_BUSY      // from here 24 CTP busyin timers starts
 #define l0timeix 15   // run1:13
 
-FILE *rrdpipe;
+// FILE *rrdpipe;
 FILE *htmlpipe;
 //FILE *dbgout=NULL;
 FILE *spurfile=NULL;
@@ -335,6 +335,7 @@ w32 timedelta;
 float timesecs, caltime;
 char dat[20];
 char htmlline[1000];
+char rrdpibu[30000];
 w32 *bufw32= (w32 *)buffer;
 //printf("gotcnts tag:%d size:%d\n", *(int *)tag, *size );
 if(*size != 4*NCOUNTERS) {
@@ -349,9 +350,11 @@ prevl0time= bufw32[l0timeix];
 measnum++; if(measnum>=10) measnum=1;
 
 /*------------------------------------------------------------ rrd */
-fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
+//fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
+sprintf(rrdpibu, "update rrd/ctpcounters.rrd ");
 //fprintf(dbgout, "update rrd/ctpcounters.rrd ");
-fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
+//fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
+sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[epochsecs]);
 //fprintf(dbgout, "%u:", bufw32[epochsecs]);
 for(ix=0; ix<=(NCOUNTERS-1); ix++) {
   int ixspec;
@@ -364,8 +367,9 @@ for(ix=0; ix<=(NCOUNTERS-1); ix++) {
     for(ixspec=0; ixspec<4; ixspec++) {
       //printf("ix:%d ixspec:%d NCOUNTERS:%d\n", ix, ixspec,NCOUNTERS);
       // from 16.5.2015 counters end is later...
-      fprintf(rrdpipe, "%u:", volts[ixspec]);
-/*      if((ix==(NCOUNTERS-1)) && (ixspec==3)) {
+      //fprintf(rrdpipe, "%u:", volts[ixspec]);
+      sprintf(rrdpibu, "%s%u:", rrdpibu, volts[ixspec]);
+/*old   if((ix==(NCOUNTERS-1)) && (ixspec==3)) {
         fprintf(rrdpipe, "%u \n", volts[ixspec]);
 //        fprintf(dbgout, "%u \n", volts[ixspec]);
         fflush(rrdpipe);   // has to be here!
@@ -373,13 +377,17 @@ for(ix=0; ix<=(NCOUNTERS-1); ix++) {
       } else {
         fprintf(rrdpipe, "%u:", volts[ixspec]);
 //        fprintf(dbgout, "%u:", volts[ixspec]);
-      }; */
+      }; old*/
     };
   } else {
     if( ix==(NCOUNTERS-1) ) {   // from 16.5.2015 we need NL here
-      fprintf(rrdpipe, "%u: \n", bufw32[ix]);
+      //fprintf(rrdpipe, "%u: \n", bufw32[ix]);
+      sprintf(rrdpibu, "%s%u: \n", rrdpibu, bufw32[ix]);
+      // fprintf(rrdpipe, "%s", rrdpibu);
+      printf("rrdpibu length:%d\n",(int)strlen(rrdpibu));
     } else {
-      fprintf(rrdpipe, "%u:", bufw32[ix]);
+      //fprintf(rrdpipe, "%u:", bufw32[ix]);
+      sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[ix]);
     };
 //    fprintf(dbgout, "%u:", bufw32[ix]);
     /*if((ix>869) && (ix<890)) {
@@ -483,7 +491,7 @@ if(bufw32[epochsecs]==0) {
   /*int inforc;
   inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1 */
   fprintf(htmlpipe, htmlline);
-  //printf(htmlline);
+  printf(htmlline);
 };
 /*------------------------------------------------------------ gcalib 
 for LTUs: TOF MUON_TRG T0 ZDC EMCAL. Attention: MUON_TRG cal. rate; 1/33secs
@@ -580,14 +588,14 @@ hname= getenv("HOSTNAME");
 //setbuf(stdout, NULL);   nebavi
 initbusyl0s();
 //return(0);
-rrdpipe= popen("/usr/bin/rrdtool -", "w");
-if(rrdpipe==NULL) {
-  printf("Cannot open /usr/bin/rrdtool -\n");
-  exit(8);
-};
-//htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
-//htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
-printf("%s rrdpipe opened. Opening /tmp/htmlfifo (will wait for htmlCtpBusy daemon running)...\n", hname);
+// rrdpipe= popen("/usr/bin/rrdtool -", "w");
+// if(rrdpipe==NULL) {
+//  printf("Cannot open /usr/bin/rrdtool -\n");
+//  exit(8);
+// };
+htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
+//? htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
+printf("%s rrdpipe OPENED. Opening /tmp/htmlfifo (will wait for htmlCtpBusy daemon running)...\n", hname);
 htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
 // waiting on the above open until htmlCtpBusy is not started
 if(htmlpipe==NULL) {
@@ -610,7 +618,8 @@ inforc= dic_info_service((char *)"CTPDIM/MONCOUNTERS", MONITORED, 0,
 while(1) {
   sleep(100);
 };
-pclose(rrdpipe); pclose(htmlpipe);
+// pclose(rrdpipe); 
+pclose(htmlpipe);
 //fclose(dbgout);
 dic_release_service(inforc);
 //udpclose(csock_gcalib);

@@ -585,7 +585,9 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
          if(sms[NCTPBOARDS+6+i].sm==NULL)sms[NCTPBOARDS+6+i].sm= (w32 *)malloc(Mega*sizeof(w32));
          printf("readSSM lm0 %i %p\n",NCTPBOARDS+6+i,sms[NCTPBOARDS+6+i].sm);
          for(int j=0;j<Mega;j++)sms[NCTPBOARDS+6+i].sm[j]=lm0ssms[i][j];
-      } 
+      }
+      // Need to fill also array for ssm in inputs
+      for(int j=0;j<Mega;j++)array[j]=lm0ssms[0][j]; 
       for(int i=0;i<16;i++)free(lm0ssms[i]);
       printf("finished lm0 reading \n");
     } 
