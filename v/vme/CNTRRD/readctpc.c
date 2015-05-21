@@ -40,7 +40,8 @@ extern "C" {
 #define byin1 CSTART_BUSY      // from here 24 CTP busyin timers starts
 #define l0timeix 15   // run1:13
 
-// FILE *rrdpipe;
+int ARGNORRD=0;
+FILE *rrdpipe;
 FILE *htmlpipe;
 //FILE *dbgout=NULL;
 FILE *spurfile=NULL;
@@ -330,10 +331,11 @@ return(rate);
   }; \
 
 /*-----------------------*/ void gotcnts(void *tag, void *buffer, int *size) {
-int ix; //,ixx;
+int ix; //,ixx;   
+int ndaso;
 w32 timedelta;
 float timesecs, caltime;
-char dat[20];
+char dat[20]; char dmyhms[20];
 char htmlline[1000];
 char rrdpibu[30000];
 w32 *bufw32= (w32 *)buffer;
@@ -344,7 +346,8 @@ if(*size != 4*NCOUNTERS) {
   return;
 };
 timesecs= bufw32[epochsecs]+ bufw32[epochmics]/1000000.;
-printf("%17.6f: %d counters\n", timesecs, *size/4); fflush(stdout);
+getdatetime(dmyhms);
+printf("%s %17.6f: %d counters\n", dmyhms, timesecs, *size/4); fflush(stdout);
 timedelta= dodif32(prevl0time, bufw32[l0timeix]);  // in 0.4micsecs
 prevl0time= bufw32[l0timeix];
 measnum++; if(measnum>=10) measnum=1;
@@ -354,7 +357,7 @@ measnum++; if(measnum>=10) measnum=1;
 sprintf(rrdpibu, "update rrd/ctpcounters.rrd ");
 //fprintf(dbgout, "update rrd/ctpcounters.rrd ");
 //fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
-sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[epochsecs]);
+sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[epochsecs]); ndaso=0; // epochsecs
 //fprintf(dbgout, "%u:", bufw32[epochsecs]);
 for(ix=0; ix<=(NCOUNTERS-1); ix++) {
   int ixspec;
@@ -368,34 +371,46 @@ for(ix=0; ix<=(NCOUNTERS-1); ix++) {
       //printf("ix:%d ixspec:%d NCOUNTERS:%d\n", ix, ixspec,NCOUNTERS);
       // from 16.5.2015 counters end is later...
       //fprintf(rrdpipe, "%u:", volts[ixspec]);
-      sprintf(rrdpibu, "%s%u:", rrdpibu, volts[ixspec]);
-/*old   if((ix==(NCOUNTERS-1)) && (ixspec==3)) {
-        fprintf(rrdpipe, "%u \n", volts[ixspec]);
-//        fprintf(dbgout, "%u \n", volts[ixspec]);
-        fflush(rrdpipe);   // has to be here!
-//        fflush(dbgout);   // has to be here!
-      } else {
-        fprintf(rrdpipe, "%u:", volts[ixspec]);
-//        fprintf(dbgout, "%u:", volts[ixspec]);
-      }; old*/
+      sprintf(rrdpibu, "%s%u:", rrdpibu, volts[ixspec]); ndaso++;
     };
-  } else {
-    if( ix==(NCOUNTERS-1) ) {   // from 16.5.2015 we need NL here
-      //fprintf(rrdpipe, "%u: \n", bufw32[ix]);
-      sprintf(rrdpibu, "%s%u: \n", rrdpibu, bufw32[ix]);
-      // fprintf(rrdpipe, "%s", rrdpibu);
-      printf("rrdpibu length:%d\n",(int)strlen(rrdpibu));
+    continue;
+  };
+  if( ix==(NCOUNTERS-1) ) { // from 16.5.2015 we need NL here
+    int rcr;
+    //fprintf(rrdpipe, "%u: \n", bufw32[ix]);
+    sprintf(rrdpibu, "%s%u: \n", rrdpibu, bufw32[ix]); ndaso++;
+    printf("rrdpibu length:%d num. of data sources:%d\n",(int)strlen(rrdpibu),ndaso);
+    if(ndaso < 1865) {
+      printf("skipping rrd write...\n");
     } else {
-      //fprintf(rrdpipe, "%u:", bufw32[ix]);
-      sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[ix]);
+      if(ARGNORRD==0) {
+         rcr= fprintf(rrdpipe, "%s", rrdpibu);
+      } else {
+        printf("skipping fprintf(rrdpipe..., -norrd\n");
+        rcr= strlen(rrdpibu);
+      };
+      if((w32)rcr != strlen(rrdpibu) )  {
+        printf("rrd rc:%d, reopening rrdpipe\n", rcr);
+        rrdpipe= popen("/usr/bin/rrdtool -", "w");
+        if(rrdpipe==NULL) {
+          printf("Cannot open /usr/bin/rrdtool\n");
+          exit(8);
+        } else {
+          printf("rrdpipe reopened.\n");
+        };
+      } else {
+        printf("rrdpipe ok.\n");
+      };
     };
-//    fprintf(dbgout, "%u:", bufw32[ix]);
-    /*if((ix>869) && (ix<890)) {
-      fprintf(dbgout, "%d=%u:", ix, bufw32[ix]); fflush(dbgout);
-    };fprintf(dbgout,"\n"); fflush(dbgout); */
+    ndaso=0;
+    break;
+  } else {
+    //fprintf(rrdpipe, "%u:", bufw32[ix]);
+    sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[ix]); ndaso++;
   };
 }; 
 epoch2date(bufw32[epochsecs], dat);
+printf("epoch: %s\n", dat);
 
 /*------------------------------------------------------------ html */
 sprintf(htmlline, "%s %s minute ", WHATBUSY[avbsyix], dat);
@@ -499,6 +514,7 @@ Correct way should be: go through gcalib.cfg and find expected rates...
 goal: send udp message if measured interval is > 1 minute:
 ppout date time TOF: L2arate PPrate MUON_TRG: L2arate PPrate ...
  */
+/*
 if(firstreading==1) {
   do1streading()
   firstreading=0;
@@ -531,6 +547,7 @@ if(firstreading==1) {
     do1streading()
   };
 };
+*/
 fflush(stdout);
 
 /*---------------------------------------------------------- L1spurious: */
@@ -582,18 +599,27 @@ RTRN:
 allreads++; return;
 }
 
-/*------------------------------*/ int main(int argc, char **argv) {
-int inforc;
+/*------------------------------*/ int main(int argn, char **argv) {
+int inforc, ix;
+for(ix=0; ix<argn; ix++) {
+  //printf("arg%d:%s: ",i, argv[i]); 
+  if(ix==0) continue;
+  printf(" %s", argv[ix]);
+  if(strcmp(argv[ix], "-norrd") == 0){
+    ARGNORRD=1;
+    continue;
+  };
+}; printf("\n");
 hname= getenv("HOSTNAME");
 //setbuf(stdout, NULL);   nebavi
 initbusyl0s();
 //return(0);
-// rrdpipe= popen("/usr/bin/rrdtool -", "w");
-// if(rrdpipe==NULL) {
-//  printf("Cannot open /usr/bin/rrdtool -\n");
-//  exit(8);
-// };
-htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
+rrdpipe= popen("/usr/bin/rrdtool -", "w");
+if(rrdpipe==NULL) {
+  printf("Cannot open /usr/bin/rrdtool -\n");
+  exit(8);
+ };
+//nebavi asi htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
 //? htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
 printf("%s rrdpipe OPENED. Opening /tmp/htmlfifo (will wait for htmlCtpBusy daemon running)...\n", hname);
 htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
@@ -607,6 +633,7 @@ setlinebuf(htmlpipe);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);
 
+printf("gcalib monitoring skipped.\n");
 csock_gcalib= udpopens((char *)"localhost", 9931);
 if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };
 
@@ -618,8 +645,8 @@ inforc= dic_info_service((char *)"CTPDIM/MONCOUNTERS", MONITORED, 0,
 while(1) {
   sleep(100);
 };
-// pclose(rrdpipe); 
-pclose(htmlpipe);
+pclose(rrdpipe); 
+//pclose(htmlpipe);
 //fclose(dbgout);
 dic_release_service(inforc);
 //udpclose(csock_gcalib);
