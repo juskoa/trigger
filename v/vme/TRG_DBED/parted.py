@@ -264,7 +264,6 @@ class TrgInput:
               self.edge= li[6]
               self.delay= li[7]
               self.ctpinp= int(li[1]), int(li[3])   
-              
           #if li[5]!='1':
           #  self.ctpinp= int(li[1]),0   # not connected
         else:
@@ -903,6 +902,9 @@ Predefined BC masks in VALID.BCMASKS file:
       inp1= string.split(line[:-1],'=')
       inpname= string.strip(inp1[0])
       inpAlreadyIn= self.findInput(inpname)
+      spl= string.split(line)
+      if len(spl)>=4:
+        if spl[3]=='M': continue   # ignore LM lines
       if inpAlreadyIn:
         #2 definitions with the same name not allowed!
         PrintError("""Trigger input %s already defined. ctpinputs.cfg line:
