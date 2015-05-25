@@ -316,7 +316,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
 
    w64 lma=0,lmb=0;
    if(version < 1){
-     ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+     //ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
    }
    else
    {
@@ -325,7 +325,7 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
      lmb=lmB->GetCountTotG();
      lma=lmb;
      if(tclass[i]->GetTRD()==1) lma=lmA->GetCountTotG();
-     //ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), lmb,lma,l0b,l0a,l1b,l1a,l2b,l2a,time); 
+     ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), lmb,lma,l0b,l0a,l1b,l1a,l2b,l2a,time); 
    }
 
    if(ret){
