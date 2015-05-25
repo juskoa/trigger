@@ -237,7 +237,7 @@ log(log),
 count(0),
 version(ver)
 {
- cout << "Starting DAQlogbook for run: " << runnum << " log=" << log << " version" << version << endl;
+ cout << "Starting DAQlogbook for run: " << runnum << " log=" << log << " version " << version << endl;
  if(daqnotopen){
     cout << "Opening daqlogbook ..." << endl;
     int rcdaq= daqlogbook_open();
@@ -418,7 +418,7 @@ runnum(runnum),
 version(version),
 copy2dcs(copy2dcs)
 {
- cout << "Starting CountersOCDB for run:" <<  runnum << endl;
+ cout << "Starting CountersOCDB for run:" <<  runnum << " version:" << version << endl;
  stringstream ss;
  ss << "cnt/run"<<runnum<<".cnt";
  fileName=ss.str();

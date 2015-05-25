@@ -61,7 +61,7 @@ class ActiveRun : public Log
          void DisplayRun(){scal->DisplayRun(ninp,fTrigInputs,nclust,fClusters,fINT,ndet,fDetectors);DisplaySCAL::GetfileSCAL()->flush();};
          //----------CountersOCDB
          //void CreateCountersOCDB(bool copy2dcs){ocdb = new CountersOCDB(2,fRunNumber,copy2dcs);};
-         void CreateCountersOCDB(bool copy2dcs){ocdb = new CountersOCDB(3,fRunNumber,copy2dcs);};
+         void CreateCountersOCDB(bool copy2dcs){ocdb = new CountersOCDB(2,fRunNumber,copy2dcs);};
          void WriteHeaderOCDB(){ocdb->WriteHeader(nclass,fClasses);};
 	 void WriteRecordOCDB(){ocdb->WriteRecord(&times,nclass,fClasses);};
          //-----------DAQlogbook

@@ -483,9 +483,15 @@ void TriggerClasswCount::DisplayClass(ofstream* file)
   display.append(TimeGroup);
   for(int i=display.size();i<30;i++)display += ' ';
   char text[256];
+  sprintf(text,"%5s:%3i %7i %8i %10.3f %10.3f %7i %8i %10.3f %10.3f %10.3f ",display.c_str(),GetIndex(),lmB.GetCount(),lmA.GetCount(),lmB.GetRate(),lmA.GetRate(),cnts[0].GetCount(),cnts[5].GetCount(),cnts[0].GetRate(),cnts[5].GetRate(),livetime);
+  sprintf(text,"%s%7lli %8lli %10.3f %10.3f %10.3f\n",text,cnts[0].GetCountTot(),cnts[5].GetCountTot(),cnts[0].GetRateA(),cnts[5].GetRateA(),alivetime);
+  *file << text;
+  return;
+  // L0 level in separate line
   sprintf(text,"%5s:%3i %7i %8i %10.3f %10.3f %10.3f ",display.c_str(),GetIndex(),cnts[0].GetCount(),cnts[5].GetCount(),cnts[0].GetRate(),cnts[5].GetRate(),livetime);
   sprintf(text,"%s%7lli %8lli %10.3f %10.3f %10.3f\n",text,cnts[0].GetCountTot(),cnts[5].GetCountTot(),cnts[0].GetRateA(),cnts[5].GetRateA(),alivetime);
   *file << text;
+  // LM level in separate line
   strcpy(text,"");
   sprintf(text,"LM %5s:%3i %u %u %10.3f %10.3f %10.3f ",display.c_str(),GetIndex(),lmB.GetCount(),lmA.GetCount(),lmB.GetRate(),lmA.GetRate(),livetime);
   sprintf(text,"%s%7lli %8lli %10.3f %10.3f %10.3f\n",text,lmB.GetCountTot(),lmA.GetCountTot(),lmB.GetRateA(),lmA.GetRateA(),alivetime);
