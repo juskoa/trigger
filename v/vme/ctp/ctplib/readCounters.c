@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>    /* usleep() */
 #include "vmewrap.h"
 #include "ctp.h"
@@ -56,9 +58,9 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* COPY */
   bb= BSP*ctpboards[b123].dial;
   vmew32(bb+COPYCOUNT,DUMMYVAL); 
 };
-usleep(12); // allow 12 (8 in run1) micsecs for copying counters to VME accessible memory
+usleep(30); // allow 12 (8 in run1) micsecs for copying counters to VME accessible memory
 for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
-  if(notInCrate(b123)) continue;
+  if(notInCrate(b123)) continue;    //comment for dbg mode
   bb= BSP*ctpboards[b123].dial;
   vmew32(bb+COPYCLEARADD,DUMMYVAL);
   copyread= bb+COPYREAD; 
@@ -87,6 +89,12 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
       };
     };
   } else {
+    //char* environ;
+    //environ=getenv("VMEWORKDIR");
+    //char file[1024];
+    //strcpy(file,environ);
+    //strcat(file,"/WORK/counters.log");
+    //FILE *ff = fopen(file,"a"); 
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
       int cixc;
       if((b123==1) && ( cix>=memshift+NCOUNTERS_L0)) {
@@ -96,11 +104,15 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
       };
       if(cixc < NCNTStbr) {
         mem[cixc]= vmer32(copyread);
+        //mem[cixc]= cixc;   //dbg
+        //fprintf(ff,"cust:%i %i %ui \n",customer,cixc,mem[cixc]);
       } else {
-        ;//printf("readCounters: attempt to write too far (%d)...\n", cixc);
+        vmer32(copyread);   // all counters MUST be read
+        //printf("readCounters: attempt to write too far (%d)...\n", cixc);
       };
       //countsread++; if(countsread>NCNTStbr) break;
     };
+    //fclose(ff);
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
   countsread= countsread+ NCNTS;
@@ -121,7 +133,7 @@ lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 nbc= ctpboards[board].numcnts;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(30); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 //for(cix=0; cix<=reladr; cix++) {   // seems not working (cannot catch it) 
@@ -141,7 +153,7 @@ int bb,cix; w32 copyread; //w32 ignore;
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(30); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 /* 25.3.2014: ALL counters have to be readout! */
@@ -188,7 +200,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {
     vmew32(bb+CLEARCOUNTER,1); 
   };
 };
-usleep(4);
+usleep(30);
 for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
@@ -223,11 +235,14 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   };
   mem[2*ix]= ReadTemp(ix);  // read temperature
   mem[2*ix+1]= i2cread(chan, branch); // 4 i2c voltages (in one 32bit word)
+  //dbg mem[2*ix]= 0xaaaa;
+  //dbg mem[2*ix+1]= 0xbbbb;// 4 i2c voltages (in one 32bit word)
 };
 for(ix=NCTPBOARDS; ix<NCTPBOARDS+24; ix++) {  //bug fixed 15.12.2010
   mem[ix+(2-1)*NCTPBOARDS]= 0;
   if(i2cgetaddr(ix, &chan, &branch)!=0) continue;
   mem[ix+(2-1)*NCTPBOARDS]= i2cread(chan, branch); // 4 i2c voltages (in one 32bit word)
+  //dbg mem[ix+(2-1)*NCTPBOARDS]= ix+(2-1)*NCTPBOARDS;
   //vme2volt(i2crd);
 };
 }

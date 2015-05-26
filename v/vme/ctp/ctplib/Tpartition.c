@@ -714,7 +714,7 @@ for(icla=0;icla<NCLASS;icla++){
     int clsts;
     //printDetsInCluster(part, cluster);
     clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
-    printf("checkmodLM: cluster:%d  clsts:0x%x", cluster, clsts);
+    printf("checkmodLM: cluster:%d  clsts:0x%x\n", cluster, clsts);
     if(clsts & clustermask) {
       w32 Ngens,Nfuns,inpmsk; int ixvci, Nlm, Ngenslm, Nfunslm;
       sprintf(txdets, "%s %d", txdets, ixdet);
@@ -725,6 +725,7 @@ for(icla=0;icla<NCLASS;icla++){
       klas->lmcondition= klas->lmcondition | (LMRNDBCMASK | LMFUNSMASK);
       printf("checkmodLM2:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
         klas->lmcondition);
+      Ngenslm=0;
       Ngens= (~(klas->l0inputs & L0RNDBCMASK))>>28;   // e.g: 0xf
       if(Ngens) {   //===================  RND/BC used in this class
         // use LM copy of RND/BC (i.e. effectively allow only 4 generators not 8):
@@ -781,8 +782,8 @@ for(icla=0;icla<NCLASS;icla++){
           };
         };
       };
-      printf("checkmodLM4:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
-        klas->lmcondition);
+      printf("checkmodLM4:clas:%d Nlm/Ngens:%d/%d l0inputs:0x%x lmcondition:0x%x\n", 
+        icla+1, Nlm, Ngenslm, klas->l0inputs, klas->lmcondition);
       if((Nlm==0) && (Ngenslm==0)) {
         char msg[200];
         sprintf(msg, "no LM input for TRD class (i.e. 40mhz at LM level) in class %d",icla+1);

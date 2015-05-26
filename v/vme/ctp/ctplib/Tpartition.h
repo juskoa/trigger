@@ -460,6 +460,7 @@ int findLTUdetnum(char *ltuname);
 void bit2name(w32 ctprodets, char *detname);
 int detList2bitpat(char *dlist);
 int findINPdaqdet(int level, int input);
+int findLMINPdaqdet(int input);
 w32 findBUSYinputs(w32 ctprodets);
 void findLTUNAMESby(w32 busypat, w32 detpat, char *names);
 int findDETfocon(int fo,int con,char *name);

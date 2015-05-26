@@ -1719,10 +1719,14 @@ xse: 'S' -just store in validLTUs
 void readCTPcnts(Tpartition *part, char xse) {
 int idet,reladr;
 #ifdef newreadCTPcnts
-w32 mem[CSTART_SPEC];
+//w32 mem[CSTART_SPEC];
+w32 mem[NCOUNTERS];
 printBakery(&ctpshmbase->ccread);
-readCounters(mem, CSTART_SPEC, 0, 0);
+usleep(100000);
+//readCounters(mem, CSTART_SPEC, 0, 0);
+readCounters(mem, NCOUNTERS, 0, 0);
 printf("bakery after readCounters:\n");
+usleep(100000);
 printBakery(&ctpshmbase->ccread);
 for(idet=0;idet<NDETEC;idet++){
   if(part->Detector2Clust[idet] ==0) continue;
@@ -2346,13 +2350,14 @@ if(generateXOD(part,'E', emsg, &orbitn )) {
   //goto RETSTOPunset;  anyhow, we have to relese hw
 };
 prepareRunConfig(part,0);
+/* not used withfull LM implementation...
 if(strcmp(part->name, TRD_TECH)==0) {
   // disconnect RND1, connected becasue of TRD in techn. partition
   vmew32(RND1_EN_FOR_INPUTS, 0);
   vmew32(RND1_EN_FOR_INPUTS+4, 0);
   TRD_TECH[0]='\0';
   prtLog("RND1_EN_FOR_INPUTS and TRD_TECH cleared");
-};
+};*/
 ret=deletePartitions(part); tspart= checkTS();
 if(tspart!=NULL) {
   strcpy(tsname, tspart->name);

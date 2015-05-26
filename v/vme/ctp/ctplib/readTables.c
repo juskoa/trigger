@@ -558,6 +558,25 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
 }; //printf("\n");
 return(rc);
 }
+/*------------------------------------------------------------findLMINPdaqdet()
+lminput: LM input number(1-12) i.e. after switch
+Out:   ECS/DAQ detector number providing this input (0..23) or
+       -1 -not connected
+*/
+int findLMINPdaqdet(int lminput) {
+int ix, rc=-1;
+for(ix=0; ix<NCTPINPUTS; ix++) {
+  //printf("%s %d\n", validCTPINPUTs[ix].name, validCTPINPUTs[ix].detector);
+  if((validCTPINPUTs[ix].level==0) &&
+     (validCTPINPUTs[ix].lminputnum==lminput)  // also LM input
+    ) {
+    if(validCTPINPUTs[ix].switchn!=0) {   // conneted
+      return(validCTPINPUTs[ix].detector);
+    };
+  };
+}; //printf("\n");
+return(rc);
+}
 /*------------------------------------------------------------findLTUdaqdet()
 Input: DAQ/ECS detector number (0...)
 rc: return pointer into validLTUs[] item table or NULL if not found */
