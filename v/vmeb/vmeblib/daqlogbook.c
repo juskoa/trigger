@@ -101,12 +101,13 @@ classGroupId, classGroupTime, downscaling, aliases);
 return(rc);
 }
 //int daqlogbook_update_triggerClassCounter(unsigned int runN, unsigned char classN, unsigned int L2count) {
-int daqlogbook_update_triggerClassCounter(unsigned int run, unsigned char classId, unsigned long long L0bCount, unsigned long long L0aCount, unsigned long L1bCount, unsigned long L1aCount, unsigned long L2bCount, unsigned long L2aCount, float ctpDuration)
+int daqlogbook_update_triggerClassCounter(unsigned int run, unsigned char classId,  unsigned long long LMbCount, unsigned long long LMaCount, unsigned long long L0bCount, unsigned long long L0aCount, unsigned long L1bCount, unsigned long L1aCount, unsigned long L2bCount, unsigned long L2aCount, float ctpDuration)
 {
 int rc;
 #ifdef DAQLOGBOOK
   //rc= DAQlogbook_update_triggerClassCounter(runN, classN, L2count);
-  rc=DAQlogbook_update_triggerClassCounter(run, classId, L0bCount, L0aCount, L1bCount, L1aCount, L2bCount, L2aCount, ctpDuration);
+  //rc=DAQlogbook_update_triggerClassCounter(run, classId, L0bCount, L0aCount, L1bCount, L1aCount, L2bCount, L2aCount, ctpDuration);
+  rc=DAQlogbook_update_triggerClassCounter(run, classId, LMbCount, LMaCount, L0bCount, L0aCount, L1bCount, L1aCount, L2bCount, L2aCount, ctpDuration);
 #else
   printf("INFO DAQlogbook_update_triggerClassCounter() not called");
   rc=0;

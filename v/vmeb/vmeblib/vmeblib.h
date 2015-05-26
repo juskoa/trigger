@@ -53,7 +53,7 @@ int get_DIMW32(char *service);
 int daqlogbook_open();
 int daqlogbook_close();
 int daqlogbook_update_triggerClusterCounter(unsigned int run, unsigned int cluster, unsigned long L2aCount);
-int daqlogbook_update_triggerClassCounter(unsigned int run, unsigned char classId, unsigned long long L0bCount, unsigned long long L0aCount, unsigned long L1bCount, unsigned long L1aCount, unsigned long L2bCount, unsigned long L2aCount, float ctpDuration);
+int daqlogbook_update_triggerClassCounter(unsigned int run, unsigned char classId, unsigned long long LMbCount, unsigned long long LMaCount, unsigned long long L0bCount, unsigned long long L0aCount, unsigned long L1bCount, unsigned long L1aCount, unsigned long L2bCount, unsigned long L2aCount, float ctpDuration);
 int daqlogbook_update_triggerDetectorCounter(unsigned int run, const char *detector, unsigned long L2aCount);
 int daqlogbook_update_triggerInputCounter(unsigned int run, unsigned int inputId, unsigned int inputLevel, unsigned long long inputCount);
 int daqlogbook_update_triggerGlobalCounter(unsigned int run, unsigned long L2aCount, float ctpDuration);
