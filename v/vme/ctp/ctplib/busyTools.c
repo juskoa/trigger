@@ -25,7 +25,7 @@ for(cix=0; cix<BYTIMERSCOUNTN; cix++) {   // 24 byin* timers, busy_time
   mem[cix]= vmer32(copyread);
 };
 */
-getCountersBoard(board, BYTIMERSCOUNTN, mem, 0);  // 0: ctpproxy customer
+getCountersBoard(board, BYTIMERSCOUNTN-1, mem, 0);  // 0: ctpproxy customer
 return(rc);
 }
 w32 findDeadBusys(w32 detpat) {
@@ -38,11 +38,11 @@ w32 ms100, busys=0;
 rc= getBUSYtimerscounters(mem1); usleep(100000);
 rc= getBUSYtimerscounters(mem2);
 ms100= dodif32(mem1[NCOUNTERS_BUSY_BYTIME], mem2[NCOUNTERS_BUSY_BYTIME]); // busy_timer
-printf("findDeadBusys: ms100:%d\nbt:", ms100);
-for(cix=0; cix<24; cix++) {   // 24 byin* timers, busy_time
+printf("findDeadBusys: ms100:%d\n", ms100);
+for(cix=0; cix<24; cix++) {   // 24 byin* timers, busy_time in 0.4us for each detector
   w32 bt;
   bt= dodif32(mem1[cix], mem2[cix]);
-  printf("findDeadBusys: bt%d:%d\n", cix, bt);
+  printf("findDeadBusys: bt%d:%d 0x%x 0x%x\n", cix, bt, mem1[cix], mem2[cix]);
   if( bt<(ms100-10) ) continue; // not DEAD if at least 4 micsecs (10*0.4)in READY
   busys= busys | (1<<cix);        
 };

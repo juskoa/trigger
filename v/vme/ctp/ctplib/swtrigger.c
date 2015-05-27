@@ -378,7 +378,7 @@ RC: number of L2a successfully generated, or
 int  GenSwtrg(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, 
               int customer, w32 *orbitn ){
 int flag,itr=0;
-int l0=0,l1=0,l2a=0,l2r=0;
+int l0=0,l1=0,l2a=0,l2r=0, lm=0;
 w32 status, orbitnloc;
 if(l0C0()) {
   status=vmer32(L0_TCSTATUS);
@@ -415,6 +415,7 @@ while(((itr<ntriggers) && ((flag=startswtrig(&orbitnloc))))){
   else if(flag == 2)l1++;
   else if(flag == 3)l2r++;
   else if(flag == 4)l2a++;
+  else if(flag ==10)lm++;
   else {
     printf(" GenSwtrg: unexpected flag %i\n",flag);
     goto RELEASERET; //return l2a;
@@ -441,7 +442,7 @@ unlockBakery(&ctpshmbase->swtriggers, customer);
 if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
-  printf("l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
+  printf("lm, l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
 };
 TRIGTYPE='.';
 // return i;

@@ -116,7 +116,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
   countsread= countsread+ NCNTS;
-  if(countsread>NCNTStbr) break;
+  if(countsread>NCNTStbr) break;  // no need to read remaining board(s)
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 /*printf("cnts 13 165:%d %d\n", mem[13], mem[165]); */
@@ -160,6 +160,7 @@ copyread= bb+COPYREAD;
 for(cix=0; cix<ctpboards[board].numcnts; cix++) {
   if(cix<=reladr) {
     mem[cix]= vmer32(copyread);
+    //printf("getCountersBoard %d: 0x%x\n", cix, mem[cix]);
   } else {
     /*ignore=*/ vmer32(copyread);
   };
