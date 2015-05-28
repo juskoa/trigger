@@ -289,8 +289,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       if(lmversion>=0xc5) {
-        vmew32(LM_L0_TIME, 14);
-        infolog_trgboth(LOG_INFO, (char *)"LM0ver:>=0xc5 LM_L0_TIME:14 (corresponds to 17 for TRD)");
+        vmew32(LM_L0_TIME, 12);
+        infolog_trgboth(LOG_INFO, (char *)"LM0ver:>=0xc5 LM_L0_TIME:12 (i.e. +3=15 on LMboard, +8=20 for TRD)");
       } else {
         vmew32(SEL_SPARE_OUT+0xc, 11);
         infolog_trgboth(LOG_INFO, (char *)"LM0ver:<=0xc4 SEL_SPARE[3]) set to 11:0HCO -LM");
