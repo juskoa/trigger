@@ -173,6 +173,8 @@ LM0>=0xc5:
 26..24   LM input delay (0..7) for first 12, i.e. LM inputs
 31..28   4bits. Selection of 12 from first 12 inputs on CTPswitch
 
+i.e. when accessing edge/delay: use SWITCH INP: 0..23[0..7] 0..23[8..15]
+                    switch: use CTP INP
 LM0<=0xc4:
  3.. 0   Input delay for inputs 1..24
  7       Edge Selector flag inputs 1..24   (was 4 before 12.2.2015)

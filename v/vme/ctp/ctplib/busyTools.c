@@ -38,16 +38,16 @@ w32 ms100, busys=0;
 rc= getBUSYtimerscounters(mem1); usleep(100000);
 rc= getBUSYtimerscounters(mem2);
 ms100= dodif32(mem1[NCOUNTERS_BUSY_BYTIME], mem2[NCOUNTERS_BUSY_BYTIME]); // busy_timer
-printf("findDeadBusys: ms100:%d\n", ms100);
+//printf("findDeadBusys: ms100:%d\n", ms100);
 for(cix=0; cix<24; cix++) {   // 24 byin* timers, busy_time in 0.4us for each detector
   w32 bt;
   bt= dodif32(mem1[cix], mem2[cix]);
-  printf("findDeadBusys: bt%d:%d 0x%x 0x%x\n", cix, bt, mem1[cix], mem2[cix]);
+  //printf("findDeadBusys: bt%d:%d 0x%x 0x%x\n", cix, bt, mem1[cix], mem2[cix]);
   if( bt<(ms100-10) ) continue; // not DEAD if at least 4 micsecs (10*0.4)in READY
   busys= busys | (1<<cix);        
 };
-findLTUNAMESby(busys, detpat, ltus);
-printf("findDeadBusys: 0x%x dets:0x%x busy dets:%s\n", busys, detpat, ltus);
+/*findLTUNAMESby(busys, detpat, ltus);
+printf("findDeadBusys: 0x%x dets:0x%x busy dets:%s\n", busys, detpat, ltus); */
 return(busys);
 }
 /*FGROUP busy

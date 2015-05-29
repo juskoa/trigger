@@ -459,3 +459,11 @@ before
 017:v/vme/CFG/clockshift -> /local/trigger/v/vme/CFG/ctp/DB/clockshift
 i.e. now writtable from 017 (before from 835). I.e. ttcmidims.c
 running on 017 can update clockshift
+28.5.
+l0f: now when pure LM: applied at LM for TRD class
+    not pure: applied at L0 for TRD class (i.e. 40mhz at L0)
+28.5.
+CNTRRD/analyse -can be exported (see exportana.bash)
+29.5.
+bug in inputsTools.c (lmdelay setting) fixed
+

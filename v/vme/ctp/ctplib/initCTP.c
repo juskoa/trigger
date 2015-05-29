@@ -176,6 +176,7 @@ for(ixinp=0; ixinp<ninp; ixinp++) {
   ix= getEdgeDelayDB(board-1, ixinp+1, &edge, &delay);
   if(ix==-1) {edge=0; delay=0; }   // not configured
   if( (edge==-1) || (delay==-1) ) {edge=0; delay=0;};  //not in DB
+  //printf("setEdgeDelays db: %d %d\n", edge, delay);
   setEdgeDelay(board,ixinp+1,edge,delay);
 };
 }

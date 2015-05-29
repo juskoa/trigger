@@ -7,14 +7,14 @@
 #include <string.h> 
 #include <time.h> 
 #include <ctype.h> 
-
+/*
 #ifdef CPLUSPLUS
 extern "C" {
 #include <dic.hxx>
 } 
 #else
 #include <dic.h>
-#endif
+#endif */
 #include "common.h"
 
 /*-------------------------*/ void epoch2date(time_t epoch, char *dmyhms) {

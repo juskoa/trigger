@@ -689,6 +689,58 @@ if(part->name != NULL){
 printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->run_number);
 }
 }
+/*------------------------------------------------------ getIDl0f
+I: l0fn: 0..1  l0f number
+rc: fed detectors pattern
+    l0finputs: is updated by l0 inputs used in this function
+    pure lm: 1: yes (only LM inputs)  0: 
+*/
+int getIDl0f(Tpartition *part, int l0fn, w32 *l0finputs, int *purelm) {
+char *l0ftxt; int ixn, rcinpdets=0;
+char emsg[200];
+*purelm=1;
+l0ftxt= &(part->rbif->l0intfs[L0INTFSMAX*(l0fn)]);
+sprintf(emsg,"getIDl0f:l0fs1:%s l0fs2:%s current:%s", 
+  part->rbif->l0intfs, 
+  &part->rbif->l0intfs[L0INTFSMAX], l0ftxt); prtLog(emsg);
+emsg[0]='\0'; ixn=0;
+while(1) {
+  int rc,vcip; char name[30];
+  rc= getNextFunName(l0ftxt+ixn, name);
+  if(rc==-1) { break; }; // no meaningfull name found
+  //ixn: points just after name in line string (' ', '\0', ':', '\n')
+  //name: contains next name.
+  if(DBGgetInputDets) printf("getIDl0f:name:%s\n", name);
+  vcip= findInputName(name);
+  if(vcip >=0) {
+    if(validCTPINPUTs[vcip].level==0) {
+      int inn;
+      inn= validCTPINPUTs[vcip].inputnum;
+      if(inn>4) {
+        sprintf(emsg,"getIDl0f:l0Fun uses %s not connected to L0/1-4", name);
+      } else {
+        int inpdet;
+        if(validCTPINPUTs[vcip].lminputnum<=0) *purelm=0;
+        *l0finputs= *l0finputs | (1<<(inn-1));
+        inpdet= validCTPINPUTs[vcip].detector;
+        rcinpdets= rcinpdets | (1<<inpdet);
+        if(DBGgetInputDets) 
+          printf("getIDl0f:inn:%d inpdet:%d\n", inn, inpdet);
+      };
+    } else {
+      sprintf(emsg,"getIDl0f:l0Fun %s used but not L0 input", name);
+    };
+  } else {
+    sprintf(emsg,"getIDl0f: L0 input %s used in l0f not found", name);
+  };
+  if(emsg[0]!='\0') {
+    infolog_trgboth(LOG_FATAL, emsg); rcinpdets=-1;
+    break;
+  };
+  ixn=rc+ixn;
+}; 
+return(rcinpdets);
+}
 /*-------------------------------------------------- checkmodLM */
 int checkmodLM(Tpartition *part){
 #define L0RNDBCMASK 0xf0000000
@@ -697,7 +749,7 @@ int checkmodLM(Tpartition *part){
 #define LMFUNSMASK  0x0000f000
 int icla, retcode=0;
 for(icla=0;icla<NCLASS;icla++){
-  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100]; char msg[200];
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
   if((klas=part->klas[icla])) {
     printTKlas(klas,icla);
   } else {
@@ -736,18 +788,32 @@ for(icla=0;icla<NCLASS;icla++){
       };
       printf("checkmodLM3:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
         klas->lmcondition);
-      // todo: check LM functions  (now: do nothing, i.e. leave at L0)
-      // pure LM-function: use it only on LM level (i.e. remove from L0)
-      //      problem: how/where to find out if it is pure LM?
-      //      L0-fun (or mixed inputs): leave as it is (only on L0 level)
+      // todo: check LM functions
+      // pure LM-function: use it only on LM level (i.e. remove from L0 for TRD classes)
+      // else: use it ONLY at L0 level
       //
       Nfuns= (~(klas->l0inputs & L0FUNSMASK))>>24;   // e.g: 0xf
       if(Nfuns) {   //===================  LMFUN used in this class
-        // use LM copy of L0F1/2
+        /* use LM copy of L0F1/2
         klas->lmcondition= klas->lmcondition & (~(0xf<<12));  // use at LM, first 0s
         klas->lmcondition= klas->lmcondition | (~(Nfuns<<12));  // use at LM
         klas->l0inputs= klas->l0inputs | ((Nfuns)<<24);   //do not use at L0
-        Nfunslm= Nfuns;
+        Nfunslm= Nfuns; */
+        int ixl0fn,purelm;
+        klas->lmcondition= klas->lmcondition | (0xf<<12);  // init to 'not used'
+        for(ixl0fn=0; ixl0fn<4; ixl0fn++) {
+          w32 msk0, l0finputs; int inpdets;
+          msk0= 1<<ixl0fn;
+          if((msk0 & Nfuns)==0) continue;
+          inpdets= getIDl0f(part, ixl0fn, &l0finputs, &purelm);
+          if(inpdets<0) { retcode=1; break;};
+          if(purelm==1) {
+            klas->lmcondition= klas->lmcondition & (~(msk0<<12));  // use at LM
+            klas->l0inputs= klas->l0inputs | (msk0<<24);   //do not use at L0
+          } else {
+            ; // leave it at L0-level
+          };
+        };
       };
       printf("checkmodLMa:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
         klas->lmcondition);
@@ -760,7 +826,7 @@ for(icla=0;icla<NCLASS;icla++){
         if(validCTPINPUTs[ixvci].inputnum>24) {
           printf("ERROR (bad validCTPINPUTs) in checkloadLM: %d %s \n",
             ixvci, validCTPINPUTs[ixvci].name);
-          retcode= 1;
+          retcode= 1; break;
         };
         lminpn= validCTPINPUTs[ixvci].lminputnum;
         if((validCTPINPUTs[ixvci].switchn!=0) &&

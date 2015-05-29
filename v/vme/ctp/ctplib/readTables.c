@@ -429,7 +429,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   sprintf(emsg, "ERROR ctpinputs.cfg line ignored:%s\n %s",line,em1); 
   prtWarning(emsg);
 };
-printf("INFO readTables LM inputs:\n");
+printf("INFO readTables LM inputs: ixtab name lmin lmdel\n");
 for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   int lmin;
   lmin=validCTPINPUTs[ixtab].lminputnum;

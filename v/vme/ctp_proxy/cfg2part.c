@@ -1107,48 +1107,11 @@ for(ixlevel=0; ixlevel<3; ixlevel++) {
     bit=(1<<ix);
     if( (ins012 & bit) == 0) {  //1:input not used 0:input is used
       if(( ix>23) && (ixlevel==0) ) {   // L0fun: to be done for LM also
-        char *l0ftxt; int ixn;
-        char emsg[200];
         /*sprintf(emsg,"getInputDets:l0Fun %d used but not implemented", ix+1);
         infolog_trg(LOG_INFO, emsg);*/
-        l0ftxt= &(part->rbif->l0intfs[L0INTFSMAX*(ix-24)]);
-        sprintf(emsg,"getInputDets:l0fs1:%s l0fs2:%s current:%s", 
-          part->rbif->l0intfs, 
-          &part->rbif->l0intfs[L0INTFSMAX], l0ftxt); prtLog(emsg);
-        emsg[0]='\0'; ixn=0;
-        while(1) {
-          int rc,vcip; char name[30];
-          rc= getNextFunName(l0ftxt+ixn, name);
-          if(rc==-1) { break; }; // no meaningfull name found
-          //ixn: points just after name in line string (' ', '\0', ':', '\n')
-          //name: contains next name.
-          if(DBGgetInputDets) printf("getInputDets:name:%s\n", name);
-          vcip= findInputName(name);
-          if(vcip >=0) {
-            if(validCTPINPUTs[vcip].level==0) {
-              int inn;
-              inn= validCTPINPUTs[vcip].inputnum;
-              if(inn>4) {
-                sprintf(emsg,"getInputDets:l0Fun uses %s not connected to L0/1-4", name);
-              } else {
-                *l0finputs= *l0finputs | (1<<(inn-1));
-                inpdet= validCTPINPUTs[vcip].detector;
-                inpdets= inpdets | (1<<inpdet);
-                if(DBGgetInputDets) 
-                  printf("getInputDets:inn:%d inpdet:%d\n", inn, inpdet);
-              };
-            } else {
-              sprintf(emsg,"getInputDets:l0Fun %s used but not L0 input", name);
-            };
-          } else {
-            sprintf(emsg,"getInputDets: L0 input %s used in l0f not found", name);
-          };
-          if(emsg[0]!='\0') {
-            infolog_trgboth(LOG_FATAL, emsg); allinpdets=-1;
-            goto RTRN;
-          };
-          ixn=rc+ixn;
-        };  
+        int purelm;
+        inpdets= getIDl0f(part, ix-24, l0finputs, &purelm);
+        if(inpdets==-1) { allinpdets=-1; goto RTRN; };
       } else {   // 0/1/2 input
         inpdet= findINPdaqdet(ixlevel, ix+1);
         //inpdets= addinpdet(inpdets, inpdet);

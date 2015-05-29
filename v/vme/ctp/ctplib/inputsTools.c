@@ -128,7 +128,7 @@ if(swin>12) {
   printf("ERROR setlmdelay: swin:%d\n", swin); return;
 };
 lmdel=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(swin-1));
-lmdel= (lmdel&0xf8ffffff) | (delay & 0x7);
+lmdel= (lmdel&0xf8ffffff) | ((delay & 0x7)<<24);
 vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(swin-1), lmdel);
 return;
 }
@@ -184,7 +184,7 @@ if(board==0) {
     maxix=12;
     printf("Input Edge delay\n");
   };
-  printf("Input Edge delay\n");
+  //printf("Input Edge delay\n");
   for(ix=1; ix<=maxix; ix++) {
     edge= getedge(board, ix, &delay);
     if((ix<=12) && (maxix==48)) {
