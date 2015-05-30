@@ -110,8 +110,10 @@ Tavbsy avbusys[N24];      // usecs, -1: not connected   >999000: dead
 int calibDets[MAXcalibDets]={5,11,13,15,17};
 
 char spurfilename[80]="xx";
-char spurline[8000];
+char spurline[NCOUNTERS*16];
 int spurcnts[]={150, 152, 153, -1};
+char rrdpibu[30000];
+int rrdpibuready=0;   // 1: ready, write it out
 
 /* print:
   <table class="bsyTable">
@@ -160,6 +162,9 @@ if(signum==SIGUSR1) {   // signum: 10
   //prtTables();
 };
 if(signum==SIGUSR2) { prtTables(); };  // signum:12 
+if(signum==SIGPIPE) { 
+   printf("SIGPIPE received...\n");
+};
 fflush(stdout);
 }
 
@@ -330,16 +335,26 @@ return(rate);
     if(rad != -1) { ppout[ix].prevcs= bufw32[rad]; }; \
   }; \
 
+FILE *openrrd() {
+FILE *rcp;
+rcp= popen("/usr/bin/rrdtool -", "w");
+//rcp= popen("cat - >logs/rrdcat", "w");
+if(rcp==NULL) {
+  printf("Cannot open /usr/bin/rrdtool\n");
+} else {
+  printf("rrdpipe opened.\n");
+}; return(rcp);
+}
 /*-----------------------*/ void gotcnts(void *tag, void *buffer, int *size) {
 int ix; //,ixx;   
 int ndaso;
 w32 timedelta;
-float timesecs, caltime;
+float timesecs; //, caltime;
 char dat[20]; char dmyhms[20];
 char htmlline[1000];
-char rrdpibu[30000];
 w32 *bufw32= (w32 *)buffer;
-//printf("gotcnts tag:%d size:%d\n", *(int *)tag, *size );
+//printf("gotcnts tag:%d+1 size:%d rrdpibuready:%d\n", *(int *)tag, *size, rrdpibuready );
+//*(int *)tag= *(int *)tag  +1;
 if(*size != 4*NCOUNTERS) {
   printf("error in gotcnts. Size:%d First word(if any):0x%x\n",
     *size, *bufw32);
@@ -353,62 +368,53 @@ prevl0time= bufw32[l0timeix];
 measnum++; if(measnum>=10) measnum=1;
 
 /*------------------------------------------------------------ rrd */
-//fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
-sprintf(rrdpibu, "update rrd/ctpcounters.rrd ");
-//fprintf(dbgout, "update rrd/ctpcounters.rrd ");
-//fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
-sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[epochsecs]); ndaso=0; // epochsecs
-//fprintf(dbgout, "%u:", bufw32[epochsecs]);
-for(ix=0; ix<=(NCOUNTERS-1); ix++) {
-  int ixspec;
-  if((( (ix>=CSTART_SPEC+4) && (ix<=CSTART_SPEC+4+20) ) 
-     && (((ix-CSTART_SPEC) %2)==0)) || 
-     ((ix>CSTART_SPEC+4+20) && (ix<=CSTART_SPEC+4+20+24))   // 24xLTU voltages
-    ) {   // CTP-voltage || LTU voltage
-    int volts[4];
-    vme2volt(bufw32[ix], volts);
-    for(ixspec=0; ixspec<4; ixspec++) {
-      //printf("ix:%d ixspec:%d NCOUNTERS:%d\n", ix, ixspec,NCOUNTERS);
-      // from 16.5.2015 counters end is later...
-      //fprintf(rrdpipe, "%u:", volts[ixspec]);
-      sprintf(rrdpibu, "%s%u:", rrdpibu, volts[ixspec]); ndaso++;
-    };
-    continue;
-  };
-  if( ix==(NCOUNTERS-1) ) { // from 16.5.2015 we need NL here
-    int rcr;
-    //fprintf(rrdpipe, "%u: \n", bufw32[ix]);
-    sprintf(rrdpibu, "%s%u: \n", rrdpibu, bufw32[ix]); ndaso++;
-    printf("rrdpibu length:%d num. of data sources:%d\n",(int)strlen(rrdpibu),ndaso);
-    if(ndaso < 1865) {
-      printf("skipping rrd write...\n");
-    } else {
-      if(ARGNORRD==0) {
-         rcr= fprintf(rrdpipe, "%s", rrdpibu);
-      } else {
-        printf("skipping fprintf(rrdpipe..., -norrd\n");
-        rcr= strlen(rrdpibu);
+if(rrdpibuready==0) {
+  //fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
+  sprintf(rrdpibu, "update rrd/ctpcounters.rrd ");
+  //fprintf(dbgout, "update rrd/ctpcounters.rrd ");
+  //fprintf(rrdpipe, "%u:", bufw32[epochsecs]);
+  sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[epochsecs]); ndaso=0; // epochsecs
+  //fprintf(dbgout, "%u:", bufw32[epochsecs]);
+  for(ix=0; ix<=(NCOUNTERS-1); ix++) {
+    int ixspec;
+    if((( (ix>=CSTART_SPEC+4) && (ix<=CSTART_SPEC+4+20) ) 
+       && (((ix-CSTART_SPEC) %2)==0)) || 
+       ((ix>CSTART_SPEC+4+20) && (ix<=CSTART_SPEC+4+20+24))   // 24xLTU voltages
+      ) {   // CTP-voltage || LTU voltage
+      int volts[4];
+      vme2volt(bufw32[ix], volts);
+      for(ixspec=0; ixspec<4; ixspec++) {
+        //printf("ix:%d ixspec:%d NCOUNTERS:%d\n", ix, ixspec,NCOUNTERS);
+        // from 16.5.2015 counters end is later...
+        //fprintf(rrdpipe, "%u:", volts[ixspec]);
+        sprintf(rrdpibu, "%s%u:", rrdpibu, volts[ixspec]); ndaso++;
       };
-      if((w32)rcr != strlen(rrdpibu) )  {
-        printf("rrd rc:%d, reopening rrdpipe\n", rcr);
-        rrdpipe= popen("/usr/bin/rrdtool -", "w");
-        if(rrdpipe==NULL) {
-          printf("Cannot open /usr/bin/rrdtool\n");
-          exit(8);
+      continue;
+    };
+    if( ix==(NCOUNTERS-1) ) { // from 16.5.2015 we need NL here
+      //fprintf(rrdpipe, "%u: \n", bufw32[ix]);
+      sprintf(rrdpibu, "%s%u: \n", rrdpibu, bufw32[ix]); ndaso++;
+      printf("rrdpibu length:%d num. of data sources:%d\n",(int)strlen(rrdpibu),ndaso);
+      if(ndaso < 1865) {
+        printf("skipping rrd write (<1865)...\n");
+      } else {
+        if(ARGNORRD==0) {
+           rrdpibuready=1;
+           //rcr= fprintf(rrdpipe, "%s", rrdpibu);  moved to main
         } else {
-          printf("rrdpipe reopened.\n");
+          printf("skipping fprintf(rrdpipe..., -norrd\n");
         };
-      } else {
-        printf("rrdpipe ok.\n");
       };
+      ndaso=0;
+      break;
+    } else {
+      //fprintf(rrdpipe, "%u:", bufw32[ix]);
+      sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[ix]); ndaso++;
     };
-    ndaso=0;
-    break;
-  } else {
-    //fprintf(rrdpipe, "%u:", bufw32[ix]);
-    sprintf(rrdpibu, "%s%u:", rrdpibu, bufw32[ix]); ndaso++;
-  };
-}; 
+  }; 
+} else {
+  printf("rrd update skipped.\n");
+};
 epoch2date(bufw32[epochsecs], dat);
 printf("epoch: %s\n", dat);
 
@@ -583,7 +589,8 @@ if(spurfile) {
     };*/
     sprintf(spurline, "%s %x", spurline, bufw32[ix]);
   };fprintf(spurfile,"%s\n", spurline);
-  //printf("%s\n", spurline);
+  //printf("spurlinelen:%d %s\n", strlen(spurline), spurline);
+  printf("spurlinelen:%d\n", (int)strlen(spurline));
 };
 /*
 printf(" addr    0x abs           diff\n");
@@ -600,7 +607,7 @@ allreads++; return;
 }
 
 /*------------------------------*/ int main(int argn, char **argv) {
-int inforc, ix;
+int inforc, ix, tag=137;
 for(ix=0; ix<argn; ix++) {
   //printf("arg%d:%s: ",i, argv[i]); 
   if(ix==0) continue;
@@ -614,11 +621,12 @@ hname= getenv("HOSTNAME");
 //setbuf(stdout, NULL);   nebavi
 initbusyl0s();
 //return(0);
-rrdpipe= popen("/usr/bin/rrdtool -", "w");
+rrdpipe= openrrd();
 if(rrdpipe==NULL) {
   printf("Cannot open /usr/bin/rrdtool -\n");
   exit(8);
- };
+};
+rrdpibuready=0;
 //nebavi asi htmlpipe= popen("python ./htmlCtpBusys.py stdin >logs/htmlCtpBusys.log", "w");
 //? htmlpipe= popen("./htmlCtpBusys.py stdin", "w");
 printf("%s rrdpipe OPENED. Opening /tmp/htmlfifo (will wait for htmlCtpBusy daemon running)...\n", hname);
@@ -632,6 +640,8 @@ printf("/tmp/htmlfifo opened, i.e. htmlCtpBusy daemon is running.setlinebuf()...
 setlinebuf(htmlpipe);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);
+//signal(SIGPIPE, SIG_IGN);
+signal(SIGPIPE, gotsignal); siginterrupt(SIGPIPE, 0);
 
 printf("gcalib monitoring skipped.\n");
 csock_gcalib= udpopens((char *)"localhost", 9931);
@@ -640,10 +650,25 @@ if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
 //dbgout= fopen("logs/dbgout.log", "w");
 inforc= dic_info_service((char *)"CTPDIM/MONCOUNTERS", MONITORED, 0, 
-  cnts,4*(NCOUNTERS), gotcnts, 137, &cntsFailed, 4); 
+  cnts,4*(NCOUNTERS), gotcnts, tag, &cntsFailed, 4); 
 //printf("CTPDIM/MONCOUNTERS service id:%d\n", inforc);
 while(1) {
-  sleep(100);
+  //sleep(100);
+  //printf("dtq_sleep ...\n");
+  dtq_sleep(2);
+  //printf("dtq_slept %d %d\n",rrdpibuready, tag); fflush(stdout);
+  if(rrdpibuready==1) {
+    int rcr;
+    rcr= fprintf(rrdpipe, "%s", rrdpibu);
+    if((w32)rcr != strlen(rrdpibu) )  {
+      printf("rrd rc:%d (1 record lost), reopening rrdpipe\n", rcr);
+      rrdpipe= openrrd();
+      if(rrdpipe==NULL) { exit(8); };
+    } else {
+      ; //printf("rrdpipe ok.\n");
+    };
+    rrdpibuready=0;
+  };
 };
 pclose(rrdpipe); 
 //pclose(htmlpipe);

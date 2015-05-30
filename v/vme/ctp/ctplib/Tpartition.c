@@ -768,7 +768,7 @@ for(icla=0;icla<NCLASS;icla++){
     clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
     printf("checkmodLM: cluster:%d  clsts:0x%x\n", cluster, clsts);
     if(clsts & clustermask) {
-      w32 Ngens,Nfuns,inpmsk; int ixvci, Nlm, Ngenslm, Nfunslm;
+      w32 Ngens,Nfuns,inpmsk; int ixvci, Nlm, Ngenslm;
       sprintf(txdets, "%s %d", txdets, ixdet);
       // class feeding TRD:
       // by default, disable all LMFUN* LMRND/BC:
@@ -788,13 +788,13 @@ for(icla=0;icla<NCLASS;icla++){
       };
       printf("checkmodLM3:clas:%d l0inputs:0x%x lmcondition:0x%x\n", icla+1, klas->l0inputs,
         klas->lmcondition);
-      // todo: check LM functions
+      // check LM functions
       // pure LM-function: use it only on LM level (i.e. remove from L0 for TRD classes)
       // else: use it ONLY at L0 level
       //
       Nfuns= (~(klas->l0inputs & L0FUNSMASK))>>24;   // e.g: 0xf
       if(Nfuns) {   //===================  LMFUN used in this class
-        /* use LM copy of L0F1/2
+        /*von  use LM copy of L0F1/2
         klas->lmcondition= klas->lmcondition & (~(0xf<<12));  // use at LM, first 0s
         klas->lmcondition= klas->lmcondition | (~(Nfuns<<12));  // use at LM
         klas->l0inputs= klas->l0inputs | ((Nfuns)<<24);   //do not use at L0
@@ -838,7 +838,7 @@ for(icla=0;icla<NCLASS;icla++){
             validCTPINPUTs[ixvci].lminputnum);
           inpmsk= 1<<(validCTPINPUTs[ixvci].inputnum-1);
           if(inpmsk & actinps) {
-            // L0level: do not use it (although should not matter)
+            // L0level: do not use it
             // LMlevel: set lmcondition considering LM switch
             printf("checkmodLMi:inp:%d l0inputs:0x%x lmcondition:0x%x\n", validCTPINPUTs[ixvci].inputnum-1, 
               klas->l0inputs, klas->lmcondition);
@@ -848,8 +848,11 @@ for(icla=0;icla<NCLASS;icla++){
           };
         };
       };
-      printf("checkmodLM4:clas:%d Nlm/Ngens:%d/%d l0inputs:0x%x lmcondition:0x%x\n", 
-        icla+1, Nlm, Ngenslm, klas->l0inputs, klas->lmcondition);
+      //================== downscaling
+      // apply at LM level instead of at L0:
+      klas->lmscaler= klas->scaler; klas->scaler=0;
+      printf("checkmodLM4:clas:%d Nlm/Ngens:%d/%d l0inputs:0x%x lmcondition:0x%xl0/lm scaling:0x%x 0x%x\n", 
+        icla+1, Nlm, Ngenslm, klas->l0inputs, klas->lmcondition, klas->lmscaler, klas->scaler);
       if((Nlm==0) && (Ngenslm==0)) {
         char msg[200];
         sprintf(msg, "no LM input for TRD class (i.e. 40mhz at LM level) in class %d",icla+1);
