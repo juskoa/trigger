@@ -16,7 +16,9 @@ consequences for active partitions (if any)
 18.12
 prepareRunConfig/registerRunConfig
 29.11. todo: goto LOAD_FAILURE  when more than 6 * (inverted) classes used
+30.5.2015 TEST: when debug offline (no swtrg generation)
 */
+//#define TEST
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,16 +26,8 @@ prepareRunConfig/registerRunConfig
 #include "infolog.h"
 #ifdef CPLUSPLUS
 #include <dic.hxx>
-/*von #ifndef TEST
-extern "C" {
-#include "DAQlogbook.h"
-}
-#endif */
 #else
 #include <dic.h>
-/*von #ifndef TEST
-#include "DAQlogbook.h"
-#endif */
 #endif
 
 #include "vmewrap.h"
@@ -1910,7 +1904,7 @@ if(x=='E') {
 */
 if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
 #ifndef TEST   
- while((GenSwtrg(1,'s', xod, 1750, detectors, 0, orbitn) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
+  while((GenSwtrg(1,'s', xod, 1750, detectors, 0, orbitn) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
    iattempt++;
    usleep(100000);
  };

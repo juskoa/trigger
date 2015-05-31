@@ -20,13 +20,14 @@ stdout: OK (server exists)
 #define OCCMD "STATUS\n"
 #define STATLEN strlen(OCCMD)
 #define MAXSTATUS 100 
+#define MAXCNAMESString (100*6 + 60 + 5)*80  //100 classes, 60 inps, 5: epoch...
 #define MAXMESSAGE 400
 
 char cmd[80];
 char message[MAXMESSAGE];
 
 char StatusString[MAXSTATUS]="blabla";   
-char StatusCNString[MAXSTATUS]="CNAMESblabla";   
+char StatusCNString[MAXCNAMESString+1]="CNAMESblabla";   
 char StatusFailed[MAXSTATUS]="Status failed";   /* /STATUS service failed */
 
 void printhelp() {
@@ -61,8 +62,8 @@ printf("CScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
 }
 void CNAMEScallback(void *tag, void *buffer, int *size) {
 char *buf= ( char *)buffer;
-printf("CNAMEScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
-//printf("CNAMEScallback:%s\n",StatusString); //not changed (callback)
+//printf("CNAMEScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
+printf("CNAMEScallback tag:%d size:%d buf:%s===\n", *(int *)tag, *size, buf);
 }
 
 int main(int argc, char **argv) {
@@ -99,7 +100,7 @@ csinfo= dic_info_service("CTPRCFG/CS", MONITORED, 0,
   CScallback, 3488, StatusFailed, strlen(StatusFailed)+1);
 printf("CTPRCFG/CS MONITORED started:%d:%s:\n", csinfo, StatusString);
 cnamesinfo= dic_info_service("CTPRCFG/CNAMES", MONITORED, 0, 
-  NULL,MAXSTATUS+1, 
+  NULL,MAXCNAMESString, 
   CNAMEScallback, 3488, StatusFailed, strlen(StatusFailed)+1);
 printf("CTPRCFG/CNAMES MONITORED started:%d:%s:\n", cnamesinfo, StatusCNString);
 
@@ -147,10 +148,10 @@ while(1) {
     printf("%s CS:%s:\n",cmd, StatusString);
   } else if(strcmp(message,"cnames\n")==0) {
     rc= dic_info_service("CTPRCFG/CNAMES", ONCE_ONLY, 1, 
-      StatusString,MAXSTATUS+1, 
+      StatusCNString,MAXCNAMESString, 
       NULL, 3488, StatusFailed, strlen(StatusFailed)+1);
     usleep(1000000);
-    printf("%s CNAMES:%s:\n",cmd, StatusString);
+    printf("%s CNAMES:%s:\n",cmd, StatusCNString);
   } else {                           // send command
     // command:
     // clockshift ttcmi_halfns cordedelPS/10 last_measuredshiftPS*10

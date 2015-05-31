@@ -709,6 +709,7 @@ ltunames: string (length:200) containing LTU names according
 void findLTUNAMESby(w32 busypat, w32 detpat, char *names) {
 int bix;
 Tdetector *detp;
+//printf("findLTUNAMESby: 0x%x 0x%x\n", busypat, detpat);
 names[0]='\0';
 for(bix=0; bix<NDETEC; bix++) {
   int byin;

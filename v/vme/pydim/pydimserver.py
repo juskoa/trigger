@@ -169,6 +169,9 @@ def main():
         part.savercfg(line[5:]) 
         fname="r"+runnumber+".rcfg"
         print "%s %s saved,"%(tasc(), fname)
+        usedinps= part.prtinputs()
+        print "usedinps:",usedinps,";"
+        io[1].write("inpupd %s %s\n"%(runnumber, usedinps))
         # before the copy, ctp_proxy is waiting for, update
         # triggerClassNames in DAQdb
         print "%s now update DAQlogbook... "%(tasc())

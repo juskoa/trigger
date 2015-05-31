@@ -273,7 +273,7 @@ for(ix=0; ix< (int)strlen(xpid); ix++) {
   if(xpid[ix]=='\n') xpid[ix]=' ';
 };
 sprintf(emsg,"INFO DOrcfg xpid:%s popen rc:%d\n", xpid, xrc);
-printf(emsg);
+printf("%s",emsg);
 if(xpid[0]=='\0') {
   infolog_trg(LOG_FATAL, "xcounters problem, stop all global runs, call CTP expert");
   printf("ERROR xcounters problem, stop all global runs, call CTP expert\n");
@@ -285,7 +285,7 @@ if(xpid[0]=='\0') {
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
-printf("INFO Dorcfg len:%d %ld\n", *size,sizeof(TDAQInfo));
+printf("INFO Dorcfg len:%d %d\n", *size,sizeof(TDAQInfo));
 if(*size != sizeof(TDAQInfo)){
  char emsg[ERRMSGL];
  sprintf(emsg, "DOrcfg: Structure dim size different from command size.");
@@ -337,10 +337,10 @@ if(rc==0) {
 }
 /*--------------------*/ void DOltucfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message Tltucfg
-Tltucfg1 *dain; int rc;
+Tltucfg1 *dain; //int rc;
 dain= (Tltucfg1 *)bmsg;
 printf("INFO Dltucfg len:%d run:%d det:%s\n",*size,dain->run,dain->detector); 
-rc= daqlogbook_update_LTUConfig(dain->run, dain->detector,
+/*rc=*/ daqlogbook_update_LTUConfig(dain->run, dain->detector,
   dain->LTUFineDelay1, dain->LTUFineDelay2, dain->LTUBCDelayAdd);
 // INFO msg in daqlogbook...
 }
@@ -511,12 +511,12 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   } else {
     ignoreDAQLOGBOOK=0;
   };
-} else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {
-  int irc;
+} else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {   //ctpproxy [re]start
+  //int irc;
   reset_insver();
   readTables();
   ctpc_clear(); updateCNAMES();
-  irc= check_xcounters();
+  /*irc=*/ check_xcounters();
 } else if((strncmp(mymsg,"rcfgdel ",8)==0)) {   // rcfgdel partname runn
   enum Ttokentype t1; int ixl, runn; char pname[16]; char intval[16];;
   char emsg[200];
@@ -540,8 +540,8 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
   };
 } else if((strncmp(mymsg,"csupdate",8)==0)) {
-  int csclients; char *cs;
-  cs= readCS();
+  int csclients; // char *cs;
+  /*cs=*/ readCS();
   csclients= dis_update_service(CSid);
   printf("INFO CS update for %d clients\n", csclients);
   stdoutyes=0;
@@ -657,7 +657,7 @@ update following info in DAQlogbook::
 */
 void updateConfig(int runn, char *pname, char *instname, char *instver) {
 int rc, rl;
-char *mem; char *environ;
+char *mem; char *environ, *envWORK;
 char cfgname[200], aliname[200], itemname[200];
 char emsg[1000];
 
@@ -665,12 +665,14 @@ char emsg[1000];
 #define MAXRCFGLEN 30000
 char alignment[MAXALIGNMENTLEN];
 environ= getenv("VMESITE");
+envWORK= getenv("VMEWORKDIR"); strcpy(cfgname, envWORK);
 if(strcmp(environ,"ALICE")==0) {
   strcpy(aliname, "/home/dl6/snapshot/alidcsvme001/home/alice/trigger/v/vme/WORK/");
 } else if(strcmp(environ,"SERVER")==0) {
   strcpy(aliname, "/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/");
 } else {
-  printf("ERROR bad VMESITE env. var:%s",environ); return;
+  printf("ERROR bad VMESITE env. var:%s using WORKDIR/WORK",environ);
+  sprintf(aliname, "%s/WORK/", envWORK);
 };
 strcat(aliname, "alignment2daq");
 rl= readdbfile(aliname, alignment, MAXALIGNMENTLEN); alignment[rl]='\0';
@@ -679,8 +681,7 @@ if(alignment=='\0') {
   printf("ERROR Alignment info in DAQlogbook is empty");
 };
 printf("INFO alignment file len:%d\n",rl);
-environ= getenv("VMEWORKDIR"); strcpy(cfgname, environ);
-sprintf(cfgname,"%s/WORK/RCFG/r%d.rcfg", environ, runn);
+sprintf(cfgname,"%s/WORK/RCFG/r%d.rcfg", envWORK, runn);
 mem= (char *)malloc(MAXRCFGLEN+1); mem[0]='\0';
 rl= readdbfile(cfgname, mem, MAXRCFGLEN); mem[rl]='\0';
 printf("INFO %s file len:%d\n",cfgname, rl);
@@ -732,7 +733,7 @@ for(ixc=0; ixc<NCTPINPUTS; ixc++) {
     break;
   };
 };
-updateCNAMES();
+//updateCNAMES(); it is enough to update it in updateDAQDB
 }
 
 /* Input: class runNumber clid1 classname1 clid2 classname2 ... \n
@@ -879,7 +880,8 @@ return(rcex);
 /*--------------------------------------------------- main */
 int main(int argc, char **argv) {
 int rc,grc=0;
-char *cs; char command[40];
+//char *cs; 
+char command[40];
 char servername[40];
 char cmd[80];
 
@@ -896,7 +898,7 @@ sprintf(cmd, "%s/%s", servername, command);   // CTPRCFG/RCFG
 printf("DIM server:%s cmd:%s\n", servername, command); // should be 1st line
 
 reset_insver();
-cs= readCS();
+/*cs=*/ readCS();
 rc= readAliases(); 
 cshmInit();
 readTables();   // + when ctpprxy restaretd, i.e. in time of rcfgdel 0 ALL
@@ -975,11 +977,9 @@ while(1) {
         };
       };
     };*/
-    if(ignoreDAQLOGBOOK==0) {
-      rcdaq= updateDAQDB(line);
-      if(rcdaq!=0) {
-        printf("ERROR updateDAQLOGBOOK failed. rc=%d\n", rcdaq);
-      };
+    rcdaq= updateDAQDB(line);
+    if(rcdaq!=0) {
+      printf("ERROR updateDAQLOGBOOK failed. rc=%d\n", rcdaq);
     };
   } else if(strncmp(line,"inpupd ",7)==0) {
     update_ctpins(line);
