@@ -162,8 +162,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
   csps_applied_new= int(eval(csf_string)*10000)   #ns-> 0.1ps
   #if ((csps < -250) or (csps > 250)) or (force != None):
   if ((csps < -10) or (csps > 10)) or (force != None):
-    if ((csps < -10000) or (csps > 10000)) and (force == None):
-      mylog.logm("csps:%dps too big (max 1500(now 10000) ps allowed). No action."%csps)
+    if ((csps < -1500) or (csps > 1500)) and (force == None):
+      mylog.logm("csps:%dps too big (max 1500(now 1500) ps allowed). No action."%csps)
     else:
       fn= os.path.join(os.environ['dbctp'],"clockshift")
       f= open(fn,"r")

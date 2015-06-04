@@ -245,6 +245,8 @@ def main():
       pass
     elif cmd[0]=='resetclock':
       # adjust clock shift: correct any shift
+      # resetclock is called from ctp_proxy, when PHYSICS_1 started.
+      # 3.6.2015: removed from ctp_proxy( i.e. should not be called)
       cshift= miclock.getShift()
       if cshift != "old":
         try:

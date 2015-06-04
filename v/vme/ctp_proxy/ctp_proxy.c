@@ -2473,9 +2473,10 @@ way of masking: mask is applied in memory directly
     after part. definition is read in
  */
 errorReason[0]='\0';
+/* removed 3.6.2015 (i.e. was here at the end of run1)
 if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
   resetclock();
-}; 
+}; */
 infolog_SetStream(name,0);
 part=getPartitions(name, AllPartitions); 
 if(part!=NULL) { 
