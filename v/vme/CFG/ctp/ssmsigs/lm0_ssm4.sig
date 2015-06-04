@@ -19,15 +19,15 @@
 18   lmclst_6
 19   lmclst_7
 20   lmclst_8
-21   l0clstt
-22   prepulse
-23   int_t
-24   tc_start
+21   dlmclass1
+22   dlmclass2
+23   dlmclass3
+24   int_t
 25   int_2
 26   int_1
 27   bc_counter11
-28   dlmclass_en
-29   dlmclass1
-30   dlmclass2
-31   dlmclass3
+28   l0_request
+29   l0_pp_request
+30   l0_ack
+31   l0_tc_busy
 
