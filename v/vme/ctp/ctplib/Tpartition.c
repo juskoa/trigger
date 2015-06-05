@@ -486,7 +486,7 @@ if(klas != NULL){
   klas->lmcondition=0xffffffff;
   klas->lminverted=0;
   klas->l0vetos=getCLAMASK();// disable klas by default
-  klas->lmvetos= 0x803f00; //class mask, PF1..4, all, LM deadtime
+  klas->lmvetos= 0x803f00; //class mask, PF1..4, all, LM deadtime ONLY 0xffffff valid!
   klas->scaler=0;
   klas->lmscaler=0;
   klas->l1definition=0x8fffffff; //0;
@@ -1617,7 +1617,7 @@ void cleanHardware(Hardware *hw, int leaveint){
   cleanTFO(&hw->fo[i]);
  }
  cleanTBUSY(&hw->busy);
-for(i=0; i<NCLASS; i++) hw->sdgs[i]=i;
+for(i=0; i<NCLASS; i++) {hw->sdgs[i]=i; hw->lmsdgs[i]=i;}
 }
 /*-----------------------------------------------------copyHardware()
   All memory allocated by initHW
@@ -1629,7 +1629,9 @@ void copyHardware(Hardware *to,Hardware *from){
  copyTRBIF(to->rbif,from->rbif);
  for(i=0;i<NFO;i++) to->fo[i]=from->fo[i];
  copyTBUSY(&(to->busy),&(from->busy));
-for(i=0;i<NCLASS;i++) to->sdgs[i]= from->sdgs[i];
+for(i=0;i<NCLASS;i++) {
+  to->sdgs[i]= from->sdgs[i]; to->lmsdgs[i]= from->lmsdgs[i];
+};
 }
 /*----------------------------------------------------------load2HW()
   Purpose: load HW to hw
@@ -1771,9 +1773,10 @@ for(i=0;i<NCLASS;i++){
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
   if(l0AB()==0) {   //firmAC or >C0
     if(l0C0()) {
-      w32 lmm, l0m, lmcond, l0vets;
+      w32 lmm, l0m, lmcond, l0vets, lmvets;
       l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
-      vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
+      //vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
+      vmew32(L0_VETOr2+bb,  l0vets);
       lmcond= klas->lmcondition;
       l0m= (klas->l0vetos & 0xfff00)>>8;
       lmm= (klas->lmcondition & 0xfff00000) >> 20;   // 
@@ -1784,9 +1787,10 @@ for(i=0;i<NCLASS;i++){
       };
       vmew32(LM_CONDITION+bb, lmcond);
       vmew32(LM_INVERT+bb,klas->lminverted);
-      vmew32(LM_VETO+bb,klas->lmvetos);
+      lmvets= (klas->lmvetos & 0x80ffffff) | ((hw->lmsdgs[i])<<24);
+      vmew32(LM_VETO+bb,lmvets);
       printf("load2HW: l0c+v: 0x%x 0x%x lmc+v: 0x%x 0x%x\n",
-        klas->l0inputs, l0vets, lmcond, klas->lmvetos);
+        klas->l0inputs, l0vets, lmcond, lmvets);
     } else {
       vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
     };

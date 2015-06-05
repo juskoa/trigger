@@ -374,7 +374,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
                               /* [5..9]-> ... for INTERACT2 */
 #define L0_FUNCTION1   0x95cc
 #define L0_FUNCTION2   0x95d0
-#define RANDOM_1       0x95d4 /* bit31: 1: Enable filter (for FPGAVER>=A5) */
+#define RANDOM_1       0x95d4 /* bit31: 1: Enable trains filter (for FPGAVER>=A5) */
 #define RANDOM_2       0x95d8
 #define SCALED_1       0x95dc
 #define SCALED_2       0x95e0

@@ -1279,6 +1279,7 @@ for(ip=0;ip<MNPART;ip++){
       int hwclass;
       hwclass= klas->hwclass;  // 0..49/99
       HW.sdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;
+      //HW.lmsdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;  todo
       printf("addClasses2HW:hwclass0..49/99:sdgs[%d]:%d\n", 
         hwclass, HW.sdgs[hwclass]);
     };

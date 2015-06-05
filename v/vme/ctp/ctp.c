@@ -713,13 +713,14 @@ vmew32(vmemode,0);   /* normal mode */
 /*FGROUP SimpleTests
 what: 0: test RATE_DATA  (100 words, 25 bits)
       1: test MASK_DATA  (3564 words, 12 bits)
-     10: just read RATE_DATA
+     10: just read RATE_DATA + LM_RATE_DATA
      11: just read MASK_DATA
 write 1.. 100/3564,read back and print if not as expected
 */
 void testrates(int what) {
 int ix;
 w32 rate_mask,vmemode,clearad,datad;
+w32 lmvmemode,lmclearad,lmdatad;
 int MAXIX, okn;
 if((what%10)==0) {              // RATE_DATA
   vmemode= getRATE_MODE();
@@ -751,6 +752,13 @@ if(what<10) {
   };
 };
 //read back
+if(what==10) {
+  lmvmemode= LM_RATE_MODE;
+  lmclearad= LM_RATE_CLEARADD;
+  lmdatad= LM_RATE_DATA;
+  vmew32(lmvmemode,1);   /* vme mode */
+  vmew32(lmclearad,DUMMYVAL); okn=0;
+};
 vmew32(clearad,DUMMYVAL); okn=0;
 printf("reading..., printing out (errors only)...\n");
 for(ix=0; ix<MAXIX; ix++) {
@@ -764,10 +772,19 @@ for(ix=0; ix<MAXIX; ix++) {
       okn++;
     };
   } else {
-    printf("%2d: %d=0x%x\n", ix+1, da, da);
+    if(what==10) {
+      w32 lmda;
+      lmda= vmer32(lmdatad) & rate_mask;
+      printf("%2d: LM:%d=0x%x   L0:%d=0x%x\n", ix+1, lmda,lmda,da, da);
+    } else {
+      printf("%2d: %d=0x%x\n", ix+1, da, da);
+    };
   };
 }; 
 vmew32(vmemode,0);   /* normal mode */
+if(what==10) {
+  vmew32(lmvmemode,0);   /* normal mode */
+};
 if(what<10) {
   printf("tested words:%d, ok: %d words\n", MAXIX, okn);
 };

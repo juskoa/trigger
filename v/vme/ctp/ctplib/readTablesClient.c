@@ -45,7 +45,7 @@ Tsimplepars simplepars[MAXSIMPLEPARS]= {
 //{"L0_INTERACT1", L0_INTERACT1},
 //{"L0_INTERACT2", L0_INTERACT2},
 //{"L0_INTERACTT", L0_INTERACTT},
-{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take car L0/LM0  (see below)!
+{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take care L0/LM0  (see below)!
 {"INT_DDL_EMU", INT_DDL_EMU},
 {"", 0}
 };

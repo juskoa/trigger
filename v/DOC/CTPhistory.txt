@@ -466,4 +466,14 @@ l0f: now when pure LM: applied at LM for TRD class
 CNTRRD/analyse -can be exported (see exportana.bash)
 29.5.
 bug in inputsTools.c (lmdelay setting) fixed
+4.6.
+sxb daq readout ddl: trigger@pcaldctp2
+ctpro >/dev/null
+4.6.
+ctp.c testreates() -option 10: LM rates added
+5.6.
+Tpartition.c,... SDSCG groups for LM level initialised properly also when
+partition loaded (before: ok only when ctpproxy restarted).
+todo: still there is no way how to downscale synchronously on LM level
+-probaly should be done independently form L0 ?
 

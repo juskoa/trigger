@@ -122,7 +122,7 @@ typedef struct TKlas{
  int sdg;         // index into SDGS. -1 if not SDG class
  w32 lmcondition;
  w32 lminverted;
- w32 lmvetos;
+ w32 lmvetos;     
  w32 lmscaler;
 }TKlas;
 
@@ -238,7 +238,7 @@ typedef struct TBUSY{
 
 typedef struct TSDGS{
   char name[MAXPARTNAME];   // symbolic SDG name. "": empty field
-  char pname[MAXPARTNAME];  // symbolic SDG name
+  char pname[MAXPARTNAME];
   w32  l0pr;                // calculated from n% (always rnd downscale)
   int firstclass;  //1..50, 0: not allocated yet
 }TSDGS;
@@ -265,9 +265,10 @@ typedef struct Hardware{
  TRBIF *rbif;
  TFO fo[NFO];           // clust. is free if there is no bit ON in fo[0-5]
  TBUSY busy;
- int sdgs[NCLASS];   // Default: 0..49. Different in case if SDG active 
+ int sdgs[NCLASS];   // Default: 0..99. Different in case if SDG active 
      // for given class used to fill L0_SDSCG registers. VALID also for LM0
      // (i.e. here, not in klas[]->l0vetos
+ int lmsdgs[NCLASS];   // Default: 0..99.
 }Hardware;
 // Clean existing HW structure
 void cleanHardware(Hardware *hw, int leaveint);
