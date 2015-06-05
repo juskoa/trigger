@@ -14,8 +14,8 @@ import pylog
 def main(action):
   rc=0
   #mylog= pylog.Pylog("",tty='yes')   # no infoLogger, only tty
-  mylog= pylog.Pylog("getfsdip",tty='yes')   # file+tty
-  #mylog= pylog.Pylog("getfsdip",info='yes')
+  #mylog= pylog.Pylog("getfsdip",tty='yes')   # file+tty
+  mylog= pylog.Pylog("getfsdip",info='yes')   # file+info
   sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
   #print os.environ["PYTHONPATH"]
   os.chdir(os.path.join(os.environ["dbctp"], "fs_auto"))

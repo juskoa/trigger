@@ -1387,7 +1387,7 @@ if(detectors==0) {
 */
   locdetectors= detectors;
 };
-printf("getBusyMaskPartition: detectors:0x%x %s\n", detectors, part->name);
+//printf("getBusyMaskPartition: detectors:0x%x %s\n", detectors, part->name);
 for(idet=0;idet<NDETEC;idet++){
   int pclu, pclust, hwclust;
   if((locdetectors & (1<<idet)) == 0 ) continue;
@@ -1397,7 +1397,7 @@ for(idet=0;idet<NDETEC;idet++){
     if(pclust & (1<<pclu)) {
       //printf("updateDAQClusters:findHWc:%s pclust:%x pclu:%x\n", part->name, pclust, pclu);
       hwclust= findHWCluster(part, pclu+1);
-      printf("getBusyMaskPartition:idet:%2d pclust:%d pclu:%d hwclust:%d\n", idet, pclust, pclu,hwclust);
+      //printf("getBusyMaskPartition:idet:%2d pclust:%d pclu:%d hwclust:%d\n", idet, pclust, pclu,hwclust);
       if(hwclust>0) {
         clust= clust | (1<<(hwclust-1));
       } else {
@@ -1409,13 +1409,14 @@ for(idet=0;idet<NDETEC;idet++){
 if(detectors==0) {   // check if available (for possible bug in ctpproxy code...)
   if(exp_clust != clust) {
     char errmsg[120];
-    sprintf(errmsg,"getBusyMaskPartition: clust:0x%x expected:0x%x", clust, exp_clust);
+    sprintf(errmsg,"getBusyMaskPartition: %s dets:0x%x clust:0x%x exp:0x%x\n",
+      part->name, detectors, clust, exp_clust);
     intError(errmsg);
   };
 };
 if(DBGbusy) {
-  printf("getBusyMaskPartition: %s dets:0x%x clust:0x%x\n" ,
-    part->name, detectors, clust);
+  printf("getBusyMaskPartition: %s dets:0x%x clust:0x%x exp:0x%x\n",
+    part->name, detectors, clust, exp_clust);
 };
 //printf("getBusyMaskPartition: part:%s 0x%x \n", part->name, clust);
 return clust;

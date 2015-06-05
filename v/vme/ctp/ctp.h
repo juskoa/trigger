@@ -319,12 +319,14 @@ VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 27..24: ddr3_ext_rd_itf_rdy, ddr3_ext_wr_itf_rdy, rst_logic,          rd_done, 
     23: wr_done
  2.. 0: writeonly: Errors_reset, Logic_reset, DDR3_reset */
-#define DDR3_CONF_REG1      0x9284   /* Start address, read operation */
-#define DDR3_CONF_REG2      0x9288   /* Number of readings, read operation */
-#define DDR3_CONF_REG3      0x928c   /* Start address, write operation */
-#define DDR3_CONF_REG4      0x9290   /* Number of writings, write operation */
+#define DDR3_CONF_REG1      0x9284   /* Start address, DDR3-read operation */
+#define DDR3_CONF_REG2      0x9288   /* Number of readings, DDR3-read operation */
+#define DDR3_CONF_REG3      0x928c   /* Start address, DDR3-write operation */
+#define DDR3_CONF_REG4      0x9290   /* Number of writings, DDR3-write operation */
 
 #define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
+
+#define DDL2_STATUS 0x9304 
 
 #define SEL_SPARE_OUT  0x93e0  
 /* 4 registers 0x93e0,4,8,c reserved for 4 output signals -copy
@@ -413,7 +415,11 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 22     spare
 21     Select LM-L0 BUSY
 20     1:Select All/Rare input  the same
-19..8: Select BCmask[12..1]     the same  also in LM_CONDITION
+19..8: Select BCmask[12..1]     thcheckResources(part))) {
+   strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
+   rc=ret; ret=deletePartitions(part); part=NULL;
+   goto RET2; };
+//printTpartition("After ce same  also in LM_CONDITION
  7..4: Select PFprot[4..1]      the same
  2..0: Cluster code (1-6)       the same
 
@@ -512,7 +518,6 @@ set:
      0xb: no DAQ(emulation)   0xf:emulate LinkFull    0:with DAQ    
 read:
      0x30: ok, DAQ active, link not full */
-
 #define INT_DISB_CTP_BUSY 0xc150 /* 
 bit0:
 1: SW generated CTPbusy output, 0:normal operation.

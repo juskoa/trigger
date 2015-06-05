@@ -24,12 +24,13 @@ int l0AB();
 
 /*-------------------------------------------------------- nextclassgroup 
 find next class group to become active.
-rc: 0 -no class groups defined for this partition
+rc: 0 -no class groups defined for this partition or part not available (NULL)
    >0 -index pointing to part->classgroups[] array to the group which
        should become active
 */
 int nextclassgroup(Tpartition *part) {
 int ix;
+if(part==NULL) return(0);
 if(part->nclassgroups == 0) return(0);
 ix=part->active_cg+1; 
 while(1) {
@@ -163,7 +164,7 @@ if(clgroup!=0xfffffffe) {
 showTotals(part);
 }
 
-#define waitslot 1000
+#define waitslot 10000    // run1: 1000 run2: 10x more
 /*-------------------------------------------------------- cgInterrupt
 */
 void cgInterrupt(void *tagv) {
@@ -196,17 +197,18 @@ if(clgroup > 0) {
     waitcr++; if(waitcr>10) { break; };
   };
   if(waitcr>10) {
-    sprintf(msg, "cgInterrupt:%s active_cg %d still <> %d, after:%d us", 
+    sprintf(msg, "cgInterrupt:%s active_cg %d still != %d, after:%d us", 
       part->name, ctpshmbase->active_cg, clgroup, waitcr*waitslot);
     prtError(msg);
   } else {
-    sprintf(msg, "cgInterrupt: active_cg ok after %d us", waitcr*waitslot);
-    prtLog(msg);
+    ;//sprintf(msg, "cgInterrupt: active_cg ok after %d us", waitcr*waitslot);
+    //prtLog(msg);
   };
   unsetPartDAQBusy(part, 0); // enable triggers
 };
 }
  
+int tagstat;
 /*-------------------------------------------------------- startTimer 
 Input:cginterval: 0 -use interval given by part->active_cg
                  >0 -use cginterval (in seconds)
@@ -220,10 +222,9 @@ called from:
 */
 void  startTimer(Tpartition *part, int cginterval, w32 clgroup) {
 w32 secs,mics;
-int tag;
 GetMicSec(&secs, &mics);
 part->lastsecs= secs; part->lastmics= mics;
-tag= part->positionInAllPartitions;
+tagstat= part->positionInAllPartitions;
 if(cginterval<0) {
   char msg[200];
   sprintf(msg, "startTimer: bad cginterval:%d for %s partition (%d)", 
@@ -236,13 +237,13 @@ if(cginterval==0) {
 };
 if(DBGCLGROUPS) {
   printf("startTimer: %d secs cl.group:%d for part:%s (%d)\n",
-    cginterval, part->active_cg, part->name, tag);
+    cginterval, part->active_cg, part->name, tagstat);
 };
 if(clgroup!=0xfffffffe) {
   xcountersStart(0, clgroup);    // force xcounters read 
 };
-dtq_start_timer(cginterval, cgInterrupt, (void *)&tag);
-//dtq_start_timer(cginterval, cgInterrupt, tag);
+dtq_start_timer(cginterval, cgInterrupt, (void *)&tagstat);
+//dtq_start_timer(cginterval, cgInterrupt, tagstat);
 }
 
 /*-------------------------------------------------------- stopTimer 
@@ -258,15 +259,16 @@ called from:
 */
 int  stopTimer(Tpartition *part, w32 clgroup) {
 int remsecs,waserr=0;
-//remsecs= dtq_stop_timer((void *)part->positionInAllPartitions);
-remsecs= dtq_stop_timer((void *) &part->positionInAllPartitions);
+//remsecs= dtq_stop_timer((void *) &part->positionInAllPartitions);
+remsecs= dtq_stop_timer((void *)&tagstat);
+printf("stopTimer: remsecs: %d\n", remsecs); 
 if(remsecs==-1) {
   if(part->cshmpart->paused==0) {
     char msg[200];
     sprintf(msg, "stopTimer: timer was not started for %s partition (%d)", 
       part->name, part->positionInAllPartitions);
     intError(msg);
-    waserr=1;
+    waserr=1; waserr=0; //-update always
   };
 };
 if(waserr==0) {

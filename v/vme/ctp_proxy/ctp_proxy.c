@@ -2536,12 +2536,16 @@ if(DBGparts) { printTpartition("After mask applied", part); };
 sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
 if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
-   rc=ret; ret=deletePartitions(part); part=NULL;
+   rc=ret; 
+   //ret=deletePartitions(part);  no need (not added yet)
+   part=NULL;
    goto RET2; };
 //printTpartition("After checkResources", part);
 ret= checkmodLM(part);   // not good idea (better: in START_PARTITION)
 if(ret!=0) {
-  rc=5; ret=deletePartitions(part); part=NULL;
+  //ret=deletePartitions(part);    no need (not added yet)
+  rc=5; 
+  part=NULL;
   goto RET2; };
 // If resources available, continue and add part to Partitions[]
 // From now on, no checks necessary (all checks already done)
