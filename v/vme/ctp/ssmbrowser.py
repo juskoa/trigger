@@ -57,7 +57,7 @@ synchronised boards).
       #fbname= self.siginst.brinst.ssmboards[ixx][0]
       #von self.sigitems=self.getsignals(self.fbname)
       #
-      print "BSnames:", self.brdix, self.siginst.brinst.searchssmb(self.brdix)
+      #print "BSnames:", self.brdix, self.siginst.brinst.searchssmb(self.brdix)
       ixdef= eval(self.siginst.brinst.searchssmb(self.brdix))
       self.modboard(None, ixdef)
   def Print(self):
@@ -281,7 +281,7 @@ Signal values (0->green, 1->red).
     #lmo fix
     board=self.ssmix
     cmd="getsigSSM("+str(board)+','+ self.ssmixbit +',' + bcntxt+","+str(maxbc)+")"
-    print "ssmbrowser: draw: cmd: ", cmd
+    #print "ssmbrowser: draw: cmd: ", cmd
     dertxt= self.brinst.vb.io.execute(cmd,"NO")
     #dertxt= self.brinst.vb.io.execute("getsigSSM("+self.ssmix+
     #  ','+ self.ssmixbit +',' + bcntxt+","+str(maxbc)+")",
@@ -564,7 +564,7 @@ the numbers-boardnames of boards with synchronised SSMs.
     """
     self.sms=[]
     lines= string.split(self.vb.io.execute("gettableSSM(1)","NO"),"\n")
-    print "findAllSMS:",lines,':'
+    #print "findAllSMS:",lines,':'
     for ix in range(len(lines)):
       nm= string.split(lines[ix])
       if len(nm)==0: break
@@ -572,11 +572,11 @@ the numbers-boardnames of boards with synchronised SSMs.
       if nm[1]=='notin': nm[1]='nossm'
       self.sms.append(nm)
     # if lm0 board in      
-    print "ssmbrowser self.sms:",self.sms
+    #print "ssmbrowser self.sms:",self.sms
   def findSynced(self):
     #string.split(self.vb.io.execute("getsyncedSSM()","out"))
     line= string.split(self.vb.io.execute("getsyncedSSM()","NO"))
-    print 'line:',line
+    #print 'line:',line
     self.syncflag= line[0]
     #print 'findSync:',line,':'
     # highest_syncflag n1 n2 n3 ...
@@ -591,8 +591,8 @@ the numbers-boardnames of boards with synchronised SSMs.
       #ixdef= eval(self.siginst.brinst.searchssmb(self.brdix))
       #self.modboard(None, ixdef)
       self.sigs[ixdef].bsnames.modboard(None, ixdef)
-    print "findSynced/len: ",len(self.sigs)
-    for i in self.sigs: i.Print()
+    #print "findSynced/len: ",len(self.sigs)
+    #for i in self.sigs: i.Print()
   def dossmboards(self):
     #ml=[["busy_i","0"],["fo1_o","5"], ["l0_i","2"],["l0_o","3"]]
     ml=[]

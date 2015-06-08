@@ -301,7 +301,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define LM_RATE_MODE     0x9268  /*     RATE_MODElm0 */
 #define LM_RATE_DATA     0x926c  /*     RATE_DATA    */
 #define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
-#define LM_FUNCTION1 0x9274  /* FN2:278 FUN3:27c FUN4:280 */
+#define LM_FUNCTION1 0x9274  /* FN2:278 run1:FUN3:27c FUN4:280 */
 
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
 Read request:
@@ -413,8 +413,8 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 30..24 DSCG group (7bits)       new
 23     class mask (1:disabled)  new   see also class mask in lm_veto
 22     spare
-21     Select LM-L0 BUSY
-20     1:Select All/Rare input  the same
+21     Select LM-L0 BUSY 1: don't care 0: do not kill L0 for ongoing LM
+20     1:All   0:Rare
 19..8: Select BCmask[12..1]     thcheckResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
    rc=ret; ret=deletePartitions(part); part=NULL;
@@ -627,6 +627,10 @@ void initCTP();    // initialise system parameters
 void setClassInitLM(int klas, w32 lmcondition, w32 lminvert, w32 lmveto);
 
 int softLEDimplemented(int board);
+/*FGROUP SimpleTests
+read and write back all condition/invert/veto LM/L0 words 
+*/
+void rwclasses();
 w32 dodif32(w32 before, w32 now);    // substract 2 counters
 
 //FILE *openFile(char *fname); is in ctplib.h

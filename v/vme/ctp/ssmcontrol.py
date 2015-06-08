@@ -174,7 +174,7 @@ CS2 CS1  command      ssmsigs_file
       om=eval(om) | (self.status&0x30)
       hexstrlst= vb.io.execute("setomSSM(%d,0x%x)"%(self.smsix,om),
         applout="<>")
-      print "ssmcontrol action:",hexstrlst, om, self.name
+      #print "ssmcontrol action:",hexstrlst, om, self.name
       hexstr= hexstrlst[0]
       if hexstr != '0':
         vb.io.write(hexstr+' -from setomSSM, action not started\n')
@@ -191,9 +191,9 @@ CS2 CS1  command      ssmsigs_file
     self.status= self.lstatus.getEntry()
     self.lname.setEntry(hex(self.status))
   def readssmst(self):
-    print "getswSSM ",self.smsix,self.name
+    #print "getswSSM ",self.smsix,self.name
     hexstr= vb.io.execute("getswSSM(%d)"%self.smsix,applout="<>")
-    print "hexstr= ",hexstr
+    #print "hexstr= ",hexstr
     hexstr= hexstr[0]
     self.lname.setEntry(hexstr)
     self.status= eval(hexstr)
@@ -303,7 +303,7 @@ Flags: symbolic meaning of SSMstatus bits.
     self.sms=[]   # list of all SSMs  [name, smsix]
     lines= string.split(vb.io.execute("gettableSSM(0)","no"),"\n")
     #lines=["busy nossm","l0 outgen", "ltu1 nossm","ltu2 notin"]
-    print "SSMcontrol:lines:",lines,':'
+    #print "SSMcontrol:lines:",lines,':'
     for ix in range(len(lines)):
       nm= string.split(lines[ix])
       #print "SSMcontrol nm:", nm

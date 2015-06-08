@@ -384,4 +384,23 @@ if(((ix==0) && (ctpboards[ix].boardver >= 0xa3)) ||
   return(0);
 };
 }
+void rwclasses() {
+int i;
+for(i=0;i<NCLASS;i++){
+  w32 bb,val1,val2,val3,val4,val5,val6;
+  bb=4*(i+1);
+  val1= vmer32(L0_CONDITION+bb); 
+  val2= vmer32(L0_INVERTac+bb);
+  val3= vmer32(L0_VETOr2+bb);
+ vmew32(L0_CONDITION+bb, val1);
+ vmew32(L0_INVERTac+bb, val2);
+ vmew32(L0_VETOr2+bb, val3);
+  val4= vmer32(LM_CONDITION+bb);
+  val5= vmer32(LM_INVERT+bb);
+  val6= vmer32(LM_VETO+bb);
+ vmew32(LM_CONDITION+bb, val4);
+ vmew32(LM_INVERT+bb, val5);
+ vmew32(LM_VETO+bb, val6);
+};
+}
 

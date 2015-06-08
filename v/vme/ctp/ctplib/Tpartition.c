@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include "infolog.h"
 #include "vmewrap.h"
@@ -1649,6 +1650,8 @@ for(i=0;i<NCLASS;i++) {
   Returns: error code: 0:ok
 */
 int load2HW(Hardware *hw, char *tsname){
+printf("nams %s %i exit %i \n",tsname,tsname[0],strlen(tsname));
+if(strlen(tsname) != 0)exit(1);
 w32 i,isp,bb, overlap,flag,bcmaskn;
 TKlas *klas;
 TRBIF *rbif;
@@ -1744,7 +1747,11 @@ for(circ=0;circ<4;circ++){   // 4 PF circuits
       blockA= rbif->pf[circ].pfdefs[0+fromi];
       blockB= rbif->pf[circ].pfdefs[1+fromi];
       LUT   = rbif->pf[circ].pfdefs[2+fromi];
-      setPFc(i, circ+1, blockA, blockB, LUT);
+      if(i==1) {
+        printf("Warning: no setPFC on LM0...\n");
+      } else {
+        setPFc(i, circ+1, blockA, blockB, LUT);
+      };
     };
   };
 };
@@ -1752,14 +1759,21 @@ if(setcom==1) {
   for(i=1;i<4;i++){
     w32 pfc;
     pfc= rbif->pfCommon.pfdefsCommon[i-1];
-    setPF(i, pfc);   // ix:1..3 (L0.. L2)
+      if(i==1) {
+        printf("Warning: no setPF for LM0...\n");
+      } else {
+        setPF(i, pfc);   // ix:1..3 (L0.. L2)
+      };
   };
 };
 if(msg[0]!='\0') printf("load2HW:%s",msg);
 };
 //------------------------------------------- classes
 skipped[0]='\0';
-for(i=0;i<NCLASS;i++){
+/*strcpy(skipped,"NO CLASS POGRAMMING!"); rwclasses(); if(NCLASS==12345678) {
+printf("load2HW:only 6 classes,no L0vetos  written\n");
+for(i=0;i<6;i++) */
+for(i=0;i<NCLASS;i++) {
   w32 mskbit; int skip=0;
   if(hw->klas[i] == NULL){
    char msg[200];
@@ -1767,6 +1781,7 @@ for(i=0;i<NCLASS;i++){
    intError(msg);
    return 1;
   }
+  //usleep(100000);
   klas=hw->klas[i];
   bb=4*(i+1);
   //printTKlas(klas, i);
@@ -1776,7 +1791,8 @@ for(i=0;i<NCLASS;i++){
     if(l0C0()) {
       w32 lmm, l0m, lmcond, l0vets, lmvets;
       l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
-      //vmew32(L0_VETOr2+bb, ((klas->l0vetos)&0x00ffffff) | ((hw->sdgs[i])<<24));
+      // keep it disabled on L0 level, we cannot change cluster + enable in 1 write
+      l0vets= l0vets | 0x800000;   
       vmew32(L0_VETOr2+bb,  l0vets);
       lmcond= klas->lmcondition;
       l0m= (klas->l0vetos & 0xfff00)>>8;
@@ -1790,8 +1806,8 @@ for(i=0;i<NCLASS;i++){
       vmew32(LM_INVERT+bb,klas->lminverted);
       lmvets= (klas->lmvetos & 0x80ffffff) | ((hw->lmsdgs[i])<<24);
       vmew32(LM_VETO+bb,lmvets);
-      printf("load2HW: l0c+v: 0x%x 0x%x lmc+v: 0x%x 0x%x\n",
-        klas->l0inputs, l0vets, lmcond, lmvets);
+      printf("load2HW:%3d l0c+v: 0x%x 0x%x lmc+v: 0x%x 0x%x\n",
+        i+1, klas->l0inputs, l0vets, lmcond, lmvets);
     } else {
       vmew32(L0_VETO+bb,(klas->l0vetos)&0x1fffff);
     };
@@ -1867,6 +1883,15 @@ for(i=0;i<NCLUST+1;i++){
 overlap= calcOverlap(hw->busy.set_cluster);
 vmew32(BUSY_OVERLAP, overlap);
 if(DBGbusy)printf("BUSY_OVERLAP:0x%x\n", overlap);
+// finally enable all allowed classes on L0 level:
+for(i=0;i<NCLASS;i++) {
+  w32 l0vets;
+  bb=4*(i+1);
+  l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
+  if((l0vets & 0x800000)==0) {
+    vmew32(L0_VETOr2+bb,  l0vets);
+  };
+};
 return 0;
 }
 /*----------------------------------------------------------readHW()

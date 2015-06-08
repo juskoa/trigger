@@ -2672,7 +2672,7 @@ if(generateXOD(part,'S', errorReason, &orbitn)) {
     printf("addPartitions error: %i \n", ret);
     goto UNSETRET;}; */
 };
-//usleep(1100000);   // maybe more for rorc initialisation
+usleep(1100000);   // maybe more for rorc initialisation
 if(load2HW(&HW, tsname)){
   strncpy(errorReason, "ctpproxy: internal error found in load2HW()", ERRMSGL);
   rc= 4; goto UNSETRET;
