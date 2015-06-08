@@ -1889,10 +1889,10 @@ for(i=0;i<NCLASS;i++) {
   klas=hw->klas[i];
   bb=4*(i+1);
   l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
-  if((l0vets & 0x800000)==0) {
+  //if((l0vets & 0x800000)==0) {
     vmew32(L0_VETOr2+bb,  l0vets);
-  };
-  //printf(" load2HW: ena/dis:%d 0x%x\n", i+1, l0vets);
+  //};
+  printf(" load2HW: enab/dis:%d 0x%x\n", i+1, l0vets);
 };
 return 0;
 }
