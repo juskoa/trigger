@@ -1,5 +1,6 @@
 # backup
 *~
+.*.swo
 
 # python
 *.py[co]
@@ -77,3 +78,8 @@ v/vme/ttcit/ttcit.make
 v/vme/CFG/ctp/DB/*
 v/vme/CFG/ctp/pardefs/*
 v/vme/CFG/ctp/monscal/inputs.mcfg
+# Roman
+v/vme/ctp++/delme
+v/vme/ctp++/testlogs
+v/vme/monscal++/MONSCAL/
+v/vme/monscal++/delme

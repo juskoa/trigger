@@ -734,7 +734,8 @@ if(argc != 2){
   return 1;
 };
 inpnum = atoi(argv[1]);
-if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) ){
+if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) &&
+   ((inpnum<51 )|| (inpnum>74)) ){
   printhelp();
   return 2;
  }

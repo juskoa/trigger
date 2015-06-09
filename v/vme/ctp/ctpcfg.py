@@ -2,7 +2,7 @@
 """
 22.11. -write2hw only modified ctp config. values
 2 phases:
-1.  Classes Klas,PFboard,PFcircuit,Fanout, Attr (Attr2, AttrLUT)
+1.  ClassesKlas,PFboard,PFcircuit,Fanout, Attr (Attr2, AttrLUT)
 have variable 'writeme' and corresponding methods (dedicated from
 class Genhw). Their methods readhw/writehw update writeme
 variable automatically:
@@ -66,13 +66,25 @@ def InvertBit(w32,bit):   # bit: 0..31
     iw32= w32 | (1<<bit)
   #print "InverBit %d: 0x%x -> 0x%x"%(bit,w32,iw32)
   return iw32
-def CopyBit(data, mfrom, mto):
-  if (data & mfrom) != 0:
+def CopyBit(data1bit, mfrom, mto):
+  if (data1bit & mfrom) != 0:
     datao= data | mto   # 1
   else:
     datao= data & (~mto)   # 0
   print "CopyBit: 0x%x  %x -> %x result:0x%x"%(data, mfrom, mto, datao)
   return datao
+def CopyBit2(iword, ibit, oword, obit):
+  if (iword & (1<<ibit)) != 0:
+    datao= oword | (1<<obit)   # 1
+  else:
+    datao= oword & (~(1<<obit))   # 0
+  print "CopyBit2: 0x%x[%d] -> 0x%x[%d] = 0x%x"%(iword, ibit, oword, obit, datao)
+  return datao
+def CopyBits(iword, oword, mask, ishift, oshift):
+  bits= (iword & (mask<<ishift))>>ishift    # copied bits on right
+  oword= oword & (~(mask<<oshift))    # 0s in bits where copied bits are coming
+  bits= bits << oshift
+  return oword | bits
 
 vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
@@ -128,16 +140,21 @@ class Genhw:
 class Ctpconfig:
   NCLASS= 100
   clusterx0=25 #17  left top corner of cluster's rectangles 
-  l0x0=clusterx0+13 # left top corner of classes L0 bit rectangles 
+  lmx0=clusterx0+13 # left top corner of classes LM bit rectangles 
   l0y0=10         # class 0 -not class, instead reserved for text header
   hty0= 3 #was 10         # header text line
   int1bits=["INTfun1","BC1","BC2","RND1","RND2"]
   int2bits=["INTfun2","BC1","BC2","RND1","RND2"]
   #vonint2bits=[("i0",1),("i1",1),("i2",1),("i3",1),("i4",1),"INTfun2","BC1","BC2","RND1","RND2"]
   AllRarebits=["All"]
-  lastshrgrp1=8   # index in self.sharedrs: eof LUTs
+  lastshrgrp1=8+4   # index in self.sharedrs: eof LUTs
   if Gl0AB==None:
     grp3start= lastshrgrp1+4
+    lmrnds= 2
+    lmbcds= 6
+    rbiflen= 9
+    lmrblen= 4   # number of items (space separated) in LMRB line
+    intsellen= 2
     dbgbits=12 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
     BCMASKN=12
     if Gl0C0==None:
@@ -165,6 +182,7 @@ class Ctpconfig:
     for i in range(ORBITLENGTH):
       self.bcmasks.append(0)
     self.shrtl=None      # Shared resources not displayed
+    self.hiddencls="l1"
     if self.l0AB:
       print "l0AB..."
       self.sharedrs= [
@@ -191,8 +209,12 @@ class Ctpconfig:
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
       AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
+      AttrRndgen('LM_RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),   # lmrnds
+      AttrRndgen('LM_RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 LM_RND inputs
       Attr('BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
+      Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
+      Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
       AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
@@ -224,8 +246,12 @@ class Ctpconfig:
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
       AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
+      AttrRndgen('LM_RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),   # lmrnds
+      AttrRndgen('LM_RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 LM_RND inputs
       Attr('BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
+      Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
+      Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
       AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
@@ -328,7 +354,8 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
     self.caclstl= myw.NewToplevel("CTP classes",self.classesDestroyed)
     #print "doClasses:", self.caclstl
     self.cmdbuts= myw.MywHButtons(self.caclstl, [
-      ("blabla",self.cmdallenabled)
+      ("blabla",self.cmdallenabled),
+      ("blabla",self.cmdshowninputs)
       ],side=TOP, helptext="""
 All/Enabled -show all or only enabled classes. This button becomes red
              if some ENABLED classes are not shown
@@ -346,11 +373,16 @@ All/Enabled -show all or only enabled classes. This button becomes red
           nclines= nclines+1
         #print "doCanvas:%d %d: 0x%x 0x%x"%(k.clnumber, nclines,k.l0inputs, k.l0vetos)
     self.cmdbuts.buttons[0].setLabel(aetx)
+    self.cmdbuts.buttons[1].setLabel("hidden from: "+self.hiddencls)
     self.cmdbuts.buttons[0].setColor(myw.COLOR_BGDEFAULT)
     if nclines>30: nclines=30   #show max. 30 classes (with scrollbar)
     canvash= (nclines+1)*myw.Kanvas.bitHeight + Ctpconfig.l0y0
     canvashmax= (Ctpconfig.NCLASS+1)*myw.Kanvas.bitHeight + Ctpconfig.l0y0
     canvasw= Klas.l2vetosx0 + myw.Kanvas.bitWidth*4 + myw.Kanvas.interspace   #980
+    if self.hiddencls=="l1":
+      canvasw= Klas.l1inputsx0
+    elif self.hiddencls=="l2":
+      canvasw= Klas.l2inputsx0
     if self.canvas: print "error -canvs not deleted"
     self.freenumber=1   #line (from 1) on canvas
     self.canvas= myw.Kanvas(self.caclstl,self.canvasDestroyed, ctpcfg=self,
@@ -360,8 +392,35 @@ All/Enabled -show all or only enabled classes. This button becomes red
     id0=self.canvas.create_text(1, Ctpconfig.hty0,
       anchor=NW,text="Cl#")
     self.canvas.doHelp(id0, """Class number and Cluster it belongs to""")
-    id1=self.canvas.create_text(Ctpconfig.l0x0, Ctpconfig.hty0,
-      anchor=NW,text="L0 inputs")
+    id1lmi=self.canvas.create_text(Ctpconfig.lmx0, Ctpconfig.hty0,
+      anchor=NW,text="LMinputs")
+    self.canvas.doHelp(id1lmi, 
+"""LM inputs: 1-12, 4 special functions, 2 scaled down BC, 2 random triggers.
+Mouse buttons clicks:
+Left  -> modify
+         red:         don't care (1)
+         green:       enabled    (0)
+         light green: enabled (0), inverted (1)
+Middle-> modify the invert bit
+""")
+    id1lmv=self.canvas.create_text(Klas.lmvetosx0, Ctpconfig.hty0,
+      anchor=NW,text="LMvetos")
+    self.canvas.doHelp(id1lmv,"""LM selectable vetos. As with LM inputs:
+         red:         don't care    (1)
+         green:       veto selected (0)
+Bit 'Class mask' must be selected (i.e. green) for active (triggering) LM-classes
+""")
+    id3lm=self.canvas.create_text(Klas.lmscalerx0, Ctpconfig.hty0,
+      anchor=NW,text="LMpre-scaler")
+    self.canvas.doHelp(id3lm,
+""" LM pre-scaler. 21 bits (0-no downscaling 0x1fffff-supress all triggers).
+% character can be used to enter the down-scale rate. Examples:
+%50 -reduce triggers by half
+%1  -full trigger rate down-scaled 100 times
+""")
+    #id1=self.canvas.create_text(Ctpconfig.l0x0, Ctpconfig.hty0,
+    id1=self.canvas.create_text(Klas.l0x0, Ctpconfig.hty0,
+      anchor=NW,text="L0inputs")
     self.canvas.doHelp(id1, 
 """L0 inputs: 1-24, 2 special functions, 2 scaled down BC, 2 random triggers.
 Mouse buttons clicks:
@@ -372,23 +431,24 @@ Left  -> modify
 Middle-> modify the invert bit for classes 1-50 (45-50 with <AC version of L0-board)
 """)
     id2=self.canvas.create_text(Klas.l0vetosx0, Ctpconfig.hty0,
-      anchor=NW,text="L0 vetos sel.")
+      anchor=NW,text="L0vetos")
     self.canvas.doHelp(id2,"""L0 selectable vetos. As with L0 inputs:
          red:         don't care    (1)
          green:       veto selected (0)
 Bit 'Class mask' must be selected (i.e. green) for active (triggering) classes
 """)
     id3=self.canvas.create_text(Klas.l0scalerx0, Ctpconfig.hty0,
-      anchor=NW,text="L0 pre-scaler")
+      anchor=NW,text="L0pre-scaler")
     self.canvas.doHelp(id3,
 """ L0 pre-scaler. 21 bits (0-no downscaling 0x1fffff-supress all triggers).
 % character can be used to enter the down-scale rate. Examples:
 %50 -reduce triggers by half
 %1  -full trigger rate down-scaled 100 times
 """)
-    id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.hty0,
-      anchor=NW,text="L1 inputs")
-    self.canvas.doHelp(id4, """ L1 inputs: 1-24.
+    if (self.hiddencls=="") or (self.hiddencls=="l2"):
+      id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.hty0,
+        anchor=NW,text="L1inputs")
+      self.canvas.doHelp(id4, """ L1 inputs: 1-24.
 Mouse buttons clicks:
 Left  -> modify
          red:         don't care (1)
@@ -396,13 +456,14 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit (only for classes 45-50)
 """)
-    id5=self.canvas.create_text(Klas.l1vetosx0, Ctpconfig.hty0,
-      anchor=NW,text="L1vetos")
-    self.canvas.doHelp(id5,"""L1 vetos
+      id5=self.canvas.create_text(Klas.l1vetosx0, Ctpconfig.hty0,
+        anchor=NW,text="L1vetos")
+      self.canvas.doHelp(id5,"""L1 vetos
 """)
-    id6=self.canvas.create_text(Klas.l2inputsx0, Ctpconfig.hty0,
-      anchor=NW,text=" L2 inputs")
-    self.canvas.doHelp(id6, """ L2 inputs: 1-12.
+    if self.hiddencls=="":
+      id6=self.canvas.create_text(Klas.l2inputsx0, Ctpconfig.hty0,
+        anchor=NW,text=" L2inputs")
+      self.canvas.doHelp(id6, """ L2 inputs: 1-12.
 Mouse buttons clicks:
 Left  -> modify
          red:         don't care (1)
@@ -410,9 +471,9 @@ Left  -> modify
          light green: enabled (0), inverted (1)
 Middle-> modify the invert bit (only for classes 45-50)
 """)
-    id7=self.canvas.create_text(Klas.l2vetosx0, Ctpconfig.hty0,
-      anchor=NW,text="L2vetos")
-    self.canvas.doHelp(id7,"""L2 vetos
+      id7=self.canvas.create_text(Klas.l2vetosx0, Ctpconfig.hty0,
+        anchor=NW,text="L2vets")
+      self.canvas.doHelp(id7,"""L2 vetos
 """)
     sorted= self.klasses
     # sort klasses according to their cluster:
@@ -519,10 +580,16 @@ Middle-> modify the invert bit (only for classes 45-50)
             break
         continue
       if lab=='RBIF': 
-        self.readSharedline(rest,0, Ctpconfig.lastshrgrp1,sep=':')
+        # r1 r2 b1 b2 INTf1 INTf2 INTfT L0f1 L0f2
+        self.readSharedline("RBIF", rest,0, Ctpconfig.rbiflen,sep=':')
+      elif lab=='LMRB': 
+        # r1 r2 b1 b2
+        self.readSharedline("LMRB", rest,0, Ctpconfig.lmrblen,sep=' ')
       elif lab=='INTSEL': 
-        self.readSharedline(rest, 
-          Ctpconfig.lastshrgrp1+1, Ctpconfig.lastshrgrp1+3)
+        # INT1 INT2 AllRare
+        self.readSharedline("INTSEL", rest, 
+          Ctpconfig.lastshrgrp1+1, Ctpconfig.intsellen)
+          #Ctpconfig.lastshrgrp1+1, Ctpconfig.lastshrgrp1+3)
       elif lab=='LUT34':
         if (Gl0AB==None) and (Gl0C0==None):   # >AC and not lm0
           self.str2L0f34(rest[:(2**Ctpconfig.dbgbits)])
@@ -631,42 +698,75 @@ Middle-> modify the invert bit (only for classes 45-50)
       if k.modified(): k.writehw()
       for circ in k.pfcs:         # circuits on 1 board
         if circ.modified(): circ.writehw()
-  def readSharedline(self, line, ix1, ix2, sep=' '):
+  def readSharedline(self, tp, line, ix1, ix2, sep=' '):
+    # tp: RBIF, INTSEL
+    # ix1: from ishr resource, ix2: number of items to be read
+    # 0, rbiflen, sep:':': RBIF r1 r2 b1 b2 INTf1 INTf2 INTfT L0f1 L0f2
+    #                           0  1  2  3  4     5     6     7    8
+    #                ishr:      0  1  4  5  8     9     10    11   12
+    # lastshrgrp1+1, 2, sep:' ': INTSEL INT1INT2 AllRare
+    # LMRB r1 r2 b1 b2
+    #      0  1  2  3
+    # ishr:2  3  6  7
     shr=string.split(line, sep)
     inx=0
-    for ishr in range(ix1, ix2+1):
-      if (len(shr)!=(Ctpconfig.lastshrgrp1+1)) and (inx==0): 
-        # INTSEL group, INT1,2 in 1 word
-        try:
-          binval= eval(shr[0])
-        except:
-          print "readSharedline: Wrong INTSEL line:",line
-          return
-        if ishr==(Ctpconfig.lastshrgrp1+1): 
-          binval= binval&0x01f
-        if ishr==(Ctpconfig.lastshrgrp1+2): 
-          binval= (binval>>5)&0x01f
-          inx= inx+1
-      else:
-        binval= eval(shr[inx])
+    if tp=="RBIF":
+      # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
+      reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12}
+    if tp=="LMRB":
+      reshuf= { 0:2, 1:3, 2:6, 3:7}
+    #for ishr in range(ix1, ix2+1):
+    for ishr in range(ix1, ix1+ix2):
+      #if (len(shr)!=(Ctpconfig.lastshrgrp1+1)) and (inx==0): 
+      #if (ix1==(Ctpconfig.lastshrgrp1+1)) or (ix1==(Ctpconfig.lastshrgrp1+2)):
+      if tp=="INTSEL":
+        if inx==0:
+          # INTSEL group, INT1,2 in 1 word
+          try:
+            binval= eval(shr[0])
+          except:
+            print "readSharedline: Wrong INTSEL line:",line
+            return
+          binval1= binval&0x01f
+          self.sharedrs[ishr].setattrfo(binval1,0)
+          binval2= (binval>>5)&0x01f
+          self.sharedrs[ishr+1].setattrfo(binval2,0)
+        else:
+          binval= eval(shr[1])
+          self.sharedrs[ishr+1].setattrfo(binval,0)
         inx= inx+1
-      self.sharedrs[ishr].setattrfo(binval,0)
+      elif tp=="RBIF":
+        # RBIF
+        binval= eval(shr[inx])
+        self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
+        inx= inx+1
+      elif tp=="LMRB":
+        binval= eval(shr[inx])
+        self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
+        inx= inx+1
       #self.sharedrs[ishr].hwwritten(0)
   def readShared(self):
     shr= vbexec.getsl("getShared()")
-    # get first (12) values of shared resources from hw
-    if len(shr) != 13:      
-      # e.g. expected: ['0x20c49b', '0x0', '0x7cf', '0x0', '0x8080', '0xc0c0', '0x0', '0x0', '0x0', '0x8', '0x1', '0x1', '']
+    print "readShared:", shr
+    # get first (12+4) values of shared resources from hw (last 4: LMrnd1/2 LMbcd1/2)
+    # ishr (resource)' value is in shr[ reshuf[ishr] ]
+    # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
+    reshuf= {0:0, 1:1, 2:12, 3:13, 4:2, 5:3, 6:14, 7:15, 8:4, 9:5, 10:6 , 11:7, 12:8, 13:9, 14:10, 15:11}
+    if len(shr) != (13+4):      
+      # e.g. expected: ['0x20c49b', '0x0', '0x7cf', '0x0', '0x8080', '0xc0c0', '0x0', '0x0', '0x0', '0x8', '0x1', '0x1',
+      # lmr1, lmr2, lmbc1, lmbc2, '']
       print "Error readShared:",shr
     for ishr in range(len(shr)-1):   #0..11
-      v=shr[ishr]
+      v=shr[reshuf[ishr]]
       #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
       self.sharedrs[ishr].setattrfo(eval(v), 1)
       #self.sharedrs[ishr].hwwritten(1)
     if (Gl0AB==None) and (Gl0C0==None):   #firmAC and not lm0
       shr= vbexec.getsl("getSharedL0f34(4)")
-      for ishr in range(12,16):
-        v= shr[ishr-12]
+      #for ishr in range(12, 16):
+      for ishr in range(Ctpconfig.lastshrgrp1+4,Ctpconfig.lastshrgrp1+8):
+        #v= shr[ishr-12]
+        v= shr[ishr-(Ctpconfig.lastshrgrp1+4)]
         self.sharedrs[ishr].setattrfo(eval(v), 1)
         #print "readShared:value:%d:"%ishr,self.sharedrs[ishr].value
     longs=vbexec.getline("getBCmasks()");
@@ -678,9 +778,9 @@ Middle-> modify the invert bit (only for classes 45-50)
   def writeShared(self, cf=None):
     """ cf!=None: write to cONFIG fILE
 """
-    intselw= (self.sharedrs[9].getbinval()&0x01f) | \
-             ((self.sharedrs[10].getbinval()&0x01f)<<5)
-    allrare= self.sharedrs[11].getbinval()&1
+    intselw= (self.sharedrs[Ctpconfig.lastshrgrp1+1].getbinval()&0x01f) | \
+             ((self.sharedrs[Ctpconfig.lastshrgrp1+2].getbinval()&0x01f)<<5)
+    allrare= self.sharedrs[Ctpconfig.lastshrgrp1+3].getbinval()&1
     if (Gl0AB==None) and (Gl0C0==None):   #firmAC and NOT LM0
       # we cannot do the following:
       lut34= vbexec.getsl("getSharedL0f34(1)")[0]
@@ -719,14 +819,19 @@ Middle-> modify the invert bit (only for classes 45-50)
         cf.write(cmd)
       #writeit=1   # write always to file
       cmd="RBIF "
-      #for ishr in range(len(self.sharedrs)):
+      cmd2='LMRB '   # put here: lmr1 lmr2 lmbc1 lmbc2
       for ishr in range(Ctpconfig.lastshrgrp1+1):
-        if ishr>=4 and ishr<=8:
-          cmd= "%s%s:"%(cmd, str(self.sharedrs[ishr].getattr()))
+        if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
+          (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
+          cmd2= "%s0x%x "%(cmd2, self.sharedrs[ishr].getbinval())
         else:
-          cmd= "%s0x%x:"%(cmd, self.sharedrs[ishr].getbinval())
-      cmd=cmd[:-1]+"\n"
-      cf.write(cmd)
+          #if ishr>=4 and ishr<=8:
+          if ishr>=8 and ishr<=12:   # 5 functions
+            cmd= "%s%s:"%(cmd, str(self.sharedrs[ishr].getattr()))
+          else:
+            cmd= "%s0x%x:"%(cmd, self.sharedrs[ishr].getbinval())
+      cmd=cmd[:-1]+"\n"; cmd2=cmd2[:-1]+"\n"
+      cf.write(cmd) ; cf.write(cmd2)
       cmd="INTSEL 0x%x 0x%x\n"%(intselw, allrare)
       cf.write(cmd)
       if lut34: cmd="LUT34 %s\n"%(lut34) ; cf.write(cmd)
@@ -741,18 +846,28 @@ Middle-> modify the invert bit (only for classes 45-50)
           cf.write(cmd)
     else:
       writeit=0   # update hw only if at least 1 changed
+      writeit3=0
       cmd="setShared("
+      cmd3="setShared3("
       for ishr in range(Ctpconfig.lastshrgrp1+1):
-        if self.sharedrs[ishr].modified(): writeit=1
-        cmd= "%s0x%x,"%(cmd, self.sharedrs[ishr].getbinval())
-        self.sharedrs[ishr].hwwritten(1)
-      cmd=cmd[:-1]+")"
+        print  "writeShared:%d %s 0x%x"%(ishr, self.sharedrs[ishr].atrname, self.sharedrs[ishr].getbinval())
+        if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
+           (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
+          if self.sharedrs[ishr].modified(): writeit3=1
+          cmd3= "%s0x%x,"%(cmd3, self.sharedrs[ishr].getbinval())
+          self.sharedrs[ishr].hwwritten(1)
+        else:
+          if self.sharedrs[ishr].modified(): writeit=1
+          cmd= "%s0x%x,"%(cmd, self.sharedrs[ishr].getbinval())
+          self.sharedrs[ishr].hwwritten(1)
+      cmd=cmd[:-1]+")" ; cmd3=cmd3[:-1]+")"
       if writeit==1: vbexec.get1(cmd)
+      if writeit3==1: vbexec.get1(cmd3)
       writeit=0   # INT1, INT2, All/Rare
       for ishr in range(Ctpconfig.lastshrgrp1+1,Ctpconfig.lastshrgrp1+4):
         if self.sharedrs[ishr].modified(): writeit=1
         self.sharedrs[ishr].hwwritten(1)
-      cmd="setShared2(0x%x,0x%x)"%(intselw,allrare)
+      cmd="setShared2(0x%x,0x%x)"%(intselw,allrare) 
       if writeit==1: vbexec.get1(cmd)
       if lut34:
         writeit=0   # update lut34 hw only if at least 1 changed
@@ -851,6 +966,27 @@ Middle-> modify the invert bit (only for classes 45-50)
     else:
       if self.allorenabled==setv: return
       self.allorenabled= setv
+    a=""" not necessary (done in doCanvas)
+    if self.allorenabled==1:
+      aetx=Klas.txenabled
+    else:
+      aetx=Klas.txall
+    self.cmdbuts.buttons[0].setLabel(aetx)
+    """
+    self.canvas.destroy(); self.doCanvas()
+  def cmdshowninputs(self, setv=None):
+    if setv==None:
+      if self.hiddencls=="l1":
+        self.hiddencls= "l2"
+      elif self.hiddencls=="l2":
+        self.hiddencls= ""
+      elif self.hiddencls=="":
+        self.hiddencls= "l1"
+      else:
+        self.hiddencls= ""
+    else:
+      if self.hiddencls==setv: return
+      self.hiddencls= setv
     a=""" not necessary (done in doCanvas)
     if self.allorenabled==1:
       aetx=Klas.txenabled
@@ -993,15 +1129,56 @@ l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
 All/Rare: All        -take all events
 All/Rare:            -kill classes marked by green All/Rare flag 
 """
+
+class Scaler:
+  def __init__(self, klasinst, scaler, xstart):
+    self.scaler= scaler
+    self.klasinst= klasinst
+    self.xstart= xstart
+  def set(self, value):
+    self.scaler= value
+  def show(self):
+    xy= (self.xstart, self.klasinst.linenumber*myw.Kanvas.bitHeight - myw.Kanvas.bitBorder + Ctpconfig.l0y0)
+    self.scalentry= self.klasinst.ctpcfg.canvas.doEntry(xy, self.modScaler)
+    self.refreshScaler()
+  def refreshScaler(self):
+    percentrate=str(self.scaler)
+    #if self.scaler==0: percentrate="%100"
+    #percentrate= "%%%5.2f"%(100-self.scaler*100./0x1fffff)
+    self.scalentry.setEntry(percentrate)
+  def modScaler(self,event):
+    ntv=self.scalentry.getEntry(); ratemsg=None
+    try:
+      if ntv[0]=='%':   # 21bits, 0->max. rate, 1fffff->min rate
+        pr= float(ntv[1:])
+        newscaler= int(round((100-pr)*0x1fffff/100))
+        ratemsg="%s -> %d(0x%x) rate for class %d\n"%\
+          (ntv, newscaler,newscaler,self.klasinst.clnumber)
+      else:
+        newscaler=self.scalentry.getEntryBin()
+    except:
+      newscaler=0
+      ratemsg="Error:%s -bad rate for class %d, 0 used instead\n"%\
+        (ntv, self.klasinst.clnumber)
+    #print "modScaler:", self.scaler  #, dir(event)
+    if newscaler!= self.scaler:
+      self.scaler= newscaler
+      self.refreshScaler()
+      self.klasinst.hwwritten(0)
+      if ratemsg: vbexec.printmsg(ratemsg)
+
 class Klas(Genhw):
   txenabled="Show only enabled classes"
   txall="Show all classes"
   BCmask_mincabi=4
   if Gl0AB==None:
     l0allinputs=32   # numb. of valid bits in L0_CONDITION_n word (l0AC...)
-    l0allvetos=18
+    l0allvetos=19
+    lmallinputs=20   # numb. of valid bits in LM_CONDITION_n word (see Ctpconfig lmx0 defnition)
+    lmallvetos=7     # numb. of L0 vetos in L0_VETO_n word
     BCmask_maxcabi=15
     AR_cabi=16
+    AR_cabilm=300+1
     #iinvetos[i] -> position of bit in self.l0vetos
     #         4567 PF14, 8..11 BCmask1..4, 12:All/Rare 16:Classmask
     # firmAC: 4567 PF14, 8..19 BCmask1..12, 20:All/Rare 31:Classmask
@@ -1009,7 +1186,16 @@ class Klas(Genhw):
     if Gl0C0==None:
       iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
     else:
-      iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
+      #iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
+      iinvetos= range(4,22)+[23]   # bit numbers in self.vetos
+      iinlmvetos= range(8,14)+[23]   # bit numbers in self.lmvetos 
+      lmClassMaskBit= 23
+      l0ClassMaskBit= 23
+      l0ClassMaskBitcabi=18
+      l0allrareBit= 20
+      lmallrareBit= 9
+      rangel0BCMaskBits=range(8, 20)
+      l0veto2lmcondBCM= 20-8   # i.e. bit in LM_CONDITION= 12+ bit_in_L0_VETOr2
     MININVL0_45= 1
   else:
     l0allinputs=30   # numb. of valid bits in L0_CONDITION_n word for old versions
@@ -1019,9 +1205,15 @@ class Klas(Genhw):
     iinvetos= range(4,13)+[16]   # bit numbers in self.vetos
     MININVL0_45= 45
   # L1:PF1-4, RoIflag,L2:PF1-4
+  l1allvetos=[100,101,102,103,104]   
   l12allvetos=[100,101,102,103,104,200,201,202,203]   
   l0inputs=24
-  l0vetosx0=myw.Kanvas.bitWidth*l0allinputs + Ctpconfig.l0x0 + myw.Kanvas.interspace
+  lmvetosx0=myw.Kanvas.bitWidth*lmallinputs + Ctpconfig.lmx0 + myw.Kanvas.interspace
+  lmscalerx0= lmvetosx0+ myw.Kanvas.bitWidth*lmallvetos + myw.Kanvas.interspace
+  l0x0=  lmscalerx0+90   # 82
+  #l0x0=lmx0+ (Klas.lmallinputs+Klas.lmallvetos)*myw.Kanvas.bitWidth\
+  #  +  2*myw.Kanvas.interspace  # left top corner of classes L0 bit rectangles 
+  l0vetosx0=myw.Kanvas.bitWidth*l0allinputs + l0x0 + myw.Kanvas.interspace
   # 15 -2 vetos overwritten
   l0scalerx0= l0vetosx0+ myw.Kanvas.bitWidth*l0allvetos + myw.Kanvas.interspace
   l1inputsx0=  l0scalerx0+90   # 82
@@ -1036,7 +1228,7 @@ class Klas(Genhw):
   colCluster=('black','brown','red','orange','yellow','green','blue')
   def __init__(self, ctpcfg, number, inputs=0, vetos=0, scaler=0):
     Genhw.__init__(self)
-    self.clnumber=number      # hw. number of the class (1-NCLASS)
+    self.clnumber=number      # hw. number of the class (1..NCLASS)
     self.linenumber= 0        # line number on Canvas (1...) 0-not displayed
     self.ctpcfg=ctpcfg
     self.l0inputs=inputs
@@ -1045,7 +1237,8 @@ class Klas(Genhw):
     self.l1definition=0
     self.l1inverted=0
     self.l2definition=0
-    self.scaler=0
+    self.l0scaler= Scaler(self, 0, Klas.l0scalerx0)
+    self.lmscaler= Scaler(self, 0, Klas.lmscalerx0)
     self.clusbitid=None       # cluster bit id (canvas item)
   def readhw(self, line=None, fversion="l0"):
     if line:
@@ -1067,30 +1260,52 @@ class Klas(Genhw):
     self.l0inverted= c5[1]  #24 bits
     self.l0vetos= c5[2]     #16 bits. , 31 bits for lm0
     # bit16:CLassMask,bit0-12->see hw. not for LM0
-    self.scaler= c5[3]
-    #print "readhw:%d: 0x%x 0x%x"%(self.clnumber, self.l0inputs, self.l0vetos)
-    if len(c5)<=4:   #old format -before L1.L2
-      vbexec.printmsg("class%d:: L1,L2 definitions missing, taking defaults\n"%self.clnumber)
-      self.l1definition= 0xfffffff
-      self.l1inverted= 0
-      self.l2definition= 0xf000fff
+    self.l0scaler.set(c5[3])
+    self.l1definition= c5[4]
+    self.l1inverted= c5[5]
+    self.l2definition= c5[6]
+    if len(c5)<=7:   #old format -before L1.L2
+      vbexec.printmsg("class%d:: LM definitions missing, taking defaults\n"%self.clnumber)
+      self.lmcondition= 0xffffffff
+      self.lminvert= 0
+      self.lmvetos= 0x803f00 | ((self.clnumber-1)<<24)
+      self.lmscaler.set(0)
     else:
-      self.l1definition= c5[4]
-      self.l1inverted= c5[5]
-      self.l2definition= c5[6]
+      self.lmcondition= c5[7]
+      self.lminvert= c5[8]
+      self.lmvetos= c5[9]
+      self.lmscaler.set(c5[10])
+    if self.clnumber==1:
+      print "   class: %10s %10s %10s %10s %10s %10s"%("l0inputs", "l0inverted", "l0vetos",
+        "lmcond", "lminvert", "l0veto")
+    if self.clnumber<=3:
+      print "readhw:%2d: 0x%8.8x 0x%8.8x 0x%8.8x 0x%8.8x 0x%8.8x 0x%8.8x"%(self.clnumber, \
+        self.l0inputs, self.l0inverted, self.l0vetos,
+        self.lmcondition, self.lminvert, self.l0vetos)
+    # check LM vs L0 BCmasks:
+    if ((self.l0vetos>>8)&0xfff) != ((self.lmcondition>>20)&0xfff):
+      self.lmcondition= CopyBits(self.l0vetos, self.lmcondition,0xfff, 8, 20)
+      print "Repaired L0->LM for class:%d L0vetos: 0x%8.8x LM_CONDITION:0x%8.8x"%\
+        (self.clnumber, self.l0vetos, self.lmcondition)
   def writehw(self,cf=None):
     if cf:
-      fmt="CLA.%03d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
+      fmt="CLA.%03d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
       cmdout= cf.write
+      cmd=fmt%(self.clnumber, self.l0inputs,self.l0inverted, 
+        self.l0vetos,self.l0scaler.scaler,self.l1definition,self.l1inverted,
+        self.l2definition, self.lmcondition, self.lminvert, self.lmvetos, self.lmscaler.scaler)
+      cmdout(cmd)
     else:
       fmt="setClass(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
       cmdout= vbexec.get2
+      cmd=fmt%(self.clnumber, self.l0inputs,self.l0inverted, 
+        self.l0vetos,self.l0scaler.scaler,self.l1definition,self.l1inverted,
+        self.l2definition)
+      vbexec.get2(cmd)
+      cmd="setClassLM(%d,0x%x,0x%x,0x%x,0x%x)"%\
+        (self.clnumber, self.lmcondition, self.lminvert, self.lmvetos, self.lmscaler.scaler)
+      vbexec.get2(cmd)
       self.hwwritten(1)
-    cmd=fmt%(self.clnumber, self.l0inputs,self.l0inverted, 
-      self.l0vetos,self.scaler,self.l1definition,self.l1inverted,
-      self.l2definition)
-    #vbexec.get2(cmd)
-    cmdout(cmd)
   def doClass(self):
     if self.linenumber!=0:
       IntErr("doClass:linenumber:%d !=0"%self.linenumber)
@@ -1100,15 +1315,17 @@ class Klas(Genhw):
     self.ctpcfg.canvas.create_text(1, self.linenumber*myw.Kanvas.bitHeight
       - myw.Kanvas.bitBorder + Ctpconfig.l0y0, anchor=NW,
       text=str(self.clnumber))
-    self.doScaler()
+    #self.doScaler()
+    self.l0scaler.show()
+    self.lmscaler.show()
     self.doInputs(); self.doVetos();  # calls doCluster
   #def hideClass(self):
   #  if self.linenumber==0:
   #    IntErr("hideClass: linenumber %d!=0"%linenumber)   
   def refreshClass(self):
-    for i in range(Klas.l0allinputs)+range(100,124)+range(200,212):
+    for i in range(300,300+Klas.lmallinputs)+range(Klas.l0allinputs)+range(100,124)+range(200,212):
       self.refreshL0bit(i)
-    for i in range(Klas.l0allvetos)+Klas.l12allvetos:
+    for i in range(300, 300+Klas.lmallvetos)+range(Klas.l0allvetos)+Klas.l12allvetos:
       self.refreshVetobit(i)
     self.refreshScaler()
     self.refreshCluster()
@@ -1152,7 +1369,7 @@ class Klas(Genhw):
     return htext
   def clusterhandler(self,event, clustern):
     #print "clusterhandler: class# cluster",self.clnumber,clustern,self.linenumber
-    xy= [Ctpconfig.l0x0-myw.Kanvas.bitWidth/2,
+    xy= [Ctpconfig.lmx0-myw.Kanvas.bitWidth/2,
          Ctpconfig.l0y0+ myw.Kanvas.bitHeight*self.linenumber]
     #self.clentry= self.ctpcfg.doEntry(xy, self.modCluster)
     self.newclss=[]
@@ -1178,83 +1395,120 @@ class Klas(Genhw):
     """
     if inps: self.l0inputs=inps
     self.inpbitids={}
-    for cabi in range(Klas.l0allinputs)+range(100,124)+range(200,212):
-      if cabi>=200:
+    lmrange= range(300, 300+Klas.lmallinputs)
+    displayedrange= lmrange+range(Klas.l0allinputs)
+    if self.ctpcfg.hiddencls== "l1":
+      pass
+    elif self.ctpcfg.hiddencls== "l2":
+      displayedrange= displayedrange + range(100,124);
+    elif self.ctpcfg.hiddencls== "":
+      displayedrange= displayedrange + range(100,124) + range(200,212);
+    for cabi in displayedrange:
+      if cabi>=300:
+        startx0= Ctpconfig.lmx0; i=cabi-300
+        hlptext="LM input "+str(i+1)
+        minInverted= 1
+        maxInverted= 12
+        if i<12: hlptext="LM input "+str(i+1)
+        elif (i>=12) and (i<=15): hlptext="LM function "+str(i-11)
+        elif (i==16): hlptext="LM random 1"
+        elif (i==17): hlptext="LM random 2"
+        elif (i==18):  hlptext="LM BC scaled-down 1"
+        elif (i==19):  hlptext="LM BC scaled-down 2"
+        else: hlptext="LM unknown input"
+      elif cabi>=200:
         startx0= Klas.l2inputsx0; i=cabi-200
         hlptext="L2 input "+str(i+1)
         minInverted= 1 #45
+        maxInverted= 12
       elif cabi>=100:
         startx0= Klas.l1inputsx0; i=cabi-100
         hlptext="L1 input "+str(i+1)
         minInverted= 1 #45
+        maxInverted= 24
       else:
-        startx0= Ctpconfig.l0x0; i=cabi
+        startx0= Klas.l0x0; i=cabi
         minInverted= Klas.MININVL0_45   # <AC or >=AC 
+        maxInverted= 24
+        # 24,25: random,  26,27:Scaled-down BC, 28,29 L0function
+        if cabi<24:
+          hlptext="L0 input "+str(cabi+1)
+        elif cabi==24:
+          hlptext="L0 function 1"
+        elif cabi==25:
+          hlptext="L0 function 2"
+        elif cabi==26:
+          hlptext="L0 random 1"
+        elif cabi==27:
+          hlptext="L0 random 2"
+        elif cabi==28:
+          hlptext="BC scaled-down 1"
+        elif cabi==29:
+          hlptext="BC scaled-down 2"
+        verACl0input= False
+        if self.ctpcfg.l0AB==None:    #firmAC
+          if cabi<24: verACl0input= True   # any L0 input for firmAC
+          if cabi==26:
+            hlptext="L0 function 3"
+          elif cabi==27:
+            hlptext="L0 function 4"
+          elif cabi==28:
+            hlptext="L0 random 1"
+          elif cabi==29:
+            hlptext="L0 random 2"
+          elif cabi==30:
+            hlptext="BC scaled-down 1"
+          elif cabi==31:
+            hlptext="BC scaled-down 2"
       xy= (i*myw.Kanvas.bitWidth - myw.Kanvas.bitBorder + startx0, \
         self.linenumber*myw.Kanvas.bitHeight - myw.Kanvas.bitBorder + Ctpconfig.l0y0)
-      # 24,25: random,  26,27:Scaled-down BC, 28,29 L0function
-      if cabi<24:
-        hlptext="L0 input "+str(cabi+1)
-      elif cabi==24:
-        hlptext="L0 function 1"
-      elif cabi==25:
-        hlptext="L0 function 2"
-      elif cabi==26:
-        hlptext="L0 random 1"
-      elif cabi==27:
-        hlptext="L0 random 2"
-      elif cabi==28:
-        hlptext="BC scaled-down 1"
-      elif cabi==29:
-        hlptext="BC scaled-down 2"
-      verACl0input= False
-      if self.ctpcfg.l0AB==None:    #firmAC
-        if cabi<24: verACl0input= True   # any L0 input for firmAC
-        if cabi==26:
-          hlptext="L0 function 3"
-        elif cabi==27:
-          hlptext="L0 function 4"
-        elif cabi==28:
-          hlptext="L0 random 1"
-        elif cabi==29:
-          hlptext="L0 random 2"
-        elif cabi==30:
-          hlptext="BC scaled-down 1"
-        elif cabi==31:
-          hlptext="BC scaled-down 2"
       bitid= self.ctpcfg.canvas.dobit(xy,helptext=hlptext)
       self.inpbitids[cabi]=bitid
       handler1= lambda e,k=cabi:self.modL0handler(e, 1, k)
       handler2= lambda e,k=cabi:self.modL0handler(e, 2, k)
       self.ctpcfg.canvas.tag_bind(bitid, "<Button-1>", handler1)
       # L1,2 different 
-      if (self.clnumber>=minInverted and i<Klas.l0inputs) or verACl0input:   
+      if (self.clnumber>=minInverted) and (i<maxInverted):   #Klas.l0inputs) or verACl0input:   
         self.ctpcfg.canvas.tag_bind(bitid, "<Button-2>", handler2)
         #print "dobit %d:inverted"%(cabi)
       self.refreshL0bit(cabi)
-    xy1= (24*myw.Kanvas.bitWidth - myw.Kanvas.bitBorder + Ctpconfig.l0x0, \
+    # L0 separation of inputs + conditional inputs
+    xy1= (24*myw.Kanvas.bitWidth - myw.Kanvas.bitBorder + Klas.l0x0, \
+      self.linenumber*myw.Kanvas.bitHeight + myw.Kanvas.bitBorder + Ctpconfig.l0y0)
+    xy2= (xy1[0], xy1[1]+myw.Kanvas.bitHeight - 3*myw.Kanvas.bitBorder)
+    self.ctpcfg.doline(xy1, xy2, "white", 2*myw.Kanvas.bitBorder)
+    # LM separation of inputs + conditional inputs
+    xy1= (12*myw.Kanvas.bitWidth - myw.Kanvas.bitBorder + Ctpconfig.lmx0, \
       self.linenumber*myw.Kanvas.bitHeight + myw.Kanvas.bitBorder + Ctpconfig.l0y0)
     xy2= (xy1[0], xy1[1]+myw.Kanvas.bitHeight - 3*myw.Kanvas.bitBorder)
     self.ctpcfg.doline(xy1, xy2, "white", 2*myw.Kanvas.bitBorder)
   def refreshL0bit(self,ibit):
-    # ibit:0-29 even more with AC version, 100-123, 200-211
+    # ibit:0-29 even more with AC version, 100-123, 200-211, and LM: 300-311
     bitnx= self.canv2hwinp(ibit)
     bitn= 1<<bitnx
-    if ibit>=200:
+    if ibit>=300:
+      inputs= self.lmcondition
+      inverted= self.lminvert
+      minInverted= 1 #45
+      maxInverted=12
+    elif ibit>=200:
       inputs= self.l2definition
       inverted= self.l2definition>>12
       minInverted= 1 #45
+      maxInverted=12
     elif ibit>=100:
       inputs= self.l1definition
       inverted= self.l1inverted
       minInverted= 1 #45
+      maxInverted=24
     else:
       inputs= self.l0inputs
       inverted= self.l0inverted
       minInverted= Klas.MININVL0_45   # <AC or >=AC 
-    if inputs & bitn==0:
+      maxInverted=24
+    if inputs & bitn==0:   # enabled
       # for L1,2 only from 45 with new version (AC):
-      if (self.clnumber>=minInverted and bitnx<Klas.l0inputs):
+      if (self.clnumber>=minInverted) and (bitnx<maxInverted):    # inversion possible
         if inverted & bitn:
           color= Klas.colValidInv;
         else:
@@ -1263,6 +1517,8 @@ class Klas(Genhw):
         color= Klas.colValid;
     else:
       color= Klas.colDontCare
+    #print "refreshL0bit:", ibit,bitnx,'=',hex(bitn), self.inpbitids[ibit], \
+    #  "color:",color, hex(inputs), hex(inverted), self.clnumber
     self.ctpcfg.canvas.itemconfigure(self.inpbitids[ibit],fill=color)
   def testhandler(self,event, klasbit):
     #print "testhandler. event x y:",event.x, event.y
@@ -1272,12 +1528,17 @@ class Klas(Genhw):
   def modL0handler(self,event, eventkeycode, klasbit):
     """klasbit: 0..
     """
-    print "modL0handler1:", klasbit,eventkeycode, hex(self.l0inputs), hex(self.l1definition), hex(self.l1inverted)
+    print "modL0handler1:", klasbit,eventkeycode, hex(self.lmcondition), hex(self.lminvert), hex(self.l0inputs), hex(self.l1definition), hex(self.l1inverted)
     #print "modL0handler2:", event, dir(event)
     #print "modL0handler3:", event.keycode, event.keysym,event.keysym_num, eventkeycode
     #print "modL0handler4:", type(event.keycode)
     bit= self.canv2hwinp(klasbit)
-    if klasbit>=200:
+    if klasbit>=300:
+      if eventkeycode==1:
+        self.lmcondition= InvertBit(self.lmcondition, bit )
+      if eventkeycode==2:
+        self.lminvert= InvertBit(self.lminvert, bit )
+    elif klasbit>=200:
       if eventkeycode==1:
         self.l2definition= InvertBit(self.l2definition, bit )
       if eventkeycode==2:
@@ -1298,7 +1559,10 @@ class Klas(Genhw):
   def doVeto1(self, cabi):
     #cabi: 0..9 100..104
     #print "doVeto1:",cabi
-    if cabi>=200:
+    if cabi>=300:
+      startpix= Klas.lmvetosx0
+      cabirel= cabi-300
+    elif cabi>=200:
       startpix= Klas.l2vetosx0
       cabirel= cabi-200
     elif cabi>=100:
@@ -1310,7 +1574,15 @@ class Klas(Genhw):
     i= self.canv2hwveto(cabi)
     xy= (cabirel*myw.Kanvas.bitWidth - myw.Kanvas.bitBorder + startpix, \
       self.linenumber*myw.Kanvas.bitHeight - myw.Kanvas.bitBorder + Ctpconfig.l0y0)
-    if cabi>=0 and cabi<=3:
+    if cabi==300:
+      hlptext="LM deadtime"
+    elif cabi==301:
+      hlptext="LM all/rare"
+    elif cabi>=302 and cabi<=305:
+      hlptext="LM P/F "+str(cabi-302+1)
+    elif cabi==306:
+      hlptext="LM class mask"
+    elif cabi>=0 and cabi<=3:
       hlptext="P/F "+str(cabi+1)
     elif cabi>=self.BCmask_mincabi and cabi<=self.BCmask_maxcabi:
       hlptext="BCmask "+str(cabi-3)
@@ -1322,6 +1594,8 @@ green:0 -killed if AllRare is Rare"""
       #else:
       #  hlptext="All/Rare now Rare"
     elif cabi==(self.AR_cabi+1):
+      hlptext="LM-L0 busy"
+    elif cabi==(self.AR_cabi+2):
       hlptext="Class Mask"
     elif cabi>=200 and cabi<=203:
       hlptext="P/F "+str(cabi-199)
@@ -1338,7 +1612,9 @@ green:0 -killed if AllRare is Rare"""
     self.refreshVetobit(cabi)
   def refreshVetobit(self, ibit):
     vetobit= self.canv2hwveto(ibit) 
-    if ibit>=200:
+    if ibit>=300:
+      vetoword= self.lmvetos
+    elif ibit>=200:
       vetoword= self.l2definition
     elif ibit>=100:
       vetoword= self.l1definition
@@ -1355,23 +1631,55 @@ green:0 -killed if AllRare is Rare"""
     self.doCluster()   # let's keep it with vetos (1 common vme word)
     self.vetobitids={}
     #print "doVetos:",Klas.l0allvetos
-    for ibitcanvas in range(Klas.l0allvetos)+Klas.l12allvetos:
+    lmrange= range(300, 300+Klas.lmallvetos)
+    vetosrange= lmrange + range(Klas.l0allvetos)
+    if self.ctpcfg.hiddencls=="l1":
+      pass
+    elif self.ctpcfg.hiddencls=="l2":
+      vetosrange= vetosrange + Klas.l1allvetos
+    elif self.ctpcfg.hiddencls=="":
+      vetosrange= vetosrange + Klas.l12allvetos
+    for ibitcanvas in vetosrange:
       self.doVeto1(ibitcanvas)
   def modVetohandler(self,event,canvbit):
     #if klasbit==9:   #Class mask
     #print "modVetohandler:",event,canvbit, event.keycode
     # VME L0_MASK word will be updated according to self.l0vetos[31] bit
     # or l0vetos[23] bit in LM0 case
-    if canvbit>=200:
-      self.l2definition=InvertBit(self.l2definition, self.canv2hwveto(canvbit) )
+    hwbit=self.canv2hwveto(canvbit)
+    if canvbit>=300:
+      # when choosing LM class mask (->0), automatically choose also L0 class mask
+      if hwbit== Klas.lmClassMaskBit: 
+        if (self.lmvetos & (1<<Klas.lmClassMaskBit))== (1<<Klas.lmClassMaskBit):
+          # changing 1->0
+          self.l0vetos= self.l0vetos & ~(1<< Klas.l0ClassMaskBit)
+          self.refreshVetobit(Klas.l0ClassMaskBitcabi)
+          print "L0 class mask forced to 0"
+      self.lmvetos=InvertBit(self.lmvetos, hwbit )
+    elif canvbit>=200:
+      self.l2definition=InvertBit(self.l2definition, hwbit )
     elif canvbit>=100:
-      self.l1definition=InvertBit(self.l1definition, self.canv2hwveto(canvbit) )
+      self.l1definition=InvertBit(self.l1definition, hwbit )
     else:
-      self.l0vetos= InvertBit(self.l0vetos, self.canv2hwveto(canvbit) )
+      self.l0vetos= InvertBit(self.l0vetos, hwbit )
+      if canvbit==Klas.AR_cabi:
+        # L0 All/rare changed, copy it to LM all/rare:
+        self.lmvetos= CopyBit2(self.l0vetos, Klas.l0allrareBit, self.lmvetos, Klas.lmallrareBit)
+        self.refreshVetobit(Klas.AR_cabilm)
+        print "An All/rare bit change done also at LM level"
+      if hwbit in Klas.rangel0BCMaskBits: 
+        # copy L0_BCMASK -> LM_BCMASK:
+        hwbit_lmcond= Klas.l0veto2lmcondBCM + hwbit
+        self.lmcondition= CopyBit2(self.l0vetos, hwbit, self.lmcondition, hwbit_lmcond)
+        print "BCM%d changed also at LM"%(hwbit-7)
+        # nothing to refresh (LM bcmasks not shown)
     self.refreshVetobit(canvbit)
     self.hwwritten(0)
   def canv2hwveto(self,canvbit):
-    if canvbit>=200:
+    if canvbit>=300:
+      bit= canvbit-300
+      bit=Klas.iinlmvetos[bit]
+    elif canvbit>=200:
       bit= canvbit-200 + 24
     elif canvbit==104:
       bit=31
@@ -1381,26 +1689,28 @@ green:0 -killed if AllRare is Rare"""
       bit=Klas.iinvetos[canvbit]
     return bit
   def canv2hwinp(self,canvbit):
-    if canvbit>=200:
+    if canvbit>=300:
+      bit= canvbit-300
+    elif canvbit>=200:
       bit= canvbit-200
     elif canvbit>=100:
       bit= canvbit-100
     else:
       bit=canvbit
     return bit
-  def doScaler(self):
-    xy= (Klas.l0scalerx0, \
-      #self.linenumber*myw.Kanvas.bitHeight)
-      self.linenumber*myw.Kanvas.bitHeight - myw.Kanvas.bitBorder + Ctpconfig.l0y0)
+  #nemoz def doScaler(self, xstart=Klas.l0scalerx0):
+  def xdoScaler(self):
+    xstart= Klas.l0scalerx0
+    xy= (xstart, self.linenumber*myw.Kanvas.bitHeight - myw.Kanvas.bitBorder + Ctpconfig.l0y0)
     #self.scalentry= self.ctpcfg.doEntry(xy, self.modScaler)
     self.scalentry= self.ctpcfg.canvas.doEntry(xy, self.modScaler)
     self.refreshScaler()
-  def refreshScaler(self):
+  def xrefreshScaler(self):
     percentrate=str(self.scaler)
     #if self.scaler==0: percentrate="%100"
     #percentrate= "%%%5.2f"%(100-self.scaler*100./0x1fffff)
     self.scalentry.setEntry(percentrate)
-  def modScaler(self,event):
+  def xmodScaler(self,event):
     ntv=self.scalentry.getEntry(); ratemsg=None
     try:
       if ntv[0]=='%':   # 21bits, 0->max. rate, 1fffff->min rate

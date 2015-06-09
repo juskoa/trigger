@@ -1,7 +1,8 @@
 #include "FOBOARD.h"
 FOBOARD::FOBOARD(w32 bashex,int vsp)
 :
-	BOARD("fo",bashex,vsp,6)
+	BOARD("fo",bashex,vsp,6),
+	TEST_CLUSTER(0x244)
 {
  this->AddSSMmode("inmonl0",0); 
  this->AddSSMmode("inmonl1",1); 
@@ -13,7 +14,8 @@ FOBOARD::FOBOARD(w32 bashex,int vsp)
 }
 FOBOARD::FOBOARD(w32 bashex,int vsp,string const name)
 :
-	BOARD(name,bashex,vsp,6)
+	BOARD(name,bashex,vsp,6),
+	TEST_CLUSTER(0x244)
 {
  this->AddSSMmode("inmonl0",0); 
  this->AddSSMmode("inmonl1",1); 

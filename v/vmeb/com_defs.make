@@ -7,8 +7,11 @@ COMMONCFLAGS +=-DCPLUSPLUS
 endif
 include $(VMEBDIR)/vmeai.make.$(VMEDRIVER)
 
+#$(info com_defs: goals:$(MAKECMDGOALS) deps:$@)
 SERVER_BASEDIR := 
 odl64 := /opt/dip/lib64
+#SERVER_LINK not defined by defaults (the must!)
+#CLIENT_HOST := localhost
 HOSTNAME:=$(shell hostname -s)
 ifeq ($(HOSTNAME), alidcscom188)
 SERVER_LINK := yes
@@ -34,6 +37,16 @@ SERVER_LINK := yes
 CLIENT_HOST := altri1
 SERVER_PREF := /home/dl6
 endif
+#ifeq ($(HOSTNAME), zenaj)
+ifeq ($(HOSTNAME),$(filter $(HOSTNAME),tp zenaj))
+ifeq ($(SERVERLINK), NO)
+SERVER_LINK := 
+else
+SERVER_LINK := yes
+endif
+#CLIENT_HOST := localhost   # needs: id_dsa.pub->authorized_keys
+SERVER_PREF := "NEEDED_WHERE?"
+endif
 
 EXEDIR= ../linux
 ifeq ($(HOSTNAME), alidcscom707)
@@ -42,6 +55,9 @@ SERVER_PREF :=
 SERVER_BASEDIR := v
 endif
 
+#von? ifeq ($(MAKECMDGOALS),CLIENT)
+#SERVER_LINK=
+#endif
 ifdef SERVER_LINK
 ODIR = linux_s
 #  all exe on 64 bit machines go to _s:
@@ -74,6 +90,6 @@ LTULD= -L$(LTULIB) -lltu
 DIMLD= -L$(DIMDIR)/linux -ldim
 SMILD= -L$(SMIDIR)/linux -lsmi
 VMEBLD= -L$(VMEBLIB) -lvmeb
-LDFLAGS += -lpthread
+LDFLAGS += -pthread
 
 

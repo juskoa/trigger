@@ -52,7 +52,7 @@ int MonScal::CheckVCTPINPUTStatus()
 }
 void MonScal::GetActiveRuns()
 {
- this->buffer=buffer;
+ //this->buffer=buffer;
  for(int i=0;i<NRUN;i++){
     //int run=buffer[RUNXCOUNTERSSTART+i];
     int run=buffer[CSTART_RUNX+i];

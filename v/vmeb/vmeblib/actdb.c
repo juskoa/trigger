@@ -69,10 +69,12 @@ rc=0;
 return(rc);
 }
 /*------------------------------------------------------------ cpNameVer */
+#ifdef ACT_DB
 void cpNameVer(ACT_instance *instance, char *actname, char *actversion) {
 strcpy(actname, instance[0].instance);
 strcpy(actversion, instance[0].version);
 }
+#endif
 /*--------------------------------------------------------- actdb_getdbfile()
 rc:0: $VMECFDIR/CFG/ctp/DB/... created
       actname/actversion filled
@@ -261,8 +263,9 @@ return(rc);
 /*----------------------------------------------------- actdb_getInstances()
 */
 int actdb_getInstances(char *itemname) {
+int instancesNumber=0;
+#ifdef ACT_DB
 int err,ix;
-int instancesNumber;
 ACT_instance *instancesArray;
 
 if((err=actdb_open())!=0) {
@@ -290,5 +293,6 @@ if((err=ACT_destroyInstanceArray(instancesArray,
   return(-4);
 };
 ACT_close(handle);
+#endif
 return(instancesNumber);
 }

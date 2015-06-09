@@ -74,12 +74,12 @@ mode: 2    ->After            3 ->Before
       0x12 ->Afterr/FP2ssm 0x13 ->Before/FP2ssm 
 ! in FP2ssm wait for a change of L0_COUNTER or PP_COUNTER */
 void SSMstartrec(w32 mode) {
-w32 localmode;
+/* w32 localmode;
 if(mode==0x102) {
   localmode=2;
 } else {
   localmode=mode;
-};
+}; */
 if(SSMsetom(mode)) {
   return;
 };

@@ -79,6 +79,9 @@ def main():
       copyit=True ; acchost='trigger@altri1'
       strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
+    elif os.environ['VMESITE'] == 'PRIVATE':
+      copyit=True ; acchost='localhost'
+      strict= "strict"
   executable= os.path.join( os.environ['VMECFDIR'],"pydim","linux_s","server")
   #io= popen2.popen2(executable+" CTPRCFG RCFG",1) #0- unbuffered, 1-line buffered
   print "ver: %s Popen %s..."%(VERSION,executable)
@@ -166,6 +169,9 @@ def main():
         part.savercfg(line[5:]) 
         fname="r"+runnumber+".rcfg"
         print "%s %s saved,"%(tasc(), fname)
+        usedinps= part.prtinputs()
+        print "usedinps:",usedinps,";"
+        io[1].write("inpupd %s %s\n"%(runnumber, usedinps))
         # before the copy, ctp_proxy is waiting for, update
         # triggerClassNames in DAQdb
         print "%s now update DAQlogbook... "%(tasc())
@@ -239,6 +245,8 @@ def main():
       pass
     elif cmd[0]=='resetclock':
       # adjust clock shift: correct any shift
+      # resetclock is called from ctp_proxy, when PHYSICS_1 started.
+      # 3.6.2015: removed from ctp_proxy( i.e. should not be called)
       cshift= miclock.getShift()
       if cshift != "old":
         try:

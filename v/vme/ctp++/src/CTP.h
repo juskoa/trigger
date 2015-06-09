@@ -32,6 +32,9 @@ class CTP
 	 FOBOARD *fo[NUMOFFO];
          LTUBOARD *ltu[NUMOFFO*NUMOFCON];
          DETECTOR *fo2det[NUMOFFO][NUMOFCON];
+	 int setSWtrigger(char triggertype,w32 BC, w32 detectors,w32 lm);
+	 int startSWtrigger(char triggertype,w32 lm);
+	 void clearSWTriggerFlags(){l0->setTCCLEAR();l1->setTCCLEAR();l2->setTCCLEAR();};
 	 int readCFG(string const &name);
 	 int readBCStatus(int n);
 	 int readCounters();

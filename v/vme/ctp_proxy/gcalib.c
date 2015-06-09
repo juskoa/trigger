@@ -161,15 +161,16 @@ return(dif);
 addSecUsec(&result->secs, &result->usecs, delta->secs, delta->usecs);
 }
 void printDET1(int ix) {
-char active[20];
+char active[20]; char msg[200];
 if(ACTIVEDETS[ix].deta!=-1) {
   strcpy(active,"ACTIVE");
-  printf("%2d: %s %s. period required:%d ms. attempts/sent:%d/%d\n", 
-    ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
-    ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 } else {
   strcpy(active,"NOT ACTIVE");
 };
+sprintf(msg, "%2d: %s %s. rate:%d ms. attempts/sent:%d/%d\n", 
+  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
+  ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
+prtLog(msg);
 }
 /*--------------------*/int addDET(int det) {
 int rc=0; //OK:added or was added already. 1:not added

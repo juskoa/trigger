@@ -127,6 +127,7 @@ class TriggerCluster{
          int GetIndex(){return fhwindex;};
          int GetIndex0(){return (fhwindex-1);};
          int GetNdet(){return ndet;};
+	 w32 GetTRD();
          string* GetDetectors(){return fDetectors;};
          void Print();
          void PrintDets();
@@ -160,6 +161,7 @@ class TriggerClass
                   string   fname;
 	    	  string   fnamedesc;     // first part of classname corresponding to descriptor
                       w8   fIndex;        // position of class in mask
+	             w32   fTRDclass;      // its cluster contains TRD
 //       TriggerDescriptor*  fDescriptor;   // pointer to the descriptor
           TriggerCluster*  fCluster;      // pointer to the cluster
 //  AliTriggerPFProtection* fPFProtection; // pointer to the past-future protection
@@ -171,6 +173,8 @@ class TriggerClass
  public:
           TriggerClass(string &name,w8 index, TriggerCluster *cluster);
           ~TriggerClass();
+          void SetTRD(w32 trd){fTRDclass=trd;};
+          w32  GetTRD(){return fTRDclass;};
           w8 GetIndex(){return fIndex;};
           w8 GetIndex0(){return (fIndex-1);};
           string& GetName(){return fname;};
@@ -184,6 +188,7 @@ class TriggerClasswCount:public TriggerClass
  private:
         enum {NSHORT = 16};
         Counter cnts[6];
+	Counter lmB,lmA;
         char fnameS[16];  // first part of trigger class
         w32  fGroup;        // time sharing group
         w32  fTime;         // time allowed
@@ -197,9 +202,15 @@ class TriggerClasswCount:public TriggerClass
        void SetGroup(w32 group){fGroup=group;};
        char* GetShortName(){return fnameS;};
        Counter* GetCounters(){return cnts;};
+       Counter* GetCounterlmB(){return &lmB;};
+       Counter* GetCounterlmA(){return &lmA;};
        w64 GetL2aCountTot(){return cnts[5].GetCountTot();};
        w64 GetL0bCountTot(){return cnts[0].GetCountTot();};
        w32 GetL0bCount(){return cnts[0].GetCount();};
+       w64 GetLMbCountTot(){return lmB.GetCountTot();};
+       w32 GetLMbCount(){return lmB.GetCount();};
+       w64 GetLMaCountTot(){return lmA.GetCountTot();};
+       w32 GetLMaCount(){return lmA.GetCount();};
        int GetGroup(){return fGroup;};
        int GetTime(){return fTime;};
        bool IsActive(){if(fGroup) return isActive; else return 1;};

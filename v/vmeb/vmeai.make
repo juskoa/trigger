@@ -29,12 +29,12 @@ endif
 #endif
 ifeq (BNAME,ctp)
   #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
-  LDFLAGS +=-Lctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
+  LDFLAGS +=-Lctplib/linux_c -lctp
 #  CFLAGS +=-I$(VMECFDIR)/ctp/ctplib
 endif
 ifeq (BNAME,inputs)
   #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
-  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp  -L$(DIMDIR)/linux -ldim
+  LDFLAGS +=-L$(VMECFDIR)/ctp/ctplib/linux_c -lctp
   COMMONCFLAGS +=-I$(DIMDIR)/dim
 endif
 ifeq (BNAME,ADCI)
@@ -54,6 +54,16 @@ ifeq (BNAME,ctpt)
 endif
 # ctplib has to be before vmeblib
 LDFLAGS +=-L$(VMEBDIR)/vmeblib/linux_c -lvmeb
+# dimlib has to be after vmeblib (at least for SIMVME)
+ifdef DIMDIR
+ifeq (BNAME,ctp)
+  LDFLAGS +=-L$(DIMDIR)/linux -ldim
+endif
+ifeq (BNAME,inputs)
+  #libobjs +=$(VMECFDIR)/ctp/ctplib/linux_c/libctp.a
+  LDFLAGS +=-L$(DIMDIR)/linux -ldim
+endif
+endif
 ifdef DATE_INFOLOGGER_DIR
 INCDIRS +=-I$(DATE_INFOLOGGER_DIR)
 LDFLAGS +=-L$(DATE_INFOLOGGER_DIR) -lInfo

@@ -49,9 +49,9 @@ another L0 (base: 82c000) in crate. To access this board:
 #include "../ctp_proxy/Tpartition.h"
 
 extern int quit;     // for rwvmeloop
-#ifdef SSMCONNECTIONS 
+/*von #ifdef SSMCONNECTIONS 
 void initNames();
-#endif
+#endif*/
 
 void setseeds(long, int);
 double rnlx();
@@ -61,7 +61,8 @@ Tfanout FOs[6];   /* place for 6 fanouts, see getFO(), setFO() */
 int ReadTemp(int ix);
 
 /* HIDDEN Common dbghw ConfiguratioH DbgScopeCalls DebCon L012 DbgSSMBROWSERcalls */
-/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
+/* HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
+/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls */
 /*FGROUP TOP GUI CTP_Classes "Classes"
 The Classes definition, i.e. for each (1-NCLASS) class: 
  -enabling/disabling
@@ -451,6 +452,7 @@ if(notInCrate(1)) {
   Klas[klasix].regs[1]= 0;
   Klas[klasix].regs[2]= 0;
   Klas[klasix].regs[3]= 0;
+  Klas[klasix].regs[7]= 0; Klas[klasix].regs[8]= 0; Klas[klasix].regs[9]= 0; Klas[klasix].regs[10]= 0;
 } else {
   /* not readable in A0 version, now readable: */
   Klas[klasix].regs[0]= vmer32(L0_CONDITION+bb);
@@ -471,7 +473,10 @@ if(notInCrate(1)) {
   };
   Klas[klasix].regs[2]= mskbit2;
   /* scalers are updated in 1 pass (see hw2rates)
-  Klas[klasix].regs[3]= 0xabeceda;  */
+  Klas[klasix].regs[3,10]= 0xabeceda;  */
+  Klas[klasix].regs[7]= vmer32(LM_CONDITION+bb);
+  Klas[klasix].regs[8]= vmer32(LM_INVERT+bb);
+  Klas[klasix].regs[9]= vmer32(LM_VETO+bb);
 };
 if(notInCrate(2)) {
   Klas[klasix].regs[4]= 0;
@@ -490,8 +495,9 @@ return &Klas[klasix];
 /*FGROUP L0
 klas: 1-NCLASS   -class number
 get L0_CONDITION L0_INVERT L0_VETO L0_PRESCALER 
-    L1_DEFINITION L1_INVERT L2_DEFINITION words for klas
-i.e. 7 hexa numbers.
+    L1_DEFINITION L1_INVERT L2_DEFINITION
+    LM_CONDITION LM_INVERT LM_VETO LM_RATE_DATA
+i.e. 7+4 hexa numbers.
 L0_INVERT, L1_INVERT are 0:for classes 1-44 (not valid for  >AC) or 
 corresponding board is not in the crate
 */
@@ -551,21 +557,38 @@ if(notInCrate(3)==0) {
 }
 
 /*FGROUP L0
+set LM_CONDITION LM_INVERT LM_VETO
+*/
+void setClassLM(int klas,w32 lmcondition, w32 lminvert, w32 lmveto, w32 lmscaler) {
+int bb,klasix;
+bb= klas*4; klasix=klas-1;
+if(notInCrate(1)==0) {   // L0 board
+  Klas[klasix].regs[7]= lmcondition;
+  Klas[klasix].regs[8]= lminvert; 
+  Klas[klasix].regs[9]= lmveto; 
+  Klas[klasix].regs[10]= lmscaler; // update in 1 pass in rates2hw
+};
+setClassInitLM(klas, lmcondition, lminvert, lmveto);
+}
+/*FGROUP L0
 disable all NCLASS classes, i.e.:
 - set all inputs,vetos as dontcare for all NCLASS classes i.e.:
-L0_CONDITION = 0xffffffff
+LM+L0_CONDITION = 0xffffffff
 L0_VETO      = 0xfffffff0 (cluster0) bit31:1-> class is disabled
 L0_VETOr2    = 0xXX9ffff0 (cluster0) DSCG: XX (low 7 bits)
+LM_VETO      = 0xXX803f00 DSCG: XX, class disabled,PF1-4,ALll/rare,LMdead
 and 0x0 in:
-L0_INVERT   =0
-L0_PRESCALER=0
+LM+L0_INVERT   =0
+LM+L0_PRESCALER=0
+
 */
 void disableClasses() {
-int klas; w32 veto=0xfffffff0;
+int klas; w32 l0veto=0xfffffff0;
 if(notInCrate(1)) return;
-if(l0C0()) veto=0x009ffff0;
+if(l0C0()) l0veto=0x009ffff0;
 for(klas=1; klas<=NCLASS; klas++) {
-  setClass(klas, 0xffffffff, 0, veto|((klas-1)<<24), 0, 0x0fffffff, 0,0x0f000fff);
+  setClass(klas, 0xffffffff, 0, l0veto | ((klas-1)<<24), 0, 0x0fffffff, 0,0x0f000fff);
+  setClassLM(klas,  0xffffffff, 0, 0x803f00 | ((klas-1)<<24), 0);
 };
 }
 
@@ -586,10 +609,16 @@ for(ix=0; ix<NCLASS; ix++) {
   Klas[ix].regs[3]= vmer32(RATE_DATA) & rate_mask;
 };
 vmew32(getRATE_MODE(),0);   /* normal mode */
+vmew32(LM_RATE_MODE,1);   /* vme mode */
+vmew32(LM_RATE_CLEARADD,DUMMYVAL);
+for(ix=0; ix<NCLASS; ix++) {
+  Klas[ix].regs[10]= vmer32(LM_RATE_DATA) & RATE_MASKr2;
+};
+vmew32(LM_RATE_MODE,0);   /* normal mode */
 /*printf("hw2rates.\n"); */
 }
 /*FGROUP L0
-write all rates (scalers) from Klas structure to hw
+write all rates (scalers, lmscalers) from Klas structure to hw
 */
 void rates2hw() {
 int ix;
@@ -605,6 +634,12 @@ for(ix=0; ix<NCLASS; ix++) {
   vmew32(RATE_DATA, Klas[ix].regs[3] & rate_mask);
 };
 vmew32(getRATE_MODE(),0);   /* normal mode */
+vmew32(LM_RATE_MODE, 1);   /* vme mode */
+vmew32(LM_RATE_CLEARADD,DUMMYVAL);
+for(ix=0; ix<NCLASS; ix++) {
+  vmew32(LM_RATE_DATA, Klas[ix].regs[10] & RATE_MASKr2);
+};
+vmew32(LM_RATE_MODE, 0);   /* normal mode */
 }
 
 /*FGROUP SimpleTests
@@ -627,6 +662,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 /*FGROUP SimpleTests
 what: 0: set RATE_DATA  (100 words, 25 bits)
       1: set MASK_DATA  (3564 words, 12 bits)
+      2: set LM_RATE_DATA  (100 words, 25 bits)
 value: to be written
 Notes:
 RATE_DATA: rnd: 21 bits     busy: 0x2000000 | 25bits (1 step: 10us)
@@ -647,7 +683,7 @@ if((what%10)==0) {              // RATE_DATA
   MAXIX=NCLASS;
   clearad= RATE_CLEARADD;
   datad= RATE_DATA;
-} else {                   // MASK_DATA
+} else if((what%10)==1) {              // MASK_DATA
   if(l0C0()) {
     vmemode= MASK_MODEr2;
   } else {
@@ -657,6 +693,12 @@ if((what%10)==0) {              // RATE_DATA
   MAXIX=ORBITLENGTH;
   clearad= MASK_CLEARADD;
   datad= MASK_DATA;
+} else {                   // LM_RATE_DATA
+  vmemode= LM_RATE_MODE;
+  rate_mask= RATE_MASKr2;
+  MAXIX=NCLASS;
+  clearad= LM_RATE_CLEARADD;
+  datad= LM_RATE_DATA;
 };
 vmew32(vmemode,1);   /* vme mode */
 if(what<10) {
@@ -671,13 +713,14 @@ vmew32(vmemode,0);   /* normal mode */
 /*FGROUP SimpleTests
 what: 0: test RATE_DATA  (100 words, 25 bits)
       1: test MASK_DATA  (3564 words, 12 bits)
-     10: just read RATE_DATA
+     10: just read RATE_DATA + LM_RATE_DATA
      11: just read MASK_DATA
 write 1.. 100/3564,read back and print if not as expected
 */
 void testrates(int what) {
 int ix;
 w32 rate_mask,vmemode,clearad,datad;
+w32 lmvmemode,lmclearad,lmdatad;
 int MAXIX, okn;
 if((what%10)==0) {              // RATE_DATA
   vmemode= getRATE_MODE();
@@ -709,6 +752,13 @@ if(what<10) {
   };
 };
 //read back
+if(what==10) {
+  lmvmemode= LM_RATE_MODE;
+  lmclearad= LM_RATE_CLEARADD;
+  lmdatad= LM_RATE_DATA;
+  vmew32(lmvmemode,1);   /* vme mode */
+  vmew32(lmclearad,DUMMYVAL); okn=0;
+};
 vmew32(clearad,DUMMYVAL); okn=0;
 printf("reading..., printing out (errors only)...\n");
 for(ix=0; ix<MAXIX; ix++) {
@@ -722,10 +772,19 @@ for(ix=0; ix<MAXIX; ix++) {
       okn++;
     };
   } else {
-    printf("%2d: %d=0x%x\n", ix+1, da, da);
+    if(what==10) {
+      w32 lmda;
+      lmda= vmer32(lmdatad) & rate_mask;
+      printf("%2d: LM:%d=0x%x   L0:%d=0x%x\n", ix+1, lmda,lmda,da, da);
+    } else {
+      printf("%2d: %d=0x%x\n", ix+1, da, da);
+    };
   };
 }; 
 vmew32(vmemode,0);   /* normal mode */
+if(what==10) {
+  vmew32(lmvmemode,0);   /* normal mode */
+};
 if(what<10) {
   printf("tested words:%d, ok: %d words\n", MAXIX, okn);
 };
@@ -831,34 +890,45 @@ for(sync=0; sync<=15; sync++) {
 }
 
 w32 getSDSGr2(int cls) {
-w32 adr;
+w32 adr, adrlm; //, rc;
 adr= L0_VETOr2+4*cls;
-return( (vmer32(adr)>>24)&0x7f );
+adrlm= LM_VETO+4*cls;
+// rc: 0xMM00   MM: LM-SDSCG   00:L0-SDSCG
+return( ((vmer32(adrlm)>>16)&0x7f00) | ((vmer32(adr)>>24)&0x7f ));
 }
 void putSDSGr2(int cls, int grp) {
-w32 adr;
+w32 adr, adrlm;
 adr= L0_VETOr2+4*cls;
+adrlm= LM_VETO+4*cls;
 vmew32(adr, (vmer32(adr)&0x80ffffff) | (grp<<24)) ;
+vmew32(adr, (vmer32(adrlm)&0x80ffffff) | (grp<<24)) ;
 return;
 }
 /*FGROUP SimpleTests
 clas:
-0:         print L0_SDSCG+4,8,...  ('group' par. has no sense in this case)
+0:         print L0_SDSCG+4,8,...  ('group' par. has no sense in this case,
+           but some number has to be provided). Format: class:SDSCG
+           In case L0_SDSCG != LM_SDSCG, both groups are printed in format
+           class:LM_SDSCG:L0_SDSCG           
 1,2,3,...: class number of class to be set in group 'group'
-951: set all classes to 'group'
-952: set all classes to init state (no sync downscaling), i.e. 0,1,2,3,...,99
+951: set all classes to 'group' (LM+L0)
+952: set all classes to init state (no sync downscaling), i.e. 0,1,2,...,49,0,0...
 group: Set class' group to group (meaningfull only for classes 1..100)
-       Should be : 1,2,3,...,NCLASS
-LM0: works with L0_VETOSr2[30..24]
+       Should be : 1,2,3,...,50
+LM0: set in 2 places: L0_VETOSr2[30..24] + LM_VETO[30..24]
 */
 void printsetSDSCG(int clas, int group) {
 if(clas==0) {
   int ixc;
   if(l0C0()) {
     for(ixc=1; ixc<=NCLASS; ixc++) {
-      w32 val;
-      val= getSDSGr2(ixc);
-      printf("%2d:%2d ", ixc, val);
+      w32 val, lmval;
+      val= getSDSGr2(ixc); lmval= (val&0x7f00)>>8;  val= val&0x7f; 
+      if(lmval==val) {
+        printf("%2d:%2d ", ixc, val);
+      } else {
+        printf("%2d:%2d:%2d ", ixc, lmval, val);
+      };
       if((ixc%10)==0) printf("\n");
     };
   } else {
@@ -883,11 +953,15 @@ if(clas==0) {
     };
   };
 } else if(clas==952) {
-  printf("setting SDSCG for all classes to default: 0,1,...,99\n");
+  printf("setting SDSCG for all classes to default: 0,1,...49, 0,0,\n");
   int ixc;
   if(l0C0()) {
     for(ixc=1; ixc<=NCLASS; ixc++) {
-      putSDSGr2(ixc, ixc-1);
+      if(ixc>=51) {
+        putSDSGr2(ixc, ixc-1);
+      } else {
+        putSDSGr2(ixc, 0);
+      };
     };
   } else {
     for(ixc=1; ixc<=NCLASS; ixc++) {
@@ -898,8 +972,8 @@ if(clas==0) {
 } else if(clas>NCLASS) {
   printf("clas: 0..100 allowed\n");
 } else {
-  if((group<0) || (group>99)) {
-    printf("group: 0..100 allowed (0: allowed but should not be used)\n");
+  if((group<0) || (group>49)) {
+    printf("group: 0..49 allowed (0: allowed but should not be used)\n");
   } else {
     w32 adr;
     if(group==0) {
@@ -1075,7 +1149,8 @@ while(1) {
 };
 printf("vme loops:%d\n", loopsdone);
 }
-int defcounts[]={NCOUNTERS_BUSY, NCOUNTERS_L0, NCOUNTERS_L1, NCOUNTERS_L2,
+int defcounts[]={NCOUNTERS_BUSY, NCOUNTERS_L0+NCOUNT200_L0, 
+  NCOUNTERS_L1, NCOUNTERS_L2,
   NCOUNTERS_INT, NCOUNTERS_FO, NCOUNTERS_FO, NCOUNTERS_FO, 
   NCOUNTERS_FO, NCOUNTERS_FO, NCOUNTERS_FO};
 
@@ -1178,10 +1253,11 @@ void micsleep(int mics) {
 usleep(mics);
 }
 /*FGROUP SimpleTests 
-Synchronise/desynchronise random generators
+Synchronise/desynchronise 4 (2xLM 2xL0) random generators
 mask:
 3 synchronise RND1 and RND2 generators on L0 board
 1 desynchronise RND1 and RND2 generators on L0 board
+other: show current setting
 */
 void RNDsync(int mask);
 
@@ -1208,7 +1284,7 @@ printf("updated TL2 L2_DELAY_L1 FO_DELAY_L1CLST L2_BCOFFSET:%d: %d %d %d\n",
 #define MEGA 1024*1024
 w32 seqdata[16];
 /*FGROUP DDR3 
-Read DDR3  16 words from DDR3.
+Read DDR3  16 words (i.e. 1 block) from DDR3.
 blockad: 0,1,2,...  corresponds to ddr3 addrees 0,16,32,... in 32bits words
        block length: 512 bits
 */
@@ -1228,7 +1304,7 @@ for(ix=0; ix<nwords; ix++) {
 };
 }
 /*FGROUP DDR3 
-Write 16 words to DDR3 from blockad.
+Write 16 words (i.e. 1 block) to DDR3 from blockad.
 block: 0,1,2,...  corresponds to ddr3 addreses 0,16,32,... in 32bits words
        block length: 512 bits
 */
@@ -1271,16 +1347,23 @@ w32 *bigarray;
 write,read,compare
 ddr3_ad: 0, 16, 32,...   in words (1 word= 32 bits). If not,
          it will be rounded down
-nws: number of words (1word: 32 bits). n*16, if not
+nws: number of words (1word: 32 bits). n*16, if not, it will be
      rounded up for allocation, but test done for nws words
      only
+
+pattern (todo): 
+0: all 0s
+1: all 1 (i.e. each word set to 0xffffffff
+2: random
+3: each block (16 words = 64  bytes) set this way:
+
 Notes: SSM is 2GB, max. allocated memory:
 i.e. ddr3 chunks:
            ddr3_ad, nws
            ------------
 0..   1MB  0, 0x40000
-1..   2MB  0x40000, 0x40000
-0..  16MB  0, 0x400000     cca 4.4 secs writing, 5.7secs reading
+1..   2MB  0x40000, 0x40000    i.e. 2nd 1 MB chunk tested
+0..  16MB  0, 0x400000         4.4 secs writing, 5.7secs reading
 0..  64MB  0, 0x1000000        17 secs           23 secs 
 0.. 256MB  0, 0x4000000
 0.. 512MB  0, 0x8000000
@@ -1482,10 +1565,10 @@ for(ix=0; ix<6; ix++) {
 /* check/configure all the CTP boards: */
 checkCTP();
 initSSM();
-#ifdef SSMCONNECTIONS 
+/* von #ifdef SSMCONNECTIONS 
 initNames();
-#endif
-gettableSSM();
+#endif */
+gettableSSM(0);
 }
 void endmain() {
 }

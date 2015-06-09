@@ -60,21 +60,29 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   if(ctpboards[ix].vmever!=NICRATE) continue; 
   adshift=BSP*ctpboards[ix].dial;
 #ifdef SIMVME
+  /*
   ctpboards[ix].boardver= ctpboards[ix].lastboardver;
   ctpboards[ix].vmever= 0xa3; 
   code=ctpboards[ix].code;
   continue; 
-#else
-  code= 0xff&vmer32(CODE_ADD+adshift);
+  */
+  vmew32(CODE_ADD+adshift, ctpboards[ix].code);
+  vmew32(VERSION_ADD+adshift, 0xa0);
+  vmew32(SERIAL_NUMBER+adshift, 8);
+  vmew32(FPGAVERSION_ADD+adshift, ctpboards[ix].lastboardver);
+  vmew32(BC_STATUS+adshift, 2);
 #endif
+  code= 0xff&vmer32(CODE_ADD+adshift);
   /*printf("code:%x adshift:%x\n",code,adshift); fflush(stdout);  */
   if(code==ctpboards[ix].code) {
     vmever= 0xff&vmer32(VERSION_ADD+adshift);
     sernum= 0xff&vmer32(SERIAL_NUMBER+adshift);
-    boardver= 0xff&vmer32(FPGAVERSION_ADD+adshift);
+    boardver= 0xffff&vmer32(FPGAVERSION_ADD+adshift);
     if((code==0x50) && (boardver>=0xc0)) {
       vmever=0xa0;   // LM0 board, force vmever to the standard one
       strcpy(ctpboards[ix].name, "lm0");
+    } else {   // only 8 bits for all the other boards (inluding old L0 board)
+      boardver= 0xff& boardver;
     };
     ctpboards[ix].vmever= vmever;
     /*
@@ -83,10 +91,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 	vmever, boardver, sernum);
       fflush(stdout);
     */
-    if(boardver==0xff) {
+    if((code != 0x50) && (boardver==0xff)) {   // only with NON LM0 board
       boardver= loadFPGA(BSP*ctpboards[ix].dial);
     };
-    if(boardver>0x100) {
+    if((code != 0x50) && (boardver>0x100)) {
       printf("Board %s (base:0x82%1x000) not configured. Error:0x%x\n",
         ctpboards[ix].name,ctpboards[ix].dial, boardver);
     } else {
@@ -130,7 +138,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
     ix, ctpboards[ix].name,ctpboards[ix].code, ctpboards[ix].serial, 
     ctpboards[ix].dial, ctpboards[ix].vmever, ctpboards[ix].boardver);
     */
-  printf("%2d:%5s 0x%x %4d 0x82%1x000 0x%x 0x%x   %x     %s\n",
+  printf("%2d:%5s 0x%x %4d 0x82%1x000 0x%x %4x %x     %s\n",
     ix, ctpboards[ix].name,ctpboards[ix].code, ctpboards[ix].serial, 
     ctpboards[ix].dial, ctpboards[ix].vmever, ctpboards[ix].boardver,bcst,
     errnote);

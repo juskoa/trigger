@@ -26,9 +26,9 @@ endif
 #
 set fcv = $1
 set fc = "TTCit_v${fcv}.ttf"
-if ( -e ttcit_fpga_code ) then
-    /bin/rm -f ttcit_fpga_code
-endif
+#if ( -e ttcit_fpga_code ) then
+#    /bin/rm -f ttcit_fpga_code
+#endif
 #
 if ( $#argv >= 2 ) then
     set fd = $2
@@ -37,7 +37,7 @@ else
 endif
 #
 if ( -e ./${fc} ) then
-    ln -s ${fc} ttcit_fpga_code
+    #ln -s ${fc} ttcit_fpga_code
     echo "Using ${fc} from ."
 else if ( -e $VMECFDIR/CFG/ttcit/${fc} ) then
     ln -s $VMECFDIR/CFG/ttcit/${fc} ttcit_fpga_code

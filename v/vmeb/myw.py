@@ -330,9 +330,12 @@ class Kanvas(Canvas):
   bitBorder=1
   interspace=1
   colHelpBg='#ccffff'
-  def __init__(self, tlw, canvasDestroyed=None, ctpcfg=None, **kw):
+  scalwidth=40
+  def __init__(self, tlw, canvasDestroyed=None, ctpcfg=None, 
+    scalerpos= (260,400), **kw):
     self.tlw=tlw
     self.ctpcfg=ctpcfg   # to get help window over L0 scaler entries
+    self.scalerpos= scalerpos
     selfargs=(self,self.tlw)
     apply(Canvas.__init__,selfargs, kw)
     #self.pack(fill='y', side=RIGHT)
@@ -406,12 +409,14 @@ class Kanvas(Canvas):
       tags="TAGhlptemp", text=hlptext)
     cs=self.bbox(thlptxt); txth= cs[3]-cs[1]; txtw=cs[2]-cs[0]
     # find the best position for text (NE SE SW NW)
-    if x>canw/2:
+    #if x>canw/2:    # tooltip on right side
+    if not (((x>self.scalerpos[0]) and (x<(self.scalerpos[0]+Kanvas.scalwidth))) or\
+            ((x>self.scalerpos[1]) and (x<(self.scalerpos[1]+Kanvas.scalwidth)))):
       if y<canh/2:   #NE
         x= event.x-cursd-txtw; y=event.y+cursd
       else:          #SE
         x= event.x-cursd-txtw; y=event.y-cursd-txth
-    else:
+    else:            # tooltip on left side
       if y<canh/2:   #NW
         x= event.x+cursd; y=event.y+cursd; #recreate=0
       else:          #SW
@@ -450,8 +455,9 @@ class Kanvas(Canvas):
             #print "Kanvas-upper:", cls.linenumber
             #cls.scalentry.lower(self.ovalhelp) #not working
             #cls.scalentry.lower(self.tlw)     #not working
-            self.toliftback.append(cls.scalentry)
-            cls.scalentry.lower(self)         # scalentry disappears
+            pass
+            #ok self.toliftback.append(cls.scalentry)
+            #ok cls.scalentry.lower(self)         # scalentry disappears
     self.tag_raise(thlptxt, self.ovalhelp)
   def ifnegorge(self,value, upperlimit, newifneg, newifge):
     if value<0:return newifneg

@@ -16,7 +16,9 @@ consequences for active partitions (if any)
 18.12
 prepareRunConfig/registerRunConfig
 29.11. todo: goto LOAD_FAILURE  when more than 6 * (inverted) classes used
+30.5.2015 TEST: when debug offline (no swtrg generation)
 */
+//#define TEST
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,16 +26,8 @@ prepareRunConfig/registerRunConfig
 #include "infolog.h"
 #ifdef CPLUSPLUS
 #include <dic.hxx>
-/*von #ifndef TEST
-extern "C" {
-#include "DAQlogbook.h"
-}
-#endif */
 #else
 #include <dic.h>
-/*von #ifndef TEST
-#include "DAQlogbook.h"
-#endif */
 #endif
 
 #include "vmewrap.h"
@@ -227,7 +221,7 @@ if(dodel==1) {
   rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 };
 if(rcdic!=1) rc= 3;   // dim problem?
-sprintf(msg,"timestamp:prepareRunConfig2:rc %d", rcdic); prtLog(msg);
+sprintf(msg,"timestamp:prepareRunConfig2:tag:%d rc %d", tag, rcdic); prtLog(msg);
 return(rc);
 }
 
@@ -962,9 +956,9 @@ prtProfTime("get inps2daq");
       infolog_trgboth(LOG_FATAL, emsg);
       rcdaqlog=3;
     } else {
-      int ix, rl;
+      int rl;
       mem= (char *)malloc(len+1);
-      ix=0; mem[0]='\0';
+      mem[0]='\0';
       rl=fread((void *)mem, 1, len, ifile); mem[rl]='\0';
       if(rl != len) {
         sprintf(emsg, "updateDAQClusters: File: %s read error\n",name); 
@@ -1285,6 +1279,7 @@ for(ip=0;ip<MNPART;ip++){
       int hwclass;
       hwclass= klas->hwclass;  // 0..49/99
       HW.sdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;
+      //HW.lmsdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;  todo
       printf("addClasses2HW:hwclass0..49/99:sdgs[%d]:%d\n", 
         hwclass, HW.sdgs[hwclass]);
     };
@@ -1407,13 +1402,13 @@ void ctp_StopAllPartitions() {
 int i; Tpartition *part; char pname[40];
 for(i=0;i<MNPART;i++){
   if((part=AllPartitions[i])){
-   int rc1;
+   //int rc1;
    char msg[200];
    strcpy(pname, part->name);
    infolog_SetStream(pname, part->run_number);
    sprintf(msg, "Stop forced for partition %s", pname); 
    infolog_trgboth(LOG_FATAL, msg);
-   rc1= ctp_StopPartition(pname);
+   ctp_StopPartition(pname);
    //rc1= deletePartitions(Tpartition *part);
   };
 };
@@ -1719,10 +1714,14 @@ xse: 'S' -just store in validLTUs
 void readCTPcnts(Tpartition *part, char xse) {
 int idet,reladr;
 #ifdef newreadCTPcnts
-w32 mem[CSTART_SPEC];
+//w32 mem[CSTART_SPEC];
+w32 mem[NCOUNTERS];
 printBakery(&ctpshmbase->ccread);
-readCounters(mem, CSTART_SPEC, 0, 0);
+usleep(100000);
+//readCounters(mem, CSTART_SPEC, 0, 0);
+readCounters(mem, NCOUNTERS, 0, 0);
 printf("bakery after readCounters:\n");
+usleep(100000);
 printBakery(&ctpshmbase->ccread);
 for(idet=0;idet<NDETEC;idet++){
   if(part->Detector2Clust[idet] ==0) continue;
@@ -1906,13 +1905,14 @@ if(x=='E') {
 */
 if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
 #ifndef TEST   
- while((GenSwtrg(1,'s', xod, 1750, detectors, 0, orbitn) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
+  while((GenSwtrg(1,'s', xod, 1750, detectors, 0, orbitn) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
    iattempt++;
    usleep(100000);
  };
 #else
  prtLog("generateXOD; TEST mode: no attempt to generate.");
 #endif
+ if(DBGpriv) {iattempt=0; infolog_trg(LOG_WARNING, "DBGpriv, ignore sw trigger failure"); };
  if(iattempt>=MAX_XOD_ATTEMPTS){
    w32 deadbusys;
    char emsg[ERRMSGL];
@@ -1984,13 +1984,12 @@ int generateXODSSM(char x){
 }*/
 /*----------------------------------------------------- resetclock */
 void resetclock() {
-int tag,rcdic;
 char msg[80], cmd[40], dimcom[40];
-tag=TAGrcfgdelete;
+//tag=TAGrcfgdelete;
 sprintf(cmd,"resetclock\n");
 sprintf(msg,"timestamp:resetclock:"); prtLog(msg);
 strcpy(dimcom,"CTPRCFG/RCFG");
-rcdic= dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
+/*rcdic=*/ dic_cmnd_service(dimcom, cmd, strlen(cmd)+1);
 }
 /*----------------------------------------------------- gcalibUpdate */
 void gcalibUpdate() {
@@ -2081,7 +2080,7 @@ return(rc);
 //--------------------------------------------------------------------
 // Initialise
 //w8 *mallocShared(w32 shmkey, int size, int *segid);
-extern char TRD_TECH[];   /* partition name in case it is TRD technical partition
+extern char TRD_TECH[];   /* partition name in case it is TRD partition
                              see checkmodLM() */
 int ctp_Initproxy(){
 int sp,rc; char *environ;
@@ -2093,7 +2092,7 @@ rc= vmeopen("0x820000", "0xd000");
 if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
 };
-printf("ctp_proxy ver: 10.02.2013\n");
+printf("ctp_proxy ver: 06.04.2015\n");
 xcountersStop(0);           // clear list of active runs
 SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
@@ -2346,13 +2345,14 @@ if(generateXOD(part,'E', emsg, &orbitn )) {
   //goto RETSTOPunset;  anyhow, we have to relese hw
 };
 prepareRunConfig(part,0);
+/* not used withfull LM implementation...
 if(strcmp(part->name, TRD_TECH)==0) {
   // disconnect RND1, connected becasue of TRD in techn. partition
   vmew32(RND1_EN_FOR_INPUTS, 0);
   vmew32(RND1_EN_FOR_INPUTS+4, 0);
   TRD_TECH[0]='\0';
   prtLog("RND1_EN_FOR_INPUTS and TRD_TECH cleared");
-};
+};*/
 ret=deletePartitions(part); tspart= checkTS();
 if(tspart!=NULL) {
   strcpy(tsname, tspart->name);
@@ -2461,7 +2461,7 @@ rc: if !=0, errorReason set
 2: pcfg cannot be processed
 3: applyMask problem 
 4: addPartitions() problem
-5: checkmodLM (TRD technical) partition problem
+5: checkmodLM (TRD in) partition problem
 */
 int ctp_InitPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
@@ -2474,9 +2474,10 @@ way of masking: mask is applied in memory directly
     after part. definition is read in
  */
 errorReason[0]='\0';
+/* removed 3.6.2015 (i.e. was here at the end of run1)
 if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
   resetclock();
-}; 
+}; */
 infolog_SetStream(name,0);
 part=getPartitions(name, AllPartitions); 
 if(part!=NULL) { 
@@ -2535,12 +2536,16 @@ if(DBGparts) { printTpartition("After mask applied", part); };
 sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
 if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
-   rc=ret; ret=deletePartitions(part); part=NULL;
+   rc=ret; 
+   //ret=deletePartitions(part);  no need (not added yet)
+   part=NULL;
    goto RET2; };
 //printTpartition("After checkResources", part);
 ret= checkmodLM(part);   // not good idea (better: in START_PARTITION)
 if(ret!=0) {
-  rc=5; ret=deletePartitions(part); part=NULL;
+  //ret=deletePartitions(part);    no need (not added yet)
+  rc=5; 
+  part=NULL;
   goto RET2; };
 // If resources available, continue and add part to Partitions[]
 // From now on, no checks necessary (all checks already done)
@@ -2557,7 +2562,7 @@ sprintf(msg,"timestamp:partition merged: %s %d", name, run_number); prtLog(msg);
 if((ret=addPartitions2HW(AllPartitions))){ //just check if enough resources
   printf("addPartitions2HW error: %i \n", ret);   
   strncpy(errorReason, "Cannot load partition", ERRMSGL);
-  rc=ret; ret=deletePartitions(part); part=NULL;
+  rc=ret; deletePartitions(part); part=NULL;
   copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
   goto RET2;
 };
@@ -2581,7 +2586,7 @@ sprintf(msg, "timestamp:rc:%d from updateDAQClusters()\n", rc); prtLog(msg);
 if(rc!=0) {
  strncpy(errorReason, "updateDAQClusters() problem", ERRMSGL);
  prepareRunConfig(part,0);
- ret=deletePartitions(part); part=NULL;
+ deletePartitions(part); part=NULL;
 };
 //printHardware(&HW,"ctp_InitPartition");
 copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
@@ -2667,7 +2672,7 @@ if(generateXOD(part,'S', errorReason, &orbitn)) {
     printf("addPartitions error: %i \n", ret);
     goto UNSETRET;}; */
 };
-//usleep(1100000);   // maybe more for rorc initialisation
+usleep(1100000);   // maybe more for rorc initialisation
 if(load2HW(&HW, tsname)){
   strncpy(errorReason, "ctpproxy: internal error found in load2HW()", ERRMSGL);
   rc= 4; goto UNSETRET;
@@ -2698,7 +2703,7 @@ return rc;
 UNSETRETddl:
   prepareRunConfig(part,0);
   copyHardware(&HW,&HWold);
-  ret= deletePartitions(part);part=NULL;
+  deletePartitions(part);part=NULL;
   /*goto UNSETRETadb;
   no gcalib/busys -they were not updated anyhow (UNSETRET) */
   goto RET;
@@ -2706,9 +2711,8 @@ UNSETRET:
   prepareRunConfig(part,0);
   copyHardware(&HW,&HWold);
   unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
-  ret= deletePartitions(part); part=NULL;
+  deletePartitions(part); part=NULL;
   gcalibUpdate();
   goto RET;  //UNSETRETadb;
 }
-
 

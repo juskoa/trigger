@@ -561,6 +561,7 @@ class AllInputs:
       print items
       continue
       #return None
+    if items[3] == 'M': continue
     count=count+1
     #if count<6 or count>11  : continue
     #if count>10 and count<24 : continue

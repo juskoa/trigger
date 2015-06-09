@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 grep -e'^  def ' -e'^class Trg' parted.py >parted.contents
-
+grep -e '^class' -e '^  def ' parted.py >/tmp/parted.contents
 The goal: edit pname.partition file (pname is the name of the partition)
 Operation: load/edit/save pname.partition file
 
@@ -264,7 +264,6 @@ class TrgInput:
               self.edge= li[6]
               self.delay= li[7]
               self.ctpinp= int(li[1]), int(li[3])   
-              
           #if li[5]!='1':
           #  self.ctpinp= int(li[1]),0   # not connected
         else:
@@ -903,6 +902,9 @@ Predefined BC masks in VALID.BCMASKS file:
       inp1= string.split(line[:-1],'=')
       inpname= string.strip(inp1[0])
       inpAlreadyIn= self.findInput(inpname)
+      spl= string.split(line)
+      if len(spl)>=4:
+        if spl[3]=='M': continue   # ignore LM lines
       if inpAlreadyIn:
         #2 definitions with the same name not allowed!
         PrintError("""Trigger input %s already defined. ctpinputs.cfg line:
@@ -1220,7 +1222,7 @@ class TrgClass:
     self.bcms=[0,0,0,0,0,0,0,0,0,0,0,0]
     self.optinps=[0,0,0,0]   # rnd1, rnd2, bc1, bc2
     self.pfs=[0,0,0,0]   # [0,1,0,0]: TrgSHR[PFS_START+1].getDefinition()
-    self.allrare=1   # 0-> rare   1-> all
+    self.allrare=0   # 0-> rare   1-> all
     self.classgroup=0   # 0..9    0: class is always active 9: never active?
     # 1..9: class is active only in certain time slot (1..9)
     #for k,vv in pars.iteritems():
@@ -1455,10 +1457,11 @@ class TrgClass:
     bcrnd= self.getTXTbcrnd(text='saving')
     bcms= self.getTXTbcms()
     if self.allrare==1:                       # all/rare
-      #allrare='all,'
-      allrare=''
+      allrare='all,'
+      #allrare=''
     else:
-      allrare='rare,'
+      #allrare='rare,'
+      allrare=''
     if self.L0pr=='0':
       l0pr=''
     else:
@@ -2525,12 +2528,17 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     outfile.close()
     print outfilename," written"
     return ""
-  def prtinputs(self):
-    """ output: WORKDIR/usedinputs
+  def prtinputs(self, dbgfname=None):
+    """ output: WORKDIR/dbgfname or 
+                returned string: "ctpin1 ctpin2 ..."   (for inpupd cmd frim pydimserver.py)
+                where ctpin* are used ctpinputs numbers 1..60, i.e. 1..24:l0 25..48:l1 49..60:l2
+                
     """
-    fname=os.path.join(WORKDIR, "usedinputs")
-    of= open(fname,"w")
-    usedinputs={} #; optinputs={}
+    if dbgfname:
+      fname=os.path.join(WORKDIR, dbgfname); of= open(fname,"w")
+    else:
+      rets=""
+    usdinputs={} #; optinputs={}
     l0defs=[]
     for ixclu in range(len(self.clusters)):
       cluster= self.clusters[ixclu]
@@ -2541,31 +2549,40 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         for inpname in cla.trde.inputs:
           inp= TDLTUS.findInput(inpname)
           #note: inpname is [*]name, inp.name is: name
-          if usedinputs.has_key(inp.name): continue
-          usedinputs[inp.name]= 'ok'
+          if usdinputs.has_key(inp.name): continue
+          usdinputs[inp.name]= 'ok'
           if inp.ctpinp==None:            # l0f definition
             if inp.l0fdefinition:
               l0defs.append("%s %s\n"%(inpname, inp.l0fdefinition))
               ok,l0funvars= txtproc.varsInExpr(inp.l0fdefinition)
               for inpname2 in l0funvars:
                 inp2= TDLTUS.findInput(inpname2)
-                if usedinputs.has_key(inpname2): continue
-                usedinputs[inpname2]= 'ok'
+                if usdinputs.has_key(inpname2): continue
+                usdinputs[inpname2]= 'ok'
                 if inp2==None:
                   IntErr("prtinputs: %s input used in %s not found"%(inp2,inpname))
                   continue
-                self.prtinput1(inp2, of)
+                if dbgfname:
+                  self.prtinput1(inp2, of)
+                else:
+                  rets= rets+ " " + self.prtinput1(inp2)
             else:
               PrintError("%s is not CTPinput neither L0 definition:"%inpname)
             continue
-          self.prtinput1(inp, of)
-    of.close()
+          if dbgfname:
+            self.prtinput1(inp, of)
+          else:
+            rets= rets+ " " + self.prtinput1(inp)
+    if dbgfname:
+      of.close()
+    else:
+      return rets
   def savercfg(self, line=""):
     """line: info from ctp_proxy. Format:
     partitionName runNumber detectorMask phys_clusters phys_classes
       INT1lookup INT1def INT2lookup INT2def
     if line=='': just testing  (i.e.: parted PHYSICS_1 r)
-    detectorMask: 0x820  -allow just 2 detecors (0x800 + 0x20)
+    detectorMask: example: 0x820  -allow just 2 detecors (0x800 + 0x20)
     phys_clusters: 1 2 3 4 5 6
     phys_classes:  1 2 ... 49 NCLS
     INT*lookup: 0x...  -4 hexadigits
@@ -2902,9 +2919,11 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     desname= os.path.join(WORKDIR, "PCFG/r%s.%s"%(runnumber,'pcfg'))
     shutil.copyfile(srcname,desname)
     print outfilename," written. .partition and .pcfg files copied to PCFG/"
-  def prtinput1(self, inp, of):
+  def prtinput1(self, inp, of=None):
     """not used in run1 from some time, instead  trigdb.TrgVALIDINPUTS.prtall() is used
-    run2: called from prtinputs() -needed for CTPRCFG/CNAMES service
+    run2: called from prtinputs() with of=None -needed for CTPRCFG/CNAMES service
+    ret: line written to of or
+         string representing the number of input (1..60)
     """
     if inp==None:
       IntErr("prtinput1: None")
@@ -2919,6 +2938,14 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     line= "%s %s %d %s %s\n"%(inp.name, detn, \
       inp.ctpinp[0], inp.signature, inp.ctpinp[1])
     #  inp.ctpinp[0], inp.signature, inp.signature)
+    if of==None:
+      if inp.ctpinp[0] == 0: ixb= 0
+      elif inp.ctpinp[0] == 1: ixb= 24
+      elif inp.ctpinp[0] == 2: ixb= 48
+      else:
+        print "Warning:%s:"%line
+        return ""
+      return str( ixb+ int(inp.ctpinp[1]))
     of.write(line)
   def allocShared(self, pl0funs, lf34=None):
     """
@@ -3514,8 +3541,10 @@ def main():
   if len(sys.argv)>2:
     if sys.argv[2]=='r':   # create .rcfg file for given partition
       # see v/vme/pydim -production code invoking parted -> .rcfg
-      part= TrgPartition(partname, "strict")
-      #part= TrgPartition(partname)
+      #part= TrgPartition(partname, "strict")
+      part= TrgPartition(partname)
+      #part.prtinputs("usedinputs")
+      print "Used inputs for inpupd:%s"%part.prtinputs()
       if part.loaderrors:
         print "Errors:"
         print part.loaderrors

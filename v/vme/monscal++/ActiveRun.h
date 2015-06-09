@@ -60,11 +60,12 @@ class ActiveRun : public Log
          void CreateDisplaySCAL(){scal = new DisplaySCAL(fRunNumber,fname);};
          void DisplayRun(){scal->DisplayRun(ninp,fTrigInputs,nclust,fClusters,fINT,ndet,fDetectors);DisplaySCAL::GetfileSCAL()->flush();};
          //----------CountersOCDB
+         //void CreateCountersOCDB(bool copy2dcs){ocdb = new CountersOCDB(2,fRunNumber,copy2dcs);};
          void CreateCountersOCDB(bool copy2dcs){ocdb = new CountersOCDB(2,fRunNumber,copy2dcs);};
          void WriteHeaderOCDB(){ocdb->WriteHeader(nclass,fClasses);};
 	 void WriteRecordOCDB(){ocdb->WriteRecord(&times,nclass,fClasses);};
          //-----------DAQlogbook
-         void CreateDAQlogbook(int log=0){daq = new DAQlogbook(fRunNumber,log);}
+         void CreateDAQlogbook(int log=1){daq = new DAQlogbook(fRunNumber,log,1);}
          void Write2DAQlogbook();
 };
 #endif

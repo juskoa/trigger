@@ -11,9 +11,9 @@
 #include "Tpartition.h"
 #include "lexan.h"
 
-int inplm=-1;   // -1: not connected 1..24: l0inp number of 0HCO input
-int inplm_swn;   // -1: not connected 1..24: l0inp number of 0HCO input
-extern char TRD_TECH[];   // partition name in case it is TRD technical partition
+//int inplm=-1;   // -1: not connected 1..24: l0inp number of 0HCO input
+//int inplm_swn;   // -1: not connected 1..24: l0inp number of 0HCO input
+/*extern char //TRD_TECH[];   // partition name in case it is TRD technical partition */
 
 //ctplib.h:
 int l0AB();
@@ -452,7 +452,8 @@ rc: 0: ok
 */
 int PF2Partition(char *line,TRBIF *rbif){ 
 int ixdef,ixx;
-enum Ttokentype tok; w32 ixpf=0; char hexw[20];
+//enum Ttokentype tok; 
+w32 ixpf=0; char hexw[20];
 
 //printf("len= %i\n",strlen(&line[8]));
 //printf("%s",&line[8]);
@@ -462,7 +463,7 @@ if((line[3]<'1') || (line[3]>'4')) {
 char2i(line[3],&ixpf); ixpf--; ixx=5;   // "PF.x 0x..."
 for(ixdef=0; ixdef< (ixMaxpfdefs+ixMaxpfdefsCommon); ixdef++) {
   w32 pfdef1; int rc1;
-  tok= nxtoken(line, hexw, &ixx);
+  /*tok=*/ nxtoken(line, hexw, &ixx);
   rc1= gethexdec(hexw, &pfdef1);
   if(rc1!=0) {
     goto BADLINE;
@@ -1091,62 +1092,27 @@ int allinpdets=0, inpdets, ins012;
 // L0
 *l0finputs=0;
 if(DBGgetInputDets) 
-  printf("getInputDets: 0x%x 0x%x 0x%x\n",
-    klpo->l0inputs, klpo->l1definition, klpo->l2definition);
+  printf("getInputDets: 0x%x 0x%x 0x%x 0x%x\n",
+    klpo->lmcondition, klpo->l0inputs, klpo->l1definition, klpo->l2definition);
+  // getInputDets: 0xff7fffff 0x1fffffff 0x1f000fff
 for(ixlevel=0; ixlevel<3; ixlevel++) {
   inpdets=0;
+  if( ixlevel==2) { ins012= klpo->l2definition; };
+  if( ixlevel==1) { ins012= klpo->l1definition; };
+  if( ixlevel==0) { ins012= klpo->l0inputs; };
   for(ix=0; ix<26; ix++) {   // 0..23 L0 inputs, 24,25 L0functions
     w32 inpdet; w32 bit;
     if( (ixlevel!=0) && (ix>23) ) break;
-    if( ixlevel==2) { if(ix>11) break; ins012= klpo->l2definition; };
-    if( ixlevel==1) { ins012= klpo->l1definition; };
-    if( ixlevel==0) { ins012= klpo->l0inputs; };
+    if( ixlevel==2) { if(ix>11) break; };
     bit=(1<<ix);
     if( (ins012 & bit) == 0) {  //1:input not used 0:input is used
-      if(( ix>23) && (ixlevel==0) ) {   // L0fun: to be done
-        char *l0ftxt; int ixn;
-        char emsg[200];
+      if(( ix>23) && (ixlevel==0) ) {   // L0fun: to be done for LM also
         /*sprintf(emsg,"getInputDets:l0Fun %d used but not implemented", ix+1);
         infolog_trg(LOG_INFO, emsg);*/
-        l0ftxt= &(part->rbif->l0intfs[L0INTFSMAX*(ix-24)]);
-        sprintf(emsg,"getInputDets:l0fs1:%s l0fs2:%s current:%s", 
-          part->rbif->l0intfs, 
-          &part->rbif->l0intfs[L0INTFSMAX], l0ftxt); prtLog(emsg);
-        emsg[0]='\0'; ixn=0;
-        while(1) {
-          int rc,vcip; char name[30];
-          rc= getNextFunName(l0ftxt+ixn, name);
-          if(rc==-1) { break; }; // no meaningfull name found
-          //ixn: points just after name in line string (' ', '\0', ':', '\n')
-          //name: contains next name.
-          if(DBGgetInputDets) printf("getInputDets:name:%s\n", name);
-          vcip= findInputName(name);
-          if(vcip >=0) {
-            if(validCTPINPUTs[vcip].level==0) {
-              int inn;
-              inn= validCTPINPUTs[vcip].inputnum;
-              if(inn>4) {
-                sprintf(emsg,"getInputDets:l0Fun uses %s not connected to L0/1-4", name);
-              } else {
-                *l0finputs= *l0finputs | (1<<(inn-1));
-                inpdet= validCTPINPUTs[vcip].detector;
-                inpdets= inpdets | (1<<inpdet);
-                if(DBGgetInputDets) 
-                  printf("getInputDets:inn:%d inpdet:%d\n", inn, inpdet);
-              };
-            } else {
-              sprintf(emsg,"getInputDets:l0Fun %s used but not L0 input", name);
-            };
-          } else {
-            sprintf(emsg,"getInputDets: L0 input %s used in l0f not found", name);
-          };
-          if(emsg[0]!='\0') {
-            infolog_trgboth(LOG_FATAL, emsg); allinpdets=-1;
-            goto RTRN;
-          };
-          ixn=rc+ixn;
-        };  
-      } else {
+        int purelm;
+        inpdets= getIDl0f(part, ix-24, l0finputs, &purelm);
+        if(inpdets==-1) { allinpdets=-1; goto RTRN; };
+      } else {   // 0/1/2 input
         inpdet= findINPdaqdet(ixlevel, ix+1);
         //inpdets= addinpdet(inpdets, inpdet);
         if(inpdet==0xffffffff) {
@@ -1157,14 +1123,38 @@ for(ixlevel=0; ixlevel<3; ixlevel++) {
         } else {
           inpdets= inpdets | (1<<inpdet);
         };
-      };
-    };
-  };
+      };   // endof: 0/1/2 input
+    };   // input is used
+    if((ixlevel==0) && (ix==23)) {    // l0inp24 was just checked, let's do LMs now:
+      // after L0inp24, check all LM inputs if available:
+      w32 lminps;
+      lminps= (~klpo->lmcondition) & 0xfff;   // i.e. 1:used
+      if((klpo->lmvetos & 0x800000)==0) {    // LM clmask enabled
+        int ixlm;
+        for(ixlm=0; ixlm<12; ixlm++) {
+          if((lminps & (1<<ixlm))) {   // ixlm: LM input
+            int inplmdet;
+            printf("getInputDets: looking for LM: %d...\n", ixlm+1); fflush(stdout);
+            inplmdet= findLMINPdaqdet(ixlm+1);
+            printf("getInputDets: LM: %d active det:%d\n", ixlm+1,inplmdet); fflush(stdout);
+            if(inplmdet==-1) {
+              char emsg[200];
+              sprintf(emsg,"getInputDets:lMinput %d used but not connected", 
+                ix+1);
+              infolog_trgboth(LOG_FATAL, emsg); allinpdets=-1; goto RTRN;
+            } else {
+              inpdets= inpdets | (1<<inplmdet);
+            };
+          }; 
+        };         // for all LM inputs
+      };       // endof: LM enabled
+    };      // endof: l0inp24 + all LMs checked
+  };   // for all inputs + L0F1/2
   if(DBGgetInputDets) 
     printf("getInputDets: L%d input detectors:0x%x l0finputs:0x%x\n", 
       ixlevel, inpdets, *l0finputs);
   allinpdets= allinpdets|inpdets;
-};
+};   // for all 0/1/2 levels
 RTRN:
 return(allinpdets);
 }
@@ -1202,7 +1192,7 @@ for(idet=0;idet<NDETEC;idet++){
 };
 if(DBGlogbook) {
   int pclu;
-  printf("getDAQClustersInfo:masks[0-%d]:0x:",NCLUST);
+  printf("getDAQClusterInfo:masks[0-%d]:0x:",NCLUST);
   for(pclu=0; pclu<NCLUST; pclu++) {
     printf("%x ", daqi->masks[pclu]); 
   }; printf("\n");
@@ -1214,7 +1204,7 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   hwclass= partit->klas[iclass]->hwclass;  // 0..49
   //if(hwclass>49) 
   if(hwclass>99) {
-    intError("getDAQClustersInfo: hwclass>49"); rcdaqlog=10;
+    intError("getDAQClusterInfo: hwclass>49"); rcdaqlog=10;
   };
   iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
   //daqi->classmasks[iclu]= daqi->classmasks[iclu] | (ULL1<<hwclass);
@@ -1226,6 +1216,7 @@ for(iclass=0; iclass<NCLASS; iclass++) {
   }
   //
   indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  /*
   if(strcmp(TRD_TECH, partit->name)==0) { // LM correction for techn. run:
     int newindets;
     // actually, 0HCO is used with RND generator, i.e. we
@@ -1235,10 +1226,11 @@ for(iclass=0; iclass<NCLASS; iclass++) {
       TRD_TECH, indets, newindets);
     indets= newindets;
   };
+  */
   l0finputs= l0finputs|l0finputs1;
   // l0finputs will be usd later when ctp_alignment called
   if(indets<0) rcdaqlog=2;   
-  if(DBGlogbook) printf("getDAQClustersInfo:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
+  if(DBGlogbook) printf("getDAQClusterInfo:hwallocated:%d iclu:%d iclass:%i indets:0x%x\n",
     partit->hwallocated, iclu, iclass, indets);
   daqi->inpmasks[iclu]= daqi->inpmasks[iclu] | indets;
 };

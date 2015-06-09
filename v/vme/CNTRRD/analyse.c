@@ -155,24 +155,31 @@ return(num);
 }*/
 void printHelp() {
 printf("\n\
-analyse.exe 'date1 time1' 'date2 time2' opt runn ../outfile 0 23 45 ...\n\
-e.g.:\n\
-cd ~/CNTRRD/rawcnts\n\
-$VMECFDIR/CNTRRD/linux/analyse '21.05.2011 00:00:00' '21.05.2011 23:00:00' hexa 152077 ../r152077.dat 898 899\n\
+analyse.exe 'date1 time1' 'date2 time2' opt runn outfile 0 23 45 ...\n\
 \n\
 opt:  hexa -give readings in hexa format, default. (e.g. 0fab)\n\
-      dec  -give readings in decimal (unisgned long)\n\
+      dec  -give readings in decimal (unsigned long)\n\
       gnu  -give readings in decimal and '-' separator between date and time\n\
 runn: 0: no run given (just take all readings date1..date2)\n\
-     >0: run number -find SOR after 'date1 time1' and EOR from CSTART_RUNX[]\n\
+     >0: run number -find SOR after 'date1 time1' and EOR from CSTART_RUNX[].\n\
+                     Do not search after 'date2 time2'.\n\
 outfile: the output file name. \n\
          NOT DONE YET:anypath.rrd  -create .rrd (.txt has to exist\n\
                       in curr. directory describing rrd)\n\
 rel. numbers: in cnames.sorted2 file, i.e. 0 corresponds to l0byclstT,\n\
-    896..901: spare896runx -6 runx numbers (run1)\n\
-    923: l2orbit (run1)\n\
+    1486..1491: spare1486runx... -6 runx numbers (see cnames1.sorted2)\n\
+    1513: l2orbit\n\
     or\n\
     dimall -put all counters in binary file (like DIM service MONCOUNTERS)\n\
+\n\
+Example: extracting 2 counters, epochsecs and l0inp1, during run 216241:\n\
+         into a text file r216241.dat\n\
+\n\
+cd .../rawcnts\n\
+$VMECFDIR/CNTRRD/linux/analyse '12.03.2015 00:00:00' '12.03.2015 23:59:59' hexa 216241 $HOME/r216241.dat 1511 119\n\
+\n\
+Note: for run1, use cnames1.sorted2 + analyse should be modified (or recompiled with \n\
+      ctpcounters_run1.h)\n\
 ");
 };
 void date_plus1(char *date) {
@@ -207,6 +214,7 @@ if(argc==1) {
   char date[32]="21.05.2011";
   char oline[1000];
   //w32 clusters[NCLUST][NBO];
+  printHelp(); return 8;
   file= open_rawcnts(date);
   if(file==NULL) {printf("Error: %s.rawcnts not found\n",date); return 2;};
   while(1) {

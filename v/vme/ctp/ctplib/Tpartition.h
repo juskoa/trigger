@@ -38,6 +38,7 @@
 #define DBGcumRBIF 0   // cumRBIF()
 #define DBGCLGROUPS 1  // class groups (time slots on/off for class groups)
 #define DBGrbif 0
+#define DBGpriv 0   // offline testing (VMESITE=PRIVATE)
 
 #include "bakery.h"
 /* the following symbol defined only for development:
@@ -55,15 +56,17 @@ see dims.c dimservices.c
 ////////////////////////////////////////////////////////////////////////
 typedef struct Tinput{
   char name[MAXCTPINPUTLENGTH];   // "" empty item
-  int detector;      // ECS/DAQ Detector number (0..) or -1 if not found
-  int level;         // 0,1,2
+  int detector;    // ECS/DAQ Detector number (0..) or -1 if not found
+  int level;       // 0,1,2
   w32 signature;
-  int inputnum; // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
-  int dimnum;        // order number of cable. 1 if only 1 input cable given
-  int switchn; // 0: not switchinput (i.e. L1/2 input or not connected at all)
-               // 1..48 switch input number
-  int edge;          // 0:positive  1: negative -1: notdefined
-  int delay;         // 0-15 in BCs   -1:not defined
+  int inputnum;    // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
+  int dimnum;      // order number of cable. 1 if only 1 input cable given
+  int switchn;     /* 1..48 switch input number
+         0: not switchinput (i.e. L1/2 input or not connected at all) */
+  int edge;        // 0:positive  1: negative -1: notdefined
+  int delay;       // 0-31 in BCs   -1:not defined
+  int lminputnum;  // 1-12. 0 or -1: not used at/not connected to LM level
+  int lmdelay;     // 0-7
   int deltamin;
   int deltamax;
 }Tinput;
@@ -117,6 +120,10 @@ typedef struct TKlas{
  char *partname;  // !can be not valid (in load2HW when STOP partition)
  int classgroup;  // index to ClassGroup[]. 0: no classgroup assigned
  int sdg;         // index into SDGS. -1 if not SDG class
+ w32 lmcondition;
+ w32 lminverted;
+ w32 lmvetos;     
+ w32 lmscaler;
 }TKlas;
 
 /* old definition (w.r.t. level, never used):
@@ -231,7 +238,7 @@ typedef struct TBUSY{
 
 typedef struct TSDGS{
   char name[MAXPARTNAME];   // symbolic SDG name. "": empty field
-  char pname[MAXPARTNAME];  // symbolic SDG name
+  char pname[MAXPARTNAME];
   w32  l0pr;                // calculated from n% (always rnd downscale)
   int firstclass;  //1..50, 0: not allocated yet
 }TSDGS;
@@ -258,9 +265,10 @@ typedef struct Hardware{
  TRBIF *rbif;
  TFO fo[NFO];           // clust. is free if there is no bit ON in fo[0-5]
  TBUSY busy;
- int sdgs[NCLASS];   // Default: 0..49. Different in case if SDG active 
+ int sdgs[NCLASS];   // Default: 0..99. Different in case if SDG active 
      // for given class used to fill L0_SDSCG registers. VALID also for LM0
      // (i.e. here, not in klas[]->l0vetos
+ int lmsdgs[NCLASS];   // Default: 0..99.
 }Hardware;
 // Clean existing HW structure
 void cleanHardware(Hardware *hw, int leaveint);
@@ -405,6 +413,7 @@ Tpartition *deleteTpartition(Tpartition *part);
 int setnameTpartition(Tpartition *part, char *name);
 // Print different structures
 void printTpartition(char *headtext, Tpartition *part);
+int getIDl0f(Tpartition *part, int l0fn, w32 *l0finputs, int *purelm);
 int checkmodLM(Tpartition *part);
 int getNAllPartitions();
 void printStartedTp();
@@ -453,6 +462,7 @@ int findLTUdetnum(char *ltuname);
 void bit2name(w32 ctprodets, char *detname);
 int detList2bitpat(char *dlist);
 int findINPdaqdet(int level, int input);
+int findLMINPdaqdet(int input);
 w32 findBUSYinputs(w32 ctprodets);
 void findLTUNAMESby(w32 busypat, w32 detpat, char *names);
 int findDETfocon(int fo,int con,char *name);

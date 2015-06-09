@@ -116,7 +116,7 @@ ssh -2 trigger@$ttcmivme "$sshcmd"
 }
 #--------------------------------------------------
 hname=`hostname -s`
-if [ "$hname" != 'tp' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
+if [ "$hname" != 'zenaj' -a "$hname" != 'tp' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
      -a "$hname" != 'alidcscom188' -a "$hname" != 'alidcscom835' ] ;then
 echo 'This script can be started only on trigger@alidcscom835/188 or trigger@pcalicebhm10/avmes'
 exit 8
@@ -195,7 +195,7 @@ Problems: see corresponding files in:
 EOF
 exit
 fi
-dnames="pydim html rrd udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
+dnames="pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
 cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
@@ -283,7 +283,7 @@ if [ $dmn = "html" -o "$dmn" = 'all' ] ;then
     status_html
   fi
 fi
-if [ $dmn = "rrd" -o "$dmn" = 'all' ] ;then
+if [ $dmn = "rrd" -o "$dmn" = 'all' -o $dmn = "rrdc" -o $dmn = "rrdno" ] ;then
 #------------------------------------------------ rrd
   if [ "$sss" = "stop" ] ;then
     #echo "not done (kill manually: kill readctpcPID readltucPID)"
@@ -307,7 +307,12 @@ END {printf "%s", pids}
     fi
     cd ~/CNTRRD
     savelog readctpc
-    nohup $VMECFDIR/CNTRRD/linux/readctpc >logs/readctpc.log &
+    if [ $dmn = "rrdno" ] ;then
+      rrdno='-norrd'
+    else
+      rrdno=''
+    fi
+    nohup $VMECFDIR/CNTRRD/linux/readctpc $rrdno >logs/readctpc.log &
     echo 'check if html is running.' 
     #nohup linux/readctpc >logs/readctpc.log &
 # always after readctpc restart, /tmp/htmlfifo has to be read out.
@@ -319,8 +324,11 @@ END {printf "%s", pids}
 # if htmlCtpBusys.py is supposed to be stopped, arrange the readings:
 # nohup cat /tmp/htmlfifo >logs/htmlfifo.log &
 #
-    savelog readltuc
-    nohup $VMECFDIR/CNTRRD/linux/readltuc >logs/readltuc.log &
+    if [ $dmn != "rrdc" -a $dmn != "rrdno" ] ;then
+      echo "starting readltuc..."
+      savelog readltuc
+      nohup $VMECFDIR/CNTRRD/linux/readltuc >logs/readltuc.log &
+    fi
   elif [ "$sss" = "status" ] ;then
     status_rrd
   fi

@@ -1,0 +1,6 @@
+#!/bin/bash
+cd $VMEBDIR/vmeblib ; make
+cd $VMECFDIR/ctp/ctplib ; make
+cd $VMECFDIR/ctp_proxy ; make
+cd $VMECFDIR/pydim ; make
+ssh -2 trigger@altri1 'vmecomp ctp'

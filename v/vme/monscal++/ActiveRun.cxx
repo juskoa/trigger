@@ -168,8 +168,13 @@ int ActiveRun::ProcessInputLine(const string &line)
  splitstring(line,items," ");
  int nitems = items.size();
  if(nitems < 17){
+   if((nitems == 10) && items[3][0]=='M'){
+     cout << "LM input, ignoring" << endl;
+     cout << line << endl;
+     return 0;
+   }
    //cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
-   cout << "unexpected number of items in ctpinputs,cfg: line:" << endl;
+   cout << "unexpected number of items in ctpinputs,cfg: line: " << nitems << endl;
    cout << line << endl;
    return 1;
  }
@@ -312,6 +317,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
           bool b1=fClusters[i]->GetName().length()==items[3].length();
           bool b2=fClusters[i]->GetName().find(items[3]) != string::npos;
           if(b1 && b2){
+	    w32 trd=fClusters[i]->GetTRD();
             TriggerClasswCount* clss;
             //w32 index1 =  atoi(items[1].c_str());
             //w8 index=index1;
@@ -322,6 +328,8 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
             else
               clss = new TriggerClasswCount(items[0],atoi(items[1].c_str()),fClusters[i],atoi(items[8].c_str()),atoi(items[9].c_str()));
             clss->ParseClassName();
+            clss->SetTRD(trd);
+            cout << " Cluster: " << fClusters[i]->GetName() << " trdflag: " << trd << endl; 
             AddClass(clss);
             //cout << "ActiveRun: ";
             //clss->Print();

@@ -1077,7 +1077,7 @@ bcmGC 2897H121L546H"""
         bcxs= self.mainsatAC(sattyp)   
         #if len(sattyp)==1:
         self.arch[sattyp]= bcxs    # A,C,S,SA,SC: keep in arch for later usage
-        #om= om+"\n" + self.print2(sattyp, bcxs)
+        om= om+"\n" + self.print2(sattyp, bcxs)
         om= om+"\n" + "%s%s "%(satbcm,sattyp) + self.eN(bcxs)
       #
       # still we need: 1. satAC=satA+satC

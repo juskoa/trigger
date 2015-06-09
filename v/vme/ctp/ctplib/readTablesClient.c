@@ -45,7 +45,7 @@ Tsimplepars simplepars[MAXSIMPLEPARS]= {
 //{"L0_INTERACT1", L0_INTERACT1},
 //{"L0_INTERACT2", L0_INTERACT2},
 //{"L0_INTERACTT", L0_INTERACTT},
-{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take car L0/LM0  (see below)!
+{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take care L0/LM0  (see below)!
 {"INT_DDL_EMU", INT_DDL_EMU},
 {"", 0}
 };
@@ -190,8 +190,8 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     // REASON: ctp.cfg is in dos format (CR+LF), convert it with dow2unix!
     lookupt[0]= '\0'; rc= popenread(cmd, lookupt, LOOKUPTLEN);
     //printf("loadctpcfg.lookupt:%s:\n", lookupt);
-    if(strncmp(lookupt,"0x", 2)!=0) {
-      printf("ERROR in %s definition:%s\n",parname, value);
+    if((strncmp(lookupt,"0x", 2)!=0) || (rc != EXIT_SUCCESS) ) {
+      printf("ERROR in %s definition:%s popenread rc:%d\n",parname, value, rc);
       printf("%s\n", lookupt);
       goto CONT;
     } else {

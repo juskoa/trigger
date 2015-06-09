@@ -87,12 +87,14 @@ void CTP::printboards()
             (*from)->printboardinfo("no text");
             string name=(*from)->getName();
             w32 bcstatus = (*from)->getBCstatus();
-            if(name != "busy"){
+            bcstatus=bcstatus & 0x3;
+            //if(name != "busy"){
               if(bcstatus != 2){
-               cout << endl << "Incorrect BC status" << endl;
+               //cout << endl << name << " Incorrect BC status" << endl;
+               printf("Incorrect BC status: 0x%x , board %s \n",bcstatus,name.c_str());
                //exit(1);
               }
-            }
+            //}
          }
 }
 //----------------------------------------------------------------------------
@@ -263,5 +265,107 @@ int CTP::readCFG(string const &name){
  // this should be available in ctplib ?
 return 0;
 }
+//---------------------------------------------------------------------------
+// Set default trigger
+int CTP::setSWtrigger(char triggertype,w32 BC, w32 detectors,w32 lm)
+{
+ w32 word,INTtcset;
+ //     LM0         P/F      BCM4   BCM3    BCM2    BCM1
+ word=(lm<<19)+(1<<18)+(1<<17)+(1<<16)+(1<<15)+(1<<14);
+ // roc
+ INTtcset=(1<<1);
+ switch(triggertype){
+  case 'a':
+   // mask later
+   break;
+  case 's':
+    // synchrneous
+    word=word+(1<<12)+BC;
+    //printf("setswtrig: synchr trigger 0x%x \n",word);
+    break;
+  case 'c':
+    // calibration
+    word=word+(1<<12)+(1<<13)+BC;
+    INTtcset= INTtcset | 1;
+    break;
+  default:
+    printf("Error: setswtrig: unknown type of trigger %c \n",triggertype);
+    return 1;
+ }
+ // L0 board
+ l0->setTCSET(word);
+ // L1 board
+ word=(1<<18);
+ l1->setTCSET(word);
+ // L2 board
+ word=(1<<24)+detectors;
+ l2->setTCSET(word);
+ // INT board
+ inter->setTCSET(INTtcset);
+ // FO boards
+ // all connectors
+ // to be modified - now hardwired phos at lab
+ //word = 0xf<<16;
+ word = 0x120070;
+ fo[0]->setTESTCLUSTER(word);
+ // BUSY BOARD
+ // all detectors - to be modified
+ busy->setCluster(0,0x2);
+ return 0;
+}
+int CTP::startSWtrigger(char triggertype,w32 lm)
+{
+ int TIMEOUT=100;
+ // for calib check PP request
+ // syn and calib check l0 request
+ int i=0;
+ usleep(200);
+ while(l0->getL0rqst() && i<TIMEOUT)i++;
+  if(i>=TIMEOUT){
+    printf("Timeout at L0 request \n");
+    return 1;
+  } 
+ usleep(200);
+ i=0;
+ while(!(l0->getl0ackn()) && i<TIMEOUT)i++;
+  if(i>=TIMEOUT){
+    printf("Timeout at L0 acknowledge \n");
+    printf("TCSTATUS: 0x%x \n",l0->getTCSTATUS());
+    return 2;
+  }
+ usleep(10000); 
+ printf("l1a : %x \n",l1->getl1ackn());
+ return 0;
+ // L1 level
+ i=0; 
+ while(!(l1->getl1ackn()) && i<TIMEOUT)i++;
+ //time[itime++]=CountTime();
+ if(i>=TIMEOUT){
+  printf("Timeout at L1 acknowledge \n");
+  return 3;;
+ };
+ // L2 level
+ w32 flag=l2->getl2ackn();
+ i=0;
+ while(((flag&0xc) == 0) && i<TIMEOUT) {   //wait L2a/L2r ACK
+  flag=l2->getl2ackn();
+  mysleep(10);
+  i++;
+ };
+ //if(DBGswtrg4) printf("  l2ackn:0x%x loops(10us sleep) %i \n",flag, i);
+ if(i >= TIMEOUT){
+  printf("startswtrig: Timeout at l2ackn. \n");
+  return 7;
+ };
+ if(flag == 4){         // L2r ack
+  return 3;
+ }else if(flag == 8){   // L2a ack
+  return 0;
+ }else{
+  printf("startswtrig: FAIL, flag=%i %i I should never be here.\n",flag,i);
+  return 4; // there should be l2a or l2r 
+ }
 
+ return 0;
+}
 

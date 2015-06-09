@@ -8,9 +8,10 @@ import myw
 
 #following definition must agree with ctp/ctpcounters.h
 NCOUNTERS_L0=300
+NCOUNT200_L0=200   # 2nd L0 chunk (lm*)
 NCOUNTERS_L0_SP1=17  # 2 spares
-NCOUNTERS_L0_SP2=178 # 9 spares. run1: was commented out (spare99 becomes l0infun4)
-NCOUNTERS_L0_SP3=298 # 2 spares
+# reserved from 9.4.02015. NCOUNTERS_L0_SP2=178 # 9 spares. run1: was commented out (spare99 becomes l0infun4)
+NCOUNTERS_L0_SP3=299 # 1 spare
 L1SH=NCOUNTERS_L0
 #
 NCOUNTERS_L1=300 #160
@@ -39,10 +40,14 @@ NCOUNTERS_INT=19
 NCOUNTERS_SPEC=49
 # 2 more for epoch_seconds and epoch_micseconds
 # NCOUNTERS: different from ctpcounters.h (does not include NCOUNTERS_SPEC)
-NCOUNTERS=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+NCOUNTERS_BUSY+NCOUNTERS_INT
+#            from 9.4.2015 also SPEC included (present in array, but not used)
+NCOUNTERS=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
+  NCOUNTERS_BUSY+NCOUNTERS_INT+NCOUNTERS_SPEC+NCOUNT200_L0
 BYSH=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO
 INTSH=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+NCOUNTERS_BUSY
 SPECSH=INTSH+NCOUNTERS_INT
+L0200SH=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
+        NCOUNTERS_BUSY+NCOUNTERS_INT+NCOUNTERS_SPEC
 
 shmext=None
 cntsactive=0
@@ -507,13 +512,13 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     # 2 spares
     for irp in range(lix,lix+2):
       print "spare%d %d l0 S N"%(irp, irp)
-    lix= 0+NCOUNTERS_L0_SP2
+    #lix= 0+NCOUNTERS_L0_SP2
     #9 spares
-    for irp in range(lix,lix+9):
-      print "spare%d %d l0 S N"%(irp, irp)
+    #for irp in range(lix,lix+9):
+    #  print "spare%d %d l0 S N"%(irp, irp)
     lix= 0+NCOUNTERS_L0_SP3
-    #2 spares
-    for irp in range(lix,lix+2):
+    #1 spare
+    for irp in range(lix,lix+1):
       print "spare%d %d l0 S N"%(irp, irp)
     lix= L1SH+NCOUNTERS_L1_SP1
     # 2 spares
@@ -584,15 +589,18 @@ in 16BCs intervals""")
     #self.makeit1("l0","l0inp", CTPcnts.i124, "L0 input")
     self.makeit1("l0","l0classB", CTPcnts.c1100, "Class before vetos")
     self.makeit1("l0","l0classA", CTPcnts.c1100, "Class after vetos")
+    self.makeit1("l0","lmclassB", CTPcnts.c1100, "LM Class before vetos")
+    self.makeit1("l0","lmclassA", CTPcnts.c1100, "LM Class after vetos")
     self.makeit1("l0","l0inp", CTPcnts.i48, "L0 inputs")
     #self.makeit1("l0","l0ifun", ("1","2"), "L0 input functions")
     self.makeit1("l0","l0ifun", ("1","2","3","4"), "L0 input functions")
     self.makeit1("l0","l0int", ["1","2","T","A","B", "D"],
       "Interaction signals: 1,2,T and  P/F Interaction signals A,B,D")
+    self.makeit1("l0","lmclst", CTPcnts.iT6, "LM cluster1-8, T")
     #self.makeit1("l0","l0int", ["1","2","T","A","B"],
     #  "Interaction signals: 1,2,T and  P/F Interaction signals A,B")
-    self.makeit1("l0","l0counters", ["l0strobe0","prepulse","s_soft"],
-      "L0 strobe (ANYCLST), Prepulse and SW trigger counters")
+    self.makeit1("l0","l0counters", ["l0strobe0","prepulse","s_soft","lm_out"],
+      "L0 strobe (ANYCLST), Prepulse, SW trigger and lm_out")
     self.makeit1("l0","l0clst", CTPcnts.t9, "Test, 1-8 cluster trigger")
     #------------------------------------------------------ L1
     self.l1frame= myw.MywFrame(self.addw,side=LEFT); 
@@ -809,6 +817,16 @@ orc_error  -Orbit record with error
       elif c=="D": n= 177 #50+97
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
+    elif string.find(cntlabel,"lmclst")==0:
+      board="l0"; c= cntlabel[6];
+      if c>="1" and c<="8":   # 178..185
+        n= (178-1)+ int(c)
+      elif c=="T":
+        n=298
+      else: 
+        myw.errorprint(self,"Bad l0 counter name:"+cntlabel)
+    elif string.find(cntlabel,"lm_out")==0:
+      board="l0"; n= 186
     elif string.find(cntlabel,"l0strobe0")==0:   # 148
       board="l0"; n= 171
     elif string.find(cntlabel,"l0classA")==0:    # run2: l0classA1: 152
@@ -821,6 +839,10 @@ orc_error  -Orbit record with error
       board="l0"; c= cntlabel[6];
       if c=="T": n= 289 # 102+152
       else: n= (290-1) + int(c)  #102+152+int(c)
+    elif string.find(cntlabel,"lmclassB")==0:
+      board="l0"; n= int(cntlabel[8:]) - 1 + L0200SH
+    elif string.find(cntlabel,"lmclassA")==0:
+      board="l0"; n= 100 + int(cntlabel[8:]) - 1 + L0200SH
     #------------------------------------------------------ L1
     elif string.find(cntlabel,"l1pf")==0:
       board="l1"; c= cntlabel[4]; CGT='T';
@@ -1287,7 +1309,7 @@ class VMEcnts(CTPcnts):
     #for i in range(len(self.regs)):
     #  addr= self.regs[i][1]
     #  cmd2=cmd2+','+str(addr)
-    #print 'allread  :', self.ctpltu, self.numberofcounters
+    #print 'allread:', self.ctpltu, self.numberofcounters, self.showaccrual
     # sep2014 change: getCounters returns always abs. values. Calculate increments here.
     cmd="getCounters("+str(self.numberofcounters)+","+str(self.showaccrual)+",2)"
     thdrn=myw.vbexec.vbinst.io.execute(cmd,ff=self.doout)

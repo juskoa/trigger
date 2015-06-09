@@ -294,7 +294,7 @@ g++ -g -Wall -Dmainp -DCPLUSPLUS -I$VMEBDIR/vmeblib -I$VMECFDIR/ctp/ctplib ctpcn
 char dimpublication[MAXCNAMESDIM];
 int main() {
 cshmInit();
-readTables();
+readTables(); // should not be here for debugging with running ctpproxy!
 ctpc_clear();
 ctpc_addinp(49, 188);   // l2inp1
 ctpc_addinp(24, 188);   // l0inp24

@@ -19,6 +19,7 @@ Max.  block size of Interaction record is 458 752 words
 */ 
 #define BSP 0x1000
 #define NCTPBOARDS 11
+#define NLM0SSM 5
 #define FO1BOARD 5     /* index of first FO board in ctpboards */
 
 #define BUSYcode 0x54
@@ -149,7 +150,7 @@ LM0 board:
 52     ADC Test input (local phase)  (28 on old L0 board)
 53     BUSY/INT clock phase input
 */
-#define RND1_EN_FOR_INPUTS 0x93f0 /* only on LM0:
+#define RND1_EN_FOR_INPUTS 0x93f0 /* only on LM0, valid also for 0xc5:
 Temporary solutuion for RND1 trigger: it can be connected to any
 1..48 input defining following mask in 2 words:
 bits 23..0: for first 24 inputs
@@ -161,9 +162,20 @@ bits 23..0  for inputs 48..25
 #define TEST_ADDr2      0x93f8 /* LM0, L0 */
 #define TEST_ADD        0x7e8  /* 0:blink LEDs, 1:VME R/W LEDS are Scope A/B */
 /* #define SYNCH_ADD      0x504 */
-#define SYNCH_ADDr2    0x340 /*Synch/delay adds for LM0 board shifted 
-(i.e. 0x340 for 1st input)
-LM0:
+#define SYNCH_ADDr2    0x340 /*SYNCAL in fw. 24 words
+Synch/delay adds for LM0 board shifted (i.e. 0x340 for 1st input)
+LM0>=0xc5:
+ 4.. 0   Input delay(0..31) for inputs 1..24
+ 7       Edge Selector flag inputs 1..24
+12.. 8   Input delay for inputs 25..48
+15       Edge Selector flag inputs 25..48
+21..16   6bits. Selection of the input: 0:not connected 1..48: connected here
+26..24   LM input delay (0..7) for first 12, i.e. LM inputs
+31..28   4bits. Selection of 12 from first 12 inputs on CTPswitch
+
+i.e. when accessing edge/delay: use SWITCH INP: 0..23[0..7] 0..23[8..15]
+                    switch: use CTP INP
+LM0<=0xc4:
  3.. 0   Input delay for inputs 1..24
  7       Edge Selector flag inputs 1..24   (was 4 before 12.2.2015)
 11.. 8   Input delay for inputs 25..48
@@ -246,9 +258,14 @@ For LM0 only first 4 modes possible (20.11.2014)
 #define L0_TCSTATUS    0x91c0   /*R/O: bits:
 0: Test Class Cluster BUSY flag
 1: Test Class PP Request flag
-2: Test Class L0 Request flag
-3: Test Class L0 Acknowledge flag
-4: Test Class BUSY flag: goes ON with L0_TCSTART
+2: Test Class L0 Request flag                      0x4
+3: Test Class L0 Acknowledge flag                  0x8
+4: Test Class BUSY flag: goes ON with L0_TCSTART   0x10
+
+5: LM PP Request   0x20
+6: LM Request      0x40
+7: LM ACK          0x80
+8: LM BUSY
  */
 #define L0_TCSTART     0x91c4   /*dummy wr. */
 #define L0_TCCLEAR     0x91c8   /*dummy wr. */
@@ -259,6 +276,33 @@ bit31=1: 25bits for L0-class busy time in steps of 10micsecs
          i.e. max. busy time: is  cca 5.58 minutes
 LM0: bit25 (not 31) -see RATE_DATABTMr2
  */
+#define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
+#define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
+                                /*   fy>=0xAC           4Kwordxx12bits*/
+#define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
+#define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
+#define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
+#define L0_ENA_CRNDlm0 0x9200 
+/* 1..0: enable RND2, RND1 clear In firmware called:  ENABLE_CLEAR */
+
+#define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal */
+#define DAQ_LEDlm0     0x9234
+#define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
+#define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
+#define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
+
+#define LM_L0_TIME 0x924c           /* 17 BCs ? */
+#define LM_RANDOM_1 0x9250       /* L0 counterpart: RANDOM_1 */
+#define LM_RANDOM_2 0x9254       /*     RANDOM_2 */
+#define LM_SCALED_1 0x9258       /*     SCALED_1 */
+#define LM_SCALED_2 0x925c       /*     SCALED_2 */
+#define LM_ENABLE_CLEAR  0x9260  /*     L0_ENA_CRNDlm0  */
+#define LM_CLEAR_RANDOM  0x9264  /*     L0_CLEAR_RND  */
+#define LM_RATE_MODE     0x9268  /*     RATE_MODElm0 */
+#define LM_RATE_DATA     0x926c  /*     RATE_DATA    */
+#define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
+#define LM_FUNCTION1 0x9274  /* FN2:278 run1:FUN3:27c FUN4:280 */
+
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
 Read request:
 ------------
@@ -275,20 +319,15 @@ VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 27..24: ddr3_ext_rd_itf_rdy, ddr3_ext_wr_itf_rdy, rst_logic,          rd_done, 
     23: wr_done
  2.. 0: writeonly: Errors_reset, Logic_reset, DDR3_reset */
-#define DDR3_CONF_REG1      0x9284   /* Start address, read operation */
-#define DDR3_CONF_REG2      0x9288   /* Number of readings, read operation */
-#define DDR3_CONF_REG3      0x928c   /* Start address, write operation */
-#define DDR3_CONF_REG4      0x9290   /* Number of writings, write operation */
+#define DDR3_CONF_REG1      0x9284   /* Start address, DDR3-read operation */
+#define DDR3_CONF_REG2      0x9288   /* Number of readings, DDR3-read operation */
+#define DDR3_CONF_REG3      0x928c   /* Start address, DDR3-write operation */
+#define DDR3_CONF_REG4      0x9290   /* Number of writings, DDR3-write operation */
 
 #define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
 
-#define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
-#define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
-                                /*   fy>=0xAC           4Kwordxx12bits*/
-#define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
-#define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
-#define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
-#define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
+#define DDL2_STATUS 0x9304 
+
 #define SEL_SPARE_OUT  0x93e0  
 /* 4 registers 0x93e0,4,8,c reserved for 4 output signals -copy
 of any 1..48 inputs. Should be programmed with number 1..48.
@@ -299,14 +338,25 @@ of any 1..48 inputs. Should be programmed with number 1..48.
 #define L0_TCSET       0x9400   /* 18: P/F 17..14:BCMask[4..1] 13:CAL 12:S/A
                                    11..0: BCnumber (valid for Synch. trigger)*/
 #define L0_TCSETr2     0x93fc
-
+/* like L0_TCSET +
+19:  0: L0 test cluster    1: LM test cluster
+*/
 #define L0_CONDITION   0x9400    /* +4*n n=1,2,...,100
-bits    newMeaning (>=AC)            meaning before AC
+bits    newMeaning (>=AC, +LM0)      meaning before AC
 ----    ----------                   --------------
 31..30  Select Scaled-down BC2..1    not used
 29..28  Select Random RND2..1        Select Scaled-down BC2..1
 27..24  Select L0F4..1               Select Rnd2..1 + L0f2..1
 23..0   Select L0 input 24..1        Select L0 input 24..1
+*/
+#define LM_CONDITION   0x9a00    /* +4*n n=1,2,...,100
+bits    Meaning
+----    -------
+31..20  Select BCMASK 12..1         also in L0_VETOr2
+19..18  Select Scaled-down BC2..1
+17..16  Select Random RND2..1
+15..12  Select LMF4..1     
+11..0   Select L0 input 12..1
 */
 
 /*von #define L0_INVERT      0x9500     old (before AC) +4*n n=45,....,50 
@@ -316,11 +366,6 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 */
 /* see PF_COMMON... */
 #define MASK_MODE      0x95a4 /* L0: BCMask memory mode 1:vme 0:normal */
-#define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
-#define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
-//#define L0_ENA_CRND    0x94fc
-#define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
-#define L0_ENA_CRNDlm0 0x9200 /* detto for LM0. In fy called:  ENABLE_CLEAR */
 //#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
 //
 //----------------- L0. The block of LM0 addresses below...
@@ -331,7 +376,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
                               /* [5..9]-> ... for INTERACT2 */
 #define L0_FUNCTION1   0x95cc
 #define L0_FUNCTION2   0x95d0
-#define RANDOM_1       0x95d4 /* bit31: 1: Enable filter (for FPGAVER>=A5) */
+#define RANDOM_1       0x95d4 /* bit31: 1: Enable trains filter (for FPGAVER>=A5) */
 #define RANDOM_2       0x95d8
 #define SCALED_1       0x95dc
 #define SCALED_2       0x95e0
@@ -358,15 +403,29 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 //----------------- 
 //
 /*   L0_SCOPE_SELECT   0x94f8 see SCOPE_SELECT*/
-//#define RATE_MODE      0x9700
 #define RATE_MODE      0x95fc /* Rate mem. mode 1:vme 0:normal */
-#define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal */
-//#define L0_INVERTac    0x9800
-#define DAQ_LED        0x9600    /* reserved for SW use */
-#define DAQ_LEDlm0     0x9234
+#define DAQ_LED        0x9600    /* reserved for SW use old L0 only*/
 #define L0_INVERTac    0x9600    /* +4*n n=1,....,100, 0x9604..0x9790 */ 
 /* bit23..0: 1: invert L0 input   0: use original polarity */
-//#define L0_VETO        0x9600
+#define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
+                                LM0 note
+31     spare
+30..24 DSCG group (7bits)       new
+23     class mask (1:disabled)  new   see also class mask in lm_veto
+22     spare
+21     Select LM-L0 BUSY 1: don't care 0: do not kill L0 for ongoing LM
+20     1:All   0:Rare
+19..8: Select BCmask[12..1]     thcheckResources(part))) {
+   strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
+   rc=ret; ret=deletePartitions(part); part=NULL;
+   goto RET2; };
+//printTpartition("After ce same  also in LM_CONDITION
+ 7..4: Select PFprot[4..1]      the same
+ 2..0: Cluster code (1-6)       the same
+
+Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
+L0_VETOr2[23] bit is used. L0_MASK register not used on LM0 board!
+*/
 #define L0_VETO        0x9900    /* +4*n n=1,2,...,100
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
@@ -376,28 +435,34 @@ bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
  2..0: Cluster code (1-6)         2..0: the same
 Note: in ctp.c getClass L0_VETO[bit31] is set according to L0_MASK[0] bit
 */
-#define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
-                                LM0 note
-31     spare
-30..24 DSCG group (7bits)       new
-23     class mask (1:disabled)  new
-22..21 spare
-20     1:Select All/Rare input  the same
-19..8: Select BCmask[12..1]     the same
- 7..4: Select PFprot[4..1]      the same
- 2..0: Cluster code (1-6)       the same
-
-Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
-L0_VETOr2[23] bit is used. L0_MASK is not used in LM0 board!
-
-*/
 #define L0_MASK        0x9b00    /* +4*n n=1,2,...,100   NOT used in LM0
 bit0: 1: the class is disabled 
 LM0: this word dos not exist (bit is in L0_VETOr2 now) 
 */
+#define LM_INVERT      0x9c00
+/*
+11..0  Invert LM input
+*/
 //#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
 #define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
-LM0: does not exist (is in L0_VETOr2)
+LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_VETO word
+*/
+#define LM_VETO        0x9e00
+/* veto bits: 1: don't care   0:consider this veto
+31     spare
+30..24 LM down scaling Class group (SDSCG) 7bits
+23     class mask: 1:class disabled on LM 
+22..16 spare
+     see also L0_VETOr2 class mask. Meaning of both bits:
+     LM L0
+     1  0   pure L0class
+     0  0   LMclass
+
+15..14 spare veto bits
+13..10 Select PFprot[4..1]      the same
+ 9     All/Rare input
+ 8     LM deadtime
+ 7..0  Cluster BUSY enabled 8..1  not connected yet (10.4.)
 */
 
 /* L1 board */
@@ -426,7 +491,7 @@ LM0: does not exist (is in L0_VETOr2)
 /* bits:
 30..28   Cluster code
 27..24 Select P/F[4..1] protection veto
-23..12 Invert L1 trigger input (0: original polarity, 1: inverted)
+23..12 Invert L2 trigger input (0: original polarity, 1: inverted)
 11.. 0 Select L2 trigger input
 */
 #define L2_ORBIT_READ  0xb140    /* synced with INT */
@@ -453,7 +518,6 @@ set:
      0xb: no DAQ(emulation)   0xf:emulate LinkFull    0:with DAQ    
 read:
      0x30: ok, DAQ active, link not full */
-
 #define INT_DISB_CTP_BUSY 0xc150 /* 
 bit0:
 1: SW generated CTPbusy output, 0:normal operation.
@@ -475,16 +539,19 @@ bit4: phase enable
                                 /* 06:r0EnaCIT,CIT, EnaRoC,RoC for TestCntr1*/
 #define INT_BCOFFSET  0xc5a8
 /*REGEND */
+/* deliberately after REGEND becasue it is different for L0/LM0*/ 
+#define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
+#define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
 #define L0_FUNCTION34    0x97ec
-#define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs.
-deliberately after REGEND becasue it is different for L0/LM0*/ 
+
 #define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
 #define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
 #define DUMMYVAL 0xffffffff   /* recommended for DUMMY writes */
 #define RATE_MASK 0x81ffffff   /* firmware AF: 6bits [30..25] are downscaling group, default: 0..49 */
 #define RATE_MASKr2 0x03ffffff   /* firmware C0: bit25:0 rnddownscale */
-#define RATE_DATABTM    0x80000000   // where class mask is 
+#define RATE_DATABTM    0x80000000   // where the bit rnd/busy downscaling is
 #define RATE_DATABTMr2  0x2000000
+#define BCM_SHIFT (3564-20)   // has to be 0<=BCM_SHIFT<3564
 
 #define DDR3_mem_init 0x80000000
 #define DDR3_rdi_fifo_empty 0x40000000
@@ -496,10 +563,12 @@ deliberately after REGEND becasue it is different for L0/LM0*/
 #define DDR3_rd_done 0x1000000
 #define DDR3_wr_done 0x0800000
 
-#define MAXL0REGS 7
+#define MAXL0REGS 11
 typedef struct{
-  w32 regs[MAXL0REGS];   /* 7 regs: condition invert veto prescaler
-			            L1definition L1invert L2definition */
+  w32 regs[MAXL0REGS];   /* 7+4 regs: 
+    condition invert veto prescaler L1definition L1invert L2definition 
+    LM_CONDITION LM_INVERT LM_VETO LM_RATE_DATA
+*/
  /* L0: veto[16/31] -> bit0 copied from L0_MASK word
    LM0: veto[23] is classmask, L0_MASK word not used */
 } Tklas;
@@ -515,17 +584,17 @@ typedef struct{
 Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
-  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc3,NCOUNTERS_L0, CSTART_L0},
-  {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa6,NCOUNTERS_L1, CSTART_L1},
-  {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa8,NCOUNTERS_L2, CSTART_L2},
-  {"int", 0x55,12,NOTINCRATE,0,0xff,0xac,NCOUNTERS_INT, CSTART_INT},
-  {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
-  {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
-  {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},
-  {"fo4", 0x53, 4,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 3*NCOUNTERS_FO},
-  {"fo5", 0x53, 5,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 4*NCOUNTERS_FO},
-  {"fo6", 0x53, 6,NOTINCRATE,0,0xff,0xb1,NCOUNTERS_FO, CSTART_FO+ 5*NCOUNTERS_FO}
+  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_BUSY, CSTART_BUSY},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc604,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
+  {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L1, CSTART_L1},
+  {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L2, CSTART_L2},
+  {"int", 0x55,12,NOTINCRATE,0,0xff,0xae,NCOUNTERS_INT, CSTART_INT},
+  {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
+  {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
+  {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},
+  {"fo4", 0x53, 4,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 3*NCOUNTERS_FO},
+  {"fo5", 0x53, 5,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 4*NCOUNTERS_FO},
+  {"fo6", 0x53, 6,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 5*NCOUNTERS_FO}
   };
 
 #else
@@ -555,7 +624,13 @@ w32 calcINT_BCOFFSET();
 void readBICfile();
 void checkCTP();   // configure
 void initCTP();    // initialise system parameters
+void setClassInitLM(int klas, w32 lmcondition, w32 lminvert, w32 lmveto);
+
 int softLEDimplemented(int board);
+/*FGROUP SimpleTests
+read and write back all condition/invert/veto LM/L0 words 
+*/
+void rwclasses();
 w32 dodif32(w32 before, w32 now);    // substract 2 counters
 
 //FILE *openFile(char *fname); is in ctplib.h
@@ -575,8 +650,12 @@ int i2cgetaddr(int board0_34, int *channel, int *branch);
 int getEdgeDelayDB(int level, int input, int *edge, int *delay);
 int getSwnDB(int input);
 int getedge(int board,w32 input,w32 *del);
-int getedgerun1(int board,w32 input,w32 *del);
-int getedgerun2(int board,w32 input,w32 *del);
+int getlmdelay(w32 swin12);
+/*FGROUP inputsTools
+swin: LM switch input 1..12
+delay: LM delay 0..7 bcs
+*/
+void setlmdelay(w32 swin12, int delay);
 
 void loadBCmasks(w16 *bcmasks);
 
@@ -652,6 +731,10 @@ void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0f
 set INTERACTSEL ALL_RARE_FLAG
 */
 void setShared2(w32 intsel, w32 allrare);
+/*FGROUP L0
+set LM_rnd1/2 LM_bcd1/2
+*/
+void setShared3(w32 lmr1, w32 lmr2, w32 lmbc1, w32 lmbc2);
 /*----------------------------libctp.a subroutines for new firmware  */
 /* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
@@ -751,6 +834,9 @@ void setEdgeDelay(int board, int input, int edge, int delay);
 /*FGROUP inputsTools
 * i48->i24 */
 void setSwitch(int i48, int i24);
+/*FGROUP inputsTools
+* in12: CTP LM switch input(1..12) -> out12: CTP LM switch output(1..12)*/
+void setLMSwitch(int in12, int out12);
 /*FGROUP inputsTools
 */
 void printSwitch();

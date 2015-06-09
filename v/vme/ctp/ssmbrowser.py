@@ -57,9 +57,11 @@ synchronised boards).
       #fbname= self.siginst.brinst.ssmboards[ixx][0]
       #von self.sigitems=self.getsignals(self.fbname)
       #
-      print "BSnames:", self.brdix, self.siginst.brinst.searchssmb(self.brdix)
+      #print "BSnames:", self.brdix, self.siginst.brinst.searchssmb(self.brdix)
       ixdef= eval(self.siginst.brinst.searchssmb(self.brdix))
       self.modboard(None, ixdef)
+  def Print(self):
+    print self.fbname," siginst:",self.siginst," brdix:",self.brdix," signal:",self.signal 
   def modboard(self, inst, ixx):
     """
     ixx:    integer -index into items in self.board
@@ -188,6 +190,9 @@ Signal values (0->green, 1->red).
       anchor=NW)
     """
     self.topfr.bind("<Destroy>", self.canvasDestroyed)
+  def Print(self):
+    print "ssmix:",self.ssmix," brinst:",self.brinst
+    self.bsnames.Print()
   def dobc(self, pos1, pos2, value):
     rc=None
     if value==0:
@@ -252,8 +257,6 @@ Signal values (0->green, 1->red).
     #print "leavebit:", event.x, event.y
     #self.canvas.delete(self.ovalhelp)
   def lmclick(self, event, p12vs):
-    #print "lmclick:", p12vs[0], p12vs[1], p12vs[2]
-    #print "lmclick2:", p12vs[3].ssmix, p12vs[3].ssmixbit,self.brinst.basebc
     bcntxt= str(self.brinst.basebc+p12vs[1])
     lastbit= self.brinst.vb.io.execute("finddifSSM("+self.ssmix+
       ','+ self.ssmixbit +',' + bcntxt+")", "NO")
@@ -261,6 +264,10 @@ Signal values (0->green, 1->red).
       self.brinst.bcent.setEntry(lastbit[:-1])
       #self.brinst.basebc= eval(lastbit[:-1])
       self.brinst.bcmodified(self.brinst)
+    else:
+      print "lmclick:", p12vs[0], p12vs[1], p12vs[2]
+      print "lmclick2:", p12vs[3].ssmix, p12vs[3].ssmixbit,self.brinst.basebc
+
   def findbc(self, xpix):
     # valid only in 'all' mode
     pass
@@ -271,9 +278,14 @@ Signal values (0->green, 1->red).
     #just +2 more than canvas can encompass
     #maxbc=(SSMsig.canvasw-SSMsig.sigx0)/SSMsig.bcw+2
     maxbc= 1024*1024
-    dertxt= self.brinst.vb.io.execute("getsigSSM("+self.ssmix+
-      ','+ self.ssmixbit +',' + bcntxt+","+str(maxbc)+")",
-      "NO")    # out or no
+    #lmo fix
+    board=self.ssmix
+    cmd="getsigSSM("+str(board)+','+ self.ssmixbit +',' + bcntxt+","+str(maxbc)+")"
+    #print "ssmbrowser: draw: cmd: ", cmd
+    dertxt= self.brinst.vb.io.execute(cmd,"NO")
+    #dertxt= self.brinst.vb.io.execute("getsigSSM("+self.ssmix+
+    #  ','+ self.ssmixbit +',' + bcntxt+","+str(maxbc)+")",
+    #  "NO")    # out or no
     der= string.split(dertxt,'\n')
     #print "der:",der,":2"
     if der[0]=='-1':
@@ -551,7 +563,7 @@ the numbers-boardnames of boards with synchronised SSMs.
           _nomode  -empty mode
     """
     self.sms=[]
-    lines= string.split(self.vb.io.execute("gettableSSM()","NO"),"\n")
+    lines= string.split(self.vb.io.execute("gettableSSM(1)","NO"),"\n")
     #print "findAllSMS:",lines,':'
     for ix in range(len(lines)):
       nm= string.split(lines[ix])
@@ -559,8 +571,12 @@ the numbers-boardnames of boards with synchronised SSMs.
       #if nm[1]=='nossm': continue  sms is copy of sms in C !
       if nm[1]=='notin': nm[1]='nossm'
       self.sms.append(nm)
+    # if lm0 board in      
+    #print "ssmbrowser self.sms:",self.sms
   def findSynced(self):
+    #string.split(self.vb.io.execute("getsyncedSSM()","out"))
     line= string.split(self.vb.io.execute("getsyncedSSM()","NO"))
+    #print 'line:',line
     self.syncflag= line[0]
     #print 'findSync:',line,':'
     # highest_syncflag n1 n2 n3 ...
@@ -575,6 +591,8 @@ the numbers-boardnames of boards with synchronised SSMs.
       #ixdef= eval(self.siginst.brinst.searchssmb(self.brdix))
       #self.modboard(None, ixdef)
       self.sigs[ixdef].bsnames.modboard(None, ixdef)
+    #print "findSynced/len: ",len(self.sigs)
+    #for i in self.sigs: i.Print()
   def dossmboards(self):
     #ml=[["busy_i","0"],["fo1_o","5"], ["l0_i","2"],["l0_o","3"]]
     ml=[]
@@ -596,10 +614,10 @@ the numbers-boardnames of boards with synchronised SSMs.
         print "SSM signals file", namo, "not found"
       else:
         ml.append([namo, str(ix)])   #n_m, ix2sms
-    #print "dossmboards:", ml
     if len(ml)>0:
       ml.append(["delete this signal","removevalue"])
       self.ssmboards=ml
+    print "dossmboards self.ssmboards:", self.ssmboards
   def searchssmb(self,ix2sms):
     """
     go through self.ssmboards

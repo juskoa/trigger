@@ -108,37 +108,43 @@ int TTCITBOARD::start_stopSSM(BUSYBOARD* bb)
 {
  ssm=GetSSM();
  // reset address
- resetSSMAddress();
- for(w32 i=0;i<Mega;i++){
-  ssm[i]=0;
-  vmew(READ_SSM_WORD,0);
- }
+ //resetSSMAddress();
+ //for(w32 i=0;i<Mega;i++){
+ // ssm[i]=0;
+ // vmew(READ_SSM_WORD,0);
+ //}
  // switch off triggers
  bb->SetDAQBUSY(0xff);
  // wait to clean buffers
- usleep(20000);
+ usleep(1000000);
  // reset again - this makes ttc wait for input
  resetSSMAddress();
+ w32 add=vmer(READ_SSM_ADDRESS);
+ printf("0 address : 0x%x\n",add);
+ printf("control: 0x%x\n",vmer(CONTROL));
  // start triggers
  bb->SetDAQBUSY(0x0);
- usleep(22000);
+ usleep(20000);
  // stop triggers
  bb->SetDAQBUSY(0xff);
- usleep(8000);
- while(vmer(READ_SSM_ADDRESS)==0)continue; 
- usleep(50000);
- //printf("after reset status: 0x%x\n",getStatus());
- usleep(100000);
- //printf("after usleep and control 2 status: 0x%x\n",getStatus());
+ usleep(20000);
+ add=vmer(READ_SSM_ADDRESS);;
+ //while((add=vmer(READ_SSM_ADDRESS))==0)continue; 
+ printf("1 address : 0x%x\n",add);
+ //usleep(100000);
  //printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
  //w32 stat=getStatus();
  //printf("after usleep and control 3 status: 0x%x\n",stat);
 
  //resetSSMAddress(); 
- for(int i=0;i<Mega;i++){
+ add=vmer(READ_SSM_ADDRESS);
+ printf("20 address : 0x%x\n",add);
+ for(int i=0;i<Mega-3;i++){
   ssm[i]=vmer(READ_SSM_WORD);
   //usleep(100000);
  }
+ add=vmer(READ_SSM_ADDRESS);
+ printf("2 address : 0x%x\n",add);
  //bb->SetDAQBUSY(0x0);
  return 0;
 }
@@ -204,10 +210,17 @@ int TTCITBOARD::AnalyseSSM()
    return 0;
  }else{
  //if((issm0 != 262) && (issm0 != 266) && (issm0 != 265)){
+   // for l1reject some new beginning of ssm shows up
+   l0=0;
+   i0=0;
    //printf("Error: first L1 expected at 262,266  but found at %i \n",qttcab[0]->issm);
-   printf("Warning: first L1 expected at 282  or at 3 but found at %i \n",qttcab[0]->issm);
+   printf("Warning: first L1 expected at 282  or at 3 but found at  ------------------ %i\n",qttcab[0]->issm);
    //return 2;
  }
+ // Is L0 last ?
+ ssmrecord *ss=qttcab[qttcab.size()-1];
+ printf("Last---------------%i %i\n",ss->ttcode,ss->data);
+ //
  w32 cl0=1,cl1=0,cl1m=0,cl2a=0,cl2r=0;
  deque<w32> L1;
  deque<w32*> L1m;
@@ -225,8 +238,7 @@ int TTCITBOARD::AnalyseSSM()
      if((ss->data==1)){
       // L0 received 
       if((issm-l0)<L0L1time){
-        printf("Error: L0L0 time violation - two L0 closer then %i:  %i at %i %i\n",L0L1time,issm-l0,issm,l0);
-	
+        printf("Error: L0L0 time violation - two L0 closer then %i:  %i at %i %i\n",L0L1time,issm-l0,issm,l0);	
         return 1;
       }
       l0=issm;
@@ -304,8 +316,10 @@ int TTCITBOARD::AnalyseSSM()
          // L2r
          w32* pp = new w32[NL2words+1];
          pp[0]=issm;
-         pp[1]=ss->tdata;
-         for(int ii=2;ii<NL2words+1;ii++)pp[ii]=0;
+         pp[1]=ss->tdata; //bcid
+         // flog for L2r message
+	 pp[2]=0xffffffff;
+         for(int ii=3;ii<NL2words+1;ii++)pp[ii]=0;
          L2m.push_back(pp);
          cl2r++; 
    }else{ 
@@ -316,14 +330,14 @@ int TTCITBOARD::AnalyseSSM()
  printf("# counts  : L0: %i L1: %i L1m: %i L2a: %i L2r: %i \n",cl0,cl1,cl1m,cl2a,cl2r);
  printf("# fifo sizes : L1 %i L1m %i L2m %i\n",L1.size(),L1m.size(),L2m.size());
  if(cl0 != cl1){
-   printf("Warning: different number of L0 and L1 detected. \n");
+   //printf("Warning: different number of L0 and L1 detected. \n");
    //return 1;
  } 
  // Measurement of timeout due to the fifos
  //printf("###### of L1: %i , # if L1 mess: %i , # of L2 mess: %i \n",L1.size(),L1m.size(),L2m.size());
  if(L1.size() == 0){
-   printf("No L1 \n");
-   return 1;
+   printf("Warning: No L1 \n");
+   return 0;
  }
  if(L1.size() != L2m.size()){
    // check last l0 if not too close to the end of ssm
@@ -342,6 +356,9 @@ int TTCITBOARD::AnalyseSSM()
  w32 issml10 = L1[0];
  w32 orbit0    = (L2m[0][2]<<12)+L2m[0][3];
  w32 bc0 = L2m[0][1];
+ // start orbit check only from the first l2a , skip l2r before
+ w32 firstl2a=0;
+ if(L2m[0][2] != 0xffffffff)firstl2a=1;
  //printf("%i %i %i \n", L1[0],bcl1,delta0);
  if(delta0<0) delta0=delta0+3564;   // L2m - L1 distance
  for(w32 i=0;i<L2m.size();i++){
@@ -363,20 +380,37 @@ int TTCITBOARD::AnalyseSSM()
       return 1;
     }
     // bc and orbit offset
-    w32 orbit=(L2m[i][2]<<12)+L2m[i][3];
     w32 delissm = issml1-issml10;
     w32 newbc = ((delissm % 3564) + bc0);
     w32 neworb = orbit0 + delissm / 3564 + newbc / 3564;
     newbc = newbc % 3564;
     if(neworb >= 0xffffff) neworb=neworb-0xffffff;
-    if((neworb != orbit) || (newbc != bcl2m)){
-      printf("Error: bc and orbit offset from L2m and local wrong %x %x %x,%x %x \n",issml1,orbit,bcl2m,neworb,newbc);
+    // BC check for both l2a and l2r
+    if(newbc != bcl2m){
+      printf("Error: bc offset from L2m and local wrong %x %x %x  \n",issml1,bcl2m,newbc);
       //return 1;
       ret=1;
     }
+    // Orbit check only for L2a
+    if(L2m[i][2] != 0xffffffff){
+      if(firstl2a==0){  // skip first check and set first orbit for next check
+        firstl2a=1;
+        neworb=(L2m[i][2]<<12)+L2m[i][3];
+      }else{
+        w32 orbit=(L2m[i][2]<<12)+L2m[i][3];
+        if((neworb != orbit) || (newbc != bcl2m)){
+          printf("Error: bc and orbit offset from L2m and local wrong %x %x %x,%x %x \n",issml1,orbit,bcl2m,neworb,newbc);
+          //return 1;
+          ret=1;
+        }
+      }
+    }
     issml10=issml1;
-    orbit0=orbit;
-    bc0=bcl2m;
+    //orbit0=orbit;
+    //bc0=bcl2m;
+    // this should work also for L2r
+    orbit0=neworb;
+    bc0=newbc;
     ret += CompareL1L2Data(L1m[i],L2m[i]);
  }
  for(w32 i=0;i<L1m.size();i++)delete L1m[i];
@@ -387,6 +421,7 @@ int TTCITBOARD::AnalyseSSM()
 }
 int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
 {
+    if(L2m[2]==0xffffffff) return 0;   // L2r
     w32 l1[27],l2[27];
     for(int i=0;i<9;i++){
      l1[3*i]=L1m[NL1words-i] & 0xf;

@@ -205,6 +205,9 @@ class ActivePartitions:
     ll= string.split(busyl0s)
     # in readctpc.c:
     #char *WHATBUSY[]={"bsy/L0", "bsy/L2s", "readout"};
+    if len(busyl0s)==0:
+      "Bad line: empty, ignoring... (i.e. no update)"
+      return "Empty line"
     if (busyl0s[:3]!="bsy") and (busyl0s[:3]!="rea") and (busyl0s[:3]!="tot"):
       print "Bad line length:%d:%s:"%(len(busyl0s), busyl0s)
       return "Bad line"
@@ -336,7 +339,11 @@ class ActivePartitions:
     t2= time.localtime()   #!time of creation (not display !)
     print "htmlStart:t2:",t2, "t1:",self.mesdti[1]
     t2= t2[5]
-    t1= int(string.split(self.mesdti[1],':')[2])
+    strsplit= string.split(self.mesdti[1],':')
+    if len(strsplit) <=2:
+      print "bad mesdti"
+      return
+    t1= int(strsplit[2])
     if t2<t1:
       refreshsecs= 60+t2-t1
     else:

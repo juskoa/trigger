@@ -2,6 +2,8 @@
 L0BOARD2::L0BOARD2(int vsp)
 :
 	L0BOARD(vsp),
+	TCSET(0x3fc),TCSTATUS(0x1c0),TCCLEAR(0x1c8),
+	TCSTART(0x1c4),
 	MASK_DATA(0x1e4),MASK_CLEARADD(0x1e8),MASK_MODE(0x1ec),
 	SCALED_1(0x224),SCALED_2(0x228),
         DDR3_CONF_REG0(0x280),DDR3_CONF_REG1(0x284),DDR3_CONF_REG2(0x288),DDR3_CONF_REG3(0x28c),DDR3_CONF_REG4(0x290),
@@ -12,7 +14,7 @@ L0BOARD2::L0BOARD2(int vsp)
 	L0_VETO(0x800),
         LM_CONDITION(0xa00),
         LM_INVERT(0xc00),
-	LM_INV_VETO(0xe00)
+	LM_VETO(0xe00)
 {
 }
 //----------------------------------------------------------------------------
@@ -48,7 +50,7 @@ void L0BOARD2::setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask
  w32 word=0;
  // Downscaling to be addeda
  word=cluster+(lmdeadtime<<8)+(alrare<<9)+(pf<<10)+(clsmask<<16);
- vmew(LM_INV_VETO+4*index,word);
+ vmew(LM_VETO+4*index,word);
 }
 //----------------------------------------------------------------------------
 /* 
@@ -258,6 +260,8 @@ int ddr3ad, ix, rc;
 w32 block[DDR3_BLKL];
 if (!ssm1) ssm1 = new w32[Mega];
 if (!ssm2) ssm2 = new w32[Mega];
+if (!ssm3) ssm3 = new w32[Mega];
+if (!ssm4) ssm4 = new w32[Mega];
 for(ix=0; ix< Mega; ix++) {
   ddr3ad= ix*16;
   rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
@@ -265,9 +269,14 @@ for(ix=0; ix< Mega; ix++) {
     printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
     return(rc);
   };
-  ssm1[ix]= block[14];
-  ssm2[ix]= block[15];
+  //ssm1[ix]= block[14];
+  //ssm2[ix]= block[15];
+  ssm1[ix]= block[15];
+  ssm2[ix]= block[14];
+  ssm3[ix]= block[13];
+  ssm4[ix]= block[12];
 };
+printf("LM ssm read \n");
 return(0);
 }
 void L0BOARD2::ddr3_ssmstart(int secs) {
@@ -294,12 +303,26 @@ if(secs>0) {
 };
 GetMicSec(&seconds2, &micseconds2);
 diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
-printf("%d micsecs\n", diff);
+printf("ddr3_ssmstart: %d micsecs\n", diff);
 }
 int L0BOARD2::DumpSSM(const char *name,int issm)
 {
  if(issm==1)SetSSM(ssm1); else SetSSM(ssm2); 
  return BOARD::DumpSSM(name);
+}
+int L0BOARD2::DumpSSMLM(const char *name)
+{
+ int rc=0;
+ //printf("%x %x %x %x \n",ssm1,ssm2,ssm3,ssm4);
+ SetSSM(ssm1);
+ rc=BOARD::DumpSSM("ssm1"); 
+ SetSSM(ssm2); 
+ rc+=BOARD::DumpSSM("ssm2"); 
+ SetSSM(ssm3); 
+ rc+=BOARD::DumpSSM("ssm3"); 
+ SetSSM(ssm4); 
+ rc+=BOARD::DumpSSM("ssm4"); 
+ return rc;
 }
 //-----------------------------------------------------------------------------
 void L0BOARD2::configL0classesonly()
@@ -313,3 +336,89 @@ void L0BOARD2::configL0classesonly()
 
  }
 }
+//-------------------------------------------------------------------
+int L0BOARD2::AnalSSM()
+{
+ w32 l0b=0,l0a=0;
+ for(w32 i=0;i<Mega;i++){
+   if(ssm2[i]&(1<<19))l0b++;
+   if(ssm2[i]&(1<<16))l0a++;
+ }
+ printf("l0b=%i l0a=%i \n",l0b,l0a);
+ return 0;
+}
+//-------------------------------------------------------------------
+void L0BOARD2::printClass(w32 i)
+{
+ //w32 lmv=vmer(LM_VETO+(i+1)*4);
+ //w32 l0v=vmer(L0_VETO+(i+1)*4);
+ //w32 lmc=vmer(LM_CONDITION+(i+1)*4);
+ //w32 l0c=vmer(L0_CONDITION+(i+1)*4);
+ //printf("Class %2i LMCONDITION:0x%08x LMVETO:0x%08x  L0CONDITION:0x%08x L0VETO:0x%08x\n",i,lmc,lmv,l0c,l0v); 
+ //printf("Class %2i LMCONDITION:0x%08x LMVETO:0x%08x  L0CONDITION:0x%08x L0VETO:0x%08x\n",i,lmc,lmv,l0c,l0v); 
+ printf("Class %2i LMCONDITION:0x%08x LMVETO:0x%08x  L0CONDITION:0x%08x L0VETO:0x%08x\n",i,lmcond[i],lmveto[i],l0cond[i],l0veto[i]); 
+}
+//-------------------------------------------------------------------
+void L0BOARD2::readHWClass(w32 i)
+{
+ lmveto[i]=vmer(LM_VETO+(i+1)*4);
+ l0veto[i]=vmer(L0_VETO+(i+1)*4);
+ lmcond[i]=vmer(LM_CONDITION+(i+1)*4);
+ l0cond[i]=vmer(L0_CONDITION+(i+1)*4);
+}
+//-------------------------------------------------------------------
+void L0BOARD2::writeHWClass(w32 i)
+{
+ vmew(LM_VETO+(i+1)*4,lmveto[i]);
+ vmew(L0_VETO+(i+1)*4,l0veto[i]);
+ vmew(LM_CONDITION+(i+1)*4,lmcond[i]);
+ vmew(L0_CONDITION+(i+1)*4,l0cond[i]);
+}
+//-------------------------------------------------------------------
+void L0BOARD2::printClassConfiguration()
+{
+ for(int i=0;i<NCLASS;i++){
+  printClass(i);
+ }
+}
+//-------------------------------------------------------------------
+void L0BOARD2::readHWClasses()
+{
+ for(int i=0;i<NCLASS;i++){
+  readHWClass(i);
+ }
+}
+//-------------------------------------------------------------------
+void L0BOARD2::writeHWClasses()
+{
+ for(int i=0;i<NCLASS;i++){
+  writeHWClass(i);
+ }
+}
+//--------------------------------------------------------------------
+// Used for convertinf Didier test file to LM classes
+void L0BOARD2::convertL02LMClass(w32 i)
+{
+ // cluster
+ l0veto[i]=l0veto[i]&0xfffffff0;
+ l0veto[i]=l0veto[i]|0x2;
+ return ;
+ w32 bcrnd = l0cond[i]&0xf0000000;
+ l0cond[i]=l0cond[i] | 0xf0000000;
+ l0veto[i]=l0veto[i] | 0x200000;  // LM-L0 busy
+ //printf("bcrnd=0x%x \n",bcrnd);
+ lmcond[i]=0xfff0ffff | (bcrnd>>12);
+ lmveto[i]=0x7f00feff; 
+ // switch off all
+ l0cond[i]=0;
+ lmcond[i]=0;
+}
+//--------------------------------------------------------------------
+// Used for convertinf Didier test file to LM classes
+void L0BOARD2::convertL02LMClassAll()
+{
+ for(int i=0;i<NCLASS;i++){
+  if((i %2)==0)convertL02LMClass(i);
+ }
+}
+

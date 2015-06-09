@@ -6,8 +6,12 @@ class L2BOARD: public BOARD
 {
  public:
 	L2BOARD(int vsp);
+        w32 getl2ackn(){return vmer32(TCSTATUS);}
 	void setClass(w32 index,w32 inputs,w32 cluster,w32 vetos,w32 invert);
 	void setClassesToZero();
+	void setTCSET(w32 w){vmew(TCSET,w);};
+	void setTCCLEAR(){vmew(TCCLEAR,0);};
+	void setL2DEFINITION(w32 w){vmew(L2DEFINITION,w);};
 	void printClasses();
 	int CheckCountersNoTriggers();
         // L2 counters starts at 600 in cnames
@@ -16,7 +20,10 @@ class L2BOARD: public BOARD
 
  private:
          // vme addresses
-         w32 const L2CONDITION;
+         w32 const TCSET;
+	 w32 const TCSTATUS;
+	 w32 const TCCLEAR;
+         w32 const L2DEFINITION;
          w32 const L2INVERT;
 };
 #endif

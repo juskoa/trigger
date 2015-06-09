@@ -10,6 +10,7 @@ smi_setState() introduced
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <semaphore.h>    // sem_init
 #ifdef CPLUSPLUS
 #include <smirtl.hxx>
 #else

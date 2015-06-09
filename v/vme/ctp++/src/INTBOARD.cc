@@ -3,6 +3,7 @@
 INTBOARD::INTBOARD(int vsp)
 :
 	BOARD("int",0x82c000,vsp,4),
+	TCSET(0x400),
 	BCOFFSET(0x5a8)
 {
   this->AddSSMmode("ddldat",0); 

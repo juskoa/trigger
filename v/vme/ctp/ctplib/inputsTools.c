@@ -3,23 +3,16 @@
 #include "vmewrap.h"
 #include "ctp.h"
 #include "ctplib.h"
-/* von
-w32 getSYNCH_ADD() {
-if(l0C0()) {
-  return(SYNCH_ADDr2);
-} else {
-  return(SYNCH_ADD);
-};
-}
-*/
-#define DELAYBITS 0x1f
+
+// 0x1f for 1..24, 0x1f<<8 for 25..48
+#define DELAYBITS 0x1f 
 /*
 board:0:busy (the CLK edge for input ORBIT signal) 
       1..3:L0/1/2  
 input: busy: no sense,  L0,L1:1..24   L2:1-12
                         LM: 1..48
 edge: 0:Positive 1:Negative
-
+      Note: common for LM/L0 inputs (i.e. 48 values for LM0)
 */
 void setEdge(int board,w32 input,w32 edge) {
  w32 word;
@@ -63,7 +56,8 @@ rc: 0 -positive edge
    >3 -error (unknown board or input)
 del: meaningfull only for L0/LM0/1/2 boards.
 Comment:
-getedge is wrapper for getedgerun1 and getedgerun2
+edge is common for LM/L0 iputs
+LMdelay: see getlmdelay/setlmdelay
 */
 int getedge(int board,w32 input,w32 *del){
  w32 edge=0;
@@ -112,13 +106,39 @@ int getedge(int board,w32 input,w32 *del){
  }
  return edge;
 }
+/*------------------------------------------------ getlmdelay()
+swin: LM switch input 1..12
+rc: LM delay 0..7 bcs
+*/
+int getlmdelay(w32 swin) {
+w32 lmdel;
+if(swin>12) {
+  printf("ERROR getlmdelay: swin:%d\n", swin); return(0);
+};
+lmdel=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(swin-1));
+return((lmdel&0x7000000)>>24);
+}
+/*------------------------------------------------ setlmdelay()
+swin: LM switch input 1..12
+delay: LM delay 0..7 bcs
+*/
+void setlmdelay(w32 swin, int delay) {
+w32 lmdel;
+if(swin>12) {
+  printf("ERROR setlmdelay: swin:%d\n", swin); return;
+};
+lmdel=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(swin-1));
+lmdel= (lmdel&0xf8ffffff) | ((delay & 0x7)<<24);
+vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(swin-1), lmdel);
+return;
+}
 /*------------------------------------------------ setEdgeDelay()
 set Edge/Delay 
 Inputs:
 board: 1:L0 2:L1 3:L2
 input: 1..24, 1..12 for L2, 1..48 for LM0
 edge:  0:positive 1:negative
-delay: 0..15*/
+delay: 0..15, LM0: 0..31 */
 void setEdgeDelay(int board, int input, int edge, int delay){
 w32 synch;
 if((board==1) && (l0C0()!=0)) {
@@ -144,6 +164,8 @@ if((board==1) && (l0C0()!=0)) {
 };
 //printf("setEdgeDelay: %d i:%d: %d %d=0x%x\n", board, input,edge,delay, synch);
 }
+/* print LM/L0 dealys in case of L0 (board;1)
+*/
 void printEdgeDelay(int board) {
 w32 delay; int edge,ix,maxix;
 if(board==0) {
@@ -154,30 +176,63 @@ if(board==0) {
     maxix=24;
     if((board==1) && (l0C0()!=0)) {
       maxix=48;
+      printf("Input Edge delay LMdelay\n");
+    } else {
+      printf("Input Edge delay\n");
     };
   } else {
     maxix=12;
+    printf("Input Edge delay\n");
   };
-  printf("Input Edge delay\n");
+  //printf("Input Edge delay\n");
   for(ix=1; ix<=maxix; ix++) {
     edge= getedge(board, ix, &delay);
-    printf("%2d     %d     %d\n", ix, edge, delay);
+    if((ix<=12) && (maxix==48)) {
+      int lmdelay;
+      lmdelay= getlmdelay(ix);
+      printf("%2d     %d     %d   %d\n", ix, edge, delay, lmdelay);
+    } else {
+      printf("%2d     %d     %d\n", ix, edge, delay);
+    };
   };
 };
 }
-/* i48 -> i24 */
+/* i48 -> i24  Set L0 CTP switch only */
 void setSwitch(int i48, int i24) {
 w32 synch;
 synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(i24-1));
 synch= (synch & 0xffc0ffff) | ((i48 & 0x3f)<<16);
 vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(i24-1), synch);
 }
+/* i12 -> i12  Set LM CTP switch only 
+out12:0 -> not connected */
+void setLMSwitch(int in12, int out12) {
+w32 synch;
+if(((in12>12) || (in12<1)) || ((out12<0) || (out12>12))) {
+  printf("ERROR setLMdSwitch: in12:%d out12:%d\n", in12, out12); return;
+};
+if(out12>0) { // do nothing fo not connected
+  synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1));
+  synch= (synch & 0x0fffffff) | ((in12 & 0xf)<<28);
+  vmew32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(out12-1), synch);
+};
+}
+/* Print info about L0 + LM CTP switches */
 void printSwitch() {
-w32 synch, fed; int input;
+int input;
+printf("Only connected LM/L0 inputs (1..24) shown:\n");
 for(input=1; input<=24; input++) {
+  w32 synch, fedby, lmfedby; 
   synch=vmer32(BSP*ctpboards[1].dial+SYNCH_ADDr2+4*(input-1));
-  fed= (synch & 0x003f0000) >> 16;
-  printf("%d <- %d\n", input, fed);
+  fedby= (synch & 0x003f0000) >> 16;   // fedby:0 - L0 not connected
+  lmfedby= (synch & 0xf0000000) >> 28;   // lmfedby:0 - LM not connected
+  if((fedby!=0) || (lmfedby!=0)) {
+    if(input<=12) {
+      printf("%d <- %d lm fed by:%d\n", input, fedby, lmfedby );
+    } else {
+      printf("%d <- %d lm fed by:%d -should be 0\n", input, fedby, lmfedby );
+    };
+  };
 };
 }
 

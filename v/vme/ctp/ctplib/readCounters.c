@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>    /* usleep() */
 #include "vmewrap.h"
 #include "ctp.h"
@@ -6,12 +8,15 @@
 #include "Tpartition.h"
 
 /*---------------------------------------------------------------- Counters */
-static w32 buf1[CSTART_SPEC];    // these are not necessary if we do not need accruals
-static w32 buf2[CSTART_SPEC];
+static w32 buf1[NCOUNTERS];
+static w32 buf2[NCOUNTERS];
 w32 *curprev[2]={buf1,buf2};
 
 /* read counters to memory mem[]. 
+mem: has to be mem[NCOUNTERS] -i.e. 1760 after 7.4.2015
+     because L0 is read in 2 chunks (200 words at the end of big array)
 NCNTStbr: # of counters to be read
+
 accrual:== 1 -return accruals
         != 1 -return current values
 customer: 
@@ -22,14 +27,16 @@ customer:
 4: inputs
 
 Counters are placed in mem in following order:
-L0  160/262 counters   (check in ctp/ctpcounters.h)
-L1  160 ...
-L2  134
-FO1  34
+L0 300                 (check in ctp/ctpcounters.h)
+L1  
+L2  
+FO1 
 ...
-FO6  34
-BUSY 160
-INT  19
+FO6
+BUSY
+INT
+SPEC 49 words
+L0 200 lmclassB1..100 lmclassA1..100
 
 If board is not present, corresponding word is left unchanged
 */
@@ -38,6 +45,10 @@ int cix, memshift, b123, bb, NCNTS;
 w32 copyread;
 w32 *bufp;
 int countsread=0;
+/*if(NCOUNTERS>NCNTStbr) {
+  printf("ERROR: readCounters a buffer at %d words, only %d available.\n", 
+    NCOUNTERS,NCNTStbr); return; 
+}; */
 //printBakery(&ctpshmbase->ccread);
 lockBakery(&ctpshmbase->ccread, customer);
 //printBakery(&ctpshmbase->ccread);
@@ -47,9 +58,9 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* COPY */
   bb= BSP*ctpboards[b123].dial;
   vmew32(bb+COPYCOUNT,DUMMYVAL); 
 };
-usleep(8); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(30); // allow 12 (8 in run1) micsecs for copying counters to VME accessible memory
 for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
-  if(notInCrate(b123)) continue;
+  if(notInCrate(b123)) continue;    //comment for dbg mode
   bb= BSP*ctpboards[b123].dial;
   vmew32(bb+COPYCLEARADD,DUMMYVAL);
   copyread= bb+COPYREAD; 
@@ -59,54 +70,53 @@ for(b123=0; b123<NCTPBOARDS; b123++) {   /* READ */
     b123, ctpboards[b123].name,bb, memshift, NCNTS);*/
   if(accrual==1) {
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
-      w32 cur,prev,dif;
-      curprev[1][cix]= vmer32(copyread);
-      cur= curprev[1][cix]; prev= curprev[0][cix];
+      w32 cur,prev,dif; int cixc;
+      if((b123==1) && ( cix>=memshift+NCOUNTERS_L0)) {
+        // L0 in 2 chunks (300 and 200 words)
+        cixc= cix + (CSTART_L0200 - CSTART_L0 - NCOUNTERS_L0);
+      } else {
+        cixc= cix;
+      };
+      curprev[1][cixc]= vmer32(copyread);
+      cur= curprev[1][cixc]; prev= curprev[0][cixc];
       if(cur >= prev) {
         dif= cur-prev;
       } else {
         dif= (0xffffffff - prev) + cur +1;
       };
-      mem[cix]= dif;
-      //mem[cix]= (b123<<12) | cix;
-      //countsread++; if(countsread>NCNTStbr) break;
-    };
-    /*
-    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
-      int startix;
-      startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
-      for(cix= startix; cix< startix+4; cix++) {
-        w32 cur,prev,dif;
-        curprev[1][cix]= vmer32(copyread);
-        cur= curprev[1][cix]; prev= curprev[0][cix];
-        if(cur >= prev) {
-          dif= cur-prev;
-        } else {
-          dif= (0xffffffff - prev) + cur +1;
-        };
-        mem[cix]= dif;
-        //mem[cix]= 0xff0000 | (b123<<12) | cix;
-        //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
+      if(cixc < NCNTStbr) {
+        mem[cixc]= dif;
       };
-    }; */
+    };
   } else {
+    //char* environ;
+    //environ=getenv("VMEWORKDIR");
+    //char file[1024];
+    //strcpy(file,environ);
+    //strcat(file,"/WORK/counters.log");
+    //FILE *ff = fopen(file,"a"); 
     for(cix=memshift; cix<NCNTS+memshift; cix++) {
-      mem[cix]= vmer32(copyread);
+      int cixc;
+      if((b123==1) && ( cix>=memshift+NCOUNTERS_L0)) {
+        cixc= cix + (CSTART_L0200 - CSTART_L0 - NCOUNTERS_L0);
+      } else {
+        cixc= cix;
+      };
+      if(cixc < NCNTStbr) {
+        mem[cixc]= vmer32(copyread);
+        //mem[cixc]= cixc;   //dbg
+        //fprintf(ff,"cust:%i %i %ui \n",customer,cixc,mem[cixc]);
+      } else {
+        vmer32(copyread);   // all counters MUST be read
+        //printf("readCounters: attempt to write too far (%d)...\n", cixc);
+      };
       //countsread++; if(countsread>NCNTStbr) break;
     };
-    /*
-    if(b123>=5) {   // run1: +read 4 L2r counters (49..51):
-      int startix;
-      startix= CSTART_BUSY+NCOUNTERS_BUSY_L2RS + 4*(b123-FO1BOARD);
-      for(cix= startix; cix< startix+4; cix++) {
-        mem[cix]= vmer32(copyread);
-        //printf("readCounters:%d: %d:0x%x\n", accrual, cix, mem[cix]); 
-      };
-    }; */
+    //fclose(ff);
 /*    printf("readCounters: %d..%d\n", memshift, NCNTS+memshift-1); */
   };
   countsread= countsread+ NCNTS;
-  if(countsread>NCNTStbr) break;
+  if(countsread>NCNTStbr) break;  // no need to read remaining board(s)
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 /*printf("cnts 13 165:%d %d\n", mem[13], mem[165]); */
@@ -123,7 +133,7 @@ lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 nbc= ctpboards[board].numcnts;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(30); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 //for(cix=0; cix<=reladr; cix++) {   // seems not working (cannot catch it) 
@@ -139,49 +149,37 @@ I: board: 0(busy),1(L0),2(L1), 3(L2), 4(INT), 5(FO1), 6(FO2),...
    mem: memory[MAXCOUNTERS]
 */
 void getCountersBoard(int board, int reladr,w32 *mem, int customer) {
-int bb,cix; w32 copyread;
+int bb,cix; w32 copyread; //w32 ignore;
 lockBakery(&ctpshmbase->ccread, customer);
 bb= BSP*ctpboards[board].dial;
 vmew32(bb+COPYCOUNT,DUMMYVAL); 
-usleep(12); // allow 8 micsecs for copying counters to VME accessible memory
+usleep(30); // allow 8 micsecs for copying counters to VME accessible memory
 vmew32(bb+COPYCLEARADD,DUMMYVAL);
 copyread= bb+COPYREAD; 
 /* 25.3.2014: ALL counters have to be readout! */
 for(cix=0; cix<ctpboards[board].numcnts; cix++) {
-  w32 ignore;
   if(cix<=reladr) {
     mem[cix]= vmer32(copyread);
+    //printf("getCountersBoard %d: 0x%x\n", cix, mem[cix]);
   } else {
-    ignore= vmer32(copyread);
+    /*ignore=*/ vmer32(copyread);
   };
 };
 unlockBakery(&ctpshmbase->ccread, customer);
 }
 /*FGROUP L012
-Print all counters to stdout (1 per line)
+Print NCNTS counters to stdout (1 per line)
 !!! getCounters(), readCounters() params are the same in
 ltulib/ltuCounters.c and ctplib/readCounters.c !!!
-NCNTS: number of counters to be read + 1 (rel. position of last counter)
+NCNTS: number of counters to be printed
 if accrual==1, than print accruals
 */
 void getCounters(int NCNTS, int accrual, int customer) {
 int cix;
 //w32 buffer[CSTART_SPEC];
-w32 buffer[NCNTS+1];
+w32 buffer[NCOUNTERS];
 //noreadCounters(curprev[1], accrual);
-readCounters(buffer, NCNTS, accrual, customer);
-/*if(accrual==1) {
-for(cix=0; cix<CSTART_SPEC; cix++) {
-  w32 cur,prev,dif;
-  cur= curprev[1][cix]; prev= curprev[0][cix];
-  if(cur >= prev) {
-    dif= cur-prev;
-  } else {
-    dif= (0xffffffff - prev) + cur +1;
-  };
-  printf("0x%x\n",dif);
-};
-}else{*/
+readCounters(buffer, NCOUNTERS, accrual, customer);
 for(cix=0; cix<NCNTS; cix++) {
   //printf("0x%x\n",curprev[1][cix]);
   printf("0x%x\n",buffer[cix]);
@@ -203,7 +201,7 @@ for(b123=0; b123<NCTPBOARDS; b123++) {
     vmew32(bb+CLEARCOUNTER,1); 
   };
 };
-usleep(4);
+usleep(30);
 for(b123=0; b123<NCTPBOARDS; b123++) {
   if(notInCrate(b123)) continue;
   bb= BSP*ctpboards[b123].dial;
@@ -238,11 +236,14 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   };
   mem[2*ix]= ReadTemp(ix);  // read temperature
   mem[2*ix+1]= i2cread(chan, branch); // 4 i2c voltages (in one 32bit word)
+  //dbg mem[2*ix]= 0xaaaa;
+  //dbg mem[2*ix+1]= 0xbbbb;// 4 i2c voltages (in one 32bit word)
 };
 for(ix=NCTPBOARDS; ix<NCTPBOARDS+24; ix++) {  //bug fixed 15.12.2010
   mem[ix+(2-1)*NCTPBOARDS]= 0;
   if(i2cgetaddr(ix, &chan, &branch)!=0) continue;
   mem[ix+(2-1)*NCTPBOARDS]= i2cread(chan, branch); // 4 i2c voltages (in one 32bit word)
+  //dbg mem[ix+(2-1)*NCTPBOARDS]= ix+(2-1)*NCTPBOARDS;
   //vme2volt(i2crd);
 };
 }

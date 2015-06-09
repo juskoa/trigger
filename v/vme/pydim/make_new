@@ -3,7 +3,9 @@ include $(VMEBDIR)/com_defs.make
 include $(VMEBDIR)/daq_defs.make
 #LIBS= $(VMEBLD) $(CTPLD)
 LIBS= $(CTPLD) $(VMEBLD)
+ifdef ACT_DB
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
+endif
 LIBS += $(daqLD) $(DIMLD) $(MYSQLLIBS)
 
 CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(DIMinc) -I$(VMEBinc) -I$(VMECFDIR)/ctp_proxy -I$(CTPinc)
@@ -24,8 +26,7 @@ all: $(EXEDIR) $(allEXES)
 $(EXEDIR):
 	mkdir -p $(EXEDIR)
 $(EXEDIR)/server: server.o aliases.o ctpcnames.o $(VMEBLIB)/../lexan.h \
- $(VMEBLIB)/libvmeb.a $(CTPLIB)/libctp.a \
- /opt/act/libACT.a 
+ $(VMEBLIB)/libvmeb.a $(CTPLIB)/libctp.a $(actDEP)
 	$(CC) $(LDFLAGS) server.o aliases.o ctpcnames.o $(LIBS) -o $@ 
 server.o: server.c $(VMEBLIB)/../lexan.h
 	$(CC) $(CFLAGS) $< -c -o $@
@@ -39,7 +40,7 @@ $(EXEDIR)/bcmcheck: bcmcheck.c
 
 #client: client.c $(DIMDIR)/linux/libdim.a
 $(EXEDIR)/client: client.c $(DIMDIR)/linux/libdim.a
-	$(CC) $(CFLAGS) $(LDFLAGS) -L$(DIMDIR)/linux -ldim $< -o $@
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -L$(DIMDIR)/linux -ldim -lpthread -o $@
 #	$(CC) $(CFLAGS) $(LDFLAGS) $< $(DIMLD) -o $@
 
 $(EXEDIR)/comment2daqlog: comment2daqlog.c

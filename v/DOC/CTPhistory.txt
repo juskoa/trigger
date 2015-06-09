@@ -422,4 +422,60 @@ the board -evenm if not need -see readCountersBoard()
 bin/smaq ok -trg account created on avmes + alidcscom707/835 for shifter
 smaq: to be started on trigger@alidcsvme001 ->scp-> trg@707,
 i.e. smaq root should run on trg@707
-
+7.4.
+0xc5:
+inputsTools.c: get/set lmdelay() and LM+L0 switches programming
+               todo: ctpinputs.cfg not: LM vals not yet taken
+initCTP.c: LM_L0_TIME:17, LM_RANDOM1/2 desync
+           ALL_RARE_FLAG: common for LM+L0
+           rates2hwinit(): LM+L0
+ctpcfg.py: see: lmrnds lmbcds constants 
+  hw -> py: reshuf used in readShared (getShared() + 4 values)
+  hw <- py: setShared3() added (for lm_ rnd1/2 bc1/2), see def writeShared
+    RBIF, INTSEL lines in .cfg file: not changed!, LMRB line added
+  py-> file: def writeShared
+  file->py: def loadfile,readSharedline modified
+8.4.
+200 L0 counters in separate chunk (at the end of big array) added
+modified: ctp/ctp.c ctp.h ctpcounters.h ctplib/readCounters
+          vmeb/counters.py
+new cnames.sorted2 created (old one: cnamesLS1.sorted2).
+todo: new RRD database needed
+      recompile rd
+      class names (for Giacinto) to be checked
+15.4. hofix-phpmon
+bug in readTables.c fixed: if L0 input not connected to CTPswitch (0)
+and CTPinput column is not 0 this input is regarded as 'unconnected'.
+Anyhow, we should keep following rule (ctpinputs.cfg is read
+also from python, it is not clear how such case is interpreted!):
+if L0 is not connected to CTPswitch (0) the 0 has to be put
+also to the ctp input(1..24) column.
+17.4.
+LM0: FPGA version occupies 2 bytes (0xc601) -readBICfile.c changed
+29.4.
+in p2 changed link for clockshift. Now:
+835:$dbctp/clockshift -> /home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/CFG/clockshift
+before
+017:v/vme/CFG/clockshift -> /local/trigger/v/vme/CFG/ctp/DB/clockshift
+i.e. now writtable from 017 (before from 835). I.e. ttcmidims.c
+running on 017 can update clockshift
+28.5.
+l0f: now when pure LM: applied at LM for TRD class
+    not pure: applied at L0 for TRD class (i.e. 40mhz at L0)
+28.5.
+CNTRRD/analyse -can be exported (see exportana.bash)
+29.5.
+bug in inputsTools.c (lmdelay setting) fixed
+4.6.
+sxb daq readout ddl: trigger@pcaldctp2
+ctpro >/dev/null
+4.6.
+ctp.c testreates() -option 10: LM rates added
+5.6.
+Tpartition.c,... SDSCG groups for LM level initialised properly also when
+partition loaded (before: ok only when ctpproxy restarted).
+todo: still there is no way how to downscale synchronously on LM level
+-probaly should be done independently form L0 ?
+---> git p2
+5.6.
+bugs fixed in clgroups.c

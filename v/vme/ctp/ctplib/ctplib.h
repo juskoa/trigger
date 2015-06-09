@@ -31,6 +31,7 @@ int isTrigDet(char *name);
 FILE *openFile(char *fname, char *rw);
 int readdbfile(char *fname, char *mem, int maxlen);
 int writedbfile(char *fname, char *mem);
+int findSwitchInput(int swinput);
 
 /*readCounters.c:
 customer:
@@ -163,7 +164,8 @@ rc:   0: ok
 */
 int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws);
 
-/*FGROUP DDR3 
+/* 
+ * Is fgroup necessary here ?
 Read 4MB of usefull data (64MB from DDR3, i.e. ~23secs), i.e.
 store only last 2 words (2x4 bytes) from each 512bits(=64bytes) block
 in ssm1, ssm2
@@ -173,6 +175,7 @@ rc: 0 ok
    rc from ddr3_read (stdout printed also)
 */
 int ddr3_ssmread(w32 *ssm1, w32 *ssm2);
+int ddr3_ssmreadall(w32 *ssms[]);
 
 int ddr3_ssmdump(w32 opmod, FILE *dumpfile);
 /*FGROUP DDR3 

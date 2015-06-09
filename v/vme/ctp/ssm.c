@@ -66,6 +66,16 @@ strcpy(sms[NCTPBOARDS+2].name,"ltu3");
 strcpy(sms[NCTPBOARDS+3].name,"ltu4");
 strcpy(sms[NCTPBOARDS+4].name,"test");
 strcpy(sms[NCTPBOARDS+5].name,"none");
+strcpy(sms[NCTPBOARDS+6].name,"lm0_1");
+strcpy(sms[NCTPBOARDS+7].name,"lm0_2");
+strcpy(sms[NCTPBOARDS+8].name,"lm0_3");
+strcpy(sms[NCTPBOARDS+9].name,"lm0_4");
+strcpy(sms[NCTPBOARDS+10].name,"lm0_5");
+//strcpy(sms[NCTPBOARDS+6].mode,"lm0_ssm1");
+//strcpy(sms[NCTPBOARDS+7].mode,"lm0_ssm2");
+//strcpy(sms[NCTPBOARDS+8].mode,"lm0_ssm3");
+//strcpy(sms[NCTPBOARDS+9].mode,"lm0_ssm4");
+//strcpy(sms[NCTPBOARDS+10].mode,"lm0_ssm5");
 printf("initSSM: The number of boards is %i : \n",NSSMBOARDS);
 for(ix=0; ix<NSSMBOARDS; ix++) printf(" %s",sms[ix].name);printf("\n");
 printf("LTU boards in the crate:\n");
@@ -204,13 +214,15 @@ read ???
 */
 w32 getswSSM(int board) {
 int vsp,rc;
+if(board >= (NCTPBOARDS+6)) return 0xabcd;
 if(sms[board].ltubase[0]=='\0') {   /* ctp board */
   w32 l0bo=BSP*ctpboards[1].dial;
   w32 boardoffset=BSP*ctpboards[board].dial;
   if((boardoffset==l0bo) && (l0C0()!=0)) {   //LM0
-    rc= vmbr32(0, boardoffset+SSMstatus);
+    //rc= vmbr32(0, boardoffset+SSMstatus);
     //rc= rc | 0x8; 1:in (artificially for LM0) -inout flag always 1 (only inmon available)
-    rc= sms[board].lopmode;
+    //rc= sms[board].lopmode;
+    rc=0x0;
   } else {
     rc= vmbr32(0, boardoffset+SSMstatus);
   };
@@ -232,7 +244,18 @@ set sms[].mode
 */
 void setsmssw(int ix, char *newmode) {
 /*printf("setsmssw:%d %s:\n",ix,newmode); */
-strcpy(sms[ix].mode, newmode);
+if(ix==1){ 
+ //strcpy(sms[NCTPBOARDS+6+4].mode,"lm0_ssm5");
+ char mode[9];
+ for(int i=0;i<NLM0SSM;i++){
+    sprintf(mode,"lm0_ssm%i",i+1);
+    //printf("%s \n",mode);
+    strcpy(sms[NCTPBOARDS+6+i].mode,mode);
+ }
+ //for(int i=0;i<NSSMBOARDS;i++)printf("setsmssw: %s %s \n",sms[i].name,sms[i].mode);
+}else{
+ strcpy(sms[ix].mode, newmode);
+}
 }
 
 /* -------------------------------------------------------- setomSSM() */
@@ -552,11 +575,22 @@ if(sms[board].ltubase[0]=='\0') {   /* ctp board */
     //todo here: check if ddr3 filled
     // following: just to be compatible with getswSSM ?
     rc= setomvspSSM(0, ssmoffset, SSMomvmer);
-    if(opmod==0xa) {
-      rc= ddr3_ssmread(NULL, array); 
-    } else {
-      rc= ddr3_ssmread(array, NULL); 
-    };
+    //if(opmod==0xa) {
+    if(1) {
+      printf("doing lm0 reading \n");
+      w32 *lm0ssms[16];
+      for(int i=0;i<16;i++)lm0ssms[i]=(w32 *)malloc(Mega*sizeof(w32));
+      rc= ddr3_ssmreadall(lm0ssms);
+      for(int i=0;i<NLM0SSM;i++){
+         if(sms[NCTPBOARDS+6+i].sm==NULL)sms[NCTPBOARDS+6+i].sm= (w32 *)malloc(Mega*sizeof(w32));
+         printf("readSSM lm0 %i %p\n",NCTPBOARDS+6+i,sms[NCTPBOARDS+6+i].sm);
+         for(int j=0;j<Mega;j++)sms[NCTPBOARDS+6+i].sm[j]=lm0ssms[i][j];
+      }
+      // Need to fill also array for ssm in inputs
+      for(int j=0;j<Mega;j++)array[j]=lm0ssms[0][j]; 
+      for(int i=0;i<16;i++)free(lm0ssms[i]);
+      printf("finished lm0 reading \n");
+    } 
   } else {                          // BSY L0/1/2 FO INT
     enable= (status&0xc0)<<2;
     mod= SSMomvmer | (status&0x38) | enable;

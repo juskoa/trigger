@@ -118,15 +118,16 @@ printf("LTU counters cleared.\n");
 int measureBusy100ms() {
 w32 mem1[LTUNCOUNTERS];   // place for 24 LTU counters
 w32 mem2[LTUNCOUNTERS];
-w32 busys, busys1, transitions;
+w32 busys, busys1; //transitions;
 int averageInt;
-float ms100, dead, average;
+float dead, average;  // float ms100;
 readCounters(mem1, LTUNCOUNTERS, 0); usleep(100000);
 readCounters(mem2, LTUNCOUNTERS, 0);
 dead= dodif32(mem1[SUBBUSY_TIMERrp], mem2[SUBBUSY_TIMERrp])*0.4;  //micsecs
-ms100= dodif32(mem1[LTU_TIMErp], mem2[LTU_TIMErp])*0.0004;  //milisecs
-busys= dodif32(mem1[L0_COUNTERrp], mem2[L0_COUNTERrp]);
+/* ms100= dodif32(mem1[LTU_TIMErp], mem2[LTU_TIMErp])*0.0004;  //milisecs
 transitions= dodif32(mem1[BUSY_COUNTERrp], mem2[BUSY_COUNTERrp]);
+busys1= ms100; busys1= transitions; */
+busys= dodif32(mem1[L0_COUNTERrp], mem2[L0_COUNTERrp]);
 busys1=busys;
 if(busys==0) busys1=1;
 average= dead/busys1; averageInt=rounddown(average);

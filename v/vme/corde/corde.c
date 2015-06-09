@@ -50,7 +50,7 @@ if((ministep_ps > step_ps) ||
   ) 
 {
   //printf("ministep has to be >= step, both have to be >=0\n");
-  printf("ministep has to be >= step\n");
+  printf("ministep has to be <= step\n");
 } else {
   if(ministep_ps != (minist*10)) {
     printf("Using ministep:%d\n",minist*10);
@@ -126,7 +126,8 @@ return(val);
 }
 
 /*FGROUP
-Increase successively delay by defined step/ministep (see set_step). 
+Increase successively delay by defined step/ministep (set by set_step). 
+See step_up  -applied until 1023 or 0
 Allow ms miliseconds between steps.
 delay: register to be changed
 1:ORBMAIN 

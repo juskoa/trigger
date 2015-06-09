@@ -15,10 +15,23 @@ class L0BOARD2: public L0BOARD
 	void setClassInvert(w32 index,w32 invert=0xfff);
 	void setBC1(w32 T){vmew(SCALED_1,T);};
 	void setBC2(w32 T){vmew(SCALED_2,T);};
+ 	void setTCSET(w32 w){vmew(TCSET,w);};
+ 	void setTCCLEAR(){vmew(TCCLEAR,0);};
 	w32 getBC1(){return vmer(SCALED_1);};
 	w32 getBC2(){return vmer(SCALED_2);};
+	w32 getTCSTATUS(){return vmer(TCSTATUS);};
+	w32 getL0rqst(){return (vmer(TCSTATUS)&0x4)/0x4;};
+	w32 getl0ackn(){return (vmer(TCSTATUS)&0x8)/0x8;};
 	// lm level
 	void configL0classesonly();
+	void printClass(w32 i);
+	void readHWClass(w32 i);
+	void writeHWClass(w32 i);
+	void printClassConfiguration();
+	void readHWClasses();
+	void writeHWClasses();
+	void convertL02LMClass(w32 i);
+	void convertL02LMClassAll();
 	// ssm methods from ctp
         void ddr3_reset();
         void ddr3_status();
@@ -30,6 +43,8 @@ class L0BOARD2: public L0BOARD
 	void ddr3_ssmstart(int sec);
 	//
 	int DumpSSM(const char *name,int issm);
+	int DumpSSMLM(const char *name);
+	int AnalSSM();
 	void printClasses();
 	void readBCMASKS();
 	void writeBCMASKS(w32* pat);
@@ -39,8 +54,12 @@ class L0BOARD2: public L0BOARD
 	     DDR3_rd_done=0x1000000,
 	     DDR3_wr_done=0x0800000};
          // SSM is special for L)m board
-         w32 *ssm1,*ssm2;
+         w32 *ssm1,*ssm2,*ssm3,*ssm4;
          // vme addresses
+         w32 const TCSET;
+         w32 const TCSTATUS;
+         w32 const TCCLEAR;
+         w32 const TCSTART;
          w32 const MASK_DATA;
 	 w32 const MASK_CLEARADD;
 	 w32 const MASK_MODE;
@@ -57,7 +76,8 @@ class L0BOARD2: public L0BOARD
 	 w32 const L0_VETO;
 	 w32 const LM_CONDITION;
 	 w32 const LM_INVERT;
-	 w32 const LM_INV_VETO;
-
+	 w32 const LM_VETO;
+	 // Configuration
+	 w32 lmcond[NCLASS], lmveto[NCLASS],l0cond[NCLASS],l0veto[NCLASS];
 };
 #endif

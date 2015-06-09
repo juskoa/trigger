@@ -20,7 +20,8 @@ function startproxy() {
     # if following not working, try /etc/security/limits.conf
     #*  hard  core unlimited
     ulimit -c unlimited
-    #set args NODAQLOGBOOK NODAQRO
+    # for gdb:
+    #set args TRIGGER::CTP NODAQLOGBOOK NODAQRO
     $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
     #echo "ctp_proxy rc:$? is 0 always (in case ctp_proxy does not exist)"
     pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`

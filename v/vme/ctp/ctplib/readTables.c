@@ -23,6 +23,7 @@ int msSelect1(char *fields, char *table, char *whereexp, char *outstr);
 #endif
 
 #define MaxIntItems 9
+int findSwitchInput(int swinput);
 
 /*-------------------------------------------------------copyDetector2Clust()
 */
@@ -271,10 +272,12 @@ for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   validCTPINPUTs[ixtab].level=-2;
   validCTPINPUTs[ixtab].signature=0xffffffff;
   validCTPINPUTs[ixtab].inputnum=-1;  // 0..24 (0..12 for L2)
+  validCTPINPUTs[ixtab].lminputnum=-1;  // 0..12
   validCTPINPUTs[ixtab].dimnum=-1;
   validCTPINPUTs[ixtab].switchn=-1;   // 1..48 for L0, 0: for others
   validCTPINPUTs[ixtab].edge=-1;
   validCTPINPUTs[ixtab].delay=-1;
+  validCTPINPUTs[ixtab].lmdelay=-1;
   validCTPINPUTs[ixtab].deltamin=-1;
   validCTPINPUTs[ixtab].deltamax=-1;
 };
@@ -310,14 +313,69 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   for(ixx=0; ixx<MaxIntItems; ixx++) a3[ixx]=0;
     a3[5]=-1; a3[6]=-1;  // edge, delay not defined
     a3[7]=1000; a3[8]=1000;  // delta min/max not defined
+  // inpname, detname
   for(ixx=0; ixx<MaxIntItems; ixx++) {
     int negv;
     negv=1;
     token=nxtoken(line, value, &ix);
+    //printf("INFO inpname:%s %s :%s:\n", inpname, detname, value);
     if(token==tINTNUM) { 
       // level, signature, InpN DimN SwitchN(was Configured) Edge Delays DeltaMin DeltaMax
       // 0      1          2    3    4                       5    6      7        8
       a3[ixx]= str2int(value);
+    } else if(token==tSYMNAME) {
+      // possible M-line or error
+      if(strcmp(value, "M")==0) {
+        int ixtb;
+        a3[0]=3;   // M level, we need to fill a3[2] a3[4]  a3[6]
+        token=nxtoken(line, value, &ix);
+        token=nxtoken(line, value, &ix);   // lminput 1..12
+        if(token==tINTNUM) { 
+          a3[2]= str2int(value);
+          if(a3[2] > 12) {
+            sprintf(em1, "M-line: bad LM input (number 0..12 expected) ");
+            goto ERRctp;
+          };
+        } else {
+          sprintf(em1, "M-line: bad LM input after LM switch (0..12 expected) ");
+          goto ERRctp;
+        };
+        token=nxtoken(line, value, &ix);
+        token=nxtoken(line, value, &ix);   // switch input 1..12
+        if(token==tINTNUM) { 
+          a3[4]= str2int(value);
+          if(a3[4] > 12) {
+            sprintf(em1, "M-line: bad switch input (number 1..12 expected) ");
+            goto ERRctp;
+          };
+        } else {
+          sprintf(em1, "M-line: bad switch input (1..12 expected) ");
+          goto ERRctp;
+        };
+        ixtb= findSwitchInput(a3[4]);
+        if(ixtb<0) {
+          sprintf(em1, "M-line not preceeded by L0 line definition)");
+          goto ERRctp;
+        };
+        token=nxtoken(line, value, &ix);
+        token=nxtoken(line, value, &ix);   // lmdelay 0..7
+        if(token==tINTNUM) { 
+          a3[6]= str2int(value);
+          if(a3[6] > 7) {
+            sprintf(em1, "M-line: bad delay (number 0..7 expected) ");
+            goto ERRctp;
+          };
+        } else {
+          sprintf(em1, "M-line: bad delay (0..7 expected) ");
+          goto ERRctp;
+        };
+        validCTPINPUTs[ixtb].lminputnum= a3[2];
+        validCTPINPUTs[ixtb].lmdelay= a3[6];
+        break;
+      } else {
+        sprintf(em1, "Incorrect 4th item (0, 1, 2 or M expected got:%s)",value);
+        goto ERRctp;
+      };
     } else {
       if( (ixx==5) || (ixx==6) ) {
         sprintf(emsg, "Missing edge or delay"); prtWarning(emsg);
@@ -326,7 +384,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
         if(token==tMINUS) {
           negv=-1;
           token=nxtoken(line, value, &ix);
-          if(token==tINTNUM) { // level, signature, InpNum Dimnum Configured
+          if(token==tINTNUM) { // level, signature, InpNum Dimnum swin edge del
             a3[ixx]= negv*str2int(value);
           } else {
             sprintf(emsg, "Bad deltamin or deltamax:int expected after - sign"); prtWarning(emsg);
@@ -341,6 +399,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     };
   };
   if( (a3[4]==0) and (a3[2]==0) ) continue;   // not configured
+  if(a3[0]==3) continue;   // LM-line processed just now
   strcpy(validCTPINPUTs[ixtab].name, inpname);
   validCTPINPUTs[ixtab].detector= detnum;
   validCTPINPUTs[ixtab].level= a3[0];
@@ -367,8 +426,17 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   };
   continue;
   ERRctpignore:
-  sprintf(emsg, "ctpinputs.cfg line ignored:%s\n %s",line,em1); 
+  sprintf(emsg, "ERROR ctpinputs.cfg line ignored:%s\n %s",line,em1); 
   prtWarning(emsg);
+};
+printf("INFO readTables LM inputs: ixtab name lmin lmdel\n");
+for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
+  int lmin;
+  lmin=validCTPINPUTs[ixtab].lminputnum;
+  if(lmin > 0) {
+    printf("INFO %d:%s -> %d %d\n", ixtab,validCTPINPUTs[ixtab].name, lmin,
+      validCTPINPUTs[ixtab].lmdelay);
+  };
 };
 goto RTRNctp;
 ERRctp:
@@ -484,6 +552,25 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
         return(validCTPINPUTs[ix].detector);
       };
     } else {   // do not care about switchn
+      return(validCTPINPUTs[ix].detector);
+    };
+  };
+}; //printf("\n");
+return(rc);
+}
+/*------------------------------------------------------------findLMINPdaqdet()
+lminput: LM input number(1-12) i.e. after switch
+Out:   ECS/DAQ detector number providing this input (0..23) or
+       -1 -not connected
+*/
+int findLMINPdaqdet(int lminput) {
+int ix, rc=-1;
+for(ix=0; ix<NCTPINPUTS; ix++) {
+  //printf("%s %d\n", validCTPINPUTs[ix].name, validCTPINPUTs[ix].detector);
+  if((validCTPINPUTs[ix].level==0) &&
+     (validCTPINPUTs[ix].lminputnum==lminput)  // also LM input
+    ) {
+    if(validCTPINPUTs[ix].switchn!=0) {   // conneted
       return(validCTPINPUTs[ix].detector);
     };
   };
@@ -622,6 +709,7 @@ ltunames: string (length:200) containing LTU names according
 void findLTUNAMESby(w32 busypat, w32 detpat, char *names) {
 int bix;
 Tdetector *detp;
+//printf("findLTUNAMESby: 0x%x 0x%x\n", busypat, detpat);
 names[0]='\0';
 for(bix=0; bix<NDETEC; bix++) {
   int byin;
