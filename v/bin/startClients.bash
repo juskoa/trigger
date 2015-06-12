@@ -131,6 +131,11 @@ elif [ "$VMESITE" = 'SERVER' ] ;then
   ttcmivme=altri1
   server=$hname
   server27=NONE
+elif [ "$VMESITE" = 'SERVER2' ] ;then
+  ctpvme=altri2
+  ttcmivme=altri2
+  server=$hname
+  server27=NONE
 fi
 if [ "$1" = 'help' ] ;then
 cat - <<-EOF

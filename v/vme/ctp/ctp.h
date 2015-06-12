@@ -287,7 +287,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal */
 #define DAQ_LEDlm0     0x9234
-#define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
+//von #define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
 #define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
 
@@ -326,7 +326,7 @@ VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 
 #define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
 
-#define DDL2_STATUS 0x9304 
+#define DDL2_STATUS 0x9304 /* bits: 4:fbTEN_N, 3:fbCTRL_N, 2:fiBEN_N, 1:fiLF_N, 0:fiDIR */
 
 #define SEL_SPARE_OUT  0x93e0  
 /* 4 registers 0x93e0,4,8,c reserved for 4 output signals -copy
@@ -375,7 +375,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 #define L0_INTERACTSEL 0x95c8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
                               /* [5..9]-> ... for INTERACT2 */
 #define L0_FUNCTION1   0x95cc
-#define L0_FUNCTION2   0x95d0
+#define L0_FUNCTION2   0x95d0 //  was on run1-L0 board */
 #define RANDOM_1       0x95d4 /* bit31: 1: Enable trains filter (for FPGAVER>=A5) */
 #define RANDOM_2       0x95d8
 #define SCALED_1       0x95dc
@@ -389,7 +389,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 #define L0_INTERACTT   0x920c
 #define L0_INTERACTSEL 0x9210
                             
-#define L0_FUNCTION1   0x9214
+#define L0_FUNCTION1   0x9214 -yes, this+following one for LM0 from c6..
 #define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
 #define RANDOM_2       0x9220
@@ -542,7 +542,7 @@ bit4: phase enable
 /* deliberately after REGEND becasue it is different for L0/LM0*/ 
 #define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
 #define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
-#define L0_FUNCTION34    0x97ec
+//#define L0_FUNCTION34    0x97ec   not used for LM0
 
 #define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
 #define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
@@ -562,6 +562,9 @@ bit4: phase enable
 #define DDR3_rst_logic 0x2000000
 #define DDR3_rd_done 0x1000000
 #define DDR3_wr_done 0x0800000
+
+#define LM0_F8_MIN 1   // see getLM0_F8ad() where 8 LM0 addresses are hardcoded
+#define LM0_F8_MAX 8
 
 #define MAXL0REGS 11
 typedef struct{

@@ -479,3 +479,10 @@ todo: still there is no way how to downscale synchronously on LM level
 ---> git p2
 5.6.
 bugs fixed in clgroups.c
+12.6
+changes made on bhm10: still can be used with c605 version (old L0FUN1/2).
+Main changes:
+- adjusted for bhm10/altri2 setup (SERVER2)
+- ctp expetr software allows to work with c606 -> i.e. to load 8inputs-LUTs
+  for new L0FUN1/2/3/4
+copying these cahnges to avmes (using git)

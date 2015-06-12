@@ -126,6 +126,8 @@ else               #------------------------------ server
     if [ -d /opt/act ] ;then
       export ACT_DB=daq:daq@pcald30/ACT
     fi
+    unset DATE_DAQLOGBOOK_DIR
+    unset ACT_DB
   else
     export VMESITE=PRIVATE
   fi

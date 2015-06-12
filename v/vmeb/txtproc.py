@@ -4,7 +4,7 @@ Text rocessing for LUT (Look up table) or BCmask
 28.1.2006 bug fixed (space couldn't appear anywhere)
 """
 
-import string, types
+import string, types,sys
 
 ORBITLENGTH=3564
 
@@ -247,9 +247,11 @@ def log2tab(logexp, vo=["a","b","c","d"]):
       return None
   if lenvo<=4:
     #print "lenvo<=4. 0x%x"%(res) #return "0x%x"%(res)
-    return "0x"+res4096
+    return "0x"+string.strip(res4096)
   else:
-    return "0x"+res4096inv
+    #return "0x"+res4096inv
+    # let's use non inverted for LUT8 (LFUN34 are not available anyhow)
+    return "0x"+string.strip(res4096)   
 
 wordchars = '012abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-.'
 # 012 -input names are '0... 1... 2...'
@@ -320,6 +322,10 @@ def varsInExpr(exst):
   return rc,names
     
 def main():
+  if len(sys.argv)>1:
+    tbl= ["a","b","c","d","e","f","g","h"]
+    print log2tab(sys.argv[1], tbl)
+    exit(0)
   #print log2tab("blai0&ai3&~ai33",["blai0","ai3","i2","ai33"])
   #print log2tab("(b&d)|(c&d)|(b&c)",["a","b","c","d"])
   #print log2tab("(0VBA&0SM2) | (0VBC&0SM2) | (0VBA&0VBC)",[None,"0VBA","0VBC","0SM2"])
@@ -330,27 +336,29 @@ def main():
   # check & amp:
   #expr= "(~0VBA)&amp;(~0VBC)" ; tbl= [None, '0VBA', '0VBC', None]
   # check longer luts:
-  expr= "(0VBA | 0VBC) & (0SMB|0BPA)" ; tbl= ['0BPC','0BPA', '0VBA', '0VBC', None,'0SMB']
+  #expr= "(0VBA | 0VBC) & (0SMB|0BPA)" ; tbl= ['0BPC','0BPA', '0VBA', '0VBC', None,'0SMB']
   #expr= "a|b|c|e" ; tbl= ["a","b","c","d","e","f","g","h","i"]
-  expr= "a & (~b) & (~c)& (~d)& (~e)& (~f)& (~g)& (~h)& (~i)& (~j)& (~k)& (~l)" 
+  #expr= "a & (~b) & (~c)& (~d)& (~e)& (~f)& (~g)& (~h)& (~i)& (~j)& (~k)& (~l)" 
   #expr= "(~a) & b & (~c)& (~d)& (~e)& (~f)& (~g)& (~h)& (~i)& (~j)& (~k)& (~l)" 
   #expr= "(~a) & (~b) & (~c)& (~d)& (~e)& (~f)& (~g)& (~h)& (~i)& (~j)& (~k)& (~l)" 
   #expr= "a & b & (~c)& (~d)& (~e)& (~f)& (~g)& (~h)& (~i)& (~j)& (~k)& (~l)" 
   #expr= "a & ~b & ~c & ~d & ~e & ~f & ~g & ~h & ~i & ~j & ~k & ~l " 
-  tbl= ["a","b","c","d","e","f","g","h","i","j","k","l"]
-  #expr= "a|b|c|e" ; tbl= ["a","b","c","d","e","f"]
+  #tbl= ["a","b","c","d","e","f","g","h","i","j","k","l"]
+  tbl= ["a","b","c","d","e","f","g","h"]
+  expr= "a|b|c|d|e|f|g|h" ; 
+  #expr= "h"
   #expr= "a&e" ; tbl= ["a","b","c","d","e","f"]
   #expr= "(~0VBA)&(~0VBC)"
   #expr= "0SMB & 0VBA&0VBC" ; tbl= ['0SMB', '0VBA', '0VBC', '0BPA']  # 0x8080
   #expr= "0VBA&0VBC" ; tbl= ['0SMB', '0VBA', '0VBC', '0BPA']   # 0x4040
   #
   txtlut= log2tab(expr, tbl)
-  print expr, tbl, txtlut
-  expr= "a & (~b)& (~c)& (~d)" ; tbl= ["a","b","c","d"]
+  print expr, tbl, txtlut, "L:",len(txtlut)
+  #expr= "a & (~b)& (~c)& (~d)" ; tbl= ["a","b","c","d"]
   #expr= "(~a) & b& (~c)& (~d)" ; tbl= ["a","b","c","d"]
   #expr= "(~a) & (~b)& (~c)& (~d)" ; tbl= ["a","b","c","d"]
   #expr= "a & b & (~c)& (~d)" ; tbl= ["a","b","c","d"]
-  txtlut= log2tab(expr, tbl) ; print expr, tbl, txtlut
+  #txtlut= log2tab(expr, tbl) ; print expr, tbl, txtlut
   #print log2tab("0xabRc0")
   #print string.digits
   #print varsInExpr("T0 | TRFpre & blabla")
