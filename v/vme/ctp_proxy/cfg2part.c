@@ -852,7 +852,8 @@ for(i=0;i<MAXNLINES;i++){
    };
    part->klas[iklas]=CLA2Partition(lines[i],&error, part->name);
    if((part->klas[iklas] == NULL) && error) {
-     sprintf(errmsg, "ParseFile: CLA2Partition() rc:%d", error);
+     sprintf(errmsg, "ParseFile: CLA2Partition() rc:%d line:%s:", 
+       error, lines[i]);
      retcode= 1; goto RETERR;
    };
    if(part->klas[iklas] == NULL) {

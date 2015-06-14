@@ -76,7 +76,7 @@ class Udp(Thread):
       if data=="":
         log.logm("udp timeout")
         continue
-      #log.logm("udp:"+data)
+      log.logm("udp:"+data)
       dname= string.split(data)[0]
       if self.daemons.has_key(dname):
         self.daemons[dname].regudp(data)
@@ -321,8 +321,11 @@ monitor.py stop
   #  "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
   #  "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
   #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
-  allds={"udpmon":Daemon("udpmon"), 
-    "ctpwsgi":Daemon("ctpwsgi"), "pydim":Daemon("pydim", autor='n'),
+  #
+  # allds={"udpmon":Daemon("udpmon"), 
+  # "pydim":Daemon("pydim", autor='n'),
+  allds={"xcounters":Daemon("xcounters", autor='n'), 
+    "ctpwsgi":Daemon("ctpwsgi"), 
     "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
   #  "gcalib":Daemon("gcalib"),
   #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}

@@ -87,6 +87,8 @@ public:
          int noFields;
          const char **tags = message.getTags(noFields);
          for (int i = 0; i < noFields; i++) {
+           //cout << "typeRC:" << *tags << " typeid:" << typeid(*tags).name() << endl;
+           if( *tags == string("acqStamp") ) { /*cout << "ignoring acqStamp" << endl;*/ continue; };
            item= message.extractString(*tags);
            if(strcmp(*tags,"ACTIVE_INJECTION_SCHEME")==0) { 
            //if(strcmp(*tags,"ACTIVE_FILLING_SCHEME")==0) { // changed 24.4.2015, but returns ""
@@ -115,6 +117,8 @@ public:
          int noFields;
          const char **tags = message.getTags(noFields);
          for (int i = 0; i < noFields; i++) {
+           //cout << "typeBM:" << *tags << " typeid:" << typeid(*tags).name() << endl;
+           if( *tags == string("acqStamp") ) { /* cout << "ignoring acqStamp" << endl;*/ continue; };
            item= message.extractString(*tags);
            if(strcmp(*tags,"value")==0) {
              beammode= item;
