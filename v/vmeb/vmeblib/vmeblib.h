@@ -30,6 +30,7 @@ int w32toint(w32 w);
 
 // lexan.c
 int remove_char_from_string(char c, char *str);
+unsigned int hex4(char *m4);
 int hex12int(char c);
 char int12hex(int numint);
 void UPPER(char *);

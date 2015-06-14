@@ -214,6 +214,69 @@ vmew32(LM_RANDOM_2, lmrnd2);
 vmew32(LM_SCALED_1, lmbcd1);
 vmew32(LM_SCALED_2, lmbcd2);
 }
+#define LEN_LUT8 256   // bits
+void setLUT1(int lutn, char *m4) {
+w32 lutadr; int is;
+lutadr= getLM0_F8ad(lutn);
+/* put if m4 taken as 16x16bits words, put them into LUT this way:
+m4[15]
+m4[14]
+...
+m4[0]  -i.e. last 4 hex-digits from m4
+*/
+if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
+  w32 lutw;
+  if(strcmp(m4,"0")==0) { lutw=0;
+  } else { lutw=0xffff0000; };
+  for(is=LEN_LUT8/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
+    int isx;
+    // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
+    isx= (is-1)*4;
+    vmew32(lutadr, lutw|(16-is));
+  };
+} else {
+  for(is=LEN_LUT8/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
+    w32 lutw; int isx;
+    // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
+    isx= (is-1)*4;
+    lutw= hex4(&m4[isx+2]);
+    lutw= lutw<<16 | (16-is);
+    vmew32(lutadr, lutw);
+  };
+};
+}
+/*set LUT1..8 in hw. 
+Input:
+1. set/reset alll bits for all 8 LUTs (lutn:0):
+setLUT(0, "0") -set all bits to 0   (i.e. when 1 char string on input)
+setLUT(0, "f") -set all bits to 1
+
+2. set all 4 LUTs bits (lutn:0) in shared mem +hw:
+0, "abcdef..." LEN_l0f34=4096 hexa digits, each hexa digit represents LUT4..1 
+
+3. set LUT bits for 1 LUT (lutn=1,2,3,4 -> LUT31 LUT32 LUT41 LUT42):
+in shared memory +hw
+1,"abcd..." LEN_l0f34/4=1024 hexa digits
+
+rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
+int setLUT(int lutn, char *m4) {
+if((strlen(m4)!=(LEN_LUT8/4+2)) &&
+   (strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0)) {
+  printf("ERROR setLUT:=%s= len:%d\n", m4, strlen(m4));
+  return(254);
+};
+if(lutn==0) {   // all 8 LUTs operations:
+  int lutn1;
+  for(lutn1=LM0_F8_MIN;lutn1<LM0_F8_MAX;lutn1++){
+    setLUT1(lutn1, m4);
+  };
+} else if((lutn>=LM0_F8_MIN) and (lutn<=LM0_F8_MAX)) {   // one LUT operations:
+  setLUT1(lutn, m4);
+} else {
+  return(253);
+};
+return(0);
+};
 /* set L0f34 in hw. 
 Input:
 1. set/reset alll bits for all 4 LUTs (lutn:0):
@@ -230,10 +293,11 @@ in shared memory +hw
 rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
 int setL0f34c(int lutn, char *m4) {
 int is; w32 l0_fun34;
+return(1);   // we do not use L0F34 on LM0 board, and we abandon old L0 board
 if(l0C0()) {
-  l0_fun34= L0_FUNCTION34r2;
+  ;//l0_fun34= L0_FUNCTION34r2;
 } else {
-  l0_fun34= L0_FUNCTION34;
+  ;// l0_fun34= L0_FUNCTION34;
 };
 if(lutn==0) {   // all 4 LUTs operations:
   if((strcmp(m4,"0")==0) || (strcmp(m4,"f")==0)) {

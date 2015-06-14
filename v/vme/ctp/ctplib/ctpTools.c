@@ -61,4 +61,28 @@ if((addr>=PF_COMMON) && (addr<=PFLUT)) {
   return(0);
 }
 }
-
+/* reg: 1..8
+1..4: get address of L0F1..4 (LUT table for 8inputs L0F implemented from LM0 c606
+5..8: get address of LMF1..4
+*/
+w32 getLM0_F8ad(int reg) {
+w32 rc;
+if( (reg<1) || (reg>8)) {
+  printf("getLM0F8ad: internal error for addr:0x%x\n", reg);
+  return(0);
+};
+switch(reg) { 
+  case 1: rc= 0x9214; break;   //L0_F
+  case 2: rc= 0x9218; break;
+  case 3: rc= 0x923c; break;
+  case 4: rc= 0x9240; break;
+  case 5: rc= 0x9274; break;   // LM_F
+  case 6: rc= 0x9278; break;
+  case 7: rc= 0x927c; break;
+  case 8: rc= 0x9300; break;
+  default:
+    printf("getLM0F8ad: internal error for addr:0x%x\n", reg);
+    rc=0;
+};
+return(rc);
+}

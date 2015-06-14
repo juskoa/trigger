@@ -10,6 +10,7 @@ Contents: */
 /*---------------------------------------------------------------- L0-Shared */
 /*- ctplib ------------------------------------------------------- Counters*/
 /*---------------------------------------------------------------- L0-PF */
+/*---------------------------------------------------------------- LM0-tests */
 /*---------------------------------------------------------------- L0-tests */
 /*---------------------------------------------------------------- busy-tests */
 /*---------------------------------------------------------------- ADC-tests */
@@ -838,6 +839,42 @@ vmew32(getLM0addr(RANDOM_1), r1);
 vmew32(getLM0addr(RANDOM_2), r2);
 printf("rate:%dhz: rnd1:%6.2fhz =%d   rnd2:%6.2fhz =%d was set in CTP\n",\
   rate, r1f, r1, r2f, r2);
+}
+/*---------------------------------------------------------------- LM0-tests */
+/*FGROUP LM0 
+Input: lut: 1..8 corresponding to L0F1..4 LMF1..2
+            0: load all 8 LUTs with the same LUT
+expr: a&c|b|~h   -i.e. using letters a b c d e f g h for first 8 L0, resp. LM inputs
+      0          - put 0s
+      1          - put 1s
+Out:
+rc: 0 ok
+*/
+int loadLUT8(int lut, char *expr) {
+int rc; char cmd[100];
+#define LUTMAXLEN 300   // longer (can return error message)
+char lookupt[LUTMAXLEN];
+if( (strcmp(expr,"0")!=0) &&  (strcmp(expr,"1")!=0) ) {
+  //sprintf(cmd, "python $VMEBDIR/trigdb.py log2tab '%s'", expr);
+  sprintf(cmd, "python $VMEBDIR/txtproc.py '%s'", expr);
+  lookupt[0]= '\0'; rc= popenread(cmd, lookupt, LUTMAXLEN);
+  if((strncmp(lookupt,"0x", 2)!=0) || (rc != EXIT_SUCCESS) ) {
+    printf("ERROR in %s definition: popenread rc:%d\n",expr, rc);
+    printf("%s\n", lookupt);
+    return(8);
+  };
+} else {
+  strcpy(lookupt, expr);
+};
+if(lookupt[strlen(lookupt)-1]=='\n') {
+  lookupt[strlen(lookupt)]='\0';
+};
+if(strlen(lookupt)==67) {
+  lookupt[strlen(lookupt)-1]='\0';
+};
+rc= setLUT(lut, lookupt);
+printf("LUT %d loaded with %s rc:%d\n",lut, lookupt, rc);
+return(rc);
 }
 /*---------------------------------------------------------------- L0-tests */
 /*FGROUP inputsTools

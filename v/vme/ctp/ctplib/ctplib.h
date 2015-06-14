@@ -20,6 +20,9 @@ typedef struct Tlhcpp {
 #define iTotalIntensity1 9
 #define iTotalIntensity2 10
 
+// LUT8
+int setLUT(int lutn, char *m4);
+
 int bobrOpen();
 void bobrClose(int vspbobr);
 int getlhcpp(int vsp, int bstn, int waitforpp, Tlhcpp *lhcpp);
@@ -110,6 +113,7 @@ rc: corresponding L0 or LM0 address
 */
 w32 getLM0addr(w32 l0addr);
 w32 getLM0PFad(w32 l0addr);
+w32 getLM0_F8ad(int reg);
 w32 getCLAMASK();
 
 /*FGROUP DebCon

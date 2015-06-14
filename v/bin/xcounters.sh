@@ -37,6 +37,8 @@ fi
 hname=`hostname -s`
 if [ "$hname" = 'avmes' ] ;then
   p1="6" ; p2="0"
+elif [ "$hname" = 'pcalicebhm10' ] ;then
+  p1="6" ; p2="0"
 elif [ "$hname" = 'alidcscom835' ] ;then
   p1="6" ; p2="1"
 else

@@ -308,6 +308,17 @@ while(strline[ix]!='\0') {
 };
 return(rc);
 }
+/*------------------------------------------------------------ hex4
+ * */
+unsigned int hex4(char *m4) {
+unsigned int rc=0; int ix;
+for(ix=0; ix<4; ix++) {
+  unsigned int bits;
+  bits= hex12int(m4[ix]);
+  rc= rc | (bits<< (4*(3-ix)));
+};
+return(rc);
+}
 /*------------------------------------------------------------ hex2int
 I: "fA01" -hexadecimal number (no leading 0x ! )
 O: rc: internal representation of hex. number

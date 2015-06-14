@@ -78,6 +78,9 @@ def main():
     elif os.environ['VMESITE'] == 'SERVER':
       copyit=True ; acchost='trigger@altri1'
       strict= "strict"
+    elif os.environ['VMESITE'] == 'SERVER2':
+      copyit=True ; acchost='trigger@altri2'
+      strict= "strict"
       #pitdes= os.path.join( os.environ['CLRFS'], "alidcsvme001/home/alice/trigger/v/vme/WORK/RCFG")
     elif os.environ['VMESITE'] == 'PRIVATE':
       copyit=True ; acchost='localhost'

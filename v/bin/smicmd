@@ -49,6 +49,9 @@ General usage:
 0x10  16 TRD
 0x90 144 TRD PHOS
 0x50  80 TRD HMPID
+on altri2/bhm10:
+0x100 256 CPV  -only on altri2/bhm10
+
 EOF
 fi
 echo "smiSendCommnad rc:" $?
