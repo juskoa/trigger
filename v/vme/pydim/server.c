@@ -286,7 +286,7 @@ if(xpid[0]=='\0') {
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
-printf("INFO Dorcfg len:%d %d\n", *size,sizeof(TDAQInfo));
+printf("INFO Dorcfg len:%d %lu\n", *size,sizeof(TDAQInfo));
 if(*size != sizeof(TDAQInfo)){
  char emsg[ERRMSGL];
  sprintf(emsg, "DOrcfg: Structure dim size different from command size.");
@@ -512,7 +512,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   } else {
     ignoreDAQLOGBOOK=0;
   };
-} else if((strncmp(mymsg,"rcfgdel ALL 0",13)==0)) {   //ctpproxy [re]start
+} else if((strncmp(mymsg,"rcfgdel ALL 0x...",11)==0)) {   //ctpproxy [re]start
   //int irc;
   reset_insver();
   readTables();
@@ -691,16 +691,23 @@ if(rl < 10) {
   infolog_trg(LOG_FATAL, emsg);
   printf("ERROR %s", emsg);
 } else {  
-  rc= daqlogbook_update_triggerConfig(runn, mem, alignment);
+  if(ignoreDAQLOGBOOK) { rc=0;}
+  else {
+    rc= daqlogbook_update_triggerConfig(runn, mem, alignment);
+  };
   if(rc!=0) {
     sprintf(emsg, "DAQlogbook_update_triggerConfig: rc:%d\n",rc); 
     infolog_trg(LOG_FATAL, emsg);
     printf("ERROR %s", emsg);
   };
 };
-rc= daqlogbook_update_cs(runn, CSString);
-do_partitionCtpConfigItem(pname, itemname);
-rc= daqlogbook_update_ACTConfig(runn, itemname,instname,instver);
+if(ignoreDAQLOGBOOK) { 
+  rc=0;
+} else {
+  rc= daqlogbook_update_cs(runn, CSString);
+  do_partitionCtpConfigItem(pname, itemname);
+  rc= daqlogbook_update_ACTConfig(runn, itemname,instname,instver);
+};
 }
 /* line: inpupd runn ix1 ix2 ...
  * ix1: 1..60  (24+24+12)
@@ -851,9 +858,12 @@ for(ixc=0; ixc<NCLASS; ixc++) {
       daqlistpn++; dp=daqlist[daqlistpn];
     };
   };
-  rcdaq= daqlogbook_update_triggerClassName(runN, 
-    //classN-1, value, cg, cgtime, (const char **)daqlistp);
-    classN-1, value, cg, cgtime, dsctxtp, (const char **)daqlistp);
+  if(ignoreDAQLOGBOOK) { rcdaq=0;
+  } else {
+    rcdaq= daqlogbook_update_triggerClassName(runN, 
+      //classN-1, value, cg, cgtime, (const char **)daqlistp);
+      classN-1, value, cg, cgtime, dsctxtp, (const char **)daqlistp);
+  };
   sprintf(msg,
     "DAQlogbook_update_triggerClassName(%d,%d,%s,%d,%5.1f, %s, %d) rc:%d",
     runN, classN-1, value, cg, cgtime, dsctxt, daqlistpn, rcdaq);

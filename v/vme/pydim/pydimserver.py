@@ -15,7 +15,7 @@ i.e. .debug file will be created (not .rcfg file)
 2.
 rcfgdel partName NNN
 -> delete $VMEWORKDIR/WORK/RCFG/rNNN.rcfg (check if exists before)
-rcfgdel ALL 0
+rcfgdel ALL 0xc606
 -> move $VMEWORKDIR/WORK/RCFG/*.rcfg to delmeh/
 3.
 smaqmv file_name_in_WORK_directory
@@ -211,14 +211,19 @@ def main():
       sys.stdout.flush()
       part=None
     elif cmd[0]=='rcfgdel':
-      if len(cmd)==3:   #rcfgdel partname NNN
-        if (cmd[2]=='0') and (cmd[1]=='ALL'):   #rcfgdel ALL 0, i.e. ctpproxy restarted
+      if len(cmd)==3:   #rcfgdel partname NNN or ALL 0xc606
+        #if (cmd[2]=='0') and (cmd[1]=='ALL'):   #rcfgdel ALL 0, i.e. ctpproxy restarted
+        if cmd[1]=='ALL':   #rcfgdel ALL 0xc606, i.e. ctpproxy restarted
           import glob
+          FPGAVERSION= cmd[2]
+          #os.putenv('FPGAVERSION', FPGAVERSION)  nebavi (copy of environ)
+          os.environ['FPGAVERSION']= FPGAVERSION
           if len(pts)!=0: 
             print "ERROR partition list not empty:", pts.keys()
           pts= {}
           reload(parted)
-          print "%s parted reloaded (ctpproxy restarted)"%tasc()
+          print "%s parted reloaded (ctpproxy restarted) FPGA:%s"%\
+            (tasc(), FPGAVERSION)
           os.chdir("RCFG")
           rnames= glob.glob('*.rcfg')
           if len(rnames)>0:
@@ -250,6 +255,8 @@ def main():
       # adjust clock shift: correct any shift
       # resetclock is called from ctp_proxy, when PHYSICS_1 started.
       # 3.6.2015: removed from ctp_proxy( i.e. should not be called)
+      print "resetclock: no supported in run2 yet"
+      resetclock="""
       cshift= miclock.getShift()
       if cshift != "old":
         try:
@@ -267,6 +274,7 @@ def main():
           else:
             print "current clock shift (not adjusted):"+cshift
             mylog.infolog("Clock shift %sns ok, (<100 ps)"%cshift, level='i')
+"""
     else:
       print "Bad command:%s"%(line)
     sys.stdout.flush()

@@ -48,6 +48,7 @@ symchars = 'abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
 CFGDIR=trigdb.CFGDIR       # .partition & .pcfg files are here
 WORKDIR=trigdb.TRGWORKDIR  # archive (PCFG/...)
 TRGDBDIR=trigdb.TRGDBDIR   # trigger DB files (VALID.PFS,...)
+FPGAVERSION= os.getenv('FPGAVERSION')
 
 PF_NUMBER=4         # 4 PFs
 PF_COMDEFSIX=9
@@ -60,6 +61,8 @@ if BCM_NUMBER==4:
 else:
   L0F_NUMBER=12     # 12 (debug: 6)
   PFS_START=16
+if trgglobs.L0VER >= 0xc606:
+  L0F_NUMBER=8
 lutzero="0x"+ '0'*(2**(L0F_NUMBER-2))
 TRGCTPCFG= trigdb.Trgctpcfg()
 clgtimes= TRGCTPCFG.getTIMESHARING()
@@ -371,7 +374,7 @@ class TrgDescriptor:
     In case of error
       self.name is None
     In case descriptor is not loadable (some inputs not connected
-    or not connected to 1..4 in case of l0f used)
+    or not connected to 1..4 (8 in case of lut8) in case of l0f used)
       self.allinputsvalid is False
   """
   def __init__(self, name, inps=[]):
@@ -393,8 +396,9 @@ class TrgDescriptor:
     self.class4550flag=0   # 1 if this TDS requires class 45..50
     # 1 TDS can use as many l0funs as available, i.e. 2
     # NOTE: The final ordering of l0funs is in partition's l0funs !
-    self.l0funs=[None,None]  # l0funs definitions (LUTs), if used, for this TDS
-    # 1 item is: [integer, string_l0definition]
+    self.l0funs=[None,None,None,None]  # l0funs definitions (LUTs), if used, for this TDS
+    # 1 item is: [integer, string_l0definition] -old L0F1/2
+    #            ["0x...", string_l0definition] -new L0F1/2/3/4 lut8 
     self.l0funs34=[None,None] # l0funs definitions (LUTs), if used, for this TDS
     # 1 item is: [[hexastringA, hexastringB], string_complete_l0definition] or A, B separately???
     for inpnegname in inps:
@@ -408,6 +412,8 @@ class TrgDescriptor:
         continue
       if inpnegname[0:3]=='l0f': 
         if inp.l0fAB: # complex l0f
+          PrintError(inpnegname+" -l0fA/B not supportedin "+self.name+" descriptor", self)
+          continue
           abok=0
           #for l0ab in ("l0A","l0B"):
           for ixab in (0,1):
@@ -476,7 +482,7 @@ class TrgDescriptor:
       if validinpl0:
         self.inputs.append(inpnegname)
       #NOTE: check for class 45..50 later, in CTP loader
-    # 2 l0funs bits in self.l0inps will be set from trde.l0funs later
+    # 2 or 4 l0funs bits in self.l0inps will be set from trde.l0funs later
     # in savepcfg()
     self.allinputsvalid= allinputsvalid
     if baddesc==True:
@@ -507,6 +513,9 @@ class TrgDescriptor:
       if L0F_NUMBER==4:
         maxL0F_NUMBER= 4
         maxinputs= 4
+      elif L0F_NUMBER==8:   # lut8 case
+        maxL0F_NUMBER= 8
+        maxinputs= 8
       else:
         maxinputs=L0F_NUMBER
         if inp.name[:3]=='l0A':
@@ -549,12 +558,15 @@ descriptor/l0f is used with any class in this partition.
   def checkForPcfg(self, inp):
     """
     To be called in time of .pcfg generation
-    inp: instance of l0f TrgInput (simple or complex (i.e. l0fAB defined))
+    inp: instance of l0f TrgInput (simple, lut8 or complex (i.e. l0fAB defined))
     rc: None if ok
     """
     #print "txtlog2tab:",inp.l0fdefinition, inputs
     err_rc= None
     if inp.l0fAB:
+      PrintError("l0f34 not supported")
+      err_rc= 8
+      return err_rc
       txtlut2= ["0","0"]
       for ix in (0,1):
         if inp.l0fAB[ix]==None:   # A or B not supplied in VALID.CTPINPUTS
@@ -572,7 +584,10 @@ descriptor/l0f is used with any class in this partition.
       txtlut= txtproc.log2tab(inp.l0fdefinition, inputs)
       l0funs= self.l0funs
       if txtlut:
-        lut= eval(txtlut) 
+        if L0F_NUMBER==8:
+          lut= txtlut 
+        else:
+          lut= eval(txtlut) 
     #print "txtlog2ta2:",txtlut, self.name
     if txtlut==None:
       PrintError("l0f: %s \n inputs:%s) -cannot create LUT"%
@@ -582,7 +597,7 @@ descriptor/l0f is used with any class in this partition.
       defstored= self.check2or34funs(l0funs, lut, inp)
       if not defstored:    
         err_rc= 7
-        PrintError("Number of used l0funs for TDS %s >2. %s not used"%
+        PrintError("Number of used l0funs for TDS %s >2 (or 4). %s not used"%
           (self.name, inp.l0fdefinition), self)
       #if self.name=="DTEST":
       #  print "TrgDescLUT:DTEST", inp.l0fdefinition, inputs
@@ -597,24 +612,37 @@ descriptor/l0f is used with any class in this partition.
     """ check if already used by this TDS, if not
      add this l0fun definition in l0funs (or self.l0funs34])
     In: lut: integer -for simple l0f
-             ["hexa","hexa"] -for complex l0f 2 LUTs in list
+             string  -for lut8
+             ["hexa","hexa"] -for complex l0f34 2 LUTs in list
     firmAC considerations:
-    check: # of l0f <=2 in TDS
-    ???
+    check: # of l0f <=2/4 in TDS
+    rc: 1: ok None: not stored, i.e. error
 """
     defstored=None
-    for i01 in (0,1):
-      if l0funs[i01] == None:
-        l0funs[i01]= (lut, inp)
-        if i01==1:   #always keep ascending order of LUTs!
-          if l0funs[1][0]< l0funs[0][0]: # for right allocation
-            lowerlut= l0funs[1];
-            l0funs[1]= l0funs[0]
-            l0funs[0]= lowerlut
-        defstored=1; break
-      else:
-        if l0funs[i01][0] == lut:
+    if L0F_NUMBER==8:
+      for i01 in (0,1,2,3):
+        if l0funs[i01] == None:
+          l0funs[i01]= (lut, inp)
+          if i01>0:   #always keep ascending order of LUTs!
+            # sort l0funs[] with key: lut
+            l0funs= sorted(l0funs, key=lambda x: x[0])    # ssems ok
           defstored=1; break
+        else:
+          if l0funs[i01][0] == lut:
+            defstored=1; break
+    else:
+      for i01 in (0,1):
+        if l0funs[i01] == None:
+          l0funs[i01]= (lut, inp)
+          if i01==1:   #always keep ascending order of LUTs!
+            if l0funs[1][0]< l0funs[0][0]: # for right allocation
+              lowerlut= l0funs[1];
+              l0funs[1]= l0funs[0]
+              l0funs[0]= lowerlut
+          defstored=1; break
+        else:
+          if l0funs[i01][0] == lut:
+            defstored=1; break
     return defstored
   def show(self,master):
     tdbut= myw.MywButton(master, label=self.name, side=RIGHT, cmd=self.prt)
@@ -1129,6 +1157,7 @@ l. The list of possible trigger descriptor names - one of them has
             self.csName= lione[1]
         continue
       if line[0] == "\n": continue
+      if len(line) == 0: continue
       (bcm_name, bcm_definition) = string.split(line)
       #print "load_BCMs:",bcm_name, bcm_definition
       bm=txtproc.BCmask(bcm_definition,bcm_name) ; 
@@ -1162,7 +1191,7 @@ l. The list of possible trigger descriptor names - one of them has
 
 os.chdir(trigdb.TRGWORKDIR)
 print "working dir:",trigdb.TRGWORKDIR, "\nTRGDBDIR:", TRGDBDIR, \
-  "\nCFGDIR:", CFGDIR
+  "\nCFGDIR:", CFGDIR,"\nFPGAVERSION:",FPGAVERSION
 TDLTUS= TdsLtus()
 TDLTUS.initTDS() 
 #shared resources (order is important for savepcfg, getTXTbcrnd):
@@ -1361,9 +1390,9 @@ class TrgClass:
     #print "setCluster:" ; self.trde.prt()
     if mycluster:
       if self.trde:
-        lfs,error=self.mycluster.partition.allocShared(self.trde.l0funs34, lf34=1)
-        if error:
-          PrintError("setCluster: Class %s: %s"%(self.getclsname(), error))
+        #lfs,error=self.mycluster.partition.allocShared(self.trde.l0funs34, lf34=34)
+        #if error:
+        #  PrintError("setCluster: Class %s: %s"%(self.getclsname(), error))
         lfs,error=self.mycluster.partition.allocShared(self.trde.l0funs)
         if error:
           PrintError("setCluster:Class %s: %s"%(self.getclsname(), error))
@@ -2063,8 +2092,8 @@ class TrgPartition:
     self.activeCluster= None
     # shared resources by this partition. The following should be
     # checked always when new resource added:
-    # - number of l0funs <=2   todo: 4 if we allow transition to l0f34
-    self.l0funs=[None, None]    # used l0funs (16 bits stored if used)
+    # - number of l0funs <=2   4: lut8
+    self.l0funs=[None, None, None, None]    # used l0funs (16 bits stored if used)
     self.l0funs34= [None, None] # complex l0f. pointer to l0fxxx TrgInput with
     # defined l0fAB pointing to 2 l0[AB]xxx TrgInput objects
     # list of pointers to P/F objects utilised by this partition (max. 4)
@@ -2217,7 +2246,7 @@ class TrgPartition:
     """
   def l0fUpdate(self, tl0funs, l0inps):
     for ix in (0,1):
-      #print  cls.trde.l0funs[ix]
+      #print  "l0fupdate:",ix,tl0funs[ix]
       lf= tl0funs[ix]
       if lf:
         lutv= tl0funs[ix][0]    # >=AC
@@ -2228,7 +2257,7 @@ class TrgPartition:
         else:                   # <=AB
           lfpos= 24
           ixall= self.l0funs[lutv][1]
-        #print "LUTixall:lutv:",lutv,ixall
+        #print "LUTixall:lutv:lfpos:%d"%lfpos,lutv,ixall
         #cls.prtClass()
         l0inps= l0inps & ~(1<<(lfpos+ixall))   # set l0funs
     return l0inps
@@ -2279,9 +2308,9 @@ class TrgPartition:
       sr.used=0
     CLAlines=[]
     # allocate l0f* usage in all classes (check if <=2 used was done already)
-    lfs,error=self.allocShared([None,None], lf34=1)   #just update self.l0funs
-    if error: errormsg= errormsg+error+'\n'
-    lfs,error=self.allocShared([None,None])   #just update self.l0funs
+    #lfs,error=self.allocShared([None,None], lf34=34)   #just update self.l0funs
+    #if error: errormsg= errormsg+error+'\n'
+    lfs,error=self.allocShared([None,None,None,None])   #just update self.l0funs
     if error: errormsg= errormsg+error+'\n'
       #PrintError(error)
     # calculate lines for all classes in all clusters:
@@ -2408,7 +2437,7 @@ class TrgPartition:
         l1inv= cls.trde.l1inv
         #print "savepcfg:",cls.trde.l0funs
         l0inps= self.l0fUpdate(cls.trde.l0funs, l0inps)
-        l0inps= self.l0fUpdate(cls.trde.l0funs34, l0inps)
+        #l0inps= self.l0fUpdate(cls.trde.l0funs34, l0inps)
         clgrouptx=''
         if cls.classgroup>0: clgrouptx=" %d"%cls.classgroup
         if cls.clanumlog != clanum:
@@ -2456,16 +2485,22 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       print errormsg
       return errormsg
     line='RBIF '
-    for ix in range(4):    # order: RND1,2 BC1,2 L0f1,2,T
+    #print "RBIF:l0funs", self.l0funs
+    for ix in range(4):    # order: RND1,2 BC1,2
       line=line+str(SHRRSRCS[ix].getValueHexa())+':'
-    for ix in (0,1):
+    if L0F_NUMBER==8: l0fsrange= (0,1,2,3)
+    else: l0fsrange= (0,1)
+    for ix in l0fsrange:
       for shrlut in self.l0funs.keys():
         if self.l0funs[shrlut][1]==ix:
           #line=line + "0x%x"%shrlut + " " + str(self.l0funs[shrlut][0])
-          line=line + "0x%x"%shrlut + " "+self.l0funsdefs[shrlut]
+          if L0F_NUMBER==8:
+            line=line + shrlut + " "+self.l0funsdefs[shrlut]
+          else:
+            line=line + "0x%x"%shrlut + " "+self.l0funsdefs[shrlut]
       line=line+':'
     outfile.write(line+"\n")
-    if BCM_NUMBER!=4:
+    if BCM_NUMBER==34:   # !=4:
       line='L0F34 '
       for ix in (0,1):
         for shrlut in self.l0funs34.keys():
@@ -2949,9 +2984,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     of.write(line)
   def allocShared(self, pl0funs, lf34=None):
     """
-    pl0funs: list of l0funcs ([16bitsvalue,inp_ref] or 
-      [string_2hexa, in_pref] in case of lf34!=None)
-      to be used in addition to already used in self.l0funs[34]
+    pl0funs: list of l0funcs [16bitsvalue,definition] or 
+      ["0xlut8", definition] in case of lut8
+      [string_2hexa, definition] in case of lf34==34)
+      to be used in addition to already used
     If l0funs not used: [None, None]
     1 l0fun used:   [(LUT,inp), None]
     2 l0funs used:   [(LUT1,inp), (LUT2,inp)]
@@ -2976,16 +3012,14 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     for cluster in self.clusters:
       for cls in cluster.cls:
         for ix in (0,1):
-          if lf34:
+          if lf34==34:
             trdel0funs= cls.trde.l0funs34
           else:
             trdel0funs= cls.trde.l0funs
           if trdel0funs[ix]:   # l0f[ix] used
-            #von if lf34: lutval= list2str(trdel0funs[ix][0])
-            #von else:    lutval=          trdel0funs[ix][0]
             lutval= list2str(trdel0funs[ix][0])
             l0def=  trdel0funs[ix][1].l0fdefinition
-            #print "allocSharednew:",ix, lutval,'=',l0def
+            #print "allocSharednew:",cls.trde.name,ix, lutval,'=',l0def
             #cls.prtClass()
             if plfs.has_key(lutval):
               # number of uses:
@@ -3006,7 +3040,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
         plfs[lutval]= [1, ixalloc]; ixalloc= ixalloc+1
       if ixalloc<=2:
         newlf[plfs[lutval][1]]= lutval
-    if lf34:
+    if lf34==34:
       self.l0funs34= plfs
       #print "aS_l0f34:"
       self.l0funsdefs34= plfsdefs  # corresponding l0 definitions
@@ -3016,8 +3050,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       self.l0funsdefs= plfsdefs  # corresponding l0 definitions
     #print plfs,"\n",plfsdefs
     #print "newlf:",newlf,"\nixalloc:%d"%ixalloc
-    if ixalloc>2:
-      errmsg="not allocated (>2 l0fs used in partition):"
+    if L0F_NUMBER==8: l0fsmax= 4
+    else: l0fsmax= 2
+    if ixalloc>l0fsmax:
+      errmsg="not allocated (>%d l0fs used in partition)"%l0fsmax
       newlf=None
     #print "allocShared:rc::", newlf,errmsg
     return newlf,errmsg
@@ -3553,19 +3589,24 @@ def main():
       else:
         part.savercfg()
         #part.savercfg("a 115812 0x5008a 1 0 2 0 0 0 1 45 2 46 3 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0x0 0x0 0x0 0x0")
-      return
+    elif sys.argv[2]=='p':   # create .pcfg file for given partition
+      part= TrgPartition(partname)
+      if part.loaderrors:
+        print "Errors:"
+        print part.loaderrors
+      else:
+        part.savepcfg()
     else:                 # srgv[2]: source directory with .partition/.pcfg)
       print "bad argv[2]:",sys.argv[2]
-      return
   else:     # edit partition
     f= Tk()
     partw= TrgLoadSave(f,partname)
     # print load errors + info what was loaded:
     if partw.part:
       partw.part.prt()
-  #P1.show(f)
-  #P2.show(f)
-  f.mainloop()
+    #P1.show(f)
+    #P2.show(f)
+    f.mainloop()
   
 if __name__ == "__main__":
     main()

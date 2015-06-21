@@ -167,7 +167,7 @@ if(ACTIVEDETS[ix].deta!=-1) {
 } else {
   strcpy(active,"NOT ACTIVE");
 };
-sprintf(msg, "%2d: %s %s. rate:%d ms. attempts/sent:%d/%d\n", 
+sprintf(msg, "%2d: %s %s. rate:%d ms. attempts/sent:%d/%d", 
   ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
   ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 prtLog(msg);

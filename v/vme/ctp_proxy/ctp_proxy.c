@@ -203,6 +203,7 @@ if(dodel==1) {
 } else if(dodel==2) {
   tag=TAGrcfgdelete;
   sprintf(cmd,"rcfgdel ALL 0\n");
+  sprintf(cmd,"rcfgdel ALL 0x%x\n", l0C0());
 } else {
   char emsg[300];
   sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
@@ -2334,8 +2335,9 @@ usleep(150);   /* 100-> 150 4.9.2012  L2time is 105.2us */
    ret= stopTimer(part,0xfffffffe);  // do not read counters
  };
 /*usleep(2000);  to keep trigger rate <1kHz for DDG*/
-usleep(1000000);  /* asked by DAQ -see mail/daq from 12.12.2009 */
+usleep(500000);  /* 1000000: asked by DAQ -see mail/daq from 12.12.2009 */
 cshmDelPartition(part->name);
+usleep(500000);  /* 1000000: split to 2x0.5s -perhaps it gives more time to gcalib for update*/
 // xcountersStop(run_number);   moved up
 //von unsetPartDAQBusy(part, 0);    // in case it was 'paused'
 if(generateXOD(part,'E', emsg, &orbitn )) {

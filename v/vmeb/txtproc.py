@@ -172,6 +172,7 @@ def log2tab(logexp, vo=["a","b","c","d"]):
           in loop for all possible input combinations through
           eval(logexp)  -logexp's values are 1/0 constants.
   vo:     ["var0","var1","var2","var3"]  -names of 4 or less (old LUTs), or
+          lut8 (LM0: 0xc606) or
           up to 12 variables used in logexp. len(vo) identifies
           number of output bits (1:1 2:4 3:8 4:16 5:32 ... 12:4096)
   output: char string:

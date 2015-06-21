@@ -37,7 +37,7 @@
 #define DBGgetInputDets 1   // getInputDets()
 #define DBGcumRBIF 0   // cumRBIF()
 #define DBGCLGROUPS 1  // class groups (time slots on/off for class groups)
-#define DBGrbif 0
+#define DBGrbif 1
 #define DBGpriv 0   // offline testing (VMESITE=PRIVATE)
 
 #include "bakery.h"
@@ -175,33 +175,38 @@ Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 #define ixbc2 3
 #define ixl0fun1 4 
 #define ixl0fun2 5
-#define ixintfun1 6
-#define ixintfun2 7
-#define ixintfunt 8
-#define ixlut3132 9
-#define ixlut4142 10
-#define ixrbifdim 11 
+#define ixl0fun3 6 
+#define ixl0fun4 7 
+#define ixintfun1 8
+#define ixintfun2 9
+#define ixintfunt 10
+#define ixlut3132 11
+#define ixlut4142 12
+#define ixrbifdim 13 
 #define notused 51
 #define nothwal 61
 #define L0INTFSMAX 64
 #define L0F34SDMAX 200
 
-#define LEN_l0f34 4096
+//#define LEN_l0f34 4096
 //debug case: corresponds to [a b c d e f] in Ctpcfg.__init__(
 // Ctpconfig.dbgbits=6 (real:12)
-//#define LEN_l0f34 64 
+#define LEN_l0f34 64 
+
+#define LUT8_N 4 
+#define LUT8_LEN 68 
 
 #define ORBITLENGTH 3564
 
 typedef struct TRBIF{
- w32 rbif[ixrbifdim];    // value (valid according to rbifuse[])
+ w32 rbif[ixrbifdim];    // value (valid according to rbifuse[]) 0xffffffff for lut8
  w32 rbifuse[ixrbifdim]; 
  //notused  :not used by this partition , rbif[ix] irrelevant
  //nothwal  : used but not allocated to hw, requested value in rbif[ix]
  // in hw allocated at hw.rbif[rbifuse[ix]]
  w32 intsel;
  //w32 bcmask[4];
- char l0intfs[5*L0INTFSMAX];  // l0f1/2 int1/2/t as a text string
+ char l0intfs[7*L0INTFSMAX];  // l0f1/2/3/4 int1/2/t as a text string
  //char BCMASK[ORBITLENGTH+1];  // '1','2',...,'f'
  w16 BCMASK[ORBITLENGTH+1];  // '1','2',...,'f' ... 'fff' for 12 BC masks
  w8 BCMASKuse[12];             // same as rbif 0:not used, 1..12: bcm1..12 used
@@ -214,6 +219,7 @@ typedef struct TRBIF{
  // 1byte: 4 rigthmost bits contain 4 bits of lut
  char l0f3sym[L0F34SDMAX];  // symbolic representation
  char l0f4sym[L0F34SDMAX];
+ char lut8[4*LUT8_LEN];   // 4 lut8 LUT, format: "0xabcdef..." 64 hexa digits
 }TRBIF;
 
 // TRBIF:

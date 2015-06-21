@@ -223,15 +223,27 @@ printf("\n");
 printf("  RBIF "); 
 printf("rnd1:0x%x rnd2:0x%x ",rbif->rbif[ixrnd1],rbif->rbif[ixrnd2]);
 printf("bc1:0x%x bc2:0x%x ",rbif->rbif[ixbc1],rbif->rbif[ixbc2]);
-printf("l0f1:0x%x l0f2:0x%x ",rbif->rbif[ixl0fun1],rbif->rbif[ixl0fun2]);
-//printf("  intf1,2,t:0x%x 0x%x 0x%x\n",rbif->rbif[ixintfun1], rbif->rbif[ixintfun2], rbif->rbif[ixintfunt]);
+if(l0C0()>=0xc606) {
+  printf("l0f1:0x%x l0f2:0x%x l0f3:0x%x l0f4:0x%x\n",
+    rbif->rbif[ixl0fun1],rbif->rbif[ixl0fun2],
+    rbif->rbif[ixl0fun3],rbif->rbif[ixl0fun4]
+  );
+  for(ix=ixl0fun1; ix<ixintfun1; ix++) {
+    printf("lut%d:%s\n", ix-ixl0fun1+1, &rbif->lut8[(ix-ixl0fun1)*LUT8_LEN]);
+  };
+} else {
+  printf("l0f1:0x%x l0f2:0x%x ",rbif->rbif[ixl0fun1],rbif->rbif[ixl0fun2]);
+  //printf("  intf1,2,t:0x%x 0x%x 0x%x\n",rbif->rbif[ixintfun1], rbif->rbif[ixintfun2], rbif->rbif[ixintfunt]);
+};
 for(ix=ixl0fun1; ix<=ixintfunt; ix++) {
   char t12; char l0int[4];
-  if(ix<=ixl0fun2) { strcpy(l0int,"l0f");
+  if(ix<ixintfun1) { 
+    strcpy(l0int,"l0f");
+    t12='1' + ix - ixl0fun1;
   } else {  strcpy(l0int,"int"); };
-  if( (ix==ixintfun1) || (ix==ixl0fun1) ) { t12='1';
-  } else if( (ix==ixintfun2) || (ix==ixl0fun2) ) { t12='2';
-  } else { t12='t';};
+  if( ix==ixintfun1 ) { t12='1';};
+  if( ix==ixintfun2) { t12='2';};
+  if( ix==ixintfunt) { t12='t';};
   //printf("RBIF:%d %s\n",ix,l0int);
   if(rbif->rbifuse[ix]!=notused){
     printf("  %s%c rbifuse:%d %s:\n", l0int, t12,

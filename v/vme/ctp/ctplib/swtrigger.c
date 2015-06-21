@@ -368,7 +368,7 @@ if(DBGswtrg4) printf("startswtrig: %d %s\n", ret, reason[ret] );
 RET:  clearflags(); 
 return(ret);
 }
-
+int msgpres=0;
 /* ------------------------------------------------------------ GenSwtrg 
 orbitn: orbit number read just before the first trigger generation, i.e.
         it is always <= of ORBITID of the sw. trigger event
@@ -395,14 +395,19 @@ if(detectors & 0x20000) {
 };
 if(trigtype=='c') {
   status= cshmGlobalDets();
-  if(strcmp("ALICE", getenv("VMESITE"))==0) {
+  //if(strcmp("ALICE", getenv("VMESITE"))==0) {
+  if(strcmp("ALICE", "ALICE")==0) {
     if((status & detectors)!=detectors) {
       printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
         detectors,status);
       return 12345678;   //magic used in ctp/testclass.py
     };
   } else {
-    status= detectors; printf("Presence of dets in glob. run not checked!!!\n");
+    status= detectors;
+    if(msgpres==0) {
+      printf("Presence of dets in glob. run not checked!!!\n");
+      msgpres++;
+    };
   };
 };
 lockBakery(&ctpshmbase->swtriggers, customer);

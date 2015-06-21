@@ -289,7 +289,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define DAQ_LEDlm0     0x9234
 //von #define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
-#define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only */
+#define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only 0x60:lm_out */
 
 #define LM_L0_TIME 0x924c           /* 17 BCs ? */
 #define LM_RANDOM_1 0x9250       /* L0 counterpart: RANDOM_1 */

@@ -75,3 +75,73 @@ actdb.c actdb_getPartition(), now in ctplib/actdbctp.c -should
 
 status 3.3.2014: should be ok -i.e. 'filter' file is created the same
 (as it was in run1), now using /CTP/trgInput_LTUNAME instances in ACT
+
+---------- 12.6.2015: flexible act (see also todolist)
+goal: allow ACT change even during run, at least for:
+filter -already done (i.e. filter can be applied during the time when partition is active):
+  - i.e:
+  actdb_getPartition() ctplib/actdbctp.c
+    void actdb_getff(char *filter, int actopcls)  -as file+variable
+
+VALID.DESCRIPTORS, aliases.txt
+-> actdb_getdbfile()
+FillingScheme
+VALID.BCMASKS
+Now (old way):
+1. reconfig ctp -> ctpproxy.py actrestart
+     ctpproxy STOP
+     ctp_proxy/linux_s/act.exe  -downloading files from ACT
+     CTPRCFG/RCFG intupdate aliasesupdate
+     ctpproxy START
+     if FillingScheme==bcmasks:
+        colschedule.bash update 
+     else:
+        getfsdip.main("act")     -this not needed here!
+2. pydimserver.py in time of ctpproxy [re]start:
+- reload parted (i.e. after files downloaded from ACT)
+   
+New (flexible) way:
+1. leave ctpproxy.py to be called only for: ctp.cfg ctpinputs.cfg -only
+   these 2 files should be left in actdb_getdbfiles() or all?
+2. check if ctpproxy at START_PARTITION contacts pydimserver:
+   NO -i.e. after INIT_PARTITION, pydimserver is done!
+3. add to actdb_getff(): i.e with each INIT_PARTITION
+   - ACT->local file copy (perhaps inteligent i.e. if not changed, no download?) of:
+     VALID.DESCRIPTORS
+     FillingScheme, VALID.BCMASKS+colschedule.bash update -only if bcmask!
+4. pydimserver.py:
+   reload parted; with each rcfg request (if file changed).
+
+List to Vasco (sent 17.6.):
+Hi Vasco and Franco,
+1st group (i.e. we need to stop all partitions if we want to load new
+version):
+VALID.LTUS,ttcparts.cfg,ctp.cfg,ctpinputs.cfg.
+
+2nd group: all the others (VALID.DESCRIPTORS, VALID.BCMASKS, FillingScheme)
+-i.e. if a run is active, it will finish with old config version, 
+valid in time when the run was started. 
+New runs will use fresh configs (i.e.  ACT would be consulted
+always in the time of INIT_PARTITION).
+Note: /CTP/filter items are already done this way (i.e. we do not need
+to reconfigure ctpproxy after filter change -it just becomes valid with
+the next run).
+
+I did not implement changes yet. When I have it ready (I think
+it should work with current ACT -just 'ctp reconfig request' will
+be useless for 2nd group), I let you know (seems to me not sooner than
+in second half of July).
+Here are remaining points to be done after:
+
+    1. ACT change: 2 groups: CTP_restart and CTP_not_restart
+    2. validate improvements:
+       A. add names to stdout+validate.log (with '*' for effectively 
+          filtered out
+       B. use working directory (not /tmp)
+       C. DAQlogbook_update_triggerConfig API change: + bitmask
+          of effectively disabled trg. detectors (called from pydim/server)
+    3. move filter from CTP_ to partition area in ACT (i.e. separate 
+       filter for each partition) 
+    4. implement validate as 'service' (not rpm)
+
+

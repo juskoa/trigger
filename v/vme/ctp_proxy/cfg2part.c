@@ -652,23 +652,24 @@ TRBIF *INTSEL2Partition(char *line,TRBIF *rbif){
   Called by: ParseFile()
 */
 TRBIF *RBIF2Partition(char *line,TRBIF *grbif){
- int rc,ixline,ix;
+ int rc,ixline,ixrbf;
 w32 rbif[ixrbifdim];
 w32 rbifu[ixrbifdim];
-char l0intfs[5*L0INTFSMAX];  // l0f1/2 int1/2/t as a text string
+char lut8[4*LUT8_LEN];
+char l0intfs[7*L0INTFSMAX];  // l0f1/2 int1/2/t as a text string
 
 if(grbif == NULL){ // create rbif if not existed 
   grbif= allocTRBIF();
   if(grbif == NULL){ return NULL; }
 };
-for(ix=0; ix<ixrbifdim; ix++) {
-  rbif[ix]=0; rbifu[ix]=notused;   //not used
+for(ixrbf=0; ixrbf<ixrbifdim; ixrbf++) {
+  rbif[ixrbf]=0; rbifu[ixrbf]=notused;   //not used
 };
-ix=0; ixline=0;   //ix: index to the first 'not present' (from rbif line)
+ixrbf=0; ixline=0;   //ix: index to the first 'not present' (from rbif line)
 //ixline=findchar(":", &line[0], &rc); doea not work for 1st item rnd1
 ixline=findchar("F", &line[0], &rc);
 /*RBIF 0x1:0x2:0x3:0x4:0x5:0x6:0x7
-    ix 0    1    2   3   4    5    6    7
+ ixrbf 0    1    2   3   4    5    6    7
        rnd1:rnd2:bc1:bc2:l0f1:l0f2:int1:int2:intint:
 */
 if(DBGcfgin){
@@ -677,13 +678,13 @@ if(DBGcfgin){
 }
 //ixline--;
 ixline++;
-if(rc==-1) ix=ixrbifdim;   // shared resources not used
-while(ix<ixrbifdim){
+if(rc==-1) ixrbf=ixrbifdim;   // shared resources not used
+while(ixrbf<ixrbifdim){
   int vallen, vallen2, rc;
   char base; char emsg[ERRMSGL];
   ixline++;
   if(DBGrbif) {
-    printf("RBIFF:%s ixline:%d ix:%d\n",line,ixline,ix);
+    printf("RBIFF:%s ixline:%d ixrbf:%d\n",line,ixline,ixrbf);
   };
   if((line[ixline]=='\0') || (line[ixline]=='\0') ) break;
   if(strncmp(&line[ixline],"0x",2)==0) {
@@ -703,54 +704,73 @@ while(ix<ixrbifdim){
   };
   if(vallen2==0) { goto NEXT; };   // : found
   if(vallen2==-1) { break; };       // : not found, no more definitions
-  if( (ix >=ixl0fun1) && (ix<=ixintfunt)) {   // l0f1/l0f2/in1/int2/intt
+  if( (ixrbf >=ixl0fun1) && (ixrbf<=ixintfunt)) {   // l0f1..4/int1/int2/intt
     /* :0x1234 0OVB & 0SMB | 0VGC:
               |                  vallen2
               *-- vallen
     i.e. 1st space after lookuptable is delimiter 
-    After 1st space, the function definition follows till :   */
+    After 1st space, the function definition follows till : 
+    Note about lut8: 
+      - l0f3/4 inserted after l0f2
+      - int1/2/t not used anyhow (at least not in .partition)  */
+
     vallen=findchar(" :", &line[ixline], &rc);
     if(vallen==0) {
       // ': :' or ': 0VGA&0SMB:'
-      sprintf(emsg,"Lookup table error (hexa) missing in RBIF");
+      sprintf(emsg,"Lookup table (0x... digits) missing in RBIF");
       prtError(emsg); goto RETNULL;
     };
-    if(string2int(&line[ixline+vallen-1], vallen,&rbif[ix], base)) {
-      sprintf(emsg,"RBIF2partition l0/int fun:%s (base:%c) is not int neither hexa", 
-        &line[ixline+vallen-1], base);
-      prtError(emsg); goto RETNULL;
+    if(vallen==64) {
+      int lut8ix;
+      // l0f lut (66 chars 0x...):
+      rbif[ixrbf]= 0xffffffff;
+      lut8ix= LUT8_LEN*(ixrbf-ixl0fun1);
+      strncpy( &lut8[lut8ix], &line[ixline-2], 66);
+      lut8[lut8ix+66]= '\0';
+    } else {
+      // l0f lut (16 bits):
+      if(string2int(&line[ixline+vallen-1], vallen,&rbif[ixrbf], base)) {
+        sprintf(emsg,"RBIF2partition l0/int fun:%s (base:%c) is not int neither hexa", 
+          &line[ixline+vallen-1], base);
+        prtError(emsg); goto RETNULL;
+      };
     };
-    strncpy(&l0intfs[(ix-ixl0fun1)*L0INTFSMAX], 
+    // l0f definition human readable:
+    strncpy(&l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX], 
       &line[ixline+vallen], vallen2-vallen);
-    l0intfs[(ix-ixl0fun1)*L0INTFSMAX + vallen2-vallen]='\0';
+    l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX + vallen2-vallen]='\0';
     printf("cfg2part:l0intfs:len:%d %s:\n", 
-      vallen2-vallen,&l0intfs[(ix-ixl0fun1)*L0INTFSMAX]);
+      vallen2-vallen,&l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX]);
   } else {
-    if(string2int(&line[ixline+vallen2-1], vallen2,&rbif[ix], base)) {
+    if(string2int(&line[ixline+vallen2-1], vallen2,&rbif[ixrbf], base)) {
       sprintf(emsg,"RBIF2partition:%s base%c: is not int neither hexa", 
         &line[ixline+vallen2-1], base);
       prtError(emsg); goto RETNULL;
     };
   };
-  if(DBGcfgin)printf("%i 0x%x \n",ix,rbif[ix]);
+  if(DBGcfgin)printf("%i 0x%x \n",ixrbf,rbif[ixrbf]);
   ixline= ixline+vallen2;
-  rbifu[ix]=nothwal;
-  NEXT: ix++;
+  rbifu[ixrbf]=nothwal;
+  NEXT: ixrbf++;
   //printf("RBIF2Partition: %d was:0x%x len:%d ixline:%d\n", 
-  //  ix-1, rbif[ix-1], vallen2, ixline);
+  //  ixrbf-1, rbif[ixrbf-1], vallen2, ixline);
 };
-for(ix=0; ix<ixrbifdim; ix++) {
-  grbif->rbif[ix]=rbif[ix]; grbif->rbifuse[ix]=rbifu[ix];   //not used
+for(ixrbf=0; ixrbf<ixrbifdim; ixrbf++) {
+  grbif->rbif[ixrbf]=rbif[ixrbf]; grbif->rbifuse[ixrbf]=rbifu[ixrbf];   //not used
   if(DBGrbif) {
-    printf("RBIF2Partitiin: [%i 0x%x %i]",ix,rbif[ix],rbifu[ix]);
+    printf("RBIF2Partitiin: [%i 0x%x %i]",ixrbf,rbif[ixrbf],rbifu[ixrbf]);
   };
-  if( (ix >=ixl0fun1) && (ix<=ixintfunt)) {   // l0f1/l0f2/in1/int2/intt
-    if(rbifu[ix]!= notused) {
-      strncpy(&(grbif->l0intfs)[(ix-ixl0fun1)*L0INTFSMAX], 
-        &l0intfs[(ix-ixl0fun1)*L0INTFSMAX],L0INTFSMAX);
-      (grbif->l0intfs)[(ix-ixl0fun1)*L0INTFSMAX+L0INTFSMAX-1]='\0'; 
+  if( (ixrbf >=ixl0fun1) && (ixrbf<=ixintfunt)) {   // l0f1/l0f2/in1/int2/intt
+    if(rbifu[ixrbf]!= notused) {
+      strncpy(&(grbif->l0intfs)[(ixrbf-ixl0fun1)*L0INTFSMAX], 
+        &l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX],L0INTFSMAX);
+      (grbif->l0intfs)[(ixrbf-ixl0fun1)*L0INTFSMAX+L0INTFSMAX-1]='\0'; 
+      strncpy(&(grbif->lut8)[(ixrbf-ixl0fun1)*LUT8_LEN], 
+        &lut8[(ixrbf-ixl0fun1)*LUT8_LEN],LUT8_LEN);
+      (grbif->l0intfs)[(ixrbf-ixl0fun1)*L0INTFSMAX+L0INTFSMAX-1]='\0'; 
+      (grbif->lut8)[(ixrbf-ixl0fun1)*LUT8_LEN+LUT8_LEN-2]='\0'; 
       if(DBGrbif) {
-        printf(" %s", &grbif->l0intfs[(ix-ixl0fun1)*L0INTFSMAX]);
+        printf(" %s", &grbif->l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX]);
       };
     };
   }; 

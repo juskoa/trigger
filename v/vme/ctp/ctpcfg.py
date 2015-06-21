@@ -155,7 +155,7 @@ class Ctpconfig:
     rbiflen= 9
     lmrblen= 4   # number of items (space separated) in LMRB line
     intsellen= 2
-    dbgbits=12 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
+    dbgbits=6 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
     BCMASKN=12
     if Gl0C0==None:
       firstshrgrp2= lastshrgrp1+8    # BCM1...
