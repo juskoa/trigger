@@ -50,7 +50,7 @@ void pq_receive(mqd_t mq, char *msg);
 #endif
 char pname[64]="UNKNOWN"; 
 char ORBIT_NUMBER[12]=""; 
-char mask[64];
+char mask[128];
 char ACT_CONFIG[8]="YES";
 int run_number=0;
 int detectors=0;   // ECS bits set for detectors in DETECTORS SMI par
@@ -162,7 +162,7 @@ fflush(stdout);
 /*--------------------------------------------------- SMI_handle_command()
 */
 void SMI_handle_command() {
-char action[64], param[64], parname[64], msg[256];
+char action[64], param[128], parname[64], msg[256];
 char run_number_str[64];
 int n_params, ptype, psize, i;
 
