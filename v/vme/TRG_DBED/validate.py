@@ -8,7 +8,7 @@ Stdout: list of input detectors (1 line)
 RC: 0: ok
     8: error message printed to stdout
 Output files:
-/tmp/validate.log
+/tmp/partname.log
 /tmp/partname.pcfg 
 """
 import os.path, sys
@@ -17,7 +17,7 @@ def prterr(errlines):
   #print os.path.join( WORKDIR,partname+".pcfg")
   #f= open( os.path.join( WORKDIR,partname+".pcfg"), "w")
   #f.write("Errors:\n") ; f.write(errlines)  ; f.close()
-  print "Errors:"
+  #print "Errors:"
   print errlines
   sys.exit(8)
 def main():
@@ -34,11 +34,11 @@ def main():
   if len(sys.argv)>2:
     if sys.argv[2]== "strict":
       strict= "strict"
+  partname= sys.argv[1]   #"beam" "erp"
   saveout= sys.stdout
-  logfile= open(os.path.join( WORKDIR,"validate.log"), "w")
+  logfile= open(os.path.join( WORKDIR,partname+".log"), "w")
   sys.stdout= logfile
   import parted
-  partname= sys.argv[1]   #"beam" "erp"
   part= parted.TrgPartition(partname, strict)
   part.prt()
   if part.loaderrors=="":

@@ -2081,6 +2081,7 @@ class TrgPartition:
       preproc.getlumi()
     print "initPartition:", strict, preproc.lumi_source,":"
     self.version='0'
+    self.filteredout=''  # list of efectivelly filtered out detectors: *V0 *AS ...
     self.loaderrors=''   # ok if ''
     self.loadwarnings=''   # ok if ''
     self.relpath= os.path.dirname(relpname)
@@ -2172,6 +2173,8 @@ class TrgPartition:
         if not allindets.has_key(id):
           allindets[id]= id
           detsline= id + " " + detsline
+    if self.filteredout !="":
+      detsline= string.strip(detsline) + " " + string.strip(self.filteredout)
     print detsline
   def getRR(self, minst, ix=0):   # get Required Resources
     """ 
@@ -2482,7 +2485,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       outfile.write(errormsg)
       outfile.close()
       #print outfilename," written"
-      print errormsg
+      #print errormsg
       return errormsg
     line='RBIF '
     #print "RBIF:l0funs", self.l0funs
@@ -3179,7 +3182,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #trgclass.prtClass()
           inds= trgclass.trde.getInpDets()
           #print "fcls:",trgclass.getclsname(),"input dets:",inds
-          filteredout= False
+          wasfilteredout= False
           # 1. apply 'class replacement/skip' filter
           msg,err= trgclass.applyClassFilter(filter)
           if err=="skipped":   #skip to be done
@@ -3196,9 +3199,13 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
               if filter.isExcluded(det):
                 PrintWarning("%s filtered out (provided by %s)"%\
                   (trgclass.getclsname(),det))
-                filteredout=True; break
-            #print "parted filterdout:", det, filteredout
-            if filteredout: continue
+                wasfilteredout=True
+                starname="*"+det
+                if string.find(self.filteredout, starname)==-1:
+                  self.filteredout= starname+" "+self.filteredout
+                break
+            #print "parted filterdout:", det, wasfilteredout
+            if wasfilteredout: continue
         #
         if trgclass.trde:      # EMPTY or known descriptor !
           asscls.append(trgclass)
