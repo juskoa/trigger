@@ -175,6 +175,7 @@ def main():
         usedinps= part.prtinputs()
         print "usedinps:",usedinps,";"
         io[1].write("inpupd %s %s\n"%(runnumber, usedinps))
+        print "effectively out:"+ part.filteredout
         # before the copy, ctp_proxy is waiting for, update
         # triggerClassNames in DAQdb
         print "%s now update DAQlogbook... "%(tasc())

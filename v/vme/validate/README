@@ -18,17 +18,18 @@ and start ./cphere.sh
 - answer 'y' when asked about removing files in pwd
 
 .noarch.rpm is left in ~/validate/dist directory
-Adding tkinter dependance:
+Adding tkinter dependance (to the just created .rpm):
 modify ~/validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
 adding 2 lines after 'Vendor:' line:
 Requires: tkinter
 %define _topdir /home/alice/trigger/validate/build/bdist.linux-x86_64/rpm
 
 rpmbuild -bb validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
-rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.1-1.noarch.rpm
+#rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.1-1.noarch.rpm
+rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.2-1.noarch.rpm
 i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
 
-scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.1-1.noarch.rpm juskoa@lxplus:www/validate/
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.2-1.noarch.rpm juskoa@lxplus:www/validate/
 modify www/Welcome.html
 
 1A. check .rpm
@@ -80,6 +81,8 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
   prepared and modified for tkinter dependance
 13.2.2015 validate-5.1-1.noarch.rpm
 - 0HWU check removed
+6.7.2015 validate-5.2-1.noarch.rpm
+- effectively filtered out detectors, log: /tmp/partition_name.log
 
 3. Problems
 -----------

@@ -486,3 +486,5 @@ Main changes:
 - ctp expetr software allows to work with c606 -> i.e. to load 8inputs-LUTs
   for new L0FUN1/2/3/4
 copying these cahnges to avmes (using git)
+6.7.2015
+validate: returns now *det for 'effectively filtered out' detectors

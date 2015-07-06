@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.1",
+      version="5.2",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -19,13 +19,14 @@ Optional strict parameter forces 'strict validation', i.e.:
   FIXLUM/FIXLOSS/FIXPOWER (automatic downscaling) is used in validated file
 
 return code:
-0         -the names of triggering detectors printed to stdout
+0         -the names of triggering detectors printed to stdout: det1 *det2
 8         -error message printed to stdout
 
 news: 
 from v4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
 from v5.0: $dbctp/filter preferred, if not available trgInput_* (ON/OFF) used
 from v5.1: 0HWU check removed, i.. TRD cluster allowed with non-0HWU classes
+from v5.2: the names of effectively filtered out trig. detectors preceded by '*'
 """,
       author="Anton Jusko",
       packages=["validate"],
