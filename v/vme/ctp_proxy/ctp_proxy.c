@@ -2281,8 +2281,11 @@ if(part->nclassgroups  > 0 ) {
   startTimer(part, part->remseconds, part->active_cg); part->remseconds=-1;
 };
 unsetPartDAQBusy(part, detectors); 
-cshmResumePartition(part); gcalibUpdate();
-//printf("\n ctp_ResumePartition: SUCCES \n");
+if(detectors==0) {
+  // let's keep cal. triggers stopped if at least 1 cluster is still paused:
+  cshmResumePartition(part); gcalibUpdate();
+  //printf("\n ctp_ResumePartition: SUCCES \n");
+};
 ERR:
 infolog_SetStream("", 0);
 return(rc);
@@ -2330,13 +2333,13 @@ int ctp_StopPartition(char *name){
 setPartDAQBusy(part, 0);   //von setALLDAQBusy();  
 usleep(150);   /* 100-> 150 4.9.2012  L2time is 105.2us */
                 /* to be sure CTP is quiet when reading counters at the EOR */
+cshmDelPartition(part->name);
+usleep(500000);  /* 1000000: asked by DAQ -see mail/daq from 12.12.2009 */
  xcountersStop(run_number);
  if(part->nclassgroups  > 0 ) {
    ret= stopTimer(part,0xfffffffe);  // do not read counters
  };
 /*usleep(2000);  to keep trigger rate <1kHz for DDG*/
-usleep(500000);  /* 1000000: asked by DAQ -see mail/daq from 12.12.2009 */
-cshmDelPartition(part->name);
 usleep(500000);  /* 1000000: split to 2x0.5s -perhaps it gives more time to gcalib for update*/
 // xcountersStop(run_number);   moved up
 //von unsetPartDAQBusy(part, 0);    // in case it was 'paused'

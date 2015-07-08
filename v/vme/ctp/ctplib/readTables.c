@@ -400,6 +400,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   };
   if( (a3[4]==0) and (a3[2]==0) ) continue;   // not configured
   if(a3[0]==3) continue;   // LM-line processed just now
+  // todo: add here the check for duplicate names among L0/1/2 inputs, (no LM -see previous line)
   strcpy(validCTPINPUTs[ixtab].name, inpname);
   validCTPINPUTs[ixtab].detector= detnum;
   validCTPINPUTs[ixtab].level= a3[0];

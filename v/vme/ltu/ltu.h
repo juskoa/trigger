@@ -460,10 +460,15 @@ int ttcPPdelay(int bc);
 Set delay registers directly in TTCrx, without resetting TTCrx.
 Input:
 Fine1ps, Fine2ps: required Fine delays on TTCrx chip in ps
-The coreespoding value in TTCrx registers in can be set with 104.17 ps step
+The corespoding value in TTCrx registers can be set with 104.17 ps step
 (e.g. the value corresponding to 4ps or 104 ps is equal: 0xe ) 
 
 Coarse: the required content of TTCrx Coarse register
+
+The standard values (FineDelay1 can be set differently for some detectors in
+their 'Deafult settings') are:
+FineDelay1:3126ps (TTCrx:0x0) FineDelay2:16459ps (TTCrx:0x80) CoarseDelay:0x0
+
 */
 int ttcDelays(int Fine1ps, int Fine2ps, int Coarse);
 /*FGROUP "Configuration"

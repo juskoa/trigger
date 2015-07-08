@@ -488,3 +488,13 @@ Main changes:
 copying these cahnges to avmes (using git)
 6.7.2015
 validate: returns now *det for 'effectively filtered out' detectors
+7.7.
+ctp_proxy.c
+1. ctp_Resume... leaves gcalib stopped if there is at least 1 detector still in
+paused state.
+2.
+ctp_proxy.c, ctp_StopPartition:
+cshmDelPartition(part->name); moved up -just after setPartDAQBusy and before xcountersStop
+(before it was after xcountersStop). THis should soleve discrepancy betweemn
+cal. caounters in daq and EOR message.
+
