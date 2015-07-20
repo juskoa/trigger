@@ -978,10 +978,10 @@ dT2 - protection time interval after interactions
 ipf - index to pf {1,2,3,4} for all boards where pf is set
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 icircuit,w32 plut);
-/*FGROUP PF
+/* FGROUP PF
 * Ncol1 -number of collisions in time window dT1 before trigger interaction
  * Ncol2 -number of collisions in time window dT2 after trigger interaction
  * inter - 1=INT1, 2=INT2
 */
-int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter);
+//int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter);
 
