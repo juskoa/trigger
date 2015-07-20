@@ -9,10 +9,13 @@ class BUSYBOARD: public BOARD
         // iclu=0 - test cluster
 	void setCluster(w32 iclu,w32 detmask){vmew(SET_CLUSTER+4*iclu,detmask);};
 	w32 GetDAQBUSY(){return vmer(DAQ_BUSY);};
+	void measurephase();
 
  private:
          // vme addresses
          w32 const DAQ_BUSY;
 	 w32 const SET_CLUSTER;
+	 w32 const DELAY_ADD;
+	 w32 const ORBIT_SELECT;
 };
 #endif

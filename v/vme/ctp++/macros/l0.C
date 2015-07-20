@@ -9,8 +9,9 @@ int main(int argc, char* argv[])
  // lm level test 
  CTP *ctp=new CTP;
  L0BOARD* l0=ctp->l0;
- L1BOARD* l1=ctp->l1;
- L2BOARD* l2=ctp->l2;
+ //L1BOARD* l1=ctp->l1;
+ //L2BOARD* l2=ctp->l2;
+ BUSYBOARD *busy=ctp->busy;
  switch(iwhat){
  case 0:
     // prepare l1
@@ -76,12 +77,16 @@ int main(int argc, char* argv[])
     ctp->startSWtrigger('s',1);
     //ctp->clearSWTriggerFlags();
     return 0;
+  case 5:
+    busy->measurephase();
+    return 0;
   default:
     printf("0 = read counters,ssm; dump ssm\n");
     printf("1 = write bcmasks \n");
     printf("2 = simple ssm read and dump\n");
     printf("3 = convert didier config to LM level\n");
     printf("4 = software trigger\n");
+    printf("5 = measure orbit phase\n");
     return 0;
  }
 }
