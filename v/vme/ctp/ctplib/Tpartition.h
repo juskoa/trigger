@@ -28,14 +28,14 @@
 #define DBGmask  0     // input file .pcfg proc -masking (applyMask)
 #define DBGpfs  0     // input file .pcfg proc -masking (applyMask)
 #define DBGparts 0     // adding/deleting partitions  in Partitions
-#define DBGac2HW 0     // addClasses2HW()
+#define DBGac2HW 1     // addClasses2HW()
 #define DBGaf2HW 0     // addFO2HW()
 #define DBGbusy  1     // busy handling
 #define DBGswtrg 0     // SW trigger (generateXOD)
 #define DBGcnts  0     // read and print counters (LTU, CTP)
 #define DBGlogbook 1   // updateDAQClusters()
 #define DBGgetInputDets 1   // getInputDets()
-#define DBGcumRBIF 0   // cumRBIF()
+#define DBGcumRBIF 1   // cumRBIF()
 #define DBGCLGROUPS 1  // class groups (time slots on/off for class groups)
 #define DBGrbif 1
 #define DBGpriv 0   // offline testing (VMESITE=PRIVATE)
@@ -173,7 +173,7 @@ Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 #define ixrnd2 1
 #define ixbc1 2
 #define ixbc2 3
-#define ixl0fun1 4 
+#define ixl0fun1 4    // L0FINTN funs from here
 #define ixl0fun2 5
 #define ixl0fun3 6 
 #define ixl0fun4 7 
@@ -186,6 +186,7 @@ Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 #define notused 51
 #define nothwal 61
 #define L0INTFSMAX 64
+#define L0FINTN 7      // number of l0f1..4 in1,2,t
 #define L0F34SDMAX 200
 
 //#define LEN_l0f34 4096
@@ -206,7 +207,7 @@ typedef struct TRBIF{
  // in hw allocated at hw.rbif[rbifuse[ix]]
  w32 intsel;
  //w32 bcmask[4];
- char l0intfs[7*L0INTFSMAX];  // l0f1/2/3/4 int1/2/t as a text string
+ char l0intfs[L0FINTN*L0INTFSMAX];  // l0f1/2/3/4 int1/2/t as a text string
  //char BCMASK[ORBITLENGTH+1];  // '1','2',...,'f'
  w16 BCMASK[ORBITLENGTH+1];  // '1','2',...,'f' ... 'fff' for 12 BC masks
  w8 BCMASKuse[12];             // same as rbif 0:not used, 1..12: bcm1..12 used
@@ -219,7 +220,7 @@ typedef struct TRBIF{
  // 1byte: 4 rigthmost bits contain 4 bits of lut
  char l0f3sym[L0F34SDMAX];  // symbolic representation
  char l0f4sym[L0F34SDMAX];
- char lut8[4*LUT8_LEN];   // 4 lut8 LUT, format: "0xabcdef..." 64 hexa digits
+ char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 
 // TRBIF:
@@ -305,7 +306,8 @@ w32 active_cg;  // active classgroup. 255 during PAUSE
 Tdetector validLTUs[NDETEC];
 Tinput validCTPINPUTs[NCTPINPUTS];
 Tpartitionshm startedParts[MNPART];
-w8 lut34s[LEN_l0f34];
+// w8 lut34s[LEN_l0f34];   thrown out 9.7.2015
+char lut88[8*LUT8_LEN];   // 8 lut8 LUTs l01..4 lm1..4, format: "0xabef.64" hwcopy
 }Tctpshm;
 
 /* TDAQInfo for DAQlogbook gathered [mostly] in ctpproxy and passed to the server
@@ -510,6 +512,8 @@ void cshmPausePartition(Tpartition *part);
 w32 cshmQueryPartition(Tpartition *part);
 void cshmResumePartition(Tpartition *part);
 int cshmGlobalDets();
+int cshmsetLUT(int lutn, char *m4);
+int cshmgetLUT(int lutn, char *m4);
 
 // others. swtrigger.c:
 //void clearflags();

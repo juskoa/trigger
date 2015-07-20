@@ -125,6 +125,13 @@ for(i=0;i<MNPART;i++){
   };
 };
 printf("Detectors in global runs:%x\n", cshmGlobalDets());
+printf("l0f1..4 lm1..4:\n");
+for(i=0;i<8;i++){ 
+  char lnam[4]; int ixl;
+  if(i<4) {strcpy(lnam, "l0f"); ixl= i+1;
+  } else {strcpy(lnam, "lmf"); ixl= i-3;}
+  printf("%s%d: %s\n", lnam,ixl, &ctpshmbase->lut88[(i)*LUT8_LEN]);
+};
 }
 
 /*-----------------------------*/    void cshmAddPartition(Tpartition *part) {
@@ -161,4 +168,16 @@ p->cshmpart->paused=0;
 return(p->cshmpart->paused);
 }
 
-
+/*------------------------------ lut8; hw copy */
+int cshmsetLUT(int lutn, char *lutt) {
+//printf("cshmsetLUT: %d %x\n", lutn, lutt);
+strcpy(&ctpshmbase->lut88[(lutn-1)*LUT8_LEN], lutt);
+return(0);
+}
+/*------------------------------ lut8; hw copy 
+in: lutn: 0..7 (corresponds to l0f1..4 lm1..4) */
+int cshmgetLUT(int lutn, char *lutt) {
+strcpy(lutt, &ctpshmbase->lut88[(lutn-1)*LUT8_LEN]);
+// nemoz lebo py printf("cshmgetLUT: %d %x\n", lutn, lutt);
+return(0);
+}

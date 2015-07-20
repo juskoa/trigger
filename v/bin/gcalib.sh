@@ -2,8 +2,8 @@
 # $1: start stop or status
 onlyhost='alidcsvme001'
 hname=`hostname -s`
-if [ "$hname" != "$onlyhost" -a "$hname" != "altri1" ] ;then
-  echo "This script can be started only on $onlyhost or altri1"
+if [ "$hname" != "$onlyhost" -a "$hname" != "altri1" -a "$hname" != "altri2" ] ;then
+  echo "This script can be started only on $onlyhost or altri1/2"
   exit
 fi
 sss=$1

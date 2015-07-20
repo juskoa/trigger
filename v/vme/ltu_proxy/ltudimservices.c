@@ -739,6 +739,10 @@ if(strcmp(msg,"ttcrxreset")==0) {
   TTCrxreset(); usleep(10000); TTCrxregs(&(ltushm->ltucfg));
   dimlogprt("cmdCMD", "rxreset ok\n");
   //printf("ttcrxreset ok\n");
+} else if(strcmp(msg,"fee")==0) {
+  ttcFEEreset(); usleep(10000);
+  dimlogprt("cmdCMD", "fee ok\n");
+  //printf("fee ok\n");
 } else if(strcmp(msg,"ttcrxreset fee")==0) {
   int rc; char imsg[100];
   rc= TTCinit();

@@ -264,7 +264,7 @@ def callback_bm(ecsbm):
         #mylog.logm("DLL_RESYNC after clock shift started...")
         mylog.logm("DLL_RESYNC after clock shift NOT started...")   # CJI
     mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
-    if bmname=="RAMP":
+    if bmname=="RAMP_NOSCOPE":   # never do this (no scope)
       if os.environ['VMESITE']=='ALICE':
         import sctel
         reload(sctel)
@@ -288,7 +288,7 @@ def callback_bm(ecsbm):
         wf='w'
       mylog.infolog( "BEAM MODE:%s, clock %s not correct. miclock mode:%s"%\
       (bmname, WEB.miclock,WEB.clockchangemode), level=wf )
-    if WEB.clockchangemode=='AUTO':
+    if WEB.clockchangemode=='AUTO_NEVERCHANGE':  # it is on lhcint now to change th clock
       # change clock
       mylog.logm("changing clock to %s. Wait 3 half-minutes please..."%(expclock))
       WEB.newclock= expclock; WEB.save()
@@ -300,7 +300,8 @@ def callback_bm(ecsbm):
       else:
         if bmname=="RAMP":
            mininf= "INF"
-      if mininf!="":
+      #if mininf!="":
+      if mininf=="NOSCOPE":   # never do tis (no scope)
         if os.environ['VMESITE']=='ALICE':
           import sctel
           reload(sctel)
@@ -360,6 +361,7 @@ Than start miclock again.
   resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
   resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
   resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
+  # ALICEDAQ_LHCFillNumber not available after dump (availablebe after INJECTION PROBE...)
   resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
   #print "res...:", resbm, res, restran
   if not res or not restran or not resbm:
@@ -392,7 +394,7 @@ Than start miclock again.
     if a=='q': break
     if a=='': continue
     if a=='auto':
-      mylog.logm("Attempt to go to auto... Fobidden, no action")
+      mylog.logm("Attempt to go to auto... Forbidden, no action")
       #WEB.clockchangemode='auto'
       #WEB.save()
     elif a=='man':

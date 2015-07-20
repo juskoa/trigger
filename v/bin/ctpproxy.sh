@@ -21,6 +21,7 @@ function startproxy() {
     #*  hard  core unlimited
     ulimit -c unlimited
     # for gdb:
+    # gdb $VMECFDIR/ctp_proxy/linux/ctp_proxy
     #set args TRIGGER::CTP NODAQLOGBOOK NODAQRO
     $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
     #echo "ctp_proxy rc:$? is 0 always (in case ctp_proxy does not exist)"
@@ -77,6 +78,9 @@ else
     exit 0
   elif [ "$1" = "kill" ] ;then
     echo "killing $pid" ; kill -s SIGINT $pid
+  elif [ "$1" = "restartnd" ] ;then
+    echo "restarting $pid nodaq option..." ; kill -s SIGINT $pid
+    startproxy  NODAQLOGBOOK NODAQRO
   elif [ "$1" = "restart" ] ;then
     echo "restarting $pid" ; kill -s SIGINT $pid
     startproxy 

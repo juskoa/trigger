@@ -41,7 +41,7 @@ create ctp_config file (with each run?)
 #import os, os.path
 #PYTHONPATH=os.environ['VMEBDIR']+':'+\
 #  os.path.join(os.environ['VMECFDIR'],'TRG_DBED')
-import os, os.path, string, sys, time, parted, pylog, miclock,threading, subprocess
+import os, os.path, string, sys, time, shutil, parted, pylog, miclock,threading, subprocess
 miclock.mylog= pylog.Pylog("pydim_shift")
 mylog= pylog.Pylog(info="info")
 VERSION= "7"
@@ -151,7 +151,7 @@ def main():
           mylog.infolog(part.loadwarnings, level='w', partition=partname)
         if part.loaderrors=='':
           part.savepcfg(wdir=parted.WORKDIR)   # without 'rcfg '
-          pts[partname]= part   # store for rcfg phase only if no load erors
+          pts[partname]= part   # store for rcfg phase only if no load errors
         else:
           f= open( os.path.join( parted.WORKDIR,fname), "w")
           f.write("Errors:\n") ; f.write(part.loaderrors) ; f.close()
@@ -163,7 +163,10 @@ def main():
           cmd="scp -B -2 %s %s:/tmp/%s"% (rcpath, acchost, fname)
           print "%s rcscp..."%(tasc())
           rcscp=os.system(cmd)
-          print "%s rcscp:%d from %s"%(tasc(), rcscp, cmd)
+          pcfgn= "q%s.pcfg"%runnumber
+          pcfgdes= os.path.join( os.environ['VMEWORKDIR'],"WORK","PCFG")
+          shutil.copyfile(rcpath,os.path.join(pcfgdes,pcfgn))
+          print "%s rcscp:%d from %s archived in PCFG/%s"%(tasc(), rcscp, cmd, pcfgn)
         else:
           print "not in the pit neither lab"
           #print "not done:",os.path.join(pitsrc,fname),'->',os.path.join(pitdes,fname)

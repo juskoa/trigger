@@ -88,8 +88,8 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
   elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
     export SMAQ_C=pcalicebhm10
     export VMESITE=SERVER2
-    export DIM_DNS_NODE=pcald30
-    #export DIM_DNS_NODE=avmes
+    #export DIM_DNS_NODE=pcald30
+    export DIM_DNS_NODE=pcalicebhm10
   else
     export VMESITE=PRIVATE
     export DIM_DNS_NODE=pcald30
@@ -100,7 +100,7 @@ else               #------------------------------ server
   if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
   fi
-  if [ "$hname" = "avmes" ] ;then   # development
+  if [ "$hname" = "avmes" ] ;then   # development ? 13.7. : as in p2
     export SMAQ_C=avmes
     export VMESITE=SERVER
     export DIM_DNS_NODE=avmes
@@ -119,10 +119,10 @@ else               #------------------------------ server
     if [ -d /opt/act ] ;then   # needed only on server
       export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
     fi
-  elif [ "$hname" = "pcalicebhm10" ] ;then   # stabel + daqecs
+  elif [ "$hname" = "pcalicebhm10" ] ;then   # 13.7. development
     export SMAQ_C=avmes
     export VMESITE=SERVER2
-    export DIM_DNS_NODE=pcald30
+    export DIM_DNS_NODE=pcalicebhm10
     if [ -d /opt/act ] ;then
       export ACT_DB=daq:daq@pcald30/ACT
     fi

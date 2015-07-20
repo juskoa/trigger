@@ -213,6 +213,9 @@ class LHCinfo:
     if self.abcs.has_key(bc):
       beamac= beamac+self.abcs[bc]   # AC or CA for colliding
       if beamac=="AC" or beamac=="CA": beamac="B"
+      elif beamac=="AA" or beamac=="CC" or beamac=="AB" or beamac=="CB":
+        err= "#Error: duplicate %s buc:%d beam:%d bc:%d"%(beamac, buc,beam, bc)
+        # return None (if to be ignored)
       else: 
         beamac= "X"+beamac   # error in input file
         #print "Error: buc:%d bc: %d beam:%d"%(buc,bc,beam)
@@ -263,7 +266,7 @@ From http://lpc.web.cern.ch/lpc/fillingschemes.htm
 idx,inj Nbr,	Ring,RF Bucket,Bu Spac (ns),bu per PS batch,SPS Batch spac,PSbatch nbr,bu Int[1e9p]
 0   1           2    3         4            5               6              7           8
 Bu Spac : space in ns between bunches in the same PS train
-SPS Batch Spac : space in ns between 2 PS trains in the SPS
+SPS Batch Spac : space in ns between 2 SPS trains in the SPS
 
 -seems the same as format 2 (column 8 not used anyhow)
 
@@ -284,6 +287,7 @@ Goal: prepare:
       if line == "": continue
       if line[0] == "\n": continue
       if line[0] == "#": continue
+      line= line.replace(',',' ')
       ll= string.split(line)
       if len(ll)<7: continue
       if ll[3][:5]=='ring_':    #old way
@@ -308,7 +312,7 @@ Goal: prepare:
         trainlenmax= repetitions
       beam= int(ring[1]) ; bucFirst= int(ll[ixbucFirst])
       bc_spacing= int(ll[ixbuc])/25
-      #print "%d PStrains:"%beam,PStrains,"reps:",repetitions,"SPSspace:",SPSspace
+      #print "%d PStrains:"%beam,PStrains,"reps:",repetitions,"SPSspace:",SPSspace, "bucFirst:", bucFirst
       for ibcsps in range(PStrains):
         #print "ibcsps:",ibcsps, "bucFirst:",bucFirst, "SPSspace:",SPSspace
         for ibc in range(repetitions):   # ibc>0: multi bunch injections
@@ -320,13 +324,15 @@ Goal: prepare:
             trainStart= [repetitions, bc_spacing]
           else:
             trainStart= None
-          #print "bcbuc:", beam, buc,"->", bc
+          #print "  bcbuc:", beam, buc,"->", bc
           err=self.__storebc(bc, beam, buc,trainStart)
           if err: errs= errs+ err + "\n"
         if SPSspace==0:    # is 0 for Multi_100b_46_16_22_36bpi9inj (11.2.2013)
           bucFirst= buc + 10*bc_spacing
         else:
-          bucFirst= buc + 10*SPSspace/25
+          #bucFirst= buc + 10*SPSspace/25  was in run1, SPSpace==0 always
+          bucFirst= bucFirst + 10*SPSspace/25  # ok also for SPSspace !=0
+        #print "bucFirst:", bucFirst
     if dipfile: dipfile.close();
     print "Max. train:", trainlenmax
     return errs
@@ -412,7 +418,7 @@ later time (when .mask cretaed)
   alice=fsname+'\n'; 
   lhcfs= LHCinfo(fsname)
   if format == "from sch":
-    #errmsg= lhcfs.read_sch(fn,fsname)   create also fsname.schdip file
+    #errmsg= lhcfs.read_sch(fn,fsname)   #create also fsname.schdip file
     errmsg= lhcfs.read_sch(fn)
   elif format == "from dip":
     errmsg= lhcfs.read_dipsmaq(fn)

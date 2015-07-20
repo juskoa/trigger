@@ -278,7 +278,9 @@ int checkInputs(Tpartition *part){
 return(0);
 } */
 /*---------------------------------------------------finditem2checkRBIF()
-  Find item to check in rbif.
+Find item to check in rbif.
+I: icheck: item to be checked: ixrnd1..ixrbifdim-1
+O: item1/2: min/max possible index for this type of values to be checked
 */
 int finditem2checkRBIF(int icheck,int *item1,int *item2){
  int i1,i2; char msg[100];
@@ -291,101 +293,130 @@ int finditem2checkRBIF(int icheck,int *item1,int *item2){
         i1=ixbc1;i2=ixbc2;break;
   case ixl0fun1:
   case ixl0fun2:
-        i1=ixl0fun1;i2=ixl0fun2;break;
-  /* INT FUNCTS SHOULD BE TREATED ALSO LIKE l0f ? */
+  case ixl0fun3:
+  case ixl0fun4:
+        if(l0C0()>=0xc606) {
+          i1=ixl0fun1;i2=ixl0fun4;
+        } else {
+          if(icheck>=ixl0fun3) {
+            infolog_trgboth(LOG_ERROR,
+              "finditem2checkRBIF: l0f3/4 used but not available");
+          } else {
+            i1=ixl0fun1;i2=ixl0fun2;
+          };
+        };
+        break;
+  /* INT FUNCTS SHOULD BE TREATED ALSO LIKE l0f ? very likely not */
   case ixintfun1:
   case ixintfun2:
-        i1=ixintfun1;i2=ixintfun2;break; 
+        i1=ixintfun1;i2=ixintfun2;
+        printf("finditem2checkRBIF: why INT function checked?\n");
+        break; 
   case ixlut3132:
   case ixlut4142:
+        infolog_trgboth(LOG_ERROR,
+          "finditem2checkRBIF: l0f3/4 obsolete in run2");
         i1=ixlut3132;i2=ixlut4142;break; 
   default:
        sprintf(msg, "finditem2checkRBIF: item %i does not exist.",icheck);
-       intError(msg);
+       infolog_trgboth(LOG_ERROR, msg);
        return 1;
  } 
  *item1=i1;
  *item2=i2;
  return 0;
 }
-//-------------------------------------------------
-int compRESVal(TRBIF *cumrbif, int i1, TRBIF *prbif, int icheck) { //rc:0 if equal
-int rc,cum1,cum2,ic1,ic2;
-rc= finditem2checkRBIF(i1,&cum1,&cum2); if(rc!=0) return(1);
-rc= finditem2checkRBIF(icheck,&ic1,&ic2); if(rc!=0) return(1);
+/*-------------------------------------------------
+I: cumrbif/i1
+   prbif/icheck
+rc:0 if equal
+*/
+int compRESVal(TRBIF *cumrbif, int i1, TRBIF *prbif, int icheck) { 
+int rc;
+int cum1,cum2,ic1,ic2;    // min..max index of given resource
+char msg[100];
+rc= finditem2checkRBIF(i1,&cum1,&cum2); if(rc!=0) return(2);
+rc= finditem2checkRBIF(icheck,&ic1,&ic2); if(rc!=0) return(2);
 if( cum1 != ic1 ) {
-  char msg[100];
-  sprintf(msg,"compRESVal(,%d,,%d) -incorrect parameter(s)",i1,icheck);
+  sprintf(msg,"compRESVal(,%d,,%d) incompatible RBIF shared resources cannot be compared",i1,icheck);
   intError(msg); return(1);
 };
 rc=1;
-if(cum1!=ixlut3132) {
+if( (cum1<=ixbc2) || ((cum1>=ixintfun1) && (cum1<=ixintfunt)) ) {
+  // simple value
   if(cumrbif->rbif[i1] == prbif->rbif[icheck]) rc=0;
 } else {
-  int indx; w8 *dst8,*src8;
-  if(i1==ixlut3132) { dst8= &cumrbif->lut34[0];
-  } else { dst8= &cumrbif->lut34[LEN_l0f34/2];};
-  if(icheck==ixlut3132) { src8= &prbif->lut34[0];
-  } else { src8= &prbif->lut34[LEN_l0f34/2];};
-  rc=0;
-  for(indx=0; indx<LEN_l0f34/2; indx++) {   // check all bytes in VALUE
+  // complex value
+  int indx, complen; char *dst8,*src8;
+  if((i1>=ixl0fun1) && (i1<=ixl0fun4)) {
+    dst8= &cumrbif->lut8[(i1-ixl0fun1)*LUT8_LEN];
+  } else {
+     sprintf(msg, "compRESVal(,%i... does not exist.",i1);
+     infolog_trgboth(LOG_ERROR, msg); return(2);
+  };
+  if((icheck>=ixl0fun1) && (icheck<=ixl0fun4)) {
+    src8= &prbif->lut8[(icheck-ixl0fun1)*LUT8_LEN];
+  } else {
+     sprintf(msg, "compRESVal(,,,%i... does not exist.",icheck);
+     infolog_trgboth(LOG_ERROR, msg); return(2);
+  };
+  complen= LUT8_LEN-2; rc=0;
+  printf("compRESVal:%d:%s\n%d:%s\n", i1, dst8, icheck, src8);
+  for(indx=0; indx<complen; indx++) {   // check all bytes in VALUE
     if(dst8[indx]!= src8[indx]) {rc=1; break;};
   };
 }; return(rc);
 }
 /*-------------------------------------------- allocateInhw
-Allocate prbif/icheck in:
- - cumrbif/ixhw
- - prbif/ixhw    
-icheck,ixhw: ixrnd1,ixrnd2,...,ixlut4142
+Allocate tentative prbif/icheck in:
+ - cumrbif/ixhw (common)
+ - prbif/ixhw   (particular partition)
+icheck,ixhw: ixrnd1,ixrnd2,..., ixl0fun1..4,...,ixlut4142
 todo: also for PF and masks...
 */
 void allocateInhw(TRBIF *cumrbif, int ixhw, TRBIF *prbif, int icheck ) {
 char msg[300];
 cumrbif->rbifuse[ixhw] = ixhw;
-cumrbif->rbif[ixhw] = prbif->rbif[icheck];  //VALUE (not enough for l0f34)
-if((ixhw==ixl0fun1) || (ixhw==ixl0fun2) ||
-   (ixhw==ixlut3132) || (ixhw==ixlut4142)) {
-  char *src, *dst, *dst2; 
-  if((ixhw==ixl0fun1) || (ixhw==ixl0fun2)) {  // symb. definition only
-    src= &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX];
-    dst= &cumrbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];
-    dst2= &prbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];
-    strcpy(dst2, src);  // ???
-  } else {                     // l0f34: VALUE + symb. def
-    w8 *dst8, *src8; int indx; 
-    // VALUE for l0f3: lut3132[0..2047] for l0f4: lut4142[2048..4095]
-    if(ixhw==ixlut3132) { dst8= &cumrbif->lut34[0];
-    } else { dst8= &cumrbif->lut34[LEN_l0f34/2];};
-    if(icheck==ixlut3132) { src8= &prbif->lut34[0];
-    } else { src8= &prbif->lut34[LEN_l0f34/2];};
-    for(indx=0; indx<LEN_l0f34/2; indx++) {   // VALUE
-      dst8[indx]= src8[indx];
+cumrbif->rbif[ixhw] = prbif->rbif[icheck];  //VALUE 
+if((ixhw>=ixl0fun1) && (ixhw<=ixl0fun4) ) { // for l0f1..4 we need more than VALUE...
+  char *src, *dst, *dst2, *symsrc; 
+  if(l0C0()<0xc606) {
+    if((ixhw>=ixl0fun1) && (ixhw<=ixl0fun2)) {  // symb. definition
+      src= &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX];
+      dst= &cumrbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];  // global
+      dst2= &prbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];   //in partition
+      strcpy(dst2, src);  // ???
+    } else {
+      printf("ERROR allocateInhw: %d (l0f34 12-inps) not available in run2\n", ixhw); return;
     };
-    // symb. def:
-    if(icheck==ixlut3132) src= &prbif->l0f3sym[0];
-    if(icheck==ixlut4142) src= &prbif->l0f4sym[0];
-    if(ixhw==ixlut3132) {dst= &cumrbif->l0f3sym[0]; dst2= &prbif->l0f3sym[0];};
-    if(ixhw==ixlut4142) {dst= &cumrbif->l0f4sym[0]; dst2= &prbif->l0f4sym[0];};
-    // analogy of above (l0f12)
-    strcpy(dst2, src);  // ???
+  } else {   
+      symsrc= &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX];  // symb. def.
+      dst= &cumrbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];  // global
+      dst2= &prbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];   //in partition
+      strcpy(dst2, symsrc);
+      strcpy(dst, symsrc);
+
+      src= &prbif->lut8[(icheck-ixl0fun1)*LUT8_LEN];   // VALUE
+      dst= &cumrbif->lut8[(ixhw-ixl0fun1)*LUT8_LEN];
+      dst2= &prbif->lut8[(ixhw-ixl0fun1)*LUT8_LEN];
+      strcpy(dst2, src);  // ???
   };
   strcpy(dst, src);   // copy symb. definition l0f1/2/3/4
-  sprintf(msg,"================allocateInhw l0f:%d in %d:%s",icheck,ixhw,dst); 
+  sprintf(msg,"allocateInhw l0f:%d in %d:%s:%s",icheck,ixhw,symsrc, dst); 
 } else {
-  sprintf(msg,"================allocateInhw:%d in %d:%d",icheck,ixhw,cumrbif->rbif[ixhw]); 
+  sprintf(msg,"allocateInhw:%d in %d:%d",icheck,ixhw,cumrbif->rbif[ixhw]); 
 };
-  printf("%s\n",msg);
+printf("%s\n",msg);
 }
 /*------------------------------------------------------ checkpairRBIF()
 Purpose: to check availibilty of resources for pair of items in RBIF, 
-         i.e: (rnd1,rnd2),(bc1,bc2),(int1,int2), (l0f1,l0f2), (l0f3,l0f4)
-icheck   -the resourse number to be checked:ixrnd1..ixintfunt, ..., ixlut3132, ixlut4142
+         i.e: (rnd1,rnd2),(bc1,bc2),(int1,int2), (l0f1,l0f2,l0f3,l0f4), 
+icheck   -the resourse number to be checked:ixrnd1..ixintfunt, ..., ixl0f1..4
 *cumrbif -here all resources over ALL partitions are accumulated
 *prbif   -only resources for ONE partition are accumulated
 
 Called: from cumRBIF, i.e.:
-LOAD_PARTITION phase:
+INIT_PARTITION phase:
 - when resources checked (see DOC/devdbg/sharedResources)
 - when adding partition to AllPartitions
 START_PARTITION:
@@ -394,27 +425,33 @@ START_PARTITION:
 Output:
 prbif modified if reallocation done
 rc: 1: error
-    0: ok, i.e.:
-       -prbif/icheck not used
-       -used already: the value of icheck resource is the same (reallocation
+    0: ok, i.e.: 3 cases:
+       - case1: prbif/icheck not used or
+       -case2: used already: the value of icheck resource is the same (reallocation
                       done if needed)
        -not used yet: resource was allocated
 */
-char *rsrcs_names[]={"rnd1","rnd2","bc1","bc2","l0f1","l0f2",
-  "intfun1","intfun2","intfunt", "l0f3", "l0f4"};
+/*von char *rsrcs_names[]={"rnd1","rnd2","bc1","bc2","l0f1","l0f2",
+  "intfun1","intfun2","intfunt", "l0f3", "l0f4"}; */
+char *rsrcs_names[]={"rnd1","rnd2","bc1","bc2","l0f1","l0f2","l0f3","l0f4"
+  "intfun1","intfun2","intfunt"};
 
 int checkpairRBIF(int icheck,TRBIF *cumrbif,TRBIF *prbif){
 int i1,i2,ixhw,iused; char msg[100];
 ixhw=prbif->rbifuse[icheck];   // position in hw where saved 
 if(ixhw == notused) {
   //printf("checkpairRBIF: hwallocated icheck:%d ixhw:%d=notused\n", icheck, ixhw);
-  return 0;  // not used in part
+  return 0;  // case1: not used in part
 };
 if(ixhw != nothwal){           // allocated in hw already:
   //check if the same value, if not check other one whether it is available or the same
-  if(DBGcumRBIF) {
-    printf("checkpairRBIF: hwallocated icheck:%d ixhw:%d\n", icheck, ixhw);
-  };
+  //if(DBGcumRBIF) {
+  printf("===checkpairRBIF: hwallocated icheck:%d ixhw:%d\n", icheck, ixhw);
+  //};
+  /*if(ixhw>=ixrbifdim) {
+      sprintf(msg, "hwallocated icheck:%d ixhw:%d", icheck, ixhw);
+      intError(msg);return 1;
+  };*/
   if(cumrbif->rbifuse[ixhw] == notused){ // add to cum
     allocateInhw(cumrbif, ixhw, prbif, icheck);
     // todo: we should check, if other one is not the same -if yes, reallocation
@@ -423,26 +460,33 @@ if(ixhw != nothwal){           // allocated in hw already:
     return 0;
   } else {   // used already, check if values equal
     if(cumrbif->rbif[ixhw] != prbif->rbif[icheck]){
-      sprintf(msg, "checkpairRBIF: %x rbif already allocated.",ixhw);
+      sprintf(msg, "checkpairRBIF: 0x%x rbif already allocated.",ixhw);
       intError(msg);return 1;
     }else return 0;      
   };
 };
-// Here only 'not yet in hw resources', i.e.new partition:
+// Here only 'not yet in hw resources (nothwal=61)', i.e.new partition:
 if(finditem2checkRBIF(icheck,&i1,&i2)) return 1;
-iused=(cumrbif->rbifuse[i1]==notused)+((cumrbif->rbifuse[i2]==notused)<<1);
-if(DBGcumRBIF) {
-  printf("checkpairRBIF: NOThwallocated icheck:%d ixhw:%d i1/2:%d %d iused:%d\n", 
-    icheck, ixhw, i1,i2, iused);
-};
-/* used:
-   3: none used
-   2: i1 only already used
-   1: i2 only already used
-   0: both used already, check if the one already taken can be used (i.e. equal value):
-Modifications for new l0f34:
-- complex check/copy for value (2048 bytes) todo (23.1.2012: done only for case 3!)
+printf("===checkpairRBIF: hwallocated icheck:%d ixhw:%d i1:%d i2:%d\n", icheck, ixhw, i1,i2);
+/* 0xc606 modification: let's split to 2 cases:
+1. simple_pair_resource: -covers fy<=0xc605 + simple resources for fy >0xc605
+2. l0f1..4_resource
 */
+if((i2-i1)==1) {   // case 1. simple_pair_resource (code from run1)
+  // maybe this part should be done the same way as case 2. (just instead of 4, 2 resources in play)
+  iused=(cumrbif->rbifuse[i1]==notused)+((cumrbif->rbifuse[i2]==notused)<<1);
+  if(DBGcumRBIF) {
+    printf("checkpairRBIF: NOThwallocated icheck:%d ixhw:%d i1/2:%d %d iused:0x%x\n", 
+      icheck, ixhw, i1,i2, iused);
+  };
+  /* iused:
+     3: none used
+     2: i1 only already used
+     1: i2 only already used
+     0: both used already, check if the one already taken can be used (i.e. equal value):
+  Modifications for new l0f34:
+  - complex check/copy for value (2048 bytes) todo (23.1.2012: done only for case 3!)
+  */
 switch(iused){
   case 3:  // none used, allocate prbif/icheck in cumrbif/i1
     allocateInhw(cumrbif, i1, prbif, icheck);
@@ -491,6 +535,44 @@ switch(iused){
      sprintf(msg, "checkpairRBIF: iused=%i",iused);
      intError(msg); return 1;
  }
+} else {    // 2. l0f1..4_resource
+  int firstsame, firstfree;
+  /* go over all cumrbif[i1..i2] and find
+   - first with the same value
+   - first unused
+  */
+  firstsame=-1; firstfree=-1;
+  for(iused=i1; iused<=i2; iused++) {
+    if( cumrbif->rbifuse[iused]==notused ) {
+      if(firstfree==-1) firstfree= iused;
+    };
+    if( (cumrbif->rbifuse[iused]!=notused) &&
+        (compRESVal(cumrbif, iused, prbif, icheck)==0)){ 
+      if(firstsame==-1) firstsame= iused;
+    };
+  };
+  printf("checkpairRBIF: firstfree:%d firstsame:%d\n", firstfree, firstsame);
+  if(firstsame>=0) {
+    prbif->rbifuse[icheck]=firstsame; 
+    if(DBGcumRBIF) {
+      printf("l0f equal resource %d alllocated in %d (was:%d)\n", icheck, firstsame, ixhw);
+    };
+    return 0;
+  } else if(firstfree>=0) {
+    allocateInhw(cumrbif, firstfree, prbif, icheck);
+    prbif->rbifuse[icheck]= firstfree;   // possible reallocation
+    if(DBGcumRBIF) {
+      printf("l0f free resource %d alllocated in %d (was:%d)\n", icheck, firstfree, ixhw);
+    };
+    return 0;
+  } else {
+    char errmsg[300];
+    sprintf(errmsg, "Shared resource %s(%i) not available\n", 
+      rsrcs_names[icheck], icheck);
+    infolog_trgboth(LOG_FATAL, errmsg);
+    return 2;
+  };
+};
 }
 /*
 bcmi: 0..11 -bit number of the mask (corresponds to bcm1..12) to be checked
@@ -652,17 +734,21 @@ if(checkpairRBIF(ixl0fun1,&rbifloc,part->rbif))goto ERR1;
 //printf("cumRBIFl0fun1A:\n");
 //printTRBIF(part->rbif); printTRBIF(&rbifloc);
 if(checkpairRBIF(ixl0fun2,&rbifloc,part->rbif))goto ERR1;
+if(l0C0()>=0xc606) {
+  if(checkpairRBIF(ixl0fun3,&rbifloc,part->rbif))goto ERR1;
+  if(checkpairRBIF(ixl0fun4,&rbifloc,part->rbif))goto ERR1;
+};
 //printf("cumRBIFl0fun2A:\n");
 //printTRBIF(part->rbif); printTRBIF(&rbifloc);
 /* intfun1/2 not used in partitions, commented out from jan2012:
 if(checkpairRBIF(ixintfun1,&rbifloc,part->rbif))goto ERR1;
 if(checkpairRBIF(ixintfun2,&rbifloc,part->rbif))goto ERR1; */
 
-if(checkpairRBIF(ixlut3132,&rbifloc,part->rbif))goto ERR1;
-if(checkpairRBIF(ixlut4142,&rbifloc,part->rbif))goto ERR1;
+/*von if(checkpairRBIF(ixlut3132,&rbifloc,part->rbif))goto ERR1;
+if(checkpairRBIF(ixlut4142,&rbifloc,part->rbif))goto ERR1; */
 if(checkBCMASKS(&rbifloc,part->rbif))goto ERR1;
 if(checkPFS(&rbifloc,part->rbif))goto ERR1;
-copyTRBIF(cumrbif, &rbifloc); // cumrbif -> HW.rbif in addRBIF2HW()
+copyTRBIF(cumrbif, &rbifloc); // cumrbif -> HW.rbif in addRBIF2HW
 return(0);
 ERR1:
 //prtError("cumRBIF error");
@@ -690,7 +776,7 @@ Tpartition *part1;
 flag=0;
 if(parray==StartedPartitions)flag=1;
 if(DBGcumRBIF) {
-  printf("checkRBIF:startedPartitions:%d\n", flag);
+  printf("checkRBIF:startedPartitions flag:%d for part: %s\n", flag, part->name);
 };
 cleanTRBIF(&myrbif,0);
 // go through existing partitions:
@@ -703,9 +789,10 @@ for(ixp=0;ixp<MNPART;ixp++){
   };
 };
 // now check if new part. can be added:
+printTRBIF(part->rbif);
 if(cumRBIF(part, &myrbif)) {
   char msg[ERRMSGL];
-  if(flag) {
+  if(flag) {   // this cannot happen for STARTED because was checked in INIT_PARTITION already.
     sprintf(msg,"Internal error: %s cannot be loaded due to lack of resources",part->name);
     infolog_trgboth(LOG_ERROR, msg);
   } else {
@@ -852,6 +939,8 @@ for(ip=0;ip<MNPART;ip++){           //loop over partitions
   if(parray[ip] == NULL) continue;
   //printf("Partition %i \n",ip);
   part=parray[ip];
+  printf("===addRBIF2HW:%s\n", part->name);
+  printTRBIF(part->rbif);
   if(cumRBIF(part, &rbifloc)) goto ERR1;
 };
 copyTRBIF(HW.rbif, &rbifloc);
@@ -1167,9 +1256,9 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
  for(ip=0;ip<MNPART;ip++){           //loop over old partitions
    char oldclasses[1200]="";   // 1200> 11*100
    if(parray[ip] == NULL) continue;
-   part=parray[ip]; if((part->hwallocated&0x2)==0) continue;
-   if(DBGac2HW) printf("  old Partition %i hwallocated:%x \n",
-       ip,part->hwallocated);
+   part=parray[ip]; if((part->hwallocated&0x2)==0) continue;  //new (classes not allocated)
+   if(DBGac2HW) printf("  old Partition %i:%s hwallocated:%x \n",
+       ip,part->name, part->hwallocated);
    pclass=0;                         // loop over classes in partition
    oldclasses[0]='\0';
    for(pclass=0; pclass<NCLASS; pclass++) {
@@ -1188,6 +1277,7 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
      //icluster= findHWCluster(part, pcluster);
      copymodTKlas(HW.klas[hwclass],klas, part);
      HW.klas[hwclass]->hwclass = 1;      
+     if(DBGac2HW) printTKlas(HW.klas[hwclass], hwclass);
      sprintf(oldclasses,"%s %d:%d:%d", 
        oldclasses, pclass, hwclass,HW.klas[hwclass]->classgroup);
    };
@@ -1200,7 +1290,7 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
    char newclasses[1200]="";
    if(parray[ip] == NULL) continue;
    part=parray[ip]; if((part->hwallocated&0x2)==0x2) continue;
-   if(DBGac2HW) printf("  new Partition: %i \n",ip);
+   if(DBGac2HW) printf("  new Partition: %s\n", part->name);
    // loop over classes in partition
    newclasses[0]='\0';
    for(pclass=0; pclass<NCLASS; pclass++) {
@@ -1244,7 +1334,7 @@ for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
   int firstc;
   char errmsg[150];
   if(SDGS[ips].name[0]=='\0') continue;     // empty entry
-  firstc= 51;
+  firstc= 101; // 51;
   for(ip=0;ip<MNPART;ip++){           //find our partition
     part= parray[ip];
     if(part == NULL) continue;
@@ -1258,12 +1348,13 @@ for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
   for(pclass=0; pclass<NCLASS; pclass++) { // all classes
     klas=part->klas[pclass];
     if(klas == NULL) continue;
+    //printf("addClasses2HW:n:%d sdg:%d hwclass:%d\n", pclass, klas->sdg, klas->hwclass);
     if(klas->sdg == -1) continue;
     if(klas->sdg == ips) {
-      if(klas->hwclass < firstc) firstc= klas->hwclass+1;   // 0..49-> 1..50/100
+      if(klas->hwclass < firstc) firstc= klas->hwclass+1;   // 0..99-> 1..100
     };
   };
-  if(firstc<51) {
+  if(firstc<101) {   // was 51 in run1
     SDGS[ips].firstclass= firstc;
   };
   printf("addClasses2HW:SDGS[%d]:%s %s: 1st clas:%d\n", ips,
@@ -1280,7 +1371,7 @@ for(ip=0;ip<MNPART;ip++){
       int hwclass;
       hwclass= klas->hwclass;  // 0..49/99
       HW.sdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;
-      //HW.lmsdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;  todo
+      HW.lmsdgs[hwclass]= SDGS[klas->sdg].firstclass - 1;  //13.7.2015
       printf("addClasses2HW:hwclass0..49/99:sdgs[%d]:%d\n", 
         hwclass, HW.sdgs[hwclass]);
     };
@@ -2537,7 +2628,7 @@ printTpartition("Before mask applied", part);
 if(applyMask(part, mask)) { 
   strncpy(errorReason, "Are the readout detectors a subset of detectors allowed in partition being started?", ERRMSGL);
   rc=3; goto RET2; };
-if(DBGparts) { printTpartition("After mask applied", part); };
+  printTpartition("After mask applied", part);
 sprintf(msg,"timestamp:mask applied %s %d", name, run_number); prtLog(msg);
 if((ret=checkResources(part))) {
    strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);

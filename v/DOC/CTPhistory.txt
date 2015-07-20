@@ -497,4 +497,29 @@ ctp_proxy.c, ctp_StopPartition:
 cshmDelPartition(part->name); moved up -just after setPartDAQBusy and before xcountersStop
 (before it was after xcountersStop). THis should soleve discrepancy betweemn
 cal. caounters in daq and EOR message.
+13.7.2015
+- bug in SDSCG init for LM classes fixed -uncommented line
+  HW.lmsdgs[hwclass]= SDGS[... in ctp_proxy.c addClasses2HW
+- checkmodLM modified: now also l0f considered (before: fasle warning 40Mhz
+  for TRD classes if only l0f on LM level used)
+- line //if(strlen(tsname) != 0)exit(1); now commented in Tpartition.c load2HW
+  -seems remnant from debugging, not allowing to start another partition when
+  TIMESHARING is active in already loaded partition
+- gcalib.sh crashed 11.7. monitor/monitor.py now can be used to moniotr it
+  (with auto resatrt) -started usage in P2
+14.7.2015
+- pydimserver.py: saving in addition PCFG/qRUNNUNBER.pcfg -sent
+  to ctpproxy in pcfg time command
+14.7.2015
+- parted.py: 51-> 101 (2 lines) in findfirst +
+  ctp_proxy.c 51-> 101 (2 lines) in addClasses2HW
+changed also in p2 !
+17.7.2015
+ltu_proxy/ltudimservicers.c -fee command added (spd request) executing only
+ttcFEEreset(). Also in p2!
+19.7.2015
+lhc2ctp.py modified -bug fixed, now ok also for SPSspace !=0
+19.7.2015
+notes for l0f8 -4 lof functions with 8 inputs:
+FPGAVERSION environment has priority over TRG_DBED/trgglobs.py L0VER
 

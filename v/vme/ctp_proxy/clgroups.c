@@ -164,7 +164,21 @@ if(clgroup!=0xfffffffe) {
 showTotals(part);
 }
 
-#define waitslot 10000    // run1: 1000 run2: 10x more
+#define waitslot 1000    /* run1: 1000 run2: 10x more   
+from 12.7.2015: back to 1000 (even less is ok - to counters
+move to vme-accessed regs should be <100us.
+Why in p2, there is a message:
+startTimer: 1 secs cl.group:1 for part:PHYSICS_1 (0)
+12.07.2015 18:57:38: ***  Error:cgInterrupt:PHYSICS_1 active_cg 2 still != 1, after:110000 us
+getBusyMaskPartition: PHYSICS_1 dets:0x0 clust:0x3 exp:0x3
+
+but in lab this message i snot seen?
+startTimer: 1 secs cl.group:2 for part:PHYSICS_1 (0)
+getBusyMaskPartition: PHYSICS_1 dets:0x0 clust:0x1 exp:0x1
+
+renice +10 -p ctpproxy_pid    -did not help (still message is there)
+*/
+
 /*-------------------------------------------------------- cgInterrupt
 */
 void cgInterrupt(void *tagv) {

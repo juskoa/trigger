@@ -21,7 +21,7 @@ def signal_handler(signal, stack):
   os.remove(pidpath)
   #sys.exit(8)
 
-def send_mail(text, subject='', to='41764872090@mail2sms.cern.ch'):
+def send_mail(text, subject='', to='41754112090@mail2sms.cern.ch'):
   """
   Usage:
   send_mail('This is a test', 'subj')
@@ -70,11 +70,12 @@ class Udp(Thread):
     while 1:
       if quit: 
         self.UDPSock.settimeout(None)   # None disables timeout
+        # previous line probably not to be there (error msg when monitor stopped)
         self.close()
         break
       data= self.waitudp()
       if data=="":
-        log.logm("udp timeout")
+        #log.logm("udp timeout")  
         continue
       log.logm("udp:"+data)
       dname= string.split(data)[0]
@@ -86,8 +87,8 @@ class Udp(Thread):
     try:
       data,addr = self.UDPSock.recvfrom(1024)
     except:
-      print sys.exc_info()[0]
-      log.logm("waitudp except")
+      print sys.exc_info()[0]   # this produces: <class 'socket.timeout'>
+      #log.logm("waitudp except")
       data=""
     return data
   def close(self):
@@ -324,16 +325,23 @@ monitor.py stop
   #
   # allds={"udpmon":Daemon("udpmon"), 
   # "pydim":Daemon("pydim", autor='n'),
+  #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
+  # p2:
   allds={"xcounters":Daemon("xcounters", autor='n'), 
     "ctpwsgi":Daemon("ctpwsgi"), 
-    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html")}
-  #  "gcalib":Daemon("gcalib"),
-  #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
+    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+    "gcalib":Daemon("gcalib")}
+  # bhm10:
+  allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
+  #
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "
   log.logm("monitored daemons: "+lin)
-  udpmsg=Udp(allds)   # starts thread reading udp messages
+  # starts thread reading udp messages. Commented out from 13.7.2015
+  # until udp really used (now not used, so 'waitudp except' repeats...
+  #udpmsg=Udp(allds)   
+  log.logm("Udp not used.")
   while 1:
     for dmName in allds:
       dm= allds[dmName]

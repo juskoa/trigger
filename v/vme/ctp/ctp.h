@@ -359,16 +359,11 @@ bits    Meaning
 11..0   Select L0 input 12..1
 */
 
-/*von #define L0_INVERT      0x9500     old (before AC) +4*n n=45,....,50 
-bit23..0: 1: invert L0 input   0: use original polarity
-firmAC:
-all classes can use inverted inputs, use L0_INVERTac symbol.
-*/
 /* see PF_COMMON... */
 #define MASK_MODE      0x95a4 /* L0: BCMask memory mode 1:vme 0:normal */
 //#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
 //
-//----------------- L0. The block of LM0 addresses below...
+//----------------- L0 (old addresses). The block of LM0 addresses below...
 #define L0_INTERACT1   0x95bc    /* 16 bits thruth table */
 #define L0_INTERACT2   0x95c0
 #define L0_INTERACTT   0x95c4
@@ -415,11 +410,7 @@ all classes can use inverted inputs, use L0_INVERTac symbol.
 22     spare
 21     Select LM-L0 BUSY 1: don't care 0: do not kill L0 for ongoing LM
 20     1:All   0:Rare
-19..8: Select BCmask[12..1]     thcheckResources(part))) {
-   strncpy(errorReason, "Not enough CTP resources for this partition", ERRMSGL);
-   rc=ret; ret=deletePartitions(part); part=NULL;
-   goto RET2; };
-//printTpartition("After ce same  also in LM_CONDITION
+19..8: Select BCmask[12..1]
  7..4: Select PFprot[4..1]      the same
  2..0: Cluster code (1-6)       the same
 
@@ -564,7 +555,7 @@ bit4: phase enable
 #define DDR3_wr_done 0x0800000
 
 #define LM0_F8_MIN 1   // see getLM0_F8ad() where 8 LM0 addresses are hardcoded
-#define LM0_F8_MAX 8
+#define LM0_F8_MAX 8   // for l0f1..4 lmf1..4
 
 #define MAXL0REGS 11
 typedef struct{
@@ -719,6 +710,14 @@ get rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2 INTSEL1 INTSEL2 allrare
 */
 void getShared();
 /*FGROUP L0
+get l0f1 ... l0f4 lmf1 ... lmf4
+stdout:
+0x...
+4 lines l0f1..4 (we assume lmf == l0f)
++ error lines if lmX != l0x
+*/
+void getSharedl0mfs();
+/*FGROUP L0
 get 4096 hexa chars each containing i-bit of LUT4-1. i:0..4095
 */
 void getSharedL0f34(int lutout);
@@ -738,6 +737,12 @@ void setShared2(w32 intsel, w32 allrare);
 set LM_rnd1/2 LM_bcd1/2
 */
 void setShared3(w32 lmr1, w32 lmr2, w32 lmbc1, w32 lmbc2);
+/*FGROUP L0
+set LM_ l0fX + lmfX (the same content for both)
+I: X 1..4  -> sets l0fX+lmfX
+lut: string \"0xa... 64 chars\"
+*/
+void setShared4(int X, char *lut);
 /*----------------------------libctp.a subroutines for new firmware  */
 /* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
@@ -973,3 +978,10 @@ dT2 - protection time interval after interactions
 ipf - index to pf {1,2,3,4} for all boards where pf is set
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 icircuit,w32 plut);
+/*FGROUP PF
+* Ncol1 -number of collisions in time window dT1 before trigger interaction
+ * Ncol2 -number of collisions in time window dT2 after trigger interaction
+ * inter - 1=INT1, 2=INT2
+*/
+int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter);
+

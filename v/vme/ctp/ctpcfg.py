@@ -147,8 +147,8 @@ class Ctpconfig:
   int2bits=["INTfun2","BC1","BC2","RND1","RND2"]
   #vonint2bits=[("i0",1),("i1",1),("i2",1),("i3",1),("i4",1),"INTfun2","BC1","BC2","RND1","RND2"]
   AllRarebits=["All"]
-  lastshrgrp1=8+4   # index in self.sharedrs: eof LUTs
   if Gl0AB==None:
+    lastshrgrp1=8+4   # index in self.sharedrs: eof LUTs
     grp3start= lastshrgrp1+4
     lmrnds= 2
     lmbcds= 6
@@ -158,14 +158,22 @@ class Ctpconfig:
     dbgbits=6 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
     BCMASKN=12
     if Gl0C0==None:
+      lastshrgrp1=8+4   # index in self.sharedrs: eof LUTs
       firstshrgrp2= lastshrgrp1+8    # BCM1...
       lastshrgrp2= firstshrgrp2+12
       mskCLAMASK=0x80000000
-    else:
+    elif Gl0C0<=0xc605:
+      lastshrgrp1=12
+      firstshrgrp2= lastshrgrp1+4    # no L0F34 for lm0
+      lastshrgrp2= firstshrgrp2+8
+      mskCLAMASK=0x00800000
+    else:   # newest firmware lm0 board
+      lastshrgrp1=14   # pehaps 18 (aslo LM1..4 ?)
       firstshrgrp2= lastshrgrp1+4    # no L0F34 for lm0
       lastshrgrp2= firstshrgrp2+8
       mskCLAMASK=0x00800000
   else:
+    lastshrgrp1=8 # index in self.sharedrs: eof LUTs
     firstshrgrp2= lastshrgrp1+4
     lastshrgrp2= firstshrgrp2+4
     mskCLAMASK=0x10000
@@ -241,7 +249,7 @@ class Ctpconfig:
       AttrBCmask('BCM11','bitmap',TrgSHR.BCMxHelp, self),
       AttrBCmask('BCM12','bitmap',TrgSHR.BCMxHelp, self),
       ]
-    else:
+    elif Gl0C0<=0xc605:
       print "lm0..."
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
@@ -257,6 +265,45 @@ class Ctpconfig:
       AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('L0fun1',["a|b|c|d",4,0], TrgSHR.L0FUNxHelp),
       AttrLUT('L0fun2',["a|b|c|d",4,0], TrgSHR.L0FUNxHelp), #lastshrgrp1
+      AttrBits('INT1',0, helptext=TrgSHR.INTxHelp,bits=Ctpconfig.int1bits),
+      AttrBits('INT2',0, helptext=TrgSHR.INTxHelp,bits=Ctpconfig.int2bits),
+      AttrBits('All/Rare',0, helptext=TrgSHR.AllRareHelp,
+        bits=Ctpconfig.AllRarebits),   # lastshrgrp1+3
+      #AttrLUT('L0fun31',["a|b|c|d|e|f",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
+      #AttrLUT('L0fun32',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
+      #AttrLUT('L0fun41',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),
+      #AttrLUT('L0fun42',["a|b",Ctpconfig.dbgbits,0], TrgSHR.L0FUN34Help),#eof grp1, pointed by lastshrgrp1+7
+      AttrBCmask('BCM1','bitmap',TrgSHR.BCMxHelp, self),  #firstshrgrp2
+      AttrBCmask('BCM2','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM3','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM4','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM5','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM6','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM7','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM8','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM9','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM10','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM11','bitmap',TrgSHR.BCMxHelp, self),
+      AttrBCmask('BCM12','bitmap',TrgSHR.BCMxHelp, self),
+      ]
+    elif Gl0C0>0xc605:
+      print "lm0..."
+      self.sharedrs= [
+      AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
+      AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
+      AttrRndgen('LM_RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),   # lmrnds
+      AttrRndgen('LM_RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 LM_RND inputs
+      Attr('BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),
+      Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
+      Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
+      Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
+      AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('L0fun1',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('L0fun2',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('L0fun3',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('L0fun4',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help), #lastshrgrp1
       AttrBits('INT1',0, helptext=TrgSHR.INTxHelp,bits=Ctpconfig.int1bits),
       AttrBits('INT2',0, helptext=TrgSHR.INTxHelp,bits=Ctpconfig.int2bits),
       AttrBits('All/Rare',0, helptext=TrgSHR.AllRareHelp,
@@ -758,9 +805,23 @@ Middle-> modify the invert bit (only for classes 45-50)
       print "Error readShared:",shr
     for ishr in range(len(shr)-1):   #0..11
       v=shr[reshuf[ishr]]
-      #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
-      self.sharedrs[ishr].setattrfo(eval(v), 1)
-      #self.sharedrs[ishr].hwwritten(1)
+      if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=12): #4xlut8
+        print "readShared: ignoring l0f%d value:%s"%(ishr-11, v)
+      else:
+        #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
+        self.sharedrs[ishr].setattrfo(eval(v), 1)
+        #self.sharedrs[ishr].hwwritten(1)
+    if (Gl0C0>=0xc606):
+      shr= vbexec.getsl("getSharedl0mfs()")
+      print "readShared l0fs:", shr
+      for ix in range(len(shr)-1):   #0..3 + error lines if any
+        v= shr[ix]
+        if ix<=3:
+          ishr= ix+ (Ctpconfig.lastshrgrp1-3)
+          self.sharedrs[ishr].setattrfo(v[2:], 1)
+        else:
+          # error messages:
+          print v
     if (Gl0AB==None) and (Gl0C0==None):   #firmAC and not lm0
       shr= vbexec.getsl("getSharedL0f34(4)")
       #for ishr in range(12, 16):
@@ -776,7 +837,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       #self.sharedrs[ishr].hwwritten(1)
     # where are pfcs?
   def writeShared(self, cf=None):
-    """ cf!=None: write to cONFIG fILE
+    """ cf!=None: write to cONFIG fILE: cf
 """
     intselw= (self.sharedrs[Ctpconfig.lastshrgrp1+1].getbinval()&0x01f) | \
              ((self.sharedrs[Ctpconfig.lastshrgrp1+2].getbinval()&0x01f)<<5)
@@ -821,12 +882,17 @@ Middle-> modify the invert bit (only for classes 45-50)
       cmd="RBIF "
       cmd2='LMRB '   # put here: lmr1 lmr2 lmbc1 lmbc2
       for ishr in range(Ctpconfig.lastshrgrp1+1):
+        print  "writeSharedcf:%d %s "%(ishr, self.sharedrs[ishr].atrname), self.sharedrs[ishr].getbinval()
         if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
           (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
           cmd2= "%s0x%x "%(cmd2, self.sharedrs[ishr].getbinval())
         else:
+          ishrmax=12
+          if Gl0C0>=0xc606: ishrmax=14
           #if ishr>=4 and ishr<=8:
-          if ishr>=8 and ishr<=12:   # 5 functions
+          if ishr>=8 and ishr<=10:   # 3 INT functions
+            cmd= "%s%s:"%(cmd, str(self.sharedrs[ishr].getattr()))
+          elif ishr>=11 and ishr<=ishrmax:   # l0f1/2  (3/4 for 0xc606...)
             cmd= "%s%s:"%(cmd, str(self.sharedrs[ishr].getattr()))
           else:
             cmd= "%s0x%x:"%(cmd, self.sharedrs[ishr].getbinval())
@@ -847,49 +913,58 @@ Middle-> modify the invert bit (only for classes 45-50)
     else:
       writeit=0   # update hw only if at least 1 changed
       writeit3=0
-      cmd="setShared("
+      writeit4=0
+      cmd1="setShared("
       cmd3="setShared3("
       for ishr in range(Ctpconfig.lastshrgrp1+1):
-        print  "writeShared:%d %s 0x%x"%(ishr, self.sharedrs[ishr].atrname, self.sharedrs[ishr].getbinval())
+        print  "writeShared:%d %s "%(ishr, self.sharedrs[ishr].atrname), self.sharedrs[ishr].getbinval()
         if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
            (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
           if self.sharedrs[ishr].modified(): writeit3=1
+          print "cmd3:",cmd3
           cmd3= "%s0x%x,"%(cmd3, self.sharedrs[ishr].getbinval())
-          self.sharedrs[ishr].hwwritten(1)
         else:
-          if self.sharedrs[ishr].modified(): writeit=1
-          cmd= "%s0x%x,"%(cmd, self.sharedrs[ishr].getbinval())
-          self.sharedrs[ishr].hwwritten(1)
-      cmd=cmd[:-1]+")" ; cmd3=cmd3[:-1]+")"
-      if writeit==1: vbexec.get1(cmd)
+          if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=14): #4xlut8
+            if (ishr>=11) and (ishr<=12): # 2 dummy values for old l0f1..2
+              cmd1= "%s0x%x,"%(cmd1, ishr-11)
+            if self.sharedrs[ishr].modified():   # let's do it separately for each l0fX+lmfX function
+              cmd4= 'setShared4(%d,"0x%x")'%(ishr-10, self.sharedrs[ishr].getbinval())
+              print "cmd4:",cmd4
+              vbexec.get1(cmd4)
+          else:
+            if self.sharedrs[ishr].modified(): writeit=1
+            cmd1= "%s0x%x,"%(cmd1, self.sharedrs[ishr].getbinval())
+        self.sharedrs[ishr].hwwritten(1)
+      cmd1=cmd1[:-1]+")" ; cmd3=cmd3[:-1]+")"
+      if writeit==1: vbexec.get1(cmd1)
       if writeit3==1: vbexec.get1(cmd3)
       writeit=0   # INT1, INT2, All/Rare
       for ishr in range(Ctpconfig.lastshrgrp1+1,Ctpconfig.lastshrgrp1+4):
         if self.sharedrs[ishr].modified(): writeit=1
         self.sharedrs[ishr].hwwritten(1)
-      cmd="setShared2(0x%x,0x%x)"%(intselw,allrare) 
-      if writeit==1: vbexec.get1(cmd)
+      cmd1="setShared2(0x%x,0x%x)"%(intselw,allrare) 
+      if writeit==1: vbexec.get1(cmd1)
       if lut34:
         writeit=0   # update lut34 hw only if at least 1 changed
-        cmd="setSharedL0f34()\n"+lut34
+        cmd1="setSharedL0f34()\n"+lut34
         for ishr in range(Ctpconfig.lastshrgrp1+4, Ctpconfig.lastshrgrp1+4+4+1):
           if self.sharedrs[ishr].modified(): writeit=1
           self.sharedrs[ishr].hwwritten(1)
-        #print "cmd setSharedL0f34:",cmd
+        #print "cmd1 setSharedL0f34:",cmd1
         if writeit==1: 
-          rcstr= vbexec.getline(cmd)
+          rcstr= vbexec.getline(cmd1)
       writeit=0
       for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
         if self.sharedrs[ishr].modified(): writeit=1
         self.sharedrs[ishr].hwwritten(1)
-      cmd="setBCmasks()\n"+self.masks2str()
+      cmd1="setBCmasks()\n"+self.masks2str()
       if writeit: 
-        rcstr=vbexec.getline(cmd)
+        rcstr=vbexec.getline(cmd1)
         #print "writeShared1:",rcstr,':'
         #rcstr2=vbexec.getoutput()
         #print "writeShared2:",rcstr2,':'
         #print "writeShared thread"
-        #self.dooutmskthd=vbexec.cmdthread(cmd, self.dooutmsk)
+        #self.dooutmskthd=vbexec.cmdthread(cmd1, self.dooutmsk)
         #print "writeShared thread:",self.dooutmskthd
   #def dooutmsk(self, outstr):
   #  print "dooutmsk:",outstr,":"
@@ -1109,7 +1184,7 @@ pattern definition is changed, the window should be closed/opened
 to see the actual BCmask pattern.
 """
   L0FUNxHelp="""INTfun1, INTfun2, INTfunT (interaction functions) and
-L0fun1, L0fun2 (L0 functions) are programmable functions of the first 
+L0fun1, L0fun2 (L0 functions for L0 board and LM<0xc606) are programmable functions of the first 
 four CTP L0 inputs. 
 These functions are defined by 16 bits Lookup table (LUT).
 """
@@ -1124,6 +1199,20 @@ l0fx1: (x:3 or 4) logical expression made from L0 inputs 1..12
 l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
 """
   INTxHelp="""Interaction selector
+"""
+  L0FUNx8Help="""L0fun1..4 (L0 functions for LM>0xc605) are programmable functions of the first 
+eight CTP L0 inputs. 
+These functions are defined by 256 bits Lookup table (LUT).
+"""
+  L0FUN34Help="""L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
+It consists of OR of any logical combination of first L0 inputs (1-12)
+and last L0 inputs (13-24):
+
+L0fun3= l0f31 | l0f32
+L0fun4= l0f41 | l0f42
+
+l0fx1: (x:3 or 4) logical expression made from L0 inputs 1..12
+l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
 """
   AllRareHelp="""
 All/Rare: All        -take all events

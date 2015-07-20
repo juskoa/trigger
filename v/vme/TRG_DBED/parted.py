@@ -49,6 +49,8 @@ CFGDIR=trigdb.CFGDIR       # .partition & .pcfg files are here
 WORKDIR=trigdb.TRGWORKDIR  # archive (PCFG/...)
 TRGDBDIR=trigdb.TRGDBDIR   # trigger DB files (VALID.PFS,...)
 FPGAVERSION= os.getenv('FPGAVERSION')
+if FPGAVERSION== None:   # environment is superior
+  FPGAVERSION= trgglobs.L0VER   # default defined here
 
 PF_NUMBER=4         # 4 PFs
 PF_COMDEFSIX=9
@@ -61,7 +63,7 @@ if BCM_NUMBER==4:
 else:
   L0F_NUMBER=12     # 12 (debug: 6)
   PFS_START=16
-if trgglobs.L0VER >= 0xc606:
+if FPGAVERSION >= 0xc606:
   L0F_NUMBER=8
 lutzero="0x"+ '0'*(2**(L0F_NUMBER-2))
 TRGCTPCFG= trigdb.Trgctpcfg()
@@ -2275,7 +2277,7 @@ class TrgPartition:
          for .rcfg info -SDG column in class lines
     """
     for sdgn in self.sdgs.sdgs.keys():   # all SDG groups
-      firstc=51
+      firstc=101   #51
       for ixclu in range(len(self.clusters)):
         cluster= self.clusters[ixclu]
         for cla in cluster.cls:
@@ -2287,7 +2289,7 @@ class TrgPartition:
               phcla= phclasses[ixclasses]
             if int(phcla)<firstc:
               firstc= int(phcla)
-      if firstc<51:
+      if firstc<101:   #51:
         self.sdgs.setl0prsdg(sdgn, firstc)
   def savepcfg(self,wdir=CFGDIR,name=None):
     """wdir:
@@ -2345,7 +2347,7 @@ class TrgPartition:
               (cluster.name, cls.trde.name)
             continue
         l0inv=0
-        if trgglobs.L0VER>=0xc0:
+        if FPGAVERSION>=0xc0:
           l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
         else:
           if BCM_NUMBER==4:

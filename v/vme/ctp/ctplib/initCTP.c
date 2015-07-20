@@ -205,6 +205,7 @@ infolog_trg(LOG_INFO, (char *)"setClassInit: 1..100, also LM_VETO set to '1's");
 //dbgssm("classes set");
 /*
 printf("omitting IR and L0F12 init to 0, on L0/LM0 board (programmed elsewhere).\n");
+-seems only in Tpartition.c load2HW  
 vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
 vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
 vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
@@ -217,6 +218,9 @@ if(l0AB()==0) {   //firmAC
   };
 };
 ix= loadcheckctpcfg();
+if(ix!=0) {
+    infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
+};
 //dbgssm("after loadcheckctpcfg");
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
@@ -289,6 +293,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
+      if(lmversion>=0xc606) {
+        setLUT(0, "0");
+        infolog_trgboth(LOG_INFO, (char *)"L0F*/LMF* LUTs set to 0");
+      };
       if(lmversion>=0xc5) {
         vmew32(LM_L0_TIME, 12);
         infolog_trgboth(LOG_INFO, (char *)"LM0ver:>=0xc5 LM_L0_TIME:12 (i.e. +3=15 on LMboard, +8=20 for TRD)");

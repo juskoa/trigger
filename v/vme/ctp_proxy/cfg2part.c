@@ -182,7 +182,7 @@ i=i+2;   // 0x...
 //if(string2int(&line[i-1],i-j-3,&word,'h')) {
 tok= nxtoken(line, hexw, &i);
 if(tok != tHEXNUM) {
-  printf("FO2partition error:line:%s:\n",line);
+  printf("FO2Partition error:line:%s:\n",line);
   return 1; 
 };
 word= hex2int(&hexw[2]);
@@ -588,6 +588,7 @@ lenline= strlen(line);
 if(lenline < ((bcmaskn/4)*ORBITLENGTH+8)) {
   char errm[300];
   sprintf(errm, "BCMASK2Partition: short BCMASKS line (len:%d bcmaskn:%d) in .pcfg", lenline,bcmaskn);
+  prtError(errm);
   infolog_trgboth(LOG_FATAL, "BCMASK2Partition: short BCMASKS line in .pcfg");
   return NULL;
 };
@@ -712,7 +713,7 @@ while(ixrbf<ixrbifdim){
     After 1st space, the function definition follows till : 
     Note about lut8: 
       - l0f3/4 inserted after l0f2
-      - int1/2/t not used anyhow (at least not in .partition)  */
+      - int1/2/t not used anyhow (at least not in .partition), but let's keep them after l0f1..4  */
 
     vallen=findchar(" :", &line[ixline], &rc);
     if(vallen==0) {
@@ -730,7 +731,7 @@ while(ixrbf<ixrbifdim){
     } else {
       // l0f lut (16 bits):
       if(string2int(&line[ixline+vallen-1], vallen,&rbif[ixrbf], base)) {
-        sprintf(emsg,"RBIF2partition l0/int fun:%s (base:%c) is not int neither hexa", 
+        sprintf(emsg,"RBIF2Partition l0/int fun:%s (base:%c) is not int neither hexa", 
           &line[ixline+vallen-1], base);
         prtError(emsg); goto RETNULL;
       };
@@ -739,11 +740,11 @@ while(ixrbf<ixrbifdim){
     strncpy(&l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX], 
       &line[ixline+vallen], vallen2-vallen);
     l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX + vallen2-vallen]='\0';
-    printf("cfg2part:l0intfs:len:%d %s:\n", 
+    printf("cfg2Part:l0intfs:len:%d %s:\n", 
       vallen2-vallen,&l0intfs[(ixrbf-ixl0fun1)*L0INTFSMAX]);
   } else {
     if(string2int(&line[ixline+vallen2-1], vallen2,&rbif[ixrbf], base)) {
-      sprintf(emsg,"RBIF2partition:%s base%c: is not int neither hexa", 
+      sprintf(emsg,"RBIF2Partition:%s base%c: is not int neither hexa", 
         &line[ixline+vallen2-1], base);
       prtError(emsg); goto RETNULL;
     };

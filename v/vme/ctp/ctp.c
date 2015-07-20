@@ -62,8 +62,8 @@ Tfanout FOs[6];   /* place for 6 fanouts, see getFO(), setFO() */
 int ReadTemp(int ix);
 
 /* HIDDEN Common dbghw ConfiguratioH DbgScopeCalls DebCon L012 DbgSSMBROWSERcalls */
-/* HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
-/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls */
+/*HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls DbgSSMBROWSERcalls */
+/* HIDDEN Common L0 dbghw ConfiguratioH DbgScopeCalls DebCon DebugSSMcalls */
 /*FGROUP TOP GUI CTP_Classes "Classes"
 The Classes definition, i.e. for each (1-NCLASS) class: 
  -enabling/disabling
@@ -842,7 +842,7 @@ printf("rate:%dhz: rnd1:%6.2fhz =%d   rnd2:%6.2fhz =%d was set in CTP\n",\
 }
 /*---------------------------------------------------------------- LM0-tests */
 /*FGROUP LM0 
-Input: lut: 1..8 corresponding to L0F1..4 LMF1..2
+Input: lut: 1..8 corresponding to L0F1..4 LMF1..4
             0: load all 8 LUTs with the same LUT
 expr: a&c|b|~h   -i.e. using letters a b c d e f g h for first 8 L0, resp. LM inputs
       0          - put 0s
@@ -1202,7 +1202,7 @@ board (0:busy, 1:L0 2:L1, 3:L2, 4:INT, 5:FO1...)
 N==0: read+print all counters (according to ctpcounters.h) of the board
 */
 void printBoardCounters(int board, int FROM, int N) {
-int cix,counts,cixmod=0;
+int cix,counts,cixmod=0; w32 usecs, s1,s2,us1,us2;
 w32 mem[NCOUNTERS_MAX];
 if(N==0) {
   counts= defcounts[board];
@@ -1214,7 +1214,11 @@ if(N==0) {
 if(FROM > counts) FROM=0;
 printf("reading counters %d - %d from board %d", FROM, counts-1,board);
 // always starting from first counter:
+GetMicSec(&s1,&us1);
 getCountersBoard(board, counts-1, mem, 2);
+GetMicSec(&s2,&us2);
+usecs= DiffSecUsec(s2, us2, s1, us1);
+printf("getCountersBoard took %d us\n", usecs);
 //0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs
 for(cix=FROM; cix<counts; cix++) {
   if((cixmod%5)==0) {

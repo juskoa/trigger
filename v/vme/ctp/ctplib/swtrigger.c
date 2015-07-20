@@ -395,7 +395,7 @@ if(detectors & 0x20000) {
 };
 if(trigtype=='c') {
   status= cshmGlobalDets();
-  //if(strcmp("ALICE", getenv("VMESITE"))==0) {
+  //if(strcmp("ALICE", getenv("VMESITE"))==0) 
   if(strcmp("ALICE", "ALICE")==0) {
     if((status & detectors)!=detectors) {
       printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
@@ -444,11 +444,11 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
 };
 RELEASERET:
 unlockBakery(&ctpshmbase->swtriggers, customer);
-if(DBGswtrg4) {
+//if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
   printf("lm, l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
-};
+//};
 TRIGTYPE='.';
 // return i;
 return l2a;

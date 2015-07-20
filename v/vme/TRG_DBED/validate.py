@@ -36,9 +36,18 @@ def main():
       strict= "strict"
   partname= sys.argv[1]   #"beam" "erp"
   saveout= sys.stdout
-  logfile= open(os.path.join( WORKDIR,partname+".log"), "w")
+  logfile= open(os.path.join( WORKDIR,"parted.log"), "w")
   sys.stdout= logfile
   import parted
+  #if parted.TDSLTUS.loaderrors!=
+  #print "parted.log..."
+  #print parted.TDLTUS.loaderrors
+  logfile.write(parted.TDLTUS.loaderrors)
+  sys.stdout= saveout ; logfile.close()
+  #
+  saveout= sys.stdout
+  logfile= open(os.path.join( WORKDIR,partname+".log"), "w")
+  sys.stdout= logfile
   part= parted.TrgPartition(partname, strict)
   part.prt()
   if part.loaderrors=="":

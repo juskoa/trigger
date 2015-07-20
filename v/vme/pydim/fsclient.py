@@ -6,11 +6,14 @@ AliceClock=None
 beamA= []
 beamC= []
 def rmzero(strg):
-  if strg[-1]=='\0':
-    rcstr= strg[:-1]
-    #print "rmzero:%s:%s:"%(strg,rcstr)
+  if strg[0]=='\0': return ""
+  #rcstr = strg.translate(None, '\0')
+  #rcstr = strg.translate(None, '\x002us')
+  #rcstr = rcstr.translate(None, '\x00')
+  eos= strg.find('\x00')
+  if eos >=0:
+    rcstr= strg[:eos]
   else:
-    #print 'rmzero:%s'%strg
     rcstr= strg
   return rcstr
 def gettimenow(secs="yes"):

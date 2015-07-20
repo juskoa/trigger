@@ -29,7 +29,7 @@ ctp_LoadPartition
              - reallocation (i.e. bc2->bc1), if value is equal
           allocateInhw(cumrbif, ixhw, prbif, icheck);
       cumRBIF(part, &myrbif) -myrbif: add RBIF in question
-
+  checkmodLM(part)
   addPartitions(part) -add this partition to AllPArtitions
   addPartitions2HW(AllPartitions)
     addRBIF2HW(AllPartitions)
@@ -42,7 +42,9 @@ ctp_LoadPartition
         findHWCluster(
         modL0input(
           l0condition2rbif(from_bit,to_ix)
+
   prepareRunConfig(part,1)
+      55 in part->rbif already here
   updateDAQClusters(part);
   copyHardware(&HW,&HWold);   // HW <- HWold
 
@@ -51,15 +53,35 @@ ctp_StartPartition
   addStartedPartitions(part);
   addPartitions2HW(StartedPartitions);
     addRBIF2HW(StartedPartitions)
-      copyTRBIF
-      cumRBIF
-  setALLDAQBusy(); 
+      part je blbo
+      copyTRBIF(&rbifloc, HW.rbif);
+      cumRBIF  - for all started partitions
+        copyTRBIF(&rbifloc, cumrbif);
+        checkpairRBIF(ix: rnd1/2 bc1/2 l0f1/2/3/4
+           *** Internal Error:hwallocated icheck:4 ixhw:55
+          -here, similar like checkRES, but:
+             - classses from all partitions considered
+             - reallocation (i.e. bc2->bc1), if value is equal
+          allocateInhw(cumrbif, ixhw, prbif, icheck);
+      copyTRBIF(HW.rbif, &rbifloc);
+    addFO2HW(parray)
+    addClasses2HW(parray)
+      copymodTKlas(toklas,fromklas,part)   2x (old+new partitions)  
+        copyTKlas(to,from)
+        findHWCluster(
+        modL0input(
+          l0condition2rbif(from_bit,to_ix)
+
+  setPartDAQBusy(); 
   generateXOD(part,'S')
-  load2HW(&HW)
+  load2HW(&HW, tsname))
+    RBIF
     loadBCmasks(rbif->BCMASK)
+    PF
+    classes
   cshmAddPartition(part);
   xcountersStart(part->run_number);
-  unsetALLDAQBusy();
+  unsetPartDAQBusy();
   
 -------------------- bcmasks focus:
 ctp_LoadPartition

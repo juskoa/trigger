@@ -1,14 +1,19 @@
 #!/bin/bash
 #cd  /data/dl/snapshot
 cd  /home/dl6/snapshot
+if [ "$#" -eq 0 ] ;then
+cat - <<-EOF
+
+findactive dim ltuproxy ctpproxy or detname
+EOF
+exit
+fi
 if [ "$1" = "dim" ] ;then
   lst="alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/ltudimserver.log"
-elif [ "$1" = "proxy" ] ;then
+elif [ "$1" = "ltuproxy" ] ;then
  lst="alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/LTU-*.log"
-elif [ "$1" = "proxy" ] ;then
-ls -lt alidcsvme001/home/alice/trigger/v/vme/WORK/ctp_proxy.log \
- $lst |head -20 |cut -d' ' -f'5-'
-# alidcsvme00[2-7]/home/alice/trigger/v/*/WORK/ltudimserver.log \
+elif [ "$1" = "ctpproxy" ] ;then
+ lst="alidcsvme001/home/alice/trigger/v/vme/WORK/ctp_proxy*.log"
 else
  lst="alidcsvme00[2-7]/home/alice/trigger/v/$1/WORK/LTU-*.log \
  alidcsvme00[2-7]/home/alice/trigger/v/$1/WORK/ltudimserver.log"

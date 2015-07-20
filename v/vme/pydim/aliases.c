@@ -108,7 +108,7 @@ while(fgets(line, MAXLINELENGTH, alfi)){
     };
   };
   rc= sscanf(line, "%s %s", clsname, apart);
-  //printf("%d:%s:%s:\n", rc,clsname, apart);
+  //printf("sscanf %d:%s:%s:\n", rc,clsname, apart);
   if(rc!=2) {
     printf("ERROR: bad line:%s\n", line); continue;
   };
@@ -165,7 +165,7 @@ for(ix=0; ix<arrayN; ix++) {
     sprintf(aliases,"%s%s", aliases, aliasNames[ix3]);
     ix2++; ix3= cls2aliases[ix2];
   };
-  printf("INFO %s %s\n", array[ix].name, aliases);
+  //printf("INFO %s %s\n", array[ix].name, aliases);
 };
 }
 /* Prepare alist for new parameter specifying aliases
@@ -180,10 +180,20 @@ while(1) {
   int cmprc;
   ix = (ixl+ixh)/2;
   //printf("INFO ixlh:%d %d -> %d\n", ixl, ixh, ix);
+  /* run1---> 
   if((ix==ixl) || (ix==ixh)) {ix=-1; break; }; 
   cmprc= strcmp(array[ix].name, name);
   if(cmprc == 0) {break; 
   } else if(cmprc < 0) {
+    ixl= ix;
+  } else {
+    ixh= ix;
+  };  <---run1*/
+  /* run2 (chaned: 9.7.2015: */
+  cmprc= strcmp(array[ix].name, name);
+  if(cmprc == 0) break; 
+  if((ix==ixl) || (ix==ixh)) {ix=-1; break; }; 
+  if(cmprc < 0) {
     ixl= ix;
   } else {
     ixh= ix;
@@ -221,10 +231,14 @@ int main() {
 int rc;
 char *daqlist[MAXALIASES]; char cn[30];
 rc= readAliases(); if(rc==-1) return(8);
-//printAliases();
-strcpy(cn, "CMLL8-S-NOPF-MUOo"); printf("cn:%s:\n", cn);
+printAliases();
+/*strcpy(cn, "CMLL8-S-NOPF-MUOo"); printf("cn:%s:\n", cn);
+getClassAliases(cn, daqlist); printalist(daqlist);*/
+strcpy(cn, "C0LSR-ABCE-NOPF-CENTNOTRD"); printf("cn:%s:\n", cn);
 getClassAliases(cn, daqlist); printalist(daqlist);
-strcpy(cn, "CMSL7-B-NOPF-MUON"); printf("cn:%s:\n", cn);
+strcpy(cn, "C0LSR-ABCE-NOPF-TPC"); printf("cn:%s:\n", cn);
+getClassAliases(cn, daqlist); printalist(daqlist);
+strcpy(cn, "CMUL7-B-NOPF-MUON"); printf("cn:%s:\n", cn);
 getClassAliases(cn, daqlist); printalist(daqlist);
 } 
 #endif

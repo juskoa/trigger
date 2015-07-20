@@ -100,8 +100,12 @@ w= vmer32(getLM0addr(SCALED_2)); printf("0x%x\n", w);
 w= vmer32(getLM0addr(L0_INTERACT1)); printf("0x%x\n", w);
 w= vmer32(getLM0addr(L0_INTERACT2)); printf("0x%x\n", w);
 w= vmer32(getLM0addr(L0_INTERACTT)); printf("0x%x\n", w);
-w= vmer32(getLM0addr(L0_FUNCTION1)); printf("0x%x\n", w);
-w= vmer32(getLM0addr(L0_FUNCTION2)); printf("0x%x\n", w);
+if(l0C0()>=0xc606) {
+  printf("0xdeaddad\n"); printf("0xdeadbeaf\n");
+} else {
+  w= vmer32(getLM0addr(L0_FUNCTION1)); printf("0x%x\n", w);
+  w= vmer32(getLM0addr(L0_FUNCTION2)); printf("0x%x\n", w);
+};
 w= vmer32(getLM0addr(L0_INTERACTSEL)); 
 printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
 w= vmer32(getLM0addr(ALL_RARE_FLAG)); printf("0x%x\n", w&0x1);
@@ -110,6 +114,23 @@ w= vmer32(LM_RANDOM_2); printf("0x%x\n", w);
 w= vmer32(LM_SCALED_1); printf("0x%x\n", w);
 w= vmer32(LM_SCALED_2); printf("0x%x\n", w);
 }
+void getSharedl0mfs() {
+int lutn, rc; char val[LUT8_LEN]; char l0fs[4*LUT8_LEN];
+char errmsg[4*100]="";
+if(notInCrate(1)) return;
+for(lutn=1; lutn<=8; lutn++) {
+  rc= cshmgetLUT(lutn, val);
+  if(lutn<=4) {
+    printf("%s\n", val);
+    strcpy(&l0fs[(lutn-1)*LUT8_LEN], val);
+  } else {
+    if(strcmp(val, &l0fs[(lutn-5)*LUT8_LEN])!=0) {
+      sprintf(errmsg, "%slmf%d != l0f%d\n", errmsg,
+        lutn-4, lutn-4);
+    };
+  };
+}; printf("%s", errmsg);
+};
 /*
 Read 4 LUTs LUT31/2 LUT41/2 from shared memory (they are not accessible
 from hw).
@@ -185,7 +206,7 @@ if(lutout==1) {
 };
 }
 /*FGROUP L0
-set rnd1 rnd2 lmrnd1 lmrnd2 bcsc1 bcsd2 lmbcd1 lmbcd2 int1 int2 intt L0fun1 L0fun2
+set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
 void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2,
                w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2) {
@@ -197,8 +218,12 @@ vmew32(getLM0addr(SCALED_2), bs2);
 vmew32(getLM0addr(L0_INTERACT1), int1);
 vmew32(getLM0addr(L0_INTERACT2), int2);
 vmew32(getLM0addr(L0_INTERACTT), intt);
-vmew32(getLM0addr(L0_FUNCTION1), l0fun1);
-vmew32(getLM0addr(L0_FUNCTION2), l0fun2);
+if(l0C0()>=0xc606) {
+  ;  // l0fun1/2 dummy -see setShared4
+} else {
+  vmew32(getLM0addr(L0_FUNCTION1), l0fun1);
+  vmew32(getLM0addr(L0_FUNCTION2), l0fun2);
+};
 }
 /*FGROUP L0
 set INTERACTSEL ALL_RARE_FLAG lmrnd1 lmrnd2 lmbcd1 lmbcd2
@@ -214,6 +239,7 @@ vmew32(LM_RANDOM_2, lmrnd2);
 vmew32(LM_SCALED_1, lmbcd1);
 vmew32(LM_SCALED_2, lmbcd2);
 }
+
 #define LEN_LUT8 256   // bits
 void setLUT1(int lutn, char *m4) {
 w32 lutadr; int is;
@@ -227,7 +253,10 @@ m4[0]  -i.e. last 4 hex-digits from m4
 if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
   w32 lutw;
   if(strcmp(m4,"0")==0) { lutw=0;
-  } else { lutw=0xffff0000; };
+    cshmsetLUT(lutn, "0x0000000000000000000000000000000000000000000000000000000000000000");
+  } else { lutw=0xffff0000;
+    cshmsetLUT(lutn, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  };
   for(is=LEN_LUT8/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
     int isx;
     // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
@@ -243,6 +272,8 @@ if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
     lutw= lutw<<16 | (16-is);
     vmew32(lutadr, lutw);
   };
+  /* update shared memory */
+  cshmsetLUT(lutn, m4);
 };
 }
 /*set LUT1..8 in hw. 
@@ -251,12 +282,12 @@ Input:
 setLUT(0, "0") -set all bits to 0   (i.e. when 1 char string on input)
 setLUT(0, "f") -set all bits to 1
 
-2. set all 4 LUTs bits (lutn:0) in shared mem +hw:
-0, "abcdef..." LEN_l0f34=4096 hexa digits, each hexa digit represents LUT4..1 
+2. set all 8 LUTs (l0f1..4+ lmf1..4) bits (lutn:0) in shared mem +hw:
+0, "0xabcdef..." each hexa digit represents LUT4..1 
 
 3. set LUT bits for 1 LUT (lutn=1,2,3,4 -> LUT31 LUT32 LUT41 LUT42):
 in shared memory +hw
-1,"abcd..." LEN_l0f34/4=1024 hexa digits
+1,"0xabcd..." LEN_LUT8/4=64 hexa digits
 
 rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
 int setLUT(int lutn, char *m4) {
@@ -267,7 +298,7 @@ if((strlen(m4)!=(LEN_LUT8/4+2)) &&
 };
 if(lutn==0) {   // all 8 LUTs operations:
   int lutn1;
-  for(lutn1=LM0_F8_MIN;lutn1<LM0_F8_MAX;lutn1++){
+  for(lutn1=LM0_F8_MIN;lutn1<=LM0_F8_MAX;lutn1++){
     setLUT1(lutn1, m4);
   };
 } else if((lutn>=LM0_F8_MIN) and (lutn<=LM0_F8_MAX)) {   // one LUT operations:
@@ -277,6 +308,20 @@ if(lutn==0) {   // all 8 LUTs operations:
 };
 return(0);
 };
+void setShared4(int X, char *lut) {
+int rc;
+rc= setLUT(X, lut);
+if(rc!=0) {
+  printf("Error: LUT%d cannot be loaded, setLUT() rc:%d\n", X, rc);
+} else {
+  rc= setLUT(X+4, lut);
+  if(rc!=0) {
+    printf("Error: LUT%d cannot be loaded, setLUT() rc:%d\n", X+4, rc);
+  };
+};
+printf("LUT%d (l0f%d + lmf%d) loaded\n", X);
+}
+
 /* set L0f34 in hw. 
 Input:
 1. set/reset alll bits for all 4 LUTs (lutn:0):
