@@ -1156,8 +1156,9 @@ Edge: choose negative (for delay:0) if unstability is found around delay 0.
     """
         Save file for every succesfull measurement 
     """
+    self.inp.getedge()
     ss=ss=strftime("_%Y-%m-%d_%H:%M:%S", gmtime())
-    fn=os.environ['VMEWORKDIR'] +"/WORK/phases/"+self.name+ss+".ps"
+    fn=os.environ['VMEWORKDIR'] +"/WORK/phases/"+self.name+ss+self.inp.edge+"_"+self.inp.inpnum+"_"+self.inp.ctpnum+".ps"
     rc=self.c1.postscript(file=fn)
     if rc is not '':
      MywError(errmsg="File "+fn+" cannot be created.")

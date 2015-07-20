@@ -116,35 +116,35 @@ int TTCITBOARD::start_stopSSM(BUSYBOARD* bb)
  // switch off triggers
  bb->SetDAQBUSY(0xff);
  // wait to clean buffers
- usleep(1000000);
+ usleep(100000);
  // reset again - this makes ttc wait for input
  resetSSMAddress();
  w32 add=vmer(READ_SSM_ADDRESS);
- printf("0 address : 0x%x\n",add);
- printf("control: 0x%x\n",vmer(CONTROL));
+ //printf("0 address : 0x%x\n",add);
+ //printf("control: 0x%x\n",vmer(CONTROL));
  // start triggers
  bb->SetDAQBUSY(0x0);
  usleep(20000);
  // stop triggers
  bb->SetDAQBUSY(0xff);
  usleep(20000);
- add=vmer(READ_SSM_ADDRESS);;
+ //add=vmer(READ_SSM_ADDRESS);;
  //while((add=vmer(READ_SSM_ADDRESS))==0)continue; 
- printf("1 address : 0x%x\n",add);
+ //printf("1 address : 0x%x\n",add);
  //usleep(100000);
  //printf("# word= 0x%x\n",vmer(READ_SSM_ADDRESS));
  //w32 stat=getStatus();
  //printf("after usleep and control 3 status: 0x%x\n",stat);
 
  //resetSSMAddress(); 
- add=vmer(READ_SSM_ADDRESS);
- printf("20 address : 0x%x\n",add);
+ //add=vmer(READ_SSM_ADDRESS);
+ //printf("20 address : 0x%x\n",add);
  for(int i=0;i<Mega-3;i++){
   ssm[i]=vmer(READ_SSM_WORD);
   //usleep(100000);
  }
- add=vmer(READ_SSM_ADDRESS);
- printf("2 address : 0x%x\n",add);
+ //add=vmer(READ_SSM_ADDRESS);
+ //printf("2 address : 0x%x\n",add);
  //bb->SetDAQBUSY(0x0);
  return 0;
 }
