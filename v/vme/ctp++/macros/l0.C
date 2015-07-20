@@ -76,12 +76,21 @@ int main(int argc, char* argv[])
     ctp->startSWtrigger('s',1);
     //ctp->clearSWTriggerFlags();
     return 0;
+  case 5:
+    {
+    bool mask[256];
+    string ff("a");
+    if(l0->calcLUT(ff,mask)) return 0;
+    l0->setFunction(1,mask);
+    return 0;
+    }
   default:
     printf("0 = read counters,ssm; dump ssm\n");
     printf("1 = write bcmasks \n");
     printf("2 = simple ssm read and dump\n");
     printf("3 = convert didier config to LM level\n");
     printf("4 = software trigger\n");
+    printf("5 = L0/LM fucntions \n");
     return 0;
  }
 }
