@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdio>
 #include <string>
+#include <cstdlib>
 #include <vector>
 #include "vmewrap.h"
 #define Mega (1024*1024)
@@ -67,5 +68,8 @@ int char2int(char c);
 int string2int(string s);
 void splitstring(const string& str,vector<string>& tokens,const string& delimiters);
 string stripstring(string s);
+// parse logical expression
+int evaluate(string& eval);
+int parse(const char* desc,int level);
 #endif
 

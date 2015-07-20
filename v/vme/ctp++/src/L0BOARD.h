@@ -17,6 +17,8 @@ class L0BOARD: public BOARD
 	virtual void setBC2(w32 T)=0;
 	virtual void setTCSET(w32 w){error();};
 	virtual void setTCCLEAR(){error();};
+	virtual void setFunction(int i,bool* mask){error();};
+	virtual int calcLUT(string& fun,bool* mask){error();return 1;};
 	virtual w32 getTCSTATUS(){error(); return 1;};
 	virtual w32 getL0rqst(){error(); return 1;};
 	virtual w32 getl0ackn(){error(); return 1;};

@@ -17,6 +17,11 @@ class L0BOARD2: public L0BOARD
 	void setBC2(w32 T){vmew(SCALED_2,T);};
  	void setTCSET(w32 w){vmew(TCSET,w);};
  	void setTCCLEAR(){vmew(TCCLEAR,0);};
+	void writeL0Function(int i,w32 word);
+	void writeLMFunction(int i,w32 word){vmew(LM_FUNCTION+(i-1)*4,word);};
+        void writeFunction(int i,w32 word);
+        void setFunction(int ifun,bool* mask);
+ 	int calcLUT(string& fun,bool* mask);
 	w32 getBC1(){return vmer(SCALED_1);};
 	w32 getBC2(){return vmer(SCALED_2);};
 	w32 getTCSTATUS(){return vmer(TCSTATUS);};
@@ -77,6 +82,8 @@ class L0BOARD2: public L0BOARD
 	 w32 const LM_CONDITION;
 	 w32 const LM_INVERT;
 	 w32 const LM_VETO;
+	 w32 const LM_FUNCTION;
+	 w32 const L0_FUNCTION;
 	 // Configuration
 	 w32 lmcond[NCLASS], lmveto[NCLASS],l0cond[NCLASS],l0veto[NCLASS];
 };

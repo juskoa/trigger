@@ -14,8 +14,89 @@ L0BOARD2::L0BOARD2(int vsp)
 	L0_VETO(0x800),
         LM_CONDITION(0xa00),
         LM_INVERT(0xc00),
-	LM_VETO(0xe00)
+	LM_VETO(0xe00),
+	LM_FUNCTION(4*0x9d),L0_FUNCTION(4*0x85)
 {
+}
+//-------------------------------------------------------------------------------
+// write word to L0 function. Problem is that vme adresses are not consecutive
+//
+void L0BOARD2::writeL0Function(int i,w32 word)
+{
+ if(i<3){
+   vmew(L0_FUNCTION+(i-1)*4,word);
+ }else{
+   vmew(L0_FUNCTION+10*4+(i-3)*4,word);
+ }
+}
+void L0BOARD2::writeFunction(int i,w32 word)
+{
+ w32 address;
+ if(i<3){
+   address = L0_FUNCTION+(i-1);
+ }else if(i<5){
+   address = L0_FUNCTION+10*4+(i-3)*4;
+ }else if(i<9){
+   address = LM_FUNCTION+4*(i-5);
+ }else{
+   printf("writeFunction: function out of range: %i \n",i);
+   return ;
+ }
+ printf("fun=%i address=0x%x word=0x%x \n",i,address,word);
+ vmew(address,word);
+}
+//---------------------------------------------------------------------------
+// claculate LUT ising parse from ctplib++
+int L0BOARD2::calcLUT(string& fun,bool* mask)
+{
+ int ll=fun.length();
+ for(int i=0;i<256;i++){
+  string funeval(fun);
+  printf("funeval: %s \n",funeval.c_str());
+  for(int j=0;j<ll;j++){
+    char inp=funeval[j];
+    if((inp>=97) && (inp<=104)){
+      bool ii=((1<<(inp-97)) & i) == (1<<(inp-97));
+      if(ii==1)funeval[j]='1';else funeval[j]='0';
+    }
+  }  
+  printf("funeval: %s \n",funeval.c_str());
+  int ret=parse(funeval.c_str(),0);
+  if(ret==48)mask[i]=0;
+  else if(ret==49)mask[i]=1;
+  else return ret;
+ }
+ return 0;
+}
+//----------------------------------------------------------------------------
+//
+void L0BOARD2::setFunction(int ifun,bool* mask)
+{
+ //bool mask[256];
+ //for(int i=0;i<256;i++){
+ //  if((i & 0x3)==0x3) mask[i] = 1; else mask[i] = 0;
+   //printf("%i %i \n",i,mask[i]);
+ //}
+ int maskchar[256/4];
+ for(int i=0;i<256/4;i++)maskchar[i]=0;
+ for(int i=0;i<256;i++){
+   maskchar[i/4] += mask[i]<<(i%4);
+ }
+ for(int i=0;i<256/4;i++)printf("%x",maskchar[i]);
+ printf("\n");
+ //printf("LUT: \n %s",maskchar);
+ for(int i=0;i<16;i++){
+  w32 word=i;
+  w32 mm=0;
+  for(int j=0;j<16;j++){
+     mm+=(mask[16*i+j]<<j);
+     //mm2+=(mask[16*(16-i)-j-1]<<(j));
+     //printf("mm,mm2, 0x%x 0x%x \n",mm,mm2);
+  }
+  word+=(mm<<16);
+  printf("word 0x%x \n",word);
+  writeFunction(ifun,word); 
+ }
 }
 //----------------------------------------------------------------------------
 /* 
