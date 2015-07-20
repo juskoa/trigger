@@ -55,7 +55,7 @@ dINT= (val>>8) & 0xf;
 delay= (val>>12) & 0xfff;
 printf("L%d:%x:INTa/b/delayed 0x: %x %x %x delay:%d\n", ixa, val, INTa, INTb,dINT,delay);
 }
-
+//------------------------------------------------------------------------------------
 void getPFc(int ix, int circ) {
 int bb,ixa, ixc, i;
 w32 adr0, vals[3];
@@ -84,6 +84,7 @@ PF[ixa].pPFBLOCK_B[ixc]= vals[1];
 PF[ixa].pPFLUT[ixc]= vals[2];
 printf("%s\n", os);
 }
+//----------------------------------------------------------------------------------------------
 void getprtPFc(int ix, int circ) {
 int bb,ixa, ixc, i;
 w32 adr0, vals[3];
@@ -131,7 +132,7 @@ PF[ixa].pPFBLOCK_B[ixc]= vals[1];
 PF[ixa].pPFLUT[ixc]= vals[2];
 printf("%s\n", os);
 }
-
+//---------------------------------------------------------------------------------------------
 void setPF(int ix, w32 pfc) {   // ix:1..3 (L0.. L2)
 int bb,ixa;
 if(notInCrate(ix)) return;
@@ -147,7 +148,7 @@ ixa=ix-1;
   };
 /*}; */
 }
-
+//----------------------------------------------------------------------------------------------
 void setPFc(int ix, int circ, w32 A, w32 B, w32 LUT) { //ix:1..3 circ:1..4
 int bb,ixa, ixc, i;
 w32 adr0, vals[3];
@@ -175,6 +176,7 @@ for(i=0; i<3; i++) {
   adr0= adr0+4;
 };
 }
+//-----------------------------------------------------------------------------------
 void printPFwc(int deltat) {
 int rc, ix;
 w32 ablt12[12];
@@ -197,7 +199,8 @@ return(rc);
 */
 }
 
-/*FGROUP PF
+/*FGROUP PF 
+ * ----------------------------------------------------------------------------------------------
 */
 void ReadPF(int circuit) {
 int i,mi,ma;
@@ -215,7 +218,7 @@ for (i=mi; i<=ma; i++) {
   getprtPFc(3,i);
 };
 }
-
+//------------------------------------------------------------------------------------------------
 void ReadPF2str2(int circuit, char *line) {
 int bb,ixa, ixc, ix;
 w32 adr0, val, vals[3];
@@ -251,6 +254,7 @@ for(ix=1; ix<=3; ix++) {
 strcpy(line, os);
 }
 /*FGROUP PF
+ * -------------------------------------------------------------------------------
 */
 void ReadPF2str(int circuit) {
 char line[160];
@@ -286,6 +290,7 @@ return(width*(sd_factor+1));
 int del2ns(int delay, int sd_factor) {
 return((delay+1)*(sd_factor+1));
 }
+//----------------------------------------------------------------------------
 void  decPFBL(int level, char AB, int pfb, int pflut, char *line){
 int dT, dtns, dsf, delbcs,delay; char ABL[4]; char pflutstr[8];
 dT= (pfb>>12) & 0xff;
@@ -308,7 +313,9 @@ sprintf(line,"%s:  %2d  %2d %3d    %4d %4d   %4d %1d  %2d %s",
   pflutstr);
 };
 
-/*FGROUP PF */
+/*FGROUP PF 
+ *--------------------------------------------------------------------------------
+ * */
 void DecodePF(char *pfstr) {
 int nwds,ix;
 w32 pfbA[3], pfbB[3], pflut[3];
@@ -348,8 +355,8 @@ for(ix=0; ix<3; ix++) {
   printf("%s\n", line);
 };
 }
-
-/*FGROUP PF
+/* FGROUP PF
+ * ---------------------------------------------------------------------
 */
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT) {
 
@@ -406,7 +413,8 @@ setPF(3,PFcommon);
 
 }
 
-/*FGROUP PF
+/* FGROUP PF
+ * --------------------------------------------------------------------------
 */
 void WritePF(w32 icircuit,w32 THa1,w32 THa2,w32 THb1,w32 THb2,int dTa,int dTb,w32 P_signal) {
 
@@ -708,7 +716,7 @@ int setPFL(w32 ilevel,int ipf,w32 THa1,w32 THa2,w32 THb1,w32 THb2,int dTa,int dT
  setPFc(ilevel+1,ipf,PFblock_A,PFblock_B,PFlut);
  return ret;
 }
-/*FGROUP SimpleTests
+/*FGROUP PF
 */
 int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 ipf,w32 plut)
 {
@@ -734,4 +742,84 @@ int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 ipf,w32 plut)
  return 0;
 }
  
-
+//==============================================================================================
+// Run2 development. Philosophy is to simplify to maximum:
+// - use only one branch of PF
+// - inta/intb = int1/int2
+// - plut = always P1 
+/*
+*/
+/*---------------------------------------------------------------------------
+ *  Just set PFCOMMON
+ */ 
+void setPFCOMMON(w32 ix,w32 INTalut,w32 INTblut,w32 DINTlut,w32 delayDINT)
+{
+ if(notInCrate(ix)) return;
+ w32 bb= BSP*ctpboards[ix].dial;
+ if(ix==1) {
+    printf("setPFCOMMON: net ready for L0\n");
+    return;
+ } else {
+    w32 pfc=INTalut+(INTblut<<4)+(DINTlut<<8)+(delayDINT<<12);
+    vmew32(PF_COMMON+bb, pfc);
+ }; 
+}
+void setPFLUT(w32 ix,w32 ipf,w32 PLUT,w32 scaleA,w32 scaleB)
+{
+ if(notInCrate(ix)) return;
+ w32 bb= BSP*ctpboards[ix].dial;
+ if(ix==1) {
+    printf("setPFLUT: net ready for L0\n");
+    return;
+ } else {
+    w32 pfl=PLUT+(scaleA<<8)+(scaleB<<13);
+    vmew32(PFLUT+bb+4*(ipf-1), pfl);
+ };  
+}
+void setPFBLOCK(w32 ix,w32 ipf,w32 Th, w32 dT,w32 delay,w32 delayflag)
+{
+ if(notInCrate(ix)) return;
+ w32 bb= BSP*ctpboards[ix].dial;
+ if(ix==1) {
+    printf("setPFBLOCK: net ready for L0 \n");
+    return;
+ } else {
+    w32 pfb=Th+(dT<<12)+(delay<<20)+(delayflag<<31);
+    vmew32(PFBLOCK_A+bb+4*(ipf-1), pfb);
+ };  
+}
+/*FGROUP PF
+ * Ncol1 -number of collisions in time window dT1 before trigger interaction
+ * Ncol2 -number of collisions in time window dT2 after trigger interaction
+ * inter - 1=INT1, 2=INT2
+ */
+int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter)
+{
+ w32 TL1=getTL1();
+ w32 TL2L1=getTL2()-TL1;
+ w32 INTa=0;
+ w32 dT=0,delay=0,scale=0,dflag=0;
+ if(inter==1)INTa=0xa; else INTa=0xc;
+ w32 plut=0xaa; // always P1
+ // L0 level
+ printf("NO setting for L0 yet \n");
+ // L1 level
+ if(dT2>TL1){
+   dflag=1;
+   delay=0;
+   scale=1;    
+   dT=TL1;
+ }else{
+   dflag=0;
+   delay=TL1/2-1;
+   scale=1;
+   dT=dT2;
+ }
+ printf("setPFuser: L1L INTa: 0x%x plut: 0x%x scale: %i dT:%i delay:%i \n",INTa,plut,scale,dT,delay);
+ setPFCOMMON(2,INTa,0,0,0);
+ setPFLUT(2,ipf,plut,scale,0);
+ setPFBLOCK(2,ipf,Ncol1-1,dT,delay,dflag);
+ // L2 level
+ 
+ return 0;
+}
