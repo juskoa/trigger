@@ -129,8 +129,8 @@ TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,int i
  else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetPosition(),CSTART_L2+5); */
  // run2:
  if(GetLevel()==0)cnt.SetIXs(CSTART_L0+118+GetSwitchN(),CSTART_L0+15);
- else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetSwitchN(),CSTART_L1+5);
- else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetSwitchN(),CSTART_L2+5);
+ else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetPosition(),CSTART_L1+5);
+ else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetPosition(),CSTART_L2+5);
  else{
    cout << "TrigInput level:" << GetLevel() << endl; 
    Print();

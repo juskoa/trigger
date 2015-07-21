@@ -317,9 +317,11 @@ void DAQlogbook::UpdateClasses(const int nclass,TriggerClasswCount* tclass[])
    w64 lma=0,lmb=0;
    if(version < 1){
      //ret=daqlogbook_update_triggerClassCounter(runnum ,tclass[i]->GetIndex0(), l0b,l0a,l1b,l1a,l2b,l2a,time);
+     printf("Daqlogbook: This should not be called. Exiting. \n");
+     exit(1);
    }
    else
-   {
+  {
      Counter* lmB=tclass[i]->GetCounterlmB();
      Counter* lmA=tclass[i]->GetCounterlmA();
      lmb=lmB->GetCountTotG();
@@ -428,6 +430,12 @@ copy2dcs(copy2dcs)
  }else{
   PrintLog(("CountersOCDB: File: "+fileName+" opened.").c_str());
  }
+ // LM debug
+ //stringstream debss;
+ //debss << "deb/deb"<<runnum<<".cnt";
+ //debfileName=debss.str();
+ //debfile.open(debfileName.c_str());
+ //
  // Aliases fike: runXXXXX.als
  ss.str("");
  ss << "run"<<runnum<<".als";
@@ -437,6 +445,7 @@ CountersOCDB::~CountersOCDB()
 {
  cout << "Stopping CountersOCDB for run:" <<  runnum << endl;
  file.close();
+ //debfile.close();
  PrintLog(("CountersOCDB: File: " + fileName + " closed.").c_str());
  if(copy2dcs){
    char cmd[256],msg[256];
@@ -498,6 +507,14 @@ int CountersOCDB::WriteHeader(const int nclass,TriggerClasswCount* tclass[])
      file << " " << (w32)tclass[i]->GetIndex();
   }
   file << endl;
+  // LM debug
+  //debfile << 3 << endl;
+  //debfile << runnum << " " << nclass;
+  //for(int i=0;i<nclass;i++){
+     //tclass[i]->Print();
+  //   debfile << " " << (w32)tclass[i]->GetIndex();
+  //}
+  //debfile << endl;
   return 0;
 }
 int CountersOCDB::WriteRecord(TrigTimeCounters* time, const int nclass,TriggerClasswCount* tclass[])
@@ -506,6 +523,12 @@ int CountersOCDB::WriteRecord(TrigTimeCounters* time, const int nclass,TriggerCl
  file << time->GetSecs() << " " << time->GetUsecs() << " ";
  file << time->GetActiveTGroup();
  file  << endl;
+ // LM debug
+ //debfile << time->GetOrbit() << " " << time->GetPeriodCounter() << " ";
+ //debfile << time->GetSecs() << " " << time->GetUsecs() << " ";
+ //debfile << time->GetActiveTGroup();
+ //debfile  << endl;
+ //
  for(int i=0;i<nclass;i++){
   Counter* cnts=tclass[i]->GetCounters();
   for(int j=0;j<6;j++)file << cnts[j].GetNow() << " ";
@@ -519,6 +542,21 @@ int CountersOCDB::WriteRecord(TrigTimeCounters* time, const int nclass,TriggerCl
   }
   file << endl;
  }
+ // LM debug
+ // for(int i=0;i<nclass;i++){
+ // Counter* cnts=tclass[i]->GetCounters();
+ // for(int j=0;j<6;j++)debfile << cnts[j].GetNow() << " ";
+ // if(1){
+ //   Counter* lmB=tclass[i]->GetCounterlmB();
+ //   Counter* lmA=tclass[i]->GetCounterlmA();
+ //   w32 lmb=lmB->GetNow();
+ //   // if not TRD class lmA=lmB
+ //   if(tclass[i]->GetTRD()==1) debfile << lmb << " " << lmA->GetNow();
+ //   else debfile << lmb << " " << lmb;
+ // }
+ // debfile << endl;
+ //}
+ //
  //cout << "OCDB record " << time->GetSecs() << " written" << endl;
  return 0;
 }
