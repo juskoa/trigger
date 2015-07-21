@@ -520,6 +520,12 @@ ttcFEEreset(). Also in p2!
 19.7.2015
 lhc2ctp.py modified -bug fixed, now ok also for SPSspace !=0
 19.7.2015
-notes for l0f8 -4 lof functions with 8 inputs:
+notes for l0f8 -4 l0f functions with 8 inputs:
 FPGAVERSION environment has priority over TRG_DBED/trgglobs.py L0VER
-
+21.7.2015
+0xc606 in p2 (l0f8 functionality). 
+git branches:
+P2: master
+trigger@avmes, trigger@bhm10: master -as in p2, dvlp: bit modifications +
+after each comit in master do: git merge master. DO often comit in dvlp,
+especially before merging from master.

@@ -29,7 +29,8 @@ def main(action):
       elif line[1]=='auto': action='auto'
       else: action='test'
   if os.environ['VMESITE'] == 'ALICE':
-    cmd= os.path.join(os.environ["VMECFDIR"], "filling/linux/fill2file")
+    #cmd= os.path.join(os.environ["VMECFDIR"], "filling/linux/fill2file")
+    cmd= os.path.join(os.environ["VMECFDIR"], "pydim//fsclient.py")
     #mylog.infolog("reading filling scheme from DIP...")
     dipout= string.split(pylog.iopipe(cmd, "fs "))
   else:

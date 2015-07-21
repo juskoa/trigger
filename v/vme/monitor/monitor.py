@@ -332,7 +332,7 @@ monitor.py stop
     "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
     "gcalib":Daemon("gcalib")}
   # bhm10:
-  allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
+  # allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
   #
   lin=""
   for dm in allds.keys():

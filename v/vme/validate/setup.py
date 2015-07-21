@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.2",
+      version="5.3",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
