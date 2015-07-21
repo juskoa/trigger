@@ -1085,6 +1085,7 @@ class Measure:
         print "Measure:lm0board:", output
     self.name=input.name
     self.inp=input
+    self.edge=input.edge
     self.inputphase=input.inputphase
     self.tl=Toplevel(self.vb.master)
     if(self.board != '0'):

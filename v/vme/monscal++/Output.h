@@ -39,6 +39,9 @@ class CountersOCDB: public Log
          string fileName;
          string fileNameAliases;
          ofstream file;
+	 //
+         string debfileName;
+         ofstream debfile;
  public:
          CountersOCDB();        
          CountersOCDB(const int version,const int runnum,const bool copy2dcs);
