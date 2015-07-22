@@ -256,12 +256,13 @@ class TrgInput:
           # example of input from L0.INPUTS (not connected):
           #0ASL = ACORDE 0 1 0 1 0 0 12
           #if li[5]=='1':
+          self.swin= li[5]
           if li[3]!='0':   # connected input 
             self.signature= li[2]
             self.dim= li[4]
             self.edge= li[6]
             self.delay= li[7]
-            self.ctpinp= int(li[1]), int(li[3])   
+            self.ctpinp= int(li[1]), int(li[3])   # (level, ctpinp_number)
           else:   
             if li[5]!='0':   # L0 input, connected to the switch only
               self.signature= li[2]
@@ -295,8 +296,8 @@ class TrgInput:
         "L0.INPUTS:      "+sfl0i)
   def prt(self):
     if self.ctpinp:
-      pass
-      #print "TrgInput:",self.name,'=',self.detectorname, self.ctpinp
+      #pass
+      print "TrgInput:",self.name,'=',self.detectorname, self.ctpinp,self.swin
     else:
       if self.l0fdefinition:
         print "TrgInput(l0f):",self.name,'=',self.l0fdefinition
@@ -2097,6 +2098,7 @@ class TrgPartition:
     # checked always when new resource added:
     # - number of l0funs <=2   4: lut8
     self.l0funs=[None, None, None, None]    # used l0funs (16 bits stored if used)
+    self.inpgcons= None   # for INRND1 option (perhpaps list if more than RND1 in future)
     self.l0funs34= [None, None] # complex l0f. pointer to l0fxxx TrgInput with
     # defined l0fAB pointing to 2 l0[AB]xxx TrgInput objects
     # list of pointers to P/F objects utilised by this partition (max. 4)
@@ -2177,6 +2179,8 @@ class TrgPartition:
           detsline= id + " " + detsline
     if self.filteredout !="":
       detsline= string.strip(detsline) + " " + string.strip(self.filteredout)
+      # no inp. detectors if using RND1 connected to inputs!
+      if self.inpgcons != None: detsline=''
     print detsline
   def getRR(self, minst, ix=0):   # get Required Resources
     """ 
@@ -2489,6 +2493,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       #print outfilename," written"
       #print errormsg
       return errormsg
+    if self.inpgcons:
+      line= "INPRND1 0x%x 0x%x"%(self.inpgcons[0], self.inpgcons[1])
+      outfile.write(line+"\n")
     line='RBIF '
     #print "RBIF:l0funs", self.l0funs
     for ix in range(4):    # order: RND1,2 BC1,2
@@ -2712,6 +2719,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line='VERSION: %s\n'%VERSION
     of.write(line)
     line='PARTITION: %s\n'%(self.name); of.write(line)
+    if self.inpgcons:
+      line= "#INPRND1 0x%x 0x%x\n"%(self.inpgcons[0], self.inpgcons[1])
+      of.write(line)
     line='INPUTS:\n' ; of.write(line)
     usedinputs={} ; optinputs={}
     useddescriptors={}
@@ -3076,6 +3086,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     """example of .partition file (spaces only between TDs, LTUs!):
     BC1 2
     BCM1 356L 25H
+    INRND1 0SMB 0VBA    - if connected, put them in INRND1 line in .pcfg
     Clusters:
     Clustername
     MB(L0pr=356ms,BCM1,all,pf1) SC(pf1)
@@ -3122,7 +3133,18 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           break
         shrname= cltdsa[0]
         #print "Shared2:",cltdsa
-        if cltdsa[1]=="REPL":               # replacement definition
+        if shrname=="INRND1":               # rnd1 connections to 1..48 inputs
+          for inn in cltdsa[1:]:
+            inp= TDLTUS.findInput(inn)
+            inp.prt()
+            if inp.swin != '0':   # calculate 2 RND1_EN_FOR_INPUTS words
+              if self.inpgcons==None: self.inpgcons= [0,0]
+              swi= int(inp.swin)
+              if swi > 23:
+                self.inpgcons[1]= self.inpgcons[1] | (1<<(swi-24))
+              else:
+                self.inpgcons[0]= self.inpgcons[0] | (1<<(swi-1))
+        elif cltdsa[1]=="REPL":               # replacement definition
           ixstart= cltds.find(" REPL ")+6
           symbols.add(shrname, cltds[ixstart:-1])
           print string.strip(cltds)
@@ -3137,7 +3159,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           # cltds[ixstart:] lum
           rc= symbols.add_FIXLL(shrname, cltds[ixstart:], cltdsa[1])
           self.prt_FIXrc(rc, cltds, symbols, shrname)
-        else:                               # BC1/2 RND1/2 BCM* PF* or SDG
+        else:                  # BC1/2 RND1/2 BCM* PF* SDG
           sr= findSHR(shrname)
           #print "Shared4:", sr
           if sr!=None: 

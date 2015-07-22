@@ -529,3 +529,5 @@ P2: master
 trigger@avmes, trigger@bhm10: master -as in p2, dvlp: bit modifications +
 after each comit in master do: git merge master. DO often comit in dvlp,
 especially before merging from master.
+22.7.
+INRDN1 option added in .partition definition
