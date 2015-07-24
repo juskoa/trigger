@@ -947,6 +947,24 @@ copyTRBIF(HW.rbif, &rbifloc);
 return(0);
 ERR1:return(1);
 }
+/*
+ */
+int addINPSCTP2HW(Tpartition *parray[])
+{
+ TINPSCTP inpsctp;
+ cleanTINPSCTP(&inpsctp);
+ for(int i=0;i<MNPART;i++){
+  if( parray[i]== 0) continue;
+  if( parray[i]->inpsctp){
+    inpsctp.rnd1enabled1 |= parray[i]->inpsctp->rnd1enabled1;
+    inpsctp.rnd1enabled2 |= parray[i]->inpsctp->rnd1enabled2;
+  }
+ } 
+ copyTINPSCTP(HW.inpsctp,&inpsctp); 
+ printf("HW.inpsctp in addTINP: ");
+ printTINPSCTP(HW.inpsctp);
+ return 0;
+} 
 /*---------------------------------------------------- findfreeHWCluster()
 Loop over all partitions' ClusterTables
 return: 1-6
@@ -1391,6 +1409,7 @@ return(rcode);
 */
 int addPartitions2HW(Tpartition *parray[]){
  cleanHardware(&HW, 1);
+ if(addINPSCTP2HW(parray)) return 1;
  if(addRBIF2HW(parray)) return 1;
  if(addFO2HW(parray)) return 1; // must be before addClasses2HW (to alloc clusters)
  if(addClasses2HW(parray)) return 1;

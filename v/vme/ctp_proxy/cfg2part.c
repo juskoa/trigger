@@ -148,6 +148,27 @@ int BUSY2Partition(char *line,TBUSY *busy){
  // - BUSY from .pcfg file -there is no such line (should not be)
  return 0;
 }
+//
+// INPS to partition
+// INRND1 0x20 0x200
+// RND1_EN_FOR_INPUTS
+int INPCTP2Partition(char *line,Tpartition *part)
+{
+ char hex[10];
+ int i=7; // for INRND1
+ while(line[i] != ' ' && (i<MAXLINECFG)){
+  hex[i-7]=line[i];
+  i++;
+ }
+ hex[i-7]='\n';
+ w32 word1= hex2int(&hex[2]); 
+ w32 word2= hex2int(&line[i+3]);
+ printf("INPSCTP2Part: RND1 0x%x 0x%x \n",word1,word2);
+ part->inpsctp = new TINPSCTP;
+ part->inpsctp->rnd1enabled1=word1;
+ part->inpsctp->rnd1enabled2=word2;
+ return 0;
+}
 /*----------------------------------------------------FO2Partition()
   Purpose: to get clusters definitions from FO lines in cfg file
   Input: 
@@ -904,6 +925,12 @@ for(i=0;i<MAXNLINES;i++){
    //printf("BUSY found at %i line\n",i);
   } else if(strncmp("PFL.",lines[i],4) == 0){
    printf("PFL found at %i line\n",i);
+  } else if(strncmp("INRND1",lines[i],6) == 0){
+   printf("INRND1 found at %i line \n",i);
+   if(INPCTP2Partition(lines[i],part)){
+     sprintf(errmsg,"ParseFile: INPCTP2Partition error"); 
+     retcode= 5; goto RETERR;
+   }
   } else {
     sprintf(errmsg,"Unknown line %d in .pcfg file:%s", i, lines[i]);
     retcode= 4; goto RETERR;
