@@ -199,6 +199,7 @@ Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 
 #define ORBITLENGTH 3564
 
+// TRBIF:
 typedef struct TRBIF{
  w32 rbif[ixrbifdim];    // value (valid according to rbifuse[]) 0xffffffff for lut8
  w32 rbifuse[ixrbifdim]; 
@@ -223,10 +224,21 @@ typedef struct TRBIF{
  char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 
-// TRBIF:
 TRBIF *allocTRBIF();
 void cleanTRBIF(TRBIF *rbif, int leaveint);
 void printTRBIF(TRBIF *rbif);
+/* ----------------------------------------------------------------------
+ * TINPSCTP
+ * CTP generated inputs. At the moment only RND1LM can be connected to inputs
+ * In future also RND2,BC1,BC2 may be added
+ */
+typedef struct TINPSCTP{
+ w32 rnd1enabled1;
+ w32 rnd1enabled2;
+}TINPSCTP;
+void cleanTINPSCTP(TINPSCTP *inpsctp);
+void copyTINPSCTP(TINPSCTP *from,TINPSCTP *to);
+void printTINPSCTP(TINPSCTP *t);
 /*-----------------------------------------------------------------
     TFO,TBUSY,TpPastFut declarations
 -------------------------------------------------------------------*/
@@ -276,6 +288,7 @@ typedef struct Hardware{
      // for given class used to fill L0_SDSCG registers. VALID also for LM0
      // (i.e. here, not in klas[]->l0vetos
  int lmsdgs[NCLASS];   // Default: 0..99.
+ TINPSCTP *inpsctp;    // inputs generators
 }Hardware;
 // Clean existing HW structure
 void cleanHardware(Hardware *hw, int leaveint);
@@ -326,6 +339,8 @@ int a970pos;  // position in array970 for counter 0,1,2,...
 typedef struct Tpartition{
  char name[MAXPARTNAME];
  char partmode[MAXNAMELENGTH];
+ // CTP generators connected to inputs
+ TINPSCTP *inpsctp;
 /* klas[i]==NULL:class not allocated. Classes are always 
 assigned here from the beginning (0,1,2,...).  I.e. after first 
 appearance of NULL, there are only NULLs, before applying det. mask.
@@ -448,7 +463,8 @@ w32 getBusyMaskPartition(Tpartition *part, int detectors);
 //int getDAQClusterInfo(Tpartition *part, TDAQInfo *daqi);
 w32 findHWCluster(Tpartition *part, w32 pcluster);
 int l0condition2rbif(int bit, int *ix);
-
+// check if RND1 is in for INPRND1
+int checkRND1(TRBIF* rbif,TRBIF* rbifnew);
 // clgroups.c
 int nextclassgroup(Tpartition *part);
 int enableclassgroup(Tpartition *part, int setclgroup);

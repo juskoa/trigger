@@ -319,6 +319,33 @@ void copyTFO(TFO *to,TFO *from){
  to->cluster=from->cluster;
  to->test_cluster=from->test_cluster;
 }
+/*---------------------------------------------------------cleanTINPSCTP
+ */
+void cleanTINPSCTP(TINPSCTP *inpsctp){
+ if(inpsctp){
+   inpsctp->rnd1enabled1=0;
+   inpsctp->rnd1enabled2=0;
+ }else{
+   printf("Warning: cleanTINPSCTP: attempt to clean nonexisitng strucuture. \n");
+ }
+}
+void copyTINPSCTP(TINPSCTP *to,TINPSCTP *from)
+{
+  if(from && to){
+    to->rnd1enabled1=from->rnd1enabled1;
+    to->rnd1enabled2=from->rnd1enabled2;
+  }else{
+   printf("Warning: copyTINPSCTP: one of structures does not exists %p %p\n",from,to);
+  }
+}
+void printTINPSCTP(TINPSCTP *t)
+{
+ if(t){
+    printf("TINPSCTP: 0x%x 0x%x \n",t->rnd1enabled1,t->rnd1enabled2);
+ }else{
+    printf("TINPSCTP: does not exist. \n");
+ }
+}
 /*---------------------------------------------------------cleanTBUSY()
 */
 void cleanTBUSY(TBUSY *busy){
@@ -619,6 +646,7 @@ void initTpartition(Tpartition *part,char *name){
  //setnameTpartition(part,name);
  strcpy(part->name, name); 
 strcpy(part->partmode, partmode);  // partmode:for rcfg
+ part->inpsctp=0;
  for(i=0;i<NCLASS;i++)part->klas[i]=NULL;
  for(i=0;i<NCLUST;i++){
    part->ClusterTable[i]=0;
@@ -662,10 +690,12 @@ Tpartition *deleteTpartition(Tpartition *part){
      np++;
    };
  };
-SDGclean(part->name);
+ if(part->inpsctp) delete (part->inpsctp);
+ if(part->rbif) free(part->rbif);
+ SDGclean(part->name);
  //printf("deleteTpartition: not null classes:%d\n",np);
- free(part->rbif); //free P/F
-//if(part->fixed_cnts!=NULL) free(part->fixed_cnts);
+ //free(part->rbif); //free P/F
+ //if(part->fixed_cnts!=NULL) free(part->fixed_cnts);
  free(part);
  return NULL;
 }
@@ -692,6 +722,7 @@ if(part->name == NULL)
   printf("printTpartition name=NULL RunNum=%i\n",part->run_number);
 else printf("%s ------ %s --- part name: %s RunNum:%i hwallocated:%d\n",
   part->name,headtxt, part->name, part->run_number, part->hwallocated);
+printTINPSCTP(part->inpsctp);
 printTRBIF(part->rbif);
 strcpy(clgroups, "");
 printf("classgroups:%d:%s\n",part->nclassgroups, clgroups);
@@ -1234,6 +1265,11 @@ for(icla=0 ; (icla<NCLASS) ; icla++){
     retrc=retrc+checkRES(bit, part, cls, &rbifnew);    
     if(retrc>0) break;
   };
+  // check id rnd1 in for INPRND1
+  if(part->inpsctp){
+    retrc += checkRND1(part->rbif,&rbifnew);
+  }
+  //
   if(retrc>0) break;
   for(bit=bcmfrom;bit<=bcmto;bit++) {     // BCM1..4 or BCM1..12
     w32 mask;
@@ -1295,6 +1331,26 @@ if(nclu==0) {
   retrc=1;
 };
 return(retrc);
+}
+/*
+ * check if rbifnew has rnd1.
+ * if yes ok.
+ * if no check if rbif has end.
+ * if yes copy to rfbifnew
+ * if no error
+*/
+int checkRND1(TRBIF* rbif,TRBIF* rbifnew)
+{
+ printf("rbifuse %i \n",rbifnew->rbifuse[ixrnd1]);
+ if(rbifnew->rbifuse[ixrnd1] != 51) return 0;
+ if(rbif->rbifuse[ixrnd1]==61){
+   rbifnew->rbif[ixrnd1]=rbif->rbif[ixrnd1];
+   rbifnew->rbifuse[ixrnd1]=61;
+   printf("checkRND1: rnd1 added to resources \n");
+   return 0;
+ } 
+ printf("Error: chcekRND1: RND1 not defined for INPRND1 \n");
+ return 1;
 }
 /*----------------------------------------------int nofclustTpartition();
   calculate # of clusters in this partition.
@@ -1640,6 +1696,7 @@ int initHW(Hardware *HW){
   strcpy(HW->name,"CTP");
  }
  HW->rbif= allocTRBIF();
+ HW->inpsctp = new TINPSCTP;
  cleanHardware(HW, 0);
  return 0;
 }
@@ -1653,6 +1710,7 @@ void printHardware(Hardware *hwpart, char *dbgtext){
  }
  if(hwpart->name == NULL)printf("%s Hardware name=NULL \n", dbgtext);
  else printf("%s Hardware name: %s -----------\n", dbgtext,hwpart->name);
+ printTINPSCTP(hwpart->inpsctp);
  printTRBIF(hwpart->rbif); mskCLAMASK=getCLAMASK();
  for(i=0;i<NCLASS;i++){
   TKlas *klas;
@@ -1684,6 +1742,7 @@ void cleanHardware(Hardware *hw, int leaveint){
  int i;
  //hw->name="EMPTY";
  for(i=0;i<NCLASS;i++)cleanTKlas(hw->klas[i]);
+ cleanTINPSCTP(hw->inpsctp);
  cleanTRBIF(hw->rbif, leaveint);   // also PF
  for(i=0;i<NFO;i++){
   cleanTFO(&hw->fo[i]);
@@ -1757,6 +1816,12 @@ for(isp=0;isp<MNPART;isp++){
     };
   }; printf("\n");
 };
+ //------------------------------------------- INPSCTP
+ if(hw->inpsctp){
+   vmew32(RND1_EN_FOR_INPUTS,hw->inpsctp->rnd1enabled1);
+   vmew32(RND1_EN_FOR_INPUTS+4,hw->inpsctp->rnd1enabled2);
+   printf("load2HW: RND1_EN_FOR_INPUTS set: 0x%x 0x%x \n",hw->inpsctp->rnd1enabled1,hw->inpsctp->rnd1enabled2);
+ }
  //------------------------------------------- RBIF
  rbif=hw->rbif;
  vmew32(getLM0addr(RANDOM_1), rbif->rbif[ixrnd1]);
