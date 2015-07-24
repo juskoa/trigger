@@ -2096,9 +2096,11 @@ class TrgPartition:
     self.activeCluster= None
     # shared resources by this partition. The following should be
     # checked always when new resource added:
+    #
+    self.inpgcons= None   # for INRND1 option (perhpaps list if more than RND1 in future)
+    self.INPCTP= None
     # - number of l0funs <=2   4: lut8
     self.l0funs=[None, None, None, None]    # used l0funs (16 bits stored if used)
-    self.inpgcons= None   # for INRND1 option (perhpaps list if more than RND1 in future)
     self.l0funs34= [None, None] # complex l0f. pointer to l0fxxx TrgInput with
     # defined l0fAB pointing to 2 l0[AB]xxx TrgInput objects
     # list of pointers to P/F objects utilised by this partition (max. 4)
@@ -2241,6 +2243,7 @@ class TrgPartition:
     self.savepcfg(name=partname) # has to be called prior .partition creation!
     outfile= open(os.path.join(fnw+".partition"),"w") # (not used resources)
     outfile.write("Version: %s\n"%(VERSION))
+    if self.INPCTP: outfile.write(self.INPCTP)
     for shrr in SHRRSRCS:
       shrr.save(outfile)
     self.sdgs.save(outfile)
@@ -2316,6 +2319,8 @@ class TrgPartition:
     for sr in SHRRSRCS:   # preparation for 'check if rsrcs is used'
       sr.used=0
     CLAlines=[]
+    # check if rnd1 used in INRND1
+    if self.inpgcons: SHRRSRCS[0].used= SHRRSRCS[0].used+1 # rnd1 used
     # allocate l0f* usage in all classes (check if <=2 used was done already)
     #lfs,error=self.allocShared([None,None], lf34=34)   #just update self.l0funs
     #if error: errormsg= errormsg+error+'\n'
@@ -2494,7 +2499,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       #print errormsg
       return errormsg
     if self.inpgcons:
-      line= "INPRND1 0x%x 0x%x"%(self.inpgcons[0], self.inpgcons[1])
+      line= "INRND1 0x%x 0x%x"%(self.inpgcons[0], self.inpgcons[1])
       outfile.write(line+"\n")
     line='RBIF '
     #print "RBIF:l0funs", self.l0funs
@@ -2720,7 +2725,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     of.write(line)
     line='PARTITION: %s\n'%(self.name); of.write(line)
     if self.inpgcons:
-      line= "#INPRND1 0x%x 0x%x\n"%(self.inpgcons[0], self.inpgcons[1])
+      line= "#INRND1 0x%x 0x%x\n"%(self.inpgcons[0], self.inpgcons[1])
       of.write(line)
     line='INPUTS:\n' ; of.write(line)
     usedinputs={} ; optinputs={}
@@ -3132,16 +3137,18 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           PrintError("at least 2 items in shared section expected:%s"%cltds,self)
           break
         shrname= cltdsa[0]
-        #print "Shared2:",cltdsa
+        print "Shared2:",cltdsa
         if shrname=="INRND1":               # rnd1 connections to 1..48 inputs
+          self.INPCTP=cltds
+          #SHRRSRCS[0].used= SHRRSRCS[0].used+1 # rnd1 used
           for inn in cltdsa[1:]:
             inp= TDLTUS.findInput(inn)
             inp.prt()
             if inp.swin != '0':   # calculate 2 RND1_EN_FOR_INPUTS words
               if self.inpgcons==None: self.inpgcons= [0,0]
               swi= int(inp.swin)
-              if swi > 23:
-                self.inpgcons[1]= self.inpgcons[1] | (1<<(swi-24))
+              if swi > 24:
+                self.inpgcons[1]= self.inpgcons[1] | (1<<(swi-25))
               else:
                 self.inpgcons[0]= self.inpgcons[0] | (1<<(swi-1))
         elif cltdsa[1]=="REPL":               # replacement definition
