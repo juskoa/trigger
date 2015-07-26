@@ -2181,8 +2181,8 @@ class TrgPartition:
           detsline= id + " " + detsline
     if self.filteredout !="":
       detsline= string.strip(detsline) + " " + string.strip(self.filteredout)
-      # no inp. detectors if using RND1 connected to inputs!
-      if self.inpgcons != None: detsline=''
+    # no inp. detectors if using RND1 connected to inputs!
+    if self.inpgcons != None: detsline=''
     print detsline
   def getRR(self, minst, ix=0):   # get Required Resources
     """ 

@@ -83,6 +83,10 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 - 0HWU check removed
 6.7.2015 validate-5.2-1.noarch.rpm
 - effectively filtered out detectors, log: /tmp/partition_name.log
+22.7.2015 validate-5.3-1.noarch.rpm
+- 4 l0f each 8 inputs. INRND1 added
+26.7.2015 validate-5.4-1.noarch.rpm
+- was bug in 5.3 (filtered out was not empty in case of INRND1 usage)
 
 3. Problems
 -----------

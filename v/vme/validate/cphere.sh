@@ -34,7 +34,8 @@ echo "pwd:`pwd` Do:"
 # 2.5: strict validation added (pydim needed then)!
 echo
 #echo '(no tkinter dependance) scp ~/validate/dist/validate-5.1-1.noarch.rpm $lxp:t/'
-echo '(effectively filtered out with *) scp ~/validate/dist/validate-5.3-1.noarch.rpm $lxp:t/'
+#echo '(effectively filtered out with *) scp ~/validate/dist/validate-5.3-1.noarch.rpm $lxp:t/'
+echo 'scp ~/validate/dist/validate-5.4-1.noarch.rpm $lxp:t/'
 read -p "remove $pyfiles in pwd:`pwd` ? (y/n):" yn
 if [ "$yn" = 'y' ] ;then
   rm $pyfiles
