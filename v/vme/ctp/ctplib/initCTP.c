@@ -116,19 +116,13 @@ if(notInCrate(1)==0) {   // L0 board
 /* init LM/L0 downscaling: */
 void rates2hwInit() {
 int ix;
-vmew32(getRATE_MODE(),1);   /* vme mode */
-vmew32(RATE_CLEARADD,DUMMYVAL);
-for(ix=0; ix<NCLASS; ix++) {
-  vmew32(RATE_DATA, 0);    // 0: from 23.6.2014  (ix<<25): before
-};
-vmew32(getRATE_MODE(),0);   /* normal mode */
 if(l0C0()>=0xc5) {
-  vmew32(LM_RATE_MODE,1);   /* vme mode */
+  //vmew32(LM_RATE_MODE,1);   /* vme mode */
   vmew32(LM_RATE_CLEARADD,DUMMYVAL);
   for(ix=0; ix<NCLASS; ix++) {
     vmew32(LM_RATE_DATA, 0);
   };
-  vmew32(LM_RATE_MODE,0);   /* normal mode */
+  //vmew32(LM_RATE_MODE,0);   /* normal mode */
 };
 }
 /*------------------------------------------------------ setEdgesDelays

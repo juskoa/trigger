@@ -269,14 +269,15 @@ For LM0 only first 4 modes possible (20.11.2014)
  */
 #define L0_TCSTART     0x91c4   /*dummy wr. */
 #define L0_TCCLEAR     0x91c8   /*dummy wr. */
-#define RATE_DATA      0x91cc   /*w/r L0 rate data word: removed
+/* RATE for L0 level not defined
+ #define RATE_DATA      0x91cc   *w/r L0 rate data word: removed
 bit31=0: 21bits data pseudo-random pattern-repetition period
          bits 24..21 read 0 if 0 was written
 bit31=1: 25bits for L0-class busy time in steps of 10micsecs
          i.e. max. busy time: is  cca 5.58 minutes
 LM0: bit25 (not 31) -see RATE_DATABTMr2
  */
-#define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add : removed*/
+//#define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add : removed*/
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
                                 /*   fy>=0xAC           4Kwordxx12bits*/
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
