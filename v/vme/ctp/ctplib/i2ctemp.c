@@ -23,11 +23,11 @@ int ReadTemp(int ix) {   /* ix: the board (pointer to ctpboards[]) */
 int i; w32 status, temp2;
 vmew32(TEMP_START+BSP*ctpboards[ix].dial, DUMMYVAL);
 for(i=0; i<3; i++) {
-  usleep(300);
+  usleep(1000);
   status=vmer32(TEMP_STATUS+BSP*ctpboards[ix].dial);
   if( (status & 0x1) == 0) goto TEMPOK;
 };
-temp2=0; return(temp2);
+temp2=1000; return(temp2);
 TEMPOK:
 temp2=vmer32(TEMP_READ+BSP*ctpboards[ix].dial)&0xff;
 return(temp2);
