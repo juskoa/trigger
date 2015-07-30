@@ -599,8 +599,8 @@ void printTKlas(TKlas *klas,int i){
   printf("0x%x 0x%x ",klas->scaler,klas->l1definition);
   printf("0x%x 0x%x hwcl:%d ",klas->l1inverted,
     klas->l2definition, klas->hwclass);
-  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %s \n",klas->classgroup,
-    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->partname);
+  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i %s \n",klas->classgroup,
+    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg, klas->partname);
 }
 /*------------------------------------------------------checkCluV0TKlas()
 */
@@ -1732,6 +1732,11 @@ void printHardware(Hardware *hwpart, char *dbgtext){
    }
   }
   printf("\n");
+ }
+ printf("SDGS:\n");
+ for(int i=0;i<NCLASS;i++){
+  printf("%4i 0x%6x 0x%6x |",i,hwpart->sdgs[i],hwpart->lmsdgs[i]);
+  if((i+1)%10 == 0)printf("\n");
  } 
 }
 /*----------------------------------------------------cleanHardware()
