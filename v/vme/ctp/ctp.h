@@ -269,14 +269,15 @@ For LM0 only first 4 modes possible (20.11.2014)
  */
 #define L0_TCSTART     0x91c4   /*dummy wr. */
 #define L0_TCCLEAR     0x91c8   /*dummy wr. */
-#define RATE_DATA      0x91cc   /*w/r L0 rate data word:
+/* RATE for L0 level not defined
+ #define RATE_DATA      0x91cc   *w/r L0 rate data word: removed
 bit31=0: 21bits data pseudo-random pattern-repetition period
          bits 24..21 read 0 if 0 was written
 bit31=1: 25bits for L0-class busy time in steps of 10micsecs
          i.e. max. busy time: is  cca 5.58 minutes
 LM0: bit25 (not 31) -see RATE_DATABTMr2
  */
-#define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add */
+//#define RATE_CLEARADD  0x91d0   /*dummy wr. clear rate memory add : removed*/
 #define MASK_DATA      0x91e4   /*wr BC mask data word  4Kwordx4bits */
                                 /*   fy>=0xAC           4Kwordxx12bits*/
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
@@ -285,7 +286,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define L0_ENA_CRNDlm0 0x9200 
 /* 1..0: enable RND2, RND1 clear In firmware called:  ENABLE_CLEAR */
 
-#define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal */
+#define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */
 #define DAQ_LEDlm0     0x9234
 //von #define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
@@ -298,9 +299,11 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define LM_SCALED_2 0x925c       /*     SCALED_2 */
 #define LM_ENABLE_CLEAR  0x9260  /*     L0_ENA_CRNDlm0  */
 #define LM_CLEAR_RANDOM  0x9264  /*     L0_CLEAR_RND  */
-#define LM_RATE_MODE     0x9268  /*     RATE_MODElm0 */
+#define LM_RATE_MODE     0x9268  /*     RATE_MODElm0  removed*/
 #define LM_RATE_DATA     0x926c  /*     RATE_DATA    */
 #define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
+#define LM_RATE_RND_OFFSET 0x930c   /* */
+#define LM_RATE_RND_RESET  0x9308   /* */
 #define LM_FUNCTION1 0x9274  /* FN2:278 run1:FUN3:27c FUN4:280 */
 
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).

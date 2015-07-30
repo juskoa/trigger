@@ -35,12 +35,10 @@ if(l0C0()) {
 };
 l0invAC=L0_INVERTac; minAC=0;
 /* rates: */
-vmew32(getRATE_MODE(),1);   /* vme mode */
-vmew32(RATE_CLEARADD,DUMMYVAL);
+vmew32(LM_RATE_CLEARADD,DUMMYVAL);
 for(i=0;i<NCLASS;i++){
-  rates[i]= vmer32(RATE_DATA)&rate_mask;
+  rates[i]= vmer32(LM_RATE_DATA)&rate_mask;
 };
-vmew32(getRATE_MODE(),0);   /* normal mode */
  word=vmer32(offset+FPGAVERSION_ADD);
  fprintf(f,"L0 BOARD= 0x%x =======================================\n", word);
  word=vmer32(offset+getADC_SELECT());

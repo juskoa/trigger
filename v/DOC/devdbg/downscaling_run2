@@ -1,0 +1,22 @@
+
+=====================================================================================================================
+run2 downscaling (see also documentation on web)
+- downscaling defined only on LM level
+- downscaling firmware removed from L0 level (3 RATE_WORDS obsolete)
+Logic:
+- 100 identical lfsr - one for each class
+2 things to control:
+- rate: LM_RATE_DATA
+- seed of lfsr: LM_RATE_RND_OFFSET
+Sync downscaling is controlled by selecting seed:
+classes in the same group should have same seed.
+
+Read/write to DATA and OFFSET:
+use LM_RATE_CLEARADD - clears both/
+Reset lfsrs with offsets: use LM_RATE_RND_RESET
+
+Modified files: (see git for more details)
+ctp.h - LM words added
+ctp.c - set/test routines updated
+Tpartition.c - load2HW
+cfg2part.c - update lmscalers

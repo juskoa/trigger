@@ -594,7 +594,7 @@ for(klas=1; klas<=NCLASS; klas++) {
 }
 
 /*FGROUP L0
-read all rates (scalers) from hw to Klas structure
+read all rates (scalers) and seeds from hw to Klas structure
 */
 void hw2rates() {
 int ix;
@@ -604,22 +604,17 @@ if(l0C0()) {
 } else {
   rate_mask= RATE_MASK;
 };
-vmew32(getRATE_MODE(),1);   /* vme mode */
-vmew32(RATE_CLEARADD,DUMMYVAL);
+vmew32(LM_RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
-  Klas[ix].regs[3]= vmer32(RATE_DATA) & rate_mask;
+  Klas[ix].regs[3]= vmer32(LM_RATE_RND_OFFSET) & rate_mask;
 };
-vmew32(getRATE_MODE(),0);   /* normal mode */
-vmew32(LM_RATE_MODE,1);   /* vme mode */
 vmew32(LM_RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
   Klas[ix].regs[10]= vmer32(LM_RATE_DATA) & RATE_MASKr2;
 };
-vmew32(LM_RATE_MODE,0);   /* normal mode */
-/*printf("hw2rates.\n"); */
 }
 /*FGROUP L0
-write all rates (scalers, lmscalers) from Klas structure to hw
+write rates and seeds from Klas structure to hw
 */
 void rates2hw() {
 int ix;
@@ -629,18 +624,16 @@ if(l0C0()) {
 } else {
   rate_mask= RATE_MASK;
 };
-vmew32(getRATE_MODE(),1);   /* vme mode */
-vmew32(RATE_CLEARADD,DUMMYVAL);
+vmew32(LM_RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
-  vmew32(RATE_DATA, Klas[ix].regs[3] & rate_mask);
+  vmew32(LM_RATE_RND_OFFSET, Klas[ix].regs[3]);
 };
-vmew32(getRATE_MODE(),0);   /* normal mode */
-vmew32(LM_RATE_MODE, 1);   /* vme mode */
+// reset
 vmew32(LM_RATE_CLEARADD,DUMMYVAL);
 for(ix=0; ix<NCLASS; ix++) {
   vmew32(LM_RATE_DATA, Klas[ix].regs[10] & RATE_MASKr2);
 };
-vmew32(LM_RATE_MODE, 0);   /* normal mode */
+vmew32(LM_RATE_RND_RESET,DUMMYVAL);
 }
 
 /*FGROUP SimpleTests
@@ -661,9 +654,9 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 };
 }
 /*FGROUP SimpleTests
-what: 0: set RATE_DATA  (100 words, 25 bits)
+what: 0: set LM_RATE_DATA  (100 words, 21 bits)
       1: set MASK_DATA  (3564 words, 12 bits)
-      2: set LM_RATE_DATA  (100 words, 25 bits)
+      2: set LM_RATE_RND_OFFSET  (100 words, 21 bits)
 value: to be written
 Notes:
 RATE_DATA: rnd: 21 bits     busy: 0x2000000 | 25bits (1 step: 10us)
@@ -674,17 +667,13 @@ void setrates(int what, w32 value) {
 int ix;
 w32 rate_mask,vmemode,clearad,datad;
 int MAXIX;
-if((what%10)==0) {              // RATE_DATA
-  vmemode= getRATE_MODE();
-  if(l0C0()) {
-    rate_mask= RATE_MASKr2;
-  } else {
-    rate_mask= RATE_MASK;
-  };
+if(what==0) {              // RATE_DATA
+  vmemode=0;
+  rate_mask=0x1fffff;
   MAXIX=NCLASS;
-  clearad= RATE_CLEARADD;
-  datad= RATE_DATA;
-} else if((what%10)==1) {              // MASK_DATA
+  clearad= LM_RATE_CLEARADD;
+  datad= LM_RATE_DATA;
+} else if(what==1) {              // MASK_DATA
   if(l0C0()) {
     vmemode= MASK_MODEr2;
   } else {
@@ -694,14 +683,18 @@ if((what%10)==0) {              // RATE_DATA
   MAXIX=ORBITLENGTH;
   clearad= MASK_CLEARADD;
   datad= MASK_DATA;
-} else {                   // LM_RATE_DATA
-  vmemode= LM_RATE_MODE;
-  rate_mask= RATE_MASKr2;
+} else if(what==2){                   // LM_RATE_DATA
+  //vmemode= LM_RATE_MODE;
+  vmemode=0;
+  rate_mask= 0x1fffff;
   MAXIX=NCLASS;
   clearad= LM_RATE_CLEARADD;
-  datad= LM_RATE_DATA;
+  datad= LM_RATE_RND_OFFSET;
+} else{
+  printf("Select what \n");
+  return ;
 };
-vmew32(vmemode,1);   /* vme mode */
+if(vmemode)vmew32(vmemode,1);   /* vme mode */
 if(what<10) {
   vmew32(clearad,DUMMYVAL);
   printf("writing 0x%x 1..%d ...\n",value, MAXIX);
@@ -709,30 +702,31 @@ if(what<10) {
     vmew32(datad, value);
   };
 };
-vmew32(vmemode,0);   /* normal mode */
+if(vmemode)vmew32(vmemode,0);   /* normal mode */
 }
 /*FGROUP SimpleTests
-what: 0: test RATE_DATA  (100 words, 25 bits)
+what: 0: test LM_RATE_DATA  (100 words, 25 bits)
       1: test MASK_DATA  (3564 words, 12 bits)
-     10: just read RATE_DATA + LM_RATE_DATA
+      2: test LM_RATE_RND_OFFSET
+     10: just read LM_RATE_DATA
      11: just read MASK_DATA
+     12: just read LM_RATE_RND_OFFSET
 write 1.. 100/3564,read back and print if not as expected
 */
 void testrates(int what) {
 int ix;
 w32 rate_mask,vmemode,clearad,datad;
-w32 lmvmemode,lmclearad,lmdatad;
 int MAXIX, okn;
-if((what%10)==0) {              // RATE_DATA
-  vmemode= getRATE_MODE();
+if((what%2)==0) {              // LM_RATE_DATA
+  vmemode=0;
   if(l0C0()) {
     rate_mask= RATE_MASKr2;
   } else {
     rate_mask= RATE_MASK;
   };
   MAXIX=NCLASS;
-  clearad= RATE_CLEARADD;
-  datad= RATE_DATA;
+  clearad= LM_RATE_CLEARADD;
+  if((what%10)==0)datad= LM_RATE_DATA; else datad= LM_RATE_RND_OFFSET;
 } else {                   // MASK_DATA
   if(l0C0()) {
     vmemode= MASK_MODEr2;
@@ -744,7 +738,7 @@ if((what%10)==0) {              // RATE_DATA
   clearad= MASK_CLEARADD;
   datad= MASK_DATA;
 };
-vmew32(vmemode,1);   /* vme mode */
+if(vmemode)vmew32(vmemode,1);   /* vme mode */
 if(what<10) {
   vmew32(clearad,DUMMYVAL);
   printf("writing 1..%d ...\n",MAXIX);
@@ -753,15 +747,8 @@ if(what<10) {
   };
 };
 //read back
-if(what==10) {
-  lmvmemode= LM_RATE_MODE;
-  lmclearad= LM_RATE_CLEARADD;
-  lmdatad= LM_RATE_DATA;
-  vmew32(lmvmemode,1);   /* vme mode */
-  vmew32(lmclearad,DUMMYVAL); okn=0;
-};
+if(what<10)printf("reading..., printing out (errors only)...\n");
 vmew32(clearad,DUMMYVAL); okn=0;
-printf("reading..., printing out (errors only)...\n");
 for(ix=0; ix<MAXIX; ix++) {
   w32 da;
   da= vmer32(datad) & rate_mask;
@@ -773,18 +760,12 @@ for(ix=0; ix<MAXIX; ix++) {
       okn++;
     };
   } else {
-    if(what==10) {
-      w32 lmda;
-      lmda= vmer32(lmdatad) & rate_mask;
-      printf("%2d: LM:%d=0x%x   L0:%d=0x%x\n", ix+1, lmda,lmda,da, da);
-    } else {
       printf("%2d: %d=0x%x\n", ix+1, da, da);
-    };
   };
 }; 
-vmew32(vmemode,0);   /* normal mode */
+if(vmemode)vmew32(vmemode,0);   /* normal mode */
 if(what==10) {
-  vmew32(lmvmemode,0);   /* normal mode */
+  //vmew32(lmvmemode,0);   /* normal mode */
 };
 if(what<10) {
   printf("tested words:%d, ok: %d words\n", MAXIX, okn);

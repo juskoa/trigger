@@ -485,12 +485,10 @@ Middle-> modify the invert bit for classes 1-50 (45-50 with <AC version of L0-bo
 Bit 'Class mask' must be selected (i.e. green) for active (triggering) classes
 """)
     id3=self.canvas.create_text(Klas.l0scalerx0, Ctpconfig.hty0,
-      anchor=NW,text="L0pre-scaler")
+      anchor=NW,text="Pre-scaler seed")
     self.canvas.doHelp(id3,
-""" L0 pre-scaler. 21 bits (0-no downscaling 0x1fffff-supress all triggers).
-% character can be used to enter the down-scale rate. Examples:
-%50 -reduce triggers by half
-%1  -full trigger rate down-scaled 100 times
+""" Classes with same seed are downscaled synchroneuosly. Seed can be chosen to optimise decorrelation
+    between downscaled group.
 """)
     if (self.hiddencls=="") or (self.hiddencls=="l2"):
       id4=self.canvas.create_text(Klas.l1inputsx0, Ctpconfig.hty0,

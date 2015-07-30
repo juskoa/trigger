@@ -422,7 +422,8 @@ if( (line[j] != '\n') && (line[i] != '\n') ) {
  klas->l0inverted=l0inverted;
  klas->l0vetos=l0vetos;
  // Warning if using 'not defined' resources:
-klas->sdg= sdgix; klas->scaler=scaler;
+klas->sdg= sdgix; klas->scaler=0;
+klas->lmscaler=scaler;
  klas->l1definition=l1definition;
  klas->l1inverted=l1inverted;
  klas->l2definition=l2definition;
