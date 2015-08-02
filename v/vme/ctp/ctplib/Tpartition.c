@@ -1843,9 +1843,11 @@ for(isp=0;isp<MNPART;isp++){
  vmew32(LM_SCALED_2, rbif->rbif[ixbc2]);
 if(l0C0()>=0xc606) {
   int ixf; // 4 8-inputs luts:
+  for(ixf=0; ixf<4; ixf++) {
+    setShared4(ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
+  };
   for(ixf=0; ixf<8; ixf++) {
     printf("load2HW set lut8[%d] %s\n", ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
-    setLUT(ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
   };
 } else {
   // 2 4-inputs luts:
