@@ -18,7 +18,9 @@ Reset lfsrs with offsets: use LM_RATE_RND_RESET
 
 Modified files: (see git for more details)
 ctp.h - LM words added
-ctp.c - set/test routines updated
+ctp.c 
+- set/test routines updated
+- in class interface l0scaler (klas.reg[3]) is used as offset -> also can be seen in class gui 
 Tpartition.c - load2HW
 cfg2part.c - update lmscalers
 
