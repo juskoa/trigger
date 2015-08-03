@@ -2,6 +2,7 @@
 =====================================================================================================================
 run2 downscaling (see also documentation on web)
 - downscaling defined only on LM level
+(all L0 downscaling is redundant but not removed yet)
 - downscaling firmware removed from L0 level (3 RATE_WORDS obsolete)
 Logic:
 - 100 identical lfsr - one for each class
@@ -17,6 +18,13 @@ Reset lfsrs with offsets: use LM_RATE_RND_RESET
 
 Modified files: (see git for more details)
 ctp.h - LM words added
-ctp.c - set/test routines updated
+ctp.c 
+- set/test routines updated
+- in class interface l0scaler (klas.reg[3]) is used as offset -> also can be seen in class gui 
 Tpartition.c - load2HW
 cfg2part.c - update lmscalers
+
+Related commits:
+b49b100d37ae42cb5696dce8f037b1ad6203fdfb
+4f6762cdfffc4b3c0c3803a76fab19f8bd553d06
+0b3d313f9e723f85e2d729a365366648d3232a8f

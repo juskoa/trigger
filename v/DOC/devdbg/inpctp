@@ -1,0 +1,22 @@
+New feature for CTP tests and potentially for technical runs introdyces.
+.partition new line:
+INRND1 INP1 INP2, ... INPN
+.pcfg new line:
+list(INP1, INP2 ... ,INPN) translated to two hexa numbers corresponding to RND1_EN_FOR_INPUTS
+parted.py: .partition->.pcfg
+
+TINPSCTP - structure in Tpartition containing tw ints - can be generalised if more inputs (rnd2,bc1,bc2) are added
+cfg2part: .pcfg->Tpartition
+
+DAQ/ECS receives info about input detectors on 2 places:
+- from ACT using validate.py script
+- from Tpartition using ctpproxy/getDAQClusterInfo().
+Both were modified that in case INRND1 line is in configuration empty list is send to DAQ. 
+
+
+Commits related:
+d981bbb81852ae8a6a965565dc8ad2743506ef15
+d55d5ed1e2933961d7b783d0f61fc15613b50773
+70c6ef8d8f0fec15687eb93a7277195eec406596
+7e8fe8d9941cb9b091ef62f0706a3f47f74744a7
+672b9b3f7f53c7813b1cbe69d1daf8c96be3bf2a

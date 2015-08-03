@@ -30,5 +30,4 @@ object: LTU-${DET}_FWM
 
 .endmacro
 
-#include "TRIGGER.invoke"
 

@@ -1291,6 +1291,8 @@ for(iclu=0;iclu<NCLUST;iclu++){
   //daqi->classmasks33_64[iclu]= classmasks_l[iclu]>>32;
   daqi->classmasks00_063[iclu]=classmasks_l[iclu];
   daqi->classmasks64_100[iclu]=classmasks_u[iclu];
+  // If INRND1 doen send any inputs to daq
+  if(partit->inpsctp)daqi->inpmasks[iclu]=0;
 };
 return(rcdaqlog);
 }

@@ -381,10 +381,11 @@ void copyTKlas(TKlas *toklas,TKlas *fromklas){
  toklas->classgroup=fromklas->classgroup;
  toklas->hwclass=fromklas->hwclass;
  toklas->partname=fromklas->partname;
-toklas->lmcondition= fromklas->lmcondition;
-toklas->lminverted= fromklas->lminverted;
-toklas->lmvetos= fromklas->lmvetos;
-toklas->lmscaler= fromklas->lmscaler;
+ toklas->lmcondition= fromklas->lmcondition;
+ toklas->lminverted= fromklas->lminverted;
+ toklas->lmvetos= fromklas->lmvetos;
+ toklas->lmscaler= fromklas->lmscaler;
+ toklas->sdg= fromklas->sdg;
 }
 /*---------------------------------------------------- findHWCluster()
 Input: part, pcluster:1-6.
@@ -588,6 +589,7 @@ if(klas != NULL){
   klas->hwclass=0;
   klas->classgroup=0;   // always IN
   klas->partname=NULL;
+  klas->sdg=-1;
 };
 }
 
@@ -1733,11 +1735,11 @@ void printHardware(Hardware *hwpart, char *dbgtext){
   }
   printf("\n");
  }
- printf("SDGS:\n");
- for(int i=0;i<NCLASS;i++){
-  printf("%4i 0x%6x 0x%6x |",i,hwpart->sdgs[i],hwpart->lmsdgs[i]);
-  if((i+1)%10 == 0)printf("\n");
- } 
+ //printf("SDGS:\n");
+ //for(int i=0;i<NCLASS;i++){
+ // printf("%4i 0x%6x 0x%6x |",i,hwpart->sdgs[i],hwpart->lmsdgs[i]);
+ // if((i+1)%5 == 0)printf("\n");
+ //} 
 }
 /*----------------------------------------------------cleanHardware()
 Clean HW structure in memory, before it is filled by
@@ -1841,9 +1843,11 @@ for(isp=0;isp<MNPART;isp++){
  vmew32(LM_SCALED_2, rbif->rbif[ixbc2]);
 if(l0C0()>=0xc606) {
   int ixf; // 4 8-inputs luts:
+  for(ixf=0; ixf<4; ixf++) {
+    setShared4(ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
+  };
   for(ixf=0; ixf<8; ixf++) {
     printf("load2HW set lut8[%d] %s\n", ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
-    setLUT(ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
   };
 } else {
   // 2 4-inputs luts:
@@ -2016,6 +2020,11 @@ for(i=0;i<NCLASS;i++){
    vmew32(LM_RATE_RND_OFFSET, (hw->sdgs[i]));
  };
  vmew32(LM_RATE_RND_RESET, 0);
+ printf("SDGS:\n");
+ for(int i=0;i<NCLASS;i++){
+  printf("%4i 0x%6x 0x%6x |",i,hw->sdgs[i],hw->lmsdgs[i]);
+  if((i+1)%5 == 0)printf("\n");
+ } 
  //--------------------------------------------- FOs
  for(i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {

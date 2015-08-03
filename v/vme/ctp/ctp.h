@@ -299,7 +299,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define LM_SCALED_2 0x925c       /*     SCALED_2 */
 #define LM_ENABLE_CLEAR  0x9260  /*     L0_ENA_CRNDlm0  */
 #define LM_CLEAR_RANDOM  0x9264  /*     L0_CLEAR_RND  */
-#define LM_RATE_MODE     0x9268  /*     RATE_MODElm0  removed*/
+//#define LM_RATE_MODE     0x9268  /*     RATE_MODElm0  removed*/
 #define LM_RATE_DATA     0x926c  /*     RATE_DATA    */
 #define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
 #define LM_RATE_RND_OFFSET 0x930c   /* */

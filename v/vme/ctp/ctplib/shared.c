@@ -320,6 +320,7 @@ if(rc!=0) {
   };
 };
 printf("LUT%d (l0f%d + lmf%d) loaded\n", X, X, X+4);
+//printf("LUT%d (l0f%d + lmf%d) loaded\n", X,X,X);
 }
 
 /* set L0f34 in hw. 
