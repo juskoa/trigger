@@ -50,5 +50,5 @@ int daqlogbook_update_triggerConfig(int runn, char *mem, char *alignment);
 int daqlogbook_update_cs(unsigned int runn, char *cs_string);
 int daqlogbook_update_ACTConfig(unsigned int rundec, char *itemname,char *instname,char *version);
 int daqlogbook_update_clusters(unsigned int runn, char *pname,
-  TDAQInfo *daqi, unsigned int ignoredaqlog);
+  TDAQInfo *daqi, unsigned int ignoredaqlog, unsigned int effiout);
 void printTDAQInfo(TDAQInfo *tdaq);

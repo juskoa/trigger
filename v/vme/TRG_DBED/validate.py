@@ -57,6 +57,7 @@ def main():
       prterr(errs)
     else:
       part.prtInputDetectors()
+      #print part.prtInputDetectors(hexs="yes")
   else:
     sys.stdout= saveout ; logfile.close()
     prterr(part.loaderrors)
