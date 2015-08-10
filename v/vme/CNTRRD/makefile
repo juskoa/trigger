@@ -11,7 +11,7 @@ endif
 
 CFLAGS += -Wall -g  -c
 INCS = -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib
-LDFLAGS = -lpthread 
+LDFLAGS = -pthread 
 LIBS = -L$(VMEBDIR)/vmeblib/linux_s -lvmeb
 
 ALL: $(ODIR)/readctpc $(ODIR)/readltuc $(ODIR)/analyse $(ODIR)/udpmonitor \

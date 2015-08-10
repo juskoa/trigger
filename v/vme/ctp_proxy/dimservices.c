@@ -22,6 +22,11 @@ Forced counters reading added (CTPDIM/GETCOUNTERS)
 #include "dimtypes.h"
 #include "Tpartition.h"
 
+#undef FAKECOUNTS
+#ifdef FAKECOUNTS
+w32 nfakec=0;
+#endif
+
 //CTP_RUNXCOUNTERS:
 #define NPARTIT 6
 #define RUNXCOUNTERSSTART (CSTART_BUSY+NCOUNTERS_BUSY_RUNX1)
@@ -332,6 +337,17 @@ ctpc=buf1;
 GetMicSec(&secs, &mics);
 l2orbit= vmer32(L2_ORBIT_READ);
 readCounters(ctpc, NCOUNTERS, 0, 1); readTVCounters(&ctpc[CSTART_SPEC+3]);
+
+#ifdef FAKECOUNTS
+nfakec++;
+/*for(ix=0; ix<=(NCOUNTERS-1); ix++) {
+  ctpc[ix]= ix*nfakec;   // difference= position
+};*/
+for(ix=0; ix<=(NCOUNTERS-1); ix++) {
+  ctpc[ix]= ix+nfakec;   // difference= 1, starting with position
+};
+l2orbit= nfakec;
+#endif
 /* printf("readTVcounters:\n");
 for(ix=CSTART_SPEC+3; ix<(CSTART_SPEC+3+16);ix++) {
   printf("%d:0x%x ", ix, ctpc[ix]);

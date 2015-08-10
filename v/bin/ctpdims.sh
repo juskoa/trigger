@@ -24,7 +24,7 @@ fi
 }
 #-------------------------------------
 hname=`hostname -s`
-if [ "$hname" != 'alidcsvme001' -a "$hname" != 'altri1' -a "$hname" != 'altri2' ] ;then
+if [ "$hname" != 'alidcsvme001' -a "$hname" != 'altri1' -a "$hname" != 'altri2' -a "$hname" != 'zenaj' ] ;then
   echo 'This script can be started only on alidcsvme001 or altri1/2'
   exit
 fi
