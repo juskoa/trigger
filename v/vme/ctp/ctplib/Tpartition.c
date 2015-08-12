@@ -1099,7 +1099,7 @@ if((mask & (~cls->l0inputs))) {   // resource used by a class
     // use value known from 'unmasked' partition
     rbifnew->rbifuse[ixres]= part->rbif->rbifuse[ixres];  //from 15.2.2011 !
     rbifnew->rbif[ixres]= part->rbif->rbif[ixres];
-    if((ixres>=ixl0fun1) || (ixres<=ixl0fun4)) { // l0f1234
+    if((ixres>=ixl0fun1) && (ixres<=ixl0fun4)) { // l0f1234
       unsigned int maxlen;
       char *srcstr, *dststr;
       // copy symbolic definition from: rbif/ixres to: rbifnew/ixres
