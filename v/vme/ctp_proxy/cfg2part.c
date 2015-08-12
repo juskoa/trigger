@@ -476,25 +476,67 @@ int PF2Partition(char *line,TRBIF *rbif){
 int ixdef,ixx;
 //enum Ttokentype tok; 
 w32 ixpf=0; char hexw[20];
-
-//printf("len= %i\n",strlen(&line[8]));
-//printf("%s",&line[8]);
-if((line[3]<'1') || (line[3]>'4')) {
-  goto BADLINE;
-};
-char2i(line[3],&ixpf); ixpf--; ixx=5;   // "PF.x 0x..."
-for(ixdef=0; ixdef< (ixMaxpfdefs+ixMaxpfdefsCommon); ixdef++) {
+ixx=0;
+for(ixdef=0; ixdef< 9; ixdef++) {
   w32 pfdef1; int rc1;
-  /*tok=*/ nxtoken(line, hexw, &ixx);
-  rc1= gethexdec(hexw, &pfdef1);
-  if(rc1!=0) {
-    goto BADLINE;
-  };
-  if(ixdef>=ixMaxpfdefs) {
-    rbif->pfCommon.pfdefsCommon[ixdef-ixMaxpfdefs]= pfdef1;
-  } else {
-    rbif->pf[ixpf].pfdefs[ixdef]= pfdef1;
-  };
+  nxtoken(line, hexw, &ixx);
+  printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
+  //rc1= gethexdec(hexw, &pfdef1);
+  //if(rc1!=0) {
+  //  goto BADLINE;
+  //};
+  switch(ixdef){
+    case 0: continue; // PF
+    case 1: continue; //.
+    case 2:
+    {
+     if((hexw[0]<'1') || (hexw[0]>'4')) goto BADLINE;
+     char2i(hexw[0],&ixpf); 
+     ixpf--;
+     continue; 
+    }
+    case 3: // BCM
+    {
+     continue;
+    }
+    case 4: // INT
+    {
+     continue;
+    }
+    case 5: // PeriodBefore
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].PeriodBefore=dec;
+     continue;
+    }
+    case 6: // PeriodAfter
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].PeriodAfter=dec;
+     continue;
+    }
+    case 7: // NintBefore
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].NintBefore=dec;
+     continue;
+    }
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].NintAfter=dec;
+    case 8: // Nintafter
+    {
+     continue;
+    }
+    default : goto BADLINE;
+  }
 };
 rbif->PFuse[ixpf]= ixpf+1;
  //printTRBIF(rbif);

@@ -151,7 +151,12 @@ PF_N_BCS THa1 dTa THb1 dTb INTa INTb Delayed_INT THa2 THb2 P_signal
 #define ixDelayed_INT 2
 // 3 values (x=L0/1/2) PF_COMMONx (was 3 before 23.10.2011)
 #define ixMaxpfdefsCommon 3
-typedef struct TPastFut{
+typedef struct TPastFutm {
+ char name[MAXNAMELENGTH];
+ w8* bcmask;
+ w32 inter; // 1=int1, 2=int2 ?
+ w32 PeriodBefore,PeriodAfter;
+ w32 NintBefore,NintAfter; 
  w32 pfdefs[ixMaxpfdefs];
 }TPastFut;
 typedef struct TPastFutCommon{

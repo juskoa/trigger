@@ -842,17 +842,16 @@ class TrgSHR_BCM(TrgSHR):
     inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     return self.BCMPFitems[inx][1]
   def isPFDefined(self,level):
-    """ "0 0 0" ->
-    PF on given level not defined (i.e. not to be used as veto in class def)
+    """
+    PF definition:
+    Name BCM IR PeriodBefore PeriodAfter NintBefore NintAfter
     """
     pfd= string.split(self.getDefinition())
-    if len(pfd)!=12:
-      IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
-      return False
-    for ix in range(3):
-      if eval(pfd[ix+(3*level)])!=0:
-        return True
-    return False
+    print "PF: ",pfd," len=",len(pfd)
+    #if len(pfd)!=6:
+    #  IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
+    #  return False
+    # More checks ?
   def prtBits(self):
     ix= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     logdef= self.BCMPFitems[ix][1]
