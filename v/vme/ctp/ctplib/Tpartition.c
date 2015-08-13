@@ -131,7 +131,6 @@ if(rbifnew->PFuse[ixpf]>0) {  // check
 };
 return rc;
 }
-
 /*------------------------------------------------------------cleanTRBIF()
 If leaveint1!=0: do not touch int1/2/t definitions
 */
@@ -361,12 +360,28 @@ void copyTBUSY(TBUSY *to,TBUSY *from){
 /*-------------------------------------------------------cleanTPastFut()
 */
 void cleanTPastFut(TPastFut *pf){
-int i;
-if(pf != NULL){
-  for(i=0;i<ixMaxpfdefs;i++){
+ if(pf != NULL){
+  for(int i=0;i<ixMaxpfdefs;i++){
     pf->pfdefs[i]=0;
   }
  }
+ if(pf->bcmask){
+   delete pf->bcmask;
+   pf->bcmask=0;
+ }
+ pf->inter=0;
+ pf->PeriodBefore=0;
+ pf->PeriodAfter=0;
+ pf->NintBefore=0;
+ pf->NintAfter=0;
+}
+void printTPastFut(TPastFut *pf)
+{
+ printf("TpastFut: %s\n",pf->name);
+ printf("bcmask: %p\n",pf->bcmask);
+ printf("inter: %i\n",pf->inter);
+ printf("PeriodBefore: %i PeriodAfter %i NintBefore %i NintAfter %i\n",pf->PeriodBefore,pf->PeriodAfter,pf->NintBefore,pf->NintAfter);
+ 
 }
 /*------------------------------------------------------copyTKlas()
 */

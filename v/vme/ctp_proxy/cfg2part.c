@@ -539,7 +539,8 @@ for(ixdef=0; ixdef< 9; ixdef++) {
   }
 };
 rbif->PFuse[ixpf]= ixpf+1;
- //printTRBIF(rbif);
+printf("PF2Partition: \n");
+printTPastFut(&rbif->pf[ixpf]);
 return 0;
 BADLINE:
 { char emsg[300];
