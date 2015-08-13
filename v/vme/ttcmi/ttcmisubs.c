@@ -347,7 +347,7 @@ if(cf != NULL) {
   mem[sp]='\0';
   fclose(cf); 
 } else {
-  sp=0;
+  sp=0; mem[0]='\0';
 };
 return(sp);
 }

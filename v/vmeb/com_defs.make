@@ -37,8 +37,8 @@ SERVER_LINK := yes
 CLIENT_HOST := altri1
 SERVER_PREF := /home/dl6
 endif
-#ifeq ($(HOSTNAME), zenaj)
-ifeq ($(HOSTNAME),$(filter $(HOSTNAME),tp zenaj))
+#ifeq ($(HOSTNAME),$(filter $(HOSTNAME),tp zenaj))
+ifeq ($(VMESITE), PRIVATE)
 ifeq ($(SERVERLINK), NO)
 SERVER_LINK := 
 else

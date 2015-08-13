@@ -8,6 +8,10 @@ XY='-Y'
 ULT=`pwd`
 export CCRFS=/home/dl6/rootfs
 export CLRFS=/home/dl6/snapshot
+alias miclock="$VMECFDIR/ttcmidaemons/miclock.py"
+alias miclockjava="echo -e 'miclockold  -old, command line version\n'; cd ~/jmiclock; java -jar MiClockGui.jar"
+#  alias miclock="echo -e 'miclockold  -old, command line version\n'; java -jar ~/jmiclock/MiClockGui.jar"
+#
 if [ $HN = 'alidcscom835' ] ;then
   #export CCRFS=/data/ClientCommonRootFs
   #export CLRFS=/data/ClientLocalRootFs
@@ -20,15 +24,12 @@ if [ $HN = 'alidcscom835' ] ;then
   alias ctp="ssh -X -q -2 -f trigger@alidcsvme001 vmecrate nbi ctp"
   alias fanin=$ULT/bin/fanin
   alias dcson='rdesktop -g1280x1024 alitrion001'
-  alias miclock="$VMECFDIR/ttcmidaemons/miclock.py"
 elif [ $HN = 'pcalicebhm10' -o $HN = 'avmes' ] ;then
   export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
   #export ULT=$CCRFS/usr/local/trigger
   export tr1='trigger@altri1.cern.ch'
   export tr2='trigger@altri2.cern.ch'
   export trp2='trigger@altri2.cern.ch'
-  alias miclock="$VMECFDIR/ttcmidaemons/miclock.py"
-  alias miclockjava="echo -e 'miclockold  -old, command line version\n'; cd ~/jmiclock; java -jar MiClockGui.jar"
 elif [ $HN = 'alidcscom188' ] ;then
   export CCRFS=/data/dl/root
   export CLRFS=/data/dl/snapshot
@@ -39,9 +40,6 @@ elif [ $HN = 'alidcscom188' ] ;then
   alias ctp="ssh -q -2 -f trigger@alidcsvme001 vmecrate nbi ctp"
   alias fanin=$ULT/bin/fanin
   alias dcson='rdesktop -g1280x1024 alitrion001'
-  alias miclock="$VMECFDIR/ttcmidaemons/miclock.py"
-#  alias miclock="echo -e 'miclockold  -old, command line version\n'; java -jar ~/jmiclock/MiClockGui.jar"
-  alias miclockjava="echo -e '\nUse please miclockold (miclock not available)'"
 elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
   export CCRFS=''
   export CLRFS=''

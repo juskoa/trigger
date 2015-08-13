@@ -20,6 +20,8 @@ void GetMicSec(w32 *tsec, w32 *tusec);
 void AddSecUsec(w32 *tsec,w32 *tusec,w32 plussec,w32 plususec);
 void SubSecUsec(w32 *tsec,w32 *tusec,w32 plussec,w32 plususec);
 w32 DiffSecUsec(w32 tsec,w32 tusec,w32 prevtsec,w32 prevtusec);
+void DiffSecUsecFrom(w32 fromsec,w32 fromtusec, w32 *diff_s,w32 *diff_u);
+
 void micwait(int micsecs);
 void prtProfTime(char *name);
 

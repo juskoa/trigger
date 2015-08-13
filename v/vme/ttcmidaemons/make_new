@@ -23,8 +23,9 @@ else
 NOVME=-DNOVME
 endif
 
-all: $(allEXES)
-
+all: $(EXEDIR) $(allEXES)
+$(EXEDIR):
+	mkdir -p $(EXEDIR)
 #------------------------------------------- ttcmidims
 $(EXEDIR)/ttcmidims: ttcmidims.o $(VMECFDIR)/ttcmi/ttcmisubs.o $(VMEBLIB)/libvmeb.a
 	$(CC) $(LDFLAGS) $< $(VMECFDIR)/ttcmi/ttcmisubs.o $(LIBS) -o $@
