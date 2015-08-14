@@ -527,12 +527,12 @@ for(ixdef=0; ixdef< 9; ixdef++) {
      rbif->pf[ixpf].NintBefore=dec;
      continue;
     }
+    case 8: // Nintafter
+    {
      w32 dec;
      rc1=gethexdec(hexw,&dec);
      if(rc1 != 0) goto BADLINE;
      rbif->pf[ixpf].NintAfter=dec;
-    case 8: // Nintafter
-    {
      continue;
     }
     default : goto BADLINE;
