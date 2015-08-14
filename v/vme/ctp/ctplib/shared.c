@@ -115,11 +115,11 @@ w= vmer32(LM_SCALED_1); printf("0x%x\n", w);
 w= vmer32(LM_SCALED_2); printf("0x%x\n", w);
 }
 void getSharedl0mfs() {
-int lutn, rc; char val[LUT8_LEN]; char l0fs[4*LUT8_LEN];
+int lutn; char val[LUT8_LEN]; char l0fs[4*LUT8_LEN];
 char errmsg[4*100]="";
 if(notInCrate(1)) return;
 for(lutn=1; lutn<=8; lutn++) {
-  rc= cshmgetLUT(lutn, val);
+  /*rc=*/ cshmgetLUT(lutn, val);
   if(lutn<=4) {
     printf("%s\n", val);
     strcpy(&l0fs[(lutn-1)*LUT8_LEN], val);
@@ -258,9 +258,9 @@ if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
     cshmsetLUT(lutn, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   };
   for(is=LEN_LUT8/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
-    int isx;
+    //int isx;
     // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
-    isx= (is-1)*4;
+    //sx= (is-1)*4;
     vmew32(lutadr, lutw|(16-is));
   };
 } else {
@@ -293,7 +293,7 @@ rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
 int setLUT(int lutn, char *m4) {
 if((strlen(m4)!=(LEN_LUT8/4+2)) &&
    (strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0)) {
-  printf("ERROR setLUT:=%s= len:%d\n", m4, strlen(m4));
+  printf("ERROR setLUT:=%s= len:%d\n", m4, (int)strlen(m4));
   return(254);
 };
 if(lutn==0) {   // all 8 LUTs operations:
@@ -319,7 +319,8 @@ if(rc!=0) {
     printf("Error: LUT%d cannot be loaded, setLUT() rc:%d\n", X+4, rc);
   };
 };
-printf("LUT%d (l0f%d + lmf%d) loaded\n", X,X,X);
+printf("LUT%d (l0f%d + lmf%d) loaded\n", X, X, X+4);
+//printf("LUT%d (l0f%d + lmf%d) loaded\n", X,X,X);
 }
 
 /* set L0f34 in hw. 
