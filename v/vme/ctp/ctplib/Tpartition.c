@@ -425,7 +425,7 @@ return(0);
   translate from bit in l0condition to the position in rbif array
 called from:
 checkRBIFown
-modL0input
+modL0input[f14]
 checkRES
 */
 int l0condition2rbif(int bit,int *ix){
@@ -478,7 +478,8 @@ int modL0input(w32 *l0inp,Tpartition *part,int bit){
  }
  return 0; 
 }
-/* bit:  24
+/* bit: 24 -i.e. called for fy >=c606 when l0f1..4 available
+
  * */
 int modL0inputf14(w32 *l0inp,Tpartition *part,int bit){
  TRBIF *rbif;
@@ -511,8 +512,6 @@ if(conf==0) {
     w32 realix;
     realix= rbif->rbifuse[ix+ixl0fun1];
     if((conf & (1<<ix)) == 0) {  //selected
-      w32 realix;
-      realix= rbif->rbifuse[ix+ixl0fun1];
       if(realix == (w32)(ix+ixl0fun1)) { ;  // same position
       } else {   // 0-> realix bit
         ;
@@ -789,15 +788,22 @@ printf("---------> End of printing: part name: %s RunNum:%i\n",part->name,part->
 }
 }
 /*------------------------------------------------------ getIDl0f
-I: l0fn: 0..1  l0f number
-rc: fed detectors pattern. -1 in case of internal error
+Goal: find
+   - L0 ctp inputs (1..24) defining l0f
+   - whether l0f is 'pure LM' function (i.e. ONLY LM inputs in its definition)
+I: l0fn: 0..3  l0f number
+   rbifs: partition's (in case when called from checkmodLM) or HW's rbif
+rc: trigger detectors pattern. -1 in case of error (l0f not allowed input )
     l0finputs: is updated by l0 inputs used in this function
+               e.g.: 0xc: when L0 ctp inputs 3,4 are used in l0f definition
     pure lm: 1: yes (only LM inputs)  0:no (also non-LM inputs used) 
 */
-int getIDl0f(Tpartition *part, int l0fn, w32 *l0finputs, int *purelm) {
+//int getIDl0f(Tpartition *part, int l0fn, w32 *l0finputs, int *purelm) {
+int getIDl0f(TRBIF *rbifs, int l0fn, w32 *l0finputs, int *purelm) {
 char *l0ftxt; int maxinpallowed,ixn, rcinpdets=0;
 char currone[24];
 char emsg[400];
+char emsg2[400];
 *purelm=1;
 if(l0C0()>=0xc606) {
   maxinpallowed=8;
@@ -805,15 +811,16 @@ if(l0C0()>=0xc606) {
   maxinpallowed=4;
 };
 sprintf(emsg, "getIDl0f:\n");
-for(ixn=0; ixn<maxinpallowed; ixn++) {
+for(ixn=0; ixn<maxinpallowed/2; ixn++) {
   currone[0]='\0';
   if(ixn==l0fn) {
     strcpy(currone, " <---");
   };
   sprintf(emsg,"%sl0f%d:%s%s\n", emsg,
-    ixn+1, &part->rbif->l0intfs[ixn*L0INTFSMAX], currone);
+    ixn+1, &rbifs->l0intfs[ixn*L0INTFSMAX], currone);
 }; prtLog(emsg);
-l0ftxt= &(part->rbif->l0intfs[l0fn*L0INTFSMAX]);
+//l0ftxt= &(part->rbif->l0intfs[l0fn*L0INTFSMAX]);
+l0ftxt= &rbifs->l0intfs[l0fn*L0INTFSMAX];
 emsg[0]='\0'; ixn=0;
 while(1) {
   int rc,vcip; char name[30];
@@ -918,7 +925,7 @@ for(icla=0;icla<NCLASS;icla++){
           msk0= 1<<ixl0fn;
           if((msk0 & Nfunsmsk)==0) continue;
           Nfuns++;
-          inpdets= getIDl0f(part, ixl0fn, &l0finputs, &purelm);
+          inpdets= getIDl0f(part->rbif, ixl0fn, &l0finputs, &purelm);
           if(inpdets<0) { retcode=1; break;};   // internal error (no det found for used input)
           if(purelm==1) {
             klas->lmcondition= klas->lmcondition & (~(msk0<<12));  // use at LM
@@ -983,7 +990,7 @@ for(icla=0;icla<NCLASS;icla++){
       strcpy(TRD_TECH, part->name);  // see ctp_StopPartition
     };
   };
-  printf("checkmodLM5: ECS numbers of fed dets: %s\n", txdets);
+  //printf("checkmodLM5: ECS numbers of fed dets: %s\n", txdets);
 };
 return(retcode);
 }

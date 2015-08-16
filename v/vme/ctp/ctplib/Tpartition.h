@@ -436,7 +436,7 @@ Tpartition *deleteTpartition(Tpartition *part);
 int setnameTpartition(Tpartition *part, char *name);
 // Print different structures
 void printTpartition(char *headtext, Tpartition *part);
-int getIDl0f(Tpartition *part, int l0fn, w32 *l0finputs, int *purelm);
+int getIDl0f(TRBIF *rbifs, int l0fn, w32 *l0finputs, int *purelm);
 int checkmodLM(Tpartition *part);
 int getNAllPartitions();
 void printStartedTp();
@@ -510,7 +510,7 @@ int ParseFile(char lines[][MAXLINECFG],Tpartition *part);
 void readPartitionErrors(int error,char *filename);
 Tpartition *readDatabase2Tpartition(char *filename);
 void checkPCFG(char *pname, char *msg, int maxmsg);
-int getInputDets(TKlas *klpo, Tpartition *part, w32 *l0finputs);
+int getInputDets(TKlas *klpo, TRBIF *rbifs, w32 *l0finputs);
 void setglobalflags(int argc, char **argv);
 
 // ctpshm.c
