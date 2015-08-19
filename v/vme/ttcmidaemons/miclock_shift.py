@@ -222,7 +222,7 @@ def callback_bmold(bm):
 def callback_fsn(fnum_name):
   fsn= rmzero(fnum_name)   # number or filling sheme name
   #if fsn!="" :mylog.logm("FSN:%s:"%fsn)
-  #print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
+  print "callback_fsn: '%s' (type:%s)" % (fsn, type(fnum_name))
 def callback_bm(ecsbm):
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
@@ -347,8 +347,8 @@ Than start miclock again.
   mylog.logm("my pid:"+ pid+ " MICLOCKID:"+ MICLOCKID)
   f= open(MICLOCKID, "w"); f.write(pid+'\n'); f.close()
   # authenticate:
-  if os.environ['USER']=="trigger" or os.environ['USER']=="oerjan":
-    print "Warning: not trigger account..."
+  if os.environ['USER']!="trigger" and os.environ['USER']!="oerjan":
+    print "Warning: not trigger account:",os.environ['USER']
   ##mylog.logm("## vesion -i.e. miclock_shift.py")
   mylog.logm("miclock.py started...")
   time.sleep(2)   # 1sec was enough
@@ -359,8 +359,11 @@ Than start miclock again.
   resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
   if os.environ['VMESITE']=='ALICE':
     maid = pydim.dic_info_service("ALICE/LHC/TTCMI/CLOCK_MODE", "C", callback_manauto)
+    # following returns '' between fills
     resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
-    resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
+    # following commented, when not available (between fills) message:
+    # DIM Wrapper: src/dimmodule.cpp:1588 :: dic_ino_service_dummy: ERROR: Could not get new data to update service
+    #resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
   # ALICEDAQ_LHCFillNumber not available after dump (availablebe after INJECTION PROBE...)
     resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
     #print "res...:", resbm, res, restran
