@@ -480,11 +480,7 @@ ixx=0;
 for(ixdef=0; ixdef< 9; ixdef++) {
   w32 pfdef1; int rc1;
   nxtoken(line, hexw, &ixx);
-  printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
-  //rc1= gethexdec(hexw, &pfdef1);
-  //if(rc1!=0) {
-  //  goto BADLINE;
-  //};
+  //printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
   switch(ixdef){
     case 0: continue; // PF
     case 1: continue; //.
@@ -495,15 +491,29 @@ for(ixdef=0; ixdef< 9; ixdef++) {
      ixpf--;
      continue; 
     }
-    case 3: // BCM
+    case 3: // Name
+    {
+     strcpy(rbif->pf[ixpf].name,hexw);
+    }
+    case 4: // BCM
     {
      continue;
     }
-    case 4: // INT
+    case 5: // INT: INTL01,INTL02,INTLM1,INTLM2
     {
+     w32 inter;
+     if (strcmp(hexw,"INTL01") == 0 ) inter=1;
+     else if (strcmp(hexw,"INTL02") == 0 ) inter=2;
+     else if (strcmp(hexw,"INTLM1") == 0 ) inter=3;
+     else if (strcmp(hexw,"INTLM2") == 0 ) inter=4;
+     else{
+      printf("Wrong INT, should be one of INTL01,INTL02,INTLM1,INTLM2\n");
+      goto BADLINE;
+     }
+     rbif->pf[ixpf].inter=inter;
      continue;
     }
-    case 5: // PeriodBefore
+    case 6: // PeriodBefore
     {
      w32 dec;
      rc1=gethexdec(hexw,&dec);
@@ -511,7 +521,7 @@ for(ixdef=0; ixdef< 9; ixdef++) {
      rbif->pf[ixpf].PeriodBefore=dec;
      continue;
     }
-    case 6: // PeriodAfter
+    case 7: // PeriodAfter
     {
      w32 dec;
      rc1=gethexdec(hexw,&dec);
@@ -519,7 +529,7 @@ for(ixdef=0; ixdef< 9; ixdef++) {
      rbif->pf[ixpf].PeriodAfter=dec;
      continue;
     }
-    case 7: // NintBefore
+    case 8: // NintBefore
     {
      w32 dec;
      rc1=gethexdec(hexw,&dec);
@@ -527,7 +537,7 @@ for(ixdef=0; ixdef< 9; ixdef++) {
      rbif->pf[ixpf].NintBefore=dec;
      continue;
     }
-    case 8: // Nintafter
+    case 9: // Nintafter
     {
      w32 dec;
      rc1=gethexdec(hexw,&dec);

@@ -841,6 +841,14 @@ class TrgSHR_BCM(TrgSHR):
     if self.value==None: return None
     inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     return self.BCMPFitems[inx][1]
+  def getName(self):
+    """
+       returns name of PF (maybe also BCM)
+       Name of PF to be used for sharing
+    """
+    if self.value==None: return None
+    inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
+    return self.BCMPFitems[inx][0]
   def isPFDefined(self,level):
     """
     PF definition:
@@ -2578,7 +2586,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       #print "bcm%d"%i,SHRRSRCS[BCMASKS_START+i].getDefinition()
       pfdef= SHRRSRCS[PFS_START+i].getDefinition()
       if pfdef==None: continue
-      line='PF.%d %s'% (i+1, pfdef)
+      name= SHRRSRCS[PFS_START+i].getName()
+      line='PF.%d %s %s'% (i+1, name,pfdef)
       outfile.write(line+"\n")
     #
     self.sdgs.save(outfile, "SDG ")
