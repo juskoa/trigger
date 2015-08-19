@@ -269,16 +269,17 @@ for(ix=0; ix<80; ix++) {
     break;
   };
 };
-if( strncmp(hname,"alidcscom835",12)==0) {
-  rc=0; goto OK;
-};
 if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
-   ( strncmp(hname,"alidcscom835",12)==0) ||
    ( strncmp(hname,"ALIDCSCOM779.cern.ch",20)==0)) {
   rc=0; goto OK;
 }; 
-// do not check when debug:
+// do not check when debug or lab:
 vmesite= getenv("VMESITE"); if(strcmp(vmesite,"PRIVATE")==0) { rc=0; goto OK; };
+if( (strncmp(hname,"alidcscom835",12)==0) ||
+    (strncmp(hname,"avmes",12)==0) ||
+    (strncmp(hname,"pcalicebhm10",12)==0)) {
+  rc=0; goto OK;
+};
 rc=3;
 /*
 if(( strncmp(hname,"alidcscom835",12)==0) 

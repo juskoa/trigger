@@ -73,6 +73,7 @@ def main():
 
 Usage:
 ctpproxy.py actrestart
+            restart      -don't download ctp files from ACT
 rc:
  1: internal error (syntax in this script)
  4: can't stop ctpproxy (global run active?), leaving it on
@@ -115,7 +116,7 @@ rc:
     print "VMECFDIR:",os.environ.get('VMECFDIR')
     sys.stdout.flush()
     cmd=sys.argv[1]
-    if cmd=='actrestart':
+    if (cmd=='actrestart') or (cmd=='restart'):
       iop= iopipe("ssh -2 -q %s ctpproxy.sh stop"%vmectp,"")
       time.sleep(2)
       iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
@@ -123,18 +124,22 @@ rc:
       if iop.check("TRIGGER::CTP not running")>=0:
         #iop= iopipe("...ctp_proxy/linux/act.exe")
         #iop= iopipe("startClients.bash ctpproxy actstart","nout")
-        actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux_s/act.exe")
-        iop= iopipe(actdownload)
-        print iop.outlines
-        if iop.check("CTP config files downloaded from ACT.")>=0:
-        ##os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
-        #iop= iopipe("./switched.py load")
-        #print iop.outlines
-        ##sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
-        ##import switched
-          rc= 0 ##rc= switched.main("actload")
+        if cmd=='actrestart':
+          actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux_s/act.exe")
+          iop= iopipe(actdownload)
+          print iop.outlines
+          if iop.check("CTP config files downloaded from ACT.")>=0:
+            ##os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
+            #iop= iopipe("./switched.py load")
+            #print iop.outlines
+            ##sys.path.append(os.environ.get('VMECFDIR')+'/switchgui/')
+            ##import switched
+            rc= 0 ##rc= switched.main("actload")
+          else:
+            rc= 5
         else:
-          rc= 5
+          print "restart: act download skipped."
+          rc= 0
         if rc==0:
           ##iop= iopipe("ssh -2 -q %s '$VMECFDIR/../bin/loadswitch ctp'"%vmeswitch)
           ixl= 0 ##ixl= iop.check("CTP.SWITCH: connected")

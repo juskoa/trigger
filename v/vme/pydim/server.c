@@ -397,8 +397,9 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
    \n               -stop this server
    rcfgdel useDAQLOGBOOK
    rcfgdel ignoreDAQLOGBOOK
-   rcfgdel ALL 0            -ctpproxy restart
+   rcfgdel ALL 0xc606       -ctpproxy restart
    rcfgdel PARTNAME RUNN    -process in .py, (ECS STOP)
+   rcfgdel reload           -just reload parted
    csupdate
    aliasesupdate
    intupdate
@@ -455,7 +456,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
       infoerr=LOG_ERROR;
     };
   } else {   // Ncfg runnumber partname
-    sprintf(emsg,"%s (run:%d) not searched in ACT (ECS:ACT_CONFIG=NO)", 
+    sprintf(emsg,"INFO %s (run:%d) not searched in ACT (ECS:ACT_CONFIG=NO)", 
       pname, rundec); 
     infoerr=LOG_INFO;
     mymsg[0]= 'p';
@@ -518,6 +519,14 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   readTables();
   ctpc_clear(); updateCNAMES();
   /*irc=*/ check_xcounters();
+} else if((strncmp(mymsg,"rcfgdel reload",14)==0)) {   //reload parted
+  // perhaps it is reasonable to clean (even if ctpproxy did not restart but is 
+  // without active partitions)
+  //reset_insver();
+  //readTables();
+  //ctpc_clear(); updateCNAMES();
+  //printf("INFO rcfgdel reload\n");
+  ;
 } else if((strncmp(mymsg,"rcfgdel ",8)==0)) {   // rcfgdel partname runn
   enum Ttokentype t1; int ixl, runn; char pname[16]; char intval[16];;
   char emsg[200];
@@ -590,6 +599,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   printf("ERROR rcfg cmd ignored (processed by CTPRCFG cmd\n");
   stdoutyes=0;
 } else if((strncmp(mymsg,"resetclock",9)==0)) {
+  ;
 };
 if(strcmp(mymsg,"\n")==0) {
   //stopserving();

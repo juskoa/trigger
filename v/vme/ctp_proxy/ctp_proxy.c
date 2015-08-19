@@ -121,6 +121,8 @@ Input:
 part: pointer to Tpartition
       NULL: move  all .rcfg files in RCFG directory to delmeh/
 dodel: 
+2: rcfgdel ALL 0xc606
+   - clean RCFG directory 
 1: prepare file. Called from:
   - _LoadPartition(, 1)
 0: delete file   called from:
@@ -145,9 +147,13 @@ char namemode[80];
 char cmd[400];
 char dimcom[40];
 char msg[500];
-if(part == NULL){ dodel=2;
- /*intError("prepareRunConfig: part=NULL");
- rc=1;return(rc);*/
+if(part == NULL){ 
+ if((dodel!=3) && (dodel!=2)) { 
+   dodel=2;
+   //printf("prepareRunConfig: part=NULL dodel:%d", dodel);
+   intError("prepareRunConfig: part=NULL");
+   /*rc=1;return(rc);*/
+ };
 } else {
   if(part->hwallocated != 0x3) {
     char emsg[300];
@@ -202,8 +208,12 @@ if(dodel==1) {
   sprintf(cmd,"rcfgdel %s %d\n", namemode, part->run_number);
 } else if(dodel==2) {
   tag=TAGrcfgdelete;
-  sprintf(cmd,"rcfgdel ALL 0\n");
+  //sprintf(cmd,"rcfgdel ALL 0\n");
   sprintf(cmd,"rcfgdel ALL 0x%x\n", l0C0());
+} else if(dodel==3) {
+  tag=TAGrcfgdelete;
+  //sprintf(cmd,"rcfgdel ALL 0\n");
+  sprintf(cmd,"rcfgdel reload 0x%x\n", l0C0());
 } else {
   char emsg[300];
   sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
@@ -2429,7 +2439,7 @@ rc: 0: OK, EOD generated, partition unloded
     2: problem when  unloading from HW
 */
 int ctp_StopPartition(char *name){
- int ret, rc=0;
+ int ret, rc=0, npart;
  w32 run_number, orbitn;
  Tpartition *part, *tspart;
  char tsname[MAXNAMELENGTH]="";
@@ -2514,8 +2524,10 @@ if(tspart!=NULL) {
 RETSTOP_badsyntax:
 if(emsg[0]!='\0') printf("%s\n",emsg);
 RET:
+//npart= getNAllPartitions();  -better in ctp_InitPartition
+//if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 if(quit==1) {
-  if(getNAllPartitions()==0) {
+  if(npart==0) {
     sprintf(emsg,"ctp_proxy stopping (no active partitions)");
     quit=10;
   } else {
@@ -2531,10 +2543,12 @@ return rc;
 */
 int ctp_LoadPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
-int rc=0;
+int npart, rc=0;
 Tpartition *part;
 char msg[MAXMSG];
 errorReason[0]='\0';
+npart= getNAllPartitions();
+if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 part=getPartitions(name, AllPartitions); 
 if(part==NULL) { 
   rc= ctp_InitPartition(name,mask,run_number,ACT_CONFIG, errorReason);
@@ -2599,7 +2613,7 @@ rc: if !=0, errorReason set
 */
 int ctp_InitPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
-int ret=0, rc=0;
+int npart,ret=0, rc=0;
 char name2[80];
 char msg[MAXMSG];
 Tpartition *part;
@@ -2620,6 +2634,8 @@ if(part!=NULL) {
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RET2;
 };
 infolog_SetStream(name, run_number);
+npart= getNAllPartitions();
+if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };
 sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);

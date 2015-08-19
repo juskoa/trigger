@@ -5,8 +5,8 @@
 #
 hname=`hostname -s`
 if [ "$VMESITE" != "PRIVATE" -a "$hname" != 'alidcsvme017' -a "$hname" != 'altri2' ] ;then
-  echo 'This script can be started only on alidcsvme017 (or altri2 for test)'
-  exit
+  echo 'Debug? ttcmi boards available only on alidcsvme017 (or altri2 for test)'
+  #exit
 fi
 getpid 'linux/ttcmidims'
 if [ "$1" == 'stop' ] ;then   #-------------------------- stop
