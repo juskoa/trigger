@@ -22,13 +22,15 @@ VMECFDIR= os.environ["VMECFDIR"]
 if os.environ['VMESITE']=='ALICE':
   #MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
   MICLOCKID="/home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+elif os.environ['VMESITE']=='SERVER':
+  MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
 else:
   #print "VMESITE:", os.environ['VMESITE']
   if os.environ["USER"]=="oerjan":
     MICLOCKID="/home/dl/snapshot/altri1/home/alice/trigger/v/vme/WORK/oerjan/miclockid"
   else:
     #MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
-    MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
+    MICLOCKID= os.path.join(os.environ['VMEWORKDIR'], "WORK/miclockid")
 
 def signal_handler(signal, stack):
   global MICLOCKID
@@ -220,7 +222,7 @@ def callback_bmold(bm):
 def callback_fsn(fnum_name):
   fsn= rmzero(fnum_name)   # number or filling sheme name
   #if fsn!="" :mylog.logm("FSN:%s:"%fsn)
-  #print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
+  print "callback_fsn: '%s' (type:%s)" % (fsn, type(fnum_name))
 def callback_bm(ecsbm):
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
@@ -327,13 +329,10 @@ def main():
   for bmix in bm2clock.keys():
     bmnamx= bm2clock[bmix][1]
     bm2clocknames[bmnamx]= bmix
-  # authenticate:
-  ##if os.environ['USER']=="##trigger":
-  if os.environ['USER']=="trigger" or os.environ['USER']=="oerjan":
-    if os.path.exists(MICLOCKID):
-      lsf= open(MICLOCKID,"r"); pid=lsf.read(); lsf.close; 
-      pid= string.strip(pid,"\n")
-      print """
+  if os.path.exists(MICLOCKID):
+    lsf= open(MICLOCKID,"r"); pid=lsf.read(); lsf.close; 
+    pid= string.strip(pid,"\n")
+    print """
 It seems, miclock process already started, pid:%s
 If you cannot locate window, where %s is started, please
 remove file and kill miclock process, i.e.:
@@ -342,31 +341,35 @@ rm %s
 
 Than start miclock again.
 """%(pid,pid,pid,MICLOCKID)
-      sys.exit(1)
-    mylog= pylog.Pylog("miclock","ttyYES")
-    pid= str(os.getpid())
-    mylog.logm("my pid:"+ pid+ " MICLOCKID:"+ MICLOCKID)
-    f= open(MICLOCKID, "w"); f.write(pid+'\n'); f.close()
-  else:
-    print "can be started only from trigger account..."
-    return
+    sys.exit(1)
+  mylog= pylog.Pylog("miclock","ttyYES")
+  pid= str(os.getpid())
+  mylog.logm("my pid:"+ pid+ " MICLOCKID:"+ MICLOCKID)
+  f= open(MICLOCKID, "w"); f.write(pid+'\n'); f.close()
+  # authenticate:
+  if os.environ['USER']!="trigger" and os.environ['USER']!="oerjan":
+    print "Warning: not trigger account:",os.environ['USER']
   ##mylog.logm("## vesion -i.e. miclock_shift.py")
   mylog.logm("miclock.py started...")
   time.sleep(2)   # 1sec was enough
   WEB=web()
   res = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback1)
-  maid = pydim.dic_info_service("ALICE/LHC/TTCMI/CLOCK_MODE", "C", callback_manauto)
   restran = pydim.dic_info_service("TTCMI/MICLOCK_TRANSITION", "C", cbtran)
   # next line after res service (i.e. current clock retrieved already)
   resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
-  resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
-  resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
+  if os.environ['VMESITE']=='ALICE':
+    maid = pydim.dic_info_service("ALICE/LHC/TTCMI/CLOCK_MODE", "C", callback_manauto)
+    # following returns '' between fills
+    resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
+    # following commented, when not available (between fills) message:
+    # DIM Wrapper: src/dimmodule.cpp:1588 :: dic_ino_service_dummy: ERROR: Could not get new data to update service
+    #resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
   # ALICEDAQ_LHCFillNumber not available after dump (availablebe after INJECTION PROBE...)
-  resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
-  #print "res...:", resbm, res, restran
-  if not res or not restran or not resbm:
-    mylog.logm("Error registering with info_services"%d(resbm, res, restran))
-    sys.exit(1)
+    resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
+    #print "res...:", resbm, res, restran
+    if not res or not restran or not resbm:
+      mylog.logm("Error registering with info_services"%d(resbm, res, restran))
+      sys.exit(1)
   while True:
     #time.sleep(10)
     #man/auto     -change operation mode (manual or automatic) now:%s

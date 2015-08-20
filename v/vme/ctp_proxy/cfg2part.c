@@ -1087,19 +1087,25 @@ Go through HW.klas[hwclass]->l0inputs/l1definition/l2definition
 ( it should be the same as: partit->klas[iclass]->...  -to be checked!!!)
 and find corresponding Input detectors from VALID.CTPINPUTS
 Input: klpo: mask of L0/L1/L2 inputs
-       part: we need pointer to partition due to l0f names check
+       rbifs: we need pointer to rbif structure due to l0f names check
 RC: <0 in case of Error
    >=0 mask of input detectors. 
        From 21.11.2009: including detectors partiticpating
        in l0f (i.e. if l0f defined in klpo)
 */
-int getInputDets(TKlas *klpo, Tpartition *part, w32 *l0finputs) {
-int ix, ixlevel;
+int getInputDets(TKlas *klpo, TRBIF *rbifs, w32 *l0finputs) {
+int ix, ixlevel, maxbitallowed;
 int allinpdets=0, inpdets, ins012;
 // L0
 *l0finputs=0;
+if(l0C0()>=0xc606) {
+  maxbitallowed=28;
+} else {
+  maxbitallowed=26;
+};
 if(DBGgetInputDets) 
-  printf("getInputDets: 0x%x 0x%x 0x%x 0x%x\n",
+  printf("getInputDets: %d clgr:%d 0x%x 0x%x 0x%x 0x%x\n",
+    klpo->hwclass, klpo->classgroup,
     klpo->lmcondition, klpo->l0inputs, klpo->l1definition, klpo->l2definition);
   // getInputDets: 0xff7fffff 0x1fffffff 0x1f000fff
 for(ixlevel=0; ixlevel<3; ixlevel++) {
@@ -1107,17 +1113,17 @@ for(ixlevel=0; ixlevel<3; ixlevel++) {
   if( ixlevel==2) { ins012= klpo->l2definition; };
   if( ixlevel==1) { ins012= klpo->l1definition; };
   if( ixlevel==0) { ins012= klpo->l0inputs; };
-  for(ix=0; ix<26; ix++) {   // 0..23 L0 inputs, 24,25 L0functions
+  for(ix=0; ix<maxbitallowed; ix++) {   // 0..23 L0 inputs, 24,25 L0functions
     w32 inpdet; w32 bit;
     if( (ixlevel!=0) && (ix>23) ) break;
     if( ixlevel==2) { if(ix>11) break; };
     bit=(1<<ix);
     if( (ins012 & bit) == 0) {  //1:input not used 0:input is used
-      if(( ix>23) && (ixlevel==0) ) {   // L0fun: to be done for LM also
+      if(( ix>23) && (ixlevel==0) ) {   // L0fun: done for LM also, see below
         /*sprintf(emsg,"getInputDets:l0Fun %d used but not implemented", ix+1);
         infolog_trg(LOG_INFO, emsg);*/
         int purelm;
-        inpdets= getIDl0f(part, ix-24, l0finputs, &purelm);
+        inpdets= getIDl0f(rbifs, ix-24, l0finputs, &purelm);
         if(inpdets==-1) { allinpdets=-1; goto RTRN; };
       } else {   // 0/1/2 input
         inpdet= findINPdaqdet(ixlevel, ix+1);
@@ -1202,16 +1208,16 @@ if(DBGlogbook) {
   printf("getDAQClusterInfo:masks[0-%d]:0x:",NCLUST);
   for(pclu=0; pclu<NCLUST; pclu++) {
     printf("%x ", daqi->masks[pclu]); 
-  }; printf("\n");
+  }; printf(" hwallocated:%d\n", partit->hwallocated);
 };
 //--------------------- classmasks and inpmasks:
 for(iclass=0; iclass<NCLASS; iclass++) {
   int hwclass; int indets; TKlas *klas;
   if((klas=partit->klas[iclass]) == NULL) continue;
-  hwclass= partit->klas[iclass]->hwclass;  // 0..49
+  hwclass= partit->klas[iclass]->hwclass;  // 0..99
   //if(hwclass>49) 
   if(hwclass>99) {
-    intError("getDAQClusterInfo: hwclass>49"); rcdaqlog=10;
+    intError("getDAQClusterInfo: hwclass>99"); rcdaqlog=10;
   };
   iclu= (HW.klas[hwclass]->l0vetos & 0x7)-1;
   //daqi->classmasks[iclu]= daqi->classmasks[iclu] | (ULL1<<hwclass);
@@ -1222,7 +1228,8 @@ for(iclass=0; iclass<NCLASS; iclass++) {
     classmasks_u[iclu]= classmasks_u[iclu] | (ULL1<<(hwclass-64));
   }
   //
-  indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  //von indets= getInputDets(HW.klas[hwclass], partit, &l0finputs1);
+  indets= getInputDets(HW.klas[hwclass], HW.rbif, &l0finputs1);
   /*
   if(strcmp(TRD_TECH, partit->name)==0) { // LM correction for techn. run:
     int newindets;

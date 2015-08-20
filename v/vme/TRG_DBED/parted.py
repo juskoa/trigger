@@ -1219,6 +1219,17 @@ for ix in range(BCM_NUMBER):         #4(12) BCM vetos, start from BCMASKS_START
 for ix in range(PF_NUMBER):         #4 PFs, start from PFS_START=16/8
   SHRRSRCS.append(TrgSHR_BCM('PF%d'%(ix+1),TDLTUS.pfshelptext))
 
+def initparted():
+  TDLTUS.initTDS() 
+  print "initparted",TDLTUS.BCM_DB[1],TDLTUS.BCM_DB[2]
+  return
+  del SHRRSRCS[4:]
+  print "initparted SHRRSRCS len:", len(SHRRSRCS)
+  for ix in range(BCM_NUMBER):         #4(12) BCM vetos, start from BCMASKS_START
+    SHRRSRCS.append(TrgSHR_BCM('BCM%d'%(ix+1),TDLTUS.bcmhelptext))
+  for ix in range(PF_NUMBER):         #4 PFs, start from PFS_START=16/8
+    SHRRSRCS.append(TrgSHR_BCM('PF%d'%(ix+1),TDLTUS.pfshelptext))
+
 def findSHR(shrname):
   for ix in range(len(SHRRSRCS)):
     if SHRRSRCS[ix].name == shrname:

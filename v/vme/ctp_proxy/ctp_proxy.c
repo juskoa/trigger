@@ -121,6 +121,8 @@ Input:
 part: pointer to Tpartition
       NULL: move  all .rcfg files in RCFG directory to delmeh/
 dodel: 
+2: rcfgdel ALL 0xc606
+   - clean RCFG directory 
 1: prepare file. Called from:
   - _LoadPartition(, 1)
 0: delete file   called from:
@@ -145,9 +147,13 @@ char namemode[80];
 char cmd[400];
 char dimcom[40];
 char msg[500];
-if(part == NULL){ dodel=2;
- /*intError("prepareRunConfig: part=NULL");
- rc=1;return(rc);*/
+if(part == NULL){ 
+ if((dodel!=3) && (dodel!=2)) { 
+   dodel=2;
+   //printf("prepareRunConfig: part=NULL dodel:%d", dodel);
+   intError("prepareRunConfig: part=NULL");
+   /*rc=1;return(rc);*/
+ };
 } else {
   if(part->hwallocated != 0x3) {
     char emsg[300];
@@ -202,8 +208,12 @@ if(dodel==1) {
   sprintf(cmd,"rcfgdel %s %d\n", namemode, part->run_number);
 } else if(dodel==2) {
   tag=TAGrcfgdelete;
-  sprintf(cmd,"rcfgdel ALL 0\n");
+  //sprintf(cmd,"rcfgdel ALL 0\n");
   sprintf(cmd,"rcfgdel ALL 0x%x\n", l0C0());
+} else if(dodel==3) {
+  tag=TAGrcfgdelete;
+  //sprintf(cmd,"rcfgdel ALL 0\n");
+  sprintf(cmd,"rcfgdel reload 0x%x\n", l0C0());
 } else {
   char emsg[300];
   sprintf(emsg, "prepareRunConfig:dodel:%d", dodel); 
@@ -382,6 +392,8 @@ if((ixhw>=ixl0fun1) && (ixhw<=ixl0fun4) ) { // for l0f1..4 we need more than VAL
   char *src, *dst, *dst2, *symsrc; 
   if(l0C0()<0xc606) {
     if((ixhw>=ixl0fun1) && (ixhw<=ixl0fun2)) {  // symb. definition
+      // following case probably not correct (perhaps never needed  with lut8...)
+      symsrc= &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX]; // ?? (just to get it defined in sprintf)
       src= &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX];
       dst= &cumrbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];  // global
       dst2= &prbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];   //in partition
@@ -437,7 +449,7 @@ char *rsrcs_names[]={"rnd1","rnd2","bc1","bc2","l0f1","l0f2","l0f3","l0f4"
   "intfun1","intfun2","intfunt"};
 
 int checkpairRBIF(int icheck,TRBIF *cumrbif,TRBIF *prbif){
-int i1,i2,ixhw,iused; char msg[100];
+int i1,i2,ixhw,iused; char msg[300];
 ixhw=prbif->rbifuse[icheck];   // position in hw where saved 
 if(ixhw == notused) {
   //printf("checkpairRBIF: hwallocated icheck:%d ixhw:%d=notused\n", icheck, ixhw);
@@ -446,7 +458,8 @@ if(ixhw == notused) {
 if(ixhw != nothwal){           // allocated in hw already:
   //check if the same value, if not check other one whether it is available or the same
   //if(DBGcumRBIF) {
-  printf("===checkpairRBIF: hwallocated icheck:%d ixhw:%d\n", icheck, ixhw);
+  printf("===checkpairRBIF: hwallocated icheck:%d ixhw:%d cumrbif val:%d\n", 
+   icheck, ixhw, cumrbif->rbifuse[ixhw]);
   //};
   /*if(ixhw>=ixrbifdim) {
       sprintf(msg, "hwallocated icheck:%d ixhw:%d", icheck, ixhw);
@@ -454,15 +467,28 @@ if(ixhw != nothwal){           // allocated in hw already:
   };*/
   if(cumrbif->rbifuse[ixhw] == notused){ // add to cum
     allocateInhw(cumrbif, ixhw, prbif, icheck);
-    // todo: we should check, if other one is not the same -if yes, reallocation
+    // todo: we should check, if other one is the same -if yes, reallocation
     //       should be done. Now, it may happen, 2 resources are allocated with the
     //       same value, i.e. when new partition can be refused for lack of resources
     return 0;
   } else {   // used already, check if values equal
     if(cumrbif->rbif[ixhw] != prbif->rbif[icheck]){
-      sprintf(msg, "checkpairRBIF: 0x%x rbif already allocated.",ixhw);
+      sprintf(msg, "checkpairRBIF: 0x%x rbif already allocated and different.",ixhw);
       intError(msg);return 1;
-    }else return 0;      
+    }else  {
+      // equal: ok for bc1/2 rnd1/2. For l0f copy symdef+value
+      if((icheck>=ixl0fun1) && (icheck<=ixl0fun4))  {
+        int ixfpa, ixfhw;
+        ixfpa= icheck- ixl0fun1; ixfhw= ixhw- ixl0fun1;
+        sprintf(msg, "checkpairRBIF: prbif %d: %s %s\n", icheck,
+          &prbif->l0intfs[ixfpa*L0INTFSMAX], &prbif->lut8[ixfpa*LUT8_LEN]);
+        printf("%s", msg);
+        sprintf(msg, "checkpairRBIF:cumrbif %d: %s %s\n", ixhw,
+          &cumrbif->l0intfs[ixfhw*L0INTFSMAX], &cumrbif->lut8[ixfhw*LUT8_LEN]);
+        printf("%s", msg);
+      };
+      return 0;      
+    };
   };
 };
 // Here only 'not yet in hw resources (nothwal=61)', i.e.new partition:
@@ -492,7 +518,7 @@ switch(iused){
     allocateInhw(cumrbif, i1, prbif, icheck);
     prbif->rbifuse[icheck]=i1;   // possible reallocation
     return 0;
-  case 2: // i1 already used
+  case 2: // i1 already usedcheckpairRBIF:
     if(compRESVal(cumrbif, i1, prbif, icheck)==0){ 
       //new resource equal to the existing one, just use it:
       prbif->rbifuse[icheck]=i1; 
@@ -1281,7 +1307,7 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
    oldclasses[0]='\0';
    for(pclass=0; pclass<NCLASS; pclass++) {
      if((klas=part->klas[pclass]) == NULL) continue;
-     if(DBGac2HW) printf(" hwallocated. pclass: %i \n",pclass);
+     //if(DBGac2HW) printf(" hwallocated. pclass: %i \n",pclass);
      hwclass= part->klas[pclass]->hwclass;  // 0..49/99
      if(hwclass >= NCLASS) {
        char errmsg[400];
@@ -1346,7 +1372,7 @@ if(DBGac2HW) {printf("addClasses2HW: ALl partititons:\n"); printAllTp(); };
      for(i=0;i<NCLUST;i++)printf("0x%x ",part->ClusterTable[i]);
      printf("\n"); 
    };
- }; // over all new partitions
+ }; // end of over all new partitions
 // find first class for each SDG group:
 for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
   int firstc;
@@ -1356,12 +1382,15 @@ for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
   for(ip=0;ip<MNPART;ip++){           //find our partition
     part= parray[ip];
     if(part == NULL) continue;
+    printf("addClasses2HW:SDGS[%d].name:%s p:%s part:%s\n", 
+      ips, SDGS[ips].name, SDGS[ips].pname, part->name);
     if(strcmp(part->name, SDGS[ips].pname)==0) goto OKPART;
   };
-  sprintf(errmsg,"addClasses2HW:SDGS with illegal partition %s",
-    SDGS[ips].pname);
-  infolog_trgboth(LOG_ERROR, errmsg);
-  rcode=2; goto ERRRET;
+  sprintf(errmsg,"addClasses2HW:SDGS with illrgal partition %s ips:%d",
+    SDGS[ips].pname, ips);
+  //infolog_trgboth(LOG_ERROR, errmsg); rcode=2; goto ERRRET;
+  infolog_trg(LOG_INFO, errmsg);
+  continue;
   OKPART:
   for(pclass=0; pclass<NCLASS; pclass++) { // all classes
     klas=part->klas[pclass];
@@ -2410,7 +2439,7 @@ rc: 0: OK, EOD generated, partition unloded
     2: problem when  unloading from HW
 */
 int ctp_StopPartition(char *name){
- int ret, rc=0;
+ int ret, rc=0, npart;
  w32 run_number, orbitn;
  Tpartition *part, *tspart;
  char tsname[MAXNAMELENGTH]="";
@@ -2495,8 +2524,10 @@ if(tspart!=NULL) {
 RETSTOP_badsyntax:
 if(emsg[0]!='\0') printf("%s\n",emsg);
 RET:
+//npart= getNAllPartitions();  -better in ctp_InitPartition
+//if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 if(quit==1) {
-  if(getNAllPartitions()==0) {
+  if(npart==0) {
     sprintf(emsg,"ctp_proxy stopping (no active partitions)");
     quit=10;
   } else {
@@ -2512,10 +2543,12 @@ return rc;
 */
 int ctp_LoadPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
-int rc=0;
+int npart, rc=0;
 Tpartition *part;
 char msg[MAXMSG];
 errorReason[0]='\0';
+npart= getNAllPartitions();
+if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 part=getPartitions(name, AllPartitions); 
 if(part==NULL) { 
   rc= ctp_InitPartition(name,mask,run_number,ACT_CONFIG, errorReason);
@@ -2580,7 +2613,7 @@ rc: if !=0, errorReason set
 */
 int ctp_InitPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
-int ret=0, rc=0;
+int npart,ret=0, rc=0;
 char name2[80];
 char msg[MAXMSG];
 Tpartition *part;
@@ -2601,13 +2634,15 @@ if(part!=NULL) {
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RET2;
 };
 infolog_SetStream(name, run_number);
+npart= getNAllPartitions();
+if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };
 sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);
 prtProfTime("get pcfg");
 preparepcfg(name2, run_number, ACT_CONFIG);
 sprintf(msg, "/tmp/%s.pcfg", name2);
-ret= detectfile(msg, 3);  // wait max. 3 (was 39 at the end of run1) secs for file
+ret= detectfile(msg, 5);  // wait max. 3 (was 39 at the end of run1) secs for file
 sprintf(msg,"timestamp:pcfg2: name2:%s name:%s...", name2, name); prtLog(msg);
 if(ret<=0) {
   sprintf(msg, "Wrong partition definition (cannot create .pcfg file) ret:%d",ret);
@@ -2656,7 +2691,9 @@ if((ret=checkResources(part))) {
    part=NULL;
    goto RET2; };
 //printTpartition("After checkResources", part);
-ret= checkmodLM(part);   // not good idea (better: in START_PARTITION)
+ret= checkmodLM(part);   /* it seems it has to be here (START_PARTITION time
+  is late becasue of allocation for daqlogbook) */
+
 if(ret!=0) {
   //ret=deletePartitions(part);    no need (not added yet)
   rc=5; 

@@ -135,6 +135,7 @@ printf("%s\n", os);
 //---------------------------------------------------------------------------------------------
 void setPF(int ix, w32 pfc) {   // ix:1..3 (L0.. L2)
 int bb,ixa;
+if(ix==1) { printf("setPF: PF_COMMON <- 0x%x, ignored.\n", pfc); return;};
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
@@ -154,6 +155,7 @@ int bb,ixa, ixc, i;
 w32 adr0, vals[3];
 w32 *vala[3];
 
+if(ix==1) { printf("setPFc: PF_BLOCK_A/B/LUT <- 0x%x 0x%x 0x%x, ignored.\n", A, B, LUT); return;};
 if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1; ixc=circ-1;

@@ -222,19 +222,26 @@ def main():
       sys.stdout.flush()
       part=None
     elif cmd[0]=='rcfgdel':
-      if len(cmd)==3:   #rcfgdel partname NNN or ALL 0xc606
+      if len(cmd)==3:   #rcfgdel partname NNN or ALL 0xc606 or reload 0xc606
         #if (cmd[2]=='0') and (cmd[1]=='ALL'):   #rcfgdel ALL 0, i.e. ctpproxy restarted
-        if cmd[1]=='ALL':   #rcfgdel ALL 0xc606, i.e. ctpproxy restarted
+        if (cmd[1]=='ALL') or (cmd[1]=='reload'):   
+          #rcfgdel ALL 0xc606, i.e. ctpproxy restarted
+          #rcfgdel reload   -in case there are no paritions in ctpproxy (needed to update BC masks)
           import glob
-          FPGAVERSION= cmd[2]
-          #os.putenv('FPGAVERSION', FPGAVERSION)  nebavi (copy of environ)
-          os.environ['FPGAVERSION']= FPGAVERSION
+          if cmd[1]=='ALL':
+            FPGAVERSION= cmd[2]
+            #os.putenv('FPGAVERSION', FPGAVERSION)  nebavi (copy of environ)
+            os.environ['FPGAVERSION']= FPGAVERSION
+            print "%s reloading parted (ctpproxy restarted) FPGA:%s..."%\
+              (tasc(), FPGAVERSION)
+          else:
+            print "%s reloading parted (reload request from ctpproxy)..."%(tasc())
           if len(pts)!=0: 
             print "ERROR partition list not empty:", pts.keys()
           pts= {}
+          #import parted   # nepomohlo
           reload(parted)
-          print "%s parted reloaded (ctpproxy restarted) FPGA:%s"%\
-            (tasc(), FPGAVERSION)
+          parted.initparted()
           os.chdir("RCFG")
           rnames= glob.glob('*.rcfg')
           if len(rnames)>0:

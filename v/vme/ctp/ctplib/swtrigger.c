@@ -414,6 +414,9 @@ lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig(trigtype,roc,BC,detectors)!=0) {
   l2a=0; goto RELEASERET; //return 0;
 };
+#ifdef SIMVME
+l2a++ ; goto RELEASERET;
+#endif
 while(((itr<ntriggers) && ((flag=startswtrig(&orbitnloc))))){
   if(itr==0) *orbitn= orbitnloc;
   if(flag == 1)l0++;
@@ -444,11 +447,11 @@ for(ifo=0;ifo<NFO;ifo++){   // set all FOs always
 };
 RELEASERET:
 unlockBakery(&ctpshmbase->swtriggers, customer);
-//if(DBGswtrg4) {
+if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
   printf("lm, l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
-//};
+};
 TRIGTYPE='.';
 // return i;
 return l2a;

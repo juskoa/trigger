@@ -83,6 +83,13 @@ if(tsec >= prevtsec) {
 */
 return(usecdiff);   /* in microseconds */
 }
+void DiffSecUsecFrom(w32 fromsec,w32 fromtusec, w32 *diff_s,w32 *diff_u) {
+w32 now_s, now_u;
+GetMicSec(&now_s, &now_u);
+SubSecUsec( &now_s, &now_u, fromsec, fromtusec);
+*diff_s= now_s;
+*diff_u= now_u;
+}
 
 int loopspermic=0; /* cca 105 loops for vp110 1.2GHz */
 /*----------------------------------------------*/

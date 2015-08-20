@@ -52,6 +52,7 @@ int MICLOCKid;
 int SHIFTid,QPLLid,FREQSid;
 int MICLOCK_TRANSITIONid;
 
+int SLOT_S= 30;
 int quit=0; 
 int udpsock;
 int clocktag=0;   // in agreement with clocknow
@@ -65,7 +66,9 @@ char qpllnow[MAXLILE+1]="none";  // T1122RRMM hexa (qpllstat binary)
 // T: TTCrx ready   i.e. 1 ok
 // BC1/2/Ref/main:  Error Locked, i.e. 01 ok
 w32 qpllstat=0; // in agreement with qpllnow
-int clocktran=0; char clocktransition[MAXLILE+1]="0";
+int clocktran=0; 
+w32 clocktran_s=0, clocktran_u; 
+char clocktransition[MAXLILE+1]="0";
 
 int TAGqpll_thread=88;
 int nlogqpll=0;
@@ -208,7 +211,7 @@ if(micratepresent()==0) {
  setbcorbitMain(tag);
 };
 rc= dis_update_service(SHIFTid);
-printf("TTCMI/SHIFT update for %d clients\n", rc);  
+printf("TTCMI/SHIFT updated for %d clients\n", rc);  
 sprintf(buffer, "mon ds005 N:%d", tag); 
 rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
 getclocknow();
@@ -226,11 +229,7 @@ while(clocktran>=0) {
   nclients= dis_update_service(MICLOCK_TRANSITIONid);
   printf("updated MICLOCK_TRANSITION clients:%d clocktran:%d\n", nclients, clocktran);
   if(clocktran==0) break;
-  if(micratepresent()) {
-    dtq_sleep(30);   // was 60 before 10.11.2011
-  } else {
-    dtq_sleep(5);   // in lab just 5secs
-  };
+  dtq_sleep(SLOT_S);
   clocktran--; sprintf(clocktransition,"%d", clocktran);
   if(clocktran==0) {
     if(*(int *)tag==0) {
@@ -259,7 +258,7 @@ rc: 0:ok  !=0 -client is not allowed to change the clock
 */
 int ix,rc;
 FILE *con;
-char *envwd;
+char *envwd, *vmesite;
 char procid[80]; char fname[80]; char line[80]=""; char hname[31]="";
 envwd= getenv("VMEWORKDIR"); sprintf(fname, "%s/WORK/%smiclockid",envwd,subdir);
 rc= dis_get_client(procid);
@@ -270,14 +269,17 @@ for(ix=0; ix<80; ix++) {
     break;
   };
 };
-if( strncmp(hname,"alidcscom835",12)==0) {
-  rc=0; goto OK;
-};
 if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
-   ( strncmp(hname,"alidcscom835",12)==0) ||
    ( strncmp(hname,"ALIDCSCOM779.cern.ch",20)==0)) {
   rc=0; goto OK;
 }; 
+// do not check when debug or lab:
+vmesite= getenv("VMESITE"); if(strcmp(vmesite,"PRIVATE")==0) { rc=0; goto OK; };
+if( (strncmp(hname,"alidcscom835",12)==0) ||
+    (strncmp(hname,"avmes",12)==0) ||
+    (strncmp(hname,"pcalicebhm10",12)==0)) {
+  rc=0; goto OK;
+};
 rc=3;
 /*
 if(( strncmp(hname,"alidcscom835",12)==0) 
@@ -363,6 +365,33 @@ if(cosh>1023) {
     origshift, cosh);prtLog(errmsg); 
 };
 }
+/*-----------------*/ void checkstartthread(int clocktag) {
+char errmsg[200];
+if(clocktran!=0)  {
+  /* run1 way:
+  sprintf(errmsg, "MICLOCK_SET: newclock thread already started! exiting..."); prtLog(errmsg); 
+  quit=1;   // better quit, and restart (monitor.py should be active !)
+   * run2: 
+  - ignore a command setting new clock, if pevious one no finished yet 
+  - restart myself if stucked too long in thread */
+  if(clocktran_s!=0) {          
+    w32 diff_s, diff_u;
+    DiffSecUsecFrom(clocktran_s, clocktran_u, &diff_s, &diff_u);
+    if(diff_s > SLOT_S*5) {
+      sprintf(errmsg, "newclock thread stucked (%d secs). Trigger expert should restart ttcmidim and miclock client!", diff_s); prtLog(errmsg); 
+  infolog_trgboth(LOG_FATAL, errmsg);
+    } else {
+      sprintf(errmsg, "checkstartthread tag:%d: newclock thread already started %d secs, cmd ignored...",
+        clocktag, diff_s); prtLog(errmsg); 
+    };
+    return;  
+  };
+};
+clocktran=3; strcpy(clocktransition,"3"); GetMicSec(&clocktran_s, &clocktran_u);
+newclocktag= clocktag;
+sprintf(errmsg, "newclock thread starting. tag:%d \n", newclocktag); prtLog(errmsg); 
+dim_start_thread(newclock, (void *)&newclocktag);
+}
 /*-----------------*/ void DLL_RESYNCcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];
 char *msg= (char *)msgv; int rc; 
@@ -376,20 +405,24 @@ if(rc!=0) {
   getclientid(clientid);
   sprintf(errmsg, "DLL_RESYNC not allowed from client %s", clientid);prtLog(errmsg); 
 };
+
+checkstartthread(0);
+/*
 if(clocktran!=0)  {
   sprintf(errmsg, "newclock thread already started. Trigger expert should restart ttcmidim and miclock client!"); prtLog(errmsg); 
   infolog_trgboth(LOG_FATAL, errmsg);
   return;  
 };
-clocktran=3; strcpy(clocktransition,"3"); newclocktag=0;
+clocktran=3; strcpy(clocktransition,"3"); newclocktag=0; GetMicSec(&clocktran_s, &clocktran_u);
 sprintf(errmsg, "newclock thread DLL_RESYNC starting. tag:%d \n", newclocktag); prtLog(errmsg); 
 dim_start_thread(newclock, (void *)&newclocktag);
+*/
 }
 /*-----------------*/ void MICLOCK_SETcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];
-char *msg= (char *)msgv; int rc,rc2=0; 
-sprintf(errmsg, "MICLOCK_SETcmd: tag:%d size:%d msg:%5.5s\n", 
-  *(int *)tag, *size, msg); prtLog(errmsg); 
+char msg[80]; int rc,rc2=0; int nwclocktag, msglen;
+sprintf(errmsg, "MICLOCK_SETcmd: tag:%d size:%d msg:%5.5s", 
+  *(int *)tag, *size, (char *)msgv); prtLog(errmsg); 
 /* pydim client: msg not finished by 0x0 ! -that's why strncmp() used below...
 
 if(*size >=2) {
@@ -397,6 +430,8 @@ msg[*size]='\0';   // with python client ok
 //if(msg[*size-2]=='\n') { msg[*size-2]='\0'; } else { msg[*size-1]='\0'; };
 };
 */
+msglen= *size;
+strncpy(msg, (char *)msgv, msglen); msg[msglen]='\0';
 rc= authenticate(""); rc2=1; //rc2= authenticate("oerjan/");
 //rc=0;
 if((rc!=0) and (rc2!=0) ) {
@@ -405,31 +440,20 @@ if((rc!=0) and (rc2!=0) ) {
   return;  
 };
 if(strncmp(msg,"qq", 2)==0) ds_stop();
-if(clocktran!=0)  {
-  /* run1 way:
-  sprintf(errmsg, "MICLOCK_SET: newclock thread already started! exiting..."); prtLog(errmsg); 
-  quit=1;   // better quit, and restart (monitor.py should be active !)
-  */
-  /* run2: just ignore a command setting new clock, if pevious one no finished yet: */
-  sprintf(errmsg, "MICLOCK_SET: newclock thread already started, cmd ignored..."); prtLog(errmsg); 
-  return;  
-};
-if(strncmp(msg,"BEAM1", 5)==0) { newclocktag=1;
-} else if(strncmp(msg,"BEAM2", 5)==0) { newclocktag=2;
-} else if(strncmp(msg,"REF", 3)==0) { newclocktag=3;
-} else if(strncmp(msg,"LOCAL", 5)==0) { newclocktag=4;
+if(strncmp(msg,"BEAM1", 5)==0) { nwclocktag=1;
+} else if(strncmp(msg,"BEAM2", 5)==0) { nwclocktag=2;
+} else if(strncmp(msg,"REF", 3)==0) { nwclocktag=3;
+} else if(strncmp(msg,"LOCAL", 5)==0) { nwclocktag=4;
 } else { 
   sprintf(errmsg, "bad clock request:%s ignored.\n", msg); prtLog(errmsg); 
   return; 
 };
 getclocknow();
-if(clocktag==newclocktag) {
+if(clocktag==nwclocktag) {
   sprintf(errmsg, "clock request:%s ignored (already set).\n", msg); prtLog(errmsg); 
   return; 
 };
-clocktran=3; strcpy(clocktransition,"3");
-sprintf(errmsg, "newclock thread starting. tag:%d \n", newclocktag); prtLog(errmsg); 
-dim_start_thread(newclock, (void *)&newclocktag);
+checkstartthread(nwclocktag);
 }
 
 
@@ -500,12 +524,13 @@ if(envcmp("VMESITE", "ALICE")==0) {
   };
   //printf("ref bc1 orbit1\n"); printf("--- bc2 orbit2\n");
 } else {
-  // simulate:
+  /* simulate change:
   stat= qpllstat+1;
   rfrx1[2].freq= rfrx1[2].freq + 1;
   rfrx2[2].freq= rfrx2[2].freq + 1;
   rfrx1[1].freq= rfrx1[1].freq + 10;
-  rfrx2[1].freq= rfrx2[1].freq + 10;
+  rfrx2[1].freq= rfrx2[1].freq + 10; */
+  ;  // do not change
 };
 if((freqs[0] != rfrx1[2].freq) ||
    (freqs[1] != rfrx2[2].freq) ||
@@ -645,6 +670,11 @@ signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 micrate(-1);
+if(micratepresent()) {
+    SLOT_S= 30;   // was 60 before 10.11.2011
+  } else {
+    SLOT_S= 5;   // in lab just 5secs
+  };
 /*
 if(envcmp("VMESITE", "ALICE")==0) {
   udpsock= udpopens("alidcscom835", send2PORT);
