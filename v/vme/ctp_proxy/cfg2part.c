@@ -559,90 +559,6 @@ BADLINE:
   return 1;
 };
 }
-
-/*----------------------------------------------------L0342Partition()
-Input: 
-line:
-L0F34 0xaaa...0xccc  ( 0SMB & 0BPC) | ( 0TVX):0x......0x... (log1 ) | (log2):
-0     6       A    A                          A       A    A
-              |    |                          |       |    |
-              1032 |                          x       |    x+1026+1026
-                   2058                               x+1026
-rbif   - pointer to partition where to save result (TRBIF malloc if NULL)
-Output:
-- modified lut34* fields in rbif
-- RC: NULL in case of error, rbif is ok
-*/
-TRBIF *L0342Partition(char *line,TRBIF *rbif){
-int il,lutn;
-if(rbif == NULL){
-  rbif= allocTRBIF();
-  if(rbif == NULL){ return NULL; };
-};
-// look for '0x', take next 1024 hexa digits:
-il= 6; lutn=0;
-while(1) {
-  int fnbase; int ix, ixchecked; char *rest;
-  char errm[300];
-  lutn++;   // 1,2,3,4 for lut31, 32 41, 42
-  if(lutn>4) break;
-  if(line[il]==':') {   // not used
-    if(lutn==1) {ixchecked= ixlut3132;
-    } else if(lutn==3) {ixchecked= ixlut4142;
-    } else {
-      sprintf(errm, 
-      "L0342Partition:bad char(%d:%c). LUT32 or LUT42 definition expected (0x...)", 
-        il, line[il]);
-      infolog_trgboth(LOG_FATAL, errm);
-      return NULL;
-    };
-    rbif->rbifuse[ixchecked]= notused;
-    lutn++; continue;
-  };
-  if(strncmp("0x", &line[il], 2)!=0) {
-    sprintf(errm, 
-    "L0342Partition:bad char(%d:%c) in L0F34 line in .pcfg file (0x expected)", 
-      il, line[il]);
-    infolog_trgboth(LOG_FATAL, errm);
-    return NULL;
-  };
-  il= il+2;   // first hxa digit
-  fnbase= (LEN_l0f34/4)* (lutn-1);
-  for(ix=0; ix<LEN_l0f34/4; ix++) {
-    w8 bits;
-    bits= hex12int(line[il]);
-    if(bits>0xf) {
-      sprintf(errm, 
-      "L0342Partition:bad char (%c at %d) in L0F34 line in .pcfg file",
-        line[il], il);
-      infolog_trgboth(LOG_FATAL, errm);
-      return NULL;
-    };
-    rbif->lut34[fnbase+ix]= bits;
-    il++;
-  };
-  if((lutn==1) || (lutn==3)) continue;  // with next lut
-  // symbolic definition:
-  if(lutn==2) {rest= rbif->l0f3sym; ixchecked= ixlut3132;};
-  if(lutn==4) {rest= rbif->l0f4sym; ixchecked= ixlut4142;};
-  ix=il;
-  while(1) {
-    if(line[ix]==':') { break; };
-    if(line[ix]=='\0') { 
-      infolog_trgboth(LOG_FATAL, "L0342Partition: incomplete line in L034 line in .pcfg file");
-      return NULL;
-    };
-    ix++;
-  };
-  if((ix-il)>L0F34SDMAX) {
-    infolog_trgboth(LOG_FATAL, "L0342Partition: too long symb. definition in L034 line in .pcfg file");
-    return NULL;
-  };
-  rbif->rbifuse[ixchecked]= nothwal;
-  getRestLine(&line[il], ':', rest);
-  il= ix+1;
-}; return rbif;
-}
 /*----------------------------------------------------BCMASK2Partition()
 Purpose: to convert BCMASK line in cfg to TRBIF structure
 Input: - string containig BCMASK line from pcfg file 
@@ -901,18 +817,6 @@ for(i=0;i<MAXNLINES;i++){
    };
    part->rbif= grbif;  // MUST be here (parameter value passing  for part->rbif!)
    //printf("RBIF2Partition finished:\n"); printTRBIF(part->rbif);
-  } else if(strncmp("L0F34",lines[i],5) == 0){
-   if(l0AB()==0) {   //firmAC
-     rcgrbif= L0342Partition(lines[i], part->rbif);
-     if(rcgrbif == NULL) {
-       sprintf(errmsg,"ParseFile: L0342Partition error."); 
-       retcode= 1;
-     };
-     printf("L0342Partition finished:\n"); printTRBIF(part->rbif); 
-   } else {
-     sprintf(errmsg,"ParseFile: L034 function with L0 firmware<0xAC."); 
-     retcode= 1;
-   };
   } else if(strncmp("BCMASKS",lines[i],7) == 0){
    //printf("BCMASKS found at %i line\n",i);
    rcgrbif=BCMASK2Partition(lines[i],part->rbif);

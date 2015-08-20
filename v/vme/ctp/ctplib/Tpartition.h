@@ -194,10 +194,8 @@ Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 #define L0FINTN 7      // number of l0f1..4 in1,2,t
 #define L0F34SDMAX 200
 
-//#define LEN_l0f34 4096
 //debug case: corresponds to [a b c d e f] in Ctpcfg.__init__(
 // Ctpconfig.dbgbits=6 (real:12)
-#define LEN_l0f34 64 
 
 #define LUT8_N 4 
 #define LUT8_LEN 68 
@@ -212,20 +210,13 @@ typedef struct TRBIF{
  //nothwal  : used but not allocated to hw, requested value in rbif[ix]
  // in hw allocated at hw.rbif[rbifuse[ix]]
  w32 intsel;
- //w32 bcmask[4];
  char l0intfs[L0FINTN*L0INTFSMAX];  // l0f1/2/3/4 int1/2/t as a text string
- //char BCMASK[ORBITLENGTH+1];  // '1','2',...,'f'
  w16 BCMASK[ORBITLENGTH+1];  // '1','2',...,'f' ... 'fff' for 12 BC masks
  w8 BCMASKuse[12];             // same as rbif 0:not used, 1..12: bcm1..12 used
  TPastFut pf[5];
  w8 PFuse[5];             // 0:not used, 1..5: pf1..4 used [4]==5:PFT used
  TPastFutCommon pfCommon;
  w8 PFCuse;               // 0 not used (PF not used at all), 1: used
- //w8 rare;   //all_rare_flag word is actually not real RBIF
- w8 lut34[LEN_l0f34];   // pointer to 2*2x1024 bytes (lut31+lut32 + lut41+lut42)
- // 1byte: 4 rigthmost bits contain 4 bits of lut
- char l0f3sym[L0F34SDMAX];  // symbolic representation
- char l0f4sym[L0F34SDMAX];
  char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 

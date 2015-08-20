@@ -311,7 +311,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
 #define LM_RATE_RND_OFFSET 0x930c   /* */
 #define LM_RATE_RND_RESET  0x9308   /* */
-#define LM_FUNCTION1 0x9274  /* FN2:278 run1:FUN3:27c FUN4:280 */
+//#define LM_FUNCTION1 0x9274  /*use getLM0_F8 FN2:278 run1:FUN3:27c FUN4:280 */
 
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
 Read request:
@@ -378,18 +378,18 @@ bits    Meaning
 #define LM_INTERACTT 0x920c
 #define LM_INTERACTSEL 0x9210
 
-//#define L0_INTERACT1 0x93c4
-//#define L0_INTERACT2 0x93c8
-//#define L0_INTERACTT 0x93cc
-//#define L0_INTERACTSEL 0x93d0
+#define L0_INTERACT1 0x93c4
+#define L0_INTERACT2 0x93c8
+#define L0_INTERACTT 0x93cc
+#define L0_INTERACTSEL 0x93d0
 // old addresses
-#define L0_INTERACT1   0x9204  
-#define L0_INTERACT2   0x9208
-#define L0_INTERACTT   0x920c
-#define L0_INTERACTSEL 0x9210
+//#define L0_INTERACT1   0x9204  
+//#define L0_INTERACT2   0x9208
+//#define L0_INTERACTT   0x920c
+//#define L0_INTERACTSEL 0x9210
                             
-#define L0_FUNCTION1   0x9214 //-yes, this+following one for LM0 from c6..
-#define L0_FUNCTION2   0x9218
+//#define L0_FUNCTION1   0x9214 // use getLM0_F8add
+//#define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
 #define RANDOM_2       0x9220
 #define SCALED_1       0x9224
@@ -601,8 +601,6 @@ extern Tctpboards ctpboards[NCTPBOARDS];
 #endif
 
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
-int setL0f34c(int lutn, char *m4);
-void combine34(w8 *lut34, char *m4);
 Tklas *getpClass(int klas);
 
 int getTL1();
@@ -723,14 +721,6 @@ stdout:
 */
 void getSharedl0mfs();
 /*FGROUP L0
-get 4096 hexa chars each containing i-bit of LUT4-1. i:0..4095
-*/
-void getSharedL0f34(int lutout);
-/*FGROUP L0
-4096 hexa chars from stdin will be loaded to LUT31 32 41 42*/
-void setSharedL0f34();
-
-/*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
 void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2);
@@ -758,8 +748,6 @@ Prints static class CTPHardware.
 void printHW(); */
 /* FGROUP DbgNewFW 
 void unloadRun(w32 runnumber); */
-/*FGROUP DbgNewFW */
-void printL0FUN34();
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
 /*FGROUP Common */
 int notInCrate(int ix);

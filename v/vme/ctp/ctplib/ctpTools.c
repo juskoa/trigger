@@ -37,20 +37,6 @@ if(l0C0()) {
   adr= RATE_MODE;
 };return(adr);
 }
-/*
-w32 getLM0addr(w32 addr) {
-if((addr>=L0_INTERACT1) && (addr<=ALL_RARE_FLAG)) {
-  if(l0C0()) {
-    return(addr-L0LM0DIFF);
-  } else {
-    return(addr);
-  };
-} else {
-  printf("getLM0addr: internal error for addr:0x%x\n", addr);
-  return(0);
-}
-}
-*/
 w32 getLM0PFad(w32 addr) {
 if((addr>=PF_COMMON) && (addr<=PFLUT)) {
   if(l0C0()) {

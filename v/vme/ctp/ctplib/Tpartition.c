@@ -184,37 +184,6 @@ if(rc == NULL){
 cleanTRBIF(rc,0);
 return(rc);
 }
-/*-----------------*/
-void printTRBIF_34(TRBIF *rbif, int ix) {   // ixlut3132 or ixlut4142
-int lutn=9,base=0; w32 used;
-used= rbif->rbifuse[ix];
-if(ix==ixlut3132) {lutn=1; base= 0; 
-  if(used!=notused) {
-    printf("l0f3:0x%x use:0x%x symb:%s\n",
-      rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f3sym);
-  };
-} else if(ix==ixlut4142) {lutn=3; base= LEN_l0f34/2; 
-  if(used!=notused) {
-    printf("l0f4:0x%x use:0x%x symb:%s\n",
-      rbif->rbif[ix], rbif->rbifuse[ix], rbif->l0f4sym);
-  };
-} else {
-  intError("in printTRBIF_34"); return;
-};
-if(used!=notused) {
-  printf("%1d: ", lutn);
-  /* todo rc= checkEqualValues(&rbif->lut34[base]);
-  if(rc==-1) { */
-  for(ix=0;ix<LEN_l0f34/4;ix++) { 
-    printf("%x",rbif->lut34[ix+base]); 
-  }; /* else {
-  };*/
-  printf("\n");
-  printf("%1d: ", lutn+1); base= base+ LEN_l0f34/4;
-  for(ix=0;ix<LEN_l0f34/4;ix++) { 
-    printf("%x",rbif->lut34[ix+base]); }; printf("\n");
-};
-};
 /*------------------------------------------------------printTRBIF()
 */
 void printTRBIF(TRBIF *rbif){
@@ -1865,14 +1834,16 @@ if(l0C0()>=0xc606) {
     printf("load2HW set lut8[%d] %s\n", ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
   };
 } else {
-  // 2 4-inputs luts:
- vmew32((L0_FUNCTION1), rbif->rbif[ixl0fun1]);
- vmew32((L0_FUNCTION2), rbif->rbif[ixl0fun2]);
-// following works if the same signals connected to first 4 inputs on L0 vs LM levels
- vmew32(LM_FUNCTION1, rbif->rbif[ixl0fun1]);
- vmew32(LM_FUNCTION1+4, rbif->rbif[ixl0fun2]);
- vmew32(LM_FUNCTION1+8, 0);    //LMF3/4 <- 0
- vmew32(LM_FUNCTION1+12, 0);
+ // 2 4-inputs luts:
+ //vmew32((L0_FUNCTION1), rbif->rbif[ixl0fun1]);
+ //vmew32((L0_FUNCTION2), rbif->rbif[ixl0fun2]);
+ // following works if the same signals connected to first 4 inputs on L0 vs LM levels
+ //vmew32(LM_FUNCTION1, rbif->rbif[ixl0fun1]);
+ //vmew32(LM_FUNCTION1+4, rbif->rbif[ixl0fun2]);
+ //vmew32(LM_FUNCTION1+8, 0);    //LMF3/4 <- 0
+ //vmew32(LM_FUNCTION1+12, 0);
+ printf("Error: Unexpected firmware version\n");
+ return 1;
 };
 //------------------------------------------- L0f34 + BCmasks
 //todo:
@@ -2094,11 +2065,14 @@ l0invAC=L0_INVERTac; minAC=0;
  rbif->rbif[ixbc1]=vmer32((SCALED_1));
  rbif->rbif[ixbc2]=vmer32((SCALED_2));
 if(l0C0()>=0xc606) {
+   // here should be lut8 ?
    printf("L0F LMF not read yet neither l0f+lmf...\n");
 } else {
- rbif->rbif[ixl0fun1]=vmer32((L0_FUNCTION1));
- rbif->rbif[ixl0fun2]=vmer32((L0_FUNCTION2));
-   printf("LMF not read yet...\n");
+ //rbif->rbif[ixl0fun1]=vmer32((L0_FUNCTION1));
+ //rbif->rbif[ixl0fun2]=vmer32((L0_FUNCTION2));
+ //printf("LMF not read yet...\n");
+ printf("Error: Unexpected firmware version.\n");
+ return 1;
 };
  //------------------------------------------- classes
  for(i=0;i<NCLASS;i++){

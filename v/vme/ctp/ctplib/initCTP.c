@@ -204,13 +204,6 @@ vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
 vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
 vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
 */
-if(l0AB()==0) {   //firmAC
-  if(l0C0()) {
-    printf("omitting setL0f34c() on LM0 board.\n");
-  } else {
-    rc= setL0f34c(0, (char *)"0");
-  };
-};
 ix= loadcheckctpcfg();
 if(ix!=0) {
     infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
