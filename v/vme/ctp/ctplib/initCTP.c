@@ -312,7 +312,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       vmew32(SCOPE_A_FRONT_PANEL, 14); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
     };
     setEdgesDelays(1); printf("L0+LM CTPswitch: edges, delays set from ctpinputs.cfg\n");
-    vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
+    vmew32((ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     vmew32(ALL_RARE_FLAG, 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     printf("ALL_RARE_FLAG:ALL (common for LM+L0 level)\n");
     //RNDsync(3); printf("RND1/2 synchronised\n");

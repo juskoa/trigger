@@ -1847,10 +1847,10 @@ for(isp=0;isp<MNPART;isp++){
  }
  //------------------------------------------- RBIF
  rbif=hw->rbif;
- vmew32(getLM0addr(RANDOM_1), rbif->rbif[ixrnd1]);
- vmew32(getLM0addr(RANDOM_2), rbif->rbif[ixrnd2]);
- vmew32(getLM0addr(SCALED_1), rbif->rbif[ixbc1]);
- vmew32(getLM0addr(SCALED_2), rbif->rbif[ixbc2]);
+ vmew32((RANDOM_1), rbif->rbif[ixrnd1]);
+ vmew32((RANDOM_2), rbif->rbif[ixrnd2]);
+ vmew32((SCALED_1), rbif->rbif[ixbc1]);
+ vmew32((SCALED_2), rbif->rbif[ixbc2]);
  printf("load2HW: 4 L0 gens -> 4 LM gens...\n");
  vmew32(LM_RANDOM_1, rbif->rbif[ixrnd1]);
  vmew32(LM_RANDOM_2, rbif->rbif[ixrnd2]);
@@ -1866,8 +1866,8 @@ if(l0C0()>=0xc606) {
   };
 } else {
   // 2 4-inputs luts:
- vmew32(getLM0addr(L0_FUNCTION1), rbif->rbif[ixl0fun1]);
- vmew32(getLM0addr(L0_FUNCTION2), rbif->rbif[ixl0fun2]);
+ vmew32((L0_FUNCTION1), rbif->rbif[ixl0fun1]);
+ vmew32((L0_FUNCTION2), rbif->rbif[ixl0fun2]);
 // following works if the same signals connected to first 4 inputs on L0 vs LM levels
  vmew32(LM_FUNCTION1, rbif->rbif[ixl0fun1]);
  vmew32(LM_FUNCTION1+4, rbif->rbif[ixl0fun2]);
@@ -2089,15 +2089,15 @@ w32 l0invAC, minAC;
 l0invAC=L0_INVERTac; minAC=0;
  //------------------------------------------- RBIF
  rbif=hw->rbif;
- rbif->rbif[ixrnd1]=vmer32(getLM0addr(RANDOM_1));
- rbif->rbif[ixrnd2]=vmer32(getLM0addr(RANDOM_2));
- rbif->rbif[ixbc1]=vmer32(getLM0addr(SCALED_1));
- rbif->rbif[ixbc2]=vmer32(getLM0addr(SCALED_2));
+ rbif->rbif[ixrnd1]=vmer32((RANDOM_1));
+ rbif->rbif[ixrnd2]=vmer32((RANDOM_2));
+ rbif->rbif[ixbc1]=vmer32((SCALED_1));
+ rbif->rbif[ixbc2]=vmer32((SCALED_2));
 if(l0C0()>=0xc606) {
    printf("L0F LMF not read yet neither l0f+lmf...\n");
 } else {
- rbif->rbif[ixl0fun1]=vmer32(getLM0addr(L0_FUNCTION1));
- rbif->rbif[ixl0fun2]=vmer32(getLM0addr(L0_FUNCTION2));
+ rbif->rbif[ixl0fun1]=vmer32((L0_FUNCTION1));
+ rbif->rbif[ixl0fun2]=vmer32((L0_FUNCTION2));
    printf("LMF not read yet...\n");
 };
  //------------------------------------------- classes

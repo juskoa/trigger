@@ -61,7 +61,7 @@ for(ix=0; ix<MAXSIMPLEPARS; ix++ ) {
     if((rc=getival(parval, parname, &ival))==0) {
       w32 adr;
       adr=simplepars[ix].address;
-      if(adr==L0_INTERACTSEL) adr= getLM0addr(L0_INTERACTSEL);
+      //if(adr==L0_INTERACTSEL) adr= getLM0addr(L0_INTERACTSEL);
       vmew32(adr, ival); 
       return(ret);
     } else { return(2); };
@@ -197,9 +197,9 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     } else {
       //save in HW structure
       w32 ltv,vmeadr; int ixx;
-      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= getLM0addr(L0_INTERACT1);
-      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr= getLM0addr(L0_INTERACT2);
-      } else {ixx= ixintfunt;vmeadr= getLM0addr(L0_INTERACTT);};
+      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= (L0_INTERACT1);
+      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr=(L0_INTERACT2);
+      } else {ixx= ixintfunt;vmeadr= (L0_INTERACTT);};
       ltv= hex2int(&lookupt[2]);
       //printf("lookupt:%s ltv:%x\n", lookupt, ltv);
       HW.rbif->rbif[ixx]= ltv;

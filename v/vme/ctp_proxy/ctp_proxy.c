@@ -190,9 +190,9 @@ if(dodel==1) {
   };
   // int1lookup int1def int2lookup int2def
   //int2lookupdef bug
-  int1lookup= getLM0addr(L0_INTERACT1);
-  int2lookup= getLM0addr(L0_INTERACT2);
-  int2def= getLM0addr(L0_INTERACTSEL);
+  int1lookup= (L0_INTERACT1);
+  int2lookup= (L0_INTERACT2);
+  int2def= (L0_INTERACTSEL);
   int1def= int2def & 0x1f; int2def= int2def >> 5;
   sprintf(cmd, "%s 0x%x 0x%x 0x%x 0x%x", cmd, int1lookup, int1def, int2lookup, int2def);
   strcat(cmd,"\n");

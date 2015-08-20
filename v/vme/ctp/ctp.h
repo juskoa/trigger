@@ -198,6 +198,13 @@ L0, L1, L2:
 #define PFBLOCK_B      0x86c
 #define PFLUT          0x870
 
+// PF on LM board
+#define LM_PF_COMMON 0x9310
+#define LM_PF_BLOCK 0x9314   //8 words consecutively
+
+#define L0_PF_COMMON 0x93a0
+#define L0_PF_BLOCK 0x93a4   //4 words consecutively
+
 /* FO boards */
 /* not valid for A3 (from 2.3.2006) -> use common SCOPE_SELECT
 #define FO_SCOPE_SELECT    0x150   groupB: 0x1e0 groupA: 0x01f 
@@ -364,36 +371,31 @@ bits    Meaning
 
 /* see PF_COMMON... */
 #define MASK_MODE      0x95a4 /* L0: BCMask memory mode 1:vme 0:normal */
-//#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
-//
-//----------------- L0 (old addresses). The block of LM0 addresses below...
-#define L0_INTERACT1   0x95bc    /* 16 bits thruth table */
-#define L0_INTERACT2   0x95c0
-#define L0_INTERACTT   0x95c4
-#define L0_INTERACTSEL 0x95c8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
-                              /* [5..9]-> ... for INTERACT2 */
-#define L0_FUNCTION1   0x95cc
-#define L0_FUNCTION2   0x95d0 //  was on run1-L0 board */
-#define RANDOM_1       0x95d4 /* bit31: 1: Enable trains filter (for FPGAVER>=A5) */
-#define RANDOM_2       0x95d8
-#define SCALED_1       0x95dc
-#define SCALED_2       0x95e0
-#define ALL_RARE_FLAG  0x95e4
-//----------------- 
 
-/*----------------- LM0. The block of L0 addresses see above...
-#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> see L0LM0DIFF
+/*----------------- LM0. The block of L0 addresses see above... */
+#define LM_INTERACT1 0x9204
+#define LM_INTERACT2 0x9208
+#define LM_INTERACTT 0x920c
+#define LM_INTERACTSEL 0x9210
+
+//#define L0_INTERACT1 0x93c4
+//#define L0_INTERACT2 0x93c8
+//#define L0_INTERACTT 0x93cc
+//#define L0_INTERACTSEL 0x93d0
+// old addresses
+#define L0_INTERACT1   0x9204  
 #define L0_INTERACT2   0x9208
 #define L0_INTERACTT   0x920c
 #define L0_INTERACTSEL 0x9210
                             
-#define L0_FUNCTION1   0x9214 -yes, this+following one for LM0 from c6..
+#define L0_FUNCTION1   0x9214 //-yes, this+following one for LM0 from c6..
 #define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
 #define RANDOM_2       0x9220
 #define SCALED_1       0x9224
 #define SCALED_2       0x9228
-#define ALL_RARE_FLAG  0x922c WRITE ONLY on LM0 board!
+#define ALL_RARE_FLAG  0x922c 
+/*WRITE ONLY on LM0 board!
                        1: all (take all classes)
                        0: take only classes without ALL/rare flag set 
                           (=red in ctp)
