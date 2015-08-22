@@ -246,7 +246,7 @@ def callback_bm(ecsbm):
   ## 
   #mylog.logm("callback_bm: "+bmname)
   #if (prev_bmname=="RAMP") or (bmname=="FLAT TOP"):
-  if bmname=="PREPARE RAMP":
+  if (bmname=="PREPARE RAMP") or (bmname=="RAMP"):
     sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
     import getfsdip
     reload(getfsdip)

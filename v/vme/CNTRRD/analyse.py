@@ -63,6 +63,31 @@ def proc_12(fn):
     print "cg:", lsplit[2], " t:", dif[1]*0.4/1000000, " count:", dif[0],\
       rate
   f.close()
+def proc_diff(fn):
+  """ print difference between 2 consecutive counters readings. 
+  fn: data file with hexa/dec numbers
+  """
+  f= open(fn,"r")
+  first= True ; linen=0
+  for line in f.readlines():
+    if line[0]=='#': 
+      print line
+      continue
+    lsplit= string.split(line)
+    # date time cg runx1..5 l0time count1 count2
+    # date time l0time l0inp3 l0classB2 
+    #ct= lsplit[2:4]   # i.e. (count, l0time)  -l0time in 0.4secs
+    # date time count l0time
+    ct= lsplit[2:]
+    if first:
+      prevct= ct; first= False; continue
+    dif= map(dif32, prevct, ct)
+    #print prevct, ct, dif
+    prevct= ct
+    print lsplit[0], lsplit[1], dif[0], dif[1], dif[2]
+    linen= linen+1
+    if linen>5: break
+  f.close()
 def proc_example(fn):
   f= open(fn,"r")
   for line in f.readlines():
@@ -78,6 +103,7 @@ def main():
   fn= sys.argv[1];
   #proc_example(fn)
   #proc_12(fn)
-  proc_cgtime(fn)
+  #proc_cgtime(fn)
+  proc_diff(fn)
 if __name__ == "__main__":
     main()

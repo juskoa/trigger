@@ -60,6 +60,7 @@ unsigned int MONBSTid;
 unsigned int COUNTERSid;
 unsigned int LUMCNTSid;
 unsigned int BEAMMODEid;
+int READING_SECS=60;   // sleep secs between counter readings (60 or 1)
 int LUMSIM=0;   // 1: LUMSIM active
 int cid;         /* active client id. 0: nobody active */
 char cidat[80];  /* active client: pid@host */
@@ -321,7 +322,7 @@ clgroup: ==0xffffffff do not touch shm
 void readctpcounters(int clientid, w32 clgroup) {
 int ix,nclients,nclientslum,firstreading,samereading; 
 w32 *ctpc;
-w32 secs, mics, difmics, l2orbit;
+w32 secs, mics, difmics, l2orbit, secs2, mics2, usecs;
 char msg[ERRMSGL];
 if((dimsflags & NO1MINFLAG) != 0) {
   if(clientid!=0) {
@@ -331,11 +332,7 @@ if((dimsflags & NO1MINFLAG) != 0) {
 ctpc=buf1;
 GetMicSec(&secs, &mics);
 l2orbit= vmer32(L2_ORBIT_READ);
-readCounters(ctpc, NCOUNTERS, 0, 1); readTVCounters(&ctpc[CSTART_SPEC+3]);
-/* printf("readTVcounters:\n");
-for(ix=CSTART_SPEC+3; ix<(CSTART_SPEC+3+16);ix++) {
-  printf("%d:0x%x ", ix, ctpc[ix]);
-};printf("\n"); */
+readCounters(ctpc, NCOUNTERS, 0, 1); 
 ctpc[CSTART_SPEC]= secs; //ctpc[spare_epochsecs]= secs;
 ctpc[CSTART_SPEC+1]= mics; //ctpc[spare_epochmics]= mics;
 ctpc[CSTART_SPEC+2]= l2orbit; //ctpc[spare_l2orbit]= l2orbit; 
@@ -345,7 +342,20 @@ for(ix=RUNXCOUNTERSSTART; ix<(RUNXCOUNTERSSTART+NPARTIT);ix++) {
 ctpc[CSTART_TSGROUP]= ctpshmbase->active_cg;
 if( clgroup !=0xffffffff) {
   ctpshmbase->active_cg= clgroup;   // AFTER reading+update !
+  /*
+  GetMicSec(&secs2, &mics2);
+  usecs= DiffSecUsec(secs2, mics2, secs, mics);
+  printf("readCounters took %d us\n", usecs);
+  ~ 3000 us
+  */
 };
+/* following moved here (was before just after readCounters() call
+   to get active_cg faster
+readTVCounters(&ctpc[CSTART_SPEC+3]); */
+/* printf("readTVcounters:\n");
+for(ix=CSTART_SPEC+3; ix<(CSTART_SPEC+3+16);ix++) {
+  printf("%d:0x%x ", ix, ctpc[ix]);
+};printf("\n"); */
 /*printf("secs mics l2orbit:%d %d %d\n", secs,  mics, l2orbit); */
 
 /* regardless of MONLUMCNTS service active(PHYSICS_1 running) or not,
@@ -558,7 +568,7 @@ while(1) {   //run forever
   rc= udpsend(udpsock, (unsigned char *)buffer, strlen(buffer)+1);
   */
   //prtLog(buffer);
-  dtq_sleep(60);
+  dtq_sleep(READING_SECS);
   //dtq_sleep(1);  // debugging monscal
   if(QUIT==1) break;
 };
@@ -875,7 +885,19 @@ strcpy(ReceivedCommand, "SWTRGerror");
 }
 /*--------------------*/ //void DOcmd(int *tag, char *msg, int *size)  {
 /*--------------------*/ void DOcmd(void *tag, void *msgv, int *size)  {
-/* msg: if string finished by "\n\0" remove \n */
+/* msg: if string finished by "\n\0" remove \n
+qq           -stop server
+ALL          - ALLRARE flag set to ALL
+RARE                               RARE
+CHECKPHASES
+TOGGLE det 1/0
+W n          -sleep n secs
+actrs        -print actrs table
+LUMSIM ON    - LUMSIM=1; NLUMCNTS=21;
+LUMSIM OFF            0           0
+SLEEP 60
+SLEEP 1
+*/
 char *msg= (char *)msgv;
 int nclients;
 strcpy(ReceivedCommand, "DO");
@@ -947,8 +969,14 @@ if(stringStarts(msg,"ALL")) {
   LUMSIM=1; NLUMCNTS=21;
 } else if(stringStarts(msg,"LUMSIM OFF")) {
   LUMSIM=0; NLUMCNTS=0;
+} else if(stringStarts(msg,"SLEEP 60")) {
+  READING_SECS=60;   // standard
+  printf("READING_SECS 60\n");
+} else if(stringStarts(msg,"SLEEP 1")) {
+  READING_SECS=1;   // vdm
+  printf("READING_SECS 1\n");
 } else {
-  printf("ERROR: unknown DO messsage:%s\n",msg);
+  printf("ERROR: unknown DO messsage:%s:\n",msg);
 };
 }
 
@@ -1182,9 +1210,9 @@ for(ix=0; ix<MAXSWTRGREQS; ix++) {   // no sw trg. requests registered
 };
 if(envcmp("VMESITE", "ALICE")==0) {
   vspbobr= bobrOpen();
-  udpsock= udpopens("alidcscom026", send2PORT);
+  udpsock= udpopens("alidcscom835", send2PORT);
 } else {
-  udpsock= udpopens("pcalicebhm05", send2PORT);
+  udpsock= udpopens("avmes", send2PORT);
 };
 printf("vspbobr:%d udpsock:%d\n", vspbobr, udpsock);
 

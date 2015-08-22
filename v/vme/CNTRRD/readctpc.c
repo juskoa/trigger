@@ -99,6 +99,7 @@ Tcnt1 l2s[N24];   // 24 l2strobes, the same order as in VALID.LTUS
 Tcnt1 l2r[N24];   // 24 l2reject, the same order as in VALID.LTUS
 Tcnt1 ppout[N24];   // 24 ppouts, not for each reading
 Tcnt1 l2cal[N24];   // 24 ppouts, as l0s, but not for each reading
+Tcnt1 intCTPbusy;
 typedef struct {
   int absy[WHATBUSYS];  // avbsyl0s, avbsyl2s(till Oct. 2012) -will be l2as, avreadout
 } Tavbsy;
@@ -267,6 +268,10 @@ while(1) {
     printf("parseLine rc: %d line:%s\n", rc, line);
     break;
   };
+  if(strncmp(pl.cname, "intCTPbusy", 10)==0) {
+     intCTPbusy.reladdr= pl.addr;
+     continue;
+  };
   //if(pl.addr>3) break;
   // look for: byin1..byin24:
   isdet= isDetector(pl.ltuname);
@@ -366,7 +371,7 @@ printf("%s %17.6f: %d counters\n", dmyhms, timesecs, *size/4); fflush(stdout);
 timedelta= dodif32(prevl0time, bufw32[l0timeix]);  // in 0.4micsecs
 prevl0time= bufw32[l0timeix];
 measnum++; if(measnum>=10) measnum=1;
-
+printf("intCTPbusy:%d:%d\n", intCTPbusy.reladdr, bufw32[intCTPbusy.reladdr]);
 /*------------------------------------------------------------ rrd */
 if(rrdpibuready==0) {
   //fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
