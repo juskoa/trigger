@@ -295,7 +295,6 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */
 #define DAQ_LEDlm0     0x9234
-//von #define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
 #define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only 0x60:lm_out */
 
@@ -387,7 +386,9 @@ bits    Meaning
 //#define L0_INTERACT2   0x9208
 //#define L0_INTERACTT   0x920c
 //#define L0_INTERACTSEL 0x9210
-                            
+
+#define LM_PF_INT_SEL 0x9160 //use getLM0_PFINT                            
+#define LM_PF_BLOCK 0x9314 //use getLM0_PFBL                            
 //#define L0_FUNCTION1   0x9214 // use getLM0_F8add
 //#define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
@@ -538,7 +539,6 @@ bit4: phase enable
 /* deliberately after REGEND becasue it is different for L0/LM0*/ 
 #define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
 #define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
-//#define L0_FUNCTION34    0x97ec   not used for LM0
 
 #define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
 #define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
@@ -723,7 +723,8 @@ void getSharedl0mfs();
 /*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
-void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2);
+void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2);
+//void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2);
 /*FGROUP L0
 set INTERACTSEL ALL_RARE_FLAG
 */
@@ -738,6 +739,10 @@ I: X 1..4  -> sets l0fX+lmfX
 lut: string \"0xa... 64 chars\"
 */
 void setShared4(int X, char *lut);
+/*FGROUP L0
+set INTLM/INTL0
+*/
+void setSharedINT(int X, char *lut);
 /*----------------------------libctp.a subroutines for new firmware  */
 /* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 

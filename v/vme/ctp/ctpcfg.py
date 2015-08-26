@@ -287,7 +287,7 @@ class Ctpconfig:
       AttrBCmask('BCM12','bitmap',TrgSHR.BCMxHelp, self),
       ]
     elif Gl0C0>0xc605:
-      print "lm0..."
+      print "lm0 > 0xc605..."
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
       AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
@@ -297,9 +297,9 @@ class Ctpconfig:
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
       Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
       Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
-      AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun1',["0x0",8,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun2',["0x0",8,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfunT',["a&b&(c|d)",8,0], TrgSHR.L0FUNxHelp),
       AttrLUT('L0fun1',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun2',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun3',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
@@ -355,6 +355,7 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
       print "Ctpconfig:cct:",cct
     if cct[0]=='0':   # L0 in the crate
       self.readShared()
+      #for shrres in self.sharedrs: shrres.Print()
       #dbgssmo= vbexec.get1("gettableSSM()")
       #print "dbgssm: before getClass",dbgssmo
       # get rates into mmemory before reading class definitions:
@@ -796,18 +797,18 @@ Middle-> modify the invert bit (only for classes 45-50)
     # get first (12+4) values of shared resources from hw (last 4: LMrnd1/2 LMbcd1/2)
     # ishr (resource)' value is in shr[ reshuf[ishr] ]
     # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
-    reshuf= {0:0, 1:1, 2:12, 3:13, 4:2, 5:3, 6:14, 7:15, 8:4, 9:5, 10:6 , 11:7, 12:8, 13:9, 14:10, 15:11}
-    if len(shr) != (13+4):      
-      # e.g. expected: ['0x20c49b', '0x0', '0x7cf', '0x0', '0x8080', '0xc0c0', '0x0', '0x0', '0x0', '0x8', '0x1', '0x1',
-      # lmr1, lmr2, lmbc1, lmbc2, '']
+    # reshuf= {0:0, 1:1, 2:12, 3:13, 4:2, 5:3, 6:14, 7:15, 8:4, 9:5, 10:6 , 11:7, 12:8, 13:9, 14:10, 15:11}
+    print "len shared= ",len(shr)
+    # expected: RND1 RND2 LMRND1 LMRND2 BC1 BC2 LMBC1 LMBC2 INTfun1 INTfun2 INTfunT INT1 INT2  RARE
+    # expected:    0    1      2      3   4   5     6     7       8       9      10   11   12    13
+    if len(shr) != (15):      
       print "Error readShared:",shr
-    for ishr in range(len(shr)-1):   #0..11
-      v=shr[reshuf[ishr]]
-      if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=12): #4xlut8
-        print "readShared: ignoring l0f%d value:%s"%(ishr-11, v)
-      else:
-        #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
-        self.sharedrs[ishr].setattrfo(eval(v), 1)
+    for ishr in range(len(shr)-1):   #0..13
+        v=shr[ishr]
+        if ishr<=10:
+           self.sharedrs[ishr].setattrfo(eval(v), 1)
+        else: 
+           self.sharedrs[ishr+4].setattrfo(eval(v), 1)
         #self.sharedrs[ishr].hwwritten(1)
     if (Gl0C0>=0xc606):
       shr= vbexec.getsl("getSharedl0mfs()")
@@ -820,14 +821,6 @@ Middle-> modify the invert bit (only for classes 45-50)
         else:
           # error messages:
           print v
-    if (Gl0AB==None) and (Gl0C0==None):   #firmAC and not lm0
-      shr= vbexec.getsl("getSharedL0f34(4)")
-      #for ishr in range(12, 16):
-      for ishr in range(Ctpconfig.lastshrgrp1+4,Ctpconfig.lastshrgrp1+8):
-        #v= shr[ishr-12]
-        v= shr[ishr-(Ctpconfig.lastshrgrp1+4)]
-        self.sharedrs[ishr].setattrfo(eval(v), 1)
-        #print "readShared:value:%d:"%ishr,self.sharedrs[ishr].value
     longs=vbexec.getline("getBCmasks()");
     self.str2masks(longs)
     for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
@@ -839,38 +832,9 @@ Middle-> modify the invert bit (only for classes 45-50)
 """
     intselw= (self.sharedrs[Ctpconfig.lastshrgrp1+1].getbinval()&0x01f) | \
              ((self.sharedrs[Ctpconfig.lastshrgrp1+2].getbinval()&0x01f)<<5)
+    print "intselw: 0x%x"%intselw
     allrare= self.sharedrs[Ctpconfig.lastshrgrp1+3].getbinval()&1
-    if (Gl0AB==None) and (Gl0C0==None):   #firmAC and NOT LM0
-      # we cannot do the following:
-      lut34= vbexec.getsl("getSharedL0f34(1)")[0]
-      #print "writeShared_shared:lut34:",lut34
-      #for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
-      #  print "writeSharedishr:%x"%ishr, self.sharedrs[ishr].value
-      # but we take modifications stored in python-code only:
-      longs=[] ; lut34="" #; lut4=[]
-      for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
-        #longs.insert(0, self.sharedrs[ishr].getbinval())
-        longs.append(self.sharedrs[ishr].getbinval())
-      #longs[0]:lut31   longs[1]:lut32
-      #longs[2]:lut41   longs[3]:lut42
-      for ix in range(2**Ctpconfig.dbgbits):
-        bm= 2**ix   #bm= 1L<<ixk   ixk:0..4095
-        if (longs[3] & bm) != 0: l41= 1L
-        else: l41= 0L
-        if (longs[2] & bm) != 0: bit= 0x1
-        else: bit= 0
-        l41= (l41<<1) | bit
-        if (longs[1] & bm) != 0: bit= 0x1
-        else: bit= 0
-        l41= (l41<<1) | bit
-        if (longs[0] & bm) != 0: bit= 0x1
-        else: bit= 0
-        l41= (l41<<1) | bit
-        lut34= "%x"%l41 + lut34    #lut4.insert(0,l41)
-        #print "bm:",bm,hex(l41)
-      #print "writeShared:calut:",len(lut34),"chars,lut34:",lut34
-    else:
-      lut34= None
+    lut34= None
     if cf:
       if Gl0C0:
         cmd="VER %s\n"%Gl0C0
@@ -898,7 +862,6 @@ Middle-> modify the invert bit (only for classes 45-50)
       cf.write(cmd) ; cf.write(cmd2)
       cmd="INTSEL 0x%x 0x%x\n"%(intselw, allrare)
       cf.write(cmd)
-      if lut34: cmd="LUT34 %s\n"%(lut34) ; cf.write(cmd)
       cmd="BCMASKS %s\n"%(self.masks2str())
       cf.write(cmd)
       #write mask-patterns if available (than they will be used
@@ -919,21 +882,27 @@ Middle-> modify the invert bit (only for classes 45-50)
         if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
            (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
           if self.sharedrs[ishr].modified(): writeit3=1
-          print "cmd3:",cmd3
           cmd3= "%s0x%x,"%(cmd3, self.sharedrs[ishr].getbinval())
+          print "cmd3:",cmd3
         else:
           if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=14): #4xlut8
-            if (ishr>=11) and (ishr<=12): # 2 dummy values for old l0f1..2
-              cmd1= "%s0x%x,"%(cmd1, ishr-11)
             if self.sharedrs[ishr].modified():   # let's do it separately for each l0fX+lmfX function
               cmd4= 'setShared4(%d,"0x%x")'%(ishr-10, self.sharedrs[ishr].getbinval())
               print "cmd4:",cmd4
               vbexec.get1(cmd4)
+          elif (ishr>=8) and (ishr<=10): 
+            if self.sharedrs[ishr].modified():   # let's do it separately for each INT fun
+              cmd5= 'setSharedINT(%d,"0x%x")'%(ishr-4, self.sharedrs[ishr].getbinval())
+              print "cmd5:",cmd5
+              vbexec.get1(cmd5)
           else:
             if self.sharedrs[ishr].modified(): writeit=1
             cmd1= "%s0x%x,"%(cmd1, self.sharedrs[ishr].getbinval())
         self.sharedrs[ishr].hwwritten(1)
-      cmd1=cmd1[:-1]+")" ; cmd3=cmd3[:-1]+")"
+      cmd1=cmd1[:-1]+")" ; 
+      cmd3=cmd3[:-1]+")"
+      print 'cmd1: ',cmd1
+      print 'write 1 3 4:', writeit,writeit3,writeit4
       if writeit==1: vbexec.get1(cmd1)
       if writeit3==1: vbexec.get1(cmd3)
       writeit=0   # INT1, INT2, All/Rare
@@ -942,15 +911,6 @@ Middle-> modify the invert bit (only for classes 45-50)
         self.sharedrs[ishr].hwwritten(1)
       cmd1="setShared2(0x%x,0x%x)"%(intselw,allrare) 
       if writeit==1: vbexec.get1(cmd1)
-      if lut34:
-        writeit=0   # update lut34 hw only if at least 1 changed
-        cmd1="setSharedL0f34()\n"+lut34
-        for ishr in range(Ctpconfig.lastshrgrp1+4, Ctpconfig.lastshrgrp1+4+4+1):
-          if self.sharedrs[ishr].modified(): writeit=1
-          self.sharedrs[ishr].hwwritten(1)
-        #print "cmd1 setSharedL0f34:",cmd1
-        if writeit==1: 
-          rcstr= vbexec.getline(cmd1)
       writeit=0
       for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
         if self.sharedrs[ishr].modified(): writeit=1
@@ -975,6 +935,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       self.shrtl= myw.NewToplevel("CTP shared resources", self.hideShared)
     self.shrtl.configure(bg=COLOR_SHARED)
     for shrres in self.sharedrs:
+      shrres.Print()
       shrres.show(self.shrtl)
     #vonint12fr= myw.MywFrame(self.shrtl, side=TOP, relief=FLAT)
     # show buttons activating PF circuits:
@@ -2292,6 +2253,8 @@ class Attr(Genhw):
   #  self.atrspecific()
   #def atrspecific(self):
   #  pass
+  def Print(self):
+    print 'Attr: ',self.atrname,' ',self.value,self.cci
   def setattr(self, value):
     #print "setattr.atrw:",self.atrw
     self.value=value     
@@ -2385,6 +2348,9 @@ class AttrRndgen(Attr):
     ntv= self.atrw.getEntryBin() ; ntv= str(ntv)
     nbvalue= self.modatrcommon(self.atrw, self.value)
     self.value=nbvalue
+  def Print(self):
+    print 'AttrRndgen: ',self.value,' Attr:'
+    Attr.Print(self)
 class AttrBCmask(Attr):
   x0=35
   y0=1
@@ -2395,6 +2361,9 @@ class AttrBCmask(Attr):
     apply(Attr.__init__, fa, kw)
     self.bcmbit=int(self.atrname[3:])-1   #BCM1-4 (or 12)
     self.bpw=None   # associated bit pattern widget not shown
+  def Print(self):
+    print 'AttrBCmask: ',self.bcmbit, ' Attr:'
+    Attr.Print(self)
   def show(self, fr,side=TOP):
     #print "show:",self.value
     self.bindparent(fr)
@@ -2474,6 +2443,9 @@ class AttrBits(Attr):
     #fixedarg= [self]+fixedarg
     apply(Attr.__init__,fa, kw)
     #self.printAttr();
+  def Print(self):
+    print 'AttrBits: ',self.bits,' Attr:'
+    Attr.Print(self)
   def modatr(self, ev=None):
     ntv= self.atrw.getEntry()
     #newval= self.atrw.getEntryBin()
@@ -2532,6 +2504,9 @@ class Attr2(Attr):
     nbvalue= self.modatrcommon(self.atrw2, self.value[1])
     self.value[1]=nbvalue
 class AttrLUT(Attr):
+  def Print(self):
+    print 'AttrLUT: Attr:'
+    Attr.Print(self)
   def show(self, fr,side=TOP):
     #prt(self,'AttrLUT.show:',self.value)
     self.bindparent(fr)
