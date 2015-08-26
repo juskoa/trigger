@@ -95,7 +95,7 @@ void DAQonoff(int daqon);
 // classn:1..100  mskbit: 1: disable 0: enable
 void setClaMask(int classn, int mskbit);
 w32 getRATE_MODE();
-/*FGROUP SimpleTests
+/*FGROUP PF
 Input: address (e.g. 0x95bc) from range 0x95bc..0x95e4.
 L0_INTERACT1   0x95bc    16 bits thruth table
 L0_INTERACT2   0x95c0
@@ -114,6 +114,13 @@ rc: corresponding L0 or LM0 address
 */
 w32 getLM0PFad(w32 l0addr);
 w32 getLM0_F8ad(int reg);
+w32 getLM0_INTad(int reg);
+/*FGROUP PF
+*/ 
+w32 getLM0_PFINTad(int reg);
+/*FGROUP PF
+*/ 
+w32 getLM0_PFBLKad(int reg);
 w32 getCLAMASK();
 
 /*FGROUP DebCon

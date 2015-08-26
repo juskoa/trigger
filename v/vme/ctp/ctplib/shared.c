@@ -60,28 +60,29 @@ An example of output:
 void getShared() {
 w32 w;
 if(notInCrate(1)) return;
-w= vmer32((RANDOM_1)); printf("0x%x\n", w);
-w= vmer32((RANDOM_2)); printf("0x%x\n", w);
-w= vmer32((SCALED_1)); printf("0x%x\n", w);
-w= vmer32((SCALED_2)); printf("0x%x\n", w);
-w= vmer32((L0_INTERACT1)); printf("0x%x\n", w);
-w= vmer32((L0_INTERACT2)); printf("0x%x\n", w);
-w= vmer32((L0_INTERACTT)); printf("0x%x\n", w);
-if(l0C0()>=0xc606) {
-  printf("0xdeaddad\n"); printf("0xdeadbeaf\n");
-} else {
-  //w= vmer32((L0_FUNCTION1)); printf("0x%x\n", w);
-  //w= vmer32((L0_FUNCTION2)); printf("0x%x\n", w);
+if(l0C0()<0xc606) {
   printf("Unexpected firmware version. Exiting.\n");
   return;
 };
+w= vmer32((RANDOM_1)); printf("0x%x\n", w);
+w= vmer32((RANDOM_2)); printf("0x%x\n", w);
+w= vmer32(LM_RANDOM_1); printf("0x%x\n", w);
+w= vmer32(LM_RANDOM_2); printf("0x%x\n", w);
+w= vmer32((SCALED_1)); printf("0x%x\n", w);
+w= vmer32((SCALED_2)); printf("0x%x\n", w);
+w= vmer32(LM_SCALED_1); printf("0x%x\n", w);
+w= vmer32(LM_SCALED_2); printf("0x%x\n", w);
+w= vmer32((L0_INTERACT1)); printf("0x%x\n", w);
+w= vmer32((L0_INTERACT2)); printf("0x%x\n", w);
+w= vmer32((L0_INTERACTT)); printf("0x%x\n", w);
 w= vmer32((L0_INTERACTSEL)); 
 printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
 w= vmer32((ALL_RARE_FLAG)); printf("0x%x\n", w&0x1);
-w= vmer32(LM_RANDOM_1); printf("0x%x\n", w);
-w= vmer32(LM_RANDOM_2); printf("0x%x\n", w);
-w= vmer32(LM_SCALED_1); printf("0x%x\n", w);
-w= vmer32(LM_SCALED_2); printf("0x%x\n", w);
+//w= vmer32((LM_INTERACT1)); printf("0x%x\n", w);
+//w= vmer32((LM_INTERACT2)); printf("0x%x\n", w);
+//w= vmer32((LM_INTERACTT)); printf("0x%x\n", w);
+//w= vmer32((LM_INTERACTSEL)); 
+//printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
 }
 void getSharedl0mfs() {
 int lutn; char val[LUT8_LEN]; char l0fs[4*LUT8_LEN];
@@ -103,7 +104,14 @@ for(lutn=1; lutn<=8; lutn++) {
 /*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
-void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2,
+void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2) {
+if(notInCrate(1)) return;
+vmew32((RANDOM_1), r1);
+vmew32((RANDOM_2), r2);
+vmew32((SCALED_1), bs1);
+vmew32((SCALED_2), bs2);
+}
+void setShared_Old(w32 r1,w32 r2,w32 bs1,w32 bs2,
                w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2) {
 if(notInCrate(1)) return;
 vmew32((RANDOM_1), r1);
@@ -128,6 +136,7 @@ set INTERACTSEL ALL_RARE_FLAG lmrnd1 lmrnd2 lmbcd1 lmbcd2
 void setShared2(w32 intsel, w32 allrare) {
 if(notInCrate(1)) return;
 vmew32((L0_INTERACTSEL), intsel);
+vmew32((LM_INTERACTSEL), intsel);
 vmew32((ALL_RARE_FLAG) , allrare);
 }
 void setShared3(w32 lmrnd1, w32 lmrnd2, w32 lmbcd1, w32 lmbcd2) {
@@ -216,7 +225,89 @@ if(rc!=0) {
     printf("Error: LUT%d cannot be loaded, setLUT() rc:%d\n", X+4, rc);
   };
 };
-printf("LUT%d (l0f%d + lmf%d) loaded\n", X, X, X+4);
+if(rc==0)printf("LUT%d (l0f%d + lmf%d) loaded\n", X, X, X+4);
 //printf("LUT%d (l0f%d + lmf%d) loaded\n", X,X,X);
 }
+//////////////////////////////////////////////////////////////////
+// INT functions
+//////////////////////////////////////////////////////////////////
+#define LEN_LUT6 256   // bits
+/*
+ * setINTLUT1 = setLUT1 but:
+ * - no shared memory
+ * - different lut address   
+ */ 
+void setINTLUT1(int lutn, char *m4) {
+w32 lutadr; int is;
+lutadr= getLM0_INTad(lutn);
+//lutadr= getLM0_F8ad(lutn);
+/* put if m4 taken as 16x16bits words, put them into LUT this way:
+m4[15]
+m4[14]
+...
+m4[0]  -i.e. last 4 hex-digits from m4
+*/
+//if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
+if((strcmp(m4,"0x0")==0)) {
+  w32 lutw=0;
+  //if(strcmp(m4,"0x0")==0) 
+  //{ lutw=0;
+  //} else { lutw=0xffff0000;
+  //};
+  for(is=LEN_LUT6/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
+    //int isx;
+    // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
+    //sx= (is-1)*4;
+    vmew32(lutadr, lutw|(16-is));
+  };
+} else {
+  for(is=LEN_LUT6/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
+    w32 lutw; int isx;
+    // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
+    isx= (is-1)*4;
+    lutw= hex4(&m4[isx+2]);
+    lutw= lutw<<16 | (16-is);
+    //printf("lutn: %i lutadr: 0x%x , 0x%x \n",lutn,lutadr,lutw);
+    vmew32(lutadr, lutw);
+  };
+  /* update shared memory */
+};
+}
+int setINTLUT(int lutn, char *m4) {
+//printf("setINTLUT called \n");
+if((strlen(m4)!=(LEN_LUT6/4+2)) &&
+   (strcmp(m4,"0x0")!=0)) {
+   //(strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0)) {
+  printf("ERROR setINTLUT:=%s= len:%d\n", m4, (int)strlen(m4));
+  return(254);
+};
+if(lutn==0) {   // all 8 LUTs operations:
+  int lutn1;
+  for(lutn1=1;lutn1<=6;lutn1++){
+    setLUT1(lutn1, m4);
+  };
+} else if((lutn>=1) and (lutn<=6)) {   // one LUT operations:
+  setINTLUT1(lutn, m4);
+} else {
+  return(253);
+};
+return(0);
+};
+void setSharedINT(int X, char *lut) {
+int rc;
+//printf("setSharedINT called \n");
+rc= setINTLUT(X, lut);
+if(rc!=0) {
+  printf("Error: INTLUT%d cannot be loaded, setINTLUT() rc:%d\n", X, rc);
+} else {
+  // to be changed
+  rc= setINTLUT(X-3, lut);
+  if(rc!=0) {
+    printf("Error: INTLUT%d cannot be loaded, setINTLUT() rc:%d\n", X+4, rc);
+  };
+};
+if(rc==0)printf("INTLUT%d (L0INT%d + lmINT%d) loaded\n", X, X, X+4);
+}
+
+
 
