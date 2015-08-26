@@ -541,10 +541,12 @@ if((freqs[0] != rfrx1[2].freq) ||
 };
 //stat=qpllstat+1; //simulate change
 if(stat != qpllstat) {
+  char msg[100];
   qpllstat= stat;
   sprintf(qpllnow,"%3.3x", qpllstat);
   rc= dis_update_service(QPLLid);
-  printf("QPLL update rc:%d qpllstat:0x%x\n",rc,qpllstat);
+  sprintf(msg, "QPLL update rc:%d qpllstat:0x%x",rc,qpllstat);
+  prtLog(msg);
   /*
   mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
   bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;

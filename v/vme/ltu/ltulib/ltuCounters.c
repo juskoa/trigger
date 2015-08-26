@@ -194,7 +194,7 @@ printf(
 "Interval: %5.2f %s DeadTime Transitions: %f usecs\n\
                          Rate Transitions: %f [kHz]\n\
                          Rate L2a        : %f [kHz]\n\
-                  sbusy         busy\n\
+                        sbusy           busy\n\
     DeadTime L2a: %10.2f      %10.2f     usecs\n\
     Fraction:     %10.2f      %10.2f     \n",
   timeint, secs, deadts, ratets, rate,

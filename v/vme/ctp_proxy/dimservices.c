@@ -287,7 +287,7 @@ return(retval);
 void prtNupdates(Tmonclient *mc, char *outmsg) {
 int ix; //, cid;
 char cidname[MAXCIDAT];
-/*cid=*/dis_get_client(cidname); outmsg[0]='\0';
+/*cid=*/dis_get_client(cidname); outmsg[0]='\0'; strcpy(outmsg, "clients:");
 for(ix=0; ix<MAXMCclients; ix++) {
   if(mc->MCclients[ix].cidat[0]=='\0') continue; // this one is free
   //printf("%3d: %d %s %d", ix, mc->MCclients[ix].cid, mc->MCclients[ix].cidat,
@@ -322,7 +322,7 @@ clgroup: ==0xffffffff do not touch shm
 void readctpcounters(int clientid, w32 clgroup) {
 int ix,nclients,nclientslum,firstreading,samereading; 
 w32 *ctpc;
-w32 secs, mics, difmics, l2orbit, secs2, mics2, usecs;
+w32 secs, mics, difmics, l2orbit; //, secs2, mics2, usecs;
 char msg[ERRMSGL];
 if((dimsflags & NO1MINFLAG) != 0) {
   if(clientid!=0) {
@@ -350,8 +350,8 @@ if( clgroup !=0xffffffff) {
   */
 };
 /* following moved here (was before just after readCounters() call
-   to get active_cg faster
-readTVCounters(&ctpc[CSTART_SPEC+3]); */
+   to get active_cg faster */
+readTVCounters(&ctpc[CSTART_SPEC+3]);
 /* printf("readTVcounters:\n");
 for(ix=CSTART_SPEC+3; ix<(CSTART_SPEC+3+16);ix++) {
   printf("%d:0x%x ", ix, ctpc[ix]);
@@ -421,12 +421,13 @@ if(clientid==0) {
   prtLog(msg);*/
   nlog++;
   if((nlog % 60)==0) {
-    sprintf(msg,"readctpcounters(1/hour): difmics:%d nclients:%d lum:%d\n",
+    char msg2[200];
+    sprintf(msg2,"readctpcounters(1/hour): difmics:%d nclients:%d lum:%d",
       difmics, nclients, nclientslum);
-    prtLog(msg);
-    prtNupdates(&MONCOUNTERS, msg);
-    sprintf(msg, "MONCOUNTERS Nupdates:%s", msg);
-    prtLog(msg); 
+    prtLog(msg2);
+    /*prtNupdates(&MONCOUNTERS, msg);
+    sprintf(msg2, "MONCOUNTERS Nupdates:%s", msg);
+    prtLog(msg2); */
   };
   /*printf("readctpcounters: difmics:%d nclients:%d elapsed L0,L1: %x %x\n", 
     difmics, nclients, ctpc[13], ctpc[CSTART_L1+5]);

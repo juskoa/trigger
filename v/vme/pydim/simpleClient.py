@@ -56,13 +56,17 @@ fmt default: "C"
 """
     #sys.exit()
   while True:
-    a= raw_input('enter "q" or "cmd CTPDIM/DO cmd":\n')
+    a= raw_input('enter q, cmd CTPDIM/DO XXX YYY, sec1 or sec60":\n')
     print a
     if a=='q': break
     asp= string.split(a)
     if asp[0]=="cmd":
       # cmd CTPDIM/DO W 3
       pydim.dic_cmnd_service(asp[1], (string.join(asp[2:])+"\x00",),"C")
+    elif asp[0]=="sec1":
+      pydim.dic_cmnd_service("CTPDIM/DO", ("SLEEP 1\x00",),"C")
+    elif asp[0]=="sec60":
+      pydim.dic_cmnd_service("CTPDIM/DO", ("SLEEP 60\x00",),"C")
   #pydim.dic_relese_service(serid) not available in pydim
 
 if __name__ == "__main__":
