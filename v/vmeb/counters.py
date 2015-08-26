@@ -582,7 +582,8 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     l0label= myw.MywLabel(self.l0frame,label="L0 counters",
       bg=myw.VmeBoard.CTPcolors["l0"], side=TOP)
     self.makeit1("l0","l0byclst", CTPcnts.t9, "Test, 1-8 cluster BUSY")
-    self.makeit1("l0","l0pf", CTPcnts.pf5, "Test, 1-4 P/F output")
+    #self.makeit1("l0","l0pf", CTPcnts.pf5, "Test, 1-4 P/F output")
+    self.makeit1("l0","lm0pf",["0T","01","02","03","04","m1","m2"], "L0: Test, 1-4 P/F output, LM: 1,2")
     self.makeit1("l0","l0timers", ["allrare","l0time","l0rate28"],
       """allrare, elapsed time and down-scaling veto ON for L0 class28
 in 16BCs intervals""")
@@ -594,8 +595,8 @@ in 16BCs intervals""")
     self.makeit1("l0","l0inp", CTPcnts.i48, "L0 inputs")
     #self.makeit1("l0","l0ifun", ("1","2"), "L0 input functions")
     self.makeit1("l0","l0ifun", ("1","2","3","4"), "L0 input functions")
-    self.makeit1("l0","l0int", ["1","2","T","A","B", "D"],
-      "Interaction signals: 1,2,T and  P/F Interaction signals A,B,D")
+    self.makeit1("l0","lm0int", ["m1","m2","mBCM","01","02", "0BCM"],
+      "Interaction signals: 1,2, and withBCmask for lm level(m1,m2,mBCM) and l0 level(01,02,0BCM)")
     self.makeit1("l0","lmclst", CTPcnts.iT6, "LM cluster1-8, T")
     #self.makeit1("l0","l0int", ["1","2","T","A","B"],
     #  "Interaction signals: 1,2,T and  P/F Interaction signals A,B")
@@ -786,10 +787,19 @@ orc_error  -Orbit record with error
       board="l0"; c= cntlabel[8]; CGT='T';
       if c=="T": n= 0
       else: n= int(c)
-    elif string.find(cntlabel,"l0pf")==0:
-      board="l0"; c= cntlabel[4]; CGT='T';
-      if c=="T": n= 9
-      else: n= int(c)+9
+    elif string.find(cntlabel,"lm0pf")==0:
+      board="l0"; 
+      c= cntlabel[5]+cntlabel[6]; 
+      #CGT='T';
+      if c=="0T": n= 9
+      elif c=="01": n= 10
+      elif c=="02": n= 11
+      elif c=="03": n= 12
+      elif c=="04": n= 13
+      elif c=="m1": n= 17
+      elif c=="m2": n= 18
+      else: 
+        myw.errorprint(self,"Bad int counter name:"+cntlabel)
     elif string.find(cntlabel,"allrare")==0:
       board="l0"; n= 14; CGT='T';
     elif string.find(cntlabel,"l0time")==0:
@@ -807,14 +817,14 @@ orc_error  -Orbit record with error
         n= (167-1)+ int(cntlabel[6:])
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
-    elif string.find(cntlabel,"l0int")==0:
-      board="l0"; c= cntlabel[5];
-      if c=="1": n= 173 #50+92
-      elif c=="2": n= 174 #50+93
-      elif c=="T": n= 172 #50+94
-      elif c=="A": n= 175 #50+95
-      elif c=="B": n= 176 #50+96
-      elif c=="D": n= 177 #50+97
+    elif string.find(cntlabel,"lm0int")==0:
+      board="l0"; c= cntlabel[6]+cntlabel[7];
+      if   c=="m1": n= 172 #
+      elif c=="m2": n= 173 #
+      elif c=="mB": n= 174 #
+      elif c=="01": n= 175 #
+      elif c=="02": n= 176 #
+      elif c=="0B": n= 177 #
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
     elif string.find(cntlabel,"lmclst")==0:
