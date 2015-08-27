@@ -324,7 +324,8 @@ return(rc);
 */
 int daqlogbook_update_clusters(unsigned int runn, char *pname,
   TDAQInfo *daqi, 
-  unsigned int ignoredaqlog) {    // on vme available in shm
+  unsigned int ignoredaqlog,      // on vme available in shm
+  unsigned int effiout) {         // inp. dets effectively filtered out 
 int iclu,rc;
 printf("INFO daqlogbook_update_clusters: pname:%s runn:%d\n", pname, runn);
 for(iclu=0;iclu<NCLUST;iclu++) {
@@ -332,9 +333,10 @@ for(iclu=0;iclu<NCLUST;iclu++) {
   if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
     daqi->masks[iclu]= daqi->masks[iclu] | (1<<17);
   };
-  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx\n", 
-    iclu+1, daqi->masks[iclu], daqi->inpmasks[iclu], daqi->classmasks00_063[iclu],
-    daqi->classmasks64_100[iclu]);
+  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx effiout:0x%x\n", 
+    iclu+1, daqi->masks[iclu], 
+    daqi->inpmasks[iclu], daqi->classmasks00_063[iclu],
+    daqi->classmasks64_100[iclu], effiout);
 #ifdef DAQLOGBOOK
   if(ignoredaqlog!=0) { rc=0;
     printf("INFO DAQlogbook_update_cluster(%d,...) not called(ignore daq)\n", runn);
@@ -344,6 +346,7 @@ for(iclu=0;iclu<NCLUST;iclu++) {
     classmask[1]=daqi->classmasks64_100[iclu];
     rc=DAQlogbook_update_cluster(runn, iclu+1, daqi->masks[iclu], 
       pname, daqi->inpmasks[iclu], classmask);
+      //pname, daqi->inpmasks[iclu], classmask, effiout);
     if(rc!=0) {
       printf("ERROR DAQlogbook_update_cluster failed. rc:%d", rc);
       break;

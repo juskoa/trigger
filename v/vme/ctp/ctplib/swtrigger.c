@@ -312,8 +312,8 @@ if(LMSTART!=0) {
   if(i>=TIMEOUT){ ret=9; goto RETERR; };
   i=0; while(!getlMackn() && (i<TIMEOUT))i++;
   if(i>=TIMEOUT){ 
-    w32 l0status;
-    l0status=vmer32(L0_TCSTATUS);
+    /*w32 l0status;
+    l0status=vmer32(L0_TCSTATUS);*/
     ret=10; goto RETERR;
   };
 };
@@ -324,9 +324,9 @@ if(i>=TIMEOUT){ ret=6; goto RETERR; };
 i=0; while(!getl0ackn() && (i<TIMEOUT))i++;
  //time[itime++]=CountTime();
 if(i>=TIMEOUT){
-  w32 l0status;
+  /* w32 l0status;
   l0status=vmer32(L0_TCSTATUS);
-  //printf("startswtrig: L0 TC_STATUS:0x%x\n", l0status);
+  printf("startswtrig: L0 TC_STATUS:0x%x\n", l0status);*/
   ret= 1; goto RETERR;
 };
  //mysleep(10); // wait for L1 trigger  

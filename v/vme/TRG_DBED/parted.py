@@ -96,7 +96,7 @@ def redline(inf):                 # ignore empty lines
     cl= inf.readline()
     #print "redline:",cl[:-1]
     if cl=='\n': continue    
-    if len(cltds)>0 and cltds[0]=='#':continue
+    if len(cl)>0 and cl[0]=='#':continue   # ignore comments (fixed 30.7.2015)
     if cl[-2:]=='\\\n': 
       cltds= cltds + cl[:-2]
       continue
@@ -1000,7 +1000,7 @@ Predefined BC masks in VALID.BCMASKS file:
     #  self.validtds= []    # ["MB","SC",...]
     f= open(os.path.join(TRGDBDIR, "VALID.DESCRIPTORS"),"r")
     PrintError("\n-----------------------------------------------VALID.DESCRIPTORS:",self)
-    baddescriptors= 0 ; notreadydescriptors= 0
+    baddescriptors= 0 ; notreadydescriptors= 0 ; readydescriptors= 0
     for line in f.readlines():
       self.tdshelptext=self.tdshelptext+line
       if len(line) <= 3: continue
@@ -1027,14 +1027,16 @@ Predefined BC masks in VALID.BCMASKS file:
         if newtrgdes.allinputsvalid==False:
           PrintError(newtrgdes.loaderrors, self)
           notreadydescriptors= notreadydescriptors+1
+        else:
+          readydescriptors= readydescriptors+1
         self.tds.append(newtrgdes)
         self.validtds.append(string.split(stripedline)[0])    
       else:
         PrintError(newtrgdes.loaderrors, self)
         baddescriptors= baddescriptors+1
     f.close() 
-    PrintError("Bad descriptors:%d not ready:%d"%\
-      (baddescriptors,notreadydescriptors), self)
+    PrintError("Descriptors: bad:%d notready:%d ready:%d"%\
+      (baddescriptors,notreadydescriptors, readydescriptors), self)
     self.tdsbuthelptext="""
 LEFT mouse button   -> add/remove Trigger class in/from this cluster.
 MIDDLE mouse button -> delete this cluster.
@@ -2176,25 +2178,44 @@ class TrgPartition:
     for cl in self.clusters:
       #print "nclusttds length:", len(cl.tds)
       cl.prt()
-  def prtInputDetectors(self):
+  def prtInputDetectors(self,hexs=None):
+    """ stdout: SPD V0 *T0   -i.e. list of inp. detectors + list of 
+                effectively filtered out detectors marked by '*'
+    hexs='yes'
+    instead of stdout, return 2 hex. numbers: 0xeffo 0xindets
+    """
     allindets={} ; detsline=""   #alloutdets={}
+    hxindets= 0 ; hxeffo= 0
     for cluster in self.clusters:
       if cluster==None:
         PrintError("cluster None")
         break
       cids= cluster.getinpdets()
-      #print "cluster:",cluster.name, cids
-      for id in cids:
-        if id=="L0FUNS": continue
-        if id=="": continue   # no input (e.g.:ctp generator)
-        if not allindets.has_key(id):
-          allindets[id]= id
-          detsline= id + " " + detsline
+      #print "prtInputDets cluster:",cluster.name, cids
+      for detid in cids:
+        if detid=="L0FUNS": continue
+        if detid=="": continue   # no input (e.g.:ctp generator)
+        if not allindets.has_key(detid):
+          allindets[detid]= detid
+          detsline= detid + " " + detsline
+          idetbit= TDLTUS.findLTU(detid).detnum
+          hxindets= hxindets | (1<<idetbit)
     if self.filteredout !="":
       detsline= string.strip(detsline) + " " + string.strip(self.filteredout)
     # no inp. detectors if using RND1 connected to inputs!
-    if self.inpgcons != None: detsline=''
-    print detsline
+    # filteredout: they were filtered out even with INRND1 option
+    if self.inpgcons != None:
+      detsline= string.strip(self.filteredout)
+      hxindets= 0
+    if hexs=="yes":
+      # instead of printing to stdout, return string:0xeffo 0xindets
+      for stardet in string.split(self.filteredout):
+        det= stardet[1:]
+        idetbit= TDLTUS.findLTU(det).detnum
+        hxeffo= hxeffo | (1<<idetbit)
+      return "0x%x 0x%x"%(hxeffo, hxindets)
+    else:
+      print detsline
   def getRR(self, minst, ix=0):   # get Required Resources
     """ 
     rc: (classes,pfs,bcms,clusters,outdets, indets)
@@ -2593,7 +2614,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
     return ""
   def prtinputs(self, dbgfname=None):
     """ output: WORKDIR/dbgfname or 
-                returned string: "ctpin1 ctpin2 ..."   (for inpupd cmd frim pydimserver.py)
+                returned string: "ctpin1 ctpin2 ..."   (for inpupd cmd from pydimserver.py)
                 where ctpin* are used ctpinputs numbers 1..60, i.e. 1..24:l0 25..48:l1 49..60:l2
                 
     """

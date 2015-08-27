@@ -89,7 +89,8 @@ int parseline(FILE *file,char counters[][MAXWORD]){
    c=fgetc(file);
    if(c== EOF) return 1;
    if(nc>=(NCOUNTERS+2)) {   // date time 970counters
-     printf("Error: nc:%d >= NCOUNTERS:%d\n", nc, NCOUNTERS);
+     printf("Error: nc:%d >= NCOUNTERS:%d counters[0:1]: %s %s\n",
+       nc, NCOUNTERS, counters[0], counters[1]);
      return 2;
    };
     //printf("%c \n",c);
@@ -97,6 +98,7 @@ int parseline(FILE *file,char counters[][MAXWORD]){
      counters[nc][k]='\0'; k=0; nc++;
    }else{
      counters[nc][k]=c; k++;
+     counters[nc][k]='\0';
    }
    if(c== '\n') break;
  }

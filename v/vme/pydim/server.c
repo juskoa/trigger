@@ -71,6 +71,9 @@ Tinstver insver[6];
 
 int ignoreDAQLOGBOOK=0;
 
+// do not have to go to insver -needed immediately in Dorcfg after pcfg received
+unsigned int effiout=0xdeadbeaf, indets=0xdeadbeaf;   
+
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
 int INT1id, INT2id, CSid, CNAMESid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did;
@@ -286,7 +289,7 @@ if(xpid[0]=='\0') {
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
-printf("INFO Dorcfg len:%d %lu\n", *size,sizeof(TDAQInfo));
+//printf("INFO DOrcfg len:%d %lu\n", *size,sizeof(TDAQInfo));
 if(*size != sizeof(TDAQInfo)){
  char emsg[ERRMSGL];
  sprintf(emsg, "DOrcfg: Structure dim size different from command size.");
@@ -296,11 +299,13 @@ if(*size != sizeof(TDAQInfo)){
 } 
 dain= (TDAQInfo *)bmsg;
 //printTDAQInfo(dain);
-printf("INFO DOrcfg msg:%s\n", dain->run1msg); 
+printf("INFO DOrcfg msg:%s", dain->run1msg); 
 rc= getname_rn(dain->run1msg, pname, &rundec);
 if(check_xcounters()) return;
 if(rc==0) {
-  rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK);
+  //printf("INFO effiout:0x%x\n", effiout);
+  //new from aug2015: bit pattern of inp. detectors effectively filtered out
+  rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK, effiout);
   printf("INFO Dorcfg rc=%i \n",rc);
   //printf("%s",dain->run1msg); fflush(stdout);  moved down
   if(rc==0) { // inputs -> DAQ
@@ -445,11 +450,11 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
     rc=actdb_getPartition(pname,filter, instname, version);
     //actdb_close();
     if(rc==0) {
-      sprintf(emsg,"%s (run:%d inst:%s ver:%s) downloaded from ACT.", 
+      sprintf(emsg,"INFO %s (run:%d inst:%s ver:%s) downloaded from ACT.", 
         pname, rundec, instname, version); 
       infoerr=LOG_INFO;
     } else if(rc==1) {
-      sprintf(emsg,"%s (run:%d) not found in ACT, might be OK if shift leader disabled it in ACT (i.e. is in 'Local File' mode)", pname, rundec); 
+      sprintf(emsg,"ERROR %s (run:%d) not found in ACT, might be OK if shift leader disabled it in ACT (i.e. is in 'Local File' mode)", pname, rundec); 
       infoerr=LOG_ERROR;
     } else {
       sprintf(emsg,"actdb_getPartition(%s) run:%d rc:%d (-2: partition not available in ACT)", pname,rundec,rc); 
@@ -682,7 +687,7 @@ if(strcmp(environ,"ALICE")==0) {
 } else if(strcmp(environ,"SERVER")==0) {
   strcpy(aliname, "/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/");
 } else {
-  printf("ERROR bad VMESITE env. var:%s using WORKDIR/WORK",environ);
+  printf("INFO strange VMESITE env. var:%s using WORKDIR/WORK\n",environ);
   sprintf(aliname, "%s/WORK/", envWORK);
 };
 strcat(aliname, "alignment2daq");
@@ -1004,6 +1009,12 @@ while(1) {
     };
   } else if(strncmp(line,"inpupd ",7)==0) {
     update_ctpins(line);
+  } else if(strncmp(line,"indets ",7)==0) {
+    int ix; char *efstart;
+    efstart= strstr(&line[7], "0x");   // indets runN 0xeffiout 0xindets
+    ix= sscanf(efstart, "0x%x 0x%x\n", &effiout, &indets);
+    printf("INFO ix:%d effiout:0x%x indets:0x%x\n",
+      ix, effiout, indets); fflush(stdout);
   } else if(strncmp(line,"cmd ",4)==0) {
     int unsigned ix,rcsystem;
     for(ix=0; ix<strlen(line); ix++) {
