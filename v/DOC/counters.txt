@@ -144,3 +144,6 @@ lmclstT 298 l0 C ctp
 seems:
 dimcdistrib/cnames.sorted2 -> will go through git to p2
 -still problem with RRD: how is the counter identified there?
+
+26.8.2015
+ipf counters added, int counters renamed
