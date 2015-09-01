@@ -1,16 +1,23 @@
 #!/bin/bash
 td=$1
+#if [ -z "$tdef" -a -z "$td" ] ;then
+if [ -z "$td" ] ;then
+  echo "The name of descriptor, L0 function, counter(cnames) or 0xDET_PATT expected"
+  #echo 'ctpinputs.cfg'
+  #head -2 $dbctp/ctpinputs.cfg |tail -1
+  #grep -e "$td" $dbctp/ctpinputs.cfg
+  exit
+fi
+first2=${td:0:2}
+#echo $first2
+if [ "$first2" = "0x" ] ;then
+  $VMEBDIR/trigdb.py $td
+  exit
+fi
 echo 'VALID.DESCRIPTORS:'
 tdef=`grep "^$td " $dbctp/VALID.DESCRIPTORS`
 echo $tdef
-if [ -z "$tdef" -a -z "$td" ] ;then
-  #echo "The name of descriptor, L0 function expected or counter (cnames.sorted2)"
-  echo 'ctpinputs.cfg'
-  head -2 $dbctp/ctpinputs.cfg |tail -1
-  grep -e "$td" $dbctp/ctpinputs.cfg
-  exit
-fi
-#echo 'VALID.CTPINPUTS:'
+#
 echo 'cnames.sorted2:'
 grep -e "$td" $dbctp/cnames.sorted2
 declare -a ardef=($tdef)
