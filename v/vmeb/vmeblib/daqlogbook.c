@@ -214,10 +214,16 @@ wix= bc/32; bix= bc-32*wix;
 uint32[wix]= uint32[wix] | (1<<bix);
 }
 /*----------------------------------------------------------------*/
-int daqlogbook_update_triggerConfig(int runn, char *mem, char *alignment) {
+int daqlogbook_update_triggerConfig(int runn, char *mem, char *alignment, unsigned int inputDetectorMask) {
 int rc;
 #ifdef DAQLOGBOOK
 rc= DAQlogbook_update_triggerConfig(runn, mem, alignment);
+//following call can appear ONLY after previous one!
+if(rc==0) {
+  rc= DAQlogbook_update_triggerFilteredInputs(runn, inputDetectorMask);
+} else {
+  printf("ERROR daqlogbook_update_triggerConfig error:%d",rc);
+};
 #else
 printf("INFO DAQlogbook_update_triggerConfig(%d,...) not called", runn);
 rc=0;
@@ -324,8 +330,8 @@ return(rc);
 */
 int daqlogbook_update_clusters(unsigned int runn, char *pname,
   TDAQInfo *daqi, 
-  unsigned int ignoredaqlog,      // on vme available in shm
-  unsigned int effiout) {         // inp. dets effectively filtered out 
+  unsigned int ignoredaqlog) {    // on vme available in shm
+  //unsigned int effiout) {         // inp. dets effectively filtered out 
 int iclu,rc;
 printf("INFO daqlogbook_update_clusters: pname:%s runn:%d\n", pname, runn);
 for(iclu=0;iclu<NCLUST;iclu++) {
@@ -333,10 +339,11 @@ for(iclu=0;iclu<NCLUST;iclu++) {
   if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
     daqi->masks[iclu]= daqi->masks[iclu] | (1<<17);
   };
-  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx effiout:0x%x\n", 
+  //printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx effiout:0x%x\n", 
+  printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx\n", 
     iclu+1, daqi->masks[iclu], 
     daqi->inpmasks[iclu], daqi->classmasks00_063[iclu],
-    daqi->classmasks64_100[iclu], effiout);
+    daqi->classmasks64_100[iclu]); //, effiout);
 #ifdef DAQLOGBOOK
   if(ignoredaqlog!=0) { rc=0;
     printf("INFO DAQlogbook_update_cluster(%d,...) not called(ignore daq)\n", runn);
@@ -347,6 +354,7 @@ for(iclu=0;iclu<NCLUST;iclu++) {
     rc=DAQlogbook_update_cluster(runn, iclu+1, daqi->masks[iclu], 
       pname, daqi->inpmasks[iclu], classmask);
       //pname, daqi->inpmasks[iclu], classmask, effiout);
+      // not used here -updated only once for whole partition in DAQlogbook_update_triggerFilteredInputs
     if(rc!=0) {
       printf("ERROR DAQlogbook_update_cluster failed. rc:%d", rc);
       break;
@@ -359,6 +367,18 @@ rc=0;
 };
 return(rc);
 }
+/* not needed -called directly in uupdate_triggerConfig
+int daqlogbook_update_triggerFilteredInputs(unsigned int runn, unsigned int inputDetectorMask) {
+int iclu,rc;
+#ifdef DAQLOGBOOK
+// can be called after DAQlogbook_update_triggerConfig() !
+rc= DAQlogbook_update_triggerFilteredInputs(runn, inputDetectorMask) {
+#else
+printf("INFO DAQlogbook_update_daqlogbook_update_triggerFilteredInputs(%d,...) not called\n", runn);
+rc=0;
+#endif
+return(rc);
+}*/
 void printTDAQInfo(TDAQInfo *tdaq)
 {
  printf("TDAQInfo: daqoonoff= %i \n",tdaq->daqonoff);

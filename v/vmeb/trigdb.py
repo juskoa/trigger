@@ -153,6 +153,11 @@ class TrgLTUS:
       if ltu.fo==fo and ltu.focon==focon:
         return ltu.name
     return ""
+  def getLTUnameOfNum(self, num):
+    for ltu in self.ltus:
+      #print ltu.name, ltu.fo, ltu.focon
+      if ltu.detnum==num: return ltu.name
+    return ""
   def getLTUnameOfBusy(self, busyinput):
     """return: LTUname connected to BUSY input busyinput (1..24)
              "" if not connected
@@ -164,12 +169,12 @@ class TrgLTUS:
         return ltu.name
     return ""
   def getdetnum(self,name):
-    """return: ECS detector namber for LTU name"""
+    """return: ECS detector number for LTU name"""
     for ltu in self.ltus:
       if ltu.name==name: return ltu.detnum
     return None
   def getTTCITSW(self,name):
-    """return: ECS detector namber for LTU name"""
+    """return: ECS detector number for LTU name"""
     for ltu in self.ltus:
       if ltu.name==name: return ltu.ttcitsw
     return None
@@ -239,7 +244,7 @@ expected) in VALID.LTUS file:
     # 0               1      2      3    4         5
     if (nhb[1].find('altri')!=0) and  (nhb[1].find('alidcsvme')!=0):
       # case for TTCpartitions in various labs:
-      PrintError("Line with CPU %s in ttcparts.cfg ignored"%nhb[1])
+      #PrintError("Line with CPU %s in ttcparts.cfg ignored"%nhb[1])
       continue
     notltu=True
     for ltu in ltus:
@@ -950,6 +955,14 @@ trigdb.py joininputs  L0.INPUTS+VALID.CTPINPUTS -> ctpinputs_built.cfg
     vcis= TrgVALIDINPUTS()
     hx= vcis.log2tab(argv[2])
     if hx!= None: print hx
+  elif string.find(argv[1], "0x")==0:
+    reqltus= eval(argv[1])
+    ltus= TrgLTUS()
+    ltulist=""
+    for detn in range(24):
+      if ((1<<detn) & reqltus) != 0:
+        ltulist= ltulist + " " + ltus.getLTUnameOfNum(detn)
+    print ltulist
   elif argv[1]=='prtinps_run1':
     a=TrgVALIDINPUTS("run1lm0")
     print a.getL012inputs('switch')

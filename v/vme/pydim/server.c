@@ -168,6 +168,16 @@ for(ix=0; ix<6; ix++) {
 };
 return(rc);
 }
+/*----------------------------------------------------------- updeff_insver
+rc:-1 not found
+
+int updeff_insver(int runn, int effio) {
+int ix, rc=-1;
+for(ix=0; ix<6; ix++) {
+  if(insver[ix].runn==runn) {rc= ix; insver[ix].effio= effio; };
+};
+return(rc);
+}*/
 /*----------------------------------------------------------- del_insver
 */
 void del_insver(int runn) {
@@ -304,8 +314,12 @@ rc= getname_rn(dain->run1msg, pname, &rundec);
 if(check_xcounters()) return;
 if(rc==0) {
   //printf("INFO effiout:0x%x\n", effiout);
-  //new from aug2015: bit pattern of inp. detectors effectively filtered out
-  rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK, effiout);
+  /*new from aug2015: effiout: bit pattern of inp. detectors effectively filtered out
+    not used: prepared if DAQ wants in future 'per cluster' -in that case 'per cluster' info
+   -should by passed in TDAQInfo structure from ctp proxy (now it is not) or
+   -somehow, pydimserver.py should deliver 'per cluster' (now delivering 'per partition')
+  */
+  rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK); //, effiout);
   printf("INFO Dorcfg rc=%i \n",rc);
   //printf("%s",dain->run1msg); fflush(stdout);  moved down
   if(rc==0) { // inputs -> DAQ
@@ -708,7 +722,7 @@ if(rl < 10) {
 } else {  
   if(ignoreDAQLOGBOOK) { rc=0;}
   else {
-    rc= daqlogbook_update_triggerConfig(runn, mem, alignment);
+    rc= daqlogbook_update_triggerConfig(runn, mem, alignment, effiout);
   };
   if(rc!=0) {
     sprintf(emsg, "DAQlogbook_update_triggerConfig: rc:%d\n",rc); 
@@ -783,7 +797,7 @@ unsigned int runN;
 int ixc;
 char value[256];
 enum Ttokentype t1,t2;
-printf("INFO updateDAQDB...\n");
+printf("INFO updateDAQDB... effiout:0x%x\n", effiout);
 ixl=6; t1= nxtoken(line, value, &ixl);   // runNumber
 if(t1==tINTNUM) {
   runN= str2int(value);
@@ -1010,11 +1024,13 @@ while(1) {
   } else if(strncmp(line,"inpupd ",7)==0) {
     update_ctpins(line);
   } else if(strncmp(line,"indets ",7)==0) {
-    int ix; char *efstart;
+    int ix, ix1, runnumb; char *efstart;
+    ix1= sscanf(&line[7], "%d ", &runnumb);
     efstart= strstr(&line[7], "0x");   // indets runN 0xeffiout 0xindets
     ix= sscanf(efstart, "0x%x 0x%x\n", &effiout, &indets);
-    printf("INFO ix:%d effiout:0x%x indets:0x%x\n",
-      ix, effiout, indets); fflush(stdout);
+    printf("INFO ix1:%d runnumb:%d ix:%d effiout:0x%x indets:0x%x\n",
+      ix1, runnumb, ix, effiout, indets); fflush(stdout);
+    //rcupd= updeff_insver(runnumb, effiout);
   } else if(strncmp(line,"cmd ",4)==0) {
     int unsigned ix,rcsystem;
     for(ix=0; ix<strlen(line); ix++) {

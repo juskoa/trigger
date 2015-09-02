@@ -46,9 +46,10 @@ int daqlogbook_close();
 int daqlogbook_update_LTUConfig(unsigned int run, const char *detector,
   unsigned int LTUFineDelay1, unsigned int LTUFineDelay2, 
   unsigned int LTUBCDelayAdd);
-int daqlogbook_update_triggerConfig(int runn, char *mem, char *alignment);
+int daqlogbook_update_triggerConfig(int runn, char *mem, char *alignment, unsigned int effiout);
 int daqlogbook_update_cs(unsigned int runn, char *cs_string);
 int daqlogbook_update_ACTConfig(unsigned int rundec, char *itemname,char *instname,char *version);
 int daqlogbook_update_clusters(unsigned int runn, char *pname,
-  TDAQInfo *daqi, unsigned int ignoredaqlog, unsigned int effiout);
+  TDAQInfo *daqi, unsigned int ignoredaqlog); //, unsigned int effiout);
+//int daqlogbook_update_triggerFilteredInputs(unsigned int runn, unsigned int inputDetectorMask);
 void printTDAQInfo(TDAQInfo *tdaq);

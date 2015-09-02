@@ -59,7 +59,7 @@ for klas in 'partition classes':
 rc: #of enabled classes
 */
 int enableclassgroup(Tpartition *part, int setclgroup) {
-int iclass, rc=0, pcfgn=0; w32 mskCLAMASK;
+int iclass, rc=0, deact=0, pcfgn=0; w32 mskCLAMASK;
 char msg[900];
 if(l0AB()==0) {   //firmAC
   mskCLAMASK=0x80000000;
@@ -92,12 +92,12 @@ for(iclass=0; iclass<NCLASS; iclass++) {
     if(mskbit==0) rc++;
   } else {
     // deactivate (1: class is not active)
-    mskbit= 1; 
+    mskbit= 1; deact++;
   };
   setClaMask(hwclass+1, mskbit);
 };
 if(DBGCLGROUPS) {
-  sprintf(msg, "%s: allclasses:%d activated:%d", part->name, pcfgn, rc);
+  sprintf(msg, "%s: allclasses:%d activated:%d deact:%d", part->name, pcfgn, rc, deact);
   prtLog(msg);
 };
 return(rc);
@@ -164,19 +164,24 @@ if(clgroup!=0xfffffffe) {
 showTotals(part);
 }
 
-#define waitslot 1000    /* run1: 1000 run2: 10x more   
-from 12.7.2015: back to 1000 (even less is ok - to counters
-move to vme-accessed regs should be <100us.
-Why in p2, there is a message:
+#define waitslot 1000    /* run1: 1000 run2: 10x1000 (for vdm_test 20.8.2015)
+
 startTimer: 1 secs cl.group:1 for part:PHYSICS_1 (0)
 12.07.2015 18:57:38: ***  Error:cgInterrupt:PHYSICS_1 active_cg 2 still != 1, after:110000 us
 getBusyMaskPartition: PHYSICS_1 dets:0x0 clust:0x3 exp:0x3
-
-but in lab this message i snot seen?
-startTimer: 1 secs cl.group:2 for part:PHYSICS_1 (0)
-getBusyMaskPartition: PHYSICS_1 dets:0x0 clust:0x1 exp:0x1
-
 renice +10 -p ctpproxy_pid    -did not help (still message is there)
+
+20.8.2015: 
+Note1:
+the waiting for ctpshmbase->active_cg (updated in ctpdims process)
+takes at least 25ms (25*1000us) in lab -measured on avmes setup (1 fanout).
+It jumps sometimes to 35ms.
+Board readings: L0 ~ 1.7ms busy, L1: 1.4ms , we can count ~ (1.7+5boards*1.5)ms =
+9.2ms for VME readings, i.e. DIM cmnd+eadTVCounters() needs ~ 15ms.
+An expectation for P2: + 5*1.3ms for 5 FOs.
+Note2:
+After ctpdims modification (shm active_cg update in readctpcounters() moved to
+just after readCounters()), the waiting time is ~ 4ms (waitcr = 2)
 */
 
 /*-------------------------------------------------------- cgInterrupt
@@ -194,30 +199,36 @@ if(DBGCLGROUPS) {
 clgroup= nextclassgroup(part);
 if(clgroup > 0) {
   int waitcr;
+  w32 usecs, s1,s2,us1,us2;
   char msg[200];
   setPartDAQBusy(part, 0); // disable triggers
   // following has to be here (see DOC/devdbg/TimeSharing)
-  updateTotalTime(part, clgroup);   // +force counters reading
+  GetMicSec(&s1,&us1);
+  updateTotalTime(part, clgroup);   // +force counters reading(dim cmd)
   enableclassgroup(part, clgroup);  // in HW only
   startTimer(part, 0, 0xfffffffe);
-  /* How can we be sure counters are read out before 
+  /* How can we be sure all the counters are read out before 
      next line execution enabling triggers? Perhaps, dims should run with
      higher priority...
      Let's try to wait for it max. 10ms:
   */
   waitcr=0;
-  while(ctpshmbase->active_cg != clgroup) {
+  while(ctpshmbase->active_cg != clgroup) { 
+    // shm updated by dims process AFTER reading of all counters
     usleep(waitslot);
     waitcr++; if(waitcr>10) { break; };
   };
-  if(waitcr>10) {
+  GetMicSec(&s2,&us2);
+  usecs= DiffSecUsec(s2, us2, s1, us1);
+  printf("cgInterrupt took %d us waitcr:%d\n", usecs, waitcr);
+  /*if(waitcr>10) {
     sprintf(msg, "cgInterrupt:%s active_cg %d still != %d, after:%d us", 
       part->name, ctpshmbase->active_cg, clgroup, waitcr*waitslot);
     prtError(msg);
   } else {
-    ;//sprintf(msg, "cgInterrupt: active_cg ok after %d us", waitcr*waitslot);
-    //prtLog(msg);
-  };
+    sprintf(msg, "cgInterrupt: active_cg ok after %d us", waitcr*waitslot);
+    prtLog(msg);
+  }; */
   unsetPartDAQBusy(part, 0); // enable triggers
 };
 }

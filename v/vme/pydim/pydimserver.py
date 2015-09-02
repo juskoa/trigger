@@ -156,8 +156,8 @@ def main():
           part.savepcfg(wdir=parted.WORKDIR)   # without 'rcfg '
           pts[partname]= part   # store for rcfg phase only if no load errors
           # following seems ok even before savercfg (to be checked):
-          inpdets= part.prtInputDetectors(hexs="yes")
-          #print "after savepcfg indets effectively out:", inpdets
+          inpdets= part.prtInputDetectors(hexs="yes")    # ret: effout inpdets
+          print "after savepcfg indets effectively out:", inpdets, runnumber
           io[1].write("indets %s %s\n"%(runnumber, inpdets))
         else:
           f= open( os.path.join( parted.WORKDIR,fname), "w")

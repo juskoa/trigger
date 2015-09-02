@@ -1103,11 +1103,11 @@ if(l0C0()>=0xc606) {
 } else {
   maxbitallowed=26;
 };
-if(DBGgetInputDets) 
+/*if(DBGgetInputDets) 
   printf("getInputDets: %d clgr:%d 0x%x 0x%x 0x%x 0x%x\n",
     klpo->hwclass, klpo->classgroup,
     klpo->lmcondition, klpo->l0inputs, klpo->l1definition, klpo->l2definition);
-  // getInputDets: 0xff7fffff 0x1fffffff 0x1f000fff
+*/
 for(ixlevel=0; ixlevel<3; ixlevel++) {
   inpdets=0;
   if( ixlevel==2) { ins012= klpo->l2definition; };
@@ -1164,8 +1164,10 @@ for(ixlevel=0; ixlevel<3; ixlevel++) {
     };      // endof: l0inp24 + all LMs checked
   };   // for all inputs + L0F1/2
   if(DBGgetInputDets) 
+    if((ixlevel==0) && (*l0finputs!=0)) {   // only relevant cases
     printf("getInputDets: L%d input detectors:0x%x l0finputs:0x%x\n", 
       ixlevel, inpdets, *l0finputs);
+    };
   allinpdets= allinpdets|inpdets;
 };   // for all 0/1/2 levels
 RTRN:

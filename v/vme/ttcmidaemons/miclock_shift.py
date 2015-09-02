@@ -40,15 +40,18 @@ def signal_handler(signal, stack):
 
 def rmzero(strg):
   rcstr=""
-  for ix in range(len(strg)):
-    if strg[ix]=='\0': break
-    rcstr= rcstr+strg[ix]
-  #if strg[-1]=='\0':
-  #  rcstr= strg[:-1]
-  #  #print "rmzero:%s:%s:"%(strg,rcstr)
-  #else:
-  #  #print 'rmzero:%s'%strg
-  #  rcstr= strg
+  #old version (till sep1 2015):
+  #for ix in range(len(strg)):
+  #  if strg[ix]=='\0': break
+  #  rcstr= rcstr+strg[ix]
+  # new version (ok in pydim/fsclient.py)
+  if strg[0]=='\0': return ""
+  eos= strg.find('\x00')
+  if eos >=0:
+    rcstr= strg[:eos]
+  else:
+    rcstr= strg
+  #
   return rcstr
 class web:
   def __init__(self):
@@ -246,7 +249,7 @@ def callback_bm(ecsbm):
   ## 
   #mylog.logm("callback_bm: "+bmname)
   #if (prev_bmname=="RAMP") or (bmname=="FLAT TOP"):
-  if bmname=="PREPARE RAMP":
+  if (bmname=="PREPARE RAMP") or (bmname=="RAMP"):
     sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
     import getfsdip
     reload(getfsdip)

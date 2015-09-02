@@ -2524,9 +2524,8 @@ if(tspart!=NULL) {
 RETSTOP_badsyntax:
 if(emsg[0]!='\0') printf("%s\n",emsg);
 RET:
-//npart= getNAllPartitions();  -better in ctp_InitPartition
-//if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
 if(quit==1) {
+  npart= getNAllPartitions();
   if(npart==0) {
     sprintf(emsg,"ctp_proxy stopping (no active partitions)");
     quit=10;
@@ -2757,7 +2756,7 @@ Return : 0 ok
          5 CTP readout enabled, but DDL link not ready
 */
 int ctp_StartPartition(char *name, char *errorReason) {
-int ret,rc=0, clgroup; w32 intddlemu, orbitn;
+int rc=0, clgroup; w32 intddlemu, orbitn;
 Tpartition *part, *tspart;
 char tsname[MAXNAMELENGTH]="";
 char emsg[ERRMSGL];
