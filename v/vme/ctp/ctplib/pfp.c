@@ -825,3 +825,42 @@ int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter)
  
  return 0;
 }
+/*FGROUP PF
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 8 bits
+ delay - 9 bits
+ */ 
+void setLML0PFblock(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag)
+{
+ w32 addr=getLM0_PFBLKad(ibl);
+ w32 word=scale+(dT<<5)+(Ncol<<14)+(delay<<22)+(delflag<<31);
+ vmew32(addr,word);
+}
+/*FGROUP PF
+ int1 = 0-selected /1=deselected  
+ int2 = 0/1
+ bcmask 12 bit mask
+*/
+void setLML0PFINTSEL(w32 ibl,w32 int1,w32 int2,w32 bcmask)
+{
+ w32 addr=getLM0_PFINTad(ibl);
+ w32 word=int1+(int2<<1)+(bcmask<<2);
+} 
+/*FGROUP PF
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 8 bits
+ delay - 9 bits
+ int1 = 0/1 
+ int2 = 0/1
+ bcmask 12 bit mask 
+ */ 
+void setLML0PF(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag,w32 int1,w32 int2,w32 bcmask)
+{
+ w32 addr=getLM0_PFBLKad(ibl);
+ w32 word=scale+(dT<<5)+(Ncol<<14)+(delay<<22)+(delflag<<31);
+ vmew32(addr,word);
+ setPFINTSEL(ibl,int1,int2,bcmask);
+}
+
