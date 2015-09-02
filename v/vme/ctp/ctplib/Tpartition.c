@@ -152,6 +152,9 @@ if(rbif != NULL){
     for(ix=0; ix<8; ix++) {
       strcpy(&rbif->lut8[ix*LUT8_LEN],"0x0000000000000000000000000000000000000000000000000000000000000000");
     };
+    for(ix=0; ix<6; ix++) {
+      strcpy(&rbif->intlut8[ix*LUT8_LEN],"0x0000000000000000000000000000000000000000000000000000000000000000");
+    };
   };
   /* rbif->l0f3sym[0]='\0'; rbif->l0f4sym[0]='\0';
   for(j=0;j<LEN_l0f34;j++){
@@ -251,6 +254,9 @@ for(jx=0; jx<L0FINTN*L0INTFSMAX; jx++) {    // l0f1/2/3/4 int* symb. definitions
 };
 for(jx=0; jx<8*LUT8_LEN; jx++) {    // l0f1/2/3/4 definitions
   dst->lut8[jx]= src->lut8[jx];
+};
+for(jx=0; jx<6*LUT8_LEN; jx++) {    // l0f1/2/3/4 definitions
+  dst->intlut8[jx]= src->intlut8[jx];
 };
 //von for(jx=0;jx<LEN_l0f34;jx++){ dst->lut34[jx]= src->lut34[jx]; };
 //von strcpy(dst->l0f3sym,src->l0f3sym);  // l0f3/4 symb. defs
@@ -787,7 +793,7 @@ int getIDl0f(TRBIF *rbifs, int l0fn, w32 *l0finputs, int *purelm) {
 char *l0ftxt; int maxinpallowed,ixn, rcinpdets=0;
 char currone[24];
 char emsg[400];
-char emsg2[400];
+//char emsg2[400];
 *purelm=1;
 if(l0C0()>=0xc606) {
   maxinpallowed=8;
@@ -1839,6 +1845,13 @@ if(l0C0()>=0xc606) {
   };
   for(ixf=0; ixf<8; ixf++) {
     printf("load2HW set lut8[%d] %s\n", ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
+  };
+  // int funs
+  for(ixf=0; ixf<3; ixf++) {
+    setSharedINT3(ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
+  };
+  for(ixf=0; ixf<6; ixf++) {
+    printf("load2HW set intlut8[%d] %s\n", ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
   };
 } else {
  // 2 4-inputs luts:

@@ -218,6 +218,7 @@ typedef struct TRBIF{
  TPastFutCommon pfCommon;
  w8 PFCuse;               // 0 not used (PF not used at all), 1: used
  char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
+ char intlut8[6*LUT8_LEN];   // 3xintlut8L0F+3xintlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 
 TRBIF *allocTRBIF();
@@ -318,6 +319,7 @@ Tinput validCTPINPUTs[NCTPINPUTS];
 Tpartitionshm startedParts[MNPART];
 // w8 lut34s[LEN_l0f34];   thrown out 9.7.2015
 char lut88[8*LUT8_LEN];   // 8 lut8 LUTs l01..4 lm1..4, format: "0xabef.64" hwcopy
+char intlut88[6*LUT8_LEN];  // 6 LUTs for PF
 }Tctpshm;
 
 /* TDAQInfo for DAQlogbook gathered [mostly] in ctpproxy and passed to the server
@@ -527,6 +529,8 @@ void cshmResumePartition(Tpartition *part);
 int cshmGlobalDets();
 int cshmsetLUT(int lutn, char *m4);
 int cshmgetLUT(int lutn, char *m4);
+int cshmsetintLUT(int lutn, char *m4);
+int cshmgetintLUT(int lutn, char *m4);
 
 // others. swtrigger.c:
 //void clearflags();
