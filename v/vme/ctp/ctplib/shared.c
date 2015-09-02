@@ -72,9 +72,9 @@ w= vmer32((SCALED_1)); printf("0x%x\n", w);
 w= vmer32((SCALED_2)); printf("0x%x\n", w);
 w= vmer32(LM_SCALED_1); printf("0x%x\n", w);
 w= vmer32(LM_SCALED_2); printf("0x%x\n", w);
-w= vmer32((L0_INTERACT1)); printf("0x%x\n", w);
-w= vmer32((L0_INTERACT2)); printf("0x%x\n", w);
-w= vmer32((L0_INTERACTT)); printf("0x%x\n", w);
+//w= vmer32((L0_INTERACT1)); printf("0x%x\n", w);
+//w= vmer32((L0_INTERACT2)); printf("0x%x\n", w);
+//w= vmer32((L0_INTERACTT)); printf("0x%x\n", w);
 w= vmer32((L0_INTERACTSEL)); 
 printf("0x%x\n", w&0x1f); printf("0x%x\n", ((w>>5)&0x1f));
 w= vmer32((ALL_RARE_FLAG)); printf("0x%x\n", w&0x1);
@@ -101,6 +101,23 @@ for(lutn=1; lutn<=8; lutn++) {
   };
 }; printf("%s", errmsg);
 };
+void getSharedintl0mfs() {
+int lutn; char val[LUT8_LEN]; char l0fs[3*LUT8_LEN];
+char errmsg[3*100]="";
+if(notInCrate(1)) return;
+for(lutn=1; lutn<=6; lutn++) {
+  /*rc=*/ cshmgetintLUT(lutn, val);
+  if(lutn<=3) {
+    printf("%s\n", val);
+    strcpy(&l0fs[(lutn-1)*LUT8_LEN], val);
+  } else {
+    if(strcmp(val, &l0fs[(lutn-4)*LUT8_LEN])!=0) {
+      sprintf(errmsg, "%slmf%d != l0f%d\n", errmsg,
+        lutn-3, lutn-3);
+    };
+  };
+}; printf("%s", errmsg);
+};
 /*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
@@ -110,6 +127,42 @@ vmew32((RANDOM_1), r1);
 vmew32((RANDOM_2), r2);
 vmew32((SCALED_1), bs1);
 vmew32((SCALED_2), bs2);
+}
+void setSharedAll(int shr,w32 value)
+{
+ switch(shr)
+ {
+  case 0:
+	vmew32((RANDOM_1), value); return;
+  case 1:
+	vmew32((RANDOM_2), value); return;
+  case 2:
+	vmew32(LM_RANDOM_1, value); return ;
+  case 3:
+	vmew32(LM_RANDOM_2, value); return ;
+  case 4:
+	vmew32((SCALED_1), value); return;
+  case 5:
+	vmew32((SCALED_2), value); return;
+  case 6:
+	vmew32(LM_SCALED_1, value); return;
+  case 7:
+	vmew32(LM_SCALED_2, value); return ;
+  case 15:
+	vmew32(L0_INTERACTSEL, value);
+	vmew32(LM_INTERACTSEL, value);
+        return;
+  case 16:
+	vmew32(L0_INTERACTSEL, value);
+	vmew32(LM_INTERACTSEL, value);
+        return;
+  case 17: return;
+	vmew32(ALL_RARE_FLAG , value); return;
+  default:
+        printf("setSharedAll: resource %i not allowed. \n",shr);
+        return ;
+ }
+ return;
 }
 void setShared_Old(w32 r1,w32 r2,w32 bs1,w32 bs2,
                w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2) {
@@ -156,9 +209,9 @@ m4[14]
 ...
 m4[0]  -i.e. last 4 hex-digits from m4
 */
-if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
+if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0) || (strcmp(m4,"0x0")==0)) {
   w32 lutw;
-  if(strcmp(m4,"0")==0) { lutw=0;
+  if((strcmp(m4,"0")==0) || (strcmp(m4,"0x0")==0)) { lutw=0;
     cshmsetLUT(lutn, "0x0000000000000000000000000000000000000000000000000000000000000000");
   } else { lutw=0xffff0000;
     cshmsetLUT(lutn, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
@@ -198,7 +251,7 @@ in shared memory +hw
 rc:0 ok, rc>0: error: bad string on input, or bad lutn input */
 int setLUT(int lutn, char *m4) {
 if((strlen(m4)!=(LEN_LUT8/4+2)) &&
-   (strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0)) {
+   (strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0) && (strcmp(m4,"0x0"))) {
   printf("ERROR setLUT:=%s= len:%d\n", m4, (int)strlen(m4));
   return(254);
 };
@@ -231,10 +284,8 @@ if(rc==0)printf("LUT%d (l0f%d + lmf%d) loaded\n", X, X, X+4);
 //////////////////////////////////////////////////////////////////
 // INT functions
 //////////////////////////////////////////////////////////////////
-#define LEN_LUT6 256   // bits
 /*
  * setINTLUT1 = setLUT1 but:
- * - no shared memory
  * - different lut address   
  */ 
 void setINTLUT1(int lutn, char *m4) {
@@ -247,21 +298,21 @@ m4[14]
 ...
 m4[0]  -i.e. last 4 hex-digits from m4
 */
-//if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0)) {
-if((strcmp(m4,"0x0")==0)) {
-  w32 lutw=0;
-  //if(strcmp(m4,"0x0")==0) 
-  //{ lutw=0;
-  //} else { lutw=0xffff0000;
-  //};
-  for(is=LEN_LUT6/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
+if((strcmp(m4,"0")==0) || (strcmp(m4,"1")==0) || (strcmp(m4,"0x0")==0)) {
+  w32 lutw;
+  if((strcmp(m4,"0")==0) || (strcmp(m4,"0x0")==0)) { lutw=0;
+    cshmsetintLUT(lutn, "0x0000000000000000000000000000000000000000000000000000000000000000");
+  } else { lutw=0xffff0000;
+    cshmsetintLUT(lutn, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  };
+  for(is=LEN_LUT8/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
     //int isx;
     // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
     //sx= (is-1)*4;
     vmew32(lutadr, lutw|(16-is));
   };
 } else {
-  for(is=LEN_LUT6/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
+  for(is=LEN_LUT8/16; is>=1; is--){   // 16 bits/word in LUT, LUT=16words
     w32 lutw; int isx;
     // isx: pointing to char in m4 (60,56,52,48,44,...,8,4,0)
     isx= (is-1)*4;
@@ -271,20 +322,25 @@ if((strcmp(m4,"0x0")==0)) {
     vmew32(lutadr, lutw);
   };
   /* update shared memory */
+  cshmsetintLUT(lutn, m4);
 };
 }
 int setINTLUT(int lutn, char *m4) {
-//printf("setINTLUT called \n");
-if((strlen(m4)!=(LEN_LUT6/4+2)) &&
-   (strcmp(m4,"0x0")!=0)) {
+//if((strlen(m4)!=(LEN_LUT8/4+2)) &&
+//   (strcmp(m4,"0x0")!=0)) {
    //(strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0)) {
+//  printf("ERROR setINTLUT:=%s= len:%d\n", m4, (int)strlen(m4));
+//  return(254);
+//};
+if((strlen(m4)!=(LEN_LUT8/4+2)) &&
+   (strcmp(m4,"0")!=0) && (strcmp(m4,"1")!=0) && (strcmp(m4,"0x0"))) {
   printf("ERROR setINTLUT:=%s= len:%d\n", m4, (int)strlen(m4));
   return(254);
 };
 if(lutn==0) {   // all 8 LUTs operations:
   int lutn1;
   for(lutn1=1;lutn1<=6;lutn1++){
-    setLUT1(lutn1, m4);
+    setINTLUT1(lutn1, m4);
   };
 } else if((lutn>=1) and (lutn<=6)) {   // one LUT operations:
   setINTLUT1(lutn, m4);
@@ -293,7 +349,7 @@ if(lutn==0) {   // all 8 LUTs operations:
 };
 return(0);
 };
-void setSharedINT(int X, char *lut) {
+void setSharedINT3(int X, char *lut) {
 int rc;
 //printf("setSharedINT called \n");
 rc= setINTLUT(X, lut);

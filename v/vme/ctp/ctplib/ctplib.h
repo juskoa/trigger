@@ -23,6 +23,8 @@ typedef struct Tlhcpp {
 // LUT8
 int setLUT(int lutn, char *m4);       // 1..8
 void setShared4(int lutn, char *m4);   // 1..4
+int setLUTINT(int lutn, char *m4);       // 1..8
+void setSharedINT3(int lutn, char *m4);   // 1..4
 
 int bobrOpen();
 void bobrClose(int vspbobr);

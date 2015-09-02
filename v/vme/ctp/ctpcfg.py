@@ -152,7 +152,7 @@ class Ctpconfig:
     grp3start= lastshrgrp1+4
     lmrnds= 2
     lmbcds= 6
-    rbiflen= 9
+    rbiflen= 11
     lmrblen= 4   # number of items (space separated) in LMRB line
     intsellen= 2
     dbgbits=6 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
@@ -297,9 +297,9 @@ class Ctpconfig:
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
       Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
       Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
-      AttrLUT('INTfun1',["0x0",8,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfun2',["0x0",8,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfunT',["a&b&(c|d)",8,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun1',["a",8,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun2',["b",8,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfunT',["c",8,0], TrgSHR.L0FUNxHelp),
       AttrLUT('L0fun1',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun2',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun3',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
@@ -627,6 +627,7 @@ Middle-> modify the invert bit (only for classes 45-50)
         continue
       if lab=='RBIF': 
         # r1 r2 b1 b2 INTf1 INTf2 INTfT L0f1 L0f2
+        #self.readSharedline("RBIF", rest,0, Ctpconfig.rbiflen,sep=':')
         self.readSharedline("RBIF", rest,0, Ctpconfig.rbiflen,sep=':')
       elif lab=='LMRB': 
         # r1 r2 b1 b2
@@ -758,7 +759,8 @@ Middle-> modify the invert bit (only for classes 45-50)
     inx=0
     if tp=="RBIF":
       # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
-      reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12}
+      #reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12}
+      reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12, 9:13, 10:14}
     if tp=="LMRB":
       reshuf= { 0:2, 1:3, 2:6, 3:7}
     #for ishr in range(ix1, ix2+1):
@@ -784,6 +786,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       elif tp=="RBIF":
         # RBIF
         binval= eval(shr[inx])
+        print "binval: inx=",inx," ",type(shr[inx])," ", type(binval)
         self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
         inx= inx+1
       elif tp=="LMRB":
@@ -799,28 +802,41 @@ Middle-> modify the invert bit (only for classes 45-50)
     # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
     # reshuf= {0:0, 1:1, 2:12, 3:13, 4:2, 5:3, 6:14, 7:15, 8:4, 9:5, 10:6 , 11:7, 12:8, 13:9, 14:10, 15:11}
     print "len shared= ",len(shr)
-    # expected: RND1 RND2 LMRND1 LMRND2 BC1 BC2 LMBC1 LMBC2 INTfun1 INTfun2 INTfunT INT1 INT2  RARE
-    # expected:    0    1      2      3   4   5     6     7       8       9      10   11   12    13
-    if len(shr) != (15):      
+    # expected: RND1 RND2 LMRND1 LMRND2 BC1 BC2 LMBC1 LMBC2  INT1 INT2  RARE
+    # expected:    0    1      2      3   4   5     6     7     8    9    10  
+    # INTfun1, INTfun2 and INTfunT are lut8
+    if len(shr) != (12):      
       print "Error readShared:",shr
-    for ishr in range(len(shr)-1):   #0..13
+    for ishr in range(len(shr)-1):   #0..10
         v=shr[ishr]
-        if ishr<=10:
+        if ishr<=7:
            self.sharedrs[ishr].setattrfo(eval(v), 1)
         else: 
-           self.sharedrs[ishr+4].setattrfo(eval(v), 1)
+           self.sharedrs[ishr+7].setattrfo(eval(v), 1)
         #self.sharedrs[ishr].hwwritten(1)
-    if (Gl0C0>=0xc606):
-      shr= vbexec.getsl("getSharedl0mfs()")
-      print "readShared l0fs:", shr
-      for ix in range(len(shr)-1):   #0..3 + error lines if any
-        v= shr[ix]
-        if ix<=3:
-          ishr= ix+ (Ctpconfig.lastshrgrp1-3)
-          self.sharedrs[ishr].setattrfo(v[2:], 1)
-        else:
-          # error messages:
-          print v
+    # intluts
+    shr= vbexec.getsl("getSharedintl0mfs()")
+    print "readShared intl0fs:", shr
+    for ix in range(len(shr)-1):   #0..3 + error lines if any
+      v= shr[ix]
+      if ix<=2:
+        ishr= ix+8
+        self.sharedrs[ishr].setattrfo(v[2:], 1)
+      else:
+        # error messages:
+        print v
+    # luts
+    shr= vbexec.getsl("getSharedl0mfs()")
+    print "readShared l0fs:", shr
+    for ix in range(len(shr)-1):   #0..3 + error lines if any
+      v= shr[ix]
+      if ix<=3:
+        ishr= ix+11
+        self.sharedrs[ishr].setattrfo(v[2:], 1)
+      else:
+        # error messages:
+        print v
+    # BCmasks
     longs=vbexec.getline("getBCmasks()");
     self.str2masks(longs)
     for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
@@ -859,8 +875,12 @@ Middle-> modify the invert bit (only for classes 45-50)
           else:
             cmd= "%s0x%x:"%(cmd, self.sharedrs[ishr].getbinval())
       cmd=cmd[:-1]+"\n"; cmd2=cmd2[:-1]+"\n"
-      cf.write(cmd) ; cf.write(cmd2)
+      print "cmd: ",cmd
+      cf.write(cmd) ; 
+      print "cmd2: ",cmd2
+      cf.write(cmd2)
       cmd="INTSEL 0x%x 0x%x\n"%(intselw, allrare)
+      print "cmd intsel: ",cmd
       cf.write(cmd)
       cmd="BCMASKS %s\n"%(self.masks2str())
       cf.write(cmd)
@@ -873,57 +893,57 @@ Middle-> modify the invert bit (only for classes 45-50)
           cf.write(cmd)
     else:
       writeit=0   # update hw only if at least 1 changed
-      writeit3=0
-      writeit4=0
-      cmd1="setShared("
-      cmd3="setShared3("
-      for ishr in range(Ctpconfig.lastshrgrp1+1):
-        print  "writeShared:%d %s "%(ishr, self.sharedrs[ishr].atrname), self.sharedrs[ishr].getbinval()
-        if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
-           (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
-          if self.sharedrs[ishr].modified(): writeit3=1
-          cmd3= "%s0x%x,"%(cmd3, self.sharedrs[ishr].getbinval())
-          print "cmd3:",cmd3
-        else:
-          if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=14): #4xlut8
-            if self.sharedrs[ishr].modified():   # let's do it separately for each l0fX+lmfX function
-              cmd4= 'setShared4(%d,"0x%x")'%(ishr-10, self.sharedrs[ishr].getbinval())
-              print "cmd4:",cmd4
-              vbexec.get1(cmd4)
-          elif (ishr>=8) and (ishr<=10): 
-            if self.sharedrs[ishr].modified():   # let's do it separately for each INT fun
-              cmd5= 'setSharedINT(%d,"0x%x")'%(ishr-4, self.sharedrs[ishr].getbinval())
-              print "cmd5:",cmd5
-              vbexec.get1(cmd5)
-          else:
-            if self.sharedrs[ishr].modified(): writeit=1
-            cmd1= "%s0x%x,"%(cmd1, self.sharedrs[ishr].getbinval())
-        self.sharedrs[ishr].hwwritten(1)
-      cmd1=cmd1[:-1]+")" ; 
-      cmd3=cmd3[:-1]+")"
-      print 'cmd1: ',cmd1
-      print 'write 1 3 4:', writeit,writeit3,writeit4
-      if writeit==1: vbexec.get1(cmd1)
-      if writeit3==1: vbexec.get1(cmd3)
-      writeit=0   # INT1, INT2, All/Rare
-      for ishr in range(Ctpconfig.lastshrgrp1+1,Ctpconfig.lastshrgrp1+4):
-        if self.sharedrs[ishr].modified(): writeit=1
-        self.sharedrs[ishr].hwwritten(1)
-      cmd1="setShared2(0x%x,0x%x)"%(intselw,allrare) 
-      if writeit==1: vbexec.get1(cmd1)
-      writeit=0
-      for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
-        if self.sharedrs[ishr].modified(): writeit=1
-        self.sharedrs[ishr].hwwritten(1)
-      cmd1="setBCmasks()\n"+self.masks2str()
-      if writeit: 
-        rcstr=vbexec.getline(cmd1)
-        #print "writeShared1:",rcstr,':'
-        #rcstr2=vbexec.getoutput()
-        #print "writeShared2:",rcstr2,':'
-        #print "writeShared thread"
-        #self.dooutmskthd=vbexec.cmdthread(cmd1, self.dooutmsk)
-        #print "writeShared thread:",self.dooutmskthd
+      for ishr in range(30):
+        #print "is number: ",(self.sharedrs[ishr].getbinval()).isdigit()
+        #print  "writeShared:%d %s "%(ishr, self.sharedrs[ishr].atrname), self.sharedrs[ishr].getbinval()
+        value = self.sharedrs[ishr].getbinval()
+        if ishr<8:
+          if self.sharedrs[ishr].modified():
+             cmd= "setSharedAll(%i,0x%x)"%(ishr,value)
+             print cmd
+             vbexec.get1(cmd)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr<11:  # intfun
+          if self.sharedrs[ishr].modified():   # let's do it separately for each INT fun
+             if type(value) is str: 
+                print type(value),value
+                value=eval(value)
+             cmd5= 'setSharedINT3(%d,"0x%x")'%(ishr-4,value)
+             print "cmd5:",cmd5
+             vbexec.get1(cmd5)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr<15: # l0mfun
+          if self.sharedrs[ishr].modified():   # let's do it separately for each l0fX+lmfX function
+             if type(value) is str: 
+                print type(value),value
+                value=eval(value)
+             cmd4= 'setShared4(%d,"0x%x")'%(ishr-10, value)
+             print "cmd4:",cmd4
+             vbexec.get1(cmd4)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr==15: # int1
+          if self.sharedrs[ishr].modified():
+             self.sharedrs[ishr].hwwritten(1)
+             # fo it at 16
+        elif ishr==16: # int and iint2
+          if self.sharedrs[ishr].modified() or self.sharedrs[ishr-1].modified: 
+             cmd= "setSharedAll(%i,0x%x)"%(ishr,intselw)
+             print cmd
+             vbexec.get1(cmd)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr==17:  # allrare     
+          if self.sharedrs[ishr].modified():
+             cmd= "setSharedAll(%i,0x%x)"%(ishr,value)
+             print cmd
+             self.sharedrs[ishr].hwwritten(1)
+        else: 
+          if self.sharedrs[ishr].modified(): writeit=1
+          self.sharedrs[ishr].hwwritten(1)  #??
+      if writeit:
+         #cmd="setBCmasks()\n"+self.masks2str()
+         cmd="setBCmasks()\n"
+         #print cmd
+         rcstr=vbexec.getline(cmd)
   #def dooutmsk(self, outstr):
   #  print "dooutmsk:",outstr,":"
   #  vbexec.pwrite0(self.dooutmskthd,self.masks2str()+'\n')

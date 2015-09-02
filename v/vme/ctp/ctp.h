@@ -389,6 +389,8 @@ bits    Meaning
 
 #define LM_PF_INT_SEL 0x9160 //use getLM0_PFINT                            
 #define LM_PF_BLOCK 0x9314 //use getLM0_PFBL                            
+#define L0_PF_INT_SEL 0x93b4 //use getLM0_PFINT                            
+#define L0_PF_BLOCK 0x93a4 //use getLM0_PFBL                            
 //#define L0_FUNCTION1   0x9214 // use getLM0_F8add
 //#define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
@@ -721,6 +723,9 @@ stdout:
 */
 void getSharedl0mfs();
 /*FGROUP L0
+*/
+void getSharedintl0mfs();
+/*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
 void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2);
@@ -734,6 +739,9 @@ set LM_rnd1/2 LM_bcd1/2
 */
 void setShared3(w32 lmr1, w32 lmr2, w32 lmbc1, w32 lmbc2);
 /*FGROUP L0
+*/
+void setSharedAll(int res,w32 value); 
+/*FGROUP L0
 set LM_ l0fX + lmfX (the same content for both)
 I: X 1..4  -> sets l0fX+lmfX
 lut: string \"0xa... 64 chars\"
@@ -742,7 +750,7 @@ void setShared4(int X, char *lut);
 /*FGROUP L0
 set INTLM/INTL0
 */
-void setSharedINT(int X, char *lut);
+void setSharedINT3(int X, char *lut);
 /*----------------------------libctp.a subroutines for new firmware  */
 /* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
@@ -899,6 +907,32 @@ Resets PLL clock on all boards
 */
 void resetPLLS();
 
+/*FGROUP PF
+ LM0 BOARD:
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 9 bits
+ Ncol - 8 bits
+ delay - 9 bits
+ delayflag = 1 = nodaly
+ */ 
+void setLML0PFblock(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag);
+/*FGROUP PF
+ int1 = 0/1 
+ int2 = 0/1
+ bcmask 12 bit mask 
+*/
+void setLML0PFINTSEL(w32 ibl,w32 int1,w32 int2,w32 bcmask);
+/*FGROUP PF
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 8 bits
+ delay - 9 bits
+ int1 = 0/1 
+ int2 = 0/1
+ bcmask 12 bit mask 
+ */ 
+void setLML0PF(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag,w32 int1,w32 int2,w32 bcmask);
 /* PF in pfp.c: */
 /*FGROUP PF 
 Read the recent PF setting
