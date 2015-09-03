@@ -136,7 +136,7 @@ printf("intl0f1..3 intlm1..3:\n");
 for(i=0;i<6;i++){ 
   char lnam[4]; int ixl;
   if(i<3) {strcpy(lnam, "intl0f"); ixl= i+1;
-  } else {strcpy(lnam, "intlmf"); ixl= i-3;}
+  } else {strcpy(lnam, "intlmf"); ixl= i-2;}
   printf("%s%d: %s\n", lnam,ixl, &ctpshmbase->intlut88[(i)*LUT8_LEN]);
 };
 
@@ -193,7 +193,7 @@ return(0);
 
 /*------------------------------ intlut8; hw copy */
 int cshmsetintLUT(int lutn, char *lutt) {
-//printf("cshmsetLUT: %d %x\n", lutn, lutt);
+//printf("cshmsetintLUT: %d %x\n", lutn, lutt);
 strcpy(&ctpshmbase->intlut88[(lutn-1)*LUT8_LEN], lutt);
 return(0);
 }
