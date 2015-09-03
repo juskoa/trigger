@@ -466,19 +466,18 @@ for(i=0;i<bcmaskn;i++){
 }
 /*----------------------------------------------------PF2Partition()
 line:
-PF.x L0_PFBLOCK_A L0_PFBLOCK_B L0_PFLUT
-     L1_PFBLOCK_A L1_PFBLOCK_B L1_PFLUT
-     L2_PFBLOCK_A L2_PFBLOCK_B L2_PFLUT
-     L0_PF_COMMON L1_PF_COMMON L2_PF_COMMON 
+PF.x name bcmask int Tbef Tafter Nbef Nafter Offbef Offafter
+parted checking syntax and number of pfs per partition
 rc: 0: ok
 */
 int PF2Partition(char *line,TRBIF *rbif){ 
 int ixdef,ixx;
 //enum Ttokentype tok; 
-w32 ixpf=0; char hexw[20];
+w32 ixpf=0; char hexw[50];
 ixx=0;
-for(ixdef=0; ixdef< 9; ixdef++) {
-  w32 pfdef1; int rc1;
+int rc1=0;
+for(ixdef=0; ixdef< 12; ixdef++) {
+  w32 pfdef1;
   nxtoken(line, hexw, &ixx);
   //printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
   switch(ixdef){
@@ -545,6 +544,22 @@ for(ixdef=0; ixdef< 9; ixdef++) {
      rbif->pf[ixpf].NintAfter=dec;
      continue;
     }
+    case 10: // Offsetbefore
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].OffBefore=dec;
+     continue;
+    }
+    case 11: //OffsetAfter
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].OffAfter=dec;
+     continue;
+    }
     default : goto BADLINE;
   }
 };
@@ -554,7 +569,7 @@ printTPastFut(&rbif->pf[ixpf]);
 return 0;
 BADLINE:
 { char emsg[300];
-  sprintf(emsg,"PF2Partition: bad line in .pcfg:%s",line);
+  sprintf(emsg,"PF2Partition: rc=%i bad line in .pcfg:%s",rc1,line);
   infolog_trgboth(LOG_FATAL, emsg);
   return 1;
 };
@@ -936,6 +951,32 @@ BADGROUP:
 sprintf(errmsg,"Bad class group:%d for partition:%s",clg,part->name);
 retcode=5; goto RETERR;
 }
+/*------------------------------------------------------pf2class()
+ */
+int pf2class(Tpartition *part)
+{
+ for(int i=0;i<NCLASS;i++){
+  if(part->klas[i] != 0){
+    w32 ipf=0;
+    for(int j=0;j<4;j++){
+       w32 l0veto=part->klas[i]->l0vetos;
+       // pf= bits(4..7)
+       w32 ipfveto=((l0veto&0xf0)>>4);
+       if(ipfveto==0xe)      ipf=0;
+       else if(ipfveto==0xd) ipf=1;
+       else if(ipfveto==0xb) ipf=2;
+       else if(ipfveto==0x7) ipf=3;
+       else {
+        printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
+        return 1;
+       }
+    }
+    strcpy(part->klas[i]->pfname,part->rbif->pf[ipf].name);
+    printf("pf2class: pf %s added tp class %i\n",part->rbif->pf[ipf].name,i);
+  }
+ }
+ return 0;
+} 
 /*----------------------------------------------------ReadPartitionErrors()
   Purpose: print error occured in routine readPartitionErrors()
   Input: - error code 
@@ -1054,6 +1095,8 @@ fflush(stdout);
    newpart->klas[i]->partname=newpart->name;
   }
  }
+ // assign PF name to class
+ if(pf2class(newpart))goto ERROR;
  return newpart;
 
 ERROR:
