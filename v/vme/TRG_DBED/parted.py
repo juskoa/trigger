@@ -856,9 +856,9 @@ class TrgSHR_BCM(TrgSHR):
     """
     pfd= string.split(self.getDefinition())
     print "PF: ",pfd," len=",len(pfd)
-    #if len(pfd)!=6:
-    #  IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
-    #  return False
+    if len(pfd)!=8:
+       IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
+       return False
     # More checks ?
   def prtBits(self):
     ix= TDLTUS.findBCMPFname(self.value, self.bcmpf)
