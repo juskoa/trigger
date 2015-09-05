@@ -412,14 +412,15 @@ bits    Meaning
 /* bit23..0: 1: invert L0 input   0: use original polarity */
 #define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
                                 LM0 note
-31     spare
-30..24 DSCG group (7bits)       new
+28-31     spare
+//30..24 DSCG group (7bits)       obsolete
+27..24 PF LM (4 bits) 
 23     class mask (1:disabled)  new   see also class mask in lm_veto
 22     spare
 21     Select LM-L0 BUSY 1: don't care 0: do not kill L0 for ongoing LM
 20     1:All   0:Rare
 19..8: Select BCmask[12..1]
- 7..4: Select PFprot[4..1]      the same
+ 7..4: Select PFprot[4..1]      the same L) protection
  2..0: Cluster code (1-6)       the same
 
 Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
@@ -449,19 +450,18 @@ LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_V
 #define LM_VETO        0x9e00
 /* veto bits: 1: don't care   0:consider this veto
 31     spare
-30..24 LM down scaling Class group (SDSCG) 7bits
+30..24  spare (before LM down scaling Class group (SDSCG) 7bits)
 23     class mask: 1:class disabled on LM 
-22..16 spare
+22..18 spare
      see also L0_VETOr2 class mask. Meaning of both bits:
      LM L0
      1  0   pure L0class
      0  0   LMclass
 
-15..14 spare veto bits
-13..10 Select PFprot[4..1]      the same
+17..10 Select PFprot[8..1]    (8 bits)  
  9     All/Rare input
  8     LM deadtime
- 7..0  Cluster BUSY enabled 8..1  not connected yet (10.4.)
+ 7..0  spare Cluster BUSY enabled 8..1  not connected / probably never be
 */
 
 /* L1 board */
