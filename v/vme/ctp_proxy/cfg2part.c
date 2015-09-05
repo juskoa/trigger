@@ -501,10 +501,10 @@ for(ixdef=0; ixdef< 12; ixdef++) {
     case 5: // INT: INTL01,INTL02,INTLM1,INTLM2
     {
      w32 inter;
-     if (strcmp(hexw,"INTL01") == 0 ) inter=3;
-     else if (strcmp(hexw,"INTL02") == 0 ) inter=4;
-     else if (strcmp(hexw,"INTLM1") == 0 ) inter=1;
-     else if (strcmp(hexw,"INTLM2") == 0 ) inter=2;
+     if (strcmp(hexw,"INT1") == 0 ) inter=1;
+     else if (strcmp(hexw,"INT2") == 0 ) inter=2;
+     //else if (strcmp(hexw,"INTLM1") == 0 ) inter=1;
+     //else if (strcmp(hexw,"INTLM2") == 0 ) inter=2;
      else{
       printf("Wrong INT, should be one of INTL01,INTL02,INTLM1,INTLM2\n");
       goto BADLINE;
