@@ -85,17 +85,27 @@ for(ix=0; ix<NSDGS; ix++) {
 }
 
 /*------------------------------------------------------------ copyPF
+ * obsolete
 */
 void copyPF(TPastFut *newpf, TPastFut *pf) {
 int ix;
 for(ix=0; ix< ixMaxpfdefs; ix++) {
-  newpf->pfdefs[ix]= pf->pfdefs[ix]; 
+  //newpf->pfdefs[ix]= pf->pfdefs[ix]
+  strcpy(newpf->name,pf->name);
+  newpf->bcmask=pf->bcmask;
+  newpf->PeriodBefore=pf->PeriodBefore;
+  newpf->PeriodAfter=pf->PeriodAfter;
+  newpf->NintBefore=pf->NintBefore;
+  newpf->NintAfter=pf->NintAfter; 
+  newpf->OffBefore=pf->OffBefore;
+  newpf->OffAfter=pf->OffAfter; 
+  //pfdefs[ixMaxpfdefs];
 };
 }
 int checkPF(TPastFut *newpf, TPastFut *pf) {
 int ix;
 for(ix=0; ix< ixMaxpfdefs; ix++) {
-  if(newpf->pfdefs[ix]!= pf->pfdefs[ix] ) return 1;
+  //if(newpf->pfdefs[ix]!= pf->pfdefs[ix] ) return 1;
 }; return 0;   // ok
 }
 void copyPFC(TPastFutCommon *newpfc, TPastFutCommon *pfc) {
@@ -138,7 +148,6 @@ void cleanTRBIF(TRBIF *rbif, int leaveint){
 int ix,i,j;
 //char bcmask[ORBITLENGTH];
 if(rbif != NULL){
-  int jj;
   for(i=0; i<ixrbifdim; i++) {
     if( (i>=ixintfun1) && (i<=ixintfunt) && (leaveint!=0)) continue;
     rbif->rbif[i]=0;
@@ -167,14 +176,19 @@ if(rbif != NULL){
   //strcpy(rbif->BCMASK,"");
   for(j=0;j<ORBITLENGTH;j++){ rbif->BCMASK[j]= 0; };
   // PF:
+  for(int jj=0;jj<NPF;jj++)cleanTPastFut(&rbif->pf[jj]);
+  /*
   for(j=0;j<5;j++){
    rbif->PFuse[j]=0; 
-    for(jj=0;jj<ixMaxpfdefs;jj++){
+    for(int jj=0;jj<ixMaxpfdefs;jj++){
       rbif->pf[j].pfdefs[jj]= 0; 
     };
-  }; rbif->PFCuse=0;
-    for(jj=0;jj<ixMaxpfdefsCommon;jj++) rbif->pfCommon.pfdefsCommon[jj]=0; 
+  }; */ 
+  rbif->PFCuse=0;
+  for(int jj=0;jj<ixMaxpfdefsCommon;jj++) rbif->pfCommon.pfdefsCommon[jj]=0; 
+  
  };
+ 
 }
 /*-----------------*/
 TRBIF *allocTRBIF() {
@@ -235,7 +249,9 @@ for(ix=ixl0fun1; ix<=ixintfunt; ix++) {
 printf("  BCMASKS+PF use:");
 for(ix=0;ix<12;ix++)printf("%2i",rbif->BCMASKuse[ix]);
 printf("  PF:");
-for(ix=0;ix<5;ix++)printf("%2i",rbif->PFuse[ix]);
+for(ix=0;ix<NPF;ix++)printf("%2i",rbif->PFuse[ix]);
+printf("\n");
+for(ix=0;ix<NPF;ix++){printf("%i ",ix); printTPastFut(&rbif->pf[ix]);}
 printf("  PFC:%2i",rbif->PFCuse);
 printf("\n");
 }
@@ -268,11 +284,12 @@ for(jx=0;jx<ORBITLENGTH;jx++){
 for(jx=0;jx<12;jx++){
   dst->BCMASKuse[jx]= src->BCMASKuse[jx];
 };
-for(jx=0;jx<5;jx++){
+for(jx=0;jx<NPF;jx++){
   dst->PFuse[jx]= src->PFuse[jx];
-  if(dst->PFuse[jx]>0) {
-    copyPF(&dst->pf[jx], &src->pf[jx]);
-  };
+  //if(dst->PFuse[jx]>0) {
+  //  copyPF(&dst->pf[jx], &src->pf[jx]);
+  //};
+  copyTPastFut(&dst->pf[jx],&src->pf[jx]);
 }; 
 dst->PFCuse= src->PFCuse;
 if(dst->PFCuse>0) {
@@ -335,28 +352,45 @@ void copyTBUSY(TBUSY *to,TBUSY *from){
 /*-------------------------------------------------------cleanTPastFut()
 */
 void cleanTPastFut(TPastFut *pf){
- if(pf != NULL){
-  for(int i=0;i<ixMaxpfdefs;i++){
-    pf->pfdefs[i]=0;
-  }
- }
- if(pf->bcmask){
-   delete pf->bcmask;
-   pf->bcmask=0;
- }
+ if(pf == NULL) return ;
+  //for(int i=0;i<ixMaxpfdefs;i++)pf->pfdefs[i]=0;
+ pf->bcmask=0;
  pf->inter=0;
  pf->PeriodBefore=0;
  pf->PeriodAfter=0;
  pf->NintBefore=0;
  pf->NintAfter=0;
+ pf->OffBefore=0;
+ pf->OffAfter=0;
+ for(int i=0;i<8;i++)pf->lmpf[i]=0;
+ for(int i=0;i<4;i++)pf->l0pf[i]=0;
+ strcpy(pf->name,"");
 }
 void printTPastFut(TPastFut *pf)
 {
- printf("TpastFut: %s\n",pf->name);
- printf("bcmask: %p\n",pf->bcmask);
+ printf("TPastFut: %s\n",pf->name);
+ printf("bcmask: 0x%x\n",pf->bcmask);
  printf("inter: %i\n",pf->inter);
- printf("PeriodBefore: %i PeriodAfter %i NintBefore %i NintAfter %i\n",pf->PeriodBefore,pf->PeriodAfter,pf->NintBefore,pf->NintAfter);
- 
+ printf("PeriodBefore: %i PeriodAfter %i NintBefore %i NintAfter %i ",pf->PeriodBefore,pf->PeriodAfter,pf->NintBefore,pf->NintAfter);
+ printf("OffBefore %i OffAfter %i \n",pf->OffBefore,pf->OffAfter);
+ printf("lm circuits usage: ");
+ for(int i=0;i<8;i++)printf("%i ",pf->lmpf[i]);
+ printf("\n"); 
+}
+/*-------------------------------------------------------cleanTPastFut()
+*/
+void copyTPastFut(TPastFut *to,TPastFut *fr)
+{
+ to->bcmask=fr->bcmask;
+ to->inter=fr->inter;
+ to->PeriodBefore=fr->PeriodBefore;
+ to->PeriodAfter=fr->PeriodAfter;
+ to->NintBefore=fr->NintBefore;
+ to->NintAfter=fr->NintAfter;
+ to->OffBefore=fr->OffBefore;
+ to->OffAfter=fr->OffAfter;
+ strcpy(to->name,fr->name);
+ for(int i=0;i<8;i++)to->lmpf[i]=fr->lmpf[i];
 }
 /*------------------------------------------------------copyTKlas()
 */
@@ -376,6 +410,7 @@ void copyTKlas(TKlas *toklas,TKlas *fromklas){
  toklas->lmvetos= fromklas->lmvetos;
  toklas->lmscaler= fromklas->lmscaler;
  toklas->sdg= fromklas->sdg;
+ strcpy(toklas->pfname,fromklas->pfname);
 }
 /*---------------------------------------------------- findHWCluster()
 Input: part, pcluster:1-6.
@@ -550,14 +585,16 @@ if(l0C0()<=0xc605) {
 toklas->l0inputs= l0inp;
 toklas->l0vetos= l0veto;      
 toklas->l1definition= l1def;      
-toklas->l2definition= l2def;      
+toklas->l2definition= l2def;     
+strcpy(toklas->pfname,fromklas->pfname); 
 }
 /*---------------------------------------- getCLAMASK() */
 w32 getCLAMASK() {
 if(l0C0()) { 
   //return(0x800000);
   //return(0x800000);
-  return(0x9ffff0);
+  //return(0x9ffff0); 
+  return(0xf9ffff0); //PF
 } else {return(0x80000000);};
 }
 /*----------------------------------------------------------cleanTKlas()
@@ -569,7 +606,8 @@ if(klas != NULL){
   klas->lmcondition=0xffffffff;
   klas->lminverted=0;
   klas->l0vetos=getCLAMASK();// disable klas by default
-  klas->lmvetos= 0x803f00; //class mask, PF1..4, all, LM deadtime ONLY 0xffffff valid!
+  //klas->lmvetos= 0x803f00; //class mask, PF1..4, all, LM deadtime ONLY 0xffffff valid!
+  klas->lmvetos= 0x83ff00; //class mask, PF1..8
   klas->scaler=0;
   klas->lmscaler=0;
   klas->l1definition=0x8fffffff; //0;
@@ -579,6 +617,7 @@ if(klas != NULL){
   klas->classgroup=0;   // always IN
   klas->partname=NULL;
   klas->sdg=-1;
+  strcpy(klas->pfname,"");
 };
 }
 
@@ -590,8 +629,8 @@ void printTKlas(TKlas *klas,int i){
   printf("0x%x 0x%x ",klas->scaler,klas->l1definition);
   printf("0x%x 0x%x hwcl:%d ",klas->l1inverted,
     klas->l2definition, klas->hwclass);
-  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i %s \n",klas->classgroup,
-    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg, klas->partname);
+  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i pf:%s %s\n",klas->classgroup,
+    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg, klas->pfname,klas->partname);
 }
 /*------------------------------------------------------checkCluV0TKlas()
 */
@@ -848,6 +887,75 @@ while(1) {
   ixn=rc+ixn;
 }; 
 return(rcinpdets);
+}
+/*-------------------------------------------------- checkmodLMPF */
+#define LMPFMASK 0x3fc00
+#define L0L0PFMASK 0xf0
+#define L0LMPFMASK 0xf000000
+int checkmodLMPF(Tpartition *part){
+ TRBIF* rbif=HW.rbif;
+ for(int icla=0;icla<NCLASS;icla++){
+  TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
+  if((klas=part->klas[icla])) {
+    printTKlas(klas,icla);
+  } else {
+    continue;
+  };
+  // PF class has to have l0 veto != 0xf
+  if((klas->l0vetos&0xf0) == 0xf0) continue;
+  printf("checkmodLMPF: PF class found %i pf=%s \n",icla,klas->pfname);
+  // Find PF in HW
+  TPastFut* pf;
+  int ipf;
+  for(ipf=0;ipf<NPF;ipf++){
+   pf=&rbif->pf[ipf];
+   if(strcmp(pf->name,klas->pfname)==0)break;
+  }
+  if(ipf==NPF){
+   printf("checkmodLMPF: internal error PF %s not found in HW \n",klas->pfname);
+   return 1;
+  }
+  // check if TRD class
+  cluster= klas->l0vetos & 0x7;
+  clustermask= 1<<(cluster-1);
+  txdets[0]='\0';
+  ixdet= 4 ; 
+  int clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
+  printf("checkmodLMPF: cluster:%d  clsts:0x%x\n", cluster, clsts);
+  int jpf=0; while((jpf<8) && (pf->lmpf[jpf]==0))jpf++;
+  if(jpf==8){
+   printf("chemodLMPF: internal error lmpf mask not found pf:%s\n",pf->name);
+   return 2;
+  }    
+  if((pf->lmpf[jpf+1] !=1 ) || (pf->lmpf[jpf+4] !=1 )){
+   printf("chemodLMPF: internal error lmpf circuits use not subsequent pf:%s\n",pf->name);
+   return 3;
+  }
+  if(clsts & clustermask) {
+    //LM classes
+    printf("checkmodLMPF:LM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    w32 lmv=klas->lmvetos;
+    w32 mask=1<<(jpf+4+10);
+    lmv=lmv&(~mask);
+    klas->lmvetos=lmv;
+    // l0vetoes reset 
+    klas->l0vetos=klas->l0vetos|0xf0;
+    printf("checkmodLMPF:LM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+  }else{
+    //nonLM classes
+    printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    w32 l0v=klas->l0vetos;
+    w32 mask=1<<(jpf+24);
+    mask+=1<<(jpf+1+24);
+    l0v=l0v&(~mask);
+    printf("0x%x\n",l0v);
+    l0v=l0v|0xf0;
+    // reset l0pf (inherited from pcfg)
+    klas->l0vetos=l0v; 
+    printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+  }
+ }
+ return 0;
 }
 /*-------------------------------------------------- checkmodLM */
 int checkmodLM(Tpartition *part){
@@ -1287,21 +1395,19 @@ for(icla=0 ; (icla<NCLASS) ; icla++){
       };
     };
   };
+  // 
   for(bit=4;bit<=7;bit++) {         // PF1..4 
     w32 mask; int ixpf;
     mask=1<<bit; ixpf= bit-4;
     if((mask & (~cls->l0vetos))) {
-      //if(rbifnew.PFuse[bit-4]) -check 
-      //rbifnew.PFuse[bit-4]= bit-3;
-      /*if(pfcopied==0) { // copy needs to be done only once? 
-        (need [], check, 2 cases: pf+pfCommon
-        bcmscopied=1; strcpy(rbifnew.pf,part->rbif->pf);
-      };*/
-      retrc= copycheckPF(&rbifnew, part->rbif, ixpf);
-      if(retrc>0) break;
+      //retrc= copycheckPF(&rbifnew, part->rbif, ixpf);
+      copyTPastFut(&rbifnew.pf[ixpf], &part->rbif->pf[ixpf]);
+      rbifnew.PFuse[ixpf]=1;
+      //if(retrc>0) break;
     };
   };
   if(retrc>0) break;
+  
 };
 /*was till 11.12.2009  -now: see the loop above
 BC masks fast fix: if  BCMASK in pcfg, always go to hw
@@ -1784,7 +1890,7 @@ for(i=0;i<NCLASS;i++) {
   Returns: error code: 0:ok
 */
 int load2HW(Hardware *hw, char *tsname){
-w32 i,isp,bb, overlap,flag,bcmaskn;
+w32 isp,bb, overlap,flag,bcmaskn;
 TKlas *klas;
 TRBIF *rbif;
 w32 l0invAC, minAC;
@@ -1810,7 +1916,7 @@ for(isp=0;isp<MNPART;isp++){
   if(part->nclassgroups == 0) continue;  // can be reprogrammed in HW
   printf("load2HW: %s %d part->hwallocated:%d hwclass:", 
     part->name, part->run_number, part->hwallocated);
-  for(i=0;i<NCLASS;i++){
+  for(int i=0;i<NCLASS;i++){
     int hwc;
     if(part->klas[i]!=NULL) {
       hwc= part->klas[i]->hwclass;
@@ -1847,12 +1953,12 @@ if(l0C0()>=0xc606) {
     printf("load2HW set lut8[%d] %s\n", ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
   };
   // int funs
-  for(ixf=0; ixf<3; ixf++) {
-    setSharedINT3(ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
-  };
-  for(ixf=0; ixf<6; ixf++) {
-    printf("load2HW set intlut8[%d] %s\n", ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
-  };
+  //for(ixf=0; ixf<3; ixf++) {
+  //  setSharedINT3(ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
+  //};
+  //for(ixf=0; ixf<6; ixf++) {
+  //  printf("load2HW set intlut8[%d] %s\n", ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
+  //};
 } else {
  // 2 4-inputs luts:
  //vmew32((L0_FUNCTION1), rbif->rbif[ixl0fun1]);
@@ -1870,7 +1976,7 @@ if(l0C0()>=0xc606) {
 flag=0;
 if(l0AB()==0) {
   bcmaskn=BCMASKN;
-  for(i=ixlut3132;i<=ixlut4142;i++)if(rbif->rbifuse[i]!=notused){
+  for(int i=ixlut3132;i<=ixlut4142;i++)if(rbif->rbifuse[i]!=notused){
     printf("load2HW: l0f%d: allocated in %d\n", i-ixlut3132+3,rbif->rbifuse[i]);
     flag++;
   };
@@ -1887,18 +1993,19 @@ if(l0AB()==0) {
 } else {bcmaskn=4;};
 
 flag=0;
-for(i=0;i<bcmaskn;i++)if(rbif->BCMASKuse[i])flag++;
+for(w32 i=0;i<bcmaskn;i++)if(rbif->BCMASKuse[i])flag++;
 if(flag)loadBCmasks(rbif->BCMASK);
 //------------------------------------------- PF
+/* to be used later with L1/L2 boards
 { char msg[200]=""; int circ; int setcom=0;
 for(circ=0;circ<4;circ++){   // 4 PF circuits
   if(rbif->PFuse[circ]!=0) {
     setcom=1;
-    /* w32 tha1; int dta;      before 23.10.2011
-    tha1= rbif->pf[i].pfdefs[ixTHa1];
-    dta= rbif->pf[i].pfdefs[ixdTa];
-    WritePFuser(i+1, tha1, dta);
-    sprintf(msg,"PF%d: %d %d ", i+1, tha1, dta); */
+    // w32 tha1; int dta;      before 23.10.2011
+    //tha1= rbif->pf[i].pfdefs[ixTHa1];
+    //dta= rbif->pf[i].pfdefs[ixdTa];
+    //WritePFuser(i+1, tha1, dta);
+    //sprintf(msg,"PF%d: %d %d ", i+1, tha1, dta);
     for(i=1;i<4;i++){
       w32 blockA,blockB,LUT; int fromi;
       fromi= 3*(i-1);
@@ -1926,12 +2033,33 @@ if(setcom==1) {
 };
 if(msg[0]!='\0') printf("load2HW:%s",msg);
 };
+*/
+// new PF
+for(int i=0;i<NPF;i++){
+ TPastFut *pf=&rbif->pf[i];
+ int j=0;while((j<8) && (pf->lmpf[j]==0))j++;
+ if(j==8) continue;  // no active pf
+ printf("PF %s found at j=%i \n",pf->name,j);
+ w32 delflag=0;
+ if(pf->OffBefore==0)delflag=1;
+ w32 int1,int2;
+ if(pf->inter==1){int1=0;int2=1;}
+ else if(pf->inter==2){int1=1;int2=0;}
+ else{
+  printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
+  return 1;
+ }
+ setLML0PF(j+1,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,int1,int2,0xfff); 
+ //setLML0PF(j+2,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,0xfff); 
+ //setLML0PF(j+5,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,0xfff); 
+}
+
 //------------------------------------------- classes
 skipped[0]='\0';
 /*strcpy(skipped,"NO CLASS POGRAMMING!"); rwclasses(); if(NCLASS==12345678) {
 printf("load2HW:only 6 classes,no L0vetos  written\n");
 for(i=0;i<6;i++) */
-for(i=0;i<NCLASS;i++) {
+for(w32 i=0;i<NCLASS;i++) {
   w32 mskbit; int skip=0;
   if(hw->klas[i] == NULL){
    char msg[200];
@@ -1942,13 +2070,14 @@ for(i=0;i<NCLASS;i++) {
   //usleep(100000);
   klas=hw->klas[i];
   bb=4*(i+1);
-  printTKlas(klas, i);
+  //printTKlas(klas, i); this is misleadind as classes are chneged later
   vmew32(L0_CONDITION+bb,klas->l0inputs);
   if(i>=minAC)vmew32(l0invAC+bb,klas->l0inverted);
   if(l0AB()==0) {   //firmAC or >C0
     if(l0C0()) {
       w32 lmm, l0m, lmcond, l0vets, lmvets;
-      l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
+      //l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
+      l0vets= (klas->l0vetos);
       // keep it disabled on L0 level, we cannot change cluster + enable in 1 write
       l0vets= l0vets | 0x800000;   
       vmew32(L0_VETOr2+bb,  l0vets);
@@ -1962,7 +2091,8 @@ for(i=0;i<NCLASS;i++) {
       };
       vmew32(LM_CONDITION+bb, lmcond);
       vmew32(LM_INVERT+bb,klas->lminverted);
-      lmvets= (klas->lmvetos & 0x80ffffff) | ((hw->lmsdgs[i])<<24);
+      //lmvets= (klas->lmvetos & 0x80ffffff) | ((hw->lmsdgs[i])<<24);
+      lmvets= (klas->lmvetos);
       vmew32(LM_VETO+bb,lmvets);
       //printf("load2HW:%3d l0c+v: 0x%x 0x%x lmc+v: 0x%x 0x%x\n", i+1, klas->l0inputs, l0vets, lmcond, lmvets);
     } else {
@@ -1994,8 +2124,8 @@ for(i=0;i<NCLASS;i++) {
 };
 if(skipped[0]!='\0') printf("load2HW:skipped classes:%s\n", skipped);
 if(l0C0()==0) {
-for(i=0;i<NCLASS;i++){
-  vmew32(L0_SDSCG+(i+1)*4, hw->sdgs[i]);
+for(int j=0;j<NCLASS;j++){
+  vmew32(L0_SDSCG+(j+1)*4, hw->sdgs[j]);
 };
 } else {
  ; //see L0-VETOs
@@ -2013,7 +2143,7 @@ for(i=0;i<NCLASS;i++){
  //--------------------------------------------- LM downscalers
  //vmew32(LM_RATE_MODE,1);   /* vme mode */
  vmew32(LM_RATE_CLEARADD,DUMMYVAL);
- for(i=0; i<NCLASS; i++) {
+ for(int i=0; i<NCLASS; i++) {
    /* 23.6.2014: no reason to set 0..49 in bits 30..25,
       although see note in ctp.h at RATE_MASK). From now, put 0 above bit 25
    vmew32(RATE_DATA, (i<<25) | (hw->klas[i]->scaler & RATE_MASK)); */
@@ -2022,7 +2152,7 @@ for(i=0;i<NCLASS;i++){
  //vmew32(LM_RATE_MODE,0);   /* normal mode */
  // ------lsfr seeds - seed=sdg : this can be changed 
  vmew32(LM_RATE_CLEARADD,DUMMYVAL);
- for(i=0; i<NCLASS; i++) {
+ for(int i=0; i<NCLASS; i++) {
    vmew32(LM_RATE_RND_OFFSET, (hw->sdgs[i]));
  };
  vmew32(LM_RATE_RND_RESET, 0);
@@ -2032,7 +2162,7 @@ for(i=0;i<NCLASS;i++){
   if((i+1)%5 == 0)printf("\n");
  } 
  //--------------------------------------------- FOs
- for(i=0; i<NFO; i++){
+ for(int i=0; i<NFO; i++){
    if((notInCrate(i+FO1BOARD)==0)) {
      w32 vmeaddr, data;
      vmeaddr= FO_CLUSTER+BSP*(i+1); data= hw->fo[i].cluster; 
@@ -2042,7 +2172,7 @@ for(i=0;i<NCLASS;i++){
  }
  //--------------------------------------------- BUSYs
 if(DBGbusy) printf("load2HW. SET_CLUSTER T 1..6:");
-for(i=0;i<NCLUST+1;i++){
+for(int i=0;i<NCLUST+1;i++){
   if(DBGbusy) {
      printf("0x%x ",hw->busy.set_cluster[i]);
   };
@@ -2052,13 +2182,16 @@ overlap= calcOverlap(hw->busy.set_cluster);
 vmew32(BUSY_OVERLAP, overlap);
 if(DBGbusy)printf("BUSY_OVERLAP:0x%x\n", overlap);
 // finally enable all allowed classes on L0 level:
-for(i=0;i<NCLASS;i++) {
+printf("Finally allow all allowed classes:\n");
+for(int i=0;i<NCLASS;i++) {
   w32 l0vets;
   klas=hw->klas[i];
   bb=4*(i+1);
-  l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
+  //l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
+  l0vets= klas->l0vetos;
+  printTKlas(klas, i);
   //if((l0vets & 0x800000)==0) {
-    vmew32(L0_VETOr2+bb,  l0vets);
+  vmew32(L0_VETOr2+bb,  l0vets);
   //};
   //printf(" load2HW: enab/dis:%d 0x%x\n", i+1, l0vets);
 };
