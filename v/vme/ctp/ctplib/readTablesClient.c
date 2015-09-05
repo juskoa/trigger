@@ -225,7 +225,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
       // do we need to copy luts also to HW (they are in shm)
       setINTLUT(vmeadr,lookupt);
       setINTLUT(vmeadr+3,lookupt);
-      //printf("INT %i: %s \n",vmeadr,lookupt);
+      printf("INT %i: %s \n",vmeadr,lookupt);
     };
     goto CONT;
   };
@@ -324,7 +324,10 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   sprintf(emsg, "ctp.cfg line ignored:%s\n %s",line,emsg); 
   prtWarning(emsg);
 };
-RET: fclose(cfgfile); return(grc);
+RET: 
+setINTLUT(3,"0x0");
+setINTLUT(3+3,"0x0");
+fclose(cfgfile); return(grc);
 ERRfatal:
 sprintf(emsg,"Fatal error when processing ctp.cfg:%s\n", emsg);
 prtError(emsg); grc=1;
