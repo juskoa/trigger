@@ -859,7 +859,13 @@ class TrgSHR_BCM(TrgSHR):
     if len(pfd)!=8:
        IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
        return False
-    # More checks ?
+    # PF at levels according to PeriodAfter, detail calculation in c
+    PeriodAfter=int(pfd[3])
+    LML0time=15
+    L0L1time=280
+    if level==1 and PeriodAfter<LML0time: return False
+    if level==2 and PeriodAfter<L0L1time: return False
+    return True
   def prtBits(self):
     ix= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     logdef= self.BCMPFitems[ix][1]
@@ -2396,7 +2402,8 @@ class TrgPartition:
             continue
         l0inv=0
         if FPGAVERSION>=0xc0:
-          l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
+          #l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
+          l0vetos= 0xf1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
         else:
           if BCM_NUMBER==4:
             l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
