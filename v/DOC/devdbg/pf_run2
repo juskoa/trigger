@@ -1,0 +1,101 @@
+PF defininition:
+NAME BCM INT PerioodBefore PeriodAfter Nbefore Nafter
+General schema:
+PF is defined in .partition and pcfg as 
+NAME BCMASK INT PeriodBefore PeriodAfter NintBefore NintAfter
+(i.e. user definition).
+PFP2Partition in cfg2part :
+keep original definitions from PFS.TRIGGER (just as integers)
+
+chekRES in Tpartition:
+- checks if pf with same name exists, if not:
+- check if bcmask available
+- check if INT definition is consistent with existing definition
+- check if PF hardware defs available
+
+new functions:
+Calculate values for setPFLevel:
+calcPF(delatTbefore,delataTafter, Nbfore, Nafter, INTdef)
+where: INTdef: LUT of INT1/2
+
+Set PF in HW L0/1/2:
+setPFLevel(level, delataT, dealy, Nint)
+
+ctpproxy : 
+load2HW(): -> setPFuser 
+- translates user definition to PF words on different levels (hw definition)
+  (TPastFun struct keeps hw definition on all levels together),
+- keeps also hw definition as before(run1)
+- low level interface: deltaT (interval), Delay wrt to level, Ncol, 
+  INTa=Int1/Int2 (maybe to change later)
+  INTb=not used, Delayed INT= not used
+  P LUT=P1
+
+
+Note:
+with new readout any definition of PF at LM/L0 possible
+
+Plan:
+Firmware:
+- upgrade PF on LM/L0 board with simplified logic
+- 8 PF circuits 
+- keep old PF on L1/L2 level
+Software:
+- upgrade sw to deal with 4 PFs at all (M/0/1/2) levels
+- 4 extra Lm/L0 levels to be treated separately later ?
+
+
+Changes:
+parted.py:
+- only one change in isPFDefined:
+  full line as char string saved in pcfg
+Tpartition.h
+TPastFun struct: user definition added
+
+26.8.15
+ctp:
+writeShared - done
+readShared - done 
+todo:
+save2file ?
+loadfile ?
+pflml0 interface
+
+parted/ctp_proxy
+todo:
+- 2 more words to pf definition
+- pfuser function (started)
+
+27.8
+-counters.py and cnames.sorted2 fixed according to procedure in DOC/counters.txt
+- bug in shared.C/setLUT() - 0x0 does not work
+2.9
+- bug in shared.C/setLUT() - fixed
+- shared done (loadfile.save2file,readhw,load2hw)
+- to do:
+-- old pf remove L0 board
+-- pf lml0 - (loadfile.save2file,readhw,load2hw)
+-- pf lml0 - staci -> PF/setLML0PF
+
+- TRIGGER.PFS->ctpproxy->hardware (setPGuser->)
+
+6.9
+A) PF eser definition in TRIGGER.PFS
+NAME BCM INT PerioodBefore PeriodAfter Nbefore Nafter OffsetBefore OffsetAfter
+
+B)Sharing resources for PF philosophy.
+Sharing is done according to pf name. If names is the same pf is the same.
+pcfg (parted.py):
+1.) parted copies full pfs line (user definition) to rcfg and prcfg
+2.) assignement to classes in pcfg is coded via l0veto (4 bits) as before
+cfg2part.c/ctp_proxy.c:
+1.) parse user definition and saves it in TRBIF in TPastFut structures
+2.) classes connection to PF still in l0vetos 3 bits
+3.) initPartition=loadPartition 
+-checkResources->checkRBIF->cumRBIF->checkPFS cummulates Pfs using their names
+-checkmodLMPF assignes PFs to classes and saves in partition
+--it is called after aaddPartitions2HW because it uses HW
+4.) startPartition
+- repeats loadPartition
+- load2HW - calculated PFs from user definition and loads to hardware using setLML0PF
+- addPartition2HW already uses partition with pf updated classes
