@@ -1214,8 +1214,9 @@ for ix in range(PF_NUMBER):         #4 PFs, start from PFS_START=16/8
 
 def initparted():
   TDLTUS.initTDS() 
-  print "initparted",TDLTUS.BCM_DB[1],TDLTUS.BCM_DB[2]
+  print "initpartedi csname:",TDLTUS.csName, TDLTUS.BCM_DB[1],TDLTUS.BCM_DB[2]
   return
+  # seems we can cope without calling initparted from pydim
   del SHRRSRCS[4:]
   print "initparted SHRRSRCS len:", len(SHRRSRCS)
   for ix in range(BCM_NUMBER):         #4(12) BCM vetos, start from BCMASKS_START
@@ -1381,7 +1382,7 @@ class TrgClass:
       p0= self.trde.name.replace('D','C',1)   #default class name
       if p0=='CEMPTY': p0='CTRUE'
       #if cluspart!='CENT ALL MUON TPC FAST':
-      if string.find('CENT ALL ALLNOTRD MUON TPC FAST FASTNOTRD CFAST CENTNOTRD',cluspart)<0:
+      if string.find('CENT ALL ALLNOTRD MUON TPC FAST MUFAST UFAST FASTNOTRD CFAST CENTNOTRD',cluspart)<0:
         # only warning pprinted:
         print "Strange cluster name:%s"%cluspart
       self.clsnamepart=[p0, "ABCE", "NOPF", cluspart]
