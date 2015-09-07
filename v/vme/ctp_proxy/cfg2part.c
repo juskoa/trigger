@@ -479,7 +479,7 @@ int rc1=0;
 for(ixdef=0; ixdef< 12; ixdef++) {
   w32 pfdef1;
   nxtoken(line, hexw, &ixx);
-  //printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
+  printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
   switch(ixdef){
     case 0: continue; // PF
     case 1: continue; //.
@@ -496,6 +496,15 @@ for(ixdef=0; ixdef< 12; ixdef++) {
     }
     case 4: // BCM
     {
+     w32 dig1;
+     char2i(hexw[3],&dig1);
+     if(hexw[4]=='\0'){
+       rbif->pf[ixpf].bcmask=dig1;
+     } else {
+       w32 dig2;
+       char2i(hexw[4],&dig2);
+       rbif->pf[ixpf].bcmask=dig1*10+dig2;       
+     }
      continue;
     }
     case 5: // INT: INTL01,INTL02,INTLM1,INTLM2

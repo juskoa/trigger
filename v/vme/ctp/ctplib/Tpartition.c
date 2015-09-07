@@ -154,21 +154,14 @@ if(rbif != NULL){
     rbif->rbifuse[i]=notused;
   };
   for(ix=0; ix<L0FINTN*L0INTFSMAX; ix=ix+L0INTFSMAX) {      
-    if( (i>=ixintfun1) && (i<=ixintfunt) && (leaveint!=0)) continue;
+    if( (ix>=ixintfun1) && (ix<=ixintfunt) && (leaveint!=0)) continue;
     rbif->l0intfs[ix]= '\0';
   };
   if(l0C0()>=0xc606) {
     for(ix=0; ix<8; ix++) {
       strcpy(&rbif->lut8[ix*LUT8_LEN],"0x0000000000000000000000000000000000000000000000000000000000000000");
     };
-    for(ix=0; ix<6; ix++) {
-      strcpy(&rbif->intlut8[ix*LUT8_LEN],"0x0000000000000000000000000000000000000000000000000000000000000000");
-    };
   };
-  /* rbif->l0f3sym[0]='\0'; rbif->l0f4sym[0]='\0';
-  for(j=0;j<LEN_l0f34;j++){
-    rbif-> lut34[j]= 0;
-  }; */
   for(j=0;j<12;j++){
    rbif->BCMASKuse[j]=0; 
    //for(i=0;i<ORBITLENGTH;i++)rbif->BCMASK[i][j]=0;
@@ -176,14 +169,16 @@ if(rbif != NULL){
   //strcpy(rbif->BCMASK,"");
   for(j=0;j<ORBITLENGTH;j++){ rbif->BCMASK[j]= 0; };
   // PF:
-  for(int jj=0;jj<NPF;jj++)cleanTPastFut(&rbif->pf[jj]);
-  /*
-  for(j=0;j<5;j++){
-   rbif->PFuse[j]=0; 
-    for(int jj=0;jj<ixMaxpfdefs;jj++){
-      rbif->pf[j].pfdefs[jj]= 0; 
-    };
-  }; */ 
+  for(int jj=0;jj<NPF;jj++){
+     cleanTPastFut(&rbif->pf[jj]);
+     rbif->PFuse[jj]=0; 
+  }
+  //for(j=0;j<5;j++){
+   //rbif->PFuse[j]=0; 
+    //for(int jj=0;jj<ixMaxpfdefs;jj++){
+    //  rbif->pf[j].pfdefs[jj]= 0; 
+    //};
+  //}; 
   rbif->PFCuse=0;
   for(int jj=0;jj<ixMaxpfdefsCommon;jj++) rbif->pfCommon.pfdefsCommon[jj]=0; 
   
@@ -271,12 +266,6 @@ for(jx=0; jx<L0FINTN*L0INTFSMAX; jx++) {    // l0f1/2/3/4 int* symb. definitions
 for(jx=0; jx<8*LUT8_LEN; jx++) {    // l0f1/2/3/4 definitions
   dst->lut8[jx]= src->lut8[jx];
 };
-for(jx=0; jx<6*LUT8_LEN; jx++) {    // l0f1/2/3/4 definitions
-  dst->intlut8[jx]= src->intlut8[jx];
-};
-//von for(jx=0;jx<LEN_l0f34;jx++){ dst->lut34[jx]= src->lut34[jx]; };
-//von strcpy(dst->l0f3sym,src->l0f3sym);  // l0f3/4 symb. defs
-//von strcpy(dst->l0f4sym,src->l0f4sym);
 //strcpy(dst->BCMASK,src->BCMASK);
 for(jx=0;jx<ORBITLENGTH;jx++){
   dst->BCMASK[jx]= src->BCMASK[jx];
@@ -1950,13 +1939,6 @@ if(l0C0()>=0xc606) {
   for(ixf=0; ixf<8; ixf++) {
     printf("load2HW set lut8[%d] %s\n", ixf+1, &rbif->lut8[ixf*LUT8_LEN]);
   };
-  // int funs
-  //for(ixf=0; ixf<3; ixf++) {
-  //  setSharedINT3(ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
-  //};
-  //for(ixf=0; ixf<6; ixf++) {
-  //  printf("load2HW set intlut8[%d] %s\n", ixf+1, &rbif->intlut8[ixf*LUT8_LEN]);
-  //};
 } else {
  // 2 4-inputs luts:
  //vmew32((L0_FUNCTION1), rbif->rbif[ixl0fun1]);
@@ -2046,16 +2028,17 @@ for(int i=0;i<NPF;i++){
   return 1;
  }
  // L0 before with LM fun
+ w32 bcmask=~(1<<(pf->bcmask-1));
  w32 delflag=0;
  w32 dT=pf->PeriodBefore-1;
  w32 del=14-(dT+2)-(pf->OffBefore);
- setLML0PF(j+1,0,dT,pf->NintBefore,pf->OffBefore,delflag,int1,int2,0xfff); 
+ setLML0PF(j+1,0,dT,pf->NintBefore,pf->OffBefore,delflag,int1,int2,bcmask); 
  // L0 adter qith LM fun
  del=del+(pf->PeriodBefore)+1+pf->OffAfter;
- //setLML0PF(j+2,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,0xfff); 
+ //setLML0PF(j+2,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,bcmask); 
  // LM before
  if(pf->OffBefore==0)delflag=1;
- //setLML0PF(j+5,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,0xfff); 
+ //setLML0PF(j+5,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,bcmask); 
 }
 
 //------------------------------------------- classes

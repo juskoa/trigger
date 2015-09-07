@@ -107,3 +107,8 @@ parted.py modified:
 optional solution for future consideration:
 - add check to parted if at least one class wothout PF exits
 -modify aliroot to get rid of NONE in rcfg
+
+masks added in ctp_proxy:
+- checkPFS checks if such mask uis used
+- loadH2 sets PF
+- parted.py DOES NOT do any new consistency check

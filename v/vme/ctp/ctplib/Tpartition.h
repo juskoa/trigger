@@ -229,7 +229,6 @@ typedef struct TRBIF{
  TPastFutCommon pfCommon;
  w8 PFCuse;               // 0 not used (PF not used at all), 1: used
  char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
- char intlut8[6*LUT8_LEN];   // 3xintlut8L0F+3xintlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 
 TRBIF *allocTRBIF();

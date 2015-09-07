@@ -739,6 +739,10 @@ for(int ipf=0; ipf<NPF; ipf++) {
          return 1;
        }
        TPastFut* cumpf=&cumrbif->pf[jpf];
+       if(cumrbif->BCMASKuse[cumpf->bcmask]==0){
+         printf("checkPFS: BCmask used in PF not in config ? \n");
+         return 2;
+       }
        copyTPastFut(cumpf,pf);
        cumrbif->PFuse[jpf]=1;
        // LM before at L0
