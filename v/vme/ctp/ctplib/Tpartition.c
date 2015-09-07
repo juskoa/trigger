@@ -945,12 +945,10 @@ int checkmodLMPF(Tpartition *part){
     //nonLM classes
     printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
     w32 l0v=klas->l0vetos;
+    l0v=l0v|0xf0;
     w32 mask=1<<(jpf+24);
     mask+=1<<(jpf+1+24);
     l0v=l0v&(~mask);
-    printf("0x%x\n",l0v);
-    l0v=l0v|0xf0;
-    // reset l0pf (inherited from pcfg)
     klas->l0vetos=l0v; 
     printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
   }
@@ -2040,8 +2038,6 @@ for(int i=0;i<NPF;i++){
  int j=0;while((j<8) && (pf->lmpf[j]==0))j++;
  if(j==8) continue;  // no active pf
  printf("PF %s found at j=%i \n",pf->name,j);
- w32 delflag=0;
- if(pf->OffBefore==0)delflag=1;
  w32 int1,int2;
  if(pf->inter==1){int1=0;int2=1;}
  else if(pf->inter==2){int1=1;int2=0;}
@@ -2049,8 +2045,16 @@ for(int i=0;i<NPF;i++){
   printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
   return 1;
  }
- setLML0PF(j+1,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,int1,int2,0xfff); 
+ // L0 before with LM fun
+ w32 delflag=0;
+ w32 dT=pf->PeriodBefore-1;
+ w32 del=14-(dT+2)-(pf->OffBefore);
+ setLML0PF(j+1,0,dT,pf->NintBefore,pf->OffBefore,delflag,int1,int2,0xfff); 
+ // L0 adter qith LM fun
+ del=del+(pf->PeriodBefore)+1+pf->OffAfter;
  //setLML0PF(j+2,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,0xfff); 
+ // LM before
+ if(pf->OffBefore==0)delflag=1;
  //setLML0PF(j+5,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,0xfff); 
 }
 
