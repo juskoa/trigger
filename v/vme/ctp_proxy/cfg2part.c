@@ -966,6 +966,7 @@ int pf2class(Tpartition *part)
        else if(ipfveto==0xd) ipf=1;
        else if(ipfveto==0xb) ipf=2;
        else if(ipfveto==0x7) ipf=3;
+       else if(ipfveto==0xf) return 0;  // NO PF
        else {
         printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
         return 1;
