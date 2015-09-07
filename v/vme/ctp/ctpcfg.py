@@ -940,8 +940,8 @@ Middle-> modify the invert bit (only for classes 45-50)
           if self.sharedrs[ishr].modified(): writeit=1
           self.sharedrs[ishr].hwwritten(1)  #??
       if writeit:
-         #cmd="setBCmasks()\n"+self.masks2str()
-         cmd="setBCmasks()\n"
+         cmd="setBCmasks()\n"+self.masks2str()
+         #cmd="setBCmasks()\n"
          #print cmd
          rcstr=vbexec.getline(cmd)
   #def dooutmsk(self, outstr):
