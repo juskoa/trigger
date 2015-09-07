@@ -99,3 +99,11 @@ cfg2part.c/ctp_proxy.c:
 - repeats loadPartition
 - load2HW - calculated PFs from user definition and loads to hardware using setLML0PF
 - addPartition2HW already uses partition with pf updated classes
+
+7.9.
+parted.py modified:
+-new version 8 of rcfg file - needed for aliroot for testing PD symtax
+-PF NONE always added to rcfg as aliroot expects it for classes without PF
+optional solution for future consideration:
+- add check to parted if at least one class wothout PF exits
+-modify aliroot to get rid of NONE in rcfg

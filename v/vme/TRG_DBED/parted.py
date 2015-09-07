@@ -17,6 +17,8 @@ VERSION: 5 (both .rcfg .partition): sync downscaling
 VERSION: 6 LINDF REPL added
 25.6.2014
 VERSION: 7 >=7 from now
+6.9.2015
+VERSION: 8 new PF
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -31,7 +33,7 @@ if hasattr(sys,'version_info'):
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
 import myw, txtproc, trigdb, syncdg, preproc
-VERSION="7"
+VERSION="8"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
 COLOR_NORMAL="#d9d9d9"
@@ -2984,6 +2986,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           line= line+' '+det.name
       line= line+'\n'
       of.write(line)
+    #-------------------------------------------------------------PF
     line='PFS:\n' ; of.write(line)   # !Reminder: do the same as for BCMASKS (atleast1classNONEbcm)
     atleast1pf=0 
     for ixpfpc in range(PF_NUMBER):
@@ -2993,7 +2996,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line="PF%d %s\n"%(ixpfpc+1, pfdef)
       of.write(line)
       atleast1pf= atleast1pf+1
-    if atleast1pfnone>0:      #if atleast1pf==0:
+    if atleast1pfnone>=0:      
+      # always add NONE because of aliroot (actually add if at least one class has nopf -  to be done later) 
       line='NONE\n' ; of.write(line)
     line='BCMASKS:\n' ; of.write(line)
     line='#cs %s\n'%(TDLTUS.csName) ; of.write(line)
