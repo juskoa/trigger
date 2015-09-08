@@ -2576,7 +2576,7 @@ Tpartition *part;
 char msg[MAXMSG];
 errorReason[0]='\0';
 npart= getNAllPartitions();
-if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
+/*if(npart==0) { */ prepareRunConfig(NULL,3); // };  reload parted ALWAYS
 part=getPartitions(name, AllPartitions); 
 if(part==NULL) { 
   rc= ctp_InitPartition(name,mask,run_number,ACT_CONFIG, errorReason);
@@ -2663,7 +2663,7 @@ if(part!=NULL) {
 };
 infolog_SetStream(name, run_number);
 npart= getNAllPartitions();
-if(npart==0) { prepareRunConfig(NULL,3); };  //reload parted
+/*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };
 sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);

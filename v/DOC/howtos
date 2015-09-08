@@ -38,3 +38,12 @@ ctpro >/dev/null
 which ctpro
 alias ctpro='cd /date/trigger/Linux; ./ctpServer'
 
+8. VMESITE=PRIVATE how to start runs:
+/opt/dim/linux/dns &
+smicmd TRIGGER
+startClients.bash pydim start
+ctpproxy.sh startnd
+
+06.09.2015 12:40:07: ***  Error:mask 1 already used by another partition
+06.09.2015 12:40:07: ***  Error:Error: dintx2 cannot be loaded due to lack of resources
+
