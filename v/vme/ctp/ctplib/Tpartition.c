@@ -923,16 +923,23 @@ int checkmodLMPF(Tpartition *part){
   if(clsts & clustermask) {
     //LM classes
     printf("checkmodLMPF:LM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    // lmvetoes 3rd pf out of 3
     w32 lmv=klas->lmvetos;
     w32 mask=1<<(jpf+4+10);
     lmv=lmv&(~mask);
     klas->lmvetos=lmv;
-    // l0vetoes reset 
-    klas->l0vetos=klas->l0vetos|0xf0;
+    // l0vetoes 1st pf out of 3
+    w32 l0v=klas->l0vetos;
+    l0v=l0v|0xf0;
+    mask=1<<(jpf+1+24);
+    l0v=l0v&(~mask);
+    klas->l0vetos=l0v; 
     printf("checkmodLMPF:LM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
   }else{
     //nonLM classes
     printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    // lmvetoes nothing
+    // l0vetoes 1st and 2nd pfs out of 3
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
     w32 mask=1<<(jpf+24);
@@ -2027,18 +2034,23 @@ for(int i=0;i<NPF;i++){
   printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
   return 1;
  }
- // L0 before with LM fun
  w32 bcmask=~(1<<(pf->bcmask-1));
  w32 delflag=0;
- w32 dT=pf->PeriodBefore-1;
+ // L0 before with LM fun
+ w32 dT =pf->PeriodBefore-1;
  w32 del=14-(dT+2)-(pf->OffBefore);
- setLML0PF(j+1,0,dT,pf->NintBefore,pf->OffBefore,delflag,int1,int2,bcmask); 
- // L0 adter qith LM fun
- del=del+(pf->PeriodBefore)+1+pf->OffAfter;
- //setLML0PF(j+2,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,bcmask); 
+ if(del<=0){
+   printf("load2HW: del<0, too much future\n");
+   return 3;
+ }
+ setLML0PF(j+1,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // L0 after with LM fun
+ dT=pf->PeriodAfter-1;
+ del=14+(pf->OffAfter);
+ setLML0PF(j+2,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask); 
  // LM before
  if(pf->OffBefore==0)delflag=1;
- //setLML0PF(j+5,0,pf->PeriodBefore,pf->NintBefore,pf->OffBefore,delflag,0,1,bcmask); 
+ setLML0PF(j+5,0,pf->PeriodBefore-1,pf->NintBefore,pf->OffBefore,delflag,int1,int2,bcmask); 
 }
 
 //------------------------------------------- classes
