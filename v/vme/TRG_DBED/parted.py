@@ -857,7 +857,7 @@ class TrgSHR_BCM(TrgSHR):
     Name BCM IR PeriodBefore PeriodAfter NintBefore NintAfter
     """
     pfd= string.split(self.getDefinition())
-    print "PF: ",pfd," len=",len(pfd)
+    print "isPFDefined: ",pfd," len=",len(pfd)
     if len(pfd)!=8:
        IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
        return False
@@ -2469,20 +2469,20 @@ class TrgPartition:
                 "Undefined %s referenced by class %s, reference discarded in .pcfg file\n"%\
                 (SHRRSRCS[ix4+PFS_START].name, cls.getclsname())
               continue   
-            #print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
+            print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
             # check if common definition agrees (should be improved, can happen not all PFs used):
-            comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
-            if pf_comdef==None:
-              pf_comdef= comdef
-            else:
-              err=False
-              for i in range(3):
-                if comdef[i]!= pf_comdef[i]:
-                  errormsg= errormsg+\
-                    "PF%d common definition does not agree,not used, class:%d\n"%((ix4+1),clanum)
-                  err=True ; break
-              if err:
-                continue
+            #comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
+            #if pf_comdef==None:
+            #  pf_comdef= comdef
+            #else:
+            #  err=False
+            #  for i in range(3):
+            #    if comdef[i]!= pf_comdef[i]:
+            #      errormsg= errormsg+\
+            #        "PF%d common definition does not agree,not used, class:%d\n"%((ix4+1),clanum)
+            #      err=True ; break
+            #  if err:
+            #    continue
             if SHRRSRCS[ix4+PFS_START].isPFDefined(0): 
               l0vetos=l0vetos & ~r12b12
             if SHRRSRCS[ix4+PFS_START].isPFDefined(1): 
