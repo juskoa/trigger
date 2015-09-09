@@ -121,6 +121,7 @@ for(ix=0; ix< ixMaxpfdefsCommon; ix++) {
 }; return 0;
 }
 /*--------------------------------------------------------- copycheckPF
+Obsolete
 Check or copy:
   rbif->pf[ixpf] and rbif->pfCommon  -> rbifnew
 rc:0 ok
@@ -275,9 +276,6 @@ for(jx=0;jx<12;jx++){
 };
 for(jx=0;jx<NPF;jx++){
   dst->PFuse[jx]= src->PFuse[jx];
-  //if(dst->PFuse[jx]>0) {
-  //  copyPF(&dst->pf[jx], &src->pf[jx]);
-  //};
   copyTPastFut(&dst->pf[jx],&src->pf[jx]);
 }; 
 dst->PFCuse= src->PFCuse;
@@ -365,6 +363,9 @@ void printTPastFut(TPastFut *pf)
  printf("lm circuits usage: ");
  for(int i=0;i<8;i++)printf("%i ",pf->lmpf[i]);
  printf("\n"); 
+ printf("l0 circuits usage: ");
+ for(int i=0;i<4;i++)printf("%i ",pf->l0pf[i]);
+ printf("\n"); 
 }
 /*-------------------------------------------------------cleanTPastFut()
 */
@@ -380,6 +381,7 @@ void copyTPastFut(TPastFut *to,TPastFut *fr)
  to->OffAfter=fr->OffAfter;
  strcpy(to->name,fr->name);
  for(int i=0;i<8;i++)to->lmpf[i]=fr->lmpf[i];
+ for(int i=0;i<4;i++)to->l0pf[i]=fr->l0pf[i];
 }
 /*------------------------------------------------------copyTKlas()
 */
@@ -916,7 +918,7 @@ int checkmodLMPF(Tpartition *part){
    printf("chemodLMPF: internal error lmpf mask not found pf:%s\n",pf->name);
    return 2;
   }    
-  if((pf->lmpf[jpf+1] !=1 ) || (pf->lmpf[jpf+4] !=1 )){
+  if((pf->l0pf[jpf] !=1 ) || (pf->lmpf[jpf+4] !=1 )){
    printf("chemodLMPF: internal error lmpf circuits use not subsequent pf:%s\n",pf->name);
    return 3;
   }
@@ -931,7 +933,7 @@ int checkmodLMPF(Tpartition *part){
     // l0vetoes 1st pf out of 3
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
-    mask=1<<(jpf+1+24);
+    mask=1<<(jpf+4);
     l0v=l0v&(~mask);
     klas->l0vetos=l0v; 
     printf("checkmodLMPF:LM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
@@ -943,7 +945,7 @@ int checkmodLMPF(Tpartition *part){
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
     w32 mask=1<<(jpf+24);
-    mask+=1<<(jpf+1+24);
+    mask+=1<<(jpf+4);
     l0v=l0v&(~mask);
     klas->l0vetos=l0v; 
     printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
@@ -2024,9 +2026,9 @@ if(msg[0]!='\0') printf("load2HW:%s",msg);
 // new PF
 for(int i=0;i<NPF;i++){
  TPastFut *pf=&rbif->pf[i];
- int j=0;while((j<8) && (pf->lmpf[j]==0))j++;
- if(j==8) continue;  // no active pf
- printf("PF %s found at j=%i \n",pf->name,j);
+ int jpf=0;while((jpf<8) && (pf->lmpf[jpf]==0))jpf++;
+ if(jpf==8) continue;  // no active pf
+ printf("PF %s found at jpf=%i \n",pf->name,jpf);
  w32 int1,int2;
  if(pf->inter==1){int1=0;int2=1;}
  else if(pf->inter==2){int1=1;int2=0;}
@@ -2034,23 +2036,26 @@ for(int i=0;i<NPF;i++){
   printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
   return 1;
  }
- w32 bcmask=~(1<<(pf->bcmask-1));
+ //w32 bcmask=~(1<<(pf->bcmask-1));
+ w32 bcmask=0xfff;
  w32 delflag=0;
- // L0 before with LM fun
- w32 dT =pf->PeriodBefore-1;
- w32 del=14-(dT+2)-(pf->OffBefore);
+ w32 dT,del;
+ // Before at LM level (with LM PF)
+ if(pf->OffBefore==0)delflag=1;
+ else del=pf->OffBefore-1;
+ dT=pf->PeriodBefore-1;
+ setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // Before at L0 level (with L0 PF)
+ setLML0PF(jpf+1,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // After at L0 level (with LM PF).
+ dT=pf->PeriodAfter-1;
+ //del=14-(dT+2)-(pf->OffAfter); // Off zacina za int
+ del=14-(dT+2)+1-(pf->OffAfter);   //Off=0: killing with its own int
  if(del<=0){
-   printf("load2HW: del<0, too much future\n");
+   printf("load2HW: del<=0, too much future\n");
    return 3;
  }
- setLML0PF(j+1,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
- // L0 after with LM fun
- dT=pf->PeriodAfter-1;
- del=14+(pf->OffAfter);
- setLML0PF(j+2,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask); 
- // LM before
- if(pf->OffBefore==0)delflag=1;
- setLML0PF(j+5,0,pf->PeriodBefore-1,pf->NintBefore,pf->OffBefore,delflag,int1,int2,bcmask); 
+ setLML0PF(jpf+2,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask); 
 }
 
 //------------------------------------------- classes

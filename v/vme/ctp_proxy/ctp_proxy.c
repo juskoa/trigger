@@ -732,7 +732,7 @@ for(int ipf=0; ipf<NPF; ipf++) {
   for(int jpf=0;jpf<NPF;jpf++){
      if(cumrbif->PFuse[jpf] == 0){
        // more clever logic with circuits later maybe
-       if(pftot > (2)) {
+       if(pftot > NPF) {
          char emsg[100];
          sprintf(emsg,"Too many PFs");
          infolog_trgboth(LOG_ERROR, emsg);
@@ -745,12 +745,12 @@ for(int ipf=0; ipf<NPF; ipf++) {
        }
        copyTPastFut(cumpf,pf);
        cumrbif->PFuse[jpf]=1;
-       // LM before at L0
-       cumpf->lmpf[pftot]=1;
-       // LM after at L0
-       cumpf->lmpf[pftot+1]=1;
        // LM before at LM
        cumpf->lmpf[pftot+4]=1;
+       // L0 before at L0
+       cumpf->l0pf[pftot]=1;
+       // LM after at L0
+       cumpf->lmpf[pftot]=1;
        pftot++;
        break;
      }
