@@ -32,6 +32,7 @@ bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
 if(ix==1) {
   val= vmer32(getLM0PFad(PF_COMMON)+bb); 
+  printf("0xdead\n"); return;
 } else {
   val= vmer32(PF_COMMON+bb); 
 };
@@ -56,6 +57,41 @@ delay= (val>>12) & 0xfff;
 printf("L%d:%x:INTa/b/delayed 0x: %x %x %x delay:%d\n", ixa, val, INTa, INTb,dINT,delay);
 }
 //------------------------------------------------------------------------------------
+/* LM board, circ: 1..4
+stdout: hexa (i.e. 0x5 0x4 0x3 0x1):
+for circ:1
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+for circ:4
+LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4dinpef L0PF4dinpef 
+*/
+void getPFLMc(int circ) {   
+char line[92];
+printf("0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+  vmer32(getLM0_PFBLKad(circ+4)),
+  vmer32(getLM0_PFBLKad(circ)),
+  vmer32(getLM0_PFBLKad(circ+8)),
+  vmer32(getLM0_PFINTad(circ+4)),
+  vmer32(getLM0_PFINTad(circ)),
+  vmer32(getLM0_PFINTad(circ+8)));
+}
+/* LM board, circ: 1..4
+stdout: hexa (i.e. 0x5 0x4 0x3 0x1):
+for circ:1
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+for circ:4
+LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4dinpef L0PF4dinpef 
+*/
+void setPFLMc(int circ, w32 w1, w32 w2, w32 w3, w32 w4, w32 w5, w32 w6) {   
+vmew32(getLM0_PFBLKad(circ+4), w1);
+vmew32(getLM0_PFBLKad(circ), w2);
+vmew32(getLM0_PFBLKad(circ+8), w3);
+vmew32(getLM0_PFINTad(circ+4), w4);
+vmew32(getLM0_PFINTad(circ), w5);
+vmew32(getLM0_PFINTad(circ+8), w6);
+}
+//------------------------------------------------------------------------------------
 void getPFc(int ix, int circ) {
 int bb,ixa, ixc, i;
 w32 adr0, vals[3];
@@ -66,6 +102,7 @@ bb= BSP*ctpboards[ix].dial;
 ixa=ix-1; ixc=circ-1;
 if(ix==1) {
   adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+  printf("0xdead 0xdead 0xdead\n"); return;
 } else {
   adr0= PFBLOCK_A+bb+(ixc*12);
 };
@@ -94,6 +131,7 @@ if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1; ixc=circ-1;
 if(ix==1) {
+  printf("getprtPFc: ignored, not ready for LM.\n"); return;
   adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
 } else {
   adr0= PFBLOCK_A+bb+(ixc*12);

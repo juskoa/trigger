@@ -391,6 +391,16 @@ bits    Meaning
 #define LM_PF_BLOCK 0x9314 //use getLM0_PFBL                            
 #define L0_PF_INT_SEL 0x93b4 //use getLM0_PFINT                            
 #define L0_PF_BLOCK 0x93a4 //use getLM0_PFBL                            
+/* L?_PF_INT SEL bits:
+4..0 rnd2 rnd1 bc2 bc1 INT1
+9..5 rnd2 rnd1 bc2 bc1 INT2
+   L?_PF_BLOCK bits:
+31    No Delay flag
+30..22 Delay (9 bits, 0..  PFclock periods. 0->513, 1..511->+1
+21..14 Threshold 8 bits
+13.. 5 Protection Interval (DT, 9 bits)
+ 4.. 0 Scale
+*/
 //#define L0_FUNCTION1   0x9214 // use getLM0_F8add
 //#define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
@@ -412,21 +422,33 @@ bits    Meaning
 /* bit23..0: 1: invert L0 input   0: use original polarity */
 #define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
                                 LM0 note
-28-31     spare
-//30..24 DSCG group (7bits)       obsolete
-27..24 PF LM (4 bits) 
+31..28 spare
+       OBSOLETE 30..24 DSCG group (7bits)
+27..24 Select LM PF[4..1]
 23     class mask (1:disabled)  new   see also class mask in lm_veto
 22     spare
 21     Select LM-L0 BUSY 1: don't care 0: do not kill L0 for ongoing LM
 20     1:All   0:Rare
 19..8: Select BCmask[12..1]
- 7..4: Select PFprot[4..1]      the same L) protection
- 2..0: Cluster code (1-6)       the same
+ 7..4: Select L0 PFprot[4..1]
+ 2..0: Cluster code (1-6)   
 
 Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
 L0_VETOr2[23] bit is used. L0_MASK register not used on LM0 board!
+Vetos usage for standard classes:
+           LM   L0
+---L0 class
+classmask:  1   0
+AllRare:    1   0
+LMdeadtime: 1   na
+LML0BUSY:   na  0
+--- LM class
+classmask:  0   0
+AllRare:    0   0
+LMdeadtime: na  0 
+LML0BUSY:   1   na
 */
-#define L0_VETO        0x9900    /* +4*n n=1,2,...,100
+#define L0_VETO        0x9900    /* +4*n n=1,2,...,100 OBSOLETE (only L0 board)
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
                                  19..8: BCmask[12..1]
@@ -441,7 +463,7 @@ LM0: this word dos not exist (bit is in L0_VETOr2 now)
 */
 #define LM_INVERT      0x9c00
 /*
-11..0  Invert LM input
+11..0  1: Invert LM input
 */
 //#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
 #define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
@@ -449,16 +471,16 @@ LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_V
 */
 #define LM_VETO        0x9e00
 /* veto bits: 1: don't care   0:consider this veto
-31     spare
-30..24  spare (before LM down scaling Class group (SDSCG) 7bits)
+31..24 spare
+30..24 OBSOLETE: LM down scaling Class group (SDSCG) 7bits
 23     class mask: 1:class disabled on LM 
-22..18 spare
      see also L0_VETOr2 class mask. Meaning of both bits:
      LM L0
      1  0   pure L0class
      0  0   LMclass
 
-17..10 Select PFprot[8..1]    (8 bits)  
+22..18 spare
+17..10 Select LM PFprot[8..1]
  9     All/Rare input
  8     LM deadtime
  7..0  spare Cluster BUSY enabled 8..1  not connected / probably never be
@@ -586,7 +608,7 @@ Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
   {"busy",0x54, 8,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc606,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc60a,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
   {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L1, CSTART_L1},
   {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L2, CSTART_L2},
   {"int", 0x55,12,NOTINCRATE,0,0xff,0xae,NCOUNTERS_INT, CSTART_INT},
@@ -674,13 +696,29 @@ get PF parameters for 1 board (L0, L1, or L2 -> ix= 1, 2 or 3)
 */
 void getPF(int ix);
 /*FGROUP L0
+get PF parameters for 1 circuit on LM0 board
+I:
+circ -> 1..4
+O: on stdout: 6 hexadecimal numbers: 
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4inpdef L0PF4inpdef
+*/
+void getPFLMc(int circ);
+/*FGROUP L0
 get PF parameters for 1 circuit 
 I:
-L0, L1, or L2 -> ix= 1, 2 or 3
+L1, or L2 -> ix= 2 or 3
 circ -> 1..5
 O: on stdout: 3 hexadecimal numbers: PFBLOCK_A, PFBLOCK_B, PFLUT
 */
 void getPFc(int ix, int circ);
+/*FGROUP L0
+circ:1..4
+get PF parameters for 1 circuit on LM0 board (3 pfblocks)
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+ * */
+void setPFLMc(int circ, w32 w1, w32 w2, w32 w3, w32 w4, w32 w5, w32 w6);
 /*FGROUP L0
 like getPF
 */

@@ -281,8 +281,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       if(lmversion>=0xc606) {
-        setLUT(0, "0");
-        infolog_trgboth(LOG_INFO, (char *)"L0F*/LMF* LUTs set to 0");
+        setLUT(0, "0"); setINTLUT(0, "0"); 
+        infolog_trgboth(LOG_INFO, (char *)"L0F*/LMF* (8) L0/LMINTfun* (6) LUTs set to 0");
       };
       if(lmversion>=0xc5) {
         vmew32(LM_L0_TIME, 12);

@@ -93,8 +93,10 @@ l0c0txt= vbexec.get2("l0C0()")
 Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
 if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0
-print "Gl0AB/C0:",Gl0AB,'/',Gl0C0
+print "Gl0AB/C0:",Gl0AB,'/',hex(Gl0C0)
 
+HWEQMEM=1
+HWNEMEM=0
 class Genhw:
   def __init__(self,attrs=None):
     self.attrs=attrs
@@ -297,9 +299,9 @@ class Ctpconfig:
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
       Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
       Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
-      AttrLUT('INTfun1',["a",8,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfun2',["b",8,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfunT',["c",8,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun1',["a|h",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('INTfun2',["b",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('INTfunT',["c",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun1',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun2',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun3',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
@@ -338,10 +340,13 @@ class Ctpconfig:
         print """ comment L0_INTERACT1/2 lines in ctp.cfg
 at least when ctp boards are not configured. By other words:
 ctp should be initailized always by ctp_proxy, while ctp expert software
-should be started alwasy in nbi-mode (nO bOARD iNIT).
+should be started always in nbi-mode (nO bOARD iNIT).
 """
       if cct[0]=='0':
-        self.pfbs.append(PFboard(ix))
+        if ix==0:
+          self.pfbs.append(PFboardLM(ix))
+        else:
+          self.pfbs.append(PFboard(ix))
       ixinbt= ixinbt+1
     if len(self.pfbs)==0:
       print "Ctpconfig:lenpfbs:",len(self.pfbs), self.pfbs
@@ -674,6 +679,7 @@ Middle-> modify the invert bit (only for classes 45-50)
           fo.readhw(rest)
         else:
           PrintError("FO%d board not in the crate"%(clix))   
+      #elif lab[:6]=='PFL.0.':   # new LM board circuit 1..4
       elif lab[:4]=='PFL.':
         pfl= string.split(lab[4:],'.')
         if len(pfl)==1:
@@ -681,11 +687,14 @@ Middle-> modify the invert bit (only for classes 45-50)
           self.pfbs[brd].readhw(rest)
         else:
           pfcirc= (int(pfl[0]), int(pfl[1]))
-          pfc= self.findPFC(pfcirc)
-          if pfc:
-            pfc.readhw(rest)
+          if pfcirc==(0,5):
+            print "not reading 0,5 pf circuit"
           else:
-            PrintError("PFcircuit "+str(pfcirc)+" not in the crate")
+            pfc= self.findPFC(pfcirc)
+            if pfc:
+              pfc.readhw(rest)
+            else:
+              PrintError("PFcircuit "+str(pfcirc)+" not in the crate")
       elif lab[:4]=='BUSY':
         self.busyboard.readhw(rest)
       else:
@@ -707,6 +716,9 @@ Middle-> modify the invert bit (only for classes 45-50)
     for k in self.pfbs:           # pfs definitions
       k.writehw(cf)
       for circ in k.pfcs:                # circuits on 1 board
+        if circ==None:
+          print "todo: pfcs in PFboardLM..."
+          continue
         circ.writehw(cf)
     cf.close()
   def readhwall(self):
@@ -1012,6 +1024,9 @@ Middle-> modify the invert bit (only for classes 45-50)
     for pfb in self.pfbs:
       if pfcirc[0]==pfb.level:
         for pfc in pfb.pfcs:
+          if pfc==None:
+            print "todo: pfcs in PFboardLM..."
+            return None
           if pfcirc[1]==pfc.pfnumber[1]: return pfc
     return None
   def cmdallenabled(self, setv=None):
@@ -1162,12 +1177,14 @@ the fields of this "BCmask pattern" window are not updated -i.e., if
 pattern definition is changed, the window should be closed/opened
 to see the actual BCmask pattern.
 """
-  L0FUNxHelp="""INTfun1, INTfun2, INTfunT (interaction functions) and
+  L0FUNxHelp="""OBSOLETE for LMfi>0xc605
+INTfun1, INTfun2, INTfunT (interaction functions) and
 L0fun1, L0fun2 (L0 functions for L0 board and LM<0xc606) are programmable functions of the first 
 four CTP L0 inputs. 
 These functions are defined by 16 bits Lookup table (LUT).
 """
-  L0FUN34Help="""L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
+  L0FUN34Help="""NOTEXISITNG in run2!
+L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
 It consists of OR of any logical combination of first L0 inputs (1-12)
 and last L0 inputs (13-24):
 
@@ -1182,16 +1199,6 @@ l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
   L0FUNx8Help="""L0fun1..4 (L0 functions for LM>0xc605) are programmable functions of the first 
 eight CTP L0 inputs. 
 These functions are defined by 256 bits Lookup table (LUT).
-"""
-  L0FUN34Help="""L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
-It consists of OR of any logical combination of first L0 inputs (1-12)
-and last L0 inputs (13-24):
-
-L0fun3= l0f31 | l0f32
-L0fun4= l0f41 | l0f42
-
-l0fx1: (x:3 or 4) logical expression made from L0 inputs 1..12
-l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
 """
   AllRareHelp="""
 All/Rare: All        -take all events
@@ -1241,9 +1248,9 @@ class Klas(Genhw):
   BCmask_mincabi=4
   if Gl0AB==None:
     l0allinputs=32   # numb. of valid bits in L0_CONDITION_n word (l0AC...)
-    l0allvetos=19
+    l0allvetos=19+4  # +4 LMPF bits
     lmallinputs=20   # numb. of valid bits in LM_CONDITION_n word (see Ctpconfig lmx0 defnition)
-    lmallvetos=7     # numb. of L0 vetos in L0_VETO_n word
+    lmallvetos=7+4   # numb. of L0 vetos in L0_VETO_n word8LMPF bits. +4:  8 LMPF bits alltogether
     BCmask_maxcabi=15
     AR_cabi=16
     AR_cabilm=300+1
@@ -1255,8 +1262,8 @@ class Klas(Genhw):
       iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
     else:
       #iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
-      iinvetos= range(4,22)+[23]   # bit numbers in self.vetos
-      iinlmvetos= range(8,14)+[23]   # bit numbers in self.lmvetos 
+      iinvetos= range(4,22)+[23,24,25,26,27]   # bit numbers in self.vetos
+      iinlmvetos= range(8,18)+[23]   # bit numbers in self.lmvetos 
       lmClassMaskBit= 23
       l0ClassMaskBit= 23
       l0ClassMaskBitcabi=18
@@ -1646,12 +1653,12 @@ class Klas(Genhw):
       hlptext="LM deadtime"
     elif cabi==301:
       hlptext="LM all/rare"
-    elif cabi>=302 and cabi<=305:
-      hlptext="LM P/F "+str(cabi-302+1)
-    elif cabi==306:
+    elif cabi>=302 and cabi<=309:
+      hlptext="PFLM "+str(cabi-302+1)
+    elif cabi==310:
       hlptext="LM class mask"
     elif cabi>=0 and cabi<=3:
-      hlptext="P/F "+str(cabi+1)
+      hlptext="PFL0 "+str(cabi+1)
     elif cabi>=self.BCmask_mincabi and cabi<=self.BCmask_maxcabi:
       hlptext="BCmask "+str(cabi-3)
     elif cabi==self.AR_cabi:
@@ -1665,6 +1672,8 @@ green:0 -killed if AllRare is Rare"""
       hlptext="LM-L0 busy"
     elif cabi==(self.AR_cabi+2):
       hlptext="Class Mask"
+    elif (cabi>=(self.AR_cabi+3)) and (cabi<=(self.AR_cabi+7)):
+      hlptext="PFLM "+ str(cabi- (self.AR_cabi+3) +1)
     elif cabi>=200 and cabi<=203:
       hlptext="P/F "+str(cabi-199)
     elif cabi>=100 and cabi<=103:
@@ -2584,12 +2593,78 @@ class AttrLUT(Attr):
     #print "LUTgetbinval:", self.value
     return self.value[2]   #binary value of LUT table
 
+class PFcircuitLM3(Genhw):
+  def __init__(self, pfnumber):
+    """ pfnumber: (0,1..4)
+    """
+    self.pfwidget=None   # not shown
+    self.pfnumber= pfnumber
+    self.lm3defs= Attr("PF%d"%pfnumber[1], [0xdead,0xdeed,0xdead,0xdeed,0xdead,0xdeed], 
+      helptext="PF circuit on LM0 board", cci=None)
+    Genhw.__init__(self, self.lm3defs)
+    self.readhw()
+  def readhw(self,line=None):
+    """
+    """
+    if line==None:
+      #pftx= vbexec.get1("getPF("+str(self.pfnumber[0])+","+
+      # str(self.pfnumber[1])+  ")")   # + board
+      #pfpc= map(eval, pftx)
+      #pfpc=[1,2,3,4,5,6,7,8,9,10,("P-lut",3)]
+      line= vbexec.getline("getPFLMc(%d)"%(self.pfnumber[1]))
+      # 6 hexa words LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+      hww=1 #self.hwwritten(1)
+    else:
+      hww=0 #self.hwwritten(0) # from file (likely different from what is in hw)
+    pfpctx= string.split(line)
+    # 
+    prt(self, "readhw():",pfpctx)
+    p3= map(eval, pfpctx)
+    self.lm3defs.setattrfo(p3, HWEQMEM)
+    #if self.pfwidget:
+    #  print "PFcircuit.readhw: updating pfwidget todo ->done in setattr"
+  def writehw(self, cf=None):
+    """
+    
+    """
+    print "LM3.writehw:", self.lm3defs.value
+    if cf:
+      fmt= "PFL.0.%d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
+      cmdout=cf.write
+    else:
+      fmt= "setPFLMc(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
+      cmdout= vbexec.get1
+      self.hwwritten(1)
+    cmd= fmt%(self.pfnumber[1], 
+      self.lm3defs.value[0], self.lm3defs.value[1], self.lm3defs.value[2],
+      self.lm3defs.value[3], self.lm3defs.value[4], self.lm3defs.value[5])
+    cmdout(cmd)
+  def show(self, fr):
+    """fr -Frame in which the PFcircuit attributes will be shown
+    """
+    if self.pfwidget:
+      print "PFcircuit.show: self.pfwidget already exists"
+      return
+    self.pfwidget= fr
+    self.pfwidget.bind("<Destroy>", self.hidePF)
+    self.title= myw.MywLabel(self.pfwidget, side=TOP,
+      label="PF"+str(self.pfnumber[1]),
+      helptext="""PFcircuitLM3 widget.
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+""")
+    self.lm3defs.show(self.pfwidget)
+  #def refresh(self):
+    #for ix in range(len(self.attrs)):
+    #  self.cons[ix].showrefresh(fr2)
+  def hidePF(self, event):
+    self.pfwidget= None
 class PFcircuit(Genhw):
   """ 15 instances (5 per board)
   """
   L0_L1time=(6.4-0.8)*1000       # L0 - L1 time in ns
   def __init__(self, pfnumber):
-    """ pfnumber: (0..2,1..5)    5 -is dedicated for Test class only  
+    """ pfnumber: (1..2,1..5)    5 -is dedicated for Test class only  
     """
     self.pfwidget=None   # not shown
     self.pfnumber= pfnumber # (0..2,1..5)
@@ -2701,7 +2776,10 @@ class PFwholecircuit:
     #for ix in range(3):
     for ix in range(len(self.ctp.pfbs)):
       #print "PFwholecircuit:", ix, self.circuit, len(self.ctp.pfbs)
-      self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
+      if ix==0:   # LM board
+        self.levels.append(None)
+      else:
+        self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
   def setpfinbc(self, pfinbc):
     """ set corresponding fields in PFboard objects, 
         update on the screen if necessary
@@ -2802,6 +2880,38 @@ the whole length of the past future prot. interval is 10 microseconds
         return (nmax, resolution-1, delay)
       resolution= resolution + 1
     PrintError("Too large prot. interval %d (max. 204000ns)"%(ns))
+class PFboardLM(Genhw):
+  def __init__(self, level):
+    Genhw.__init__(self)
+    self.level= level # 0
+    self.pfcs= [] #None,None,None,None]
+    self.thispftl= None
+    for ix in range(4):
+      self.pfcs.append(PFcircuitLM3((0,ix+1)))
+  def readhw(self,line=None):
+    print "PFboardLM.readhw: pass -no common part"
+  def writehw(self, cf=None):
+    print "PFboardLM.writehw: pass done elsewhere at least for savefile",cf
+    #for ix in range(4):
+    #  self.pfcs[ix].writehw(cf)
+  def show(self,frbrd=None):
+    if frbrd==None:
+      if self.thispftl:
+        myw.RiseToplevel(self.thispftl); return
+      else:
+        self.thispftl= myw.NewToplevel("PF-L"+str(self.level), self.hidePF)
+      self.thispftl.configure(bg=COLOR_PFS)
+      frbrd= self.thispftl
+    pfsfr= myw.MywFrame(frbrd, side=TOP,relief=FLAT, bg=COLOR_PFS)
+    for ix in range(len(self.pfcs)):
+      pffr= myw.MywFrame(pfsfr, side=LEFT, bg=COLOR_PFS)
+      self.pfcs[ix].show(pffr)
+    pfcfr= myw.MywFrame(frbrd, side=TOP, relief=FLAT,bg=COLOR_PFS)
+    for ix in range(len(self.pfcs)):
+      self.pfcs[ix].show(pfcfr)
+  def hidePF(self,ev=None):
+    #print "hidePF:",ev
+    self.thispftl=None
 class PFboard(Genhw):
   """ 3 instances of this for 3 boards: L0, L1, L2"""
   def __init__(self, level):
