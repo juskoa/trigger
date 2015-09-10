@@ -41,7 +41,8 @@ int main(int argc, char* argv[])
     // bcmask tests
     w32 pat[3564];
     for(int i=0;i<3564;i++){
-      pat[i]=0x0;
+      pat[i]=0xf;
+      if(i%10)pat[i]=0;
       //pat[i]=0xaaa;
       //if(i%3)pat[i]=0;
     }

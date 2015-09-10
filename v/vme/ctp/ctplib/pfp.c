@@ -859,6 +859,7 @@ void setLML0PFINTSEL(w32 ibl,w32 int1,w32 int2,w32 bcmask)
  */ 
 void setLML0PF(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag,w32 int1,w32 int2,w32 bcmask)
 {
+ printf("setLML0PF: pf=%i scale:%i Period:%i Ncol:%i delay:%i delflag:%i int1/2: %i %i bcmask: 0x%x \n",ibl,scale,dT,Ncol,delay,delflag,int1,int2,bcmask);
  w32 addr=getLM0_PFBLKad(ibl);
  w32 word=scale+(dT<<5)+(Ncol<<14)+(delay<<22)+(delflag<<31);
  vmew32(addr,word);

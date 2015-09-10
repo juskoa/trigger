@@ -2036,8 +2036,8 @@ for(int i=0;i<NPF;i++){
   printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
   return 1;
  }
- //w32 bcmask=~(1<<(pf->bcmask-1));
- w32 bcmask=0xfff;
+ // to be generalised to more masks
+ w32 bcmask=~(1<<(pf->bcmask-1))&0xfff;
  w32 delflag=0;
  w32 dT,del;
  // Before at LM level (with LM PF)
@@ -2046,7 +2046,7 @@ for(int i=0;i<NPF;i++){
  dT=pf->PeriodBefore-1;
  setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
  // Before at L0 level (with L0 PF)
- setLML0PF(jpf+1,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ setLML0PF(jpf+9,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
  // After at L0 level (with LM PF).
  dT=pf->PeriodAfter-1;
  //del=14-(dT+2)-(pf->OffAfter); // Off zacina za int
@@ -2055,7 +2055,8 @@ for(int i=0;i<NPF;i++){
    printf("load2HW: del<=0, too much future\n");
    return 3;
  }
- setLML0PF(jpf+2,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask); 
+ delflag=0;
+ setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask); 
 }
 
 //------------------------------------------- classes

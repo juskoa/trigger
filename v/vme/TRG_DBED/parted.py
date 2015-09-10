@@ -3195,6 +3195,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #SHRRSRCS[0].used= SHRRSRCS[0].used+1 # rnd1 used
           for inn in cltdsa[1:]:
             inp= TDLTUS.findInput(inn)
+            if inp==None:
+               print 'INRND1: ignoring input: ',inn
+               continue
             inp.prt()
             if inp.swin != '0':   # calculate 2 RND1_EN_FOR_INPUTS words
               if self.inpgcons==None: self.inpgcons= [0,0]
