@@ -99,9 +99,14 @@ HWEQMEM=1
 HWNEMEM=0
 class Genhw:
   def __init__(self,attrs=None):
-    self.attrs=attrs
     if attrs==None:
       self.writeme=1
+      self.attrs=None
+    else:
+      if type(attrs) != types.ListType:
+        self.attrs=[attrs]
+      else:
+        self.attrs=attrs
   def modified(self):
     """ Test if HW != MEMORY
     rc: 1 if this class (descendant of this class) was changed,i.e.
@@ -714,11 +719,8 @@ Middle-> modify the invert bit (only for classes 45-50)
       k.writehw(cf)
     self.busyboard.writehw(cf)
     for k in self.pfbs:           # pfs definitions
-      k.writehw(cf)
+      if k.level != 0: k.writehw(cf)   # no common part for LM board
       for circ in k.pfcs:                # circuits on 1 board
-        if circ==None:
-          print "todo: pfcs in PFboardLM..."
-          continue
         circ.writehw(cf)
     cf.close()
   def readhwall(self):
@@ -754,7 +756,8 @@ Middle-> modify the invert bit (only for classes 45-50)
      if k.modified(): k.writehw()
     if self.busyboard.modified():self.busyboard.writehw()
     for k in self.pfbs:       # PF on L0,1,2 boards
-      if k.modified(): k.writehw()
+      if k.modified(): 
+        if k.level!=0: k.writehw()
       for circ in k.pfcs:         # circuits on 1 board
         if circ.modified(): circ.writehw()
   def readSharedline(self, tp, line, ix1, ix2, sep=' '):
@@ -798,7 +801,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       elif tp=="RBIF":
         # RBIF
         binval= eval(shr[inx])
-        print "binval: inx=",inx," ",type(shr[inx])," ", type(binval)
+        #print "binval: inx=",inx," ",type(shr[inx])," ", type(binval)
         self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
         inx= inx+1
       elif tp=="LMRB":
@@ -2313,11 +2316,11 @@ class Attr(Genhw):
     fr.bind("<Destroy>", self.hideAttr, add='+')
   def printAttr(self):
     print "Attr:", self.atrname,":", self.value, " of type:",type(self.value)
-  def show(self, fr,side=TOP):
+  def show(self, fr,side=TOP,width=8):
     self.bindparent(fr)
     self.atrw= myw.MywEntry(fr,label=self.atrname,helptext=self.helptext,
       bind='lr', defvalue=str(self.value), relief=SUNKEN,
-      width=8, side=side, cmdlabel= self.modatr)
+      width=width, side=side, cmdlabel= self.modatr)
     #following should not be here (actual only if shown already)
     #von if self.writeme==0: 
     #  self.atrw.setColor(myw.COLOR_VALCHANGED)
@@ -2391,7 +2394,7 @@ class AttrBCmask(Attr):
     self.bcmbit=int(self.atrname[3:])-1   #BCM1-4 (or 12)
     self.bpw=None   # associated bit pattern widget not shown
   def Print(self):
-    print 'AttrBCmask: ',self.bcmbit, ' Attr:'
+    #print 'AttrBCmask: ',self.bcmbit, ' Attr:'
     Attr.Print(self)
   def show(self, fr,side=TOP):
     #print "show:",self.value
@@ -2473,7 +2476,7 @@ class AttrBits(Attr):
     apply(Attr.__init__,fa, kw)
     #self.printAttr();
   def Print(self):
-    print 'AttrBits: ',self.bits,' Attr:'
+    #print 'AttrBits: ',self.bits,' Attr:'
     Attr.Print(self)
   def modatr(self, ev=None):
     ntv= self.atrw.getEntry()
@@ -2534,7 +2537,7 @@ class Attr2(Attr):
     self.value[1]=nbvalue
 class AttrLUT(Attr):
   def Print(self):
-    print 'AttrLUT: Attr:'
+    #print 'AttrLUT: Attr:'
     Attr.Print(self)
   def show(self, fr,side=TOP):
     #prt(self,'AttrLUT.show:',self.value)
@@ -2600,7 +2603,13 @@ class PFcircuitLM3(Genhw):
     self.pfwidget=None   # not shown
     self.pfnumber= pfnumber
     self.lm3defs= Attr("PF%d"%pfnumber[1], [0xdead,0xdeed,0xdead,0xdeed,0xdead,0xdeed], 
-      helptext="PF circuit on LM0 board", cci=None)
+      helptext="""PFcircuitLM3 widget.
+PF1: LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+PF2:     6        2        2        6           2           2
+...
+PF4:     8        4        4        8           4           4
+Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
+""", cci=None)
     Genhw.__init__(self, self.lm3defs)
     self.readhw()
   def readhw(self,line=None):
@@ -2613,14 +2622,17 @@ class PFcircuitLM3(Genhw):
       #pfpc=[1,2,3,4,5,6,7,8,9,10,("P-lut",3)]
       line= vbexec.getline("getPFLMc(%d)"%(self.pfnumber[1]))
       # 6 hexa words LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
-      hww=1 #self.hwwritten(1)
+      hww=HWEQMEM
     else:
-      hww=0 #self.hwwritten(0) # from file (likely different from what is in hw)
+      hww=HWNEMEM #self.hwwritten(0) # from file (likely different from what is in hw)
     pfpctx= string.split(line)
     # 
     prt(self, "readhw():",pfpctx)
+    if len(pfpctx) != 6:
+      print "PF LM %d not taken into account (6 items expected), old format?"%self.pfnumber[0]
+      return
     p3= map(eval, pfpctx)
-    self.lm3defs.setattrfo(p3, HWEQMEM)
+    self.lm3defs.setattrfo(p3, hww)
     #if self.pfwidget:
     #  print "PFcircuit.readhw: updating pfwidget todo ->done in setattr"
   def writehw(self, cf=None):
@@ -2634,7 +2646,7 @@ class PFcircuitLM3(Genhw):
     else:
       fmt= "setPFLMc(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
       cmdout= vbexec.get1
-      self.hwwritten(1)
+      self.hwwritten(HWEQMEM)
     cmd= fmt%(self.pfnumber[1], 
       self.lm3defs.value[0], self.lm3defs.value[1], self.lm3defs.value[2],
       self.lm3defs.value[3], self.lm3defs.value[4], self.lm3defs.value[5])
@@ -2647,13 +2659,9 @@ class PFcircuitLM3(Genhw):
       return
     self.pfwidget= fr
     self.pfwidget.bind("<Destroy>", self.hidePF)
-    self.title= myw.MywLabel(self.pfwidget, side=TOP,
-      label="PF"+str(self.pfnumber[1]),
-      helptext="""PFcircuitLM3 widget.
-LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
-...
-""")
-    self.lm3defs.show(self.pfwidget)
+    #von self.title= myw.MywLabel(self.pfwidget, side=TOP,
+    #  label="PF"+str(self.pfnumber[1]), helptext="PFcircuitLM3 widget.")
+    self.lm3defs.show(self.pfwidget, width=None)
   #def refresh(self):
     #for ix in range(len(self.attrs)):
     #  self.cons[ix].showrefresh(fr2)
@@ -2890,23 +2898,23 @@ class PFboardLM(Genhw):
       self.pfcs.append(PFcircuitLM3((0,ix+1)))
   def readhw(self,line=None):
     print "PFboardLM.readhw: pass -no common part"
-  def writehw(self, cf=None):
-    print "PFboardLM.writehw: pass done elsewhere at least for savefile",cf
-    #for ix in range(4):
-    #  self.pfcs[ix].writehw(cf)
+  #def writehw(self, cf=None):
+  #  print "PFboardLM.writehw: pass done elsewhere at least for savefile",cf
+  #  #for ix in range(4):
+  #  #  self.pfcs[ix].writehw(cf)
   def show(self,frbrd=None):
     if frbrd==None:
       if self.thispftl:
         myw.RiseToplevel(self.thispftl); return
       else:
-        self.thispftl= myw.NewToplevel("PF-L"+str(self.level), self.hidePF)
+        self.thispftl= myw.NewToplevel("PF-LM0", self.hidePF)
       self.thispftl.configure(bg=COLOR_PFS)
       frbrd= self.thispftl
-    pfsfr= myw.MywFrame(frbrd, side=TOP,relief=FLAT, bg=COLOR_PFS)
-    for ix in range(len(self.pfcs)):
-      pffr= myw.MywFrame(pfsfr, side=LEFT, bg=COLOR_PFS)
-      self.pfcs[ix].show(pffr)
-    pfcfr= myw.MywFrame(frbrd, side=TOP, relief=FLAT,bg=COLOR_PFS)
+    #von pfsfr= myw.MywFrame(frbrd, side=TOP,relief=FLAT, bg=COLOR_PFS)
+    #for ix in range(len(self.pfcs)):
+    #  pffr= myw.MywFrame(pfsfr, side=LEFT, bg=COLOR_PFS)
+    #  self.pfcs[ix].show(pffr)
+    pfcfr= frbrd #pfcfr= myw.MywFrame(frbrd, side=TOP, relief=FLAT,bg=COLOR_PFS)
     for ix in range(len(self.pfcs)):
       self.pfcs[ix].show(pfcfr)
   def hidePF(self,ev=None):
