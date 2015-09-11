@@ -1035,12 +1035,13 @@ class MywEntry(Frame,MywHelp):
     return text
   def printEntry(self, text='MywEntry.printEntry:'):
     print text,self.getEntry()
-  def destroyEntry(self):
+  #def destroyEntry(self):
+  def destroy(self):
     self.label.destroy()
     if self.entry:
       self.entry.destroy()
     #self.Frame.destroy() nebavi
-    self.destroy()
+    #self.destroy()
 
 class MywVMEEntry(MywEntry):
   """ See MywEntry. This class in addition to MywEntry:

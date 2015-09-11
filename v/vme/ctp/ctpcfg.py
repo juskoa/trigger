@@ -970,7 +970,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       self.shrtl= myw.NewToplevel("CTP shared resources", self.hideShared)
     self.shrtl.configure(bg=COLOR_SHARED)
     for shrres in self.sharedrs:
-      shrres.Print()
+      #shrres.Print()
       shrres.show(self.shrtl)
     #vonint12fr= myw.MywFrame(self.shrtl, side=TOP, relief=FLAT)
     # show buttons activating PF circuits:
@@ -2316,10 +2316,15 @@ class Attr(Genhw):
     fr.bind("<Destroy>", self.hideAttr, add='+')
   def printAttr(self):
     print "Attr:", self.atrname,":", self.value, " of type:",type(self.value)
-  def show(self, fr,side=TOP,width=8):
+  def show(self, fr,side=TOP,width=8, hex=None):
     self.bindparent(fr)
+    if hex:
+      entval= self.conv2hexstr()
+      #entval= str(self.value)
+    else:
+      entval= str(self.value)
     self.atrw= myw.MywEntry(fr,label=self.atrname,helptext=self.helptext,
-      bind='lr', defvalue=str(self.value), relief=SUNKEN,
+      bind='lr', defvalue=entval, relief=SUNKEN,
       width=width, side=side, cmdlabel= self.modatr)
     #following should not be here (actual only if shown already)
     #von if self.writeme==0: 
@@ -2328,7 +2333,9 @@ class Attr(Genhw):
     #  self.atrw.setColor()
   def hideAttr(self,ev):
     #print "Attr.hideAttr"
-    self.atrw=None
+    if self.atrw:
+      self.atrw.destroy()
+      self.atrw=None
   def modatrcommon(self, entwidget, oldbinvalue):
     newval= entwidget.getEntryBin()
     if newval=='': newval='0'
@@ -2356,6 +2363,19 @@ class Attr(Genhw):
       myw.MywError("bad value: %s, integer or 0x... expected"%newval)
       #self.atrw.setEntry(str(self.value))
     return newvalint
+  def conv2hexstr(self):
+    if type(self.value) is types.ListType:
+      rc= "["
+      for ix in range(len(self.value)):
+        #rc.append(hex(self.value[ix]))
+        rc= rc + hex(self.value[ix])
+        if ix == (len(self.value)-1):
+          rc= rc+ "]"
+        else:
+          rc= rc+ ","
+    else:
+      rc= hex(self.value)
+    return rc
   #def save2file(self, cf):
   #  line= "%s %s\n"%(self.atrname, str(self.value))
   #  cf.write(line)
@@ -2602,14 +2622,14 @@ class PFcircuitLM3(Genhw):
     """
     self.pfwidget=None   # not shown
     self.pfnumber= pfnumber
-    self.lm3defs= Attr("PF%d"%pfnumber[1], [0xdead,0xdeed,0xdead,0xdeed,0xdead,0xdeed], 
-      helptext="""PFcircuitLM3 widget.
-PF1: LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
-PF2:     6        2        2        6           2           2
-...
-PF4:     8        4        4        8           4           4
+    icn= pfnumber[1]
+    self.helptextHead="""PFcircuitLM3 widget.
+PF%d: LMPF%d_def LMPF%d_def L0PF%d_def LMPF%d_inpdef LMPF%d_inpdef L0PF%d_inpdef
 Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
-""", cci=None)
+
+"""%(icn, icn+4, icn, icn, icn+4, icn, icn)
+    self.lm3defs= Attr("PF%d"%icn, [0xdead,0xdeed,0xdead,0xdeed,0xdead,0xdeed], 
+      helptext= self.helptextHead)
     Genhw.__init__(self, self.lm3defs)
     self.readhw()
   def readhw(self,line=None):
@@ -2619,7 +2639,7 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
       #pftx= vbexec.get1("getPF("+str(self.pfnumber[0])+","+
       # str(self.pfnumber[1])+  ")")   # + board
       #pfpc= map(eval, pftx)
-      #pfpc=[1,2,3,4,5,6,7,8,9,10,("P-lut",3)]
+
       line= vbexec.getline("getPFLMc(%d)"%(self.pfnumber[1]))
       # 6 hexa words LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
       hww=HWEQMEM
@@ -2661,7 +2681,32 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
     self.pfwidget.bind("<Destroy>", self.hidePF)
     #von self.title= myw.MywLabel(self.pfwidget, side=TOP,
     #  label="PF"+str(self.pfnumber[1]), helptext="PFcircuitLM3 widget.")
-    self.lm3defs.show(self.pfwidget, width=None)
+    self.lm3defs.helptext= self.updateHelp()
+    self.lm3defs.show(self.pfwidget, width=60, hex=1)
+  def updateHelp(self):
+    #ht= "PF%d: %x"%(self.pfnumber[1], self.lm3defs.getbinval()[0])
+    ht= self.helptextHead +\
+      "PF%d:   "%self.pfnumber[1] + "\t" + "Scale" + "\t" + "ProtInt"+ "\t" + "Thres" + "\t" + "Delay" + "\t" + "nodlFlag"+ "\n"
+    for ix in [0,1,2]:
+      ht= ht+ self.helppfblock(ix)
+    return ht
+  def helppfblock(self, ix):
+    pfblk= self.lm3defs.getbinval()[ix]
+    if ix==2:
+      lml0= "  L0"
+    else:
+      lml0= "  LM"
+    if ix==1:
+      lml0N= str(self.pfnumber[1]+4)+":"
+    else:
+      lml0N= str(self.pfnumber[1])+":"
+    scale= str(pfblk & 0x1f)
+    proti= str((pfblk>>5) & 0x1ff)
+    thres= str((pfblk>>14) & 0xff)
+    delay= str((pfblk>>22) & 0x1ff)
+    nodlf= str(pfblk>>31)
+    rc= lml0 + lml0N + "\t" + scale + "\t" + proti + "\t" + thres + "\t" + delay + "\t" + nodlf + "\n"
+    return rc
   #def refresh(self):
     #for ix in range(len(self.attrs)):
     #  self.cons[ix].showrefresh(fr2)
@@ -2821,7 +2866,7 @@ the whole length of the past future prot. interval is 10 microseconds
   def hidePFwholecircuit(self, ev=None):
     #self.pfinbc.hideAttr()
     #print "hidePFwholecircuit%d"%self.circuit
-    self.entry.destroyEntry()
+    self.entry.destroy()
     self.pfwidget= None
   def newpfinbc(self, newpf):
     #newpf= self.entry.getEntry()
@@ -2909,16 +2954,14 @@ class PFboardLM(Genhw):
       else:
         self.thispftl= myw.NewToplevel("PF-LM0", self.hidePF)
       self.thispftl.configure(bg=COLOR_PFS)
-      frbrd= self.thispftl
-    #von pfsfr= myw.MywFrame(frbrd, side=TOP,relief=FLAT, bg=COLOR_PFS)
-    #for ix in range(len(self.pfcs)):
-    #  pffr= myw.MywFrame(pfsfr, side=LEFT, bg=COLOR_PFS)
-    #  self.pfcs[ix].show(pffr)
-    pfcfr= frbrd #pfcfr= myw.MywFrame(frbrd, side=TOP, relief=FLAT,bg=COLOR_PFS)
+    frbrd= self.thispftl
+    pfcfr= myw.MywFrame(frbrd, side=TOP, relief=FLAT,bg=COLOR_PFS)
     for ix in range(len(self.pfcs)):
       self.pfcs[ix].show(pfcfr)
   def hidePF(self,ev=None):
-    #print "hidePF:",ev
+    #print "PFboardLM.hidePF:",ev
+    for ix in range(len(self.pfcs)):
+      self.pfcs[ix].hidePF(ev)
     self.thispftl=None
 class PFboard(Genhw):
   """ 3 instances of this for 3 boards: L0, L1, L2"""
