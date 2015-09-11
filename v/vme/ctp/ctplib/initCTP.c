@@ -204,10 +204,6 @@ vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
 vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
 vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
 */
-ix= loadcheckctpcfg();
-if(ix!=0) {
-    infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
-};
 //dbgssm("after loadcheckctpcfg");
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
@@ -342,6 +338,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       infolog_trgboth(LOG_INFO, (char *)"CTP readout ON");
     };
   };
+};
+ix= loadcheckctpcfg();
+if(ix!=0) {
+    infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
 };
 }
 /*---------------------------------------------------  int nnis1nn(ix) { */
