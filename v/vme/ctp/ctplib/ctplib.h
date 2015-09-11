@@ -21,9 +21,9 @@ typedef struct Tlhcpp {
 #define iTotalIntensity2 10
 
 // LUT8
-int setLUT(int lutn, char *m4);       // 1..8
+int setLUT(int lutn, char *m4);       // 1..8  (0:all)
 void setShared4(int lutn, char *m4);   // 1..4
-int setINTLUT(int lutn, char *m4);       // 1..8
+int setINTLUT(int lutn, char *m4);       // 1..6  (0: all)
 void setSharedINT3(int lutn, char *m4);   // 1..4
 
 int bobrOpen();

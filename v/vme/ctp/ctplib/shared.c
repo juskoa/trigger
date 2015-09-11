@@ -91,7 +91,7 @@ if(notInCrate(1)) return;
 for(lutn=1; lutn<=8; lutn++) {
   /*rc=*/ cshmgetLUT(lutn, val);
   if(lutn<=4) {
-    printf("%s\n", val);
+    sprintf(errmsg, "%s%s\n", errmsg, val);
     strcpy(&l0fs[(lutn-1)*LUT8_LEN], val);
   } else {
     if(strcmp(val, &l0fs[(lutn-5)*LUT8_LEN])!=0) {
@@ -108,7 +108,7 @@ if(notInCrate(1)) return;
 for(lutn=1; lutn<=6; lutn++) {
   /*rc=*/ cshmgetintLUT(lutn, val);
   if(lutn<=3) {
-    printf("%s\n", val);
+    sprintf(errmsg, "%s%s\n", errmsg, val);
     strcpy(&l0fs[(lutn-1)*LUT8_LEN], val);
   } else {
     if(strcmp(val, &l0fs[(lutn-4)*LUT8_LEN])!=0) {
