@@ -2686,7 +2686,7 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
   def updateHelp(self):
     #ht= "PF%d: %x"%(self.pfnumber[1], self.lm3defs.getbinval()[0])
     ht= self.helptextHead +\
-      "PF%d:   "%self.pfnumber[1] + "\t" + "Scale" + "\t" + "ProtInt"+ "\t" + "Thres" + "\t" + "Delay" + "\t" + "nodlFlag"+ "\n"
+      "PF%d:   "%self.pfnumber[1] + "\t" + "Scale" + "\t" + "ProtInt"+ "\t" + "Thres" + "\t" + "Delay" + "\t" + "nodlFlg"+ "\t" + "INT" + "\t" + "BCM" + "\n"
     for ix in [0,1,2]:
       ht= ht+ self.helppfblock(ix)
     return ht
@@ -2705,7 +2705,19 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
     thres= str((pfblk>>14) & 0xff)
     delay= str((pfblk>>22) & 0x1ff)
     nodlf= str(pfblk>>31)
-    rc= lml0 + lml0N + "\t" + scale + "\t" + proti + "\t" + thres + "\t" + delay + "\t" + nodlf + "\n"
+    pfinpint= self.lm3defs.getbinval()[ix+3] & 0x3
+    pfinpmsk= (self.lm3defs.getbinval()[ix+3]>>2) & 0xfff
+    print "helppfblock:", pfinpint, pfinpmsk
+    # 0: selected
+    if pfinpint==0: int12= "1 2"
+    elif pfinpint==1: int12= "2  "
+    elif pfinpint==2: int12= "1  "
+    else: int12= "   "
+    bcm=""
+    for ibc in range(12):
+      if (pfinpmsk & (1<<ibc)) == 0:
+        bcm= bcm+"%d "%(ibc+1)
+    rc= lml0 + lml0N + "\t" + scale + "\t" + proti + "\t" + thres + "\t" + delay + "\t" + nodlf + "\t" + int12 + "\t" + bcm + "\n"
     return rc
   #def refresh(self):
     #for ix in range(len(self.attrs)):
@@ -2856,10 +2868,29 @@ class PFwholecircuit:
     self.entry= myw.MywEntry(self.pfwidget, name, defval, 
       bind='lr', cmdlabel= self.newpfinbc, side=TOP,
       helptext="""
+TRIGGER.PFS line for run2 (only L0 board involved):
+PFname BCM IR past future Npast Nfuture
+where:
+BCM    -BCmask, if not applied: ?
+IR     -Interaction definition
+        INT1 or INT2
+        INTL01,INTL02,INTLM1,INTLM2 ?
+past   -Period in bcs to protect in the past
+future -Period in bcs to protect in the future
+Npast  -Max number of events allowed in the protected past period
+Nfuture -Max number of events allowed in the protected future period
+OffsetPast
+OffsetFuture
+
+Examples:
+test0 BCM1 INT1 3 4 0 1 0 0
+test BCM1 INT2 7 5 0 0 0 3
+""")
+    helptext_run1="""
 The half of the past-future protection interval in BCs or
 in microseconds if followed by 'us'. E.g.: 5us means 
 the whole length of the past future prot. interval is 10 microseconds
-""")
+"""
     #for ix in range(len(self.attrs)):
     #  self.attrs[ix].show(self.pfwidget)
 

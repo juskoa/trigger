@@ -50,7 +50,7 @@ parted.py:
 - only one change in isPFDefined:
   full line as char string saved in pcfg
 Tpartition.h
-TPastFun struct: user definition added
+TPastFut struct: user definition added
 
 26.8.15
 ctp:

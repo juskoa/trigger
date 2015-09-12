@@ -512,6 +512,8 @@ for(ixdef=0; ixdef< 12; ixdef++) {
      w32 inter;
      if (strcmp(hexw,"INT1") == 0 ) inter=1;
      else if (strcmp(hexw,"INT2") == 0 ) inter=2;
+     else if (strcmp(hexw,"INT12") == 0 ) inter=3;
+     else if (strcmp(hexw,"NONE") == 0 ) inter=0;
      //else if (strcmp(hexw,"INTLM1") == 0 ) inter=1;
      //else if (strcmp(hexw,"INTLM2") == 0 ) inter=2;
      else{
