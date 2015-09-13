@@ -882,7 +882,7 @@ class MywEntry(Frame,MywHelp):
     #self.master=master         # for MywxMenu -destroyReg()
     #1711Frame.pack(self,side=side)
     self.bind("<Destroy>", self.dummycmd)
-    self.labelname=''
+    self.labelname='' ; self.label= None
     self.helptext=helptext
     if helptext: 
       MywHelp.__init__(self,master, helptext, baloon=self.printEntry)
@@ -1037,7 +1037,7 @@ class MywEntry(Frame,MywHelp):
     print text,self.getEntry()
   #def destroyEntry(self):
   def destroy(self):
-    self.label.destroy()
+    if self.label: self.label.destroy()
     if self.entry:
       self.entry.destroy()
     #self.Frame.destroy() nebavi
