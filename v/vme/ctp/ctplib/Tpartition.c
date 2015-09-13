@@ -2025,6 +2025,7 @@ if(msg[0]!='\0') printf("load2HW:%s",msg);
 */
 // new PF
 for(int i=0;i<NPF;i++){
+ w32 bcmask;
  TPastFut *pf=&rbif->pf[i];
  int jpf=0;while((jpf<8) && (pf->lmpf[jpf]==0))jpf++;
  if(jpf==8) continue;  // no active pf
@@ -2036,8 +2037,12 @@ for(int i=0;i<NPF;i++){
   printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
   return 1;
  }
- // to be generalised to more masks
- w32 bcmask=~(1<<(pf->bcmask-1))&0xfff;
+ // to be generalised to more masks (now: pf->bcmask: BCM number 1..12 )
+ if( pf->bcmask != 0) {
+   bcmask=~(1<<(pf->bcmask-1))&0xfff;
+ } else {
+   bcmask= 0;
+ };
  w32 delflag=0;
  w32 dT,del;
  // Before at LM level (with LM PF)

@@ -497,14 +497,18 @@ for(ixdef=0; ixdef< 12; ixdef++) {
     case 4: // BCM
     {
      w32 dig1;
-     char2i(hexw[3],&dig1);
-     if(hexw[4]=='\0'){
-       rbif->pf[ixpf].bcmask=dig1;
+     if(strcmp(hexw, "NONE") == 0){
+       rbif->pf[ixpf].bcmask=0;
      } else {
-       w32 dig2;
-       char2i(hexw[4],&dig2);
-       rbif->pf[ixpf].bcmask=dig1*10+dig2;       
-     }
+       char2i(hexw[3],&dig1);
+       if(hexw[4]=='\0'){
+         rbif->pf[ixpf].bcmask=dig1;
+       } else {
+         w32 dig2;
+         char2i(hexw[4],&dig2);
+         rbif->pf[ixpf].bcmask=dig1*10+dig2;       
+       }
+     };
      continue;
     }
     case 5: // INT: INTL01,INTL02,INTLM1,INTLM2

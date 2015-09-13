@@ -2868,20 +2868,31 @@ class PFwholecircuit:
     self.entry= myw.MywEntry(self.pfwidget, name, defval, 
       bind='lr', cmdlabel= self.newpfinbc, side=TOP,
       helptext="""
-TRIGGER.PFS line for run2 (only L0 board involved):
+This entry is not yet valid (always None). It will give a
+TRIGGER.PFS line for run2 (only L0 board involved) in format:
 PFname BCM IR past future Npast Nfuture
 where:
-BCM    -BCmask, if not applied: ?
+BCM    -BCM1,BCM2,...,BCM12, if not applied: NONE
+        Note: 'H'/red color in BCmask definition masks out 
+              INT decision connected to PFblock
 IR     -Interaction definition
-        INT1 or INT2
-        INTL01,INTL02,INTLM1,INTLM2 ?
-past   -Period in bcs to protect in the past
-future -Period in bcs to protect in the future
-Npast  -Max number of events allowed in the protected past period
-Nfuture -Max number of events allowed in the protected future period
-OffsetPast
-OffsetFuture
-
+        INT1, INT2, INT12 (= INT1 | INT2)
+Past   -Period in bcs to protect in the past
+Future -Period in bcs to protect in the future
+        Period: number 2..512 (in hw written as 1..511) or
+                0: Past resp. future disabled.
+        Note: '0 0' is not valid, i.e. it is not allowed
+              to disable both past/future in 1 PF* line in TRIGER.PFS
+Npast   -Max. number of events allowed in the Past period
+Nfuture -Max. number of events allowed in the Future period
+         Note:'future interval' includes the BC of Interaction in
+              case OffsetFuture is set to 0
+OffsetPast   -offset of the past interval, i.e. numer of allowed
+              BCs between the end of the Past period and IR's BC
+OffsetFuture -offset of the future interval. Note:
+              0: IR is included in future interval
+              1: future interval starts just after IR (i.e. 
+                 L0 allowed in IR's BC)
 Examples:
 test0 BCM1 INT1 3 4 0 1 0 0
 test BCM1 INT2 7 5 0 0 0 3
