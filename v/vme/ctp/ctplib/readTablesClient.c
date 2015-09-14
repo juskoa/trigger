@@ -196,7 +196,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     if((strncmp(lookupt,"0x", 2)!=0) || (rc != EXIT_SUCCESS) ) {
       printf("ERROR in %s definition:%s popenread rc:%d\n",parname, value, rc);
       printf("%s\n", lookupt);
-      goto CONT;
+      grc=2 ; goto CONT;
     } else {
       //save in HW structure
       w32 ltv,vmeadr; int ixx;
