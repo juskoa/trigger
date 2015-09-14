@@ -121,7 +121,14 @@ Allocation is in 2 arrays:
 - lmpf[8] for lm level
 - l0pf[4] for l0 level
 eg first PF will be:
+// ZLEEEEE
 lmpf[0]=1 for l0veto non TRD calss
 lmpf[4]=1 for lmvet0 TRD class
 l0pf[0]=1 for l0veto for TRD and nonTRD class 
+// new
+for PF1:
+lmpf[0]=1 for l0veto non TRD and TRD calss // after
+lmpf[4]=1 for lmvet0 TRD class             // before
+l0pf[0]=1 for l0veto  nonTRD class         // before
+
 

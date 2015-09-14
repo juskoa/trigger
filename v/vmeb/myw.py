@@ -940,6 +940,9 @@ class MywEntry(Frame,MywHelp):
     else:
       if self.cmdlabel: self.cmdlabel(ne)
   def setEntry(self, text):
+    if self.entry==None:
+      print "myw.setEntry None...?"
+      return
     self.entry.delete(0, 'end')
     if self.conv2dec==1:
       text= self.hex2dec(text)

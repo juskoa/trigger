@@ -2696,7 +2696,7 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
       lml0= "  L0"
     else:
       lml0= "  LM"
-    if ix==1:
+    if ix==0:
       lml0N= str(self.pfnumber[1]+4)+":"
     else:
       lml0N= str(self.pfnumber[1])+":"
@@ -2870,29 +2870,29 @@ class PFwholecircuit:
       helptext="""
 This entry is not yet valid (always None). It will give a
 TRIGGER.PFS line for run2 (only L0 board involved) in format:
-PFname BCM IR past future Npast Nfuture
+PFname BCM IR Before After Nbefore Nafter
 where:
 BCM    -BCM1,BCM2,...,BCM12, if not applied: NONE
         Note: 'H'/red color in BCmask definition masks out 
               INT decision connected to PFblock
 IR     -Interaction definition
         INT1, INT2, INT12 (= INT1 | INT2)
-Past   -Period in bcs to protect in the past
-Future -Period in bcs to protect in the future
-        Period: number 2..512 (in hw written as 1..511) or
-                0: Past resp. future disabled.
+Before -the length of Before interval in BCs
+After  -the length of After interval in BCs
+        length: a number 2..512 (in hw written as 1..511) or
+                0 when Before resp. After interval is disabled.
         Note: '0 0' is not valid, i.e. it is not allowed
-              to disable both past/future in 1 PF* line in TRIGER.PFS
-Npast   -Max. number of events allowed in the Past period
-Nfuture -Max. number of events allowed in the Future period
-         Note:'future interval' includes the BC of Interaction in
-              case OffsetFuture is set to 0
-OffsetPast   -offset of the past interval, i.e. numer of allowed
-              BCs between the end of the Past period and IR's BC
-OffsetFuture -offset of the future interval. Note:
-              0: IR is included in future interval
-              1: future interval starts just after IR (i.e. 
-                 L0 allowed in IR's BC)
+              to disable both Before/After intervals in 1 PF* line in TRIGER.PFS
+Nbefore -Max. number of events allowed in the Before interval
+Nafter  -Max. number of events allowed in the After interval
+         Note:'After interval' includes the BC of Interaction in
+              case OffsetAfter is set to 0
+OffsetBefore   -offset of the Before interval, i.e. number of allowed
+                BCs between its end and IR's BC
+OffsetAfter    -offset of the After interval. Note:
+                0: IR is included in After interval
+                1: After interval starts just after IR (i.e. 
+                   L0 allowed in IR's BC)
 Examples:
 test0 BCM1 INT1 3 4 0 1 0 0
 test BCM1 INT2 7 5 0 0 0 3

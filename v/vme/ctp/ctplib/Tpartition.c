@@ -927,13 +927,14 @@ int checkmodLMPF(Tpartition *part){
     printf("checkmodLMPF:LM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
     // lmvetoes 3rd pf out of 3
     w32 lmv=klas->lmvetos;
-    w32 mask=1<<(jpf+4+10);
+    w32 mask=1<<(jpf+4+10);  //ok
     lmv=lmv&(~mask);
     klas->lmvetos=lmv;
     // l0vetoes 1st pf out of 3
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
-    mask=1<<(jpf+4);
+    //mask=1<<(jpf+4);
+    mask=1<<(jpf+24);   
     l0v=l0v&(~mask);
     klas->l0vetos=l0v; 
     printf("checkmodLMPF:LM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
@@ -944,8 +945,8 @@ int checkmodLMPF(Tpartition *part){
     // l0vetoes 1st and 2nd pfs out of 3
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
-    w32 mask=1<<(jpf+24);
-    mask+=1<<(jpf+4);
+    w32 mask=1<<(jpf+24); //ok
+    mask+=1<<(jpf+4);     //ok
     l0v=l0v&(~mask);
     klas->l0vetos=l0v; 
     printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
@@ -2046,8 +2047,13 @@ for(int i=0;i<NPF;i++){
  w32 delflag=0;
  w32 dT,del;
  // Before at LM level (with LM PF)
- if(pf->OffBefore==0)delflag=1;
- else del=pf->OffBefore-1;
+ if(pf->OffBefore==0){
+   delflag=1;
+   del=0;
+ }else{
+   delflag=0;
+   del=pf->OffBefore-1;
+ };
  dT=pf->PeriodBefore-1;
  setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
  // Before at L0 level (with L0 PF)
