@@ -477,7 +477,6 @@ w32 ixpf=0; char hexw[50];
 ixx=0;
 int rc1=0;
 for(ixdef=0; ixdef< 12; ixdef++) {
-  w32 pfdef1;
   nxtoken(line, hexw, &ixx);
   printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
   switch(ixdef){
@@ -974,22 +973,20 @@ int pf2class(Tpartition *part)
  for(int i=0;i<NCLASS;i++){
   if(part->klas[i] != NULL){
     w32 ipf=0;
-    //for(int j=0;j<4;j++){
-       w32 l0veto=part->klas[i]->l0vetos;
-       // pf= bits(4..7)
-       w32 ipfveto=((l0veto&0xf0)>>4);
-       if(ipfveto==0xe)      ipf=0;
-       else if(ipfveto==0xd) ipf=1;
-       else if(ipfveto==0xb) ipf=2;
-       else if(ipfveto==0x7) ipf=3;
-       else if(ipfveto==0xf){
-        //printf("NO pf in class %i \n",i);
-        continue;
-       }else {
-        printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
-        return 1;
-       }
-    //}
+    w32 l0veto=part->klas[i]->l0vetos;
+    // pf= bits(4..7)
+    w32 ipfveto=((l0veto&0xf0)>>4);
+    if(ipfveto==0xe)      ipf=0;
+    else if(ipfveto==0xd) ipf=1;
+    else if(ipfveto==0xb) ipf=2;
+    else if(ipfveto==0x7) ipf=3;
+    else if(ipfveto==0xf){
+      //printf("NO pf in class %i \n",i);
+      continue;
+    }else {
+      printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
+      return 1;
+    }
     strcpy(part->klas[i]->pfname,part->rbif->pf[ipf].name);
     printf("pf2class: pf %s added tp class %i\n",part->rbif->pf[ipf].name,i);
   }
