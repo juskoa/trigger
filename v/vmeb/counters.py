@@ -318,7 +318,7 @@ class VMECounter:
     #delaction=self.destroyReg, defaultinx=inx,
     self.cntentry.convertStart()
   def removecnt(self):
-    self.cntentry.destroyEntry()
+    self.cntentry.destroy()
 
 #LTU: name, rel.address, CGT, help
 LTUvicnts={

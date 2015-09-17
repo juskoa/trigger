@@ -1152,6 +1152,7 @@ l. The list of possible trigger descriptor names - one of them has
         PrintError(errmsg, self)
       else:
         self.PF_DB.append([bcm_name,bcm_definition]);	
+        print "PF %s"%bcm_name, bcm_definition
     f.close()
   def load_BCMs(self):
     PrintError("----------------------------------------------- VALID.BCMASKS:",self)
@@ -1734,7 +1735,7 @@ Currently, these times [in seconds] are defined for groups 1..9:
     """
     cluspart: None -trailing cluster part not given in returned name
     new (from 11.5.2012:
-    return: buit-name i.e. built from clsnamepart[]
+    return: built-name i.e. built from clsnamepart[]
     """
     if self.clsname!='': 
       return self.clsname

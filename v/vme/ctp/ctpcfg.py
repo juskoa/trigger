@@ -2290,7 +2290,8 @@ class Attr(Genhw):
   def setattr(self, value):
     #print "setattr.atrw:",self.atrw
     self.value=value     
-    if self.atrw: self.atrw.setEntry(str(value))
+    #if self.atrw: self.atrw.setEntry(str(value))
+    if self.atrw: self.atrw.setEntry(self.conv2hexstr())
   def setattrfo(self, value, hww):
     changed=None
     if self.value != value:
@@ -2624,8 +2625,13 @@ class PFcircuitLM3(Genhw):
     self.pfnumber= pfnumber
     icn= pfnumber[1]
     self.helptextHead="""PFcircuitLM3 widget.
-PF%d: LMPF%d_def LMPF%d_def L0PF%d_def LMPF%d_inpdef LMPF%d_inpdef L0PF%d_inpdef
+PF%d: LMpf%d_def LMpf%d_def L0pf%d_def LMpf%d_inpdef LMpf%d_inpdef L0pf%d_inpdef
 Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
+
+*Fddd.dddd*ddTT.TTTT*TTpp.pppp*pppS.SSSS*     *    .    *    .    *  BB.BBBB*BBBB.BB21*
+  Delay      Thresh    ProtInt    Scale                              BCM[12..1]      INT1
+ nodlFlg                                                                            INT2
+                                                                     BCM,INT1/2: active in 0
 
 """%(icn, icn+4, icn, icn, icn+4, icn, icn)
     self.lm3defs= Attr("PF%d"%icn, [0xdead,0xdeed,0xdead,0xdeed,0xdead,0xdeed], 
@@ -2686,7 +2692,8 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
   def updateHelp(self):
     #ht= "PF%d: %x"%(self.pfnumber[1], self.lm3defs.getbinval()[0])
     ht= self.helptextHead +\
-      "PF%d:   "%self.pfnumber[1] + "\t" + "Scale" + "\t" + "ProtInt"+ "\t" + "Thres" + "\t" + "Delay" + "\t" + "nodlFlg"+ "\t" + "INT" + "\t" + "BCM" + "\n"
+      "PF%d:   "%self.pfnumber[1] + "\t" + "nodlFlg" + "\t" + "Delay"+ "\t" + "Thresh" + "\t" + "ProtInt" + "\t" + "Scale"+ "\t" + "BCM" + "\t" + "INT" + "\n"
+    #"PF%d:   "%self.pfnumber[1] + "\t" + "Scale" + "\t" + "ProtInt"+ "\t" + "Thresh" + "\t" + "Delay" + "\t" + "nodlFlg"+ "\t" + "INT" + "\t" + "BCM" + "\n"
     for ix in [0,1,2]:
       ht= ht+ self.helppfblock(ix)
     return ht
@@ -2717,12 +2724,13 @@ Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
     for ibc in range(12):
       if (pfinpmsk & (1<<ibc)) == 0:
         bcm= bcm+"%d "%(ibc+1)
-    rc= lml0 + lml0N + "\t" + scale + "\t" + proti + "\t" + thres + "\t" + delay + "\t" + nodlf + "\t" + int12 + "\t" + bcm + "\n"
+    rc= lml0 + lml0N + "\t" + nodlf + "\t" + delay + "\t" + thres + "\t" + proti + "\t" + scale + "\t" + bcm + "\t" + int12 + "\n"
     return rc
   #def refresh(self):
     #for ix in range(len(self.attrs)):
     #  self.cons[ix].showrefresh(fr2)
   def hidePF(self, event):
+    self.lm3defs.hideAttr(event)
     self.pfwidget= None
 class PFcircuit(Genhw):
   """ 15 instances (5 per board)

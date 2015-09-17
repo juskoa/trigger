@@ -237,7 +237,7 @@ def main():
           reload(parted)
           parted.initparted()
           if len(pts)!=0: 
-            print "ERROR partition list not empty:", pts.keys()
+            print "ERROR partition list not empty, rcfg not received for last:", pts.keys()
           pts= {}
           os.chdir("RCFG")
           rnames= glob.glob('*.rcfg')
