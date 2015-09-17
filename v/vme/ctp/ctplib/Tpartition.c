@@ -1932,6 +1932,7 @@ for(isp=0;isp<MNPART;isp++){
  }
  //------------------------------------------- RBIF
  rbif=hw->rbif;
+ printTRBIF(rbif);
  vmew32((RANDOM_1), rbif->rbif[ixrnd1]);
  vmew32((RANDOM_2), rbif->rbif[ixrnd2]);
  vmew32((SCALED_1), rbif->rbif[ixbc1]);

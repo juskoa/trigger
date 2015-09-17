@@ -719,20 +719,23 @@ int checkPFS(TRBIF *cumrbif,TRBIF *prbif){
 if(DBGpfs) {
   prtLog(".................................checkPFS...");
 };
-w32 pftot=0;
 for(int ipf=0; ipf<NPF; ipf++) {
   if(prbif->PFuse[ipf]==0) continue;
   TPastFut* pf=&prbif->pf[ipf];
+  // test if new pf already exists in cumulated
   for(int jpf=0;jpf<NPF;jpf++){
      if(cumrbif->PFuse[jpf]==0) continue;
      TPastFut* cumpf=&cumrbif->pf[jpf];
-     if(strcmp(pf->name,cumpf->name)==0)return 0;
+     if(strcmp(pf->name,cumpf->name)==0)return 0; // PF already there
   }
   // PF not in cum, add it
+  w32 pftot=0;
   for(int jpf=0;jpf<NPF;jpf++){
+     pftot+=cumrbif->PFuse[jpf];
+     printf("checkPFS: pftot= %i \n",pftot);
      if(cumrbif->PFuse[jpf] == 0){
-       // more clever logic with circuits later maybe
-       if(pftot > NPF) {
+       // when 0 found resources should exist but NPF=5 shou;ld be 4 change later
+       if(pftot > 4) {
          char emsg[100];
          sprintf(emsg,"Too many PFs");
          infolog_trgboth(LOG_ERROR, emsg);
@@ -751,7 +754,6 @@ for(int ipf=0; ipf<NPF; ipf++) {
        cumpf->l0pf[pftot]=1;
        // LM after at L0
        cumpf->lmpf[pftot]=1;
-       pftot++;
        break;
      }
   }
