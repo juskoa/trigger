@@ -396,7 +396,7 @@ monitor.py stop
       #  dm.flush()
       log.logm("quitting pid: %s..."%pidpath)
       log.flush()
-      udpmsg.close()
+      #udpmsg.close()
       time.sleep(1)   #
       #os.remove(pidpath)
       break
