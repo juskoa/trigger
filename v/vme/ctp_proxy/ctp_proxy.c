@@ -733,14 +733,14 @@ for(int ipf=0; ipf<NPF; ipf++) {
   for(int jpf=0;jpf<NPF;jpf++){
      pftot+=cumrbif->PFuse[jpf];
      printf("checkPFS: pftot= %i \n",pftot);
+     if(pftot >= (NPF-1)) {  // because of pftest
+      char emsg[100];
+      sprintf(emsg,"Too many PFs");
+      infolog_trgboth(LOG_ERROR, emsg);
+      return 1;
+     }
      if(cumrbif->PFuse[jpf] == 0){
        // when 0 found resources should exist but NPF=5 shou;ld be 4 change later
-       if(pftot > 4) {
-         char emsg[100];
-         sprintf(emsg,"Too many PFs");
-         infolog_trgboth(LOG_ERROR, emsg);
-         return 1;
-       }
        TPastFut* cumpf=&cumrbif->pf[jpf];
        if(cumrbif->BCMASKuse[cumpf->bcmask]==0){
          printf("checkPFS: BCmask used in PF not in config ? \n");
