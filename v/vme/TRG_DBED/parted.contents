@@ -1,16 +1,23 @@
 class TrgInput:
   def __init__(self, name):
+  def check(self, line):
   def prt(self):
 class TrgInpDet:
   def __init__(self, name):
   def findInput(self, name):
   def addInput(self, inp):
   def getinputnames(self):
-  def prt(self):
+  def tidprt(self):
+  def makeVirtL0f(self):
 class TrgDescriptor:
   def __init__(self, name, inps=[]):
+  def check_l0f(self, inp):
+  def checkForPcfg(self, inp):
+  def check2or34funs(self, l0funs, lut, inp):
   def show(self,master):
-  def prt(self):
+  def trdprt(self):
+  def getInputs(self):
+  def getInpDets(self):
 class TrgPF:
   def __init__(self, name, vals):
 class TrgSHR:
@@ -28,9 +35,10 @@ class TrgSHR_BCM(TrgSHR):
   def setValue(self, newbcm):
   def updt(self, tkobj=None, event=None):
   def getDefinition(self):
+  def getName(self):
+  def isPFDefined(self,level):
   def prtBits(self):
   def getBits(self):
-class TdsLtus:
   def __init__(self):
   def initTDS(self,reload=None):
   def findInput(self, nameintds):
@@ -39,13 +47,19 @@ class TdsLtus:
   def findTD(self, name):
   def findLTU(self, name):
   def getltunames(self):
-  def inp2DetName(self, inpname):
+  def getInpDets(self, inpname):
   def doTDSbut(self, master, cmd, trdeactive):
-  def load_CFG(self):
-  def findBCMname(self,bcmname):
+  def load_PFs(self):
+  def load_BCMs(self):
+  def findBCMPFname(self,bcmname, bcmpf):
 class TrgClass:
-  def __init__(self, clstring, mycluster):
+  def __init__(self, clstring, mycluster, clusname4clsname):
+  def get_clsnamepart1(self, k):
+  def get_clsnamepart2(self, k):
   def prtClass(self):
+  def updateClassName(self, cluspart,composeName="yes"):
+  def buildname(self,name_part=None):
+  def updateClassName1(self):
   def setCluster(self, mycluster):
   def getrcfgdesname(self):
   def getTXTpfs(self):
@@ -55,10 +69,12 @@ class TrgClass:
   def getBCMASKs(self):
   def getTXTcls(self):
   def hide(self):
+  def showClass_BCMPF(self, bcmorpf):
   def showClass(self):
+  def applyClassFilter(self,filter):
   def cgupdate(self, event=None):
   def l0prcmd(self, event=None):
-  def getclsname(self):
+  def getclsname(self, clustpart='yes'):
   def clsnamecmd(self, event=None):
   def modadi(self, adibutinst, ixoi):
   def rarecmd(self):
@@ -72,7 +88,9 @@ class TrgCluster:
   def prt(self):
   def hide(self):
   def doTDSbuttons(self):
+  def getFreeFrame(self):
   def doCLSbutton(self, ixcls):
+  def refreshClassNames(self):
   def doTDShead(self):
   def refreshTDShead(self):
   def refreshTDSheadLabel(self):
@@ -90,19 +108,24 @@ class TrgCluster:
   def activeCluster(self,event=None):
   def deactiveCluster(self,event=None):
 class TrgPartition:
-  def __init__(self, relpname):
+  def __init__(self, relpname, strict=None):
   def donewtd(self):
   def show(self,master,name=None):
   def hide(self):
   def destroy(self):
   def prt(self):
+  def prtInputDetectors(self,hexs=None):
   def getRR(self, minst, ix=0):   # get Required Resources
   def save(self, partname):
   def checkPartition(self):
-  def savepcfg(self):
+  def l0fUpdate(self, tl0funs, l0inps):
+  def findfirst(self, phclasses=None):
+  def savepcfg(self,wdir=CFGDIR,name=None):
+  def prtinputs(self, dbgfname=None):
   def savercfg(self, line=""):
-  def allocShared(self, l0funs):
-  def addpf(self,pfname):
+  def prtinput1(self, inp, of=None):
+  def allocShared(self, pl0funs, lf34=None):
+  def prt_FIXrc(self, rc, cltds, symbols, shrname):
   def loadfile(self, inf):
   def showShared(self, minst, ix):
   def hideShared(self, event=None):
@@ -115,6 +138,7 @@ class TrgPartition:
   def delActiveCluster(self, minst, ix):
   def setActiveCluster(self, actclu):
   def inventClusterName(self):
+  def sdgGroups(self, minst,ix):
   def getn(x):return string.split(x,'.')[0]
 class TrgLoadSave:
   def __init__(self, master, partname):
@@ -127,5 +151,6 @@ class TrgLoadSave:
   def savePartAs(self, minst, ix):
   def savePartAs2(self, event=None):
   def loadPartition(self,partname=None):
+  def showDescriptor(self,menuinstance, ix):
   def changeShown(self,menuinstance, ix):
   def checkall(self):

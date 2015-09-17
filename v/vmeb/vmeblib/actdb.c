@@ -248,9 +248,10 @@ if((err= actdb_getdbfile("FillingScheme",actname,actversion)) !=0) {rc= err; got
   };
   sprintf(cfglist, "%s VALID.BCMASKS %s %s\n", cfglist, actname, actversion);
 };
-//if((err= actdb_getdbfile("TRIGGER.PFS")) !=0) {rc= err; goto STP;};
-//if((err= actdb_getdbfile("VALID.LTUS")) !=0) {rc= err; goto STP;};
-//if((err= actdb_getdbfile("ttcparts.cfg")) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("TRIGGER.PFS", actname, actversion)) !=0) {rc= err; goto STP;};
+sprintf(cfglist, "%s TRIGGER.PFS %s %s\n", cfglist, actname, actversion);
+//if((err= actdb_getdbfile("VALID.LTUS", actname, actversion)) !=0) {rc= err; goto STP;};
+//if((err= actdb_getdbfile("ttcparts.cfg", actname, actversion)) !=0) {rc= err; goto STP;};
 STP:
 ACT_close(handle);
 #else

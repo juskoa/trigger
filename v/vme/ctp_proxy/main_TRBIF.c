@@ -56,7 +56,7 @@ while(1) {
      rc= 1;
    };
   } else if(strncmp("L0F34",line, 5) == 0){
-     rcgrbif= L0342Partition(line, grbif);
+     //rcgrbif= L0342Partition(line, grbif);
      if(rcgrbif == NULL) {
        sprintf(errmsg,"ParseFile: L0342Partition error."); 
        rc= 1;
@@ -68,9 +68,9 @@ fclose(cfgfile); vmeclose();
 if(errmsg[0]!='\0') {
   infolog_trg(LOG_ERROR, errmsg);
 } else {
-  char m4[LEN_l0f34+1];
-  printTRBIF(grbif);
-  combine34(grbif->lut34, m4);
+  //char m4[LEN_l0f34+1];
+  //printTRBIF(grbif);
+  //combine34(grbif->lut34, m4);
 };
 return(rc);
 }

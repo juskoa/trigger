@@ -385,6 +385,7 @@ class Kanvas(Canvas):
     #print "doEntry:",xy
     id= self.create_window(xy[0], xy[1],window=entw,
       anchor=NW, tags="TAGl0pr")
+    #self.tag_bind(id, "<Enter>", self.winvisible)
     return entw
   def doHelp(self, id, helptxt, dynhelp=None):
     """ id: canvas object id
@@ -402,6 +403,7 @@ class Kanvas(Canvas):
     canh=int(self.cget("height"))
     canw=int(self.cget("width"))
     x= event.x; y=event.y
+    #print "Kanvas.enterbit:x:",x," y:",y
     if hlptext==None: hlptext="Entering bit"
     if dynhelp!=None: 
       hlptext=dynhelp(hlptext)
@@ -421,6 +423,7 @@ class Kanvas(Canvas):
         x= event.x+cursd; y=event.y+cursd; #recreate=0
       else:          #SW
         x= event.x+cursd; y=event.y-cursd-txth
+    #print "Kanvas.enterbit:new x:",x," y:",y
     ####if cs[2] > Klas.l0scalerx0:
     #print "canh canw x y:",canh,canw,x,y #type(canh),type(cs[3])
     # recreate:
@@ -459,12 +462,20 @@ class Kanvas(Canvas):
             #ok self.toliftback.append(cls.scalentry)
             #ok cls.scalentry.lower(self)         # scalentry disappears
     self.tag_raise(thlptxt, self.ovalhelp)
+    #self.lift(thlptxt)
+    #self.hide("TAGl0pr")
+    #self.lift("TAGhlptemp")
+    self.itemconfigure("TAGl0pr", state=HIDDEN)
   def ifnegorge(self,value, upperlimit, newifneg, newifge):
     if value<0:return newifneg
     if value>=upperlimit:return newifge
     return value
+  #def winvisible(self, event):
+  #  #print "winvisible:"
+  #  self.itemconfigure("TAGl0pr", state=NORMAL)
   def leavebit(self, event):
     #print "leavebit:"
+    self.itemconfigure("TAGl0pr", state=NORMAL)
     self.delete("TAGhlptemp")
     #self.delete(self.ovalhelp)
     for se in self.toliftback:
@@ -871,7 +882,7 @@ class MywEntry(Frame,MywHelp):
     #self.master=master         # for MywxMenu -destroyReg()
     #1711Frame.pack(self,side=side)
     self.bind("<Destroy>", self.dummycmd)
-    self.labelname=''
+    self.labelname='' ; self.label= None
     self.helptext=helptext
     if helptext: 
       MywHelp.__init__(self,master, helptext, baloon=self.printEntry)
@@ -929,6 +940,9 @@ class MywEntry(Frame,MywHelp):
     else:
       if self.cmdlabel: self.cmdlabel(ne)
   def setEntry(self, text):
+    if self.entry==None:
+      print "myw.setEntry None...?"
+      return
     self.entry.delete(0, 'end')
     if self.conv2dec==1:
       text= self.hex2dec(text)
@@ -1024,12 +1038,13 @@ class MywEntry(Frame,MywHelp):
     return text
   def printEntry(self, text='MywEntry.printEntry:'):
     print text,self.getEntry()
-  def destroyEntry(self):
-    self.label.destroy()
+  #def destroyEntry(self):
+  def destroy(self):
+    if self.label: self.label.destroy()
     if self.entry:
       self.entry.destroy()
     #self.Frame.destroy() nebavi
-    self.destroy()
+    #self.destroy()
 
 class MywVMEEntry(MywEntry):
   """ See MywEntry. This class in addition to MywEntry:

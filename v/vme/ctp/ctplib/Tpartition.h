@@ -13,6 +13,8 @@
 #define NCON 4        // # of connectors at FO
 #define NDETEC 24
 #define NCTPINPUTS 84    // 48+24+12
+#define NPF 5    // number of possible PF (not circuits)
+
 #ifndef MNPART
 #define MNPART 6
 #endif
@@ -124,6 +126,7 @@ typedef struct TKlas{
  w32 lminverted;
  w32 lmvetos;     
  w32 lmscaler;
+ char pfname[64];
 }TKlas;
 
 /* old definition (w.r.t. level, never used):
@@ -151,8 +154,20 @@ PF_N_BCS THa1 dTa THb1 dTb INTa INTb Delayed_INT THa2 THb2 P_signal
 #define ixDelayed_INT 2
 // 3 values (x=L0/1/2) PF_COMMONx (was 3 before 23.10.2011)
 #define ixMaxpfdefsCommon 3
-typedef struct TPastFut{
- w32 pfdefs[ixMaxpfdefs];
+typedef struct TPastFut {
+ char name[MAXNAMELENGTH];
+ w32 bcmask; //12 bit mask 
+ w32 inter; // 1=int1, 2=int2 ?
+ w32 PeriodBefore,PeriodAfter;
+ w32 NintBefore,NintAfter; 
+ w32 OffBefore,OffAfter; 
+ //w32 pfdefs[ixMaxpfdefs];
+ //lm level
+ // asignemnt of 8 lm pfs: 
+ // 0=not asigned; 0 asigned to lm level; 1 assigned to l0 level
+ w8 lmpf[8];
+ //l0 level
+ w8 l0pf[4];
 }TPastFut;
 typedef struct TPastFutCommon{
  w32 pfdefsCommon[ixMaxpfdefsCommon];
@@ -189,10 +204,8 @@ Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 #define L0FINTN 7      // number of l0f1..4 in1,2,t
 #define L0F34SDMAX 200
 
-//#define LEN_l0f34 4096
 //debug case: corresponds to [a b c d e f] in Ctpcfg.__init__(
 // Ctpconfig.dbgbits=6 (real:12)
-#define LEN_l0f34 64 
 
 #define LUT8_N 4 
 #define LUT8_LEN 68 
@@ -206,21 +219,15 @@ typedef struct TRBIF{
  //notused  :not used by this partition , rbif[ix] irrelevant
  //nothwal  : used but not allocated to hw, requested value in rbif[ix]
  // in hw allocated at hw.rbif[rbifuse[ix]]
- w32 intsel;
- //w32 bcmask[4];
+ w32 intsel;   // same for LM and L0 level
+ // 
  char l0intfs[L0FINTN*L0INTFSMAX];  // l0f1/2/3/4 int1/2/t as a text string
- //char BCMASK[ORBITLENGTH+1];  // '1','2',...,'f'
  w16 BCMASK[ORBITLENGTH+1];  // '1','2',...,'f' ... 'fff' for 12 BC masks
  w8 BCMASKuse[12];             // same as rbif 0:not used, 1..12: bcm1..12 used
- TPastFut pf[5];
- w8 PFuse[5];             // 0:not used, 1..5: pf1..4 used [4]==5:PFT used
+ TPastFut pf[NPF];
+ w8 PFuse[NPF];             // 0:not used, 1..5: pf1..4 used [4]==5:PFT used
  TPastFutCommon pfCommon;
  w8 PFCuse;               // 0 not used (PF not used at all), 1: used
- //w8 rare;   //all_rare_flag word is actually not real RBIF
- w8 lut34[LEN_l0f34];   // pointer to 2*2x1024 bytes (lut31+lut32 + lut41+lut42)
- // 1byte: 4 rigthmost bits contain 4 bits of lut
- char l0f3sym[L0F34SDMAX];  // symbolic representation
- char l0f4sym[L0F34SDMAX];
  char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 
@@ -270,8 +277,9 @@ void cleanTBUSY(TBUSY *busy);
 void copyTBUSY(TBUSY *to,TBUSY *from);
 
 // Clean TPastFut
-//void cleanTPastFut(TPastFut *pf);
-//void copyPF(TPastFut *to,TPastFut *from);
+void cleanTPastFut(TPastFut *pf);
+void copyTPastFut(TPastFut *to,TPastFut *from);
+void printTPastFut(TPastFut *pf);
 //void copyPFC(TPastFutCommon *to,TPastFutCommon *from);
 //
 /*---------------------------------------------------------------
@@ -321,6 +329,7 @@ Tinput validCTPINPUTs[NCTPINPUTS];
 Tpartitionshm startedParts[MNPART];
 // w8 lut34s[LEN_l0f34];   thrown out 9.7.2015
 char lut88[8*LUT8_LEN];   // 8 lut8 LUTs l01..4 lm1..4, format: "0xabef.64" hwcopy
+char intlut88[6*LUT8_LEN];  // 6 LUTs for PF
 }Tctpshm;
 
 /* TDAQInfo for DAQlogbook gathered [mostly] in ctpproxy and passed to the server
@@ -438,6 +447,7 @@ int setnameTpartition(Tpartition *part, char *name);
 void printTpartition(char *headtext, Tpartition *part);
 int getIDl0f(TRBIF *rbifs, int l0fn, w32 *l0finputs, int *purelm);
 int checkmodLM(Tpartition *part);
+int checkmodLMPF(Tpartition *part);
 int getNAllPartitions();
 void printStartedTp();
 void printAllTp();
@@ -530,6 +540,8 @@ void cshmResumePartition(Tpartition *part);
 int cshmGlobalDets();
 int cshmsetLUT(int lutn, char *m4);
 int cshmgetLUT(int lutn, char *m4);
+int cshmsetintLUT(int lutn, char *m4);
+int cshmgetintLUT(int lutn, char *m4);
 
 // others. swtrigger.c:
 //void clearflags();

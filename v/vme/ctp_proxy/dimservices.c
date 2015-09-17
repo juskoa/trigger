@@ -783,7 +783,7 @@ if((strcmp(ReceivedCommand,"ok")==0)) {
   };
 } else if(stringStarts(ReceivedCommand,"STATUS ALLRARE")) {
   w32 arf; char allraretxt[8];
-  arf= vmer32(getLM0addr(ALL_RARE_FLAG));
+  arf= vmer32((ALL_RARE_FLAG));
   if((arf&0x1) == 1) {
     strcpy(allraretxt,"ALL");
   } else {
@@ -936,10 +936,10 @@ if(checkcid()<0) {
 };
 if(strcmp(msg,"qq")==0) ds_stop();
 if(stringStarts(msg,"ALL")) {
-  vmew32(getLM0addr(ALL_RARE_FLAG), 1);
+  vmew32((ALL_RARE_FLAG), 1);
   prtLog("ALLRARE flag set to ALL");
 } else if(stringStarts(msg,"RARE")) {
-  vmew32(getLM0addr(ALL_RARE_FLAG), 0);
+  vmew32((ALL_RARE_FLAG), 0);
   prtLog("ALLRARE flag set to RARE");
 } else if(stringStarts(msg,"CHECKPHASES")) {
   strcpy(ReceivedCommand, "DO CHECKPHASES");

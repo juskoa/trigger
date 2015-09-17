@@ -204,17 +204,6 @@ vmew32(getLM0addr(L0_INTERACT1), 0); vmew32(getLM0addr(L0_INTERACT2), 0);
 vmew32(getLM0addr(L0_INTERACTT), 0); vmew32(getLM0addr(L0_INTERACTSEL), 0);
 vmew32(getLM0addr(L0_FUNCTION1), 0); vmew32(getLM0addr(L0_FUNCTION2), 0);
 */
-if(l0AB()==0) {   //firmAC
-  if(l0C0()) {
-    printf("omitting setL0f34c() on LM0 board.\n");
-  } else {
-    rc= setL0f34c(0, (char *)"0");
-  };
-};
-ix= loadcheckctpcfg();
-if(ix!=0) {
-    infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
-};
 //dbgssm("after loadcheckctpcfg");
 for(ix=0; ix<NCTPBOARDS; ix++) {
   if(notInCrate(ix)) continue;
@@ -288,8 +277,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       if(lmversion>=0xc606) {
-        setLUT(0, "0");
-        infolog_trgboth(LOG_INFO, (char *)"L0F*/LMF* LUTs set to 0");
+        setLUT(0, "0"); setINTLUT(0, "0"); 
+        infolog_trgboth(LOG_INFO, (char *)"L0F*/LMF* (8) L0/LMINTfun* (6) LUTs set to 0");
       };
       if(lmversion>=0xc5) {
         vmew32(LM_L0_TIME, 12);
@@ -312,7 +301,7 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       vmew32(SCOPE_A_FRONT_PANEL, 14); printf("SCOPE_A_FRONT set to PLL_LOCKED_BC signal\n");
     };
     setEdgesDelays(1); printf("L0+LM CTPswitch: edges, delays set from ctpinputs.cfg\n");
-    vmew32(getLM0addr(ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
+    vmew32((ALL_RARE_FLAG ), 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     vmew32(ALL_RARE_FLAG, 1);   // 1:ALL (i.e. kill all classes with ALLRARE:0)
     printf("ALL_RARE_FLAG:ALL (common for LM+L0 level)\n");
     //RNDsync(3); printf("RND1/2 synchronised\n");
@@ -349,6 +338,10 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       infolog_trgboth(LOG_INFO, (char *)"CTP readout ON");
     };
   };
+};
+ix= loadcheckctpcfg();
+if(ix!=0) {
+    infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
 };
 }
 /*---------------------------------------------------  int nnis1nn(ix) { */

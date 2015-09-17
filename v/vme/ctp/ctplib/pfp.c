@@ -32,6 +32,7 @@ bb= BSP*ctpboards[ix].dial;
 ixa=ix-1;
 if(ix==1) {
   val= vmer32(getLM0PFad(PF_COMMON)+bb); 
+  printf("0xdead\n"); return;
 } else {
   val= vmer32(PF_COMMON+bb); 
 };
@@ -56,6 +57,41 @@ delay= (val>>12) & 0xfff;
 printf("L%d:%x:INTa/b/delayed 0x: %x %x %x delay:%d\n", ixa, val, INTa, INTb,dINT,delay);
 }
 //------------------------------------------------------------------------------------
+/* LM board, circ: 1..4
+stdout: hexa (i.e. 0x5 0x4 0x3 0x1):
+for circ:1
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+for circ:4
+LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4dinpef L0PF4dinpef 
+*/
+void getPFLMc(int circ) {   
+char line[92];
+printf("0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+  vmer32(getLM0_PFBLKad(circ+4)),
+  vmer32(getLM0_PFBLKad(circ)),
+  vmer32(getLM0_PFBLKad(circ+8)),
+  vmer32(getLM0_PFINTad(circ+4)),
+  vmer32(getLM0_PFINTad(circ)),
+  vmer32(getLM0_PFINTad(circ+8)));
+}
+/* LM board, circ: 1..4
+stdout: hexa (i.e. 0x5 0x4 0x3 0x1):
+for circ:1
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+for circ:4
+LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4dinpef L0PF4dinpef 
+*/
+void setPFLMc(int circ, w32 w1, w32 w2, w32 w3, w32 w4, w32 w5, w32 w6) {   
+vmew32(getLM0_PFBLKad(circ+4), w1);
+vmew32(getLM0_PFBLKad(circ), w2);
+vmew32(getLM0_PFBLKad(circ+8), w3);
+vmew32(getLM0_PFINTad(circ+4), w4);
+vmew32(getLM0_PFINTad(circ), w5);
+vmew32(getLM0_PFINTad(circ+8), w6);
+}
+//------------------------------------------------------------------------------------
 void getPFc(int ix, int circ) {
 int bb,ixa, ixc, i;
 w32 adr0, vals[3];
@@ -66,6 +102,7 @@ bb= BSP*ctpboards[ix].dial;
 ixa=ix-1; ixc=circ-1;
 if(ix==1) {
   adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
+  printf("0xdead 0xdead 0xdead\n"); return;
 } else {
   adr0= PFBLOCK_A+bb+(ixc*12);
 };
@@ -94,6 +131,7 @@ if(notInCrate(ix)) return;
 bb= BSP*ctpboards[ix].dial;
 ixa=ix-1; ixc=circ-1;
 if(ix==1) {
+  printf("getprtPFc: ignored, not ready for LM.\n"); return;
   adr0= getLM0PFad(PFBLOCK_A)+bb+(ixc*12);
 } else {
   adr0= PFBLOCK_A+bb+(ixc*12);
@@ -825,3 +863,44 @@ int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter)
  
  return 0;
 }
+/*FGROUP PF
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 8 bits
+ delay - 9 bits
+ */ 
+void setLML0PFblock(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag)
+{
+ w32 addr=getLM0_PFBLKad(ibl);
+ w32 word=scale+(dT<<5)+(Ncol<<14)+(delay<<22)+(delflag<<31);
+ vmew32(addr,word);
+}
+/*FGROUP PF
+ int1 = 0-selected /1=deselected  
+ int2 = 0/1
+ bcmask 12 bit mask
+*/
+void setLML0PFINTSEL(w32 ibl,w32 int1,w32 int2,w32 bcmask)
+{
+ w32 addr=getLM0_PFINTad(ibl);
+ w32 word=int1+(int2<<1)+(bcmask<<2);
+ vmew32(addr,word);
+} 
+/*FGROUP PF
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 8 bits
+ delay - 9 bits
+ int1 = 0/1 
+ int2 = 0/1
+ bcmask 12 bit mask 
+ */ 
+void setLML0PF(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag,w32 int1,w32 int2,w32 bcmask)
+{
+ printf("setLML0PF: pf=%i scale:%i Period:%i Ncol:%i delay:%i delflag:%i int1/2: %i %i bcmask: 0x%x \n",ibl,scale,dT,Ncol,delay,delflag,int1,int2,bcmask);
+ w32 addr=getLM0_PFBLKad(ibl);
+ w32 word=scale+(dT<<5)+(Ncol<<14)+(delay<<22)+(delflag<<31);
+ vmew32(addr,word);
+ setLML0PFINTSEL(ibl,int1,int2,bcmask);
+}
+

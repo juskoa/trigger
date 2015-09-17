@@ -69,14 +69,14 @@ if(l0C0()) {
    fprintf(f,"\n");
   }
  }
- word1=getLM0addr(L0_INTERACT1);
- word2=getLM0addr(L0_INTERACT2);
- word3=getLM0addr(L0_INTERACTT);
- word=getLM0addr(L0_INTERACTSEL);
+ word1=(L0_INTERACT1);
+ word2=(L0_INTERACT2);
+ word3=(L0_INTERACTT);
+ word=(L0_INTERACTSEL);
  fprintf(f,"INTERACT1 INTERACT2 INTERACTT INTERACTSEL: 0x%x 0x%x 0x%x 0x%x\n",word1,word2,word3,word);
- word1=getLM0addr(L0_FUNCTION1);
- word2=getLM0addr(L0_FUNCTION2);
- fprintf(f,"L0FUNCTION1 L0FUNCTION2: 0x%x 0x%x \n",word1,word2);
+ //word1=(L0_FUNCTION1);
+ //word2=(L0_FUNCTION2);
+ //fprintf(f,"L0FUNCTION1 L0FUNCTION2: 0x%x 0x%x \n",word1,word2);
  fprintf(f,"SYNCAL (inputs delay and edge selector)\n");
  for(i=0;i<24;i++){
   word=vmer32(offset+4*0x141+4*i);

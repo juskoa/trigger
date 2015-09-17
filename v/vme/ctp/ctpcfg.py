@@ -93,13 +93,20 @@ l0c0txt= vbexec.get2("l0C0()")
 Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
 if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0
-print "Gl0AB/C0:",Gl0AB,'/',Gl0C0
+print "Gl0AB/C0:",Gl0AB,'/',hex(Gl0C0)
 
+HWEQMEM=1
+HWNEMEM=0
 class Genhw:
   def __init__(self,attrs=None):
-    self.attrs=attrs
     if attrs==None:
       self.writeme=1
+      self.attrs=None
+    else:
+      if type(attrs) != types.ListType:
+        self.attrs=[attrs]
+      else:
+        self.attrs=attrs
   def modified(self):
     """ Test if HW != MEMORY
     rc: 1 if this class (descendant of this class) was changed,i.e.
@@ -152,7 +159,7 @@ class Ctpconfig:
     grp3start= lastshrgrp1+4
     lmrnds= 2
     lmbcds= 6
-    rbiflen= 9
+    rbiflen= 11
     lmrblen= 4   # number of items (space separated) in LMRB line
     intsellen= 2
     dbgbits=6 #real version:12   debug:6 (change also shared.c LEN_l0f34=64)
@@ -287,7 +294,7 @@ class Ctpconfig:
       AttrBCmask('BCM12','bitmap',TrgSHR.BCMxHelp, self),
       ]
     elif Gl0C0>0xc605:
-      print "lm0..."
+      print "lm0 > 0xc605..."
       self.sharedrs= [
       AttrRndgen('RND1',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),
       AttrRndgen('RND2',0, TrgSHR.RNDxHelp+myw.frommsRandomHelp),  # 2 RND inputs
@@ -297,9 +304,9 @@ class Ctpconfig:
       Attr('BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 BC scaled down inputs 
       Attr('LM_BC1', 0, TrgSHR.BCxHelp+myw.frommsHelp),   # lmbcds
       Attr('LM_BC2', 0, TrgSHR.BCxHelp+myw.frommsHelp), # 2 LM_BC scaled down inputs 
-      AttrLUT('INTfun1',["0x0",4,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfun2',["a|d",4,0], TrgSHR.L0FUNxHelp),
-      AttrLUT('INTfunT',["a&b&(c|d)",4,0], TrgSHR.L0FUNxHelp),
+      AttrLUT('INTfun1',["a|h",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('INTfun2',["b",8,0], TrgSHR.L0FUNx8Help),
+      AttrLUT('INTfunT',["c",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun1',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun2',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
       AttrLUT('L0fun3',["a|b|c|d|e",8,0], TrgSHR.L0FUNx8Help),
@@ -338,10 +345,13 @@ class Ctpconfig:
         print """ comment L0_INTERACT1/2 lines in ctp.cfg
 at least when ctp boards are not configured. By other words:
 ctp should be initailized always by ctp_proxy, while ctp expert software
-should be started alwasy in nbi-mode (nO bOARD iNIT).
+should be started always in nbi-mode (nO bOARD iNIT).
 """
       if cct[0]=='0':
-        self.pfbs.append(PFboard(ix))
+        if ix==0:
+          self.pfbs.append(PFboardLM(ix))
+        else:
+          self.pfbs.append(PFboard(ix))
       ixinbt= ixinbt+1
     if len(self.pfbs)==0:
       print "Ctpconfig:lenpfbs:",len(self.pfbs), self.pfbs
@@ -355,6 +365,7 @@ should be started alwasy in nbi-mode (nO bOARD iNIT).
       print "Ctpconfig:cct:",cct
     if cct[0]=='0':   # L0 in the crate
       self.readShared()
+      #for shrres in self.sharedrs: shrres.Print()
       #dbgssmo= vbexec.get1("gettableSSM()")
       #print "dbgssm: before getClass",dbgssmo
       # get rates into mmemory before reading class definitions:
@@ -626,6 +637,7 @@ Middle-> modify the invert bit (only for classes 45-50)
         continue
       if lab=='RBIF': 
         # r1 r2 b1 b2 INTf1 INTf2 INTfT L0f1 L0f2
+        #self.readSharedline("RBIF", rest,0, Ctpconfig.rbiflen,sep=':')
         self.readSharedline("RBIF", rest,0, Ctpconfig.rbiflen,sep=':')
       elif lab=='LMRB': 
         # r1 r2 b1 b2
@@ -672,6 +684,7 @@ Middle-> modify the invert bit (only for classes 45-50)
           fo.readhw(rest)
         else:
           PrintError("FO%d board not in the crate"%(clix))   
+      #elif lab[:6]=='PFL.0.':   # new LM board circuit 1..4
       elif lab[:4]=='PFL.':
         pfl= string.split(lab[4:],'.')
         if len(pfl)==1:
@@ -679,11 +692,14 @@ Middle-> modify the invert bit (only for classes 45-50)
           self.pfbs[brd].readhw(rest)
         else:
           pfcirc= (int(pfl[0]), int(pfl[1]))
-          pfc= self.findPFC(pfcirc)
-          if pfc:
-            pfc.readhw(rest)
+          if pfcirc==(0,5):
+            print "not reading 0,5 pf circuit"
           else:
-            PrintError("PFcircuit "+str(pfcirc)+" not in the crate")
+            pfc= self.findPFC(pfcirc)
+            if pfc:
+              pfc.readhw(rest)
+            else:
+              PrintError("PFcircuit "+str(pfcirc)+" not in the crate")
       elif lab[:4]=='BUSY':
         self.busyboard.readhw(rest)
       else:
@@ -703,7 +719,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       k.writehw(cf)
     self.busyboard.writehw(cf)
     for k in self.pfbs:           # pfs definitions
-      k.writehw(cf)
+      if k.level != 0: k.writehw(cf)   # no common part for LM board
       for circ in k.pfcs:                # circuits on 1 board
         circ.writehw(cf)
     cf.close()
@@ -740,7 +756,8 @@ Middle-> modify the invert bit (only for classes 45-50)
      if k.modified(): k.writehw()
     if self.busyboard.modified():self.busyboard.writehw()
     for k in self.pfbs:       # PF on L0,1,2 boards
-      if k.modified(): k.writehw()
+      if k.modified(): 
+        if k.level!=0: k.writehw()
       for circ in k.pfcs:         # circuits on 1 board
         if circ.modified(): circ.writehw()
   def readSharedline(self, tp, line, ix1, ix2, sep=' '):
@@ -757,7 +774,8 @@ Middle-> modify the invert bit (only for classes 45-50)
     inx=0
     if tp=="RBIF":
       # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
-      reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12}
+      #reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12}
+      reshuf= { 0:0, 1:1, 2:4, 3:5, 4:8, 5:9, 6:10,7:11, 8:12, 9:13, 10:14}
     if tp=="LMRB":
       reshuf= { 0:2, 1:3, 2:6, 3:7}
     #for ishr in range(ix1, ix2+1):
@@ -783,6 +801,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       elif tp=="RBIF":
         # RBIF
         binval= eval(shr[inx])
+        #print "binval: inx=",inx," ",type(shr[inx])," ", type(binval)
         self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
         inx= inx+1
       elif tp=="LMRB":
@@ -796,38 +815,43 @@ Middle-> modify the invert bit (only for classes 45-50)
     # get first (12+4) values of shared resources from hw (last 4: LMrnd1/2 LMbcd1/2)
     # ishr (resource)' value is in shr[ reshuf[ishr] ]
     # reshuf= { 0:0, 1:1, 2:2, 3:3, 4:4 5:5, 6:6, 7;7}
-    reshuf= {0:0, 1:1, 2:12, 3:13, 4:2, 5:3, 6:14, 7:15, 8:4, 9:5, 10:6 , 11:7, 12:8, 13:9, 14:10, 15:11}
-    if len(shr) != (13+4):      
-      # e.g. expected: ['0x20c49b', '0x0', '0x7cf', '0x0', '0x8080', '0xc0c0', '0x0', '0x0', '0x0', '0x8', '0x1', '0x1',
-      # lmr1, lmr2, lmbc1, lmbc2, '']
+    # reshuf= {0:0, 1:1, 2:12, 3:13, 4:2, 5:3, 6:14, 7:15, 8:4, 9:5, 10:6 , 11:7, 12:8, 13:9, 14:10, 15:11}
+    print "len shared= ",len(shr)
+    # expected: RND1 RND2 LMRND1 LMRND2 BC1 BC2 LMBC1 LMBC2  INT1 INT2  RARE
+    # expected:    0    1      2      3   4   5     6     7     8    9    10  
+    # INTfun1, INTfun2 and INTfunT are lut8
+    if len(shr) != (12):      
       print "Error readShared:",shr
-    for ishr in range(len(shr)-1):   #0..11
-      v=shr[reshuf[ishr]]
-      if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=12): #4xlut8
-        print "readShared: ignoring l0f%d value:%s"%(ishr-11, v)
-      else:
-        #print "readShared:",ishr, self.sharedrs[ishr].atrname, v
-        self.sharedrs[ishr].setattrfo(eval(v), 1)
+    for ishr in range(len(shr)-1):   #0..10
+        v=shr[ishr]
+        if ishr<=7:
+           self.sharedrs[ishr].setattrfo(eval(v), 1)
+        else: 
+           self.sharedrs[ishr+7].setattrfo(eval(v), 1)
         #self.sharedrs[ishr].hwwritten(1)
-    if (Gl0C0>=0xc606):
-      shr= vbexec.getsl("getSharedl0mfs()")
-      print "readShared l0fs:", shr
-      for ix in range(len(shr)-1):   #0..3 + error lines if any
-        v= shr[ix]
-        if ix<=3:
-          ishr= ix+ (Ctpconfig.lastshrgrp1-3)
-          self.sharedrs[ishr].setattrfo(v[2:], 1)
-        else:
-          # error messages:
-          print v
-    if (Gl0AB==None) and (Gl0C0==None):   #firmAC and not lm0
-      shr= vbexec.getsl("getSharedL0f34(4)")
-      #for ishr in range(12, 16):
-      for ishr in range(Ctpconfig.lastshrgrp1+4,Ctpconfig.lastshrgrp1+8):
-        #v= shr[ishr-12]
-        v= shr[ishr-(Ctpconfig.lastshrgrp1+4)]
-        self.sharedrs[ishr].setattrfo(eval(v), 1)
-        #print "readShared:value:%d:"%ishr,self.sharedrs[ishr].value
+    # intluts
+    shr= vbexec.getsl("getSharedintl0mfs()")
+    print "readShared intl0fs:", shr
+    for ix in range(len(shr)-1):   #0..3 + error lines if any
+      v= shr[ix]
+      if ix<=2:
+        ishr= ix+8
+        self.sharedrs[ishr].setattrfo(v[2:], 1)
+      else:
+        # error messages:
+        print v
+    # luts
+    shr= vbexec.getsl("getSharedl0mfs()")
+    print "readShared l0fs:", shr
+    for ix in range(len(shr)-1):   #0..3 + error lines if any
+      v= shr[ix]
+      if ix<=3:
+        ishr= ix+11
+        self.sharedrs[ishr].setattrfo(v[2:], 1)
+      else:
+        # error messages:
+        print v
+    # BCmasks
     longs=vbexec.getline("getBCmasks()");
     self.str2masks(longs)
     for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
@@ -839,38 +863,9 @@ Middle-> modify the invert bit (only for classes 45-50)
 """
     intselw= (self.sharedrs[Ctpconfig.lastshrgrp1+1].getbinval()&0x01f) | \
              ((self.sharedrs[Ctpconfig.lastshrgrp1+2].getbinval()&0x01f)<<5)
+    print "intselw: 0x%x"%intselw
     allrare= self.sharedrs[Ctpconfig.lastshrgrp1+3].getbinval()&1
-    if (Gl0AB==None) and (Gl0C0==None):   #firmAC and NOT LM0
-      # we cannot do the following:
-      lut34= vbexec.getsl("getSharedL0f34(1)")[0]
-      #print "writeShared_shared:lut34:",lut34
-      #for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
-      #  print "writeSharedishr:%x"%ishr, self.sharedrs[ishr].value
-      # but we take modifications stored in python-code only:
-      longs=[] ; lut34="" #; lut4=[]
-      for ishr in range(Ctpconfig.grp3start, Ctpconfig.grp3start+4):
-        #longs.insert(0, self.sharedrs[ishr].getbinval())
-        longs.append(self.sharedrs[ishr].getbinval())
-      #longs[0]:lut31   longs[1]:lut32
-      #longs[2]:lut41   longs[3]:lut42
-      for ix in range(2**Ctpconfig.dbgbits):
-        bm= 2**ix   #bm= 1L<<ixk   ixk:0..4095
-        if (longs[3] & bm) != 0: l41= 1L
-        else: l41= 0L
-        if (longs[2] & bm) != 0: bit= 0x1
-        else: bit= 0
-        l41= (l41<<1) | bit
-        if (longs[1] & bm) != 0: bit= 0x1
-        else: bit= 0
-        l41= (l41<<1) | bit
-        if (longs[0] & bm) != 0: bit= 0x1
-        else: bit= 0
-        l41= (l41<<1) | bit
-        lut34= "%x"%l41 + lut34    #lut4.insert(0,l41)
-        #print "bm:",bm,hex(l41)
-      #print "writeShared:calut:",len(lut34),"chars,lut34:",lut34
-    else:
-      lut34= None
+    lut34= None
     if cf:
       if Gl0C0:
         cmd="VER %s\n"%Gl0C0
@@ -895,10 +890,13 @@ Middle-> modify the invert bit (only for classes 45-50)
           else:
             cmd= "%s0x%x:"%(cmd, self.sharedrs[ishr].getbinval())
       cmd=cmd[:-1]+"\n"; cmd2=cmd2[:-1]+"\n"
-      cf.write(cmd) ; cf.write(cmd2)
+      print "cmd: ",cmd
+      cf.write(cmd) ; 
+      print "cmd2: ",cmd2
+      cf.write(cmd2)
       cmd="INTSEL 0x%x 0x%x\n"%(intselw, allrare)
+      print "cmd intsel: ",cmd
       cf.write(cmd)
-      if lut34: cmd="LUT34 %s\n"%(lut34) ; cf.write(cmd)
       cmd="BCMASKS %s\n"%(self.masks2str())
       cf.write(cmd)
       #write mask-patterns if available (than they will be used
@@ -910,60 +908,57 @@ Middle-> modify the invert bit (only for classes 45-50)
           cf.write(cmd)
     else:
       writeit=0   # update hw only if at least 1 changed
-      writeit3=0
-      writeit4=0
-      cmd1="setShared("
-      cmd3="setShared3("
-      for ishr in range(Ctpconfig.lastshrgrp1+1):
-        print  "writeShared:%d %s "%(ishr, self.sharedrs[ishr].atrname), self.sharedrs[ishr].getbinval()
-        if (ishr == Ctpconfig.lmrnds) or (ishr == Ctpconfig.lmrnds+1) or\
-           (ishr == Ctpconfig.lmbcds) or (ishr == Ctpconfig.lmbcds+1):
-          if self.sharedrs[ishr].modified(): writeit3=1
-          print "cmd3:",cmd3
-          cmd3= "%s0x%x,"%(cmd3, self.sharedrs[ishr].getbinval())
-        else:
-          if (Gl0C0>=0xc606) and (ishr>=11) and (ishr<=14): #4xlut8
-            if (ishr>=11) and (ishr<=12): # 2 dummy values for old l0f1..2
-              cmd1= "%s0x%x,"%(cmd1, ishr-11)
-            if self.sharedrs[ishr].modified():   # let's do it separately for each l0fX+lmfX function
-              cmd4= 'setShared4(%d,"0x%x")'%(ishr-10, self.sharedrs[ishr].getbinval())
-              print "cmd4:",cmd4
-              vbexec.get1(cmd4)
-          else:
-            if self.sharedrs[ishr].modified(): writeit=1
-            cmd1= "%s0x%x,"%(cmd1, self.sharedrs[ishr].getbinval())
-        self.sharedrs[ishr].hwwritten(1)
-      cmd1=cmd1[:-1]+")" ; cmd3=cmd3[:-1]+")"
-      if writeit==1: vbexec.get1(cmd1)
-      if writeit3==1: vbexec.get1(cmd3)
-      writeit=0   # INT1, INT2, All/Rare
-      for ishr in range(Ctpconfig.lastshrgrp1+1,Ctpconfig.lastshrgrp1+4):
-        if self.sharedrs[ishr].modified(): writeit=1
-        self.sharedrs[ishr].hwwritten(1)
-      cmd1="setShared2(0x%x,0x%x)"%(intselw,allrare) 
-      if writeit==1: vbexec.get1(cmd1)
-      if lut34:
-        writeit=0   # update lut34 hw only if at least 1 changed
-        cmd1="setSharedL0f34()\n"+lut34
-        for ishr in range(Ctpconfig.lastshrgrp1+4, Ctpconfig.lastshrgrp1+4+4+1):
+      for ishr in range(30):
+        #print "is number: ",(self.sharedrs[ishr].getbinval()).isdigit()
+        #print  "writeShared:%d %s "%(ishr, self.sharedrs[ishr].atrname), self.sharedrs[ishr].getbinval()
+        value = self.sharedrs[ishr].getbinval()
+        if ishr<8:
+          if self.sharedrs[ishr].modified():
+             cmd= "setSharedAll(%i,0x%x)"%(ishr,value)
+             print cmd
+             vbexec.get1(cmd)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr<11:  # intfun
+          if self.sharedrs[ishr].modified():   # let's do it separately for each INT fun
+             if type(value) is str: 
+                print type(value),value
+                value=eval(value)
+             cmd5= 'setSharedINT3(%d,"0x%x")'%(ishr-4,value)
+             print "cmd5:",cmd5
+             vbexec.get1(cmd5)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr<15: # l0mfun
+          if self.sharedrs[ishr].modified():   # let's do it separately for each l0fX+lmfX function
+             if type(value) is str: 
+                print type(value),value
+                value=eval(value)
+             cmd4= 'setShared4(%d,"0x%x")'%(ishr-10, value)
+             print "cmd4:",cmd4
+             vbexec.get1(cmd4)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr==15: # int1
+          if self.sharedrs[ishr].modified():
+             self.sharedrs[ishr].hwwritten(1)
+             # fo it at 16
+        elif ishr==16: # int and iint2
+          if self.sharedrs[ishr].modified() or self.sharedrs[ishr-1].modified: 
+             cmd= "setSharedAll(%i,0x%x)"%(ishr,intselw)
+             print cmd
+             vbexec.get1(cmd)
+             self.sharedrs[ishr].hwwritten(1)
+        elif ishr==17:  # allrare     
+          if self.sharedrs[ishr].modified():
+             cmd= "setSharedAll(%i,0x%x)"%(ishr,value)
+             print cmd
+             self.sharedrs[ishr].hwwritten(1)
+        else: 
           if self.sharedrs[ishr].modified(): writeit=1
-          self.sharedrs[ishr].hwwritten(1)
-        #print "cmd1 setSharedL0f34:",cmd1
-        if writeit==1: 
-          rcstr= vbexec.getline(cmd1)
-      writeit=0
-      for ishr in range(Ctpconfig.firstshrgrp2, Ctpconfig.lastshrgrp2):
-        if self.sharedrs[ishr].modified(): writeit=1
-        self.sharedrs[ishr].hwwritten(1)
-      cmd1="setBCmasks()\n"+self.masks2str()
-      if writeit: 
-        rcstr=vbexec.getline(cmd1)
-        #print "writeShared1:",rcstr,':'
-        #rcstr2=vbexec.getoutput()
-        #print "writeShared2:",rcstr2,':'
-        #print "writeShared thread"
-        #self.dooutmskthd=vbexec.cmdthread(cmd1, self.dooutmsk)
-        #print "writeShared thread:",self.dooutmskthd
+          self.sharedrs[ishr].hwwritten(1)  #??
+      if writeit:
+         cmd="setBCmasks()\n"+self.masks2str()
+         #cmd="setBCmasks()\n"
+         #print cmd
+         rcstr=vbexec.getline(cmd)
   #def dooutmsk(self, outstr):
   #  print "dooutmsk:",outstr,":"
   #  vbexec.pwrite0(self.dooutmskthd,self.masks2str()+'\n')
@@ -975,6 +970,7 @@ Middle-> modify the invert bit (only for classes 45-50)
       self.shrtl= myw.NewToplevel("CTP shared resources", self.hideShared)
     self.shrtl.configure(bg=COLOR_SHARED)
     for shrres in self.sharedrs:
+      #shrres.Print()
       shrres.show(self.shrtl)
     #vonint12fr= myw.MywFrame(self.shrtl, side=TOP, relief=FLAT)
     # show buttons activating PF circuits:
@@ -1031,6 +1027,9 @@ Middle-> modify the invert bit (only for classes 45-50)
     for pfb in self.pfbs:
       if pfcirc[0]==pfb.level:
         for pfc in pfb.pfcs:
+          if pfc==None:
+            print "todo: pfcs in PFboardLM..."
+            return None
           if pfcirc[1]==pfc.pfnumber[1]: return pfc
     return None
   def cmdallenabled(self, setv=None):
@@ -1181,12 +1180,14 @@ the fields of this "BCmask pattern" window are not updated -i.e., if
 pattern definition is changed, the window should be closed/opened
 to see the actual BCmask pattern.
 """
-  L0FUNxHelp="""INTfun1, INTfun2, INTfunT (interaction functions) and
+  L0FUNxHelp="""OBSOLETE for LMfi>0xc605
+INTfun1, INTfun2, INTfunT (interaction functions) and
 L0fun1, L0fun2 (L0 functions for L0 board and LM<0xc606) are programmable functions of the first 
 four CTP L0 inputs. 
 These functions are defined by 16 bits Lookup table (LUT).
 """
-  L0FUN34Help="""L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
+  L0FUN34Help="""NOTEXISITNG in run2!
+L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
 It consists of OR of any logical combination of first L0 inputs (1-12)
 and last L0 inputs (13-24):
 
@@ -1201,16 +1202,6 @@ l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
   L0FUNx8Help="""L0fun1..4 (L0 functions for LM>0xc605) are programmable functions of the first 
 eight CTP L0 inputs. 
 These functions are defined by 256 bits Lookup table (LUT).
-"""
-  L0FUN34Help="""L0fun3, L0fun4 are programmable functions of all 24 L0 inputs.
-It consists of OR of any logical combination of first L0 inputs (1-12)
-and last L0 inputs (13-24):
-
-L0fun3= l0f31 | l0f32
-L0fun4= l0f41 | l0f42
-
-l0fx1: (x:3 or 4) logical expression made from L0 inputs 1..12
-l0fx2: (x:3 or 4) logical expression made from L0 inputs 13..24
 """
   AllRareHelp="""
 All/Rare: All        -take all events
@@ -1260,9 +1251,9 @@ class Klas(Genhw):
   BCmask_mincabi=4
   if Gl0AB==None:
     l0allinputs=32   # numb. of valid bits in L0_CONDITION_n word (l0AC...)
-    l0allvetos=19
+    l0allvetos=19+4  # +4 LMPF bits
     lmallinputs=20   # numb. of valid bits in LM_CONDITION_n word (see Ctpconfig lmx0 defnition)
-    lmallvetos=7     # numb. of L0 vetos in L0_VETO_n word
+    lmallvetos=7+4   # numb. of L0 vetos in L0_VETO_n word8LMPF bits. +4:  8 LMPF bits alltogether
     BCmask_maxcabi=15
     AR_cabi=16
     AR_cabilm=300+1
@@ -1274,8 +1265,8 @@ class Klas(Genhw):
       iinvetos= range(4,21)+[31]   # bit numbers in self.vetos
     else:
       #iinvetos= range(4,21)+[23]   # bit numbers in self.vetos
-      iinvetos= range(4,22)+[23]   # bit numbers in self.vetos
-      iinlmvetos= range(8,14)+[23]   # bit numbers in self.lmvetos 
+      iinvetos= range(4,22)+[23,24,25,26,27]   # bit numbers in self.vetos
+      iinlmvetos= range(8,18)+[23]   # bit numbers in self.lmvetos 
       lmClassMaskBit= 23
       l0ClassMaskBit= 23
       l0ClassMaskBitcabi=18
@@ -1665,12 +1656,12 @@ class Klas(Genhw):
       hlptext="LM deadtime"
     elif cabi==301:
       hlptext="LM all/rare"
-    elif cabi>=302 and cabi<=305:
-      hlptext="LM P/F "+str(cabi-302+1)
-    elif cabi==306:
+    elif cabi>=302 and cabi<=309:
+      hlptext="PFLM "+str(cabi-302+1)
+    elif cabi==310:
       hlptext="LM class mask"
     elif cabi>=0 and cabi<=3:
-      hlptext="P/F "+str(cabi+1)
+      hlptext="PFL0 "+str(cabi+1)
     elif cabi>=self.BCmask_mincabi and cabi<=self.BCmask_maxcabi:
       hlptext="BCmask "+str(cabi-3)
     elif cabi==self.AR_cabi:
@@ -1684,6 +1675,8 @@ green:0 -killed if AllRare is Rare"""
       hlptext="LM-L0 busy"
     elif cabi==(self.AR_cabi+2):
       hlptext="Class Mask"
+    elif (cabi>=(self.AR_cabi+3)) and (cabi<=(self.AR_cabi+7)):
+      hlptext="PFLM "+ str(cabi- (self.AR_cabi+3) +1)
     elif cabi>=200 and cabi<=203:
       hlptext="P/F "+str(cabi-199)
     elif cabi>=100 and cabi<=103:
@@ -2292,10 +2285,13 @@ class Attr(Genhw):
   #  self.atrspecific()
   #def atrspecific(self):
   #  pass
+  def Print(self):
+    print 'Attr: ',self.atrname,' ',self.value,self.cci
   def setattr(self, value):
     #print "setattr.atrw:",self.atrw
     self.value=value     
-    if self.atrw: self.atrw.setEntry(str(value))
+    #if self.atrw: self.atrw.setEntry(str(value))
+    if self.atrw: self.atrw.setEntry(self.conv2hexstr())
   def setattrfo(self, value, hww):
     changed=None
     if self.value != value:
@@ -2321,11 +2317,16 @@ class Attr(Genhw):
     fr.bind("<Destroy>", self.hideAttr, add='+')
   def printAttr(self):
     print "Attr:", self.atrname,":", self.value, " of type:",type(self.value)
-  def show(self, fr,side=TOP):
+  def show(self, fr,side=TOP,width=8, hex=None):
     self.bindparent(fr)
+    if hex:
+      entval= self.conv2hexstr()
+      #entval= str(self.value)
+    else:
+      entval= str(self.value)
     self.atrw= myw.MywEntry(fr,label=self.atrname,helptext=self.helptext,
-      bind='lr', defvalue=str(self.value), relief=SUNKEN,
-      width=8, side=side, cmdlabel= self.modatr)
+      bind='lr', defvalue=entval, relief=SUNKEN,
+      width=width, side=side, cmdlabel= self.modatr)
     #following should not be here (actual only if shown already)
     #von if self.writeme==0: 
     #  self.atrw.setColor(myw.COLOR_VALCHANGED)
@@ -2333,7 +2334,9 @@ class Attr(Genhw):
     #  self.atrw.setColor()
   def hideAttr(self,ev):
     #print "Attr.hideAttr"
-    self.atrw=None
+    if self.atrw:
+      self.atrw.destroy()
+      self.atrw=None
   def modatrcommon(self, entwidget, oldbinvalue):
     newval= entwidget.getEntryBin()
     if newval=='': newval='0'
@@ -2361,6 +2364,19 @@ class Attr(Genhw):
       myw.MywError("bad value: %s, integer or 0x... expected"%newval)
       #self.atrw.setEntry(str(self.value))
     return newvalint
+  def conv2hexstr(self):
+    if type(self.value) is types.ListType:
+      rc= "["
+      for ix in range(len(self.value)):
+        #rc.append(hex(self.value[ix]))
+        rc= rc + hex(self.value[ix])
+        if ix == (len(self.value)-1):
+          rc= rc+ "]"
+        else:
+          rc= rc+ ","
+    else:
+      rc= hex(self.value)
+    return rc
   #def save2file(self, cf):
   #  line= "%s %s\n"%(self.atrname, str(self.value))
   #  cf.write(line)
@@ -2385,6 +2401,9 @@ class AttrRndgen(Attr):
     ntv= self.atrw.getEntryBin() ; ntv= str(ntv)
     nbvalue= self.modatrcommon(self.atrw, self.value)
     self.value=nbvalue
+  def Print(self):
+    print 'AttrRndgen: ',self.value,' Attr:'
+    Attr.Print(self)
 class AttrBCmask(Attr):
   x0=35
   y0=1
@@ -2395,6 +2414,9 @@ class AttrBCmask(Attr):
     apply(Attr.__init__, fa, kw)
     self.bcmbit=int(self.atrname[3:])-1   #BCM1-4 (or 12)
     self.bpw=None   # associated bit pattern widget not shown
+  def Print(self):
+    #print 'AttrBCmask: ',self.bcmbit, ' Attr:'
+    Attr.Print(self)
   def show(self, fr,side=TOP):
     #print "show:",self.value
     self.bindparent(fr)
@@ -2474,6 +2496,9 @@ class AttrBits(Attr):
     #fixedarg= [self]+fixedarg
     apply(Attr.__init__,fa, kw)
     #self.printAttr();
+  def Print(self):
+    #print 'AttrBits: ',self.bits,' Attr:'
+    Attr.Print(self)
   def modatr(self, ev=None):
     ntv= self.atrw.getEntry()
     #newval= self.atrw.getEntryBin()
@@ -2532,6 +2557,9 @@ class Attr2(Attr):
     nbvalue= self.modatrcommon(self.atrw2, self.value[1])
     self.value[1]=nbvalue
 class AttrLUT(Attr):
+  def Print(self):
+    #print 'AttrLUT: Attr:'
+    Attr.Print(self)
   def show(self, fr,side=TOP):
     #prt(self,'AttrLUT.show:',self.value)
     self.bindparent(fr)
@@ -2589,12 +2617,127 @@ class AttrLUT(Attr):
     #print "LUTgetbinval:", self.value
     return self.value[2]   #binary value of LUT table
 
+class PFcircuitLM3(Genhw):
+  def __init__(self, pfnumber):
+    """ pfnumber: (0,1..4)
+    """
+    self.pfwidget=None   # not shown
+    self.pfnumber= pfnumber
+    icn= pfnumber[1]
+    self.helptextHead="""PFcircuitLM3 widget.
+PF%d: LMpf%d_def LMpf%d_def L0pf%d_def LMpf%d_inpdef LMpf%d_inpdef L0pf%d_inpdef
+Last 3 should be the same (the same inputs for 3 LM(x+4)/LMx/L0x PFblocks)
+
+*Fddd.dddd*ddTT.TTTT*TTpp.pppp*pppS.SSSS*     *    .    *    .    *  BB.BBBB*BBBB.BB21*
+  Delay      Thresh    ProtInt    Scale                              BCM[12..1]      INT1
+ nodlFlg                                                                            INT2
+                                                                     BCM,INT1/2: active in 0
+
+"""%(icn, icn+4, icn, icn, icn+4, icn, icn)
+    self.lm3defs= Attr("PF%d"%icn, [0xdead,0xdeed,0xdead,0xdeed,0xdead,0xdeed], 
+      helptext= self.helptextHead)
+    Genhw.__init__(self, self.lm3defs)
+    self.readhw()
+  def readhw(self,line=None):
+    """
+    """
+    if line==None:
+      #pftx= vbexec.get1("getPF("+str(self.pfnumber[0])+","+
+      # str(self.pfnumber[1])+  ")")   # + board
+      #pfpc= map(eval, pftx)
+
+      line= vbexec.getline("getPFLMc(%d)"%(self.pfnumber[1]))
+      # 6 hexa words LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+      hww=HWEQMEM
+    else:
+      hww=HWNEMEM #self.hwwritten(0) # from file (likely different from what is in hw)
+    pfpctx= string.split(line)
+    # 
+    prt(self, "readhw():",pfpctx)
+    if len(pfpctx) != 6:
+      print "PF LM %d not taken into account (6 items expected), old format?"%self.pfnumber[0]
+      return
+    p3= map(eval, pfpctx)
+    self.lm3defs.setattrfo(p3, hww)
+    #if self.pfwidget:
+    #  print "PFcircuit.readhw: updating pfwidget todo ->done in setattr"
+  def writehw(self, cf=None):
+    """
+    
+    """
+    print "LM3.writehw:", self.lm3defs.value
+    if cf:
+      fmt= "PFL.0.%d 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n"
+      cmdout=cf.write
+    else:
+      fmt= "setPFLMc(%d,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x)"
+      cmdout= vbexec.get1
+      self.hwwritten(HWEQMEM)
+    cmd= fmt%(self.pfnumber[1], 
+      self.lm3defs.value[0], self.lm3defs.value[1], self.lm3defs.value[2],
+      self.lm3defs.value[3], self.lm3defs.value[4], self.lm3defs.value[5])
+    cmdout(cmd)
+  def show(self, fr):
+    """fr -Frame in which the PFcircuit attributes will be shown
+    """
+    if self.pfwidget:
+      print "PFcircuit.show: self.pfwidget already exists"
+      return
+    self.pfwidget= fr
+    self.pfwidget.bind("<Destroy>", self.hidePF)
+    #von self.title= myw.MywLabel(self.pfwidget, side=TOP,
+    #  label="PF"+str(self.pfnumber[1]), helptext="PFcircuitLM3 widget.")
+    self.lm3defs.helptext= self.updateHelp()
+    self.lm3defs.show(self.pfwidget, width=60, hex=1)
+  def updateHelp(self):
+    #ht= "PF%d: %x"%(self.pfnumber[1], self.lm3defs.getbinval()[0])
+    ht= self.helptextHead +\
+      "PF%d:   "%self.pfnumber[1] + "\t" + "nodlFlg" + "\t" + "Delay"+ "\t" + "Thresh" + "\t" + "ProtInt" + "\t" + "Scale"+ "\t" + "BCM" + "\t" + "INT" + "\n"
+    #"PF%d:   "%self.pfnumber[1] + "\t" + "Scale" + "\t" + "ProtInt"+ "\t" + "Thresh" + "\t" + "Delay" + "\t" + "nodlFlg"+ "\t" + "INT" + "\t" + "BCM" + "\n"
+    for ix in [0,1,2]:
+      ht= ht+ self.helppfblock(ix)
+    return ht
+  def helppfblock(self, ix):
+    pfblk= self.lm3defs.getbinval()[ix]
+    if ix==2:
+      lml0= "  L0"
+    else:
+      lml0= "  LM"
+    if ix==0:
+      lml0N= str(self.pfnumber[1]+4)+":"
+    else:
+      lml0N= str(self.pfnumber[1])+":"
+    scale= str(pfblk & 0x1f)
+    proti= str((pfblk>>5) & 0x1ff)
+    thres= str((pfblk>>14) & 0xff)
+    delay= str((pfblk>>22) & 0x1ff)
+    nodlf= str(pfblk>>31)
+    pfinpint= self.lm3defs.getbinval()[ix+3] & 0x3
+    pfinpmsk= (self.lm3defs.getbinval()[ix+3]>>2) & 0xfff
+    print "helppfblock:", pfinpint, pfinpmsk
+    # 0: selected
+    if pfinpint==0: int12= "1 2"
+    elif pfinpint==1: int12= "2  "
+    elif pfinpint==2: int12= "1  "
+    else: int12= "   "
+    bcm=""
+    for ibc in range(12):
+      if (pfinpmsk & (1<<ibc)) == 0:
+        bcm= bcm+"%d "%(ibc+1)
+    rc= lml0 + lml0N + "\t" + nodlf + "\t" + delay + "\t" + thres + "\t" + proti + "\t" + scale + "\t" + bcm + "\t" + int12 + "\n"
+    return rc
+  #def refresh(self):
+    #for ix in range(len(self.attrs)):
+    #  self.cons[ix].showrefresh(fr2)
+  def hidePF(self, event):
+    self.lm3defs.hideAttr(event)
+    self.pfwidget= None
 class PFcircuit(Genhw):
   """ 15 instances (5 per board)
   """
   L0_L1time=(6.4-0.8)*1000       # L0 - L1 time in ns
   def __init__(self, pfnumber):
-    """ pfnumber: (0..2,1..5)    5 -is dedicated for Test class only  
+    """ pfnumber: (1..2,1..5)    5 -is dedicated for Test class only  
     """
     self.pfwidget=None   # not shown
     self.pfnumber= pfnumber # (0..2,1..5)
@@ -2706,7 +2849,10 @@ class PFwholecircuit:
     #for ix in range(3):
     for ix in range(len(self.ctp.pfbs)):
       #print "PFwholecircuit:", ix, self.circuit, len(self.ctp.pfbs)
-      self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
+      if ix==0:   # LM board
+        self.levels.append(None)
+      else:
+        self.levels.append(self.ctp.pfbs[ix].pfcs[self.circuit-1])
   def setpfinbc(self, pfinbc):
     """ set corresponding fields in PFboard objects, 
         update on the screen if necessary
@@ -2730,17 +2876,47 @@ class PFwholecircuit:
     self.entry= myw.MywEntry(self.pfwidget, name, defval, 
       bind='lr', cmdlabel= self.newpfinbc, side=TOP,
       helptext="""
+This entry is not yet valid (always None). It will give a
+TRIGGER.PFS line for run2 (only L0 board involved) in format:
+PFname BCM IR Before After Nbefore Nafter
+where:
+BCM    -BCM1,BCM2,...,BCM12, if not applied: NONE
+        Note: 'H'/red color in BCmask definition masks out 
+              INT decision connected to PFblock
+IR     -Interaction definition
+        INT1, INT2, INT12 (= INT1 | INT2)
+Before -the length of Before interval in BCs
+After  -the length of After interval in BCs
+        length: a number 2..512 (in hw written as 1..511) or
+                0 when Before resp. After interval is disabled.
+        Note: '0 0' is not valid, i.e. it is not allowed
+              to disable both Before/After intervals in 1 PF* line in TRIGER.PFS
+Nbefore -Max. number of events allowed in the Before interval
+Nafter  -Max. number of events allowed in the After interval
+         Note:'After interval' includes the BC of Interaction in
+              case OffsetAfter is set to 0
+OffsetBefore   -offset of the Before interval, i.e. number of allowed
+                BCs between its end and IR's BC
+OffsetAfter    -offset of the After interval. Note:
+                0: IR is included in After interval
+                1: After interval starts just after IR (i.e. 
+                   L0 allowed in IR's BC)
+Examples:
+test0 BCM1 INT1 3 4 0 1 0 0
+test BCM1 INT2 7 5 0 0 0 3
+""")
+    helptext_run1="""
 The half of the past-future protection interval in BCs or
 in microseconds if followed by 'us'. E.g.: 5us means 
 the whole length of the past future prot. interval is 10 microseconds
-""")
+"""
     #for ix in range(len(self.attrs)):
     #  self.attrs[ix].show(self.pfwidget)
 
   def hidePFwholecircuit(self, ev=None):
     #self.pfinbc.hideAttr()
     #print "hidePFwholecircuit%d"%self.circuit
-    self.entry.destroyEntry()
+    self.entry.destroy()
     self.pfwidget= None
   def newpfinbc(self, newpf):
     #newpf= self.entry.getEntry()
@@ -2807,6 +2983,36 @@ the whole length of the past future prot. interval is 10 microseconds
         return (nmax, resolution-1, delay)
       resolution= resolution + 1
     PrintError("Too large prot. interval %d (max. 204000ns)"%(ns))
+class PFboardLM(Genhw):
+  def __init__(self, level):
+    Genhw.__init__(self)
+    self.level= level # 0
+    self.pfcs= [] #None,None,None,None]
+    self.thispftl= None
+    for ix in range(4):
+      self.pfcs.append(PFcircuitLM3((0,ix+1)))
+  def readhw(self,line=None):
+    print "PFboardLM.readhw: pass -no common part"
+  #def writehw(self, cf=None):
+  #  print "PFboardLM.writehw: pass done elsewhere at least for savefile",cf
+  #  #for ix in range(4):
+  #  #  self.pfcs[ix].writehw(cf)
+  def show(self,frbrd=None):
+    if frbrd==None:
+      if self.thispftl:
+        myw.RiseToplevel(self.thispftl); return
+      else:
+        self.thispftl= myw.NewToplevel("PF-LM0", self.hidePF)
+      self.thispftl.configure(bg=COLOR_PFS)
+    frbrd= self.thispftl
+    pfcfr= myw.MywFrame(frbrd, side=TOP, relief=FLAT,bg=COLOR_PFS)
+    for ix in range(len(self.pfcs)):
+      self.pfcs[ix].show(pfcfr)
+  def hidePF(self,ev=None):
+    #print "PFboardLM.hidePF:",ev
+    for ix in range(len(self.pfcs)):
+      self.pfcs[ix].hidePF(ev)
+    self.thispftl=None
 class PFboard(Genhw):
   """ 3 instances of this for 3 boards: L0, L1, L2"""
   def __init__(self, level):

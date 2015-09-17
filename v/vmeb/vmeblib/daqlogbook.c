@@ -235,7 +235,6 @@ return(rc);
 */
 int daqlogbook_update_cs(unsigned int runn, char *cs_string) {
 int rc;
-#ifdef DAQLOGBOOK
 int ix=0,slen;
 unsigned long ACBEI[5]; // # of bits sets
 unsigned long ACBEItr[5]; // # of words for DB (do not count 0s at the end)
@@ -285,9 +284,14 @@ if(slen > 0) {
       if(ignored[rc]!=0) ACBEItr[4]= rc;
     };
     for(rc=0; rc<5; rc++) { ACBEItr[rc]= (ACBEItr[rc]+1)*4; }; // length in bytes
+#ifdef DAQLOGBOOK
     rc= DAQlogbook_insert_triggerCollisionSchedule(runn, csName, 
       beamA,ACBEItr[0], beamC,ACBEItr[1], colliding,ACBEItr[2], 
       empty,ACBEItr[3], ignored,ACBEItr[4]);
+#else
+    printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,...) not called", runn);
+    rc=0;
+#endif
     /* above OK */
     // printf("INFO daqlogbook_update_cs skipped\n");   //INVER
     printf("INFO number of bits ACBEI:%ld %ld %ld %ld %ld\n",
@@ -304,10 +308,6 @@ if(rc!=0) {
   printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,%s,...) rc:%d",
     runn,csName, rc);
 };
-#else
-printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,...) not called", runn);
-rc=0;
-#endif
 return(rc);
 }
 /*

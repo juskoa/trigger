@@ -132,6 +132,14 @@ for(i=0;i<8;i++){
   } else {strcpy(lnam, "lmf"); ixl= i-3;}
   printf("%s%d: %s\n", lnam,ixl, &ctpshmbase->lut88[(i)*LUT8_LEN]);
 };
+printf("intl0f1..3 intlm1..3:\n");
+for(i=0;i<6;i++){ 
+  char lnam[4]; int ixl;
+  if(i<3) {strcpy(lnam, "intl0f"); ixl= i+1;
+  } else {strcpy(lnam, "intlmf"); ixl= i-2;}
+  printf("%s%d: %s\n", lnam,ixl, &ctpshmbase->intlut88[(i)*LUT8_LEN]);
+};
+
 }
 
 /*-----------------------------*/    void cshmAddPartition(Tpartition *part) {
@@ -178,6 +186,21 @@ return(0);
 in: lutn: 0..7 (corresponds to l0f1..4 lm1..4) */
 int cshmgetLUT(int lutn, char *lutt) {
 strcpy(lutt, &ctpshmbase->lut88[(lutn-1)*LUT8_LEN]);
+// nemoz lebo py printf("cshmgetLUT: %d %x\n", lutn, lutt);
+return(0);
+}
+
+
+/*------------------------------ intlut8; hw copy */
+int cshmsetintLUT(int lutn, char *lutt) {
+//printf("cshmsetintLUT: %d %x\n", lutn, lutt);
+strcpy(&ctpshmbase->intlut88[(lutn-1)*LUT8_LEN], lutt);
+return(0);
+}
+/*------------------------------ intlut8; hw copy 
+in: lutn: 0..5 (corresponds to l0f1..4 lm1..4) */
+int cshmgetintLUT(int lutn, char *lutt) {
+strcpy(lutt, &ctpshmbase->intlut88[(lutn-1)*LUT8_LEN]);
 // nemoz lebo py printf("cshmgetLUT: %d %x\n", lutn, lutt);
 return(0);
 }

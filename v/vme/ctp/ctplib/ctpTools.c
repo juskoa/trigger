@@ -37,18 +37,6 @@ if(l0C0()) {
   adr= RATE_MODE;
 };return(adr);
 }
-w32 getLM0addr(w32 addr) {
-if((addr>=L0_INTERACT1) && (addr<=ALL_RARE_FLAG)) {
-  if(l0C0()) {
-    return(addr-L0LM0DIFF);
-  } else {
-    return(addr);
-  };
-} else {
-  printf("getLM0addr: internal error for addr:0x%x\n", addr);
-  return(0);
-}
-}
 w32 getLM0PFad(w32 addr) {
 if((addr>=PF_COMMON) && (addr<=PFLUT)) {
   if(l0C0()) {
@@ -86,3 +74,61 @@ switch(reg) {
 };
 return(rc);
 }
+/*
+ * inter=1 LMINT1
+ * inter=2 LMINT2
+ * inter=3 LMINTT
+ * inter=4 L0INT1
+ * inter=5 L0INT2
+ * inter=6 L0INTT
+*/
+w32 getLM0_INTad(int inter)
+{
+ w32 rc;
+ if( (inter<1) || (inter>6)) {
+  printf("getLM0_INTad: internal error for inter:0x%x\n", inter);
+  return(0);
+ };
+ switch(inter){
+  case 1: rc=0x9204; break;
+  case 2: rc=0x9208; break;
+  case 3: rc=0x920c; break;
+  case 4: rc=0x93c4; break;
+  case 5: rc=0x93c8; break;
+  case 6: rc=0x93cc; break;
+ }
+ return rc;
+}
+/* 
+ * inter 1..8  LM_PF_INT_SEL_1..8
+ * inter 9..12 L0_PF_INT_SEL_1..4
+*/ 
+w32 getLM0_PFINTad(int inter)
+{
+ w32 rc;
+ if( (inter<1) || (inter>12)) {
+  printf("getLM0_PFINTad: internal error for inter:0x%x\n", inter);
+  return(0);
+ };
+ if(inter<9) rc=0x9000+(0x58+inter-1)*4;
+ else rc=0x9000+(0xed+inter-9)*4;
+ return rc;
+}
+/* 
+ * inter 1..8  LM_PF_BLOCK_1..8
+ * inter 9..12 L0_PF_BLOCK_1..4
+*/ 
+w32 getLM0_PFBLKad(int inter)
+{
+ w32 rc;
+ if( (inter<1) || (inter>12)) {
+  printf("getLM0_PFBLKad: internal error for inter:0x%x\n", inter);
+  return(0);
+ };
+ if(inter<9) rc=0x9000+(0xc5+inter-1)*4;
+ else rc=0x9000+(0xe9+inter-9)*4;
+ return rc;
+}
+
+
+ 

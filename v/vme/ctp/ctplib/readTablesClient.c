@@ -45,7 +45,8 @@ Tsimplepars simplepars[MAXSIMPLEPARS]= {
 //{"L0_INTERACT1", L0_INTERACT1},
 //{"L0_INTERACT2", L0_INTERACT2},
 //{"L0_INTERACTT", L0_INTERACTT},
-{"L0_INTERACTSEL", L0_INTERACTSEL},   // ! take care L0/LM0  (see below)!
+{"L0_INTERACTSEL", L0_INTERACTSEL}, 
+{"LM_INTERACTSEL", LM_INTERACTSEL},  
 {"INT_DDL_EMU", INT_DDL_EMU},
 {"", 0}
 };
@@ -61,7 +62,7 @@ for(ix=0; ix<MAXSIMPLEPARS; ix++ ) {
     if((rc=getival(parval, parname, &ival))==0) {
       w32 adr;
       adr=simplepars[ix].address;
-      if(adr==L0_INTERACTSEL) adr= getLM0addr(L0_INTERACTSEL);
+      //if(adr==L0_INTERACTSEL) adr= getLM0addr(L0_INTERACTSEL);
       vmew32(adr, ival); 
       return(ret);
     } else { return(2); };
@@ -171,7 +172,8 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
        - save in HW structure (lookup + text)
        - save in hardware 
     */
-    #define LOOKUPTLEN 300
+    //#define LOOKUPTLEN 300
+    #define LOOKUPTLEN 256
     int rc;char lookupt[LOOKUPTLEN];  // longer (can return ERROR message)
     char cmd[120];
     //printf("line:%s:\n",&line[ix]);
@@ -183,12 +185,14 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     /* nebavi:
     sprintf(cmd, "sh -c ""python $VMEBDIR/trigdb.py log2tab '%s'"" ", value);
     */
-    sprintf(cmd, "python $VMEBDIR/trigdb.py log2tab '%s'", value);
+    //sprintf(cmd, "python $VMEBDIR/trigdb.py log2tab '%s'", value);
+    sprintf(cmd, "python $VMEBDIR/trigdb.py log2tab8 '%s'", value);
     //printf("loadctpcfg:%s:%s:\n", parname, cmd);
     // ! following fails when used with ctp.exe started with
     // redirected in/out through cmdlin2.py...
     // REASON: ctp.cfg is in dos format (CR+LF), convert it with dow2unix!
     lookupt[0]= '\0'; rc= popenread(cmd, lookupt, LOOKUPTLEN);
+    lookupt[66]='\0'; // popen adds new line at 66
     //printf("loadctpcfg.lookupt:%s:\n", lookupt);
     if((strncmp(lookupt,"0x", 2)!=0) || (rc != EXIT_SUCCESS) ) {
       printf("ERROR in %s definition:%s popenread rc:%d\n",parname, value, rc);
@@ -197,16 +201,32 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     } else {
       //save in HW structure
       w32 ltv,vmeadr; int ixx;
-      if(parname[11]=='1') {ixx= ixintfun1; vmeadr= getLM0addr(L0_INTERACT1);
-      } else if(parname[11]=='2') {ixx= ixintfun2; vmeadr= getLM0addr(L0_INTERACT2);
-      } else {ixx= ixintfunt;vmeadr= getLM0addr(L0_INTERACTT);};
-      ltv= hex2int(&lookupt[2]);
+      if(parname[11]=='1') {
+        ixx= ixintfun1; 
+        //vmeadr= (L0_INTERACT1);
+        vmeadr=1;
+      } else if(parname[11]=='2') {
+        ixx= ixintfun2; 
+        //vmeadr=(L0_INTERACT2);
+        vmeadr=2;
+      } else {
+        ixx= ixintfunt;
+        //vmeadr= (L0_INTERACTT);
+        vmeadr=3;
+      };
+      //ltv= hex2int(&lookupt[2]);
+      ltv= vmeadr;
       //printf("lookupt:%s ltv:%x\n", lookupt, ltv);
+      // to be fixed also here
       HW.rbif->rbif[ixx]= ltv;
       HW.rbif->rbifuse[ixx]= ixx;   // i.e.: INT1 allocated in INT1
-      strcpy(&(HW.rbif->l0intfs[(ixx-ixl0fun1)*L0INTFSMAX]), value);
+      strcpy(&(HW.rbif->l0intfs[(ixx-ixl0fun1)*L0INTFSMAX]), value); // symbolic name
       //save in CTP L0 board:
-      vmew32(vmeadr, HW.rbif->rbif[ixx]);
+      //vmew32(vmeadr, HW.rbif->rbif[ixx]);
+      // do we need to copy luts also to HW (they are in shm)
+      setINTLUT(vmeadr,lookupt);
+      setINTLUT(vmeadr+3,lookupt);
+      printf("INT %i: %s \n",vmeadr,lookupt);
     };
     goto CONT;
   };
@@ -305,7 +325,10 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   sprintf(emsg, "ctp.cfg line ignored:%s\n %s",line,emsg); 
   prtWarning(emsg);
 };
-RET: fclose(cfgfile); return(grc);
+RET: 
+setINTLUT(3,"0x0");
+setINTLUT(3+3,"0x0");
+fclose(cfgfile); return(grc);
 ERRfatal:
 sprintf(emsg,"Fatal error when processing ctp.cfg:%s\n", emsg);
 prtError(emsg); grc=1;

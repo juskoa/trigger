@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.4",
+      version="5.5",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -28,6 +28,7 @@ from v5.0: $dbctp/filter preferred, if not available trgInput_* (ON/OFF) used
 from v5.1: 0HWU check removed, i.. TRD cluster allowed with non-0HWU classes
 from v5.2: the names of effectively filtered out trig. detectors preceded by '*'
 from v5.4: 4x 8-inputs l0f, new INRND1 option in .partition definition
+from v5.5: IR1/2 defined by 8 inputs, new PF on LM board               
 """,
       author="Anton Jusko",
       packages=["validate"],

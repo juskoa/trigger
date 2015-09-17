@@ -17,6 +17,8 @@ VERSION: 5 (both .rcfg .partition): sync downscaling
 VERSION: 6 LINDF REPL added
 25.6.2014
 VERSION: 7 >=7 from now
+6.9.2015
+VERSION: 8 new PF
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -31,7 +33,7 @@ if hasattr(sys,'version_info'):
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
     print "warnings ignored\n\n"
 import myw, txtproc, trigdb, syncdg, preproc
-VERSION="7"
+VERSION="8"
 COLOR_PART="#006699"
 COLOR_CLUSTER="#00cccc"
 COLOR_NORMAL="#d9d9d9"
@@ -841,18 +843,31 @@ class TrgSHR_BCM(TrgSHR):
     if self.value==None: return None
     inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     return self.BCMPFitems[inx][1]
+  def getName(self):
+    """
+       returns name of PF (maybe also BCM)
+       Name of PF to be used for sharing
+    """
+    if self.value==None: return None
+    inx= TDLTUS.findBCMPFname(self.value, self.bcmpf)
+    return self.BCMPFitems[inx][0]
   def isPFDefined(self,level):
-    """ "0 0 0" ->
-    PF on given level not defined (i.e. not to be used as veto in class def)
+    """
+    PF definition:
+    Name BCM IR PeriodBefore PeriodAfter NintBefore NintAfter
     """
     pfd= string.split(self.getDefinition())
-    if len(pfd)!=12:
-      IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
-      return False
-    for ix in range(3):
-      if eval(pfd[ix+(3*level)])!=0:
-        return True
-    return False
+    print "isPFDefined: ",pfd," len=",len(pfd)
+    if len(pfd)!=8:
+       IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
+       return False
+    # PF at levels according to PeriodAfter, detail calculation in c
+    PeriodAfter=int(pfd[3])
+    LML0time=15
+    L0L1time=280
+    if level==1 and PeriodAfter<LML0time: return False
+    if level==2 and PeriodAfter<L0L1time: return False
+    return True
   def prtBits(self):
     ix= TDLTUS.findBCMPFname(self.value, self.bcmpf)
     logdef= self.BCMPFitems[ix][1]
@@ -1137,6 +1152,7 @@ l. The list of possible trigger descriptor names - one of them has
         PrintError(errmsg, self)
       else:
         self.PF_DB.append([bcm_name,bcm_definition]);	
+        print "PF %s"%bcm_name, bcm_definition
     f.close()
   def load_BCMs(self):
     PrintError("----------------------------------------------- VALID.BCMASKS:",self)
@@ -1719,7 +1735,7 @@ Currently, these times [in seconds] are defined for groups 1..9:
     """
     cluspart: None -trailing cluster part not given in returned name
     new (from 11.5.2012:
-    return: buit-name i.e. built from clsnamepart[]
+    return: built-name i.e. built from clsnamepart[]
     """
     if self.clsname!='': 
       return self.clsname
@@ -2390,7 +2406,8 @@ class TrgPartition:
             continue
         l0inv=0
         if FPGAVERSION>=0xc0:
-          l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
+          #l0vetos= 0x1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
+          l0vetos= 0xf1ffff0|clunum # 0x800000 0 (active class), DSCG: 0x7f000000
         else:
           if BCM_NUMBER==4:
             l0vetos=0xfff0 | clunum # 0x10000 has to be 0 (active class)
@@ -2454,20 +2471,20 @@ class TrgPartition:
                 "Undefined %s referenced by class %s, reference discarded in .pcfg file\n"%\
                 (SHRRSRCS[ix4+PFS_START].name, cls.getclsname())
               continue   
-            #print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
+            print "PFdef:",SHRRSRCS[ix4+PFS_START].getDefinition()
             # check if common definition agrees (should be improved, can happen not all PFs used):
-            comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
-            if pf_comdef==None:
-              pf_comdef= comdef
-            else:
-              err=False
-              for i in range(3):
-                if comdef[i]!= pf_comdef[i]:
-                  errormsg= errormsg+\
-                    "PF%d common definition does not agree,not used, class:%d\n"%((ix4+1),clanum)
-                  err=True ; break
-              if err:
-                continue
+            #comdef= map(eval,string.split(SHRRSRCS[ix4+PFS_START].getDefinition())[PF_COMDEFSIX:])
+            #if pf_comdef==None:
+            #  pf_comdef= comdef
+            #else:
+            #  err=False
+            #  for i in range(3):
+            #    if comdef[i]!= pf_comdef[i]:
+            #      errormsg= errormsg+\
+            #        "PF%d common definition does not agree,not used, class:%d\n"%((ix4+1),clanum)
+            #      err=True ; break
+            #  if err:
+            #    continue
             if SHRRSRCS[ix4+PFS_START].isPFDefined(0): 
               l0vetos=l0vetos & ~r12b12
             if SHRRSRCS[ix4+PFS_START].isPFDefined(1): 
@@ -2591,7 +2608,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       #print "bcm%d"%i,SHRRSRCS[BCMASKS_START+i].getDefinition()
       pfdef= SHRRSRCS[PFS_START+i].getDefinition()
       if pfdef==None: continue
-      line='PF.%d %s'% (i+1, pfdef)
+      name= SHRRSRCS[PFS_START+i].getName()
+      line='PF.%d %s %s'% (i+1, name,pfdef)
       outfile.write(line+"\n")
     #
     self.sdgs.save(outfile, "SDG ")
@@ -2970,6 +2988,7 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           line= line+' '+det.name
       line= line+'\n'
       of.write(line)
+    #-------------------------------------------------------------PF
     line='PFS:\n' ; of.write(line)   # !Reminder: do the same as for BCMASKS (atleast1classNONEbcm)
     atleast1pf=0 
     for ixpfpc in range(PF_NUMBER):
@@ -2979,7 +2998,8 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
       line="PF%d %s\n"%(ixpfpc+1, pfdef)
       of.write(line)
       atleast1pf= atleast1pf+1
-    if atleast1pfnone>0:      #if atleast1pf==0:
+    if atleast1pfnone>=0:      
+      # always add NONE because of aliroot (actually add if at least one class has nopf -  to be done later) 
       line='NONE\n' ; of.write(line)
     line='BCMASKS:\n' ; of.write(line)
     line='#cs %s\n'%(TDLTUS.csName) ; of.write(line)
@@ -3176,6 +3196,9 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #SHRRSRCS[0].used= SHRRSRCS[0].used+1 # rnd1 used
           for inn in cltdsa[1:]:
             inp= TDLTUS.findInput(inn)
+            if inp==None:
+               print 'INRND1: ignoring input: ',inn
+               continue
             inp.prt()
             if inp.swin != '0':   # calculate 2 RND1_EN_FOR_INPUTS words
               if self.inpgcons==None: self.inpgcons= [0,0]

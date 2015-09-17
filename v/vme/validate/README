@@ -87,6 +87,8 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 - 4 l0f each 8 inputs. INRND1 added
 26.7.2015 validate-5.4-1.noarch.rpm
 - was bug in 5.3 (filtered out was not empty in case of INRND1 usage)
+14.9.
+- 5.5 withut tkinter dependance: IR1/2 with 8 inputs, new PF on LM (0xc60a)
 
 3. Problems
 -----------

@@ -816,8 +816,8 @@ void setRates4HLTtest(int rate) {
 w32 r1,r2; float r1f,r2f;
 r2f= rate*3564/12.; r2= (w32)(r2f*0x7fffffff/40./1000000);
 r1f= r2f+1; r1= (w32)(r1f*0x7fffffff/40./1000000.);
-vmew32(getLM0addr(RANDOM_1), r1);
-vmew32(getLM0addr(RANDOM_2), r2);
+vmew32((RANDOM_1), r1);
+vmew32((RANDOM_2), r2);
 printf("rate:%dhz: rnd1:%6.2fhz =%d   rnd2:%6.2fhz =%d was set in CTP\n",\
   rate, r1f, r1, r2f, r2);
 }

@@ -466,129 +466,127 @@ for(i=0;i<bcmaskn;i++){
 }
 /*----------------------------------------------------PF2Partition()
 line:
-PF.x L0_PFBLOCK_A L0_PFBLOCK_B L0_PFLUT
-     L1_PFBLOCK_A L1_PFBLOCK_B L1_PFLUT
-     L2_PFBLOCK_A L2_PFBLOCK_B L2_PFLUT
-     L0_PF_COMMON L1_PF_COMMON L2_PF_COMMON 
+PF.x name bcmask int Tbef Tafter Nbef Nafter Offbef Offafter
+parted checking syntax and number of pfs per partition
 rc: 0: ok
 */
 int PF2Partition(char *line,TRBIF *rbif){ 
 int ixdef,ixx;
 //enum Ttokentype tok; 
-w32 ixpf=0; char hexw[20];
-
-//printf("len= %i\n",strlen(&line[8]));
-//printf("%s",&line[8]);
-if((line[3]<'1') || (line[3]>'4')) {
-  goto BADLINE;
-};
-char2i(line[3],&ixpf); ixpf--; ixx=5;   // "PF.x 0x..."
-for(ixdef=0; ixdef< (ixMaxpfdefs+ixMaxpfdefsCommon); ixdef++) {
-  w32 pfdef1; int rc1;
-  /*tok=*/ nxtoken(line, hexw, &ixx);
-  rc1= gethexdec(hexw, &pfdef1);
-  if(rc1!=0) {
-    goto BADLINE;
-  };
-  if(ixdef>=ixMaxpfdefs) {
-    rbif->pfCommon.pfdefsCommon[ixdef-ixMaxpfdefs]= pfdef1;
-  } else {
-    rbif->pf[ixpf].pfdefs[ixdef]= pfdef1;
-  };
+w32 ixpf=0; char hexw[50];
+ixx=0;
+int rc1=0;
+for(ixdef=0; ixdef< 12; ixdef++) {
+  nxtoken(line, hexw, &ixx);
+  printf("PFDEF ixx=%i ixdef=%i hexw: %s \n",ixx,ixdef,hexw);
+  switch(ixdef){
+    case 0: continue; // PF
+    case 1: continue; //.
+    case 2:
+    {
+     if((hexw[0]<'1') || (hexw[0]>'4')) goto BADLINE;
+     char2i(hexw[0],&ixpf); 
+     ixpf--;
+     continue; 
+    }
+    case 3: // Name
+    {
+     strcpy(rbif->pf[ixpf].name,hexw);
+    }
+    case 4: // BCM
+    {
+     w32 dig1;
+     if(strcmp(hexw, "NONE") == 0){
+       rbif->pf[ixpf].bcmask=0;
+     } else {
+       char2i(hexw[3],&dig1);
+       if(hexw[4]=='\0'){
+         rbif->pf[ixpf].bcmask=dig1;
+       } else {
+         w32 dig2;
+         char2i(hexw[4],&dig2);
+         rbif->pf[ixpf].bcmask=dig1*10+dig2;       
+       }
+     };
+     continue;
+    }
+    case 5: // INT: INTL01,INTL02,INTLM1,INTLM2
+    {
+     w32 inter;
+     if (strcmp(hexw,"INT1") == 0 ) inter=1;
+     else if (strcmp(hexw,"INT2") == 0 ) inter=2;
+     else if (strcmp(hexw,"INT12") == 0 ) inter=3;
+     else if (strcmp(hexw,"NONE") == 0 ) inter=0;
+     //else if (strcmp(hexw,"INTLM1") == 0 ) inter=1;
+     //else if (strcmp(hexw,"INTLM2") == 0 ) inter=2;
+     else{
+      printf("Wrong INT, should be one of INTL01,INTL02,INTLM1,INTLM2\n");
+      goto BADLINE;
+     }
+     rbif->pf[ixpf].inter=inter;
+     continue;
+    }
+    case 6: // PeriodBefore
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].PeriodBefore=dec;
+     continue;
+    }
+    case 7: // PeriodAfter
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].PeriodAfter=dec;
+     continue;
+    }
+    case 8: // NintBefore
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].NintBefore=dec;
+     continue;
+    }
+    case 9: // Nintafter
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].NintAfter=dec;
+     continue;
+    }
+    case 10: // Offsetbefore
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].OffBefore=dec;
+     continue;
+    }
+    case 11: //OffsetAfter
+    {
+     w32 dec;
+     rc1=gethexdec(hexw,&dec);
+     if(rc1 != 0) goto BADLINE;
+     rbif->pf[ixpf].OffAfter=dec;
+     continue;
+    }
+    default : goto BADLINE;
+  }
 };
 rbif->PFuse[ixpf]= ixpf+1;
- //printTRBIF(rbif);
+printf("PF2Partition: \n");
+printTPastFut(&rbif->pf[ixpf]);
 return 0;
 BADLINE:
 { char emsg[300];
-  sprintf(emsg,"PF2Partition: bad line in .pcfg:%s",line);
+  sprintf(emsg,"PF2Partition: rc=%i bad line in .pcfg:%s",rc1,line);
   infolog_trgboth(LOG_FATAL, emsg);
   return 1;
 };
-}
-
-/*----------------------------------------------------L0342Partition()
-Input: 
-line:
-L0F34 0xaaa...0xccc  ( 0SMB & 0BPC) | ( 0TVX):0x......0x... (log1 ) | (log2):
-0     6       A    A                          A       A    A
-              |    |                          |       |    |
-              1032 |                          x       |    x+1026+1026
-                   2058                               x+1026
-rbif   - pointer to partition where to save result (TRBIF malloc if NULL)
-Output:
-- modified lut34* fields in rbif
-- RC: NULL in case of error, rbif is ok
-*/
-TRBIF *L0342Partition(char *line,TRBIF *rbif){
-int il,lutn;
-if(rbif == NULL){
-  rbif= allocTRBIF();
-  if(rbif == NULL){ return NULL; };
-};
-// look for '0x', take next 1024 hexa digits:
-il= 6; lutn=0;
-while(1) {
-  int fnbase; int ix, ixchecked; char *rest;
-  char errm[300];
-  lutn++;   // 1,2,3,4 for lut31, 32 41, 42
-  if(lutn>4) break;
-  if(line[il]==':') {   // not used
-    if(lutn==1) {ixchecked= ixlut3132;
-    } else if(lutn==3) {ixchecked= ixlut4142;
-    } else {
-      sprintf(errm, 
-      "L0342Partition:bad char(%d:%c). LUT32 or LUT42 definition expected (0x...)", 
-        il, line[il]);
-      infolog_trgboth(LOG_FATAL, errm);
-      return NULL;
-    };
-    rbif->rbifuse[ixchecked]= notused;
-    lutn++; continue;
-  };
-  if(strncmp("0x", &line[il], 2)!=0) {
-    sprintf(errm, 
-    "L0342Partition:bad char(%d:%c) in L0F34 line in .pcfg file (0x expected)", 
-      il, line[il]);
-    infolog_trgboth(LOG_FATAL, errm);
-    return NULL;
-  };
-  il= il+2;   // first hxa digit
-  fnbase= (LEN_l0f34/4)* (lutn-1);
-  for(ix=0; ix<LEN_l0f34/4; ix++) {
-    w8 bits;
-    bits= hex12int(line[il]);
-    if(bits>0xf) {
-      sprintf(errm, 
-      "L0342Partition:bad char (%c at %d) in L0F34 line in .pcfg file",
-        line[il], il);
-      infolog_trgboth(LOG_FATAL, errm);
-      return NULL;
-    };
-    rbif->lut34[fnbase+ix]= bits;
-    il++;
-  };
-  if((lutn==1) || (lutn==3)) continue;  // with next lut
-  // symbolic definition:
-  if(lutn==2) {rest= rbif->l0f3sym; ixchecked= ixlut3132;};
-  if(lutn==4) {rest= rbif->l0f4sym; ixchecked= ixlut4142;};
-  ix=il;
-  while(1) {
-    if(line[ix]==':') { break; };
-    if(line[ix]=='\0') { 
-      infolog_trgboth(LOG_FATAL, "L0342Partition: incomplete line in L034 line in .pcfg file");
-      return NULL;
-    };
-    ix++;
-  };
-  if((ix-il)>L0F34SDMAX) {
-    infolog_trgboth(LOG_FATAL, "L0342Partition: too long symb. definition in L034 line in .pcfg file");
-    return NULL;
-  };
-  rbif->rbifuse[ixchecked]= nothwal;
-  getRestLine(&line[il], ':', rest);
-  il= ix+1;
-}; return rbif;
 }
 /*----------------------------------------------------BCMASK2Partition()
 Purpose: to convert BCMASK line in cfg to TRBIF structure
@@ -848,18 +846,6 @@ for(i=0;i<MAXNLINES;i++){
    };
    part->rbif= grbif;  // MUST be here (parameter value passing  for part->rbif!)
    //printf("RBIF2Partition finished:\n"); printTRBIF(part->rbif);
-  } else if(strncmp("L0F34",lines[i],5) == 0){
-   if(l0AB()==0) {   //firmAC
-     rcgrbif= L0342Partition(lines[i], part->rbif);
-     if(rcgrbif == NULL) {
-       sprintf(errmsg,"ParseFile: L0342Partition error."); 
-       retcode= 1;
-     };
-     printf("L0342Partition finished:\n"); printTRBIF(part->rbif); 
-   } else {
-     sprintf(errmsg,"ParseFile: L034 function with L0 firmware<0xAC."); 
-     retcode= 1;
-   };
   } else if(strncmp("BCMASKS",lines[i],7) == 0){
    //printf("BCMASKS found at %i line\n",i);
    rcgrbif=BCMASK2Partition(lines[i],part->rbif);
@@ -979,6 +965,34 @@ BADGROUP:
 sprintf(errmsg,"Bad class group:%d for partition:%s",clg,part->name);
 retcode=5; goto RETERR;
 }
+/*------------------------------------------------------pf2class()
+ */
+int pf2class(Tpartition *part)
+{
+ printf("pfclass called for partition %s \n",part->name);
+ for(int i=0;i<NCLASS;i++){
+  if(part->klas[i] != NULL){
+    w32 ipf=0;
+    w32 l0veto=part->klas[i]->l0vetos;
+    // pf= bits(4..7)
+    w32 ipfveto=((l0veto&0xf0)>>4);
+    if(ipfveto==0xe)      ipf=0;
+    else if(ipfveto==0xd) ipf=1;
+    else if(ipfveto==0xb) ipf=2;
+    else if(ipfveto==0x7) ipf=3;
+    else if(ipfveto==0xf){
+      //printf("NO pf in class %i \n",i);
+      continue;
+    }else {
+      printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
+      return 1;
+    }
+    strcpy(part->klas[i]->pfname,part->rbif->pf[ipf].name);
+    printf("pf2class: pf %s added tp class %i\n",part->rbif->pf[ipf].name,i);
+  }
+ }
+ return 0;
+} 
 /*----------------------------------------------------ReadPartitionErrors()
   Purpose: print error occured in routine readPartitionErrors()
   Input: - error code 
@@ -1097,6 +1111,9 @@ fflush(stdout);
    newpart->klas[i]->partname=newpart->name;
   }
  }
+ // assign PF name to class
+fflush(stdout);
+ if(pf2class(newpart))goto ERROR;
  return newpart;
 
 ERROR:

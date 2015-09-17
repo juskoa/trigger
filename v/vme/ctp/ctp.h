@@ -198,6 +198,13 @@ L0, L1, L2:
 #define PFBLOCK_B      0x86c
 #define PFLUT          0x870
 
+// PF on LM board
+#define LM_PF_COMMON 0x9310
+#define LM_PF_BLOCK 0x9314   //8 words consecutively
+
+#define L0_PF_COMMON 0x93a0
+#define L0_PF_BLOCK 0x93a4   //4 words consecutively
+
 /* FO boards */
 /* not valid for A3 (from 2.3.2006) -> use common SCOPE_SELECT
 #define FO_SCOPE_SELECT    0x150   groupB: 0x1e0 groupA: 0x01f 
@@ -288,7 +295,6 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */
 #define DAQ_LEDlm0     0x9234
-//von #define L0_FUNCTION34r2  0x9240 /* New L0 functions of first 12 inputs*/
 #define SCOPE_A_FRONT_PANEL 0x9244  /* LM0 only */
 #define SCOPE_B_FRONT_PANEL 0x9248  /* LM0 only 0x60:lm_out */
 
@@ -304,7 +310,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define LM_RATE_CLEARADD 0x9270  /*     RATE_CLEARADD */
 #define LM_RATE_RND_OFFSET 0x930c   /* */
 #define LM_RATE_RND_RESET  0x9308   /* */
-#define LM_FUNCTION1 0x9274  /* FN2:278 run1:FUN3:27c FUN4:280 */
+//#define LM_FUNCTION1 0x9274  /*use getLM0_F8 FN2:278 run1:FUN3:27c FUN4:280 */
 
 /* ddr3 registers on LM0 board 0x280 - 0x2bc (only first 5 used).
 Read request:
@@ -364,36 +370,45 @@ bits    Meaning
 
 /* see PF_COMMON... */
 #define MASK_MODE      0x95a4 /* L0: BCMask memory mode 1:vme 0:normal */
-//#define L0_INTERACT1   0x94cc (whole block till ALL_RARE_FLAG shifted in 2013)
-//
-//----------------- L0 (old addresses). The block of LM0 addresses below...
-#define L0_INTERACT1   0x95bc    /* 16 bits thruth table */
-#define L0_INTERACT2   0x95c0
-#define L0_INTERACTT   0x95c4
-#define L0_INTERACTSEL 0x95c8 /* [0..4]->LUT,BC1,BC2,RND1,RND2 for INTERACT1*/
-                              /* [5..9]-> ... for INTERACT2 */
-#define L0_FUNCTION1   0x95cc
-#define L0_FUNCTION2   0x95d0 //  was on run1-L0 board */
-#define RANDOM_1       0x95d4 /* bit31: 1: Enable trains filter (for FPGAVER>=A5) */
-#define RANDOM_2       0x95d8
-#define SCALED_1       0x95dc
-#define SCALED_2       0x95e0
-#define ALL_RARE_FLAG  0x95e4
-//----------------- 
 
-/*----------------- LM0. The block of L0 addresses see above...
-#define L0_INTERACT1   0x9204    0x95bc-0x9204= 0x3b8 -> see L0LM0DIFF
-#define L0_INTERACT2   0x9208
-#define L0_INTERACTT   0x920c
-#define L0_INTERACTSEL 0x9210
-                            
-#define L0_FUNCTION1   0x9214 -yes, this+following one for LM0 from c6..
-#define L0_FUNCTION2   0x9218
+/*----------------- LM0. The block of L0 addresses see above... */
+#define LM_INTERACT1 0x9204
+#define LM_INTERACT2 0x9208
+#define LM_INTERACTT 0x920c
+#define LM_INTERACTSEL 0x9210
+
+#define L0_INTERACT1 0x93c4
+#define L0_INTERACT2 0x93c8
+#define L0_INTERACTT 0x93cc
+#define L0_INTERACTSEL 0x93d0
+// old addresses
+//#define L0_INTERACT1   0x9204  
+//#define L0_INTERACT2   0x9208
+//#define L0_INTERACTT   0x920c
+//#define L0_INTERACTSEL 0x9210
+
+#define LM_PF_INT_SEL 0x9160 //use getLM0_PFINT                            
+#define LM_PF_BLOCK 0x9314 //use getLM0_PFBL                            
+#define L0_PF_INT_SEL 0x93b4 //use getLM0_PFINT                            
+#define L0_PF_BLOCK 0x93a4 //use getLM0_PFBL                            
+/* L?_PF_INT SEL bits:
+4..0 rnd2 rnd1 bc2 bc1 INT1
+9..5 rnd2 rnd1 bc2 bc1 INT2
+   L?_PF_BLOCK bits:
+31    No Delay flag
+30..22 Delay (9 bits, 0..  PFclock periods. 0->513, 1..511->+1
+21..14 Threshold 8 bits
+13.. 5 Protection Interval (DT, 9 bits)
+ 4.. 0 Scale
+*/
+//#define L0_FUNCTION1   0x9214 // use getLM0_F8add
+//#define L0_FUNCTION2   0x9218
 #define RANDOM_1       0x921c
 #define RANDOM_2       0x9220
 #define SCALED_1       0x9224
 #define SCALED_2       0x9228
-#define ALL_RARE_FLAG  0x922c WRITE ONLY on LM0 board!
+#define ALL_RARE_FLAG  0x922c 
+/*WRITE ONLY on LM0 board!
                        1: all (take all classes)
                        0: take only classes without ALL/rare flag set 
                           (=red in ctp)
@@ -407,20 +422,33 @@ bits    Meaning
 /* bit23..0: 1: invert L0 input   0: use original polarity */
 #define L0_VETOr2      0x9800    /* +4*n n=1,2,...,100, LM0 board: 0x7f9ffff7
                                 LM0 note
-31     spare
-30..24 DSCG group (7bits)       new
+31..28 spare
+       OBSOLETE 30..24 DSCG group (7bits)
+27..24 Select LM PF[4..1]
 23     class mask (1:disabled)  new   see also class mask in lm_veto
 22     spare
 21     Select LM-L0 BUSY 1: don't care 0: do not kill L0 for ongoing LM
 20     1:All   0:Rare
 19..8: Select BCmask[12..1]
- 7..4: Select PFprot[4..1]      the same
- 2..0: Cluster code (1-6)       the same
+ 7..4: Select L0 PFprot[4..1]
+ 2..0: Cluster code (1-6)   
 
 Note: in ctp.c getClass L0_VETO[bit31] not set for LM0, instead
 L0_VETOr2[23] bit is used. L0_MASK register not used on LM0 board!
+Vetos usage for standard classes:
+           LM   L0
+---L0 class
+classmask:  1   0
+AllRare:    1   0
+LMdeadtime: 1   na
+LML0BUSY:   na  0
+--- LM class
+classmask:  0   0
+AllRare:    0   0
+LMdeadtime: na  0 
+LML0BUSY:   1   na
 */
-#define L0_VETO        0x9900    /* +4*n n=1,2,...,100
+#define L0_VETO        0x9900    /* +4*n n=1,2,...,100 OBSOLETE (only L0 board)
        fy<0xAC                   fy>=0xAC
 bit12: 1:Select All/Rare input   bit20: 1: Select All/Rare input
                                  19..8: BCmask[12..1]
@@ -435,7 +463,7 @@ LM0: this word dos not exist (bit is in L0_VETOr2 now)
 */
 #define LM_INVERT      0x9c00
 /*
-11..0  Invert LM input
+11..0  1: Invert LM input
 */
 //#define L0_SDSCG        0x98c8    /* +4*n n=1,....,50, 0x98cc..0x9990*/ 
 #define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
@@ -443,20 +471,19 @@ LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_V
 */
 #define LM_VETO        0x9e00
 /* veto bits: 1: don't care   0:consider this veto
-31     spare
-30..24 LM down scaling Class group (SDSCG) 7bits
+31..24 spare
+30..24 OBSOLETE: LM down scaling Class group (SDSCG) 7bits
 23     class mask: 1:class disabled on LM 
-22..16 spare
      see also L0_VETOr2 class mask. Meaning of both bits:
      LM L0
      1  0   pure L0class
      0  0   LMclass
 
-15..14 spare veto bits
-13..10 Select PFprot[4..1]      the same
+22..18 spare
+17..10 Select LM PFprot[8..1]
  9     All/Rare input
  8     LM deadtime
- 7..0  Cluster BUSY enabled 8..1  not connected yet (10.4.)
+ 7..0  spare Cluster BUSY enabled 8..1  not connected / probably never be
 */
 
 /* L1 board */
@@ -536,7 +563,6 @@ bit4: phase enable
 /* deliberately after REGEND becasue it is different for L0/LM0*/ 
 #define L0_BCOFFSET    0x95a8 /* BC/Orbit offset data */
 #define L0_ENA_CRND    0x95b8 /* 1..0: enable RND2, RND1 clear */
-//#define L0_FUNCTION34    0x97ec   not used for LM0
 
 #define L0LM0DIFF   0x3b8     // 0x95bc-0x9204= 0x3b8 -> L0LM0DIFF
 #define L0LM0PFDIFF 0x4c4     // 0x864-0x3a0= 0x4c4 
@@ -582,7 +608,7 @@ Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
   {"busy",0x54, 8,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc606,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc60a,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
   {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L1, CSTART_L1},
   {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L2, CSTART_L2},
   {"int", 0x55,12,NOTINCRATE,0,0xff,0xae,NCOUNTERS_INT, CSTART_INT},
@@ -599,8 +625,6 @@ extern Tctpboards ctpboards[NCTPBOARDS];
 #endif
 
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
-int setL0f34c(int lutn, char *m4);
-void combine34(w8 *lut34, char *m4);
 Tklas *getpClass(int klas);
 
 int getTL1();
@@ -672,13 +696,29 @@ get PF parameters for 1 board (L0, L1, or L2 -> ix= 1, 2 or 3)
 */
 void getPF(int ix);
 /*FGROUP L0
+get PF parameters for 1 circuit on LM0 board
+I:
+circ -> 1..4
+O: on stdout: 6 hexadecimal numbers: 
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+...
+LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4inpdef L0PF4inpdef
+*/
+void getPFLMc(int circ);
+/*FGROUP L0
 get PF parameters for 1 circuit 
 I:
-L0, L1, or L2 -> ix= 1, 2 or 3
+L1, or L2 -> ix= 2 or 3
 circ -> 1..5
 O: on stdout: 3 hexadecimal numbers: PFBLOCK_A, PFBLOCK_B, PFLUT
 */
 void getPFc(int ix, int circ);
+/*FGROUP L0
+circ:1..4
+get PF parameters for 1 circuit on LM0 board (3 pfblocks)
+LMPF5def LMPF1def L0PF1def LMPF5inpdef LMPF1inpdef L0PF1inpdef
+ * */
+void setPFLMc(int circ, w32 w1, w32 w2, w32 w3, w32 w4, w32 w5, w32 w6);
 /*FGROUP L0
 like getPF
 */
@@ -721,17 +761,13 @@ stdout:
 */
 void getSharedl0mfs();
 /*FGROUP L0
-get 4096 hexa chars each containing i-bit of LUT4-1. i:0..4095
 */
-void getSharedL0f34(int lutout);
-/*FGROUP L0
-4096 hexa chars from stdin will be loaded to LUT31 32 41 42*/
-void setSharedL0f34();
-
+void getSharedintl0mfs();
 /*FGROUP L0
 set rnd1 rnd2 bcsc1 bcsd2 int1 int2 intt L0fun1 L0fun2
 */
-void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2);
+void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2);
+//void setShared(w32 r1,w32 r2,w32 bs1,w32 bs2, w32 int1,w32 int2,w32 intt,w32 l0fun1,w32 l0fun2);
 /*FGROUP L0
 set INTERACTSEL ALL_RARE_FLAG
 */
@@ -741,11 +777,18 @@ set LM_rnd1/2 LM_bcd1/2
 */
 void setShared3(w32 lmr1, w32 lmr2, w32 lmbc1, w32 lmbc2);
 /*FGROUP L0
+*/
+void setSharedAll(int res,w32 value); 
+/*FGROUP L0
 set LM_ l0fX + lmfX (the same content for both)
 I: X 1..4  -> sets l0fX+lmfX
 lut: string \"0xa... 64 chars\"
 */
 void setShared4(int X, char *lut);
+/*FGROUP L0
+set INTLM/INTL0
+*/
+void setSharedINT3(int X, char *lut);
 /*----------------------------libctp.a subroutines for new firmware  */
 /* FGROUP DbgNewFW 
 Load run reading RCFG file in WORK directory 
@@ -756,8 +799,6 @@ Prints static class CTPHardware.
 void printHW(); */
 /* FGROUP DbgNewFW 
 void unloadRun(w32 runnumber); */
-/*FGROUP DbgNewFW */
-void printL0FUN34();
 /*--------------------------- libctp.a subroutines (see vme/ctp/ctplib): */
 /*FGROUP Common */
 int notInCrate(int ix);
@@ -904,6 +945,32 @@ Resets PLL clock on all boards
 */
 void resetPLLS();
 
+/*FGROUP PF
+ LM0 BOARD:
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 9 bits
+ Ncol - 8 bits
+ delay - 9 bits
+ delayflag = 1 = nodaly
+ */ 
+void setLML0PFblock(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag);
+/*FGROUP PF
+ int1 = 0/1 
+ int2 = 0/1
+ bcmask 12 bit mask 
+*/
+void setLML0PFINTSEL(w32 ibl,w32 int1,w32 int2,w32 bcmask);
+/*FGROUP PF
+ ibl=1..8 LM / 9..12 L0
+ scale - 5 bits
+ dT - 8 bits
+ delay - 9 bits
+ int1 = 0/1 
+ int2 = 0/1
+ bcmask 12 bit mask 
+ */ 
+void setLML0PF(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag,w32 int1,w32 int2,w32 bcmask);
 /* PF in pfp.c: */
 /*FGROUP PF 
 Read the recent PF setting
