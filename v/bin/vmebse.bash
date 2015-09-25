@@ -60,6 +60,7 @@ if [ -e /opt/infoLogger/infoLoggerStandalone.sh ] ;then
   . /opt/infoLogger/infoLoggerStandalone.sh
   export DATE_INFOLOGGER_DIR=/opt/infoLogger
   export DATE_INFOLOGGER_SYSTEM=TRG
+  #echo infoLogger ok
 fi
 #
 #first=`echo $vdir |cut -b 1`

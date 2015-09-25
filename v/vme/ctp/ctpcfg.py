@@ -800,9 +800,13 @@ Middle-> modify the invert bit (only for classes 45-50)
         inx= inx+1
       elif tp=="RBIF":
         # RBIF
-        binval= eval(shr[inx])
-        #print "binval: inx=",inx," ",type(shr[inx])," ", type(binval)
-        self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
+        print "inx=",inx, shr
+        if inx >= len(shr):
+          print "Error in RBIF line (old .cfg file?) ix:%d not present"%inx
+        else:
+          binval= eval(shr[inx])
+          #print "binval: inx=",inx," ",type(shr[inx])," ", type(binval)
+          self.sharedrs[reshuf[ishr]].setattrfo(binval,0)
         inx= inx+1
       elif tp=="LMRB":
         binval= eval(shr[inx])
