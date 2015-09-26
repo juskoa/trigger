@@ -492,6 +492,7 @@ for(ixdef=0; ixdef< 12; ixdef++) {
     case 3: // Name
     {
      strcpy(rbif->pf[ixpf].name,hexw);
+     continue;
     }
     case 4: // BCM
     {
