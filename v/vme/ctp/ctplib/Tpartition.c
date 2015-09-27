@@ -401,7 +401,6 @@ void copyTKlas(TKlas *toklas,TKlas *fromklas){
  toklas->lmvetos= fromklas->lmvetos;
  toklas->lmscaler= fromklas->lmscaler;
  toklas->sdg= fromklas->sdg;
- strcpy(toklas->pfname,fromklas->pfname);
 }
 /*---------------------------------------------------- findHWCluster()
 Input: part, pcluster:1-6.
@@ -577,7 +576,6 @@ toklas->l0inputs= l0inp;
 toklas->l0vetos= l0veto;      
 toklas->l1definition= l1def;      
 toklas->l2definition= l2def;     
-strcpy(toklas->pfname,fromklas->pfname); 
 }
 /*---------------------------------------- getCLAMASK() */
 w32 getCLAMASK() {
@@ -608,7 +606,6 @@ if(klas != NULL){
   klas->classgroup=0;   // always IN
   klas->partname=NULL;
   klas->sdg=-1;
-  strcpy(klas->pfname,"");
 };
 }
 
@@ -620,8 +617,8 @@ void printTKlas(TKlas *klas,int i){
   printf("0x%x 0x%x ",klas->scaler,klas->l1definition);
   printf("0x%x 0x%x hwcl:%d ",klas->l1inverted,
     klas->l2definition, klas->hwclass);
-  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i pf:%s %s\n",klas->classgroup,
-    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg, klas->pfname,klas->partname);
+  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i %s\n",klas->classgroup,
+    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg,klas->partname);
 }
 /*------------------------------------------------------checkCluV0TKlas()
 */
@@ -884,7 +881,8 @@ return(rcinpdets);
 #define L0L0PFMASK 0xf0
 #define L0LMPFMASK 0xf000000
 int checkmodLMPF(Tpartition *part){
- TRBIF* rbif=HW.rbif;
+ //TRBIF* rbif=HW.rbif;
+ TRBIF* rbif=part->rbif;
  for(int icla=0;icla<NCLASS;icla++){
   TKlas *klas; int cluster, clustermask, ixdet;char txdets[100];
   if((klas=part->klas[icla])) {
@@ -893,18 +891,22 @@ int checkmodLMPF(Tpartition *part){
     continue;
   };
   // PF class has to have l0 veto != 0xf
-  if((klas->l0vetos&0xf0) == 0xf0) continue;
-  printf("checkmodLMPF: PF class found %i pf=%s \n",icla,klas->pfname);
-  // Find PF in HW
-  TPastFut* pf;
-  int ipf;
-  for(ipf=0;ipf<NPF;ipf++){
-   pf=&rbif->pf[ipf];
-   if(strcmp(pf->name,klas->pfname)==0)break;
-  }
-  if(ipf==NPF){
-   printf("checkmodLMPF: internal error PF %s not found in HW \n",klas->pfname);
-   return 1;
+  w32 pfmask=(klas->l0vetos&0xf0)>>4; 
+  if(pfmask == 0xf) continue;
+  //printf("checkmodLMPF: PF class found %i pf=%s \n",icla,klas->pfname);
+  printf("checkmodLMPF: PF class found %i pf=%x \n",icla,pfmask);
+  // Find PF in partition
+  w32 pfs[NPF];
+  for(int ipf=0;ipf<NPF;ipf++){
+   pfs[ipf]=0;
+   bool pfipf=(1<<ipf)&(~pfmask);
+   if(pfipf){
+     pfs[ipf]=1;
+     if(rbif->PFuse[ipf]==0){ 
+       printf("checkmodLMPF: internal error PF ipf=%i pfmask=0x%x not found in HW \n",ipf,pfmask);
+       return 1;
+     }
+   }
   }
   // check if TRD class
   cluster= klas->l0vetos & 0x7;
@@ -913,43 +915,35 @@ int checkmodLMPF(Tpartition *part){
   ixdet= 4 ; 
   int clsts= part->Detector2Clust[ixdet];   // log. clusters ixdet is in
   printf("checkmodLMPF: cluster:%d  clsts:0x%x\n", cluster, clsts);
-  int jpf=0; while((jpf<8) && (pf->lmpf[jpf]==0))jpf++;
-  if(jpf==8){
-   printf("chemodLMPF: internal error lmpf mask not found pf:%s\n",pf->name);
-   return 2;
-  }    
-  if((pf->l0pf[jpf] !=1 ) || (pf->lmpf[jpf+4] !=1 )){
-   printf("chemodLMPF: internal error lmpf circuits use not subsequent pf:%s\n",pf->name);
-   return 3;
-  }
   if(clsts & clustermask) {
     //LM classes
-    printf("checkmodLMPF:LM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    printf("checkmodLMPF:LM class %i: lmveto before 0x%x l0veto before 0x%x\n",icla,klas->lmvetos,klas->l0vetos);
     // lmvetoes 3rd pf out of 3
     w32 lmv=klas->lmvetos;
-    w32 mask=1<<(jpf+4+10);  //ok
+    w32 mask=0;
+    for(int ipf=0;ipf<NPF;ipf++)if(pfs[ipf])mask+=1<<(ipf+4+10);  //ok
     lmv=lmv&(~mask);
     klas->lmvetos=lmv;
     // l0vetoes 1st pf out of 3
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
-    //mask=1<<(jpf+4);
-    mask=1<<(jpf+24);   
+    mask=0;
+    for(int ipf=0;ipf<NPF;ipf++)if(pfs[ipf])mask+=1<<(ipf+24);   
     l0v=l0v&(~mask);
     klas->l0vetos=l0v; 
-    printf("checkmodLMPF:LM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    printf("checkmodLMPF:LM class %i: lmveto after 0x%x l0veto after 0x%x\n",icla,klas->lmvetos,klas->l0vetos);
   }else{
     //nonLM classes
-    printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto before 0x%x l0veto before 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    printf("checkmodLMPF:nonLM class %i: lmveto before 0x%x l0veto before 0x%x\n",icla,klas->lmvetos,klas->l0vetos);
     // lmvetoes nothing
     // l0vetoes 1st and 2nd pfs out of 3
     w32 l0v=klas->l0vetos;
     l0v=l0v|0xf0;
-    w32 mask=1<<(jpf+24); //ok
-    mask+=1<<(jpf+4);     //ok
+    w32 mask=0;
+    for(int ipf=0;ipf<NPF;ipf++)if(pfs[ipf])mask+=(1<<(ipf+24)) + (1<<(ipf+4));     //ok
     l0v=l0v&(~mask);
     klas->l0vetos=l0v; 
-    printf("checkmodLMPF:nonLM class %i: jpf=%i lmveto after 0x%x l0veto after 0x%x\n",icla,jpf,klas->lmvetos,klas->l0vetos);
+    printf("checkmodLMPF:nonLM class %i: lmveto after 0x%x l0veto after 0x%x\n",icla,klas->lmvetos,klas->l0vetos);
   }
  }
  return 0;

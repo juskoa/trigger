@@ -723,41 +723,30 @@ for(int ipf=0; ipf<NPF; ipf++) {
   if(prbif->PFuse[ipf]==0) continue;
   TPastFut* pf=&prbif->pf[ipf];
   // test if new pf already exists in cumulated
-  for(int jpf=0;jpf<NPF;jpf++){
-     if(cumrbif->PFuse[jpf]==0) continue;
-     TPastFut* cumpf=&cumrbif->pf[jpf];
-     if(strcmp(pf->name,cumpf->name)==0)return 0; // PF already there
-  }
-  // PF not in cum, add it
-  w32 pftot=0;
-  for(int jpf=0;jpf<NPF;jpf++){
-     pftot+=cumrbif->PFuse[jpf];
-     printf("checkPFS: pftot= %i \n",pftot);
-     if(pftot >= (NPF-1)) {  // because of pftest
-      char emsg[100];
-      sprintf(emsg,"Too many PFs");
-      infolog_trgboth(LOG_ERROR, emsg);
+  TPastFut* cumpf=&cumrbif->pf[ipf];
+  if(cumrbif->PFuse[ipf]==1){  // PF already used
+    if(strcmp(pf->name,cumpf->name)!=0){
+      printf("checkPFS error: PF%i conflict: %s %s \n",ipf,pf->name,cumpf->name);
       return 1;
-     }
-     if(cumrbif->PFuse[jpf] == 0){
-       // when 0 found resources should exist but NPF=5 shou;ld be 4 change later
-       TPastFut* cumpf=&cumrbif->pf[jpf];
-       if(cumrbif->BCMASKuse[cumpf->bcmask]==0){
-         printf("checkPFS: BCmask used in PF not in config ? \n");
-         return 2;
-       }
-       copyTPastFut(cumpf,pf);
-       cumrbif->PFuse[jpf]=1;
-       // LM before at LM
-       cumpf->lmpf[pftot+4]=1;
-       // L0 before at L0
-       cumpf->l0pf[pftot]=1;
-       // LM after at L0
-       cumpf->lmpf[pftot]=1;
-       break;
-     }
-  }
-};
+    }
+    return 0;
+  }else{
+  // PF not in cum, add it
+    if(cumrbif->BCMASKuse[cumpf->bcmask]==0){
+      printf("checkPFS: BCmask used in PF not in config ? \n");
+      return 2;
+    }
+    copyTPastFut(cumpf,pf);
+    cumrbif->PFuse[ipf]=1;
+    // LM before at LM
+    cumpf->lmpf[ipf+4]=1;
+    // L0 before at L0
+    cumpf->l0pf[ipf]=1;
+    // LM after at L0
+    cumpf->lmpf[ipf]=1;
+    break;
+ }
+}
 // here add more clever check on usage of circuits ?
 return 0;
 }
