@@ -492,7 +492,6 @@ for(ixdef=0; ixdef< 12; ixdef++) {
     case 3: // Name
     {
      strcpy(rbif->pf[ixpf].name,hexw);
-     continue;
     }
     case 4: // BCM
     {
@@ -967,9 +966,8 @@ sprintf(errmsg,"Bad class group:%d for partition:%s",clg,part->name);
 retcode=5; goto RETERR;
 }
 /*------------------------------------------------------pf2class()
- * checks only for one pf
  */
-int pf2classold(Tpartition *part)
+int pf2class(Tpartition *part)
 {
  printf("pfclass called for partition %s \n",part->name);
  for(int i=0;i<NCLASS;i++){
@@ -989,31 +987,8 @@ int pf2classold(Tpartition *part)
       printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
       return 1;
     }
-    strcpy(part->klas[i]->pfname[ipf],part->rbif->pf[ipf].name);
+    strcpy(part->klas[i]->pfname,part->rbif->pf[ipf].name);
     printf("pf2class: pf %s added tp class %i\n",part->rbif->pf[ipf].name,i);
-  }
- }
- return 0;
-} 
-/*------------------------------------------------------pf2class()
- * all 4 pfs allowed
- * in pcfg: PF1 <-> 0001 mask
- *          PF2 <-> 0010 ...
- */
-int pf2class(Tpartition *part)
-{
- printf("pfclass called for partition %s \n",part->name);
- for(int i=0;i<NCLASS;i++){
-  if(part->klas[i] != NULL){
-    w32 l0veto=part->klas[i]->l0vetos;
-    // pf= bits(4..7)
-    w32 ipfveto=((l0veto&0x0f0)>>4);
-    for(int ipf=0;ipf<NPF;ipf++){
-     if((~ipfveto) & (1<<ipf)){
-       strcpy(part->klas[i]->pfname[ipf],part->rbif->pf[ipf].name);
-       printf("pf2class: pf %s added to class %i\n",part->rbif->pf[ipf].name,i);
-     }
-    }
   }
  }
  return 0;
