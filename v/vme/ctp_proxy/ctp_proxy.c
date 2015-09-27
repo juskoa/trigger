@@ -733,7 +733,8 @@ for(int ipf=0; ipf<NPF; ipf++) {
   for(int jpf=0;jpf<NPF;jpf++){
      pftot+=cumrbif->PFuse[jpf];
      printf("checkPFS: pftot= %i \n",pftot);
-     if(pftot >= (NPF-1)) {  // because of pftest
+     //if(pftot >= (NPF-1)) {  // because of pftest NPF=5
+     if(pftot >= NPF) {  // NPF=4
       char emsg[100];
       sprintf(emsg,"Too many PFs");
       infolog_trgboth(LOG_ERROR, emsg);

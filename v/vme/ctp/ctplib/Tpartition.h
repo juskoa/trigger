@@ -13,7 +13,7 @@
 #define NCON 4        // # of connectors at FO
 #define NDETEC 24
 #define NCTPINPUTS 84    // 48+24+12
-#define NPF 5    // number of possible PF (not circuits)
+#define NPF 4    // number of possible PF (not circuits)
 
 #ifndef MNPART
 #define MNPART 6
@@ -126,7 +126,7 @@ typedef struct TKlas{
  w32 lminverted;
  w32 lmvetos;     
  w32 lmscaler;
- char pfname[64];
+ char pfname[NPF][64];
 }TKlas;
 
 /* old definition (w.r.t. level, never used):

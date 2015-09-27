@@ -131,4 +131,9 @@ lmpf[0]=1 for l0veto non TRD and TRD calss // after
 lmpf[4]=1 for lmvet0 TRD class             // before
 l0pf[0]=1 for l0veto  nonTRD class         // before
 
+21.09.15
+To do:
+- add checks/adding of bcmasks to parted
+- allow more masks per class in cfg2part.c and upstream
+- alloe TPClike PF (level1,level2) - connect to old interface
 
