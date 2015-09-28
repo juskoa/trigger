@@ -318,12 +318,15 @@ typedef struct Tpartitionshm{
 #define FLGignoreDAQLOGBOOK 0x1
 #define FLGignoreDAQRO 0x2
 #define FLGignoreGCALIB 0x4
+#define FLGignoreGCALIB 0x4
+// BEAM MODE set only in shared memory on server (see DOsetbm in pydim/server.c)
+#define FLGBMmask       0xff00
 typedef struct Tctpshm {
 char datetime[20];  // '\0' or dd.mm.yyyy hh:mm:ss of last SHM init
 Tbakery swtriggers; // see ctplib/swtrigger.c
-Tbakery ccread;  // ctp counters readings (see ctplib/readCounters.c)
-w32 GlobalFlags;
-w32 active_cg;  // active classgroup. 255 during PAUSE
+Tbakery ccread;     // ctp counters readings (see ctplib/readCounters.c)
+w32 GlobalFlags;    // bits: see above
+w32 active_cg;      // active classgroup. 255 during PAUSE
 Tdetector validLTUs[NDETEC];
 Tinput validCTPINPUTs[NCTPINPUTS];
 Tpartitionshm startedParts[MNPART];
@@ -531,6 +534,8 @@ int cshmGlobFlag(w32 flag);
 void cshmSetGlobFlag(w32 flag);
 void cshmClearGlobFlag(w32 flag);
 void setglobalflag(int argc,char **argv,char *flagName,int flag);
+int cshmBM();
+void cshmSetBM(w32 newbm);
 void cshmPrint();
 void cshmAddPartition(Tpartition *part);
 void cshmDelPartition(char *part);

@@ -76,7 +76,7 @@ unsigned int effiout=0xdeadbeaf, indets=0xdeadbeaf;
 
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
-int INT1id, INT2id, CSid, CNAMESid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did;
+int INT1id, INT2id, CSid, CNAMESid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did,SETBMid;
 char INT1String[MAXINT12LINE]="int1 source";
 char INT2String[MAXINT12LINE]="int2 source";
 #define MAXCSString 80000
@@ -97,6 +97,7 @@ dis_remove_service(CTPRCFGRCFGid);
 dis_remove_service(CTPRCFGid);
 dis_remove_service(LTUCFGid);
 dis_remove_service(C2Did);
+dis_remove_service(SETBMid);
 dis_remove_service(INT1id);
 dis_remove_service(INT2id);
 dis_remove_service(CSid);
@@ -401,6 +402,46 @@ if(t1==tINTNUM) {
 };
 if(errmsg[0]!='\0') {
   printf("ERROR DOcom2daq:%s:%s\n",errmsg, line);
+};
+}
+/*--------------------*/ void DOsetbm(void *tag, void *msg, int *size)  {
+// msg: beammode_number beammode
+int ixl, bmN; char errmsg[200]="";
+char *line;
+#define MAXBM 50
+char value[MAXBM];
+char beammode[MAXBM];
+enum Ttokentype t1;
+line= (char *)msg;
+printf("INFO DOsetbm len:%d m:%s\n", *size, line); 
+if(*size > MAXBM) {
+  printf("ERROR too long msg for DOsetbm\n"); return;
+};
+ixl=0; t1= nxtoken(line, value, &ixl);   // beammodeN
+if(t1==tINTNUM) {
+  bmN= str2int(value);
+  t1= nxtoken(line, value, &ixl);   // beammode
+  if(t1==tSYMNAME) {
+    strcpy(beammode, value); // not used yet
+    cshmSetBM(bmN);
+    printf("INFO BEAMMODE:%s %d\n", beammode, bmN);
+    /*t1= nxtoken(line, value, &ixl);   // message
+    if(t1==tSTRING) {
+      int rcdl;
+      rcdl= daqlogbook_add_comment(0,beammode,value);
+      printf("INFO DAQlogbook comment: %d %s %s rc:%d\n",
+        bmN, beammode, value,rcdl);
+    } else {
+      strcpy(errmsg,"Bad message (\"string\" expected)");
+    };*/
+  } else {
+    strcpy(errmsg,"Bad beammode (name expected)");
+  };
+} else {
+  strcpy(errmsg,"Bad beam mode number (int expected)");
+};
+if(errmsg[0]!='\0') {
+  printf("ERROR DOsetbm:%s:%s\n",errmsg, line);
 };
 }
 /*--------------------*/ void DOcmd(void *tag, void *msg, int *size)  {
@@ -969,6 +1010,9 @@ printf("INFO DIM cmd:%s id:%d\n", cmd, LTUCFGid);
 sprintf(cmd, "%s/COM2DAQ", servername);   // CTPRCFG/COM2DAQ
 C2Did= dis_add_cmnd(cmd,NULL, DOcom2daq, 91);
 printf("INFO DIM cmd:%s id:%d\n", cmd, C2Did);
+sprintf(cmd, "%s/SETBM", servername);   // CTPRCFG/SETBM
+SETBMid= dis_add_cmnd(cmd,NULL, DOsetbm, 92);
+printf("INFO DIM cmd:%s id:%d\n", cmd, SETBMid);
 /*
 sprintf(cmd, "%s/FSUPDATE", servername);   // CTPRCFG/FSUPDATE
 FSUid= dis_add_cmnd(cmd,NULL, DOfsupdate, 92);

@@ -47,6 +47,11 @@ $(EXEDIR)/comment2daqlog: comment2daqlog.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 $(EXEDIR)/act_main: act_main.c $(VMEBLIB)/libvmeb.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
+#-----
+$(CTPLIB)/libctp.a:$(CTPLIB)/../*.c
+	cd $(CTPLIB) ; make -f ../make_new
+$(VMEBLIB)/libvmeb.a:$(VMEBLIB)/../*.c
+	cd $(VMEBLIB); make -f ../make_new
 clean:
 	-rm -f $(allEXES) *.o
 

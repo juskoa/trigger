@@ -113,8 +113,8 @@ $(EXEDIR)/sendcomm: sendcomm.o
 #-------------------------
 $(CTPLIB)/libctp.a:$(CTPLIB)/../*.c
 	cd $(CTPLIB) ; make -f ../make_new
-$(VMEBDIR)/vmeblib/libvmeb.a:$(VMEBDIR)/vmeblib/*.c
-	cd $(VMEBDIR)/vmeblib ; make
+$(VMEBLIB)/libvmeb.a:$(VMEBLIB)/../*.c
+	cd $(VMEBLIB); make -f ../make_new
 clean:
 	echo "clean: EXEDIR:$(EXEDIR)"
 	-rm -f $(EXEDIR)/* *.o

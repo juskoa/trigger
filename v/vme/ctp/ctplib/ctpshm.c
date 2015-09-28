@@ -71,6 +71,13 @@ if(isArg(argc, argv, flagName)) {
 };
 printf("%s:%s\n", onoff, flagName);
 }   
+int cshmBM() {
+return((ctpshmbase->GlobalFlags & FLGBMmask)>>8);
+}
+void cshmSetBM(w32 newbm) {
+ctpshmbase->GlobalFlags= ctpshmbase->GlobalFlags & (~FLGBMmask);
+ctpshmbase->GlobalFlags= ctpshmbase->GlobalFlags | ((newbm<<8) & FLGBMmask);
+}
 /*---------------------------------------------------cshmGlobalDets()
 rc: mask of all detectors in all global runs (paused partitions EXCLUDED)
 */
@@ -102,8 +109,8 @@ for(i=0;i<NDETEC;i++){
       ctpshmbase->validLTUs[i].busyinp, ctpshmbase->validLTUs[i].ltubasea);
   };
 };
-printf("GlobalFlags:%x active_cg:%d\n", ctpshmbase->GlobalFlags,
-  ctpshmbase->active_cg);
+printf("GlobalFlags:%x active_cg:%d beammode:%d\n", ctpshmbase->GlobalFlags,
+  ctpshmbase->active_cg, cshmBM());
 printBakery(&ctpshmbase->swtriggers);
 printBakery(&ctpshmbase->ccread);
 /*printf("VALID.CTPINPUTS: name Level/1..24 edge delay\n");

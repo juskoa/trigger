@@ -3,8 +3,10 @@
 # look for #CJI -Clock Jitter Invetsigation modifications (no DLL_RESYNC)
 #
 # This should run all the time:
-# - follows BEAM MODES (from ctpdim CTPDIM/BEAMMODE
+# - follows BEAM MODES from ctpdim CTPDIM/BEAMMODE (only logged)
+#     and from ALICEDAQ_LHCBeamMode
 #   - changes clock (in auto mode) TTCMI/MICLOCK_SET
+#     not done
 #   - set $dbctp/clockshift (file change)
 #   - set corde delay at the end of FLAT TOP(CORDE reg changed) TTCMI/CORDE_SET
 #   - calculate new VALID.BCMASK (at the start of FLAT TOP?)
@@ -244,6 +246,9 @@ def callback_bm(ecsbm):
   if bmname == WEB.lastbmname:
     #mylog.logm("No change in BM, no action")
     return
+  arg= ("%d %s"%(bm, bmname),)
+  res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")
+  mylog.logm("dim CTPRCFG/SETBM "+str(arg), 1)
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
   ## 
