@@ -131,4 +131,14 @@ lmpf[0]=1 for l0veto non TRD and TRD calss // after
 lmpf[4]=1 for lmvet0 TRD class             // before
 l0pf[0]=1 for l0veto  nonTRD class         // before
 
-
+28.0.15
+Managment of PFs changed to be as for BCMs:
+PF1..PF4 correspond to hardware positions (PF1=0,4,0, PF2=1,5,1,..)
+Conflict pf PFs checked against PF name, i.e if
+part1:
+PF1:
+SPD1 BCM1 ...
+part2:
+PF1:
+SPD2 BCM1 ...
+is a conflict.

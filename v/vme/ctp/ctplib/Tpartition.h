@@ -126,6 +126,7 @@ typedef struct TKlas{
  w32 lminverted;
  w32 lmvetos;     
  w32 lmscaler;
+ w32 pf;          // 4 bit mask of PF (NOT circuits)
 }TKlas;
 
 /* old definition (w.r.t. level, never used):

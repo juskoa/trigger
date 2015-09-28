@@ -401,6 +401,7 @@ void copyTKlas(TKlas *toklas,TKlas *fromklas){
  toklas->lmvetos= fromklas->lmvetos;
  toklas->lmscaler= fromklas->lmscaler;
  toklas->sdg= fromklas->sdg;
+ toklas->pf = fromklas->pf;
 }
 /*---------------------------------------------------- findHWCluster()
 Input: part, pcluster:1-6.
@@ -606,6 +607,7 @@ if(klas != NULL){
   klas->classgroup=0;   // always IN
   klas->partname=NULL;
   klas->sdg=-1;
+  klas->pf=0xf;
 };
 }
 
@@ -617,8 +619,8 @@ void printTKlas(TKlas *klas,int i){
   printf("0x%x 0x%x ",klas->scaler,klas->l1definition);
   printf("0x%x 0x%x hwcl:%d ",klas->l1inverted,
     klas->l2definition, klas->hwclass);
-  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i %s\n",klas->classgroup,
-    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg,klas->partname);
+  printf("cg:%d 0x%x 0x%x 0x%x 0x%x %i pf:0x%x %s\n",klas->classgroup,
+    klas->lmcondition, klas->lminverted, klas->lmvetos, klas->lmscaler, klas->sdg,klas->pf,klas->partname);
 }
 /*------------------------------------------------------checkCluV0TKlas()
 */

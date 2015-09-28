@@ -428,6 +428,7 @@ klas->lmscaler=scaler;
  klas->l1inverted=l1inverted;
  klas->l2definition=l2definition;
  klas->classgroup= group;
+ klas->pf=(klas->l0vetos&0xf0)>>4;  // PF assignement
  return klas;
 }
 /*----------------------------------------------------findBCMasks()

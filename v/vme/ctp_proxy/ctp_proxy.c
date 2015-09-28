@@ -720,16 +720,17 @@ if(DBGpfs) {
   prtLog(".................................checkPFS...");
 };
 for(int ipf=0; ipf<NPF; ipf++) {
+  //printf("checkPFS %i %i %s \n",ipf,prbif->PFuse[ipf],prbif->pf[ipf].name);
   if(prbif->PFuse[ipf]==0) continue;
   TPastFut* pf=&prbif->pf[ipf];
   // test if new pf already exists in cumulated
   TPastFut* cumpf=&cumrbif->pf[ipf];
-  if(cumrbif->PFuse[ipf]==1){  // PF already used
-    if(strcmp(pf->name,cumpf->name)!=0){
-      printf("checkPFS error: PF%i conflict: %s %s \n",ipf,pf->name,cumpf->name);
+  if(cumrbif->PFuse[ipf] != 0){  // PF already used
+    if(strcmp(pf->name,cumpf->name) != 0){
+      printf("checkPFS error: PF%i conflict: %s %s \n",ipf+1,pf->name,cumpf->name);
       return 1;
     }
-    return 0;
+    printf("checkPFS : PF%i found: %s %s \n",ipf+1,pf->name,cumpf->name);
   }else{
   // PF not in cum, add it
     if(cumrbif->BCMASKuse[cumpf->bcmask]==0){
@@ -744,7 +745,7 @@ for(int ipf=0; ipf<NPF; ipf++) {
     cumpf->l0pf[ipf]=1;
     // LM after at L0
     cumpf->lmpf[ipf]=1;
-    break;
+    printf("checkPFS : PF%i added: %s %s \n",ipf+1,pf->name,cumpf->name);
  }
 }
 // here add more clever check on usage of circuits ?
