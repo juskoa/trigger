@@ -428,6 +428,7 @@ klas->lmscaler=scaler;
  klas->l1inverted=l1inverted;
  klas->l2definition=l2definition;
  klas->classgroup= group;
+ klas->pf=(klas->l0vetos&0xf0)>>4;  // PF assignement
  return klas;
 }
 /*----------------------------------------------------findBCMasks()
@@ -492,6 +493,7 @@ for(ixdef=0; ixdef< 12; ixdef++) {
     case 3: // Name
     {
      strcpy(rbif->pf[ixpf].name,hexw);
+     continue;
     }
     case 4: // BCM
     {
@@ -965,34 +967,6 @@ BADGROUP:
 sprintf(errmsg,"Bad class group:%d for partition:%s",clg,part->name);
 retcode=5; goto RETERR;
 }
-/*------------------------------------------------------pf2class()
- */
-int pf2class(Tpartition *part)
-{
- printf("pfclass called for partition %s \n",part->name);
- for(int i=0;i<NCLASS;i++){
-  if(part->klas[i] != NULL){
-    w32 ipf=0;
-    w32 l0veto=part->klas[i]->l0vetos;
-    // pf= bits(4..7)
-    w32 ipfveto=((l0veto&0xf0)>>4);
-    if(ipfveto==0xe)      ipf=0;
-    else if(ipfveto==0xd) ipf=1;
-    else if(ipfveto==0xb) ipf=2;
-    else if(ipfveto==0x7) ipf=3;
-    else if(ipfveto==0xf){
-      //printf("NO pf in class %i \n",i);
-      continue;
-    }else {
-      printf("MOre than one PF not allowed yet: 0x%x \n",ipfveto);
-      return 1;
-    }
-    strcpy(part->klas[i]->pfname,part->rbif->pf[ipf].name);
-    printf("pf2class: pf %s added tp class %i\n",part->rbif->pf[ipf].name,i);
-  }
- }
- return 0;
-} 
 /*----------------------------------------------------ReadPartitionErrors()
   Purpose: print error occured in routine readPartitionErrors()
   Input: - error code 
@@ -1111,9 +1085,8 @@ fflush(stdout);
    newpart->klas[i]->partname=newpart->name;
   }
  }
- // assign PF name to class
-fflush(stdout);
- if(pf2class(newpart))goto ERROR;
+ // assign PF name to class - this is not ncessary
+ //if(pf2class(newpart))goto ERROR;
  return newpart;
 
 ERROR:
