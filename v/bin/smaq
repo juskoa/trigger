@@ -3,6 +3,18 @@
 # smaq CTP_INPUT DIRNAME
 #rc: 8: smaq is already running
 # smaq kill
+function mvfile() {
+# $1: relative path of the log file NO SUFFIX, i.e.: WORK/ctpproxy
+# operation: WORK/ctpproxy.log -> WORK/ctpproxyYYMMDDhhmm.log
+ds=`date +%y%m%d%H%M`   # %S -seconds
+if [ -e "$1.log" ] ;then
+  #echo "exists: $1"
+  mv "$1.log" "$1$ds.log"
+else
+  echo "$1.log does not exist"
+fi
+}
+#
 . $VMECFDIR/../bin/auxfunctions
 #getpid "$VMECFDIR/smaq/smaq.exe"
 trgusr=trg
@@ -59,4 +71,5 @@ cd $VMEWORKDIR
 #$VMECFDIR/inputs/inputs.exe <<-EOF
 #inputsSMAQ(0,$sig)
 #EOF
+mvfile WORK/smaq
 nohup $VMECFDIR/smaq/smaq2.exe $sig >$VMEWORKDIR/WORK/smaq.log </dev/null &

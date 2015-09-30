@@ -56,6 +56,9 @@ see dims.c dimservices.c
 //#define CFGDBDIR "/home/alice/aj/v/vme/CFG/ctp/DB/"
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
+// bit number reserved for CTP readout,i.e. non exiting LTU, 
+// but place in validLTUs[CTPLTUECSN] reserved anyhow
+#define CTPLTUECSN 17
 typedef struct Tinput{
   char name[MAXCTPINPUTLENGTH];   // "" empty item
   int detector;    // ECS/DAQ Detector number (0..) or -1 if not found

@@ -28,6 +28,8 @@ extern "C" {
 #include "DAQlogbook.h"
 #endif
 #endif
+#define CTPLTUECSN 17
+
 /*
 rc: 0 -ok
 1     -not opened not compiled with DAQLOGBOOK  (lab)
@@ -337,7 +339,7 @@ printf("INFO daqlogbook_update_clusters: pname:%s runn:%d\n", pname, runn);
 for(iclu=0;iclu<NCLUST;iclu++) {
   if(daqi->masks[iclu]==0) continue;
   if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
-    daqi->masks[iclu]= daqi->masks[iclu] | (1<<17);
+    daqi->masks[iclu]= daqi->masks[iclu] | (1<<CTPLTUECSN);
   };
   //printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx effiout:0x%x\n", 
   printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx\n", 

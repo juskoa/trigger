@@ -41,7 +41,8 @@ starttest -debugging: start interactive session without DAQLOGBOOK/readout/SMI
            i.e. SMI even not linked. Obsolete: use startnd + smicmd cmdline interface.
 startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
            (Use smicmd to send SMI cmds to ctpproxy)
-startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS)
+startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS+DAQ)
+startndlog-debugging: start ctpproxy daemon without DAQLOGBOOK (i.e. with ECS+readout)
 EOF
 }
 proxyname="TRIGGER::CTP"
@@ -49,7 +50,7 @@ pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detnam
 if [ -z $pid ] ;then
   echo "TRIGGER::CTP not running"
   if [ -z $1 ] ;then
-    echo "start, startnd, startnr or status expected (starttest: obsolete)"
+    echo "start, startnd, startnr, startndlog or status expected (starttest: obsolete)"
   elif [ "$1" = "status" ] ;then
     exit 8
   elif [ "$1" = "start" ] ;then
@@ -58,6 +59,8 @@ if [ -z $pid ] ;then
     startproxy NODAQRO
   elif [ "$1" = "startnd" ] ;then
     startproxy NODAQLOGBOOK NODAQRO
+  elif [ "$1" = "startndlog" ] ;then
+    startproxy NODAQLOGBOOK
   elif [ "$1" = "starttest" ] ;then
     cd $VMEWORKDIR
 #set args [NO]DAQLOGBOOK [NO]DAQRO

@@ -727,7 +727,7 @@ update following info in DAQlogbook::
 - partition instance name/version (was sent in time of .pcfg)
 */
 void updateConfig(int runn, char *pname, char *instname, char *instver) {
-int rc, rl;
+int rc, rl; int bm;
 char *mem; char *environ, *envWORK;
 char cfgname[200], aliname[200], itemname[200];
 char emsg[1000];
@@ -771,6 +771,8 @@ if(rl < 10) {
     printf("ERROR %s", emsg);
   };
 };
+bm= cshmBM();
+printf("INFO beammode:%d\n", bm);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
 if(ignoreDAQLOGBOOK) { 
   rc=0;
 } else {

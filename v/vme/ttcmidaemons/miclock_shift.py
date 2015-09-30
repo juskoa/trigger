@@ -247,7 +247,7 @@ def callback_bm(ecsbm):
     #mylog.logm("No change in BM, no action")
     return
   arg= ("%d %s"%(bm, bmname),)
-  res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")
+  res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")    // update shm on server!
   mylog.logm("dim CTPRCFG/SETBM "+str(arg), 1)
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
