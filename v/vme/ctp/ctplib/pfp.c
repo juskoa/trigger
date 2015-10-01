@@ -4,6 +4,7 @@
 #include "vmewrap.h"
 #include "ctp.h"
 #include "ctplib.h"
+#include "Tpartition.h"
 
 typedef struct {
   w32 pPF_COMMON;
@@ -66,7 +67,7 @@ for circ:4
 LMPF8def LMPF4def L0PF4def LMPF8inpdef LMPF4dinpef L0PF4dinpef 
 */
 void getPFLMc(int circ) {   
-char line[92];
+//char line[92];
 printf("0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
   vmer32(getLM0_PFBLKad(circ+4)),
   vmer32(getLM0_PFBLKad(circ)),
@@ -836,7 +837,7 @@ void setPFBLOCK(w32 ix,w32 ipf,w32 Th, w32 dT,w32 delay,w32 delayflag)
 int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter)
 {
  w32 TL1=getTL1();
- w32 TL2L1=getTL2()-TL1;
+ //w32 TL2L1=getTL2()-TL1;
  w32 INTa=0;
  w32 dT=0,delay=0,scale=0,dflag=0;
  if(inter==1)INTa=0xa; else INTa=0xc;
@@ -902,5 +903,109 @@ void setLML0PF(int ibl,w32 scale,w32 dT,w32 Ncol,w32 delay,w32 delflag,w32 int1,
  w32 word=scale+(dT<<5)+(Ncol<<14)+(delay<<22)+(delflag<<31);
  vmew32(addr,word);
  setLML0PFINTSEL(ibl,int1,int2,bcmask);
+}
+//--------------------------------------------------------------------------------
+// SPD like PF: protection time smaller than LM-L0 time
+int loadSPDlikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
+{
+ w32 delflag=0;
+ w32 dT,del;
+ // Before at LM level (with LM PF)
+ if(pf->OffBefore==0){
+   delflag=1;
+   del=0;
+ }else{
+   delflag=0;
+   del=pf->OffBefore-1;
+ };
+ dT=pf->PeriodBefore-1;
+ setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // Before at L0 level (with L0 PF)
+ setLML0PF(jpf+9,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // After at L0 level (with LM PF).
+ dT=pf->PeriodAfter-1;
+ //del=14-(dT+2)-(pf->OffAfter); // Off zacina za int
+ del=14-(dT+2)+1-(pf->OffAfter);   //Off=0: killing with its own int
+ if(del<=0){
+   printf("loadPF2HW: del<=0, too much future\n");
+   return 3;
+ }
+ delflag=0;
+ setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask);
+ return 0; 
+}
+//--------------------------------------------------------------------------------
+// TPC like PF: protection time > L0-L2 time
+// In principle everything (SPD/TPC like) should be done in one function
+// To be on the safeside we start with 2 functions - TPC may become later general function
+int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
+{
+ w32 delflag=0;
+ w32 dT,del;
+ // Before at LM level (with LM PF)
+ if(pf->OffBefore==0){
+   delflag=1;
+   del=0;
+ }else{
+   delflag=0;
+   del=pf->OffBefore-1;
+ };
+ dT=pf->PeriodBefore-1;
+ setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // Before at L0 level (with L0 PF)
+ setLML0PF(jpf+9,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // After at L0 level (with LM PF).
+ dT=pf->PeriodAfter-1;
+ //del=14-(dT+2)-(pf->OffAfter); // Off zacina za int
+ del=14-(dT+2)+1-(pf->OffAfter);   //Off=0: killing with its own int
+ if(del<=0){
+   printf("loadPF2HW: del<=0, too much future\n");
+   return 3;
+ }
+ delflag=0;
+ setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask);
+ return 0;
+}
+//--------------------------------------------------------------------------------
+int loadPF2HW(TPastFut* pf){
+ printf("loadPF2HW: loadinf pf %s \n",pf->name);
+ int jpf=0;while((jpf<8) && (pf->lmpf[jpf]==0))jpf++;
+ if(jpf==8){
+   printf("loadPF2HW: internal error: no pf found in %s \n",pf->name);
+   return 1;
+ }
+ printf("PF %s found at jpf=%i \n",pf->name,jpf);
+ w32 int1,int2;
+ if(pf->inter==1){int1=0;int2=1;}
+ else if(pf->inter==2){int1=1;int2=0;}
+ else if(pf->inter==3){int1=0;int2=0;}
+ else if(pf->inter==0){int1=1;int2=1;}
+ else{
+  printf("loadPF2HW: internal error, pf inter should be 0,1,2 or 3: %i \n",pf->inter);
+  return 2;
+ }
+ // BCmask
+ // to be generalised to more masks (now: pf->bcmask: BCM number 1..12 )
+ w32 bcmask=0xfff;
+ if( pf->bcmask != 0) {
+   bcmask=~(1<<(pf->bcmask-1))&0xfff;
+ }
+ int ret=0;
+ w32 TLML0=15;
+ w32 TL0L1=getTL1();
+ w32 TL0L2=getTL2();
+ w32 period=pf->PeriodAfter+pf->OffAfter;
+ if((period+1)<TLML0) ret=loadSPDlikePF2HW(pf,jpf,int1,int2,bcmask);
+ else if(period>TL0L2)
+ {
+  printf("loadPF2HW: protection interval %i for pf %s too long.\n",period,pf->name);
+  ret=3;
+ }
+ else if(period>TL0L1) ret=loadTPClikePF2HW(pf,jpf,int1,int2,bcmask);
+ else {
+   printf("loadPF2HW: not ready for pf %s period: %i\n",pf->name,period);
+   ret=4;
+ }
+ return ret;
 }
 

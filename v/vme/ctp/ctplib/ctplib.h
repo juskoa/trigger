@@ -71,6 +71,8 @@ rc: 0: if L0 board
 int l0C0();
 
 // pfp.c
+struct TPastFut;
+int loadPF2HW(TPastFut* pf);
 void WritePFcommon(w32 INTa,w32 INTb,w32 Delayed_INT);
 
 // ctpTools.c, moved from ctp.c:

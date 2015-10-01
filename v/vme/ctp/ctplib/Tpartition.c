@@ -2023,48 +2023,11 @@ if(msg[0]!='\0') printf("load2HW:%s",msg);
 */
 // new PF
 for(int i=0;i<NPF;i++){
- w32 bcmask;
- TPastFut *pf=&rbif->pf[i];
- int jpf=0;while((jpf<8) && (pf->lmpf[jpf]==0))jpf++;
- if(jpf==8) continue;  // no active pf
- printf("PF %s found at jpf=%i \n",pf->name,jpf);
- w32 int1,int2;
- if(pf->inter==1){int1=0;int2=1;}
- else if(pf->inter==2){int1=1;int2=0;}
- else{
-  printf("load2HW: internal error, pf inter should be 1 or 2: %i \n",pf->inter);
-  return 1;
+ if(rbif->PFuse[i] != 0){
+   TPastFut *pf=&rbif->pf[i];
+   int ret=loadPF2HW(pf);
+   if(ret) return ret;
  }
- // to be generalised to more masks (now: pf->bcmask: BCM number 1..12 )
- if( pf->bcmask != 0) {
-   bcmask=~(1<<(pf->bcmask-1))&0xfff;
- } else {
-   bcmask= 0;
- };
- w32 delflag=0;
- w32 dT,del;
- // Before at LM level (with LM PF)
- if(pf->OffBefore==0){
-   delflag=1;
-   del=0;
- }else{
-   delflag=0;
-   del=pf->OffBefore-1;
- };
- dT=pf->PeriodBefore-1;
- setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
- // Before at L0 level (with L0 PF)
- setLML0PF(jpf+9,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
- // After at L0 level (with LM PF).
- dT=pf->PeriodAfter-1;
- //del=14-(dT+2)-(pf->OffAfter); // Off zacina za int
- del=14-(dT+2)+1-(pf->OffAfter);   //Off=0: killing with its own int
- if(del<=0){
-   printf("load2HW: del<=0, too much future\n");
-   return 3;
- }
- delflag=0;
- setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask); 
 }
 
 //------------------------------------------- classes

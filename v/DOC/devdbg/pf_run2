@@ -142,3 +142,9 @@ part2:
 PF1:
 SPD2 BCM1 ...
 is a conflict.
+
+1.10.15
+- consistency checks added tp parted, so wrong PF detected at LOAD_PARTITION
+=> validate to be updated
+- loading PF to HW code from load2HW() moved to subroutine loadPF2HW() so more readable
+and only loadPF2HW() in pfp.c to be modified from now for L1/L2 PFs.
