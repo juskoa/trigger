@@ -56,6 +56,9 @@ int cshmGlobFlag(w32 flag) {
 if( ctpshmbase->GlobalFlags & flag) return(1);
 return(0);
 }
+w32 cshmGlobFlags() {
+return(ctpshmbase->GlobalFlags);
+}
 void cshmSetGlobFlag(w32 flag) {
 ctpshmbase->GlobalFlags= ctpshmbase->GlobalFlags | flag;
 }

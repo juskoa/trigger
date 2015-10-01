@@ -534,6 +534,7 @@ void cshmInit();
 void cshmDetach();
 void cshmClear();
 int cshmGlobFlag(w32 flag);
+w32 cshmGlobFlags();
 void cshmSetGlobFlag(w32 flag);
 void cshmClearGlobFlag(w32 flag);
 void setglobalflag(int argc,char **argv,char *flagName,int flag);

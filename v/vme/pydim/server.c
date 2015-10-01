@@ -419,11 +419,20 @@ if(*size > MAXBM) {
 };
 ixl=0; t1= nxtoken(line, value, &ixl);   // beammodeN
 if(t1==tINTNUM) {
+  int ic;
   bmN= str2int(value);
-  t1= nxtoken(line, value, &ixl);   // beammode
-  if(t1==tSYMNAME) {
-    strcpy(beammode, value); // not used yet
-    cshmSetBM(bmN);
+  cshmSetBM(bmN);
+  /*t1= nxtoken(line, value, &ixl);   // beammode text till the EOL
+  if(t1==tSYMNAME) { */
+  for(ic=0; ic<(MAXBM-1); ic++) {
+    if(((line[ixl+ic]) == '\n') ||
+       ((line[ixl+ic]) == '\0')) {
+      line[ixl+ic] = '\0';
+      break;
+    };
+  };
+  if(strlen(value) <= strlen("INJECTION PHYSICS BEAM")) {
+    strcpy(beammode, value); // not used yet anyhow
     printf("INFO BEAMMODE:%s %d\n", beammode, bmN);
     /*t1= nxtoken(line, value, &ixl);   // message
     if(t1==tSTRING) {
@@ -435,7 +444,7 @@ if(t1==tINTNUM) {
       strcpy(errmsg,"Bad message (\"string\" expected)");
     };*/
   } else {
-    strcpy(errmsg,"Bad beammode (name expected)");
+    strcpy(errmsg,"beammode too long (longest one:INJECTION PHYSICS BEAM)");
   };
 } else {
   strcpy(errmsg,"Bad beam mode number (int expected)");
@@ -564,14 +573,17 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
   if(rcdaq==-1) {
     printf("ERROR DAQlogbook_close failed\n");
   };
+  cshmSetGlobFlag(FLGignoreDAQLOGBOOK);
 } else if((strncmp(mymsg,"rcfgdel useDAQLOGBOOK",20)==0)) {
   int rcdaq;
   rcdaq= daqlogbook_open(); //rcdaq=0;
   if(rcdaq!=0) {
     printf("ERROR DAQlogbook_open failed rc:%d",rcdaq);
     ignoreDAQLOGBOOK=1;
+    cshmSetGlobFlag(FLGignoreDAQLOGBOOK);
   } else {
     ignoreDAQLOGBOOK=0;
+    cshmClearGlobFlag(FLGignoreDAQLOGBOOK);
   };
 } else if((strncmp(mymsg,"rcfgdel ALL 0x...",11)==0)) {   //ctpproxy [re]start
   //int irc;
@@ -727,7 +739,7 @@ update following info in DAQlogbook::
 - partition instance name/version (was sent in time of .pcfg)
 */
 void updateConfig(int runn, char *pname, char *instname, char *instver) {
-int rc, rl; int bm;
+int rc, rl; int bm; w32 globflags;
 char *mem; char *environ, *envWORK;
 char cfgname[200], aliname[200], itemname[200];
 char emsg[1000];
@@ -771,8 +783,10 @@ if(rl < 10) {
     printf("ERROR %s", emsg);
   };
 };
-bm= cshmBM();
+bm= cshmBM(); 
 printf("INFO beammode:%d\n", bm);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
+globflags= cshmGlobFlags(); 
+printf("INFO GlobFlags:0x%x\n", globflags);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
 if(ignoreDAQLOGBOOK) { 
   rc=0;
 } else {
@@ -1010,10 +1024,10 @@ LTUCFGid= dis_add_cmnd(cmd,NULL, DOltucfg, 90);
 printf("INFO DIM cmd:%s id:%d\n", cmd, LTUCFGid);
 
 sprintf(cmd, "%s/COM2DAQ", servername);   // CTPRCFG/COM2DAQ
-C2Did= dis_add_cmnd(cmd,NULL, DOcom2daq, 91);
+C2Did= dis_add_cmnd(cmd,"C", DOcom2daq, 91);
 printf("INFO DIM cmd:%s id:%d\n", cmd, C2Did);
 sprintf(cmd, "%s/SETBM", servername);   // CTPRCFG/SETBM
-SETBMid= dis_add_cmnd(cmd,NULL, DOsetbm, 92);
+SETBMid= dis_add_cmnd(cmd,"C", DOsetbm, 92);
 printf("INFO DIM cmd:%s id:%d\n", cmd, SETBMid);
 /*
 sprintf(cmd, "%s/FSUPDATE", servername);   // CTPRCFG/FSUPDATE

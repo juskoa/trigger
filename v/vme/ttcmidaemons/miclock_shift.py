@@ -246,6 +246,9 @@ def callback_bm(ecsbm):
     return
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
+  arg= ("%d %s"%(bm, bmname),)
+  res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")
+  mylog.logm("callback_bm:" + arg[0] + " " + str(res))
   ## 
   #mylog.logm("callback_bm: "+bmname)
   #if (prev_bmname=="RAMP") or (bmname=="FLAT TOP"):
