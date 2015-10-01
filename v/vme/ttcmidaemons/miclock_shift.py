@@ -3,10 +3,8 @@
 # look for #CJI -Clock Jitter Invetsigation modifications (no DLL_RESYNC)
 #
 # This should run all the time:
-# - follows BEAM MODES from ctpdim CTPDIM/BEAMMODE (only logged)
-#     and from ALICEDAQ_LHCBeamMode
+# - follows BEAM MODES (from ctpdim CTPDIM/BEAMMODE
 #   - changes clock (in auto mode) TTCMI/MICLOCK_SET
-#     not done
 #   - set $dbctp/clockshift (file change)
 #   - set corde delay at the end of FLAT TOP(CORDE reg changed) TTCMI/CORDE_SET
 #   - calculate new VALID.BCMASK (at the start of FLAT TOP?)
@@ -227,7 +225,7 @@ def callback_bmold(bm):
 def callback_fsn(fnum_name):
   fsn= rmzero(fnum_name)   # number or filling sheme name
   #if fsn!="" :mylog.logm("FSN:%s:"%fsn)
-  print "callback_fsn: '%s' (type:%s)" % (fsn, type(fnum_name))
+  #print "callback_fsn: '%s' (type:%s)" % (fsn, type(fnum_name))
 def callback_bm(ecsbm):
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
@@ -246,9 +244,6 @@ def callback_bm(ecsbm):
   if bmname == WEB.lastbmname:
     #mylog.logm("No change in BM, no action")
     return
-  arg= ("%d %s"%(bm, bmname),)
-  res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")    // update shm on server!
-  mylog.logm("dim CTPRCFG/SETBM "+str(arg), 1)
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
   ## 

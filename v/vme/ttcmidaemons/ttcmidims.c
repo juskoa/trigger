@@ -62,6 +62,7 @@ int newclocktag;  /* has to be here (thread parameter)
 */
 char clocknow[MAXLILE+1]="none";  // BEAM1/2 REF LOCAL
 char shiftnow[MAXLILE+1]="none";  // halfsecs corde_val
+#define REF_MASK 0xc0
 char qpllnow[MAXLILE+1]="none";  // T1122RRMM hexa (qpllstat binary)
 // T: TTCrx ready   i.e. 1 ok
 // BC1/2/Ref/main:  Error Locked, i.e. 01 ok
@@ -257,9 +258,9 @@ VMEWORKDIR/WORK/miclockid file is allowed to change the clock
 rc: 0:ok  !=0 -client is not allowed to change the clock
 */
 int ix,rc;
-FILE *con;
+//FILE *con; char line[80]=""; 
 char *envwd, *vmesite;
-char procid[80]; char fname[80]; char line[80]=""; char hname[31]="";
+char procid[80]; char fname[80]; char hname[31]="";
 envwd= getenv("VMEWORKDIR"); sprintf(fname, "%s/WORK/%smiclockid",envwd,subdir);
 rc= dis_get_client(procid);
 for(ix=0; ix<80; ix++) {
@@ -377,9 +378,9 @@ if(clocktran!=0)  {
   if(clocktran_s!=0) {          
     w32 diff_s, diff_u;
     DiffSecUsecFrom(clocktran_s, clocktran_u, &diff_s, &diff_u);
-    if(diff_s > SLOT_S*5) {
+    if(diff_s > (w32) (SLOT_S*5)) {
       sprintf(errmsg, "newclock thread stucked (%d secs). Trigger expert should restart ttcmidim and miclock client!", diff_s); prtLog(errmsg); 
-  infolog_trgboth(LOG_FATAL, errmsg);
+      infolog_trgboth(LOG_FATAL, errmsg);
     } else {
       sprintf(errmsg, "checkstartthread tag:%d: newclock thread already started %d secs, cmd ignored...",
         clocktag, diff_s); prtLog(errmsg); 
@@ -482,7 +483,6 @@ getshiftnow();
 sprintf(msg, "SHIFTcaba shiftnow:%s size:%d", shiftnow, *size); prtLog(msg); 
 }
 /*----------------------------------------------------------- QPLLcaba
-*/
 void QPLLcaba(void *tag, void **msgpv, int *size, int *blabla) {
 char **msgp= (char **)msgpv;
 char msg[100];
@@ -493,11 +493,13 @@ char msg[100];
 *size= 4;
 sprintf(msg, "QPLLcaba qpllnow:0x%x size:%d", qpllstat, *size); prtLog(msg); 
 } 
+*/
 /*----------------------------------------------------------- FREQScaba
 */
 void FREQScaba(void *tag, void **msgpv, int *size, int *blabla) {
-char **msgp= (char **)msgpv; int ix;
-char msg[200]; char freqstxt[80];
+char **msgp= (char **)msgpv; 
+//int ix; char msg[200]; 
+char freqstxt[80];
 // readVME:
 *msgp= (char *)freqs;
 *size= 16; freqstxt[0]='\0';
@@ -510,8 +512,8 @@ sprintf(msg, "FREQScaba freqs now:%s size:%d", freqstxt, *size); prtLog(msg);
 }
 
 int update_qpll() {
-int rc,rcret=0; w32 stat; int mainerr,mainlck,bc1err,bc1lck;
-char buffer[50];
+int rc,rcret=0; w32 stat; 
+//int mainerr,mainlck,bc1err,bc1lck; char buffer[50];
 if(envcmp("VMESITE", "ALICE")==0) {
   if(micratepresent()& 0x2) {
     stat= readstatus();
@@ -545,8 +547,11 @@ if(stat != qpllstat) {
   qpllstat= stat;
   sprintf(qpllnow,"%3.3x", qpllstat);
   rc= dis_update_service(QPLLid);
-  sprintf(msg, "QPLL update rc:%d qpllstat:0x%x",rc,qpllstat);
-  prtLog(msg);
+  if((stat | REF_MASK) != (qpllstat | REF_MASK)) {
+    sprintf(msg, "QPLL update (ref ignored here) rc:%d qpllstat:0x%x",
+      rc,qpllstat);
+    prtLog(msg);
+  };
   /*
   mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
   bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;
@@ -558,14 +563,13 @@ if(stat != qpllstat) {
 nlogqpll++;
 if((nlogqpll % 36000)==0) {    // 3600:log 1 per 2 hours
   char msg[100];
-  sprintf(msg, "qpllstat:0x%x", qpllstat);
+  sprintf(msg, "qpllstat%d:0x%x", nlogqpll, qpllstat);
   prtLog(msg);
 };
 if(quit!=0) rcret=10;
 return(rcret);
 }
 /*--------------------------------------------------------------- qpll_thread
-*/
 void qpll_thread(void *tag) {
 while(1) {   //run forever
   int rc;
@@ -574,6 +578,7 @@ while(1) {   //run forever
   if(rc!=0) break;
 };
 }
+*/
 /*--------------------------------------------------------------- ds_register
 */
 void ds_register() {
