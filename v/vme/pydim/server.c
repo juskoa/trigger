@@ -426,10 +426,12 @@ if(t1==tINTNUM) {
   if(t1==tSYMNAME) { */
   for(ic=0; ic<(MAXBM-1); ic++) {
     if(((line[ixl+ic]) == '\n') ||
-       ((line[ixl+ic]) == '\0')) {
-      line[ixl+ic] = '\0';
+       ((line[ixl+ic]) == '\0') ||
+       ((ixl+ic)>= (*size) ) ) {
+      value[ic]= '\0';
       break;
     };
+    value[ic]= line[ixl+ic];
   };
   if(strlen(value) <= strlen("INJECTION PHYSICS BEAM")) {
     strcpy(beammode, value); // not used yet anyhow
