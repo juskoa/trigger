@@ -943,27 +943,38 @@ int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  w32 delflag=0;
  w32 dT,del;
  // Before at LM level (with LM PF)
+ // Set Scale from PeriodBefore
+ w32 scale=0;
+ w32 pB=pf->PeriodBefore;
+ if(pB <= 1){
+  printf("loadPF2HW: internal error PeriodBefore %i\n",dT);
+  return 1;
+ }
+ else if (pB <513) dT=pB-1;
+ else if (pB==513) dT=0;
+ else {
+  scale=pB /514;
+  dT=pB/(scale+1);
+ }
+ // Do Offset
  if(pf->OffBefore==0){
    delflag=1;
    del=0;
  }else{
    delflag=0;
-   del=pf->OffBefore-1;
+   //del=pf->OffBefore-1;
+   del=pf->OffBefore/(scale+1);
+   if(del>511){
+    printf("loadPF2HW: internal error OffBefore and PeriodBefore imcompatible for %s\n",pf->name);
+    return 1;
+   }
  };
- dT=pf->PeriodBefore-1;
- setLML0PF(jpf+5,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ 
+ setLML0PF(jpf+5,scale,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
  // Before at L0 level (with L0 PF)
- setLML0PF(jpf+9,0,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
- // After at L0 level (with LM PF).
- dT=pf->PeriodAfter-1;
- //del=14-(dT+2)-(pf->OffAfter); // Off zacina za int
- del=14-(dT+2)+1-(pf->OffAfter);   //Off=0: killing with its own int
- if(del<=0){
-   printf("loadPF2HW: del<=0, too much future\n");
-   return 3;
- }
- delflag=0;
- setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask);
+ setLML0PF(jpf+9,scale,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // After at L1/L2 level .
+ //setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask);
  return 0;
 }
 //--------------------------------------------------------------------------------
