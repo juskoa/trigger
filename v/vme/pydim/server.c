@@ -435,7 +435,7 @@ if(t1==tINTNUM) {
   };
   if(strlen(value) <= strlen("INJECTION PHYSICS BEAM")) {
     strcpy(beammode, value); // not used yet anyhow
-    printf("INFO BEAMMODE:%s %d\n", beammode, bmN);
+    printf("INFO BEAMMODE:%s %d (set in shm)\n", beammode, bmN);
     /*t1= nxtoken(line, value, &ixl);   // message
     if(t1==tSTRING) {
       int rcdl;
@@ -765,11 +765,11 @@ if(alignment=='\0') {
   infolog_trg(LOG_FATAL, "Alignment info in DAQlogbook is empty");
   printf("ERROR Alignment info in DAQlogbook is empty");
 };
-printf("INFO alignment file len:%d\n",rl);
+printf("INFO alignment file len:%d (MAX:%d)\n",rl, MAXALIGNMENTLEN );
 sprintf(cfgname,"%s/WORK/RCFG/r%d.rcfg", envWORK, runn);
 mem= (char *)malloc(MAXRCFGLEN+1); mem[0]='\0';
 rl= readdbfile(cfgname, mem, MAXRCFGLEN); mem[rl]='\0';
-printf("INFO %s file len:%d\n",cfgname, rl);
+printf("INFO %s rcfg file len:%d (MAXlen:%d)\n",cfgname, rl, MAXRCFGLEN );
 if(rl < 10) {
   sprintf(emsg, "updateConfig: File: %s read error\n",cfgname); 
   infolog_trg(LOG_FATAL, emsg);
@@ -778,6 +778,7 @@ if(rl < 10) {
   if(ignoreDAQLOGBOOK) { rc=0;}
   else {
     rc= daqlogbook_update_triggerConfig(runn, mem, alignment, effiout);
+    printf("INFO daqlogbook_update_triggerConfig rc:%d\n", rc);
   };
   if(rc!=0) {
     sprintf(emsg, "DAQlogbook_update_triggerConfig: rc:%d\n",rc); 
@@ -785,6 +786,8 @@ if(rl < 10) {
     printf("ERROR %s", emsg);
   };
 };
+free(mem);
+cshmInit();   // without this line and with daqlogbook_update_triggerConfig, , crash...
 bm= cshmBM(); 
 printf("INFO beammode:%d\n", bm);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
 globflags= cshmGlobFlags(); 
@@ -1000,7 +1003,7 @@ reset_insver();
 /*cs=*/ readCS();
 rc= readAliases(); 
 cshmInit();
-readTables();   // + when ctpprxy restaretd, i.e. in time of rcfgdel 0 ALL
+readTables();   // + when ctpprxy restarted, i.e. in time of rcfgdel 0 ALL
 if(rc==-1) {
   char emsg[200];
   strcpy(emsg,"aliases info from aliases.txt not updated correctly");
