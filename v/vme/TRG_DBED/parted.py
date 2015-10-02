@@ -854,10 +854,10 @@ class TrgSHR_BCM(TrgSHR):
   def isPFDefined(self,level):
     """
     PF definition:
-    Name BCM IR PeriodBefore PeriodAfter NintBefore NintAfter
+    Name BCM IR PeriodBefore PeriodAfter NintBefore NintAfter OFFBefore OffAfter
     """
     pfd= string.split(self.getDefinition())
-    print "isPFDefined: ",pfd," len=",len(pfd)
+    print "isPFDefined: ",pfd," len=",len(pfd)," level=",level
     if len(pfd)!=8:
        IntErr("isPFDefined: bad definition of PF:%s"%self.getDefinition())
        return False
@@ -1135,6 +1135,22 @@ l. The list of possible trigger descriptor names - one of them has
     #  items=self.validtds, label="Trigger descriptor:")
     xmenu= myw.MywLabel(master, label="Trigger descriptor: "+trdeactive.name)
     return xmenu
+  def checkPFSyntax(self,pf):
+    items=pf.split()
+    print len(items),items
+    if len(items) != 8:
+      error = "PF: Wrong number of items: "+ str(len(items))+' '+pf
+      return error
+    if (items[1] != "INT1") and (items[1] != "INT2") and (items[1] != "INT12"):
+      error = "PF: wrong INT: "+pf
+      return error
+    if (int(items[2])<2) or (int(items[3])<2):
+      error = "PF: PeriodBefore and PeriodAfter should be >=2 "+pf
+      return error
+    if (int(items[3])+int(items[7])) > 4208:
+      error = "PF: PeriodAfter+OffsetAfter should be < L2time=4208 "+ pf
+      return error
+    return None
   def load_PFs(self):
     PrintError("----------------------------------------------- TRIGGER.PFS:",self)
     f= open(os.path.join(TRGDBDIR, "TRIGGER.PFS"),"r")
@@ -1144,15 +1160,15 @@ l. The list of possible trigger descriptor names - one of them has
       self.pfshelptext=self.pfshelptext+line
       if line[0] == "#": continue
       if line[0] == "\n": continue
-      (bcm_name, bcm_definition) = string.split(line," ",1)
-      bcm_definition= string.strip(bcm_definition)
-      #errmsg= bm.checkSyntax()
-      errmsg=None
+      (pf_name, pf_definition) = string.split(line," ",1)
+      pf_definition= string.strip(pf_definition)
+      errmsg= self.checkPFSyntax(pf_definition)
+      #errmsg=None
       if errmsg!= None:
         PrintError(errmsg, self)
       else:
-        self.PF_DB.append([bcm_name,bcm_definition]);	
-        print "PF %s"%bcm_name, bcm_definition
+        self.PF_DB.append([pf_name,pf_definition]);	
+        print "PF %s"%pf_name, pf_definition
     f.close()
   def load_BCMs(self):
     PrintError("----------------------------------------------- VALID.BCMASKS:",self)

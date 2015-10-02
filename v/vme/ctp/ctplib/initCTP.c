@@ -182,7 +182,7 @@ init CTP. Should be called only once.
    Only 'system parameters' should be set here (i.e. timing...)
 */
 void initCTP() {
-int ix,rc=0;
+int ix;
 resetPLLS();
 for(ix=1; ix<=NCLASS; ix++) {
   //klas,w32 condition, w32 invert, w32 veto, w32 scaler,
