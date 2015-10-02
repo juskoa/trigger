@@ -419,7 +419,8 @@ if(*size > MAXBM) {
 };
 ixl=0; t1= nxtoken(line, value, &ixl);   // beammodeN
 if(t1==tINTNUM) {
-  int ic;
+  int ic; w32 maxbml;
+  maxbml= strlen("INJECTION PHYSICS BEAM");
   bmN= str2int(value);
   cshmSetBM(bmN);
   /*t1= nxtoken(line, value, &ixl);   // beammode text till the EOL
@@ -433,9 +434,9 @@ if(t1==tINTNUM) {
     };
     value[ic]= line[ixl+ic];
   };
-  if(strlen(value) <= strlen("INJECTION PHYSICS BEAM")) {
+  printf("INFO BEAMMODE:%s=%d (set in shm)\n", value, bmN);
+  if(strlen(value) <= maxbml) {
     strcpy(beammode, value); // not used yet anyhow
-    printf("INFO BEAMMODE:%s %d (set in shm)\n", beammode, bmN);
     /*t1= nxtoken(line, value, &ixl);   // message
     if(t1==tSTRING) {
       int rcdl;
@@ -446,6 +447,8 @@ if(t1==tINTNUM) {
       strcpy(errmsg,"Bad message (\"string\" expected)");
     };*/
   } else {
+    strncpy(beammode, value, maxbml); // not used yet anyhow
+    beammode[maxbml]='\0';
     strcpy(errmsg,"beammode too long (longest one:INJECTION PHYSICS BEAM)");
   };
 } else {
@@ -770,6 +773,7 @@ sprintf(cfgname,"%s/WORK/RCFG/r%d.rcfg", envWORK, runn);
 mem= (char *)malloc(MAXRCFGLEN+1); mem[0]='\0';
 rl= readdbfile(cfgname, mem, MAXRCFGLEN); mem[rl]='\0';
 printf("INFO %s rcfg file len:%d (MAXlen:%d)\n",cfgname, rl, MAXRCFGLEN );
+printf("INFO ctpshmbase2:%p\n", ctpshmbase);
 if(rl < 10) {
   sprintf(emsg, "updateConfig: File: %s read error\n",cfgname); 
   infolog_trg(LOG_FATAL, emsg);
@@ -787,15 +791,30 @@ if(rl < 10) {
   };
 };
 free(mem);
-cshmInit();   // without this line and with daqlogbook_update_triggerConfig, , crash...
+printf("INFO ctpshmbase3:%p\n", ctpshmbase);
+cshmInit();   /* without this line and with daqlogbook_update_triggerConfig above, server crashes
+in P2, but not in lab. In lab, repeated cshmInit leads to:
+[trigger@avmes logs]$ grep -e ctpshmbase -e attached pydimserver.log 
+02.10.2015 14:13:28 received:INFO shared memory attached at address 0x7f1028920000
+02.10.2015 14:13:28 received:INFO ctpshmbase1:0x7f1028920000
+02.10.2015 14:13:44 received:INFO ctpshmbase2:0x7f1028920000
+02.10.2015 14:13:44 received:INFO ctpshmbase3:0x7f1028920000
+02.10.2015 14:13:44 received:INFO shared memory attached at address 0x7f102891c000
+02.10.2015 14:13:44 received:INFO ctpshmbase4:0x7f102891c000
+- seems ok (reattached at diffrent address +0x4000)
+ */
+printf("INFO ctpshmbase4:%p\n", ctpshmbase);
 bm= cshmBM(); 
-printf("INFO beammode:%d\n", bm);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
 globflags= cshmGlobFlags(); 
-printf("INFO GlobFlags:0x%x\n", globflags);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
+printf("INFO beammode:%d GlobalFlags:0x%x\n", bm, globflags);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
 if(ignoreDAQLOGBOOK) { 
   rc=0;
 } else {
-  rc= daqlogbook_update_cs(runn, CSString);
+  if((bm>=7) && (bm<=12)) {
+    rc= daqlogbook_update_cs(runn, CSString);
+  } else {
+    printf("INFO cs not updated ( bm<7 or bm>12)\n");
+  };
   do_partitionCtpConfigItem(pname, itemname);
   rc= daqlogbook_update_ACTConfig(runn, itemname,instname,instver);
 };
@@ -1002,13 +1021,14 @@ printf("DIM server:%s cmd:%s\n", servername, command); // should be 1st line
 reset_insver();
 /*cs=*/ readCS();
 rc= readAliases(); 
-cshmInit();
-readTables();   // + when ctpprxy restarted, i.e. in time of rcfgdel 0 ALL
 if(rc==-1) {
   char emsg[200];
   strcpy(emsg,"aliases info from aliases.txt not updated correctly");
   infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
 };
+cshmInit();
+readTables();   // + when ctpprxy restarted, i.e. in time of rcfgdel 0 ALL
+printf("INFO ctpshmbase1:%p\n", ctpshmbase);
 ctpc_clear(); ctpc_print(CNAMESString);
 //updateCNAMES();
 rc= getINT12fromcfg(INT1String, INT2String, MAXINT12LINE);
