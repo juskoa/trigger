@@ -66,16 +66,13 @@ strcpy(sms[NCTPBOARDS+2].name,"ltu3");
 strcpy(sms[NCTPBOARDS+3].name,"ltu4");
 strcpy(sms[NCTPBOARDS+4].name,"test");
 strcpy(sms[NCTPBOARDS+5].name,"none");
-strcpy(sms[NCTPBOARDS+6].name,"lm0_1");
-strcpy(sms[NCTPBOARDS+7].name,"lm0_2");
-strcpy(sms[NCTPBOARDS+8].name,"lm0_3");
-strcpy(sms[NCTPBOARDS+9].name,"lm0_4");
-strcpy(sms[NCTPBOARDS+10].name,"lm0_5");
-//strcpy(sms[NCTPBOARDS+6].mode,"lm0_ssm1");
-//strcpy(sms[NCTPBOARDS+7].mode,"lm0_ssm2");
-//strcpy(sms[NCTPBOARDS+8].mode,"lm0_ssm3");
-//strcpy(sms[NCTPBOARDS+9].mode,"lm0_ssm4");
-//strcpy(sms[NCTPBOARDS+10].mode,"lm0_ssm5");
+//strcpy(sms[NCTPBOARDS+11].name,"lm0_6");
+char name[9];
+for(int i=0;i<NLM0SSM;i++){
+    sprintf(name,"lm0_%i",i+1);
+    //printf("%s \n",mode);
+    strcpy(sms[NCTPBOARDS+6+i].name,name);
+}
 printf("initSSM: The number of boards is %i : \n",NSSMBOARDS);
 for(ix=0; ix<NSSMBOARDS; ix++) printf(" %s",sms[ix].name);printf("\n");
 printf("LTU boards in the crate:\n");
