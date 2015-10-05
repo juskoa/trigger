@@ -792,6 +792,7 @@ if(rl < 10) {
 };
 free(mem);
 printf("INFO ctpshmbase3:%p\n", ctpshmbase);
+cshmDetach(); printf("INFO shm detached.\n");
 cshmInit();   /* without this line and with daqlogbook_update_triggerConfig above, server crashes
 in P2, but not in lab. In lab, repeated cshmInit leads to:
 [trigger@avmes logs]$ grep -e ctpshmbase -e attached pydimserver.log 
@@ -803,7 +804,7 @@ in P2, but not in lab. In lab, repeated cshmInit leads to:
 02.10.2015 14:13:44 received:INFO ctpshmbase4:0x7f102891c000
 - seems ok (reattached at diffrent address +0x4000)
  */
-printf("INFO ctpshmbase4:%p\n", ctpshmbase);
+printf("INFO ctpshmbase4: detached+attached%p\n", ctpshmbase);
 bm= cshmBM(); 
 globflags= cshmGlobFlags(); 
 printf("INFO beammode:%d GlobalFlags:0x%x\n", bm, globflags);   // todo:cs update only for 7(RAMP)..12(UNSTABLE BEAMS)
