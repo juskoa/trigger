@@ -626,8 +626,8 @@ later time (when .mask cretaed)
   #print "bu2bcstr:buckets:",buckets.keys()
   if buckets.has_key(CALIBbc):
     #buckets[CALIBbc].parasit='*'
-    print "%c-bunch %d NOT marked parasitic (L0firmware>0xAC)"%(beamac, CALIBbc)
     beamac= abcs[CALIBbc] 
+    print "%c-bunch %d NOT marked parasitic (L0firmware>0xAC)"%(beamac, CALIBbc)
     if beamac!='A':
       print
       print "ERROR: B-bunch (only A bunch allowed here) in LHC C-gap in calib. BC %d"%CALIBbc

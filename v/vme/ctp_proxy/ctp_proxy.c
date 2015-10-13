@@ -2085,7 +2085,7 @@ if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
    if(deadbusys !=0) { strcat(ltunames," CTP"); };
    sprintf(emsg, "%s cannot be sent because of dead detectors (run:%d):%s", 
      SEY, part->run_number, ltunames);
-   infolog_trgboth(LOG_FATAL, emsg);
+   infolog_trgboth(LOG_ERROR, emsg);
    // following emsg must start with 'detectorBusy' followed by
    // list of detectors separated by spaces, last detector
    // is followed by comma. Reason: errorReason is specially processed in ECS
@@ -2110,7 +2110,7 @@ if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
   char emsg[ERRMSGL];
   sprintf(emsg, "%cOD generation suppressed (part. name: ..._U).\n", x);
   strncpy(errorReason, emsg,ERRMSGL);
-  infolog_trgboth(LOG_FATAL, emsg);
+  infolog_trgboth(LOG_ERROR, emsg);
   ret=2;
 };
 if(x == 'E') {

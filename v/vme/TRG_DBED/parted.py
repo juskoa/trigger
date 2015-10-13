@@ -3254,12 +3254,17 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           #print "Shared selfloaderrors:",self.loaderrors
         continue
       # Clusters section 
+      #print "Cluster section:",cltds, self.version
       if self.version!='0': # (Version>1: 3 lines per cluster):
         clusname= string.strip(cltds)      # cluster name
+        #print "Clustername:",clusname
         if clusname=='':
           PrintWarning("Empty line  in Clusters: section ignored")
           continue
           #clusname=str(len(self.clusters))   # "0, 1... ", read from file
+        if len(string.split(clusname))!=1:
+          PrintError("Bad cluster name: '%s' in Clusters: section"%clusname,self)
+          break
         cltds= redline(inf)                   # classes line
         if self.downscaling!=None:
           cltds= self.downscaling.replace_inline(cltds)
@@ -3598,7 +3603,7 @@ The window will be closed after saving current configuration.
     self.part.name= newname
     self.lsmaster.title(self.part.name)
   def loadPartition(self,partname=None):
-    print "loadPartititon:",partname
+    print "loadPartition:",partname
     if partname==None:
       ix= self.partsbut.getIndex()
       partname=self.itn[ix][0]
