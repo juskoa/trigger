@@ -53,13 +53,14 @@ class L0BOARD2: public L0BOARD
 	void printClasses();
 	void readBCMASKS();
 	void writeBCMASKS(w32* pat);
+        int getOrbits();
 	enum {NCLASS=100};
  private:
 	enum{DDR3_TO=30, DDR3_BLKL=16, 
 	     DDR3_rd_done=0x1000000,
 	     DDR3_wr_done=0x0800000};
          // SSM is special for L)m board
-         w32 *ssm1,*ssm2,*ssm3,*ssm4;
+         w32 *ssm1,*ssm2,*ssm3,*ssm4,*ssm5,*ssm6,*ssm7;
          // vme addresses
          w32 const TCSET;
          w32 const TCSTATUS;

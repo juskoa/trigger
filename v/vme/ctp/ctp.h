@@ -291,6 +291,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
 #define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
 #define L0_ENA_CRNDlm0 0x9200 
+#define ORBIT_OFFSET 0x3dc
 /* 1..0: enable RND2, RND1 clear In firmware called:  ENABLE_CLEAR */
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */

@@ -31,7 +31,9 @@ extern char *vmecfdir;
 EXTERN char *vmecfdir;
 int actdb_open();
 int actdb_close();
-int actdb_getdbstring(char *fn, int openclose, char *value, int maxl);
+int actdb_getdbstring(char *fn, int openclose, char *value, int maxl, char *ctplite);
+int actdb_getdbfile(char *finame, char *actname, char *actversion, char *ctplite);
+
 #ifdef ACT_DB
 void cpNameVer(ACT_instance *instance, char *actname, char *actversion);
 #endif
@@ -56,7 +58,7 @@ for(ix=0; ix<NDETEC; ix++) {     // fo all /CTP/trgInput_* items
   if(ltuname[0]=='\0') continue;
   if(isTrigDet(ltuname)==0) continue;  // only triggering dets
   sprintf(tiname,"trgInput_%s", ltuname);
-  rc= actdb_getdbstring(tiname, 0, value, 24);
+  rc= actdb_getdbstring(tiname, 0, value, 24, "CTPlite");
   // rc=0; strcpy(value,"ON");
   printf("INFO actdb_getff:%s:%s\n", tiname, value);
   if(rc!=0) continue;
@@ -114,14 +116,20 @@ ACT_instance *instance;
 FILE *f;
 char partitionCtpConfigItem[64];
 char fname[184];
+char actnameVD[40]; char actversionVD[40];
 #define MAXFILTER 2000
 char filter[MAXFILTER]="";
 if((err=actdb_open())!=0) {
   printf("ERROR actdb_open. RC:%d\n",err);
   return(-4);
 };
+if((err= actdb_getdbfile("VALID.DESCRIPTORS",actnameVD,actversionVD,"CTPlite")) !=0) {
+  rc= err; goto STP;
+} else {
+  printf("INFO VALID.DESCRIPTORS updated from act\n");
+};
 sprintf(partitionCtpConfigItem, "/part %s/Source of CTP config", name);
-err= actdb_getdbstring(partitionCtpConfigItem, 0, filter, MAXFILTER);
+err= actdb_getdbstring(partitionCtpConfigItem, 0, filter, MAXFILTER, "CTP");
 printf("INFO filterlen:%d filter:%s err:%d\n",int(strlen(filter)), filter, err);
 if((err==0) && (strcmp(filter, "ACT database")==0)) {// or "Local File"
 /*--------------- following
@@ -193,7 +201,7 @@ replaced by:
   printf("INFO %s configured as '%s' in ACT\n",partitionCtpConfigItem, filter);
   actname[0]='\0'; actversion[0]='\0';
 };
-actdb_close();
+STP: actdb_close();
 #else
   printf("INFO ACT not read (not compiled/linked)\n");
   rc=0;

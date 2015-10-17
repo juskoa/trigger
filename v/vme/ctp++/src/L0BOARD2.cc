@@ -2,6 +2,7 @@
 L0BOARD2::L0BOARD2(int vsp)
 :
 	L0BOARD(vsp),
+        ssm1(0),ssm2(0),ssm3(0),ssm4(0),ssm5(0),ssm6(0),ssm7(0),
 	TCSET(0x3fc),TCSTATUS(0x1c0),TCCLEAR(0x1c8),
 	TCSTART(0x1c4),
 	MASK_DATA(0x1e4),MASK_CLEARADD(0x1e8),MASK_MODE(0x1ec),
@@ -343,6 +344,9 @@ if (!ssm1) ssm1 = new w32[Mega];
 if (!ssm2) ssm2 = new w32[Mega];
 if (!ssm3) ssm3 = new w32[Mega];
 if (!ssm4) ssm4 = new w32[Mega];
+if (!ssm5) ssm5 = new w32[Mega];
+if (!ssm6) ssm6 = new w32[Mega];
+if (!ssm7) ssm7 = new w32[Mega];
 for(ix=0; ix< Mega; ix++) {
   ddr3ad= ix*16;
   rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
@@ -356,6 +360,9 @@ for(ix=0; ix< Mega; ix++) {
   ssm2[ix]= block[14];
   ssm3[ix]= block[13];
   ssm4[ix]= block[12];
+  ssm5[ix]= block[11];
+  ssm6[ix]= block[10];
+  ssm7[ix]= block[9];
 };
 printf("LM ssm read \n");
 return(0);
@@ -388,7 +395,21 @@ printf("ddr3_ssmstart: %d micsecs\n", diff);
 }
 int L0BOARD2::DumpSSM(const char *name,int issm)
 {
- if(issm==1)SetSSM(ssm1); else SetSSM(ssm2); 
+ //if(issm==1)SetSSM(ssm1); else SetSSM(ssm2);
+ switch(issm)
+ {
+  case(1): SetSSM(ssm1);break;
+  case(2): SetSSM(ssm2);break;
+  case(3): SetSSM(ssm3);break;
+  case(4): SetSSM(ssm4);break;
+  case(5): SetSSM(ssm5);break;
+  case(6): SetSSM(ssm6);break;
+  case(7): SetSSM(ssm7);break;
+  default:{
+    printf("DumpSSM: internal error, issm=%i \n",issm);
+    return 1;
+  }
+ }
  return BOARD::DumpSSM(name);
 }
 int L0BOARD2::DumpSSMLM(const char *name)
@@ -502,4 +523,65 @@ void L0BOARD2::convertL02LMClassAll()
   if((i %2)==0)convertL02LMClass(i);
  }
 }
-
+//-----------------------------------------------------------------
+// Get orbits from ssm
+//
+int L0BOARD2::getOrbits()
+{
+ if(ssm1 == 0) return 1;
+ if(ssm6 == 0) return 1;
+ if(ssm7 == 0) return 1;
+ // 
+ w32 orbit=0xffffffff;
+ w32 orbit0=0x0;
+ w32 ocount=0;
+ //
+ w32 orbit0c=0xf;
+ w32 orbitc=0;
+ w32 ocountc=0;
+ //
+ for(int i=0;i<Mega;i++){
+  orbit0=orbit;
+  orbit=0;
+  for(int j=0;j<20;j++){
+   w32 mask=1<<(j+12);
+   orbit+=((ssm6[i]&mask)==mask)<<j;
+  }
+  for(int j=0;j<4;j++){
+   w32 mask=1<<(j);
+   orbit+=((ssm7[i]&mask)==mask)<<(j+20);
+  }
+  printf("%i 0x%x %i\n",i,orbit,ssm1[i]&0x1);
+  if(orbit0==0xffffffff)continue;
+  else if(orbit0==orbit){
+   ocount++;
+   continue;
+  }else if((orbit-orbit0)==1){
+   printf("Orbit new: 0x%x ocount=%i \n",orbit,ocount);
+   ocount=0;
+   continue;
+  }else{
+   printf("Orbit error: orbitold/orbit: 0x%x 0x%x, %i\n",orbit0,orbit,ocount);
+   ocount=0;
+   continue;
+  }
+  //printf("%i 0x%x 0x%x 0x%x\n",i,ssm6[i],ssm7[i],ssm1[i]);
+  orbit0c=orbitc;
+  orbitc=0;
+  orbitc=ssm1[i]&0x1;
+  if(orbit0c==0xf)continue;
+  else if(orbit0==orbit){
+   ocount++;
+   continue;
+  }else if((orbit-orbit0)==1){
+   printf("Orbit new: 0x%x ocount=%i \n",orbit,ocount);
+   ocount=0;
+   continue;
+  }else{
+   printf("Orbit error: orbitold/orbit: 0x%x 0x%x, %i\n",orbit0,orbit,ocount);
+   ocount=0;
+   continue;
+  }
+ }
+ return 0;
+}

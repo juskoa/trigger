@@ -46,6 +46,7 @@ class L0BOARD: public BOARD
         virtual void ddr3_ssmstart(int sec){error();};
  	virtual int DumpSSM(const char *name,int issm){error();return 1;};
  	virtual int DumpSSMLM(const char *name){error();return 1;};
+        virtual int getOrbits(){error();return 1;};
 
  private:
         void error(){printf("Error: this method should be never called\n");exit(1);};
