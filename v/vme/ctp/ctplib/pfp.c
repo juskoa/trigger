@@ -935,46 +935,91 @@ int loadSPDlikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  return 0; 
 }
 //--------------------------------------------------------------------------------
+// calculate scale,pretection interval for LM0 board
+//
+int calcPFScaledPeriod(w32 period,w32* scale,w32* speriod,w32 pMAX)
+{
+ if(period <= 1){
+  printf("calcLM0PFScaledPeriod: internal error PeriodBefore %i\n",period);
+  return 1;
+ }
+ else if (period < (pMAX+1)) *speriod=period-1;
+ else if (period==(pMAX+1)) *speriod=0;
+ else {
+  *scale=period /(pMAX+2);
+  *speriod=period/(*scale+1);
+ }
+ return 0;
+}
+int calcLM0PFDelBefore(w32 scale,w32 offset,w32 *delflag,w32* del)
+{
+ // Do Offset
+ if(offset==0){
+   *delflag=1;
+   *del=0;
+ }else{
+   *delflag=0;
+   //del=pf->OffBefore-1;
+   *del=offset/(scale+1);
+   if((*del>511) || (*del==0)){
+    printf("calcLM0PFDelBefore: internal error OffBefore and PeriodBefore imcompatible for \n");
+    return 1;
+   }
+ };
+ return 0;
+}
+//--------------------------------------------------------------------------------
 // TPC like PF: protection time > L0-L2 time
 // In principle everything (SPD/TPC like) should be done in one function
 // To be on the safeside we start with 2 functions - TPC may become later general function
 int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
 {
- w32 delflag=0;
- w32 dT,del;
- // Before at LM level (with LM PF)
  // Set Scale from PeriodBefore
- w32 scale=0;
- w32 pB=pf->PeriodBefore;
- if(pB <= 1){
-  printf("loadPF2HW: internal error PeriodBefore %i\n",dT);
+ w32 scale,del,delflag,dT;
+ if(calcPFScaledPeriod(pf->PeriodBefore,&scale,&dT,512)) return 1;
+ if(calcLM0PFDelBefore(scale,pf->OffBefore,&delflag,&del))return 1;
+ // 1 Before at LM level (with LM PF)
+ setLML0PF(jpf+5,scale,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // 2 Before at L0 level (with L0 PF)
+ setLML0PF(jpf+9,scale,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
+ // 3 After at L0 level
+ //del=14-(dT+2)+1-(pf->OffAfter);   //Off=0: killing with its own int with delflag=0
+ // The main reason for this is programming: not to change pf->class assignment in chackmodLMPF
+ dT=13-(pf->OffAfter);
+ delflag=1;
+ del=0;
+ setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask);
+ // L1 and L2
+ if((int1==0) && (int2==0)){
+  // this should go to parted
+  printf("in1 and int2 not allowed at L1/L2 level \n");
   return 1;
  }
- else if (pB <513) dT=pB-1;
- else if (pB==513) dT=0;
- else {
-  scale=pB /514;
-  dT=pB/(scale+1);
- }
- // Do Offset
- if(pf->OffBefore==0){
-   delflag=1;
-   del=0;
- }else{
-   delflag=0;
-   //del=pf->OffBefore-1;
-   del=pf->OffBefore/(scale+1);
-   if(del>511){
-    printf("loadPF2HW: internal error OffBefore and PeriodBefore imcompatible for %s\n",pf->name);
-    return 1;
-   }
- };
+ w32 block,LUT,level,circ;
+ // L1
+ w32 TL0L2=getTL1();
+ scale=1;
+ level=2;
+ del=0;
  
- setLML0PF(jpf+5,scale,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
- // Before at L0 level (with L0 PF)
- setLML0PF(jpf+9,scale,dT,pf->NintBefore,del,delflag,int1,int2,bcmask); 
- // After at L1/L2 level .
- //setLML0PF(jpf+1,0,dT,pf->NintAfter,del,delflag,int1,int2,bcmask);
+ // L2
+ if(calcPFScaledPeriod(pf->PeriodAfter,&scale,&dT,256)) return 1;
+ // Do Offset
+ TL0L2=getTL2();
+ del=TL0L2/(scale+1)-(dT)-(pf->OffAfter)/(scale+1);
+ //or
+ del=TL0L2-pf->PeriodAfter-pf->OffAfter;
+ del=del/(scale+1);
+ level=3; //L2
+ circ=jpf+1;
+ block=pf->NintAfter+(0x3<<6)+(dT<<12)+(del<<20)+(delflag<<31);
+ if(int1==0){
+  LUT=0xff;
+  setPFc(level,circ,block,0x0,LUT);
+ }else{
+  LUT=0xbb;
+  setPFc(level,circ,0x0,block,LUT);
+ } 
  return 0;
 }
 //--------------------------------------------------------------------------------

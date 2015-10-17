@@ -1983,44 +1983,6 @@ flag=0;
 for(w32 i=0;i<bcmaskn;i++)if(rbif->BCMASKuse[i])flag++;
 if(flag)loadBCmasks(rbif->BCMASK);
 //------------------------------------------- PF
-/* to be used later with L1/L2 boards
-{ char msg[200]=""; int circ; int setcom=0;
-for(circ=0;circ<4;circ++){   // 4 PF circuits
-  if(rbif->PFuse[circ]!=0) {
-    setcom=1;
-    // w32 tha1; int dta;      before 23.10.2011
-    //tha1= rbif->pf[i].pfdefs[ixTHa1];
-    //dta= rbif->pf[i].pfdefs[ixdTa];
-    //WritePFuser(i+1, tha1, dta);
-    //sprintf(msg,"PF%d: %d %d ", i+1, tha1, dta);
-    for(i=1;i<4;i++){
-      w32 blockA,blockB,LUT; int fromi;
-      fromi= 3*(i-1);
-      blockA= rbif->pf[circ].pfdefs[0+fromi];
-      blockB= rbif->pf[circ].pfdefs[1+fromi];
-      LUT   = rbif->pf[circ].pfdefs[2+fromi];
-      if(i==1) {
-        printf("Warning: no setPFC on LM0...\n");
-      } else {
-        setPFc(i, circ+1, blockA, blockB, LUT);
-      };
-    };
-  };
-};
-if(setcom==1) {
-  for(i=1;i<4;i++){
-    w32 pfc;
-    pfc= rbif->pfCommon.pfdefsCommon[i-1];
-      if(i==1) {
-        printf("Warning: no setPF for LM0...\n");
-      } else {
-        setPF(i, pfc);   // ix:1..3 (L0.. L2)
-      };
-  };
-};
-if(msg[0]!='\0') printf("load2HW:%s",msg);
-};
-*/
 // new PF
 for(int i=0;i<NPF;i++){
  if(rbif->PFuse[i] != 0){

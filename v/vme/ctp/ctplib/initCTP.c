@@ -309,7 +309,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
   };
   if(ctpboards[ix].code==L1code) { 
     //cfg vmew32(L1_DELAY_L0, calcL1_DELAY_L0());
-    //cfg vmew32(PF_COMMON+BSP*ctpboards[ix].dial, calcPFisd(1)<<12);
+    // INta=INT1, INTb=INT2
+    vmew32(PF_COMMON+BSP*ctpboards[ix].dial, 0xca);
     //cfg vmew32(ROIP_BUSY,1);   // no ESR flag in L1 messages
     setEdgesDelays(2);
   };
@@ -317,8 +318,9 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
    //calc vmew32(L2_DELAY_L1,3260);
    //cfg vmew32(L2_DELAY_L1,calcL2_DELAY_L1());
    //cfg vmew32(L2_BCOFFSET,calcL2_BCOFFSET());
-   //cfg  vmew32(PF_COMMON+BSP*ctpboards[ix].dial, calcPFisd(2)<<12);
-    setEdgesDelays(3);
+   // INTa=INT1, INTb=INT1
+   vmew32(PF_COMMON+BSP*ctpboards[ix].dial, 0xca);
+   setEdgesDelays(3);
   };
   if(ctpboards[ix].code==INTcode) { 
     // dissable scope outputs (i.e. GND):
