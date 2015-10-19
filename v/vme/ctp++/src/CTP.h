@@ -25,7 +25,8 @@ class CTP
 	 CTP();
          ~CTP();
          BUSYBOARD *busy;
-         L0BOARD *l0;     //Here should be pointers instead objects
+         //L0BOARD *l0;     //abandoning 2 versions of l0 boarsd
+         L0BOARD2 *l0;     //Here should be pointers instead objects
 	 L1BOARD *l1;     // otherwise compiler crashes probably due to the memory
          L2BOARD *l2;
          INTBOARD *inter;

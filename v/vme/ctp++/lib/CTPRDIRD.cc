@@ -1,20 +1,20 @@
 #include "libctp++.h"
-void clearIRDda(IRDa &i)
+void clearIRDda(IRDda &i)
 {
  i.error1=0;
  i.error2=0;
  i.incomplete=0;
  i.orbit=0;
  i.issm=0;
- for(int j=0;j<251;j++){
+ for(int j=0;j<NBCS;j++){
   i.Inter[j]=0;
   i.bc[j]=0;
  }
 }
-void printIRDda(IRDa &i)
+void printIRDda(IRDda &i)
 {
  printf("%7i:IR ORBIT:0x%6x\n",i.issm,i.orbit);
- for(int j=0;j<251;j++){
+ for(int j=0;j<NBCS;j++){
     if(i.Inter[j])printf("       %03i BCID:0x%3x 0x%1x Errs: 0x%1x 0x%1x\n",j,i.bc[j],i.Inter[j],i.error1,i.error2);
  }
 }

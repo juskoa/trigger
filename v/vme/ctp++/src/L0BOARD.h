@@ -47,6 +47,8 @@ class L0BOARD: public BOARD
  	virtual int DumpSSM(const char *name,int issm){error();return 1;};
  	virtual int DumpSSMLM(const char *name){error();return 1;};
         virtual int getOrbits(){error();return 1;};
+        virtual void SetSSM1(w32* smm){error();};
+
 
  private:
         void error(){printf("Error: this method should be never called\n");exit(1);};

@@ -19,6 +19,16 @@ L0BOARD2::L0BOARD2(int vsp)
 	LM_FUNCTION(4*0x9d),L0_FUNCTION(4*0x85)
 {
 }
+L0BOARD2::~L0BOARD2()
+{
+ if(ssm1) delete [] ssm1;
+ if(ssm2) delete [] ssm2;
+ if(ssm3) delete [] ssm3;
+ if(ssm4) delete [] ssm4;
+ if(ssm5) delete [] ssm5;
+ if(ssm6) delete [] ssm6;
+ if(ssm7) delete [] ssm7;
+}
 //-------------------------------------------------------------------------------
 // write word to L0 function. Problem is that vme adresses are not consecutive
 //
@@ -299,7 +309,7 @@ if( llb>0 ) {   // arrange dummy reads for last block
 };
 return(rc);
 }
-
+//---------------------------------------------------------------
 int L0BOARD2::ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws) 
 {
 int rc, ix, iblks, llb, blocks, block0;
@@ -337,6 +347,7 @@ if( llb>0 ) {   // last block padded with 0s:
 };
 return(rc);
 }
+//-----------------------------------------------------------------------------
 int L0BOARD2::ddr3_ssmread() {
 int ddr3ad, ix, rc;
 w32 block[DDR3_BLKL];
@@ -349,7 +360,7 @@ if (!ssm6) ssm6 = new w32[Mega];
 if (!ssm7) ssm7 = new w32[Mega];
 for(ix=0; ix< Mega; ix++) {
   ddr3ad= ix*16;
-  rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
+  rc = ddr3_read(ddr3ad, block, DDR3_BLKL);
   if(rc!=0) {
     printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
     return(rc);
@@ -367,6 +378,9 @@ for(ix=0; ix< Mega; ix++) {
 printf("LM ssm read \n");
 return(0);
 }
+//-----------------------------------------------------------
+//secs=0 => 1 pass
+//secs!=0 => continueos
 void L0BOARD2::ddr3_ssmstart(int secs) {
 w32 ssmcmd;
 w32 seconds1,micseconds1, seconds2,micseconds2,diff;
@@ -375,8 +389,12 @@ if(secs==0) {
 } else {
   ssmcmd= 1;
 };
-vmew(SSMaddress, 0);
+w32 status = vmer(SSMstatus);
+if(status & 0x100){
+  printf("SSMbusy, stop recording");
+}
 vmew(SSMcommand, ssmcmd);
+vmew(SSMaddress, 0);
 GetMicSec(&seconds1, &micseconds1);
 vmew(SSMstart, DUMMYVAL);
 if(secs>0) {
@@ -528,19 +546,33 @@ void L0BOARD2::convertL02LMClassAll()
 //
 int L0BOARD2::getOrbits()
 {
- if(ssm1 == 0) return 1;
- if(ssm6 == 0) return 1;
- if(ssm7 == 0) return 1;
+ if(ssm1 == 0){printf("ssm1 missing \n");return 1;}
+ if(ssm3 == 0){printf("ssm3 missing \n");return 1;}
+ if(ssm6 == 0){printf("ssm6 missing \n");return 1;}
+ if(ssm7 == 0){printf("ssm7 missing \n");return 1;}
  // 
  w32 orbit=0xffffffff;
  w32 orbit0=0x0;
  w32 ocount=0;
+ w32 nint=0;
+ w32 orbitssm=0;
+ IRDda irda;
+ clearIRDda(irda);
  //
  w32 orbit0c=0xf;
  w32 orbitc=0;
  w32 ocountc=0;
  //
  for(int i=0;i<Mega;i++){
+  // Input checker - calculate IR
+  if(ssm3[i]&(1<<22)){
+   irda.Inter[nint]=1;
+   irda.bc[nint]=i-orbitssm+11;
+   nint++;
+   printf("Input 3: %i \n",i);
+  }
+  // Orbit from number
+  if(ssm6){
   orbit0=orbit;
   orbit=0;
   for(int j=0;j<20;j++){
@@ -551,35 +583,42 @@ int L0BOARD2::getOrbits()
    w32 mask=1<<(j);
    orbit+=((ssm7[i]&mask)==mask)<<(j+20);
   }
-  printf("%i 0x%x %i\n",i,orbit,ssm1[i]&0x1);
-  if(orbit0==0xffffffff)continue;
-  else if(orbit0==orbit){
+  //printf("%i 0x%x %i\n",i,orbit,ssm1[i]&0x1);
+  if(orbit0==0xffffffff){
+    goto next;
+  }else if(orbit0==orbit){
    ocount++;
-   continue;
+   goto next;
   }else if((orbit-orbit0)==1){
-   printf("Orbit new: 0x%x ocount=%i \n",orbit,ocount);
+   printf("Orbit new:%i 0x%x ocount=%i \n",i,orbit,ocount);
    ocount=0;
-   continue;
+   irs.push_back(irda);
+   clearIRDda(irda);
+   irda.orbit=orbit;
+   irda.issm=i;
+   nint=0;
+   goto next;
   }else{
-   printf("Orbit error: orbitold/orbit: 0x%x 0x%x, %i\n",orbit0,orbit,ocount);
+   printf("Orbit error:issm=%i  orbitold/orbit: 0x%x 0x%x, %i\n",i,orbit0,orbit,ocount);
    ocount=0;
-   continue;
+   goto next;
   }
+  }
+  next:
   //printf("%i 0x%x 0x%x 0x%x\n",i,ssm6[i],ssm7[i],ssm1[i]);
+  // orbit from channel 0
   orbit0c=orbitc;
   orbitc=0;
   orbitc=ssm1[i]&0x1;
   if(orbit0c==0xf)continue;
-  else if(orbit0==orbit){
-   ocount++;
-   continue;
-  }else if((orbit-orbit0)==1){
-   printf("Orbit new: 0x%x ocount=%i \n",orbit,ocount);
-   ocount=0;
+  else if(orbit0c==orbitc){
+   ocountc++;
    continue;
   }else{
-   printf("Orbit error: orbitold/orbit: 0x%x 0x%x, %i\n",orbit0,orbit,ocount);
-   ocount=0;
+   if(ocountc==39) continue;
+   printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
+   orbitssm=i;
+   ocountc=0;
    continue;
   }
  }

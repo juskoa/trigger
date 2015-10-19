@@ -7,6 +7,7 @@
 #include <vector>
 #include "vmewrap.h"
 #define Mega (1024*1024)
+#define NBCS 512
 using namespace std;
 //typedef unsigned int w32;
 /*
@@ -38,10 +39,10 @@ typedef struct IRDda{
 	int error2;
 	int incomplete;
 	int orbit;
-	int Inter[251];
-	int bc[251];
+	int Inter[NBCS];
+	int bc[NBCS];
 	int issm;
-}IRDa;
+}IRda;
 void printL2Data(L2Data &ctpr);
 void clearL2Data(L2Data &ctpr);
 void clearIRDda(IRDda &irda);
