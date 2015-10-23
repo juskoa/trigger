@@ -997,16 +997,28 @@ int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  }
  w32 block,LUT,level,circ;
  // L1
- w32 TL0L2=getTL1();
+ w32 TL0L1=getTL1();
+ //if(calcPFScaledPeriod(TL0L1,&scale,&dT,256)) return 1;
  scale=1;
  level=2;
+ dT=TL0L1-(pf->OffAfter);
+ if(dT>255) dT=dT/(scale+1);
+ delflag=1;
  del=0;
- 
+ circ=jpf+1;
+ block=pf->NintAfter+(0x3<<6)+(dT<<12)+(del<<20)+(delflag<<31);
+ if(int1==0){
+  LUT=0xff;
+  setPFc(level,circ,block,0x0,LUT);
+ }else{
+  LUT=0xbb;
+  setPFc(level,circ,0x0,block,LUT);
+ }  
  // L2
  if(calcPFScaledPeriod(pf->PeriodAfter,&scale,&dT,256)) return 1;
  // Do Offset
- TL0L2=getTL2();
- del=TL0L2/(scale+1)-(dT)-(pf->OffAfter)/(scale+1);
+ w32 TL0L2=getTL2();
+ //del=TL0L2/(scale+1)-(dT)-(pf->OffAfter)/(scale+1);
  //or
  del=TL0L2-pf->PeriodAfter-pf->OffAfter;
  del=del/(scale+1);
