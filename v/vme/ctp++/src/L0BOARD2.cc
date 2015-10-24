@@ -562,7 +562,7 @@ int L0BOARD2::getOrbits()
  w32 orbit0c=0xf;
  w32 orbitc=0;
  w32 ocountc=0;
- bool deb=1;
+ bool deb=0;
  //
  for(int i=0;i<Mega;i++){
   // Input checker - calculate IR
@@ -584,7 +584,7 @@ int L0BOARD2::getOrbits()
    w32 mask=1<<(j);
    orbit+=((ssm7[i]&mask)==mask)<<(j+20);
   }
-  printf("%i 0x%x %i\n",i,orbit,ssm1[i]&0x1);
+  //printf("%i 0x%x %i\n",i,orbit,ssm1[i]&0x1);
   if(orbit0==0xffffffff){
     goto next;
   }else if(orbit0==orbit){
