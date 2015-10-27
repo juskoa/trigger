@@ -29,7 +29,7 @@ rpmbuild -bb validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
 rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.2-1.noarch.rpm
 i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
 
-scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.2-1.noarch.rpm juskoa@lxplus:www/validate/
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.6-1.noarch.rpm juskoa@lxplus:www/validate/
 modify www/Welcome.html
 
 1A. check .rpm
@@ -89,6 +89,8 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 - was bug in 5.3 (filtered out was not empty in case of INRND1 usage)
 14.9.
 - 5.5 withut tkinter dependance: IR1/2 with 8 inputs, new PF on LM (0xc60a)
+26.10.
+- 5.6 without tkinter dependance
 
 3. Problems
 -----------

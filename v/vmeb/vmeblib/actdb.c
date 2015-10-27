@@ -95,7 +95,7 @@ if( err != 0 ) {
   //snprintf(fname,sizeof(fname),"%s/CFG/ctp/pardefs/%s.partition",vmecfdir,name);
   sprintf(fname,"%s/CFG/ctp/DB/%s",vmecfdir,finame);
   if(instance != NULL) {
-    printf("INFO Writing to %s\n",fname);
+    printf("INFO Writing /%s to %s\n",ctplite, fname);
     f=fopen(fname,"w"); last_Value[0]='\0';
     if(f != NULL) {
       int i,lng;
@@ -147,10 +147,11 @@ ACT_close(handle);
 #endif
 return(rc);
 }
-/*---------------------------------------------- actdb_getdbstring(f,openclose,sval,maxl)
+/*------------------------------ actdb_getdbstring(fn,openclose,sval,maxl, ctplite)
 I: 
 fn: 
 1. "CTP instance name"   -i.e. not starting with "/", get "/CTP/"+fn or /CTPlite/...
+                          according to ctplite
 2. starting with "/":    -complete item name, i.e.:
   - "/part PHYSICS_2/Source of CTP config"
   - "/part PHYSICS_2/CTP config"  -partition definition (.partition)
@@ -175,9 +176,9 @@ if(openclose==1) {
     return(-4);
   };
 };
-if(fn[0]=='/') {   // complete item name
+if(fn[0]=='/') {   // complete item name (i.e. /CTP/... or /CTPlite/...)
   strcpy(CtpConfigItem, fn);
-} else {           // CTP config item (i.e. "/CTP/"+fn
+} else {           // CTP config item (i.e. "/CTP[lite]/"+fn
   sprintf(CtpConfigItem,"/%s/%s", ctplite, fn);
 };
 err=ACT_getActiveItem(handle,CtpConfigItem, &instance);

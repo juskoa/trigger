@@ -617,7 +617,8 @@ int L0BOARD2::getOrbits()
    ocountc++;
    continue;
   }else{
-   if(ocountc==39) continue;
+   if(ocountc==37) continue;
+   //if(ocountc==39) continue;
    if(deb)printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
    orbitssm=i;
    ocountc=0;

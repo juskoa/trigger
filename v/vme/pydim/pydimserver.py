@@ -136,7 +136,7 @@ def main():
     if cmd[0]=='getinpdets':
       print line
       # process trigger db and update service
-    elif cmd[0]=='rcfg' or cmd[0]=='pcfg':
+    elif cmd[0]=='rcfg' or cmd[0]=='pcfg' or cmd[0]=='Acfg':
       if len(cmd)<3:
         print "Short cmd ignored:",cmd
         continue
@@ -177,6 +177,9 @@ def main():
         else:
           print "not in the pit neither lab"
           #print "not done:",os.path.join(pitsrc,fname),'->',os.path.join(pitdes,fname)
+      elif cmd[0]=='Acfg':
+        if pts.has_key(partname):
+          del pts[partname]
       else:
         part= pts[partname]    # rcfg phase, just restore partition from pcfg time
         part.savercfg(line[5:]) 
