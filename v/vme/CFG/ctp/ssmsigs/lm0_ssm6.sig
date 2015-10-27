@@ -10,7 +10,24 @@
 9   lm_rate1
 10   lm_rate2
 11   lm_rate3
-12   spare
-13   spare
-14   spare
+12   orbit01
+13   orbit02
+14   orbit03
+15   orbit04
+16   orbit05
+17   orbit06
+18   orbit07
+19   orbit08
+20   orbit09
+21   orbit10
+22   orbit11
+23   orbit12
+24   orbit13
+25   orbit14
+26   orbit15
+27   orbit16
+28   orbit17
+29   orbit18
+30   orbit19
+31   orbit20
 

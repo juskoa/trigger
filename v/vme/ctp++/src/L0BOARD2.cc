@@ -2,6 +2,7 @@
 L0BOARD2::L0BOARD2(int vsp)
 :
 	L0BOARD(vsp),
+        ssm1(0),ssm2(0),ssm3(0),ssm4(0),ssm5(0),ssm6(0),ssm7(0),
 	TCSET(0x3fc),TCSTATUS(0x1c0),TCCLEAR(0x1c8),
 	TCSTART(0x1c4),
 	MASK_DATA(0x1e4),MASK_CLEARADD(0x1e8),MASK_MODE(0x1ec),
@@ -17,6 +18,16 @@ L0BOARD2::L0BOARD2(int vsp)
 	LM_VETO(0xe00),
 	LM_FUNCTION(4*0x9d),L0_FUNCTION(4*0x85)
 {
+}
+L0BOARD2::~L0BOARD2()
+{
+ if(ssm1) delete [] ssm1;
+ if(ssm2) delete [] ssm2;
+ if(ssm3) delete [] ssm3;
+ if(ssm4) delete [] ssm4;
+ if(ssm5) delete [] ssm5;
+ if(ssm6) delete [] ssm6;
+ if(ssm7) delete [] ssm7;
 }
 //-------------------------------------------------------------------------------
 // write word to L0 function. Problem is that vme adresses are not consecutive
@@ -298,7 +309,7 @@ if( llb>0 ) {   // arrange dummy reads for last block
 };
 return(rc);
 }
-
+//---------------------------------------------------------------
 int L0BOARD2::ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws) 
 {
 int rc, ix, iblks, llb, blocks, block0;
@@ -336,6 +347,7 @@ if( llb>0 ) {   // last block padded with 0s:
 };
 return(rc);
 }
+//-----------------------------------------------------------------------------
 int L0BOARD2::ddr3_ssmread() {
 int ddr3ad, ix, rc;
 w32 block[DDR3_BLKL];
@@ -343,9 +355,12 @@ if (!ssm1) ssm1 = new w32[Mega];
 if (!ssm2) ssm2 = new w32[Mega];
 if (!ssm3) ssm3 = new w32[Mega];
 if (!ssm4) ssm4 = new w32[Mega];
+if (!ssm5) ssm5 = new w32[Mega];
+if (!ssm6) ssm6 = new w32[Mega];
+if (!ssm7) ssm7 = new w32[Mega];
 for(ix=0; ix< Mega; ix++) {
   ddr3ad= ix*16;
-  rc= ddr3_read(ddr3ad, block, DDR3_BLKL);
+  rc = ddr3_read(ddr3ad, block, DDR3_BLKL);
   if(rc!=0) {
     printf("Error:%d reading ddr3ad %d\n", rc, ddr3ad);
     return(rc);
@@ -356,10 +371,16 @@ for(ix=0; ix< Mega; ix++) {
   ssm2[ix]= block[14];
   ssm3[ix]= block[13];
   ssm4[ix]= block[12];
+  ssm5[ix]= block[11];
+  ssm6[ix]= block[10];
+  ssm7[ix]= block[9];
 };
 printf("LM ssm read \n");
 return(0);
 }
+//-----------------------------------------------------------
+//secs=0 => 1 pass
+//secs!=0 => continueos
 void L0BOARD2::ddr3_ssmstart(int secs) {
 w32 ssmcmd;
 w32 seconds1,micseconds1, seconds2,micseconds2,diff;
@@ -368,8 +389,12 @@ if(secs==0) {
 } else {
   ssmcmd= 1;
 };
-vmew(SSMaddress, 0);
+w32 status = vmer(SSMstatus);
+if(status & 0x100){
+  printf("SSMbusy, stop recording");
+}
 vmew(SSMcommand, ssmcmd);
+vmew(SSMaddress, 0);
 GetMicSec(&seconds1, &micseconds1);
 vmew(SSMstart, DUMMYVAL);
 if(secs>0) {
@@ -388,7 +413,21 @@ printf("ddr3_ssmstart: %d micsecs\n", diff);
 }
 int L0BOARD2::DumpSSM(const char *name,int issm)
 {
- if(issm==1)SetSSM(ssm1); else SetSSM(ssm2); 
+ //if(issm==1)SetSSM(ssm1); else SetSSM(ssm2);
+ switch(issm)
+ {
+  case(1): SetSSM(ssm1);break;
+  case(2): SetSSM(ssm2);break;
+  case(3): SetSSM(ssm3);break;
+  case(4): SetSSM(ssm4);break;
+  case(5): SetSSM(ssm5);break;
+  case(6): SetSSM(ssm6);break;
+  case(7): SetSSM(ssm7);break;
+  default:{
+    printf("DumpSSM: internal error, issm=%i \n",issm);
+    return 1;
+  }
+ }
  return BOARD::DumpSSM(name);
 }
 int L0BOARD2::DumpSSMLM(const char *name)
@@ -502,4 +541,89 @@ void L0BOARD2::convertL02LMClassAll()
   if((i %2)==0)convertL02LMClass(i);
  }
 }
-
+//-----------------------------------------------------------------
+// Get orbits from ssm
+//
+int L0BOARD2::getOrbits()
+{
+ if(ssm1 == 0){printf("ssm1 missing \n");return 1;}
+ if(ssm3 == 0){printf("ssm3 missing \n");return 1;}
+ if(ssm6 == 0){printf("ssm6 missing \n");return 1;}
+ if(ssm7 == 0){printf("ssm7 missing \n");return 1;}
+ // 
+ w32 orbit=0xffffffff;
+ w32 orbit0=0x0;
+ w32 ocount=0;
+ w32 nint=0;
+ w32 orbitssm=0;
+ IRDda irda;
+ clearIRDda(irda);
+ //
+ w32 orbit0c=0xf;
+ w32 orbitc=0;
+ w32 ocountc=0;
+ bool deb=0;
+ //
+ for(int i=0;i<Mega;i++){
+  // Input checker - calculate IR
+  if(ssm3[i]&(1<<22)){
+   irda.Inter[nint]=1;
+   irda.bc[nint]=i-orbitssm+11;
+   nint++;
+   if(deb)printf("Input 3: %i \n",i);
+  }
+  // Orbit from number
+  if(ssm6){
+  orbit0=orbit;
+  orbit=0;
+  for(int j=0;j<20;j++){
+   w32 mask=1<<(j+12);
+   orbit+=((ssm6[i]&mask)==mask)<<j;
+  }
+  for(int j=0;j<4;j++){
+   w32 mask=1<<(j);
+   orbit+=((ssm7[i]&mask)==mask)<<(j+20);
+  }
+  //printf("%i 0x%x %i\n",i,orbit,ssm1[i]&0x1);
+  if(orbit0==0xffffffff){
+    goto next;
+  }else if(orbit0==orbit){
+   ocount++;
+   goto next;
+  }else if((orbit-orbit0)==1){
+   if(deb)printf("Orbit new:%i 0x%x ocount=%i \n",i,orbit,ocount);
+   ocount=0;
+   irs.push_back(irda);
+   clearIRDda(irda);
+   irda.orbit=orbit;
+   irda.issm=i;
+   nint=0;
+   goto next;
+  }else{
+   printf("Orbit error:issm=%i  orbitold/orbit: 0x%x 0x%x, %i\n",i,orbit0,orbit,ocount);
+   ocount=0;
+   //return 1;
+   goto next;
+  }
+  }
+  next:
+  //printf("%i 0x%x 0x%x 0x%x\n",i,ssm6[i],ssm7[i],ssm1[i]);
+  // orbit from channel 0
+  orbit0c=orbitc;
+  orbitc=0;
+  orbitc=ssm1[i]&0x1;
+  if(orbit0c==0xf)continue;
+  else if(orbit0c==orbitc){
+   ocountc++;
+   continue;
+  }else{
+   if(ocountc==37) continue;
+   //if(ocountc==39) continue;
+   if(deb)printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
+   orbitssm=i;
+   ocountc=0;
+   continue;
+  }
+ }
+ return 0;
+}

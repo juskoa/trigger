@@ -54,7 +54,7 @@ void INTBOARD::getCTPReadOutList()
  int nCTPR=0,nIRDa=0;
  int blockid,eob;
  w64 l2cl;
- IRDa irda;
+ IRDda irda;
  clearIRDda(irda);
  L2Data ctpr;
  clearL2Data(ctpr);

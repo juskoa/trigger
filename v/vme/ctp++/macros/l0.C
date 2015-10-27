@@ -54,15 +54,23 @@ int main(int argc, char* argv[])
     return 0;
  case 2:
     {
-    // ssm tests
-    l0->ddr3_reset();
-    l0->ddr3_status();
-    usleep(1000000);
+    // ssm test
+    //string ssm1("ctp4");
+    //l0->ReadSSMDump(ssm1.c_str());
+    //l0->SetSSM1(l0->GetSSM());
+    //l0->getOrbits();
+    //return 0;
+    //
+    //l0->ddr3_reset();
+    //l0->ddr3_status();
+    //usleep(1000000);
     l0->ddr3_ssmstart(0);
+    usleep(1000000);
     l0->ddr3_ssmread();
-    string ssm("test1");
-    //l0->DumpSSM(ssm.c_str(),2);
-    l0->DumpSSM(ssm.c_str(),1);
+    string ssm("test3");
+    l0->DumpSSM(ssm.c_str(),3);
+    //l0->DumpSSM(ssm.c_str(),1);
+    l0->getOrbits();
     return 0;
     }
   case 3:

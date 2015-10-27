@@ -79,14 +79,14 @@ strcpy(actversion, instance[0].version);
 rc:0: $VMECFDIR/CFG/ctp/DB/... created
       actname/actversion filled
 */
-int actdb_getdbfile(char *finame, char *actname, char *actversion) {
+int actdb_getdbfile(char *finame, char *actname, char *actversion, char *ctplite) {
 int rc=0;
 #ifdef ACT_DB
 int err; char CtpConfigItem[64];
 FILE *f;
 char fname[184];
 actname[0]='\0'; actversion[0]='\0';
-sprintf(CtpConfigItem,"/CTP/%s", finame);
+sprintf(CtpConfigItem,"/%s/%s", ctplite, finame);
 err=ACT_getActiveItem(handle,CtpConfigItem, &instance);
 if( err != 0 ) {
   printf("ERROR Cannot get %s item. Error code:%d\n",CtpConfigItem, err);
@@ -95,7 +95,7 @@ if( err != 0 ) {
   //snprintf(fname,sizeof(fname),"%s/CFG/ctp/pardefs/%s.partition",vmecfdir,name);
   sprintf(fname,"%s/CFG/ctp/DB/%s",vmecfdir,finame);
   if(instance != NULL) {
-    printf("INFO Writing to %s\n",fname);
+    printf("INFO Writing /%s to %s\n",ctplite, fname);
     f=fopen(fname,"w"); last_Value[0]='\0';
     if(f != NULL) {
       int i,lng;
@@ -129,7 +129,7 @@ return(rc);
 }
 /*---------------------------------------------- actdb_getdbfile_openclose(f)
 */
-int actdb_getdbfile_openclose(char *fn) {
+int actdb_getdbfile_openclose(char *fn, char *ctplite) {
 int rc=0;
 #ifdef ACT_DB
 int err;
@@ -138,7 +138,7 @@ if((err=actdb_open())!=0) {
   printf("ERROR actdb_open. RC:%d\n",err);
   return(-4);
 };
-if((err= actdb_getdbfile(fn, actname, actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile(fn, actname, actversion, ctplite)) !=0) {rc= err; goto STP;};
 STP:
 ACT_close(handle);
 #else
@@ -147,10 +147,11 @@ ACT_close(handle);
 #endif
 return(rc);
 }
-/*---------------------------------------------- actdb_getdbstring(f,openclose,sval,maxl)
+/*------------------------------ actdb_getdbstring(fn,openclose,sval,maxl, ctplite)
 I: 
 fn: 
-1. "CTP instance name"   -i.e. not starting with "/", get "/CTP/"+fn
+1. "CTP instance name"   -i.e. not starting with "/", get "/CTP/"+fn or /CTPlite/...
+                          according to ctplite
 2. starting with "/":    -complete item name, i.e.:
   - "/part PHYSICS_2/Source of CTP config"
   - "/part PHYSICS_2/CTP config"  -partition definition (.partition)
@@ -164,7 +165,7 @@ rc:0: ok value filled
 2 too long (only part of the value is returned)
 -4 open err
 */
-int actdb_getdbstring(char *fn, int openclose, char *value, int maxl) {
+int actdb_getdbstring(char *fn, int openclose, char *value, int maxl, char *ctplite) {
 int rc=0;
 #ifdef ACT_DB
 int err; char CtpConfigItem[164];
@@ -175,10 +176,10 @@ if(openclose==1) {
     return(-4);
   };
 };
-if(fn[0]=='/') {   // complete item name
+if(fn[0]=='/') {   // complete item name (i.e. /CTP/... or /CTPlite/...)
   strcpy(CtpConfigItem, fn);
-} else {           // CTP config item (i.e. "/CTP/"+fn
-  sprintf(CtpConfigItem,"/CTP/%s", fn);
+} else {           // CTP config item (i.e. "/CTP[lite]/"+fn
+  sprintf(CtpConfigItem,"/%s/%s", ctplite, fn);
 };
 err=ACT_getActiveItem(handle,CtpConfigItem, &instance);
 if( err != 0 ) {
@@ -224,11 +225,11 @@ if((err=actdb_open())!=0) {
   printf("ERROR actdb_open. RC:%d\n",err);
   return(-4);
 };
-if((err= actdb_getdbfile("ctp.cfg",actname,actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("ctp.cfg",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s ctp.cfg %s %s\n", cfglist, actname, actversion);
-if((err= actdb_getdbfile("aliases.txt",actname,actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("aliases.txt",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s aliases.txt %s %s\n", cfglist, actname, actversion);
-if((err= actdb_getdbfile("ctpinputs.cfg",actname,actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("ctpinputs.cfg",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s ctpinputs.cfg %s %s\n", cfglist, actname, actversion);
 /*if((err= actdb_getdbfile("L0.INPUTS",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s L0.INPUTS %s %s\n", cfglist, actname, actversion);
@@ -236,22 +237,22 @@ if((err= actdb_getdbfile("CTP.SWITCH",actname,actversion)) !=0) {rc= err; goto S
 sprintf(cfglist, "%s CTP.SWITCH %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("VALID.CTPINPUTS",actname,actversion)) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s VALID.CTPINPUTS %s %s\n", cfglist, actname, actversion); */
-if((err= actdb_getdbfile("VALID.DESCRIPTORS",actname,actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("VALID.DESCRIPTORS",actname,actversion,"CTPlite")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s VALID.DESCRIPTORS %s %s\n", cfglist, actname, actversion);
-if((err= actdb_getdbfile("FillingScheme",actname,actversion)) !=0) {rc= err; goto STP;} else {
+if((err= actdb_getdbfile("FillingScheme",actname,actversion,"CTP")) !=0) {rc= err; goto STP;} else {
   sprintf(cfglist, "%s FillingScheme %s %s\n", cfglist, actname, actversion);
   if(strncmp(last_Value,"bcmasks",7)==0) {
-    if((err= actdb_getdbfile("VALID.BCMASKS",actname,actversion)) !=0) {rc= err; goto STP;};
+    if((err= actdb_getdbfile("VALID.BCMASKS",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
   } else {
     printf("INFO VALID.BCMASKS not read (%10.10s not BCMASKS option in FillingScheme)\n",last_Value);
     actname[0]='\0'; actversion[0]='\0';
   };
   sprintf(cfglist, "%s VALID.BCMASKS %s %s\n", cfglist, actname, actversion);
 };
-if((err= actdb_getdbfile("TRIGGER.PFS", actname, actversion)) !=0) {rc= err; goto STP;};
+if((err= actdb_getdbfile("TRIGGER.PFS", actname, actversion,"CTP")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s TRIGGER.PFS %s %s\n", cfglist, actname, actversion);
-//if((err= actdb_getdbfile("VALID.LTUS", actname, actversion)) !=0) {rc= err; goto STP;};
-//if((err= actdb_getdbfile("ttcparts.cfg", actname, actversion)) !=0) {rc= err; goto STP;};
+//if((err= actdb_getdbfile("VALID.LTUS", actname, actversion,"CTP")) !=0) {rc= err; goto STP;};
+//if((err= actdb_getdbfile("ttcparts.cfg", actname, actversion,"CTP")) !=0) {rc= err; goto STP;};
 STP:
 ACT_close(handle);
 #else

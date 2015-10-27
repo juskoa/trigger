@@ -19,6 +19,12 @@ VALUE abcd
 4. Download (active instance of ctp config file:
 linux/act.exe VALID.BCMASKS
 
+CTPlite items:
+trgInput_*
+VALID.DESCRIPTORS
+
+perhaps we should add also alieses.txt
+
 5. TODO: Print to stdout current FILTER (OR of /CTP/trgInput_ACORDE,... 
    names which value is OFF or DISABLED )
 ctp_proxy > linux/act.exe FILTER
@@ -41,16 +47,24 @@ FILTER               - all triggering detectors available
 int actdb_open();
 int actdb_close();
 int actdb_getdbfiles();
-int actdb_getdbfile_openclose(char *cfgname);
+int actdb_getdbfile_openclose(char *cfgname, char *ctplite);
 //int actdb_getPartition(char *partname, char *filter);
 int actdb_getPartition(char *name, char *filterpar, char *actname, char *actversion);
-int actdb_getdbstring(char *fn, int openclose, char *value, int maxl);
+int actdb_getdbstring(char *fn, int openclose, char *value, int maxl, char *ctplite);
 void actdb_getff(char *filter, int actopcls);
 
 int checkproxy() { // done in ctpproxy.py
 return(0);
 }
 
+void checklite(char *name, char *ctplite) {
+if((strcmp(name, "VALID.DESCRIPTORS")==0) ||
+   (strncmp(name, "trgInput_",9)==0)) {
+  strcpy(ctplite,"CTPlite");
+} else {
+  strcpy(ctplite,"CTP");
+};
+}
 /*----------------------------------------
 rc: 0: ok
 8: ctpproxy active, no action (not done yet!)
@@ -80,7 +94,9 @@ if(argc==1) { // get CTP db files
   } else if(strcmp(argv[1],"VALUE")==0) {
     char value[1000]="";
     if(argc==3) {
-      rc= actdb_getdbstring(argv[2], 1, value, 1000);
+      char ctplite[16];
+      checklite(argv[2], ctplite);
+      rc= actdb_getdbstring(argv[2], 1, value, 1000, ctplite);
       printf("VALUE %s",value);
     } else {
       rc=8;
@@ -90,7 +106,9 @@ if(argc==1) { // get CTP db files
     actdb_getff(filter, 1);
     printf("FILTER %s\n", filter);
   } else {
-    rc= actdb_getdbfile_openclose(argv[1]);
+    char ctplite[16];
+    checklite(argv[1], ctplite);
+    rc= actdb_getdbfile_openclose(argv[1], ctplite);
   };
 };
 exit(rc);

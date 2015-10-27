@@ -1,0 +1,22 @@
+#!/bin/bash
+# see my profile (need option: Kepp initial title
+if [[ "$1" = "prog" ]] ;then
+gnome-terminal --profile my \
+--tab --title ctplib --working-directory $VMECFDIR/ctp/ctplib \
+--tab --title ctp_proxy --working-directory $VMECFDIR/ctp_proxy \
+--tab --title pydim --working-directory $VMECFDIR/pydim \
+--tab --title vmeblib --working-directory $VMEBDIR/vmeblib
+elif [[ "$1" = "ctrl" ]] ;then
+gnome-terminal --profile my \
+--tab --title altri1 -e 'ssh -X trigger@altri1' \
+--tab --title smicmd \
+--tab --title smiLOG --working-directory ~/v/vme/WORK \
+--tab --title startClients \
+--tab --title CNTRRD/logs --working-directory $HOME/CNTRRD/logs \
+--tab --title dbctp --working-directory $dbctp
+else
+cat - <<-EOF
+mytabs prog    -for control
+mytabs ctrl    -for edit/make
+EOF
+fi

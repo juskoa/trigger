@@ -262,6 +262,9 @@ For LM0 only first 4 modes possible (20.11.2014)
                                      12 13 14 15 16 1T 23 24 ... 6T */
 /* L0 board: */
 #define L0_CLEAR_RND   0x90c8 /*dummywr: clear RND1/2 (according to L0_ENA_CRND)*/
+#define INT_MASK_FOR_INPUTS_1_24 0x9180
+/* INT mask for DDL2 (also 0x9184 for inputs 25..48) */
+
 #define L0_TCSTATUS    0x91c0   /*R/O: bits:
 0: Test Class Cluster BUSY flag
 1: Test Class PP Request flag
@@ -291,6 +294,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
 #define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
 #define L0_ENA_CRNDlm0 0x9200 
+#define ORBIT_OFFSET 0x3dc
 /* 1..0: enable RND2, RND1 clear In firmware called:  ENABLE_CLEAR */
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */
@@ -336,6 +340,9 @@ VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 #define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
 
 #define DDL2_STATUS 0x9304 /* bits: 4:fbTEN_N, 3:fbCTRL_N, 2:fiBEN_N, 1:fiLF_N, 0:fiDIR */
+/* fbTEN_N (Negstive), i.e. should be 0 in normal state when DDL2 TRANSFER enabled
+*/
+#define DDL2_BLOCK_COUNTER 0x93d8  /* from c705. N of blocks (4092 bytes) sent over ddl2 */
 
 #define SEL_SPARE_OUT  0x93e0  
 /* 4 registers 0x93e0,4,8,c reserved for 4 output signals -copy
