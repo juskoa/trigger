@@ -559,16 +559,17 @@ int L0BOARD2::getOrbits()
  IRDda irda;
  clearIRDda(irda);
  //
- w32 orbit0c=0xf;
- w32 orbitc=0;
+ w32 orbit0c=0;
+ w32 orbitc=0xf;
  w32 ocountc=0;
- bool deb=0;
+ bool deb=1;
  //
  for(int i=0;i<Mega;i++){
   // Input checker - calculate IR
   if(ssm3[i]&(1<<22)){
    irda.Inter[nint]=1;
-   irda.bc[nint]=i-orbitssm+11;
+   // treba niekde pridat orbit
+   irda.bc[nint]=(i-orbitssm+11)%3564;
    nint++;
    if(deb)printf("Input 3: %i \n",i);
   }
@@ -617,7 +618,16 @@ int L0BOARD2::getOrbits()
    ocountc++;
    continue;
   }else{
-   if(ocountc==39) continue;
+   //if(ocountc==39) continue;
+   if(ocountc==37){
+     ocountc++;
+     continue;
+   }
+   if((ocountc != 3563) && (i>3564)){
+     printf("Orbit error: ");
+     printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
+     return 1;
+   }
    if(deb)printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
    orbitssm=i;
    ocountc=0;
