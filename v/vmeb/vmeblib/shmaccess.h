@@ -32,6 +32,7 @@ EXT Tshm *shm;
 EXT int shmsegid;
 */
 #define CTPSHMKEY 0x820000
+// typical usage:  see shmaccess.c
 void *mallocShared(w32 shmkey, int size, int *segid);
 int freeShared(void *shmbase, int shmsegid);
 void detachShared(void *shmbase);

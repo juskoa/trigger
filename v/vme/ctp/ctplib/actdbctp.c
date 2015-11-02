@@ -42,9 +42,13 @@ Get filter to file and also return it in filter
 actopcls: 1: open/close act   0: already opened
 */
 void actdb_getff(char *filter, int actopcls) {
+//ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);
+if(ctpshmbase==NULL) {
+  printf("ERROR ctpshmbase is NULL\n");
+  return;
+};
 #ifdef ACT_DB
 int err,ix; FILE *f; char fname[120];
-ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);
 if(actopcls==1) {
 if((err=actdb_open())!=0) {
   printf("ERROR actdb_getff actdb_open. RC:%d\n",err);
@@ -74,7 +78,6 @@ if(actopcls==1) {
     printf("ERROR actdb_getff actdb_close. RC:%d\n",err);
   };
 };
-shmdt(ctpshmbase);
 ix= strlen(filter); if(ix>0) filter[ix-1]='\0'; // remove trailing space
 /*  printf("INFO actdb_getff: filter from ACT not taken into account\n");
 return; */
@@ -89,6 +92,7 @@ if(f == NULL) {
 #else
   printf("INFO actdb_getff: no attemt for ACT:  ACT_DB undefined\n");
 #endif
+// shmdt(ctpshmbase);
 }
 /*--------------------------------------------------------- actdb_getPartition()
 called from pydim/server.c 

@@ -39,8 +39,8 @@ FILTER               - all triggering detectors available
 /* toto von
 #include <sys/types.h>
 #include <sys/shm.h>
-#include "shmaccess.h"
 */
+#include "shmaccess.h"
 #define DBMAIN
 #include "Tpartition.h"
 
@@ -73,6 +73,12 @@ rc: 0: ok
 
 */ int main(int argc, char **argv) {
 int rc=0;
+if(ctpshmbase==NULL) {
+  ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);
+} else {
+  printf("ctpshmbase not NULL!, no action...\n"); rc=8;
+  goto RET;
+};
 if(argc==1) { // get CTP db files
   // check if ctp_proxy is on:
   //cshmInit(); cannot be done through shm (we are not on alidcsvme001)
@@ -111,6 +117,7 @@ if(argc==1) { // get CTP db files
     rc= actdb_getdbfile_openclose(argv[1], ctplite);
   };
 };
+RET:detachShared(ctpshmbase); 
 exit(rc);
 }
 
