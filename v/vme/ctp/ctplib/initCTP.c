@@ -274,6 +274,8 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
       infolog_trgboth(LOG_INFO, (char *)"L0 switch set to 1-1...24-24, pos. edge. LM switch:all 0s");
       vmew32(RND1_EN_FOR_INPUTS, 0); vmew32(RND1_EN_FOR_INPUTS+4, 0);
       infolog_trgboth(LOG_INFO, (char *)"RND1 connections to switch inputs cleared");
+      vmew32(INT_MASK_FOR_INPUTS_1_24, 0xffffff); vmew32(INT_MASK_FOR_INPUTS_1_24+4, 0xffffff);
+      infolog_trgboth(LOG_INFO, (char *)"INT_MASK_FOR_INPUTS set, all 48 inputs enabled");
       /*vmew32(SEL_SPARE_OUT+0xc, 1);   // 0T0C -> LM
       infolog_trgboth(LOG_INFO, (char *)"SEL_SPARE[3]) set to 1:0T0C -LM"); */
       if(lmversion>=0xc606) {

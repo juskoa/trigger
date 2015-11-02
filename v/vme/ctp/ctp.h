@@ -262,7 +262,7 @@ For LM0 only first 4 modes possible (20.11.2014)
                                      12 13 14 15 16 1T 23 24 ... 6T */
 /* L0 board: */
 #define L0_CLEAR_RND   0x90c8 /*dummywr: clear RND1/2 (according to L0_ENA_CRND)*/
-#define INT_MASK_FOR_INPUTS_1_24 0x9180
+#define INT_MASK_FOR_INPUTS_1_24 0x9180  // 0xffffff for 24..1 inps active
 /* INT mask for DDL2 (also 0x9184 for inputs 25..48) */
 
 #define L0_TCSTATUS    0x91c0   /*R/O: bits:
