@@ -619,11 +619,11 @@ int L0BOARD2::getOrbits()
    continue;
   }else{
    //if(ocountc==39) continue;
-   if(ocountc==37){
+   if((ocountc==37) || (ocountc == 39)){
      ocountc++;
      continue;
    }
-   if((ocountc != 3563) && (i>3564)){
+   if(((ocountc != 3563)||(ocountc != 3563) )&& (i>3564)){
      printf("Orbit error: ");
      printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
      return 1;
