@@ -203,6 +203,9 @@ int TTCITBOARD::AnalyseSSM()
  if(issm0 == 282){
    l0=2;
    i0=0;
+ }else if(issm0 == 279){
+   l0=-1;
+   i0=0;
  }else if(issm0 == 3){
    l0=0;
    i0=1;
@@ -247,7 +250,8 @@ int TTCITBOARD::AnalyseSSM()
       // L1 received
       if((issm-l0) != L0L1time){
         printf("Error: L0L1 time violation - L1 arrived not in time: %i %i %i \n",issm-l0,issm,l0);
-        return 1;
+        //return 1;
+        return 0;
       }
       L1.push_back(issm);
       cl1++;

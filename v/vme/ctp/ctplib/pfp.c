@@ -791,6 +791,23 @@ int WritePFuserII(w32 Ncoll,w32 dT1,w32 dT2,w32 ipf,w32 plut)
 /*
 */
 /*---------------------------------------------------------------------------
+ *  Set Block A, Block B and PLUT
+ */ 
+int setPFwords(w32 ix,w32 ipf,w32 blocka,w32 blockb,w32 plut)
+{
+ if(notInCrate(ix)) return 1;
+ w32 bb= BSP*ctpboards[ix].dial;
+ if(ix==1) {
+    printf("This function is only for L1,L2 levels \n");
+    return 1;
+ } else {
+    vmew32(PFBLOCK_A+bb+4*(ipf-1), blocka);
+    vmew32(PFBLOCK_B+bb+4*(ipf-1), blockb);
+    vmew32(PFLUT+bb+4*(ipf-1), plut);
+ };  
+ return 0;
+}
+/*-----------------------------------------------------------------------
  *  Just set PFCOMMON
  */ 
 void setPFCOMMON(w32 ix,w32 INTalut,w32 INTblut,w32 DINTlut,w32 delayDINT)
@@ -833,6 +850,7 @@ void setPFBLOCK(w32 ix,w32 ipf,w32 Th, w32 dT,w32 delay,w32 delayflag)
  * Ncol1 -number of collisions in time window dT1 before trigger interaction
  * Ncol2 -number of collisions in time window dT2 after trigger interaction
  * inter - 1=INT1, 2=INT2
+ * not used
  */
 int setPFUser(int ipf,w32 Ncol1, w32 dT1,w32 Ncol2,w32 dT2, w32 inter)
 {
@@ -992,7 +1010,7 @@ int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  // L1 and L2
  if((int1==0) && (int2==0)){
   // this should go to parted
-  printf("in1 and int2 not allowed at L1/L2 level \n");
+  printf("in1 and int2 not allowed simultaneously at L1/L2 level \n");
   return 1;
  }
  w32 block,LUT,level,circ;
@@ -1005,14 +1023,15 @@ int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  if(dT>255) dT=dT/(scale+1);
  delflag=1;
  del=0;
+ w32 blockmax=(0x3f)+(0x3f<<6)+(0<<12)+(0<<20)+(0<<31);
  circ=jpf+1;
- block=pf->NintAfter+(0x3<<6)+(dT<<12)+(del<<20)+(delflag<<31);
+ block=pf->NintAfter+(0x3f<<6)+(dT<<12)+(del<<20)+(delflag<<31);
  if(int1==0){
-  LUT=0xff;
-  setPFc(level,circ,block,0x0,LUT);
+  LUT=0xaa+(scale<<8);
+  setPFwords(level,circ,block,blockmax,LUT);
  }else{
-  LUT=0xbb;
-  setPFc(level,circ,0x0,block,LUT);
+  LUT=0xcc+(scale<<13);
+  setPFwords(level,circ,blockmax,block,LUT);
  }  
  // L2
  if(calcPFScaledPeriod(pf->PeriodAfter,&scale,&dT,256)) return 1;
@@ -1024,13 +1043,13 @@ int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  del=del/(scale+1);
  level=3; //L2
  circ=jpf+1;
- block=pf->NintAfter+(0x3<<6)+(dT<<12)+(del<<20)+(delflag<<31);
+ block=pf->NintAfter+(0x3f<<6)+(dT<<12)+(del<<20)+(delflag<<31);
  if(int1==0){
-  LUT=0xff;
-  setPFc(level,circ,block,0x0,LUT);
+  LUT=0xaa+(scale<<8);
+  setPFwords(level,circ,block,blockmax,LUT);
  }else{
-  LUT=0xbb;
-  setPFc(level,circ,0x0,block,LUT);
+  LUT=0xcc+(scale<<13);
+  setPFwords(level,circ,blockmax,block,LUT);
  } 
  return 0;
 }

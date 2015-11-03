@@ -171,11 +171,14 @@ typedef struct TPastFut {
  w8 lmpf[8];
  //l0 level
  w8 l0pf[4];
+ //w8 l1pf[4]; not needed - parted set L1/l2 classes correctly
+ //w8 l2pf[4];
 }TPastFut;
-typedef struct TPastFutCommon{
+/*
+ * typedef struct TPastFutCommon{
  w32 pfdefsCommon[ixMaxpfdefsCommon];
 }TPastFutCommon;
-
+*/
 /*-----------------------------------------------------------------
 Strucutre TRBIF declarations  (RandomBcdownscaledInteractionsFunctions)
 -------------------------------------------------------------------*/
@@ -229,8 +232,8 @@ typedef struct TRBIF{
  w8 BCMASKuse[12];             // same as rbif 0:not used, 1..12: bcm1..12 used
  TPastFut pf[NPF];
  w8 PFuse[NPF];             // 0:not used, 1..5: pf1..4 used [4]==5:PFT used
- TPastFutCommon pfCommon;
- w8 PFCuse;               // 0 not used (PF not used at all), 1: used
+ //TPastFutCommon pfCommon; - static programmed in init
+ //w8 PFCuse;               // 0 not used (PF not used at all), 1: used
  char lut8[8*LUT8_LEN];   // 4xlut8L0F+4xlut8LMF fmt: "0xabcdef..." 64 hexa digits
 }TRBIF;
 

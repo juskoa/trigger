@@ -86,7 +86,6 @@ for(ix=0; ix<NSDGS; ix++) {
 
 /*------------------------------------------------------------ copyPF
  * obsolete
-*/
 void copyPF(TPastFut *newpf, TPastFut *pf) {
 int ix;
 for(ix=0; ix< ixMaxpfdefs; ix++) {
@@ -108,6 +107,8 @@ for(ix=0; ix< ixMaxpfdefs; ix++) {
   //if(newpf->pfdefs[ix]!= pf->pfdefs[ix] ) return 1;
 }; return 0;   // ok
 }
+*/
+/*
 void copyPFC(TPastFutCommon *newpfc, TPastFutCommon *pfc) {
 int ix;
 for(ix=0; ix< ixMaxpfdefsCommon; ix++) {
@@ -120,13 +121,14 @@ for(ix=0; ix< ixMaxpfdefsCommon; ix++) {
   if(newpfc->pfdefsCommon[ix]!= pfc->pfdefsCommon[ix]) return 1; 
 }; return 0;
 }
+*/
 /*--------------------------------------------------------- copycheckPF
 Obsolete
 Check or copy:
   rbif->pf[ixpf] and rbif->pfCommon  -> rbifnew
 rc:0 ok
 */
-int copycheckPF(TRBIF *rbifnew, TRBIF *rbif, int ixpf) {
+/*int copycheckPF(TRBIF *rbifnew, TRBIF *rbif, int ixpf) {
 int rc=0;
 if(rbifnew->PFuse[ixpf]>0) {  // check 
   rc= checkPF(&rbifnew->pf[ixpf], &rbif->pf[ixpf]);
@@ -142,6 +144,7 @@ if(rbifnew->PFuse[ixpf]>0) {  // check
 };
 return rc;
 }
+*/
 /*------------------------------------------------------------cleanTRBIF()
 If leaveint1!=0: do not touch int1/2/t definitions
 */
@@ -180,8 +183,8 @@ if(rbif != NULL){
     //  rbif->pf[j].pfdefs[jj]= 0; 
     //};
   //}; 
-  rbif->PFCuse=0;
-  for(int jj=0;jj<ixMaxpfdefsCommon;jj++) rbif->pfCommon.pfdefsCommon[jj]=0; 
+  //rbif->PFCuse=0;
+  //for(int jj=0;jj<ixMaxpfdefsCommon;jj++) rbif->pfCommon.pfdefsCommon[jj]=0; 
   
  };
  
@@ -248,7 +251,7 @@ printf("  PF:");
 for(ix=0;ix<NPF;ix++)printf("%2i",rbif->PFuse[ix]);
 printf("\n");
 for(ix=0;ix<NPF;ix++){printf("%i ",ix); printTPastFut(&rbif->pf[ix]);}
-printf("  PFC:%2i",rbif->PFCuse);
+//printf("  PFC:%2i",rbif->PFCuse);
 printf("\n");
 }
 /*------------------------------------------------------copyTRBIF()
@@ -278,10 +281,10 @@ for(jx=0;jx<NPF;jx++){
   dst->PFuse[jx]= src->PFuse[jx];
   copyTPastFut(&dst->pf[jx],&src->pf[jx]);
 }; 
-dst->PFCuse= src->PFCuse;
-if(dst->PFCuse>0) {
-    copyPFC(&dst->pfCommon, &src->pfCommon);
-};
+//dst->PFCuse= src->PFCuse;
+//if(dst->PFCuse>0) {
+//    copyPFC(&dst->pfCommon, &src->pfCommon);
+//};
 }
 /*---------------------------------------------------------cleanTFO()
 */
@@ -350,7 +353,9 @@ void cleanTPastFut(TPastFut *pf){
  pf->OffBefore=0;
  pf->OffAfter=0;
  for(int i=0;i<8;i++)pf->lmpf[i]=0;
- for(int i=0;i<4;i++)pf->l0pf[i]=0;
+ for(int i=0;i<4;i++){
+   pf->l0pf[i]=0;
+ }
  strcpy(pf->name,"");
 }
 void printTPastFut(TPastFut *pf)
@@ -364,10 +369,10 @@ void printTPastFut(TPastFut *pf)
  for(int i=0;i<8;i++)printf("%i ",pf->lmpf[i]);
  printf("\n"); 
  printf("l0 circuits usage: ");
- for(int i=0;i<4;i++)printf("%i ",pf->l0pf[i]);
- printf("\n"); 
+ for(int i=0;i<4;i++)printf("%i ipf use: %i ",i,pf->l0pf[i]);
+ printf("\n");
 }
-/*-------------------------------------------------------cleanTPastFut()
+/*-------------------------------------------------------copyTPastFut()
 */
 void copyTPastFut(TPastFut *to,TPastFut *fr)
 {
@@ -381,7 +386,9 @@ void copyTPastFut(TPastFut *to,TPastFut *fr)
  to->OffAfter=fr->OffAfter;
  strcpy(to->name,fr->name);
  for(int i=0;i<8;i++)to->lmpf[i]=fr->lmpf[i];
- for(int i=0;i<4;i++)to->l0pf[i]=fr->l0pf[i];
+ for(int i=0;i<4;i++){
+    to->l0pf[i]=fr->l0pf[i];
+ }
 }
 /*------------------------------------------------------copyTKlas()
 */
