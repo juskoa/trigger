@@ -62,7 +62,6 @@ int newclocktag;  /* has to be here (thread parameter)
 */
 char clocknow[MAXLILE+1]="none";  // BEAM1/2 REF LOCAL
 char shiftnow[MAXLILE+1]="none";  // halfsecs corde_val
-#define REF_MASK 0xc0
 char qpllnow[MAXLILE+1]="none";  // T1122RRMM hexa (qpllstat binary)
 // T: TTCrx ready   i.e. 1 ok
 // BC1/2/Ref/main:  Error Locked, i.e. 01 ok
