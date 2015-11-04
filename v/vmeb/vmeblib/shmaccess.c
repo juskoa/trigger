@@ -26,11 +26,11 @@ rc:  pointer to shared memory or
      - size==0 and shared memory was not allocated
 Typical usage:
 Master: shmbase= mallocShared(IDKEY, size, &segid)
-        freeShared(shmbase, segid)  -remove it from the system
+        freeShared(shmbase, segid)  -remove it from the system ONLY MASTER!
 Client:
         #include <sys/shm.h>
         mallocShared(IDKEY, 0, &segid)
-        shmdt(shmbase);   -release (not used by client more)
+        detachShared(shmbase);   -release (not used by client more)
 */
 void *mallocShared(w32 shmkey, int size, int *segid) {
 int segment_id, segment_size, created=0;
@@ -84,7 +84,7 @@ RET: fflush(stdout); return((void *)shared_memory);
 int freeShared(void *shmbase, int shmsegid) {
 int rc;
 /* Detach the shared memory segment.  */
-shmdt(shmbase);
+shmdt(shmbase); shmbase= NULL;
 rc= shmctl(shmsegid, IPC_RMID, 0);
 printf("INFO rc.shmctl(IPC_RMID):%d\n", rc);
 if( rc != 0) {
@@ -93,7 +93,7 @@ if( rc != 0) {
 return(rc);
 }
 void detachShared(void *shmbase) {
-shmdt(shmbase);
+shmdt(shmbase); shmbase= NULL;
 }
 /*
 w32 getcnt1(int cntix) {

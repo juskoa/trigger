@@ -135,7 +135,11 @@ void CTP::getboard(string const &line)
     int l0ver = bb->getFPGAversion();
     printf("L0 board version: 0x%x \n",l0ver);
     delete bb;
-    if(l0ver < 0xc0) l0 = new L0BOARD1(vspctp);
+    //if(l0ver < 0xc0) l0 = new L0BOARD1(vspctp);
+    if(l0ver < 0xc0){
+      printf("Unexpected version of L0 board \n");
+      exit(1);
+    }
     else l0=new L0BOARD2(vspctp);
     vspctp=l0->getvsp();
     boards.push_back(l0);    

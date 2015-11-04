@@ -237,6 +237,11 @@ return(rc);
 }
 
 /*------------------------------------------------ preparepcfg()
+ACT_CONFIG:
+"NO" or "YES"  -act download no/yes
+"ABORT"        -abandon this partition (pydim keeps the definition), i.e. in
+                 -pydimserver.py:  pts[]
+                 -pydim/server.c:  insver
 */
 void preparepcfg(char *partname, int runnumber, char *ACT_CONFIG) {
 int rcdic;
@@ -245,6 +250,8 @@ char dimcom[40];
 char msg[500];
 if(strcmp(ACT_CONFIG,"NO")==0) {
   sprintf(cmd,"Ncfg %s %d\n", partname, runnumber);
+} else if(strcmp(ACT_CONFIG,"ABORT")==0) {
+  sprintf(cmd,"Acfg %s %d\n", partname, runnumber);
 } else {
   sprintf(cmd,"pcfg %s %d\n", partname, runnumber);
 };
@@ -406,13 +413,13 @@ if((ixhw>=ixl0fun1) && (ixhw<=ixl0fun4) ) { // for l0f1..4 we need more than VAL
       symsrc= &prbif->l0intfs[(icheck-ixl0fun1)*L0INTFSMAX];  // symb. def.
       dst= &cumrbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];  // global
       dst2= &prbif->l0intfs[(ixhw-ixl0fun1)*L0INTFSMAX];   //in partition
-      strcpy(dst2, symsrc);
+      strncpy(dst2, symsrc, L0INTFSMAX);
       strcpy(dst, symsrc);
 
       src= &prbif->lut8[(icheck-ixl0fun1)*LUT8_LEN];   // VALUE
       dst= &cumrbif->lut8[(ixhw-ixl0fun1)*LUT8_LEN];
       dst2= &prbif->lut8[(ixhw-ixl0fun1)*LUT8_LEN];
-      strcpy(dst2, src);  // ???
+      strncpy(dst2, src, LUT8_LEN);  // ???
   };
   strcpy(dst, src);   // copy symb. definition l0f1/2/3/4
   sprintf(msg,"allocateInhw l0f:%d in %d:%s:%s",icheck,ixhw,symsrc, dst); 
@@ -2771,11 +2778,13 @@ if(rc!=0) {
 };
 //printHardware(&HW,"ctp_InitPartition");
 copyHardware(&HW,&HWold); // discard 'addPartitions2HW(AllPartitions)' actions:
-RET2:
+RETX:
 infolog_SetStream("",0);
 sprintf(msg, "timestamp:ctp_InitPartition finished %s %d", name, run_number);
 prtLog(msg);
 return rc;
+RET2:
+preparepcfg(name2, run_number, "ABORT"); goto RETX;
 }
 /*---------------------------------------------ctp_StartPartition()
 Return : 0 ok

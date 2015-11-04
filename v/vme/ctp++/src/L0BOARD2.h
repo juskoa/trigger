@@ -6,6 +6,7 @@ class L0BOARD2: public L0BOARD
 {
  public:
 	L0BOARD2(int vsp);
+	~L0BOARD2();
 	void setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask); // obsolete
 	void setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare=1,w32 pf=0xf);
 	void setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask,w32 alrare=1,w32 pf=0xf);
@@ -46,6 +47,7 @@ class L0BOARD2: public L0BOARD
         int ddr3_write(w32 ddr3_ad, w32 *mem_ad, int nws);
 	int ddr3_ssmread();
 	void ddr3_ssmstart(int sec);
+        void SetSSM1(w32 *ssm){ssm1=ssm;};
 	//
 	int DumpSSM(const char *name,int issm);
 	int DumpSSMLM(const char *name);
@@ -54,6 +56,7 @@ class L0BOARD2: public L0BOARD
 	void readBCMASKS();
 	void writeBCMASKS(w32* pat);
         int getOrbits();
+        deque<IRDda>& getIRs(){return irs;}
 	enum {NCLASS=100};
  private:
 	enum{DDR3_TO=30, DDR3_BLKL=16, 
@@ -87,5 +90,6 @@ class L0BOARD2: public L0BOARD
 	 w32 const L0_FUNCTION;
 	 // Configuration
 	 w32 lmcond[NCLASS], lmveto[NCLASS],l0cond[NCLASS],l0veto[NCLASS];
+	 deque<IRDda> irs;
 };
 #endif
