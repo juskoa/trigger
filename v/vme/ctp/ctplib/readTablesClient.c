@@ -48,6 +48,8 @@ Tsimplepars simplepars[MAXSIMPLEPARS]= {
 {"L0_INTERACTSEL", L0_INTERACTSEL}, 
 {"LM_INTERACTSEL", LM_INTERACTSEL},  
 {"INT_DDL_EMU", INT_DDL_EMU},
+{"INT_MASK_1_24", INT_MASK_FOR_INPUTS_1_24},
+{"INT_MASK_25_48", INT_MASK_FOR_INPUTS_1_24+4},
 {"", 0}
 };
 /*-------------------------*/ int setSimplePar(char *parval, char *parname) {
@@ -111,6 +113,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   //printf("Decoding line:%s:\n",line);
   if(line[0]=='#') continue;
   if(line[0]=='\n') continue;
+  //if(line[strlen(line)-1]=='\n') line[strlen(line)-1]='0'; 
   ix=0; token= nxtoken(line, value, &ix);
   if(token!=tSYMNAME) {
     strcpy(emsg,"Symbolic name expected first"); goto ERRlineignore; };
@@ -263,8 +266,14 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   };
   /*------- Simple parameters, i.e. 'parname value' without the check: */
   rc= setSimplePar(&line[ix], parname);
-  if(rc==0) continue;   // parname found (in simplepars) and set
-  if(rc>1) goto ERRfatal;   // parname found, error
+  if(rc==0) {           // parname found (in simplepars) and set
+    //printf("INFO %s: %s\n", parname, &line[ix]);
+    continue;
+  };
+  if(rc>1) {                // parname found, error
+    sprintf(emsg, "Error in ctp.cfg when processing %s\n", parname);
+    goto ERRfatal;
+  };
   //rc==1:                       parname not found in simplepars[] table
   /*-------------------------------- parameters which can be checked: */
   if(strcmp(parname,"FO_DELAY_L1CLST")==0) {

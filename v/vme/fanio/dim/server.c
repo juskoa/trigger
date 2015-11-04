@@ -117,7 +117,7 @@ msg->ed=ed; msg->busy=busy;
 rc= vmeopen(base, "0x200");
 if(rc!=0) { printf("vmeopen rc:%d base:%s\n", rc, base); return; };
 ed= vmer32(BUSY_MASK); busy= vmer32(READ_INPUTS);
-printf("HW_getmask: %s ed:0x%x busy:0x%x\n", base, ed, busy);
+//printf("HW_getmask: %s ed:0x%x busy:0x%x\n", base, ed, busy);
 msg->ed=ed; msg->busy=busy;
 rc= vmeclose();
 #endif
@@ -172,14 +172,13 @@ fflush(stdout);
 
 /*----------*/ void get_oc(void *tag,  void **msgv, int *size, int *blabla) {
 Tstatusmsg **msg= (Tstatusmsg **)msgv;
-printf("get_oc: tag:%d\n", *(int *)tag);
+//printf("get_oc: tag:%d\n", *(int *)tag);
 int itag; itag= *(int *)tag;
-printf("get_oc: tag:%d det:%s\n", itag, fanis[itag].name);
+//printf("get_oc: tag:%d det:%s\n", itag, fanis[itag].name);
 *msg= &statusmsg;
 *size= sizeof(statusmsg);
 HW_getmask(fanis[itag].base, *msg);
-printf("get_oc: ed:0x%x busy:0x%x size:%d\n", (*msg)->ed, (*msg)->busy, *size);
-fflush(stdout);
+//printf("get_oc: ed:0x%x busy:0x%x size:%d\n", (*msg)->ed, (*msg)->busy, *size); fflush(stdout);
 }
 
 int main()  {

@@ -32,7 +32,7 @@ w32 findDeadBusys(w32 detpat) {
 int cix;
 w32 mem1[BYTIMERSCOUNTN];   // place for 24 byin* timers[0..23] +bytime counter[39/43]
 w32 mem2[BYTIMERSCOUNTN];
-char ltus[200];
+//char ltus[200];
 int rc;
 w32 ms100, busys=0;
 rc= getBUSYtimerscounters(mem1); usleep(100000);

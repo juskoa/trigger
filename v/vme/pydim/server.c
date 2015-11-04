@@ -465,9 +465,11 @@ char mymsg[400];
 int stdoutyes=1;
 strncpy(mymsg, (char *)msg, 400); 
 mymsg[398]='\n'; mymsg[399]='\0';   // force \n (if not given)
-if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
+if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
+    (strncmp(mymsg,"Acfg ",5)==0) ) {
 /* pcfg RUNNUMBER partname    -try ACT download (ECS INIT)
    Ncfg RUNNUMBER partname    -NO ACT, change: Ncfg -> pcfg
+   Acfg RUNNUMBER partname    - abort
    \n               -stop this server
    rcfgdel useDAQLOGBOOK
    rcfgdel ignoreDAQLOGBOOK
@@ -529,20 +531,25 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0)) {
       sprintf(emsg,"actdb_getPartition(%s) run:%d rc:%d (-2: partition not available in ACT)", pname,rundec,rc); 
       infoerr=LOG_ERROR;
     };
+  } else if(mymsg[0]=='A') {
+    //printf("INFO Acfg %s %d\n", pname, rundec);
+    del_insver(rundec);
   } else {   // Ncfg runnumber partname
     sprintf(emsg,"INFO %s (run:%d) not searched in ACT (ECS:ACT_CONFIG=NO)", 
       pname, rundec); 
     infoerr=LOG_INFO;
     mymsg[0]= 'p';
   };
-  //prtLog(emsg);
-  //myprtLog(emsg);
-  infolog_trgboth(infoerr, emsg);
-  rc= add_insver(rundec, pname, instname, version);
-  if(rc==-1) {
-    sprintf(emsg,"run:%d, instance/ver will not be stored in ACT", rundec);
-    infolog_trg(LOG_FATAL, emsg);
-    printf("ERROR %s", emsg);
+  if(mymsg[0]=='p') {
+    //prtLog(emsg);
+    //myprtLog(emsg);
+    infolog_trgboth(infoerr, emsg);
+    rc= add_insver(rundec, pname, instname, version);
+    if(rc==-1) {
+      sprintf(emsg,"run:%d, instance/ver will not be stored in ACT", rundec);
+      infolog_trg(LOG_FATAL, emsg);
+      printf("ERROR %s", emsg);
+    };
   };
   infolog_SetStream("",0);
 /*---- moved to .rcfg time

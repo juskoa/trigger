@@ -947,7 +947,7 @@ int loadTPClikePF2HW(TPastFut* pf,int jpf,w32 int1,w32 int2,w32 bcmask)
  w32 scale=0;
  w32 pB=pf->PeriodBefore;
  if(pB <= 1){
-  printf("loadPF2HW: internal error PeriodBefore %i\n",dT);
+  printf("loadPF2HW: internal error PeriodBefore %i\n",pB);
   return 1;
  }
  else if (pB <513) dT=pB-1;

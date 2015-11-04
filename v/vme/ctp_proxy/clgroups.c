@@ -200,7 +200,7 @@ clgroup= nextclassgroup(part);
 if(clgroup > 0) {
   int waitcr;
   w32 usecs, s1,s2,us1,us2;
-  char msg[200];
+  //char msg[200];
   setPartDAQBusy(part, 0); // disable triggers
   // following has to be here (see DOC/devdbg/TimeSharing)
   GetMicSec(&s1,&us1);
