@@ -1,6 +1,9 @@
 # backup
 *~
 .*.swo
+# misc
+*.bit
+*.bin
 
 # python
 *.py[co]
