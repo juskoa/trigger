@@ -740,7 +740,7 @@ for(int ipf=0; ipf<NPF; ipf++) {
     printf("checkPFS : PF%i found: %s %s \n",ipf+1,pf->name,cumpf->name);
   }else{
   // PF not in cum, add it
-    if(cumrbif->BCMASKuse[cumpf->bcmask]==0){
+    if(cumpf->bcmask && (cumrbif->BCMASKuse[cumpf->bcmask-1]==0)){
       printf("checkPFS: BCmask used in PF not in config ? \n");
       return 2;
     }

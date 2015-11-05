@@ -148,3 +148,22 @@ is a conflict.
 => validate to be updated
 - loading PF to HW code from load2HW() moved to subroutine loadPF2HW() so more readable
 and only loadPF2HW() in pfp.c to be modified from now for L1/L2 PFs.
+
+6.10.15
+L1/L2 development:
+1.) 
+INTa=INT1
+INTb=INT2
+Delayed INT never used
+to be set in PFCOMMON during init and never changed during PF seting.
+done in ctplib/initCTP.c
+In that way it is compatible with L0 board
+2.)
+PFLUT allows to choose for every PF citcuit:
+INT1,INT2 (NOT INT12)
+
+1.11.15
+TPC like PF classes programming:
+- LM/L0 level like spd 
+- L1/L2 level - classes are already ok in pcfg - no reporgramming needed (like checkmod)
+-- see isPFdefined in parted

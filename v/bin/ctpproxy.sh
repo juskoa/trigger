@@ -23,6 +23,7 @@ function startproxy() {
     # for gdb:
     # gdb $VMECFDIR/ctp_proxy/linux/ctp_proxy
     #set args TRIGGER::CTP NODAQLOGBOOK NODAQRO
+    #valgrind -v --leak-check=full --max-stackframe=3000000 --show-reachable=yes $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
     $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
     #echo "ctp_proxy rc:$? is 0 always (in case ctp_proxy does not exist)"
     pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
