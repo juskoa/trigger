@@ -2,15 +2,8 @@
 # 2.2.2012 and 20.1.2013 (DLL_RESYNC removed):
 # look for #CJI -Clock Jitter Invetsigation modifications (no DLL_RESYNC)
 #
-# This should run all the time:
-# - follows BEAM MODES (from ctpdim CTPDIM/BEAMMODE
-#   - changes clock (in auto mode) TTCMI/MICLOCK_SET
-#   - set $dbctp/clockshift (file change)
-#   - set corde delay at the end of FLAT TOP(CORDE reg changed) TTCMI/CORDE_SET
-#   - calculate new VALID.BCMASK (at the start of FLAT TOP?)
-# - follows user input (in man or in auto mode)
-#   - clock change
 # 26.4.2015 CTPDIM/BEAMMODE replaced by ALICEDAQ_LHCBeamMode (100chars)
+#  5.11.2015 DLL RESET enabled (2x: in checkandsave + SQUEEZE)
 import sys,os,os.path,string,pylog
 import signal,time,popen2,threading
 
@@ -203,8 +196,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
     mylog.logm("DLL_RESYNC not done (force option).")
   else:
     arg=("none",)
-    #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-    mylog.logm("DLL_RESYNC not started...")   # CJI
+    res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+    #mylog.logm("DLL_RESYNC not started...")   # CJI
 def checkShift():
   cshift= getShift()
   mylog.logm("checkShift: after 10 secs:"+ cshift)
@@ -268,9 +261,8 @@ def callback_bm(ecsbm):
         t.start()
       else:
         arg=("none",)
-        #res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-        #mylog.logm("DLL_RESYNC after clock shift started...")
-        mylog.logm("DLL_RESYNC after clock shift NOT started...")   # CJI
+        res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+        #mylog.logm("DLL_RESYNC after clock shift NOT started...")   # CJI
     mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP_NOSCOPE":   # never do this (no scope)
       if os.environ['VMESITE']=='ALICE':

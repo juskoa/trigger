@@ -237,8 +237,9 @@ while(clocktran>=0) {
       char cmd[]="$VMECFDIR/ttcmidaemons/sctel.py MININF";
       DLL_RESYNC(DLL_info); // commented 19092014
       //printf("DLL_RESYNC + clearing the scope persistance\n");
-      rc= system(cmd);   commented 19092014 */
-      printf("DLL_RESYNC + MININF not done!\n");
+      rc= system(cmd);   commented 19092014
+      printf("DLL_RESYNC + MININF not done!\n"); */
+      DLL_RESYNC(DLL_info);
     } else {
       setbcorbit(*(int *)tag); 
       nclients= dis_update_service(MICLOCKid);
