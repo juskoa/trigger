@@ -935,6 +935,8 @@ return 5 integers in 1 line corresponding to clcock phase on L0/1/2 BUSY INT
 38 113 117 123 126   -with LM0 board in altri1 crate, also in P2
 114 114 116 120 123  -with L0  board in altri2 crate
 
+6.11.2015: readadc_s renamed to read_adc_orig (not used from now)
+new readadc_s: adc read 10x, print all 10 values, return last value read.
 */
 void checkPhasesPrint();
 /* Find out toggling FO connectors.

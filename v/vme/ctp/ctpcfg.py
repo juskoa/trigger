@@ -90,6 +90,7 @@ vbexec= myw.vbexec
 l0abtxt= vbexec.get2("l0AB()")
 Gl0AB= int(l0abtxt[0])
 l0c0txt= vbexec.get2("l0C0()")
+print "l0AB():", l0abtxt, " l0C0():", l0c0txt
 Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
 if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0

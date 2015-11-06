@@ -35,7 +35,7 @@ int readadc(int board) {
 /* FGROUP ADCtools
 Reads ADC using readadc and checking that two subsequent values are the same.
 */
-int readadc_s(int board)
+int readadc_s_orig(int board)
 {
  int value0,value1,i=0;
  value0=readadc(board);
@@ -49,6 +49,34 @@ int readadc_s(int board)
  /*printf("i=%i value=%i \n",i,value0);*/   
  if(i>=stable) return -3;    
  return value1;
+} 
+/* FGROUP ADCtools
+Reads ADC using readadc:
+- read 10x (stable)
+- print all values read
+- checking that last two values are the same.
+rc: -2: error in readadc
+    -3: last 2 values not the same
+    >0: last value read
+*/
+int readadc_s(int board)
+{
+ int rc,value0,value1,ix=0; char line[100]="";
+ value0=readadc(board);
+ //return value0;
+ if(value0 == -1) return -1;
+ sprintf(line, "Board %d adcs:%d", board, value0);
+ for(ix=0; ix<stable; ix++) {
+   value1=readadc(board);
+   sprintf(line, "%s %d", line, value1);
+   if(value1 == -1) {rc= -2; break;};
+   //if(value1 != value0) {rc= -3; } else { rc= value1; };
+   rc= value1;
+   value0=value1;
+ };
+ /*printf("i=%i value=%i \n",i,value0);*/   
+ printf("%s.\n", line);
+ return rc;
 } 
 int phaseLx(int board){
  w32 offset,value;
@@ -118,7 +146,7 @@ void checkPhases(char *line){
 }
 void checkPhasesPrint(){
 char line[80];
-checkPhases(line); printf("%s\n",line);
+checkPhases(line); printf("L0 L1 L2 BUSY INT: %s\n",line);
 }
 void resetPLLS(){
  int i;
