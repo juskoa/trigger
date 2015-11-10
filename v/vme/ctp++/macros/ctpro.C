@@ -23,10 +23,11 @@ void INTBread(CTP* ctp)
  intb->getCTPReadOutList();
  intb->printReadOutList();
  intb->printIRList();
- l2->ReadSSM();
- //l2->ssmtools.dumpSSM("l2board");
- l2->L2DataBackplane();
- l2->printL2DataBackplane();
+ intb->checkIR2L2a();
+ //l2->ReadSSM();
+ /////l2->ssmtools.dumpSSM("l2board");
+ //l2->L2DataBackplane();
+ //l2->printL2DataBackplane();
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;
 }
 int main(){
