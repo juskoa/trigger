@@ -28,7 +28,7 @@ CTP::~CTP(){
          }
  cout<< "~CTP: " << boards.size() << endl;
 }
-int CTP::readBCStatus(int n)
+int CTP::readBCStatus(int n, w32 delta)
 {
  int ret=0;
  printf("#boards %i \n",boards.size());
@@ -48,7 +48,7 @@ int CTP::readBCStatus(int n)
      bcstatus=bcstatus & 0x3; // why ltu stat can be > 3 ?
      bcstat[j][bcstatus]++;
      j++;
-     usleep(5);
+     if(delta)usleep(delta);
    }
   }
   int j=0;

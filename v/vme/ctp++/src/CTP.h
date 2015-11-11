@@ -37,7 +37,7 @@ class CTP
 	 int startSWtrigger(char triggertype,w32 lm);
 	 void clearSWTriggerFlags(){l0->setTCCLEAR();l1->setTCCLEAR();l2->setTCCLEAR();};
 	 int readCFG(string const &name);
-	 int readBCStatus(int n);
+	 int readBCStatus(int n,w32 delta);
 	 int readCounters();
 	 void printCounters();
 	 list<BOARD*> boards;
