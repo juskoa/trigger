@@ -48,6 +48,7 @@ int CTP::readBCStatus(int n)
      bcstatus=bcstatus & 0x3; // why ltu stat can be > 3 ?
      bcstat[j][bcstatus]++;
      j++;
+     usleep(5);
    }
   }
   int j=0;

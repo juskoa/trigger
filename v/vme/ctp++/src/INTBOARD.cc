@@ -45,18 +45,43 @@ void INTBOARD::printReadOutList()
  //printf("CTP: %7i %4i 0x%3x %8i 0x%2x 0x%13llx  %1i  %1i  %1i\n",qctpro[i].issm,qctpro[i].bcid,qctpro[i].bcid,qctpro[i].orbit,qctpro[i].l2clusters,qctpro[i].l2classes1,qctpro[i].esr,qctpro[i].clt,qctpro[i].swc);
  }
 }
+/*
+int INTBOARD::checkIR2L2a()
+{
+ w32 ir=0,l2a=0;
+ for(w32 i=0;i<qctpro.size();i++){
+    w32 flag=1;
+    l2a++;
+    for(w32 j=0;j<qirda.size();j++){
+     if(qirda[j].orbit == qctpro[i].orbit){
+       // assuming ir has to be first
+       if(qirda[j].bc[0] == qctpro[i].bcid){
+        ir++;
+        flag=0;
+        break;
+       }
+     }
+    }
+    if(flag){
+     printf("Orbit/bcid  0x%x found in L2a but not in IR \n",qctpro[i].orbit);
+    }
+ }
+ printf("check IRs versus L2 on INT board: l2a: %i; found in IR: %i \n",l2a,ir);
+ return 0;
+}
+*/
 int INTBOARD::checkIR2L2a()
 {
  w32 ir=0,l2a=0;
  for(w32 i=0;i<qirda.size();i++){
     if(qirda[i].Inter[0] == 0) continue;
-    l2a++;
+    ir++;
     w32 flag=1;
     for(w32 j=0;j<qctpro.size();j++){
      if(qirda[i].orbit == qctpro[j].orbit){
        // assuming ir has to be first
        if(qirda[i].bc[0] == qctpro[j].bcid){
-        ir++;
+        l2a++;
         flag=0;
         break;
        }
