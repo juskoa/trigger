@@ -17,16 +17,17 @@ def getlumi():
   import pydim
   rc=None
   try:
-    #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
+    #Enabled 13.11.2015 and changed 1.0E30 -> 1.0E27 for HI run
+    rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
+    #rclumi= None
     # next line invokes 'TypeError: argument list must be a tuple' stdout line
     # when dim service not available.
     #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", "F", 2)
-    rclumi= None
     if rclumi!=None:
       lumidim= rclumi[3]
       if lumidim>1.0:
         lumi_source= "dim"
-        lumi=lumidim/1.0E30   # hz/ub
+        lumi=lumidim/1.0E27    # hz/ub (was 1.E30 before 13.11.2015)
       else:
         lumi_source= "default"
         lumi= DEFLUMI
