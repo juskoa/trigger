@@ -563,6 +563,7 @@ int L0BOARD2::getOrbits()
  w32 orbitc=0xf;
  w32 ocountc=0;
  bool deb=1;
+ w32 orbitsiglength=0;
  //
  for(int i=0;i<Mega;i++){
   // Input checker - calculate IR
@@ -620,15 +621,16 @@ int L0BOARD2::getOrbits()
   }else{
    //if(ocountc==39) continue;
    if((ocountc==37) || (ocountc == 39)){
+     orbitsiglength=ocountc;
      ocountc++;
      continue;
    }
-   if(((ocountc != 3563)||(ocountc != 3563) )&& (i>3564)){
+   if((ocountc != 3563) && (i>3564)){
      printf("Orbit error: ");
      printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
      return 1;
    }
-   if(deb)printf("Orbit at channel 0 issm=%i Orbit length=%i\n",i,ocountc);
+   if(deb)printf("Orbit at channel 0 issm=%i Orbit length=%i Irbit signal length=%i \n",i,ocountc,orbitsiglength);
    orbitssm=i;
    ocountc=0;
    continue;
