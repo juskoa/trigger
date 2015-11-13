@@ -293,9 +293,11 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 #define MASK_CLEARADD  0x91e8   /*dummy wr. clear mask mem. add */
 #define MASK_MODEr2    0x91ec /* LM0: BCMask memory mode 1:vme 0:normal */
 #define L0_BCOFFSETr2  0x91f0 /* BC/Orbit offset data */
+/* 1..0: enable RND2, RND1 clear In firmware called:  ENABLE_CLEAR
+3: sync mode   1:desync mode of both generators */
 #define L0_ENA_CRNDlm0 0x9200 
-#define ORBIT_OFFSET 0x3dc
-/* 1..0: enable RND2, RND1 clear In firmware called:  ENABLE_CLEAR */
+#define ORBIT_OFFSET   0x93dc  // should be set correctly for DDL2/DDL1
+// orbit synced, see ctp++/findLMOrbitOff.e
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */
 #define DAQ_LEDlm0     0x9234
@@ -614,11 +616,11 @@ typedef struct{
 Tctpboards ctpboards[NCTPBOARDS]={
   /* name code dial vmever    boardver serial lastboardver 
      #of_counters memoryshift-(see readCounters) */
-  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xaa,NCOUNTERS_BUSY, CSTART_BUSY},
-  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc60a,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
+  {"busy",0x54, 8,NOTINCRATE,0,0xff,0xab,NCOUNTERS_BUSY, CSTART_BUSY},
+  {"l0",  0x50, 9,NOTINCRATE,0,0xff,0xc707,NCOUNTERS_L0+NCOUNT200_L0, CSTART_L0},
   {"l1",  0x51,10,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L1, CSTART_L1},
   {"l2",  0x52,11,NOTINCRATE,0,0xff,0xa9,NCOUNTERS_L2, CSTART_L2},
-  {"int", 0x55,12,NOTINCRATE,0,0xff,0xae,NCOUNTERS_INT, CSTART_INT},
+  {"int", 0x55,12,NOTINCRATE,0,0xff,0xaf,NCOUNTERS_INT, CSTART_INT},
   {"fo1", 0x53, 1,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO},  /* FO dials: 0-5 */
   {"fo2", 0x53, 2,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 1*NCOUNTERS_FO},
   {"fo3", 0x53, 3,NOTINCRATE,0,0xff,0xb4,NCOUNTERS_FO, CSTART_FO+ 2*NCOUNTERS_FO},

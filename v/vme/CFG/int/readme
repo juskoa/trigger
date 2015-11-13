@@ -30,3 +30,9 @@ another AC version word4/bit12 is run2-flag, ctp readout is ok now
 AD timing introduced
 5.3.2015
 AE: orbit synchronisation now takes into account 2bit longer L2data (cluster[7..8] bits)
+11.11.2015
+verze AE->AF, podle dulezitosti):
+ - pridan signal PLL locked do SCOPE_A
+ - opravena perioda LHC hodin na vstupu PLL (25 ns -> 24.95 ns)
+ - vylepsene casovani (SCOPE a CTP_BUSY)
+

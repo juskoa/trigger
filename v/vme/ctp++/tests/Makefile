@@ -1,4 +1,4 @@
-FILE          = parse
+FILE          = test
 
 CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -I$(VMEBDIR)/../vme/ctp++/src

@@ -64,8 +64,10 @@ stdout: message about the number of bytes (and possible errors) written
 void loadBCmasks(w16 *bcmasks) {
 int ix;
 //int bcmoffset=ORBITLENGTH-BCM_SHIFT;
-int bcm_shift=ORBITLENGTH-vmer32(LM_L0_TIME)-3;
+//int bcm_shift=ORBITLENGTH-vmer32(LM_L0_TIME)-3;
+int bcm_shift=ORBITLENGTH-vmer32(LM_L0_TIME)-3-vmer32(L0_BCOFFSETr2);
 int bcmoffset=ORBITLENGTH-bcm_shift;
+// see also last version of ctp_time_run2 na twiki
 /* abandoned (not char * but w16 *)
 int hchars, strl;
 if(l0AB()==0) {   //firmAC

@@ -22,4 +22,13 @@ Treba otestovat aj Snapshot memory, najlepsie na vsetkych doskach.
 Pri kompilacii som na niektorych doskach dostal hlasenie, ze nevie umiestnit logiku do miest kde je to specifikovane.
 10.2.2014
 AA timing introduced
+11.11.2015
+verze AA->AB, podle dulezitosti):
+ - oprava CTP_BUSY (odebrani registru, aby bylo mozne linku pouzivat pro
+mereni faze na INT desce)
+ - vylepsene casovani (SCOPE a CTP_BUSY)
+ - opravena perioda LHC hodin na vstupu PLL (25 ns -> 24.95 ns)
+ - generalizace bloku akumulatoru (funkcnost zustava identicka, kod je
+trochu prehlednejsi)
+ - opravy preklepu v komentarich, sem tam oprava formatovani kodu
 

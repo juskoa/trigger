@@ -313,7 +313,7 @@ class ABsig:
     ["in_busy24","31"]],
     "intA":[
     ["pll_bc","0"], ["orbit","1"], ["vme_clock","2"], ["Strobe&Write","3"],
-    ["Strobe&!Write","4"], ["GND","5"], ["L2str in+60bitInpData","6"], ["int1","7"],
+    ["Strobe&!Write","4"], ["PLL-LOCKED","5"], ["L2str in+60bitInpData","6"], ["int1","7"],
     ["int2","8"], ["L1strobe in+48InpData","9"], ["L1data in","10"], ["L2str(25ns)","11"],
     ["fiBEN_N (DDL bus enable)","12"], ["fiDIR (DDL Direction)","13"], 
     ["ifiLF_N (DDL Link full)","14"], ["DDL L2a seq.","15"],

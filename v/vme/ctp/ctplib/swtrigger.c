@@ -138,18 +138,37 @@ switch(trigtype){
        //printf("setswtrig: asynchr trigger 0x%x \n",word);
        break;
   case 's':
-       word=word+(1<<12)+BC;
+       {
+       //word=word+(1<<12)+BC;
+       int mybc=BC-vmer32(L0_BCOFFSETr2);
+       if(mybc<0) BC=mybc+3564; else BC=mybc; 
+       word=word+(1<<12)+BC;  // from 12.11.2015 (c707)
        //printf("setswtrig: synchr trigger 0x%x \n",word);
        break;
+       }
   case 'c':
     if(BC==0xfff) { 
       BC= getCALIBBC2(ctprodets);
     };
+    {
     //BC= BC - 97;   // CALIB_BC: 3011 ORBIT_BC: 91
-    BC= BC - 2;   // CALIB_BC: 3011 ORBIT_BC: 3560
+    //BC= BC - 2;   // CALIB_BC: 3011 ORBIT_BC: 3560
+    int mybc = BC - 2 - vmer32(L0_BCOFFSETr2); // from 12.11.2015 (c707) 
+    /* BC-2: 
+     software trigger in 3011 gives BCID: 3008
+     calib.   trigger in 3011 gives BCID: 3006
+     We do not know why we program BC-2 for cal. trigger (but it was programmed
+     this way before c707)
+     Before c707: SOD (sync trigger), generated in BC 1750 was seen in DAQ in BC
+     1762 -this is very likely for TRD-run, when BCID is higher by 15, i.e.
+     1750 + 15 -3 = 1762).
+    */
+    if(mybc<0) BC=mybc+3564; else BC=mybc;
+    BC=BC%3564; 
     word=word+(1<<12)+(1<<13)+BC;
     INTtcset= INTtcset | 1;
     //printf("setswtrig: calib trigger 0x%x \n",word);
+    }
     break;
   default:
     printf("Error: setswtrig: unknown type of trigger %c \n",trigtype);
