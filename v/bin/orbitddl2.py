@@ -96,6 +96,8 @@ def main():
   if len(sys.argv) < 2:
     print """
 Usage:
+logs are in $VMEWORKDIR/WORK
+
 orbitddl2.py run 
 expects
 -INT1 or INT2 to be defined via input 3
@@ -103,9 +105,15 @@ expects
 takes 
 -l0 and int ssm
 -compares l0 and int IR to find orbit offsets
+
 orbitddl2.py anal 
 - reads orbitddl2.log in WORK dir
 - parses measured offset
+
+
+orbitddl2.py anaset
+- runs anal()
+- sets measured offset to hw
 """
     rc=8
   else:
