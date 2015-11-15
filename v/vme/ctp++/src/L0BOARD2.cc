@@ -16,7 +16,8 @@ L0BOARD2::L0BOARD2(int vsp)
         LM_CONDITION(0xa00),
         LM_INVERT(0xc00),
 	LM_VETO(0xe00),
-	LM_FUNCTION(4*0x9d),L0_FUNCTION(4*0x85)
+	LM_FUNCTION(4*0x9d),L0_FUNCTION(4*0x85),
+	ORBIT_OFFSET(0x3dc),BCOFFSET(0x1f0)
 {
 }
 L0BOARD2::~L0BOARD2()
@@ -564,15 +565,25 @@ int L0BOARD2::getOrbits()
  w32 ocountc=0;
  bool deb=1;
  w32 orbitsiglength=0;
+ w32 bcid=0;
  //
  for(int i=0;i<Mega;i++){
-  // Input checker - calculate IR
+  // BCid from number  
+  bcid=0;
+  for(int j=4;j<16;j++){
+   w32 mask=1<<(j);
+   bcid+=((ssm7[i]&mask)==mask)<<(j-4);
+  }
+  //if(deb)printf("BCid from number: 0x%x \n",bcid);
+  // Input checker - calculate IR at L0 board
   if(ssm3[i]&(1<<22)){
    irda.Inter[nint]=1;
    // treba niekde pridat orbit
    irda.bc[nint]=(i-orbitssm+11)%3564;
+   if(deb){
+      printf("Input 3: issm=%i bcidfromssm: 0x%x bcidfromnumber: 0x%x \n",i,irda.bc[nint],bcid);
+   }
    nint++;
-   if(deb)printf("Input 3: %i \n",i);
   }
   // Orbit from number
   if(ssm6){

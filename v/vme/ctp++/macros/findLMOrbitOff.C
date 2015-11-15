@@ -60,20 +60,24 @@ int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir)
      if(deltaold==0xffffffff)deltaold=delta;
      else{
        if(delta != deltaold){
-         printf("findOrbit2 error: deltas not equal \n");
+         printf("findOrbit2 error: ERROR:deltas not equal \n");
          return 1;
        }
      }
      break;
    }
  }
- printf("delta: 0x%x\n",deltaold);  
+ printf("DELTA: 0x%x\n",deltaold);  
  return 0;
 } 
-int INTBread(CTP* ctp)
+int INTBread(CTP* ctp, int what,w32 del, w32 off)
 {
  INTBOARD *intb=ctp->inter;
  L0BOARD2* l0=ctp->l0;
+ switch(what)
+ {
+ case 1:
+ {
  intb->StopSSM();
  if(intb->SetMode("ddldat",'a')) return 1;
  cout << "Starting INT ddldat ssm" << endl;
@@ -92,13 +96,37 @@ int INTBread(CTP* ctp)
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;
  // LM
  l0->ddr3_ssmread();
- if(l0->getOrbits()) return 1;
- findOffset2(intb->getIRs(),l0->getIRs());
+ if(l0->getOrbits()){ 
+   printf("ERROR in getting orbit \n");
+   return 1;
+ }
+ if(findOffset2(intb->getIRs(),l0->getIRs())) return 1;
+ printf("OFFSET: 0x%x\n",l0->getOrbitOffset());
  return 0;
+ }
+ case 2:
+ {
+  //w32 offset=(del+off-1)%0xffffff;
+  w32 offset=(del+off)%0xffffff;
+  l0->setOrbitOffset(offset);
+  return 0;
+ }
+ default:
+  return 0;
+ }
 }
-int main(){
+int main(int argc,char **argv){
  CTP ctp;
- INTBread(&ctp);
+ if(argc==1)
+ {
+  INTBread(&ctp,1,0,0);
+ }else if(argc==3){
+  w32 del=atoi(argv[1]);
+  w32 off=atoi(argv[2]);
+  INTBread(&ctp,2,del,off);
+ }else{
+  printf("Expecting 0 or 2 arguments \n");
+ }
  return 0;
 }
  

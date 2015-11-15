@@ -23,11 +23,15 @@ class L0BOARD2: public L0BOARD
         void writeFunction(int i,w32 word);
         void setFunction(int ifun,bool* mask);
  	int calcLUT(string& fun,bool* mask);
+	void setOrbitOffset(w32 off){vmew(ORBIT_OFFSET,off);};
+	void setBCOffset(w32 off){vmew(BCOFFSET,off);};
 	w32 getBC1(){return vmer(SCALED_1);};
 	w32 getBC2(){return vmer(SCALED_2);};
 	w32 getTCSTATUS(){return vmer(TCSTATUS);};
 	w32 getL0rqst(){return (vmer(TCSTATUS)&0x4)/0x4;};
 	w32 getl0ackn(){return (vmer(TCSTATUS)&0x8)/0x8;};
+        w32 getOrbitOffset(){return vmer(ORBIT_OFFSET);};
+	w32 getBCOffset(){return vmer(BCOFFSET);};
 	// lm level
 	void configL0classesonly();
 	void printClass(w32 i);
@@ -88,6 +92,8 @@ class L0BOARD2: public L0BOARD
 	 w32 const LM_VETO;
 	 w32 const LM_FUNCTION;
 	 w32 const L0_FUNCTION;
+   	 w32 const ORBIT_OFFSET;
+   	 w32 const BCOFFSET;
 	 // Configuration
 	 w32 lmcond[NCLASS], lmveto[NCLASS],l0cond[NCLASS],l0veto[NCLASS];
 	 deque<IRDda> irs;
