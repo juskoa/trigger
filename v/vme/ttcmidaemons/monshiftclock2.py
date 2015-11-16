@@ -24,7 +24,7 @@ def callback1(now):
 def callback2(now):
     print "callback2: '%d' (%s)" % (now, type(now))
 gshift=1000.0
-def getShift():
+def getShift(what=None):
   global gshift
   gshift=1000.0
   if os.getenv("HOSTNAME")[:6] != "alidcs":
@@ -40,7 +40,8 @@ def getShift():
   #print "gshift:", gshift,type(gshift), 'ts:',ts, type(ts)
   if ts==None: return "old"
   age= time.time() - ts[0]
-  if age>181: return "old"   # was 91 till 3.11.
+  if what != "force":
+    if age>181: return "old"   # was 91 till 3.11.
   return "%6.4f"%gshift[0]
 def main():
   #if not pydim.dis_get_dns_node():
@@ -48,7 +49,7 @@ def main():
   #  #sys.exit(1)
   #res= pydim.dic_cmnd_service("TTCMI/MICLOCK_SET", arg, "C")
   if len(sys.argv)>1:
-    shift= getShift()
+    shift= getShift(sys.argv[1])
     print shift
     return
   while True:

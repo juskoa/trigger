@@ -121,13 +121,14 @@ def callback1(now):
 def callback_manauto(auma):
   #if auma=='AUTO' or auma=='MANUAL':
   aumanz= rmzero(auma)
-  mylog.logm("callback_manauto:%s:%s:"%(auma,aumanz))
+  #mylog.logm("callback_manauto:%s:%s:"%(auma,aumanz))
+  mylog.logm("callback_manauto:%s:"%(aumanz))
   WEB.clockchangemode= aumanz
   WEB.save()
 
-def getShift():
+def getShift(what="s"):
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
-  iop= popen2.popen2(mcmd+" s", 1) #0- unbuffered, 1-line buffered
+  iop= popen2.popen2(mcmd+" "+what, 1) #0- unbuffered, 1-line buffered
   line= iop[0].readline()
   iop[0].close()
   iop[1].close()
@@ -198,8 +199,8 @@ def checkandsave(csf_string, fineshift="None", force=None):
     arg=("none",)
     res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
     #mylog.logm("DLL_RESYNC not started...")   # CJI
-def checkShift():
-  cshift= getShift()
+def checkShift(what="s"):
+  cshift= getShift(what)
   mylog.logm("checkShift: after 10 secs:"+ cshift)
 def callback_bmold(bm):
   #print "callback_bmold: '%s' (%s)" % (bm, type(bm))
@@ -389,7 +390,7 @@ Than start miclock again.
     if string.find("getshift",a)==0: a="getshift"
     if (a!='q') and (a!='') and \
       (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
-      (a!='getshift') and (a!='reset') and \
+      (a!='getshift') and (a!='reset') and (a!='resetforce') \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
       mylog.logm('bad input:%s'%a) ; continue
     if a=='q': break
@@ -409,6 +410,13 @@ Than start miclock again.
         mylog.logm("Clock shift: %s ns."%cshift)
       else:
         mylog.logm("Clock shift not measured (too old).")
+    elif a=='resetforce':
+      cshift= getShift("force")
+      if cshift != "old":
+        mylog.logm("Clock shift (%s ns) reset..."%cshift)
+        checkandsave(cshift,"fineyes", force='yes')
+      else:
+        mylog.logm("Clock shift measurement is too old, reset not done")
     elif a=='reset':
       cshift= getShift()
       if cshift != "old":
