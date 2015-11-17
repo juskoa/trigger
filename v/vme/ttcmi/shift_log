@@ -1,0 +1,472 @@
+before change:
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:15d
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:158
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
+readall()
+PROGRAM_ID:25062009
+readall: not calling printRFRX... (to be replaced by gerRFRX?)
+ORB1_DAC:0xaa ORB2_DAC:0xaa
+polarity0: 0x7fae0:0x1   0x7fad8 0x26 delay:dec
+polarity1: 0x7fb20:0x1   0x7fb18 0x26 delay:0
+polarity2: 0x7fb60:0x1   0x7fb58 0x26 delay:dec
+WORKING_MODE (bits 0..6 (0:man,1:auto)for: BC1/2/r/main Orb1/2/m:0 
+BST_Machine_Mode:e
+   BC_DELAY25_BCMAIN/BC1 0x15d=29/0x15d=29 halfsns 
+
+ORBmain_COARSE_DELAY/ORB1_ 3564/3564 bcs 
+
+BC 1/2/ref selection (Int/Ext):EEE
+BC/ORB main_MAN_SELECT: 0 2
+BCmain_MAN_SELECT:
+0:40.078MHz int clock, 1: BCref, 2: BC2in, 3: BC1in
+ORBmain_MAN_SELECT:
+0:Orbit1, 1:Orbit2, 2:int BCmain sync. orbit generator
+CORDE reg7: 963(0x3c3)
+---
+readall()
+ ORBMAIN: 200 =   512  *10ps
+    ORB2: 200 =   512  *10ps
+    ORB1: 200 =   512  *10ps
+  BCMAIN: 200 =   512  *10ps
+   BCREF: 200 =   512  *10ps
+     BC2: 200 =   512  *10ps
+     BC1: 3c3 =   963  *10ps
+---
+$dbctp/clockshift:
+29 963 953 -> 
+nastav na RF2TTC aj na corde rucne
+a pust resetforce (zeere stary shift)
+33 863 963
+---
+
+calibrate:
+1. read1000(
+ORB1_DAC (was 0xaa) set to 0
+read1000( 0x7FB40, 0)
+read1000:  0.0ns (1 reads) not0xDEC:0
+<0>
+-----------------
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:161
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:158
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
+calibrate( 0, 0, 63)
+read1000:  0.0ns (259 reads) not0xDEC:0
+read1000:  0.5ns (259 reads) not0xDEC:0
+read1000:  1.0ns (260 reads) not0xDEC:0
+read1000:  1.5ns (260 reads) not0xDEC:0
+read1000:  2.0ns (260 reads) not0xDEC:0
+read1000:  2.5ns (260 reads) not0xDEC:0
+read1000:  3.0ns (260 reads) not0xDEC:0
+read1000:  3.5ns (259 reads) not0xDEC:0
+read1000:  4.0ns (260 reads) not0xDEC:0
+read1000:  4.5ns (260 reads) not0xDEC:0
+read1000:  5.0ns (260 reads) not0xDEC:0
+read1000:  5.5ns (260 reads) not0xDEC:0
+read1000:  6.0ns (260 reads) not0xDEC:0
+read1000:  6.5ns (260 reads) not0xDEC:0
+read1000:  7.0ns (260 reads) not0xDEC:0
+read1000:  7.5ns (260 reads) not0xDEC:0
+read1000:  8.0ns (259 reads) not0xDEC:0
+read1000:  8.5ns (260 reads) not0xDEC:0
+read1000:  9.0ns (260 reads) not0xDEC:0
+read1000:  9.5ns (260 reads) not0xDEC:0
+read1000: 10.0ns (260 reads) not0xDEC:0
+read1000: 10.5ns (260 reads) not0xDEC:0
+read1000: 11.0ns (260 reads) not0xDEC:0
+read1000: 11.5ns (259 reads) not0xDEC:0
+read1000: 12.0ns (260 reads) not0xDEC:0
+read1000: 12.5ns (259 reads) not0xDEC:0
+read1000: 13.0ns (260 reads) not0xDEC:0
+read1000: 13.5ns (260 reads) not0xDEC:0
+read1000: 14.0ns (260 reads) not0xDEC:0
+read1000: 14.5ns (260 reads) not0xDEC:0
+read1000: 15.0ns (260 reads) not0xDEC:0
+read1000: 15.5ns (260 reads) not0xDEC:0
+read1000: 16.0ns (259 reads) not0xDEC:0
+read1000: 16.5ns (260 reads) not0xDEC:0
+read1000: 17.0ns (260 reads) not0xDEC:0
+read1000: 17.5ns (260 reads) not0xDEC:0
+read1000: 18.0ns (260 reads) not0xDEC:0
+read1000: 18.5ns (260 reads) not0xDEC:0
+read1000: 19.0ns (260 reads) not0xDEC:1
+read1000: 19.5ns (260 reads) not0xDEC:0
+read1000: 20.0ns (260 reads) not0xDEC:0
+read1000: 20.5ns (259 reads) not0xDEC:0
+read1000: 21.0ns (260 reads) not0xDEC:0
+read1000: 21.5ns (260 reads) not0xDEC:0
+read1000: 22.0ns (260 reads) not0xDEC:0
+read1000: 22.5ns (260 reads) not0xDEC:0
+read1000: 23.0ns (260 reads) not0xDEC:0
+read1000: 23.5ns (260 reads) not0xDEC:0
+read1000: 24.0ns (259 reads) not0xDEC:0
+read1000: 24.5ns (260 reads) not0xDEC:0
+read1000: 25.0ns (259 reads) not0xDEC:0
+read1000: 25.5ns (260 reads) not0xDEC:0
+read1000: 26.0ns (260 reads) not0xDEC:0
+read1000: 26.5ns (260 reads) not0xDEC:0
+read1000: 27.0ns (260 reads) not0xDEC:0
+read1000: 27.5ns (260 reads) not0xDEC:0
+read1000: 28.0ns (260 reads) not0xDEC:0
+read1000: 28.5ns (259 reads) not0xDEC:0
+read1000: 29.0ns (260 reads) not0xDEC:0
+read1000: 29.5ns (259 reads) not0xDEC:0
+read1000: 30.0ns (260 reads) not0xDEC:0
+read1000: 30.5ns (260 reads) not0xDEC:0
+read1000: 31.0ns (260 reads) not0xDEC:0
+
+table:
+0..18.5ns: 0
+read1000: 19.0ns (260 reads) not0xDEC:1
+19.5ns.. 31ns: 0
+
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:161
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:17e   was 158
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+i2cset_delay( 0x7D020, 0x18)
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:161
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:158
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
+now repeat calibrate for 2 (MAIN):
+
+readall()
+PROGRAM_ID:25062009
+readall: not calling printRFRX... (to be replaced by gerRFRX?)
+ORB1_DAC:0xaa ORB2_DAC:0xaa
+polarity0: 0x7fae0:0x1   0x7fad8 0x26 delay:dec
+polarity1: 0x7fb20:0x1   0x7fb18 0x26 delay:0
+polarity2: 0x7fb60:0x1   0x7fb58 0x26 delay:dec
+WORKING_MODE (bits 0..6 (0:man,1:auto)for: BC1/2/r/main Orb1/2/m:0 
+BST_Machine_Mode:15
+   BC_DELAY25_BCMAIN/BC1 0x161=33/0x15d=29 halfsns 
+
+ORBmain_COARSE_DELAY/ORB1_ 3564/3564 bcs 
+
+BC 1/2/ref selection (Int/Ext):EEE
+BC/ORB main_MAN_SELECT: 0 2
+BCmain_MAN_SELECT:
+0:40.078MHz int clock, 1: BCref, 2: BC2in, 3: BC1in
+ORBmain_MAN_SELECT:
+0:Orbit1, 1:Orbit2, 2:int BCmain sync. orbit generator
+CORDE reg7: 864(0x360)
+
+calibrate( 2, 0, 63)
+read1000:  0.0ns (260 reads) not0xDEC:0
+read1000:  0.5ns (259 reads) not0xDEC:0
+read1000:  1.0ns (260 reads) not0xDEC:0
+read1000:  1.5ns (260 reads) not0xDEC:0
+read1000:  2.0ns (260 reads) not0xDEC:0
+read1000:  2.5ns (260 reads) not0xDEC:0
+read1000:  3.0ns (260 reads) not0xDEC:0
+read1000:  3.5ns (260 reads) not0xDEC:0
+read1000:  4.0ns (260 reads) not0xDEC:0
+read1000:  4.5ns (260 reads) not0xDEC:0
+read1000:  5.0ns (259 reads) not0xDEC:0
+read1000:  5.5ns (260 reads) not0xDEC:0
+read1000:  6.0ns (259 reads) not0xDEC:0
+read1000:  6.5ns (260 reads) not0xDEC:0
+read1000:  7.0ns (260 reads) not0xDEC:0
+read1000:  7.5ns (260 reads) not0xDEC:0
+read1000:  8.0ns (260 reads) not0xDEC:0
+read1000:  8.5ns (260 reads) not0xDEC:0
+read1000:  9.0ns (260 reads) not0xDEC:0
+read1000:  9.5ns (259 reads) not0xDEC:0
+read1000: 10.0ns (260 reads) not0xDEC:0
+read1000: 10.5ns (259 reads) not0xDEC:0
+read1000: 11.0ns (260 reads) not0xDEC:0
+read1000: 11.5ns (260 reads) not0xDEC:0
+read1000: 12.0ns (260 reads) not0xDEC:0
+read1000: 12.5ns (260 reads) not0xDEC:0
+read1000: 13.0ns (260 reads) not0xDEC:0
+read1000: 13.5ns (260 reads) not0xDEC:0
+read1000: 14.0ns (260 reads) not0xDEC:0
+read1000: 14.5ns (260 reads) not0xDEC:0
+read1000: 15.0ns (259 reads) not0xDEC:0
+read1000: 15.5ns (260 reads) not0xDEC:0
+read1000: 16.0ns (260 reads) not0xDEC:0
+read1000: 16.5ns (260 reads) not0xDEC:0
+read1000: 17.0ns (260 reads) not0xDEC:0
+read1000: 17.5ns (260 reads) not0xDEC:0
+read1000: 18.0ns (260 reads) not0xDEC:0
+read1000: 18.5ns (260 reads) not0xDEC:0
+read1000: 19.0ns (260 reads) not0xDEC:0
+read1000: 19.5ns (259 reads) not0xDEC:0
+read1000: 20.0ns (260 reads) not0xDEC:0
+read1000: 20.5ns (260 reads) not0xDEC:0
+read1000: 21.0ns (260 reads) not0xDEC:0
+read1000: 21.5ns (260 reads) not0xDEC:0
+read1000: 22.0ns (260 reads) not0xDEC:0
+read1000: 22.5ns (260 reads) not0xDEC:0
+read1000: 23.0ns (260 reads) not0xDEC:0
+read1000: 23.5ns (260 reads) not0xDEC:0
+read1000: 24.0ns (259 reads) not0xDEC:0
+read1000: 24.5ns (260 reads) not0xDEC:0
+read1000: 25.0ns (260 reads) not0xDEC:0
+read1000: 25.5ns (260 reads) not0xDEC:0
+read1000: 26.0ns (260 reads) not0xDEC:0
+read1000: 26.5ns (260 reads) not0xDEC:0
+read1000: 27.0ns (260 reads) not0xDEC:0
+read1000: 27.5ns (260 reads) not0xDEC:0
+read1000: 28.0ns (260 reads) not0xDEC:0
+read1000: 28.5ns (259 reads) not0xDEC:0
+read1000: 29.0ns (260 reads) not0xDEC:0
+read1000: 29.5ns (260 reads) not0xDEC:0
+read1000: 30.0ns (260 reads) not0xDEC:0
+read1000: 30.5ns (260 reads) not0xDEC:0
+read1000: 31.0ns (260 reads) not0xDEC:0
+
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:161
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:17e
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+============ was all with local clock.
+let's repeat with BC1/ORB1 clock
+ORBmain_MAN_SELECT 0x2 -> 0
+BCmain_MAN_SELECT 0x0 -> 3
+vmeopw32(0x7faec, 0)
+vmeopw32(0x7fb8c, 3)
+calibrate( 2, 0, 63)
+read1000:  0.0ns (260 reads) not0xDEC:0
+read1000:  0.5ns (260 reads) not0xDEC:0
+read1000:  1.0ns (260 reads) not0xDEC:0
+read1000:  1.5ns (260 reads) not0xDEC:0
+read1000:  2.0ns (260 reads) not0xDEC:0
+read1000:  2.5ns (260 reads) not0xDEC:0
+read1000:  3.0ns (260 reads) not0xDEC:0
+read1000:  3.5ns (259 reads) not0xDEC:0
+read1000:  4.0ns (260 reads) not0xDEC:0
+read1000:  4.5ns (260 reads) not0xDEC:0
+read1000:  5.0ns (260 reads) not0xDEC:0
+read1000:  5.5ns (260 reads) not0xDEC:0
+read1000:  6.0ns (260 reads) not0xDEC:0
+read1000:  6.5ns (260 reads) not0xDEC:0
+read1000:  7.0ns (259 reads) not0xDEC:0
+read1000:  7.5ns (260 reads) not0xDEC:0
+read1000:  8.0ns (259 reads) not0xDEC:0
+read1000:  8.5ns (260 reads) not0xDEC:0
+read1000:  9.0ns (260 reads) not0xDEC:0
+read1000:  9.5ns (260 reads) not0xDEC:0
+read1000: 10.0ns (260 reads) not0xDEC:0
+read1000: 10.5ns (260 reads) not0xDEC:0
+read1000: 11.0ns (260 reads) not0xDEC:0
+read1000: 11.5ns (259 reads) not0xDEC:0
+read1000: 12.0ns (260 reads) not0xDEC:0
+read1000: 12.5ns (259 reads) not0xDEC:0
+read1000: 13.0ns (260 reads) not0xDEC:0
+read1000: 13.5ns (260 reads) not0xDEC:0
+read1000: 14.0ns (260 reads) not0xDEC:0
+read1000: 14.5ns (260 reads) not0xDEC:0
+read1000: 15.0ns (260 reads) not0xDEC:0
+read1000: 15.5ns (260 reads) not0xDEC:0
+read1000: 16.0ns (259 reads) not0xDEC:0
+read1000: 16.5ns (260 reads) not0xDEC:0
+read1000: 17.0ns (260 reads) not0xDEC:0
+read1000: 17.5ns (260 reads) not0xDEC:0
+read1000: 18.0ns (260 reads) not0xDEC:0
+read1000: 18.5ns (260 reads) not0xDEC:0
+read1000: 19.0ns (260 reads) not0xDEC:0
+read1000: 19.5ns (259 reads) not0xDEC:0
+read1000: 20.0ns (260 reads) not0xDEC:0
+read1000: 20.5ns (259 reads) not0xDEC:62
+read1000: 21.0ns (260 reads) not0xDEC:2
+read1000: 21.5ns (260 reads) not0xDEC:0
+read1000: 22.0ns (260 reads) not0xDEC:0
+read1000: 22.5ns (260 reads) not0xDEC:0
+read1000: 23.0ns (260 reads) not0xDEC:0
+read1000: 23.5ns (260 reads) not0xDEC:0
+read1000: 24.0ns (259 reads) not0xDEC:0
+read1000: 24.5ns (260 reads) not0xDEC:0
+read1000: 25.0ns (259 reads) not0xDEC:0
+read1000: 25.5ns (260 reads) not0xDEC:0
+read1000: 26.0ns (260 reads) not0xDEC:0
+read1000: 26.5ns (260 reads) not0xDEC:0
+read1000: 27.0ns (260 reads) not0xDEC:0
+read1000: 27.5ns (260 reads) not0xDEC:0
+read1000: 28.0ns (260 reads) not0xDEC:0
+read1000: 28.5ns (259 reads) not0xDEC:0
+read1000: 29.0ns (260 reads) not0xDEC:0
+read1000: 29.5ns (260 reads) not0xDEC:0
+read1000: 30.0ns (260 reads) not0xDEC:0
+read1000: 30.5ns (260 reads) not0xDEC:0
+read1000: 31.0ns (260 reads) not0xDEC:0
+
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:161
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:17e
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
+put back:
+ORBmain_MAN_SELECT 0x2 -> 0 -> 2
+BCmain_MAN_SELECT 0x0 -> 3  -> 0
+i2cset_delay( 0x7D020, 0x18)
+
+table:
+0..20.0ns: 0
+read1000: 20.5ns (259 reads) not0xDEC:62
+read1000: 21.0ns (260 reads) not0xDEC:2
+21.5ns.. 31ns: 0
+
+Orb1_Wa:  18.5ns
+Orb1_Wc:  20.0ns
+
+recomended ORBIN_DELAY25_ORB1 = 9ns
+->  0x12 value in register
+
+We in ALICE use ORBIN_DELAY25_ORB1 set to 0x18
+= 12ns which should be also ok.
+
+let's repeat ORBmain_out witith CORDE shifted by
+2ns i.e. 8640 -> 4640ps
+calibrate( 2, 0, 63)
+read1000:  0.0ns (260 reads) not0xDEC:1
+read1000:  0.5ns (259 reads) not0xDEC:0
+read1000:  1.0ns (260 reads) not0xDEC:0
+read1000:  1.5ns (260 reads) not0xDEC:0
+read1000:  2.0ns (260 reads) not0xDEC:0
+read1000:  2.5ns (260 reads) not0xDEC:0
+read1000:  3.0ns (259 reads) not0xDEC:0
+read1000:  3.5ns (260 reads) not0xDEC:0
+read1000:  4.0ns (260 reads) not0xDEC:0
+read1000:  4.5ns (260 reads) not0xDEC:0
+read1000:  5.0ns (260 reads) not0xDEC:0
+read1000:  5.5ns (259 reads) not0xDEC:0
+read1000:  6.0ns (260 reads) not0xDEC:0
+read1000:  6.5ns (260 reads) not0xDEC:0
+read1000:  7.0ns (259 reads) not0xDEC:0
+read1000:  7.5ns (260 reads) not0xDEC:0
+read1000:  8.0ns (259 reads) not0xDEC:0
+read1000:  8.5ns (260 reads) not0xDEC:0
+read1000:  9.0ns (260 reads) not0xDEC:0
+read1000:  9.5ns (260 reads) not0xDEC:0
+read1000: 10.0ns (260 reads) not0xDEC:0
+read1000: 10.5ns (260 reads) not0xDEC:0
+read1000: 11.0ns (260 reads) not0xDEC:0
+read1000: 11.5ns (259 reads) not0xDEC:0
+read1000: 12.0ns (260 reads) not0xDEC:0
+read1000: 12.5ns (259 reads) not0xDEC:0
+read1000: 13.0ns (260 reads) not0xDEC:0
+read1000: 13.5ns (260 reads) not0xDEC:0
+read1000: 14.0ns (260 reads) not0xDEC:0
+read1000: 14.5ns (260 reads) not0xDEC:0
+read1000: 15.0ns (260 reads) not0xDEC:0
+read1000: 15.5ns (260 reads) not0xDEC:0
+read1000: 16.0ns (259 reads) not0xDEC:0
+read1000: 16.5ns (260 reads) not0xDEC:1
+read1000: 17.0ns (260 reads) not0xDEC:0
+read1000: 17.5ns (260 reads) not0xDEC:0
+read1000: 18.0ns (260 reads) not0xDEC:0
+read1000: 18.5ns (260 reads) not0xDEC:0
+read1000: 19.0ns (260 reads) not0xDEC:0
+read1000: 19.5ns (259 reads) not0xDEC:0
+read1000: 20.0ns (260 reads) not0xDEC:0
+read1000: 20.5ns (259 reads) not0xDEC:0
+read1000: 21.0ns (260 reads) not0xDEC:0
+read1000: 21.5ns (260 reads) not0xDEC:0
+read1000: 22.0ns (260 reads) not0xDEC:0
+read1000: 22.5ns (260 reads) not0xDEC:0
+read1000: 23.0ns (260 reads) not0xDEC:0
+read1000: 23.5ns (260 reads) not0xDEC:0
+read1000: 24.0ns (259 reads) not0xDEC:0
+read1000: 24.5ns (260 reads) not0xDEC:0
+read1000: 25.0ns (259 reads) not0xDEC:0
+read1000: 25.5ns (260 reads) not0xDEC:0
+read1000: 26.0ns (260 reads) not0xDEC:0
+read1000: 26.5ns (260 reads) not0xDEC:0
+read1000: 27.0ns (260 reads) not0xDEC:0
+read1000: 27.5ns (259 reads) not0xDEC:0
+read1000: 28.0ns (260 reads) not0xDEC:0
+read1000: 28.5ns (259 reads) not0xDEC:0
+read1000: 29.0ns (260 reads) not0xDEC:0
+read1000: 29.5ns (260 reads) not0xDEC:0
+read1000: 30.0ns (260 reads) not0xDEC:0
+read1000: 30.5ns (260 reads) not0xDEC:0
+read1000: 31.0ns (260 reads) not0xDEC:0
+
+put it back:
+ORBmain_MAN_SELECT 0x2 -> 0 -> 2
+BCmain_MAN_SELECT 0x0 -> 3  -> 0
+i2cset_delay( 0x7D020, 0x18)
+ corde to 8640
+
+table:
+0.5..16.0ns: 0
+read1000: 16.5ns (260 reads) not0xDEC:1
+17.0ns.. 31ns: 0
+Vyzera ze to bavi -ked sme isli dole na corde o 4ns,
+tak aj meranie nam dalo o 4ns horsiu hranicu (16.5ns)
+zatial co predtym sme mali 20ns pre ORBmain.
+
+recomended value: 8ns (pre CORDE 4640ps) a pe ORBMAIN
+
+pre BC1 zrejme este mensia.
+
+zaver:
+mame 
+          BC_DELAY25_BC1 0x7d000:15d
+       BC_DELAY25_BCMAIN 0x7d00c:161
+
+malo by to byt ok. Ak bude chciet BPTX zmenit orbit vzdialenost tak asi treba
+aj jemu nastavit BC_DELAY25_BC1 na 0x161
+
+
+

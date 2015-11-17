@@ -390,7 +390,7 @@ Than start miclock again.
     if string.find("getshift",a)==0: a="getshift"
     if (a!='q') and (a!='') and \
       (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
-      (a!='getshift') and (a!='reset') and (a!='resetforce') \
+      (a!='getshift') and (a!='reset') and (a!='resetforce') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
       mylog.logm('bad input:%s'%a) ; continue
     if a=='q': break
