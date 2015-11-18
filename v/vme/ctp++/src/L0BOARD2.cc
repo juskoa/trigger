@@ -577,9 +577,13 @@ int L0BOARD2::getOrbits()
   //if(deb)printf("BCid from number: 0x%x \n",bcid);
   // Input checker - calculate IR at L0 board
   if(ssm3[i]&(1<<22)){
-   irda.Inter[nint]=1;
    // treba niekde pridat orbit
-   irda.bc[nint]=(i-orbitssm+11)%3564;
+   if((i-orbitssm+11)/3564){
+     printf("Warning: loop broken. No harm. \n");
+     break;
+   }
+   irda.Inter[nint]=1;
+   irda.bc[nint]=(i-orbitssm+11);
    if(deb){
       printf("Input 3: issm=%i bcidfromssm: 0x%x bcidfromnumber: 0x%x \n",i,irda.bc[nint],bcid);
    }

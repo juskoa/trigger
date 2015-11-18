@@ -4,6 +4,7 @@
 # misc
 *.bit
 *.bin
+.*.sw*
 
 # python
 *.py[co]
@@ -86,3 +87,4 @@ v/vme/ctp++/delme
 v/vme/ctp++/testlogs
 v/vme/monscal++/MONSCAL/
 v/vme/monscal++/delme
+v/vme/ctp++/out*

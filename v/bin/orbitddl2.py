@@ -53,8 +53,10 @@ def anal():
   lines=openFile(logfile)
   if lines:
    for i in lines:
+     if i.find('Warning') >=0:
+      print i.strip()
      if i.find('ERROR') >= 0:
-      print i
+      print i.strip()
       return 1;
      elif i.find('DELTA') >=0 :
       items = i.split()
@@ -70,7 +72,10 @@ def anal():
          return 1
         else:
          print "DELTA != 0 !"
-         print i
+         print i.strip()
+	 if num==0xffffffff:
+          print 'DELTA not found. Probably no INTS, check log and CTP config'
+	  return 1
      elif i.find('OFFSET') >= 0:
       items = i.split()
       try:
@@ -80,16 +85,20 @@ def anal():
         return 1
       else:
         OFFSET=str(num)
-        print i
+        print i.strip()
      else: continue
    return 0
   else: return 1
 def set():
+  delta=int(DELTA,16)
+  if delta == 0:
+    print 'Nothing to do. Measured delta=0'
+    return 
   dircf=os.environ['VMECFDIR']
-  runcmd=dircf+'/ctp++/findLMOrbitOff.e '+DELTA+' '+OFFSET
+  runcmd=dircf+'/ctp++/findLMOrbitOff.e '+DELTA+' '+OFFSET + ' > /dev/null'
   print 'runcmd: ',runcmd
   os.system(runcmd)
- 
+  print 'Print offset set, next DELTA should be 0. Please, check with run and anal' 
 def main():
   import sys
   rc=0
@@ -111,7 +120,7 @@ orbitddl2.py anal
 - parses measured offset
 
 
-orbitddl2.py anaset
+orbitddl2.py analset
 - runs anal()
 - sets measured offset to hw
 """

@@ -106,8 +106,9 @@ int INTBread(CTP* ctp, int what,w32 del, w32 off)
  }
  case 2:
  {
-  //w32 offset=(del+off-1)%0xffffff;
-  w32 offset=(del+off)%0xffffff;
+  w32 offset=0;
+  if(del==0) return 0;
+  offset=(del+off)%0x8000000;
   l0->setOrbitOffset(offset);
   return 0;
  }
