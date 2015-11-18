@@ -405,6 +405,7 @@ So we use:
       ORBIN_DELAY25_ORB1 0x7d020:158
           BC_DELAY25_BC1 0x7d000:15d
        BC_DELAY25_BCMAIN 0x7d00c:161
+       BC_DELAY25_BC1    0x7d00c:161  <-also changed to get it the same for BPTX
 
 Should be ok.
 
