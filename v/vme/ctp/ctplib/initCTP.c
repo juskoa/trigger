@@ -148,8 +148,11 @@ if(board==3) {
     };
     // LM switch:
     for(ixinp=1; ixinp<=12; ixinp++) {
-      int ixvci,lminp,lmdel;
+      int ixvci,lminp,lmdel,swinp;
       ixvci= findSwitchInput(ixinp);   // only first 12 switch inputs
+      if(ixvci==-1) {
+        printf("INFO LM switch %d (1..12) not connected\n", ixinp); continue;
+      };
       lmdel=0; lminp=0;
       if(ixvci>=0) {   // connected
         lminp=validCTPINPUTs[ixvci].lminputnum;
@@ -161,7 +164,12 @@ if(board==3) {
           lmdel=0;
         };
       };
-      setLMSwitch(validCTPINPUTs[ixvci].switchn, lminp);
+      swinp= validCTPINPUTs[ixvci].switchn;
+      if(swinp==0) {
+        printf("INFO switch %s (validCTPinputs row: %d) not connected\n", validCTPINPUTs[ixvci].name, ixvci);
+      } else {
+        setLMSwitch(validCTPINPUTs[ixvci].switchn, lminp);
+      };
       setlmdelay(ixinp, lmdel);
     };
   };

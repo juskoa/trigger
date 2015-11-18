@@ -132,18 +132,30 @@ void setAB(w32 A, w32 B);
 void initCTP();
 /*---------------------------------------------------------------- INT  */
 /*FGROUP INT
-read/print 2 counters: L2_ORBIT_READ and INT_ORBIT_READ */
+read/print 2 counters: L2_ORBIT_READ and INT_ORBIT_READ
+if L0>=c709 also L0_ORBIT_READ read */
 void readORBIT_READs() {
-w32 l2or, intor;
+w32 l2or, intor, l0or;
 w32 seconds1,micseconds1, seconds2,micseconds2,diff;
 int cd;
-GetMicSec(&seconds1, &micseconds1);
+if(l0C0()>=0xc709) {
+  GetMicSec(&seconds1, &micseconds1);
+  l0or= vmer32(L0_ORBIT_READ);
+} else {
+  GetMicSec(&seconds1, &micseconds1);
+};
 l2or= vmer32(L2_ORBIT_READ);
 intor= vmer32(INT_ORBIT_READ);
 GetMicSec(&seconds2, &micseconds2);
 diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
 cd= l2or-intor;
-printf("l2:%x int:%x l2-int:%x(%d) max. micsecs between reads:%d\n", l2or, intor, cd,cd, diff);
+if(l0C0()>=0xc709) {
+  printf("l0:%x l2:%x int:%x l2-int:%x(%d) max. micsecs between 3 reads:%d\n",
+    l0or, l2or, intor, cd,cd, diff);
+} else {
+  printf("l2:%x int:%x l2-int:%x(%d) max. micsecs between 2 reads:%d\n",
+    l2or, intor, cd,cd, diff);
+};
 }
 
 /*---------------------------------------------------------------- I2C */

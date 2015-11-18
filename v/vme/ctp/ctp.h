@@ -297,7 +297,7 @@ LM0: bit25 (not 31) -see RATE_DATABTMr2
 3: sync mode   1:desync mode of both generators */
 #define L0_ENA_CRNDlm0 0x9200 
 #define ORBIT_OFFSET   0x93dc  // should be set correctly for DDL2/DDL1
-// orbit synced, see ctp++/findLMOrbitOff.e
+// orbit synced, see bin/orbitddl2.py, ctp++/findLMOrbitOff.e
 
 #define RATE_MODElm0   0x9230 /* Rate mem. mode 1:vme 0:normal: removed */
 #define DAQ_LEDlm0     0x9234
@@ -478,6 +478,7 @@ LM0: this word dos not exist (bit is in L0_VETOr2 now)
 #define L0_SDSCG        0x9d00    /* +4*n n=1,....,100, 0x9d04..0x9e90
 LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_VETO word
 */
+#define L0_ORBIT_READ  0x93d4   /* from c709, synced with L2,INT by bin/orbitddl2.py */
 #define LM_VETO        0x9e00
 /* veto bits: 1: don't care   0:consider this veto
 31..24 spare
@@ -524,7 +525,7 @@ LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_V
 23..12 Invert L2 trigger input (0: original polarity, 1: inverted)
 11.. 0 Select L2 trigger input
 */
-#define L2_ORBIT_READ  0xb140    /* synced with INT */
+#define L2_ORBIT_READ  0xb140   /* synced with INT */
 #define L2_ORBIT_CLEAR 0xb144
 #define L2_TCSTATUS    0xb1c0   /*R/O*/
 #define L2_TCCLEAR     0xb1c8   /*dummy wr. */

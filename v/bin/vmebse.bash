@@ -93,7 +93,7 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
     export DIM_DNS_NODE=pcalicebhm10
   else
     export VMESITE=PRIVATE
-    export DIM_DNS_NODE=pcald30
+    export DIM_DNS_NODE=localhost
   fi
 else               #------------------------------ server
   export VMEDRIVER=SIMVME
@@ -109,10 +109,6 @@ else               #------------------------------ server
     if [ -d /opt/act ] ;then
       export ACT_DB=daq:daq@pcald30/ACT
     fi
-  elif [ "$hname" = 'alidcscom188' ] ;then
-    export VMESITE=ALICE
-    export SMAQ_C=alidcscom707
-    export DIM_DNS_NODE=aldaqecs
   elif [ "$hname" = 'alidcscom835' ] ;then
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
@@ -131,6 +127,7 @@ else               #------------------------------ server
     unset ACT_DB
   else
     export VMESITE=PRIVATE
+    export DIM_DNS_NODE=localhost
   fi
 fi
 #if [ "$VMESITE" != ALICE ] ;then
