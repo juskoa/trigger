@@ -141,7 +141,7 @@ orbitddl2.py configctp
 -select interaction
 - starts random
 
-orbitddl2.py confrunset
+orbitddl2.py configrunset
 - config, measure and set orbit if delta !=0
 """
     rc=8
