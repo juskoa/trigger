@@ -6,10 +6,14 @@ L0BOARD2::L0BOARD2(int vsp)
 	TCSET(0x3fc),TCSTATUS(0x1c0),TCCLEAR(0x1c8),
 	TCSTART(0x1c4),
 	MASK_DATA(0x1e4),MASK_CLEARADD(0x1e8),MASK_MODE(0x1ec),
+        LM_INTERACT1(0x204),LM_INTERACT2(0x208),LM_INTERACT_T(0x20c),LM_INTERACTSEL(0x210),
 	SCALED_1(0x224),SCALED_2(0x228),
+	LM_RANDOM_1(0x250),LM_RANDOM_2(0x254),
         DDR3_CONF_REG0(0x280),DDR3_CONF_REG1(0x284),DDR3_CONF_REG2(0x288),DDR3_CONF_REG3(0x28c),DDR3_CONF_REG4(0x290),
         DDR3_BUFF_DATA(0x2c0),
         SYNCAL(0x340),
+	L0_INTERACT1(0x3c4),L0_INTERACT2(0x3c8),L0_INTERACT_T(0x3cc),L0_INTERACTSEL(0x3d0),
+	RND1_EN_FOR_INPUTS(0x3f0),
         //L0_CONDITION(0x400),
         //L0_INVERT(0x600),
 	L0_VETO(0x800),
@@ -30,9 +34,51 @@ L0BOARD2::~L0BOARD2()
  if(ssm6) delete [] ssm6;
  if(ssm7) delete [] ssm7;
 }
+//------------------------------------------------------------------------------
+// Inputs
+void L0BOARD2::setSwitch(int i48,int i24)
+{
+ w32 synch;
+ synch=vmer(SYNCAL+4*(i24-1));
+ synch= (synch & 0xffc0ffff) | ((i48 & 0x3f)<<16);
+ vmew(SYNCAL+4*(i24-1), synch);
+}
+void L0BOARD2::setLMSwitch(int in12, int out12) {
+w32 synch;
+if(((in12>12) || (in12<1)) || ((out12<0) || (out12>12))) {
+  printf("ERROR setLMdSwitch: in12:%d out12:%d\n", in12, out12); return;
+};
+if(out12>0) { // do nothing fo not connected
+  synch=vmer(SYNCAL+4*(out12-1));
+  synch= (synch & 0x0fffffff) | ((in12 & 0xf)<<28);
+  vmew(SYNCAL+4*(out12-1), synch);
+};
+}
+void L0BOARD2::printSwitch() {
+int input;
+printf("Only connected LM/L0 inputs (1..24) shown:\n");
+for(input=1; input<=24; input++) {
+  w32 synch, fedby, lmfedby; 
+  synch=vmer(SYNCAL+4*(input-1));
+  fedby= (synch & 0x003f0000) >> 16;   // fedby:0 - L0 not connected
+  lmfedby= (synch & 0xf0000000) >> 28;   // lmfedby:0 - LM not connected
+  if((fedby!=0) || (lmfedby!=0)) {
+    if(input<=12) {
+      printf("%d <- %d lm fed by:%d\n", input, fedby, lmfedby );
+    } else {
+      printf("%d <- %d lm fed by:%d -should be 0\n", input, fedby, lmfedby );
+    };
+  };
+};
+}
+void L0BOARD2::setSwitchAll0()
+{ 
+ for(int i=0;i<24;i++)setSwitch(0,i+1);
+ for(int i=0;i<12;i++)setLMSwitch(1,1);
+}
 //-------------------------------------------------------------------------------
 // write word to L0 function. Problem is that vme adresses are not consecutive
-//
+// i=1,2,34 for L0 function
 void L0BOARD2::writeL0Function(int i,w32 word)
 {
  if(i<3){
@@ -56,6 +102,12 @@ void L0BOARD2::writeFunction(int i,w32 word)
  }
  printf("fun=%i address=0x%x word=0x%x \n",i,address,word);
  vmew(address,word);
+}
+//
+// 1,2,3; 3=test
+void L0BOARD2::writeL0INTfunction(int i,w32 word)
+{
+ vmew(L0_INTERACT1+(i-1)*4,word);
 }
 //---------------------------------------------------------------------------
 // claculate LUT ising parse from ctplib++

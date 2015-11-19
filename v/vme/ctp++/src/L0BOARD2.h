@@ -22,9 +22,15 @@ class L0BOARD2: public L0BOARD
 	void writeLMFunction(int i,w32 word){vmew(LM_FUNCTION+(i-1)*4,word);};
         void writeFunction(int i,w32 word);
         void setFunction(int ifun,bool* mask);
+	void writeL0INTfunction(int i,w32 word);
  	int calcLUT(string& fun,bool* mask);
 	void setOrbitOffset(w32 off){vmew(ORBIT_OFFSET,off);};
 	void setBCOffset(w32 off){vmew(BCOFFSET,off);};
+	void setL0INTSEL(w32 word){vmew(L0_INTERACTSEL,word);};
+	void setLMINTSEL(w32 word){vmew(LM_INTERACTSEL,word);};
+	void setINRND1_24(w32 inp){vmew(RND1_EN_FOR_INPUTS,1<<(inp-1));};
+	void setINRND24_48(w32 inp){vmew(RND1_EN_FOR_INPUTS+0x4,1<<(inp-25));};
+	void setLMRND1rate(w32 word){vmew(LM_RANDOM_1,word);};
 	w32 getBC1(){return vmer(SCALED_1);};
 	w32 getBC2(){return vmer(SCALED_2);};
 	w32 getTCSTATUS(){return vmer(TCSTATUS);};
@@ -42,6 +48,11 @@ class L0BOARD2: public L0BOARD
 	void writeHWClasses();
 	void convertL02LMClass(w32 i);
 	void convertL02LMClassAll();
+	// Inputs
+	void setSwitch(int i48,int i24);
+	void setSwitchAll0();
+	void setLMSwitch(int in12, int out12);
+	void printSwitch();
 	// ssm methods from ctp
         void ddr3_reset();
         void ddr3_status();
@@ -76,15 +87,14 @@ class L0BOARD2: public L0BOARD
          w32 const MASK_DATA;
 	 w32 const MASK_CLEARADD;
 	 w32 const MASK_MODE;
-	 w32 const SCALED_1;
-	 w32 const SCALED_2;
-	 w32 const DDR3_CONF_REG0;
-	 w32 const DDR3_CONF_REG1;
-	 w32 const DDR3_CONF_REG2;
-	 w32 const DDR3_CONF_REG3;
-	 w32 const DDR3_CONF_REG4;
-	 w32 const DDR3_BUFF_DATA; 
+         w32 const LM_INTERACT1;w32 const LM_INTERACT2;w32 const LM_INTERACT_T;w32 const LM_INTERACTSEL;
+	 w32 const SCALED_1;w32 const SCALED_2;
+	 w32 const LM_RANDOM_1;w32 const LM_RANDOM_2;
+	 w32 const DDR3_CONF_REG0;w32 const DDR3_CONF_REG1;w32 const DDR3_CONF_REG2;
+	 w32 const DDR3_CONF_REG3;w32 const DDR3_CONF_REG4;w32 const DDR3_BUFF_DATA; 
 	 w32 const SYNCAL;   // Tono:SYNCH_ADD
+         w32 const L0_INTERACT1;w32 const L0_INTERACT2;w32 const L0_INTERACT_T;w32 const L0_INTERACTSEL;
+	 w32 const RND1_EN_FOR_INPUTS;
 	 //w32 const L0_CONDITION; declared in L0BOARD
 	 w32 const L0_VETO;
 	 w32 const LM_CONDITION;

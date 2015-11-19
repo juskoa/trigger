@@ -70,14 +70,10 @@ int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir)
  printf("DELTA: 0x%x\n",deltaold);  
  return 0;
 } 
-int INTBread(CTP* ctp, int what,w32 del, w32 off)
+int INTmeasure(CTP* ctp)
 {
  INTBOARD *intb=ctp->inter;
  L0BOARD2* l0=ctp->l0;
- switch(what)
- {
- case 1:
- {
  intb->StopSSM();
  if(intb->SetMode("ddldat",'a')) return 1;
  cout << "Starting INT ddldat ssm" << endl;
@@ -103,28 +99,49 @@ int INTBread(CTP* ctp, int what,w32 del, w32 off)
  if(findOffset2(intb->getIRs(),l0->getIRs())) return 1;
  printf("OFFSET: 0x%x\n",l0->getOrbitOffset());
  return 0;
- }
- case 2:
- {
-  w32 offset=0;
-  if(del==0) return 0;
-  offset=(del+off)%0x8000000;
-  l0->setOrbitOffset(offset);
-  return 0;
- }
- default:
-  return 0;
- }
 }
+/////////////////////////////////////////////////////////////
+int INTset(CTP* ctp, int what,w32 del, w32 off)
+{
+ L0BOARD2* l0=ctp->l0;
+ w32 offset=0;
+ if(del==0) return 0;
+ offset=(del+off)%0x8000000;
+ l0->setOrbitOffset(offset);
+ return 0;
+}
+int INTconfigctp(CTP* ctp)
+{
+ L0BOARD2* l0=ctp->l0;
+ // input switch
+ l0->setSwitchAll0();
+ l0->setSwitch(3,3);
+ //l0->printSwitch();
+ // enable rnd on input 3
+ l0->setINRND1_24(3);
+ // set lm rnd rate
+ l0->setLMRND1rate(0xf000);
+ // INT FUN 3
+ for(int i=0;i<16;i++){
+   w32 word=i+(0xf0f0<<16);
+   l0->writeL0INTfunction(1,word);
+ }
+ // select fun1
+ l0->setL0INTSEL(1);
+ return 1;
+}
+///////////////////////////////////////////////////////////
 int main(int argc,char **argv){
  CTP ctp;
  if(argc==1)
  {
-  INTBread(&ctp,1,0,0);
+  INTmeasure(&ctp);
  }else if(argc==3){
   w32 del=atoi(argv[1]);
   w32 off=atoi(argv[2]);
-  INTBread(&ctp,2,del,off);
+  INTset(&ctp,2,del,off);
+ }else if(argc==2){
+  INTconfigctp(&ctp);
  }else{
   printf("Expecting 0 or 2 arguments \n");
  }

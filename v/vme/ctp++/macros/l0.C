@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
  if(argc==2)iwhat=atoi(argv[1]);
  // lm level test 
  CTP *ctp=new CTP;
- L0BOARD* l0=ctp->l0;
+ L0BOARD2* l0=ctp->l0;
  //L1BOARD* l1=ctp->l1;
  //L2BOARD* l2=ctp->l2;
  BUSYBOARD *busy=ctp->busy;
@@ -97,6 +97,15 @@ int main(int argc, char* argv[])
   case 6:
     busy->measurephase();
     return 0;
+  case 7:
+    l0->setSwitchAll0();
+    l0->setSwitch(3,3);
+    l0->printSwitch();
+    for(int i=0;i<16;i++){
+      w32 word=i+(0xf0f0<<16);
+      l0->writeL0INTfunction(1,word);
+    }
+    return 0;
   default:
     printf("0 = read counters,ssm; dump ssm\n");
     printf("1 = write bcmasks \n");
@@ -105,6 +114,7 @@ int main(int argc, char* argv[])
     printf("4 = software trigger\n");
     printf("5 = L0/LM fucntions \n");
     printf("6 = measure orbit phase\n");
+    printf("7 = print switch\n");
     return 0;
  }
 }

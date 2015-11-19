@@ -99,6 +99,12 @@ def set():
   print 'runcmd: ',runcmd
   os.system(runcmd)
   print 'Print offset set, next DELTA should be 0. Please, check with run and anal' 
+def configctp():
+  dircf=os.environ['VMECFDIR']
+  runcmd=dircf+'/ctp++/findLMOrbitOff.e '+'3'
+  print 'runcmd: ',runcmd
+  os.system(runcmd)
+
 def main():
   import sys
   rc=0
@@ -123,6 +129,12 @@ orbitddl2.py anal
 orbitddl2.py analset
 - runs anal()
 - sets measured offset to hw
+
+
+orbitddl2.py configctp
+- set swicth
+-select interaction
+- starts random
 """
     rc=8
   else:
@@ -136,6 +148,8 @@ orbitddl2.py analset
        print 'No action: DELTA: ',DELTA,' OFFSET: ',OFFSET
        return
       set()
+   elif sys.argv[1] == 'configctp':
+      configctp() 
    else:
     print "nothing to do"
     rc=0
