@@ -27,7 +27,7 @@ def openFile(filename):
    lines=infile.readlines()
    infile.close()
    return lines
-def run():
+def run(what):
   log='orbitddl2'
   dirwork=VMEWORK+'/WORK/'
   logfile=dirwork+log+'.log'
@@ -40,7 +40,12 @@ def run():
    tt=tt.replace(':','_')
    logsave=dirwork+log+items[0]+'_'+tt+'.log'
    os.rename(logfile,logsave)
-  runcmd=dircf+'/ctp++/findLMOrbitOff.e>'+logfile
+  print "Taking data, please, wait ~ 30 secs ..."
+  if what==0: 
+   runcmd=dircf+'/ctp++/findLMOrbitOff.e > '+logfile
+  else:
+   runcmd=dircf+'/ctp++/findLMOrbitOff.e 1 > '+logfile
+  print  runcmd
   os.system(runcmd)
 def anal():
   """
@@ -101,7 +106,7 @@ def set():
   print 'Print offset set, next DELTA should be 0. Please, check with run and anal' 
 def configctp():
   dircf=os.environ['VMECFDIR']
-  runcmd=dircf+'/ctp++/findLMOrbitOff.e '+'3'
+  runcmd=dircf+'/ctp++/findLMOrbitOff.e '+'0'
   print 'runcmd: ',runcmd
   os.system(runcmd)
 
@@ -135,11 +140,14 @@ orbitddl2.py configctp
 - set swicth
 -select interaction
 - starts random
+
+orbitddl2.py confrunset
+- config, measure and set orbit if delta !=0
 """
     rc=8
   else:
    if sys.argv[1] == 'run':
-    run()
+    run(0)
    elif sys.argv[1] == 'anal':
     anal()
    elif sys.argv[1] == 'analset':
@@ -150,6 +158,9 @@ orbitddl2.py configctp
       set()
    elif sys.argv[1] == 'configctp':
       configctp() 
+   elif sys.argv[1] == 'configrunset':
+      run(1)
+      anal()
    else:
     print "nothing to do"
     rc=0

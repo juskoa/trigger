@@ -30,7 +30,7 @@ int findOffset(deque<IRDda>& intir,deque<IRDda>& lm0ir)
 //--------------------------------------------------------------------------------
 // look also to bcid, should be more robust
 //
-int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir)
+int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir,w32 &deltaret)
 {
  w32 intlen=intir.size();
  w32 lm0len=lm0ir.size();
@@ -61,16 +61,18 @@ int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir)
      else{
        if(delta != deltaold){
          printf("findOrbit2 error: ERROR:deltas not equal \n");
+         deltaret=0xffffffff;
          return 1;
        }
      }
      break;
    }
  }
+ deltaret=deltaold;
  printf("DELTA: 0x%x\n",deltaold);  
  return 0;
 } 
-int INTmeasure(CTP* ctp)
+int INTmeasure(CTP* ctp,int what)
 {
  INTBOARD *intb=ctp->inter;
  L0BOARD2* l0=ctp->l0;
@@ -96,8 +98,17 @@ int INTmeasure(CTP* ctp)
    printf("ERROR in getting orbit \n");
    return 1;
  }
- if(findOffset2(intb->getIRs(),l0->getIRs())) return 1;
- printf("OFFSET: 0x%x\n",l0->getOrbitOffset());
+ w32 delta;
+ if(findOffset2(intb->getIRs(),l0->getIRs(),delta)) return 1;
+ w32 offset=l0->getOrbitOffset();
+ printf("OFFSET: 0x%x\n",offset);
+ if(what){
+   if(delta==0) return 0;
+   w32 off;
+   off=(delta+offset)%0x8000000;
+   l0->setOrbitOffset(off);
+   printf("Warning: orbitoffset changed: oldoffset: 0x%x newoffset: 0x%x \n",offset,off);
+ }
  return 0;
 }
 /////////////////////////////////////////////////////////////
@@ -135,13 +146,22 @@ int main(int argc,char **argv){
  CTP ctp;
  if(argc==1)
  {
-  INTmeasure(&ctp);
+  INTmeasure(&ctp,0);
  }else if(argc==3){
   w32 del=atoi(argv[1]);
   w32 off=atoi(argv[2]);
   INTset(&ctp,2,del,off);
  }else if(argc==2){
-  INTconfigctp(&ctp);
+  w32 what=atoi(argv[1]);
+  if(what==0)INTconfigctp(&ctp);
+  else if(what==1){
+   INTconfigctp(&ctp);
+   INTmeasure(&ctp,1);
+  }
+  else{
+   printf("Unexpected argument: %i \n",what);
+   return 0;
+  }
  }else{
   printf("Expecting 0 or 2 arguments \n");
  }
