@@ -18,11 +18,11 @@ def getlumi():
   rc=None
   try:
     #Enabled 13.11.2015 and changed 1.0E30 -> 1.0E27 for HI run
-    rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
+    #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
     #rclumi= None
-    # next line invokes 'TypeError: argument list must be a tuple' stdout line
+    # In run1 next line invoked 'TypeError: argument list must be a tuple' stdout line
     # when dim service not available.
-    #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", "F", 2)
+    rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", "F", 2)
     if rclumi!=None:
       lumidim= rclumi[3]
       if lumidim>1.0:

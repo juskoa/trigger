@@ -129,7 +129,7 @@ class ActivePartitions:
     runsinmem= self.parts.keys()
     # after going through all files in RCFG, runsinmem
     # should contain numbers to be deleted from self.parts
-    print "getRuns:",names, "in memory:", runsinmem
+    #print "getRuns:",names, "in memory:", runsinmem
     if len(names) >6:
       PrintError("Too many runs (>6) active in WORK/RCFG dir.") 
     # cases:  RCFG entries     Memory entries
@@ -146,14 +146,14 @@ class ActivePartitions:
       else:
         self.parts[runn]= self.procRcfg(runname, runn)  # new run
         newhtml='yes'
-    print "gone runs:", runsinmem, " deleting them in memory (self.parts)..."
+    #print "gone runs:", runsinmem, " deleting them in memory (self.parts)..."
     for ix in range(len(runsinmem)):
       del self.parts[runsinmem[ix]]     
       newhtml='yes'
     return newhtml
   def updatePartitions(self):
     html= self.getRuns()
-    print "updatePartitions recreate html(None if not needed):", html
+    #print "updatePartitions recreate html(None if not needed):", html
   def procRcfg(self, runname, runn):
     """runname: rNNNNN.rcfg"""
     infile= open(os.path.join(RCFGDIR, runname), "r")
@@ -316,13 +316,14 @@ class ActivePartitions:
     f.close()
   def get_clockinfo(self):
     fn= os.path.join(os.environ['HOME'],"CNTRRD/htmls/clockinfo")
+    f=None
     try:
       #f= open("/home/alice/trigger/CNTRRD/htmls/clockinfo", 'r')
       f= open(fn, 'r')
+      rc= f.readlines()[0]
     except:
       f=None
     if f:
-      rc= f.readlines()[0]
       f.close()
     else: 
       PrintError('Where is /home/alice/trigger/CNTRRD/htmls/clockinfo?')
@@ -337,7 +338,7 @@ class ActivePartitions:
     # +1 to be sure we get new status
     # self.mesdti[1]   # 12:23:01 
     t2= time.localtime()   #!time of creation (not display !)
-    print "htmlStart:t2:",t2, "t1:",self.mesdti[1]
+    #print "htmlStart:t2:",t2, "t1:",self.mesdti[1]
     t2= t2[5]
     strsplit= string.split(self.mesdti[1],':')
     if len(strsplit) <=2:
@@ -350,7 +351,7 @@ class ActivePartitions:
       refreshsecs=t2-t1
     refreshsecs= refreshsecs+61
     clockinfo= self.get_clockinfo()
-    print "htmlStart:t2:",t2, "t1:",t1, "refresh:",refreshsecs
+    #print "htmlStart:t2:",t2, "t1:",t1, "refresh:",refreshsecs
     #refreshsecs= 10
     #<!--meta HTTP-EQUIV="Refresh" CONTENT=%d-->
     # following line after <head>:
