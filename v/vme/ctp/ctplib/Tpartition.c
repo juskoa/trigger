@@ -1897,7 +1897,7 @@ w32 l0invAC, minAC;
 w32 rate_mask;
 //int parthwclasses[NCLASS]; // 0:can be reloaded 1: the TIMESHARING class
 char skipped[200]="";
-printf("nams %s %i exit %i \n",tsname,tsname[0],strlen(tsname));
+printf("load2HW nams %s %i exit %i \n",tsname,tsname[0],strlen(tsname));
 //if(strlen(tsname) != 0)exit(1);
 if(l0C0()) {
   rate_mask= RATE_MASKr2;

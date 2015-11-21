@@ -44,6 +44,5 @@ smicmd TRIGGER
 startClients.bash pydim start
 ctpproxy.sh startnd
 
-06.09.2015 12:40:07: ***  Error:mask 1 already used by another partition
-06.09.2015 12:40:07: ***  Error:Error: dintx2 cannot be loaded due to lack of resources
+alias sedev='cd ~/git/trigger; . v/bin/vmebse.bash ; unset DATE_DAQLOGBOOK_DIR ; unset ACT_DB ; export VMEDRIVER=SIMVME ; export DIM_DNS_NODE=localhost ; alias ctp="vmecrate nbi ctp" ; test -z `ps -C dns -o pid=` && /opt/dim/lnux/dns'
 

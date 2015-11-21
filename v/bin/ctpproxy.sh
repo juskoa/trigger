@@ -24,7 +24,7 @@ function startproxy() {
     # gdb $VMECFDIR/ctp_proxy/linux/ctp_proxy
     #set args TRIGGER::CTP NODAQLOGBOOK NODAQRO
     #valgrind -v --leak-check=full --max-stackframe=3000000 --show-reachable=yes $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
-    $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 </dev/null >WORK/ctp_proxy.log 2>&1 &
+    $VMECFDIR/ctp_proxy/linux/ctp_proxy TRIGGER::CTP $1 $2 $CORUNSET </dev/null >WORK/ctp_proxy.log 2>&1 &
     #echo "ctp_proxy rc:$? is 0 always (in case ctp_proxy does not exist)"
     pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
     echo "pid:$pid"
@@ -46,6 +46,7 @@ startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS+DA
 startndlog-debugging: start ctpproxy daemon without DAQLOGBOOK (i.e. with ECS+readout)
 EOF
 }
+export CORUNSET=$2
 proxyname="TRIGGER::CTP"
 pid=`ps -C ctp_proxy o user,pid,args | awk '{if($4==detname) {print $2}}' detname=$proxyname`
 if [ -z $pid ] ;then
@@ -59,7 +60,7 @@ if [ -z $pid ] ;then
   elif [ "$1" = "startnr" ] ;then
     startproxy NODAQRO
   elif [ "$1" = "startnd" ] ;then
-    startproxy NODAQLOGBOOK NODAQRO
+    startproxy NODAQLOGBOOK NODAQRO 
   elif [ "$1" = "startndlog" ] ;then
     startproxy NODAQLOGBOOK
   elif [ "$1" = "starttest" ] ;then

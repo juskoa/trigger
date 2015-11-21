@@ -310,7 +310,43 @@ printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 initBakery(&ctpshmbase->ccread, "ccread", 5);
 
 setglobalflags(argc, argv);
+// init CTP before calibration (e.g. when board reconfigured).
 if((rc=ctp_Initproxy())!=0) exit(8);
+if(isArg(argc, argv, "configrunset")) {
+  /* do we need before orbitddl2.py INT/L2 orbit in SYNC (automatic with L2a)?
+  */
+  int rc, reslen;
+  char cmd[200];
+  char result[1000]="";   // ~ 10 lines
+  if(envcmp("VMESITE", "PRIVATE")==0) {
+    strcpy(cmd, "who");
+  } else {
+    strcpy(cmd, "orbitddl2.py configrunset");
+  };
+  rc= popenread(cmd, result, 1000);
+  reslen= strlen(result);
+  if((rc==EXIT_FAILURE) || (reslen<=1)) { 
+    infolog_trgboth(LOG_ERROR, "L0 orbit calibration problem");
+  } else {
+    int ixr= reslen;
+    if(result[ixr-1]=='\n') {   //remove last NL character if present
+      result[ixr-1]='\0';
+      ixr= reslen-2;
+    } else {
+      ixr= reslen-1;   // pointer to the last non-NEWLINE character
+    };
+    while(ixr>=0) {    // find last line
+      if(result[ixr]=='\n') {
+        ixr++; break;
+      };
+      ixr--;
+    };
+    sprintf(cmd, "L0 orbit calibration: %s", &result[ixr]);
+    infolog_trgboth(LOG_INFO, cmd);
+    // now put back modifications made by after orbitddl2.py:
+    load2HW(&HW, "");  // -not enough!
+  };
+};
 
 // DIM services not registered here (see ctpdims.c), they run in separae task:
 // ds_register();

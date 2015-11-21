@@ -8,4 +8,6 @@ NCLS= 100          # 50: run1   100:run2
 #L0VER=0xc605 # old L0FUN1/2 (4 inputs)
 #L0VER=0xc606 # new L0FUN1/2/3/4 (8 inputs)
 #      0xc60a   pf (spd-like)
-L0VER=0xc707  # DDL2 (from c705)
+#      0xc707   DDL2 (from c705)
+L0VER=0xc709  # bcid in SSM,L0_ORBIT_READ
+
