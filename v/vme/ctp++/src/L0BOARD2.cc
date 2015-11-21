@@ -630,7 +630,8 @@ int L0BOARD2::getOrbits()
   // Input checker - calculate IR at L0 board
   if(ssm3[i]&(1<<22)){
    // treba niekde pridat orbit
-   if((i-orbitssm+11)/3564){
+   //if((i-orbitssm+11)/3564){   
+   if((i-orbitssm+11+1)/3564){   // adding 1 because bcid =0xc has sometime error
      printf("Warning: loop broken. No harm. \n");
      break;
    }
