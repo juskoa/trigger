@@ -377,9 +377,10 @@ int CTP::startSWtrigger(char triggertype,w32 lm)
 
 void CTP::readOrbits()
 {
- w32 na=10000;
+ w32 na=1000;
  float sum1=0;
  float sum2=0;
+ w32 error=0;
  for(w32 i=0;i<10u*na;i++){
    CountTime();
    w32 l0o=l0->readOrbit();
@@ -391,13 +392,20 @@ void CTP::readOrbits()
    if(i%na == 0){
      printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/((float)na),sum2/(float)na);
      sum1=0;sum2=0;
+     error=0;
    }
    sum1+=del1;
    sum2+=del2;
    if((abs(del1)>2) || (abs(del2)>1)){
    //if(1){
+     error++;
      printf("%i Time: %i usecs Orbits l0,l2,int: 0x%x 0x%x 0x%x %i %i \n",i,time,l0o,l2o,into,l0o-l2o,l0o-into);
+   }
+   if(error>30){
+    printf("ORBIT OFFSET seems to be WRONG. \n");
+    return;
    }
    usleep(1);
  }
+ printf("ORBIT offset seems to be OK. \n");
 }
