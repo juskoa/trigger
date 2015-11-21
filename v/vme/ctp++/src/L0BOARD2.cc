@@ -638,7 +638,7 @@ int L0BOARD2::getOrbits(w32 inp1,w32 inp2,w32 inp3)
   bool int2=(ssm1[i]&(1<<(inp3+7)));                          //tvx
   if(int1 || int2){
    // treba niekde pridat orbit
-   if((i-orbitssm-4)<0){
+   if((i-orbitssm-5)<0){
      printf("Warning: loop broken. No harm. \n");
      break;
    }
