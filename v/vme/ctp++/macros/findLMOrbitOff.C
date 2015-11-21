@@ -49,7 +49,7 @@ int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir,w32 &deltaret)
      if(intir[j].bc[0]==0) continue;
      bool eq=1;
      for(int k=0;k<255;k++){
-       if(intir[j].bc[0]!=lm0ir[i].bc[0]){
+       if(intir[j].bc[k]!=lm0ir[i].bc[k]){
 	 eq=0;
          break;
        }
