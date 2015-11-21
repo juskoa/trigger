@@ -377,9 +377,10 @@ int CTP::startSWtrigger(char triggertype,w32 lm)
 
 void CTP::readOrbits()
 {
+ w32 na=10000;
  float sum1=0;
  float sum2=0;
- for(int i=0;i<10000;i++){
+ for(w32 i=0;i<10u*na;i++){
    CountTime();
    w32 l0o=l0->readOrbit();
    w32 l2o=l2->readOrbit();
@@ -387,8 +388,8 @@ void CTP::readOrbits()
    w32 time=CountTime();
    int del1=l0o-l2o;
    int del2=l0o-into;
-   if(i%1000 == 0){
-     printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/1000.,sum2/1000.);
+   if(i%na == 0){
+     printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/((float)na),sum2/(float)na);
      sum1=0;sum2=0;
    }
    sum1+=del1;

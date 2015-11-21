@@ -634,7 +634,7 @@ int L0BOARD2::getOrbits(w32 inp1,w32 inp2,w32 inp3)
   // Input checker - calculate IR at L0 board
   // INT1
   //if(ssm3[i]&(1<<22)){
-  bool int1=(ssm1[i]&(1<<(inp1+7)))&(ssm1[i]&(1<<(inp2+7)));  //v0and
+  bool int1=(ssm1[i]&(1<<(inp1+7)))&&(ssm1[i]&(1<<(inp2+7)));  //v0and
   bool int2=(ssm1[i]&(1<<(inp3+7)));                          //tvx
   if(int1 || int2){
    // treba niekde pridat orbit
@@ -646,7 +646,7 @@ int L0BOARD2::getOrbits(w32 inp1,w32 inp2,w32 inp3)
    //irda.bc[nint]=(i-orbitssm+11);
    irda.bc[nint]=(i-orbitssm-4);
    if(deb){
-      printf("Input 3: issm=%i bcidfromssm: 0x%x bcidfromnumber: 0x%x \n",i,irda.bc[nint],bcid);
+      printf("issm=%i bcidfromssm: 0x%x bcidfromnumber in1,int2 %i %i: 0x%x \n",i,irda.bc[nint],bcid,int1,int2);
    }
    nint++;
   }
