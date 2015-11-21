@@ -93,17 +93,19 @@ rc:
     hostname= iop.outlines[0]
     print "HOSTNAME:",os.environ.get('HOSTNAME'),"-%s-"%hostname
     #if os.environ.get('VMESITE')=="SERVER" or os.environ.get('VMESITE')==None:
+    os.environ["VMECFDIR"]="/local/trigger/v/vme"
     if hostname=="avmes":
-      os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="altri1"
       #vmeswitch="trigger@altri2"
       #os.environ["ACT_DB"]= "daq:daq@pcald30/ACT"
     elif hostname=="alidcscom835":    # alidcscom188
       #os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
-      os.environ["VMECFDIR"]="/local/trigger/v/vme"
       vmectp="alidcsvme001"
       #vmeswitch="trigger@alidcsvme004"
       #os.environ["ACT_DB"]= "daq:daq@aldaqdb/ACT"
+    elif hostname=="pcalicebhm10":    # alidcscom188
+      #os.environ["VMECFDIR"]="/data/dl/root/usr/local/trigger/stable/v/vme"
+      vmectp="altri2"
     else:
       rc= 6
       print "host:",hostname, "rc:",rc
@@ -149,9 +151,9 @@ rc:
             if iop.check("Callback: OK")>=0:
               iop= iopipe("cd $VMECFDIR/pydim ; linux_s/client CTPRCFG/RCFG aliasesupdate")
               if iop.check("Callback: OK")>=0:
-                iop= iopipe("ssh -2 -q %s ctpproxy.sh start"%vmectp,"")
+                iop= iopipe("ssh -2 -q %s ctpproxy.sh start configrunset"%vmectp,"")
                 #iop= iopipe("ssh -2 -q %s ctpproxy.sh startnr"%vmectp,"")
-                time.sleep(2)
+                time.sleep(33)
                 iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
                 if iop.check("TRIGGER::CTP running.")>=0:
                   f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 

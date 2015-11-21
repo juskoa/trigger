@@ -310,20 +310,19 @@ printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 initBakery(&ctpshmbase->ccread, "ccread", 5);
 
 setglobalflags(argc, argv);
-// init CTP before calibration (e.g. when board reconfigured).
-if((rc=ctp_Initproxy())!=0) exit(8);
 if(isArg(argc, argv, "configrunset")) {
   /* do we need before orbitddl2.py INT/L2 orbit in SYNC (automatic with L2a)?
   */
   int rc, reslen;
   char cmd[200];
   char result[1000]="";   // ~ 10 lines
+  char orbchanged[]="Warning: orbitoffset changed:";
   if(envcmp("VMESITE", "PRIVATE")==0) {
     strcpy(cmd, "who");
   } else {
     strcpy(cmd, "orbitddl2.py configrunset");
   };
-  rc= popenread(cmd, result, 1000);
+  rc= popenread(cmd, result, 1000);   // opens vme...
   reslen= strlen(result);
   if((rc==EXIT_FAILURE) || (reslen<=1)) { 
     infolog_trgboth(LOG_ERROR, "L0 orbit calibration problem");
@@ -342,11 +341,19 @@ if(isArg(argc, argv, "configrunset")) {
       ixr--;
     };
     sprintf(cmd, "L0 orbit calibration: %s", &result[ixr]);
-    infolog_trgboth(LOG_INFO, cmd);
-    // now put back modifications made by after orbitddl2.py:
-    load2HW(&HW, "");  // -not enough!
+    if((strcmp(&result[ixr], "Everything ok")==0) ||
+       (strncmp(&result[ixr], orbchanged, strlen(orbchanged))==0)
+      ) {
+      infolog_trgboth(LOG_INFO, cmd);
+    } else {
+      infolog_trgboth(LOG_ERROR, cmd);
+      infolog_trgboth(LOG_ERROR, "ctpproxy not started"); 
+      rc=8; goto STP;
+    };
   };
 };
+// init CTP after calibration (e.g. to repair modifications done by orbitddl2.py)
+if((rc=ctp_Initproxy())!=0) goto STP; //exit(8);
 
 // DIM services not registered here (see ctpdims.c), they run in separae task:
 // ds_register();
@@ -368,10 +375,11 @@ while(1) {
   if(quit>9) break;
 };
 rc= ctp_Endproxy();
+STP:
 #ifdef PQWAY
 pq_close(mq_sendmsg, 0);
 pq_close(mq_rec, 1);
 #endif
 printf("Calling cshmDetach()...\n"); cshmDetach();
-return (0);
+return (rc);
 }
