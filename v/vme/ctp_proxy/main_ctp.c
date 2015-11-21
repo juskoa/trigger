@@ -322,6 +322,7 @@ if(isArg(argc, argv, "configrunset")) {
   } else {
     strcpy(cmd, "orbitddl2.py configrunset");
   };
+  infolog_trgboth(LOG_INFO, "Starting L0 orbit calibration (30s...)");
   rc= popenread(cmd, result, 1000);   // opens vme...
   reslen= strlen(result);
   if((rc==EXIT_FAILURE) || (reslen<=1)) { 

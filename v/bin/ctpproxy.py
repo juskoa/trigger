@@ -129,7 +129,7 @@ rc:
         if cmd=='actrestart':
           actdownload=os.path.join(os.environ.get('VMECFDIR'), "ctp_proxy/linux_s/act.exe")
           iop= iopipe(actdownload)
-          print iop.outlines
+          #print iop.outlines
           if iop.check("CTP config files downloaded from ACT.")>=0:
             ##os.chdir(os.path.join(os.environ.get('VMECFDIR'), "switchgui"))
             #iop= iopipe("./switched.py load")
@@ -153,7 +153,7 @@ rc:
               if iop.check("Callback: OK")>=0:
                 iop= iopipe("ssh -2 -q %s ctpproxy.sh start configrunset"%vmectp,"")
                 #iop= iopipe("ssh -2 -q %s ctpproxy.sh startnr"%vmectp,"")
-                time.sleep(33)
+                time.sleep(30)
                 iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
                 if iop.check("TRIGGER::CTP running.")>=0:
                   f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
