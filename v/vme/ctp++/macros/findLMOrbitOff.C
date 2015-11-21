@@ -133,7 +133,7 @@ int INTconfigctp(CTP* ctp)
  // enable rnd on input 3
  l0->setINRND1_24(0x7);
  // set lm rnd rate
- l0->setLMRND1rate(0xf000);
+ l0->setLMRND1rate(0x1e000);
  // INT FUN 3
  for(int i=0;i<16;i++){
    w32 word=i+(0xf0f0<<16);
