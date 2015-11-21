@@ -47,7 +47,14 @@ int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir,w32 &deltaret)
    // lm0 int with some int found
    for(w32 j=(i-1);j<intlen;j++){
      if(intir[j].bc[0]==0) continue;
-     if(intir[j].bc[0]!=lm0ir[i].bc[0]) continue;
+     bool eq=1;
+     for(int k=0;k<255;k++){
+       if(intir[j].bc[0]!=lm0ir[i].bc[0]){
+	 eq=0;
+         break;
+       }
+     }
+     if(eq==0)continue;
      // here can be loop on all bcs, only one now
      w32 delta;
      w32 iri=intir[j].orbit;
