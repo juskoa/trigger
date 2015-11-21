@@ -1,6 +1,7 @@
 #include "BOARDBASIC.h"
 BOARDBASIC::BOARDBASIC(string const name,w32 const boardbase,int vsp)
 :
+ debug(0),
  d_name(name),
  d_boardbase(boardbase),
  CODE_ADD(0x4),

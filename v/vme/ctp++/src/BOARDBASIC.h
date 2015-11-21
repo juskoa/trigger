@@ -15,8 +15,11 @@ class BOARDBASIC
          w32 getboardbase() const;
          w32 getBCstatus() const;
 	 w32 getFPGAversion() const {return d_fpgaversion;};
+	 w32 getDebug() const {return debug;}
          void printboardinfo(string const &option) const ;
+	 void setDebug(int dd){debug=dd;};
  protected:
+         int debug;
 	 string const d_name;        // l0,l1,l2,fo,busy,ltu
          string error_status;    // "ok" = no error
  private:

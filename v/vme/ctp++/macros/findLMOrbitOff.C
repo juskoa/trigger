@@ -94,7 +94,7 @@ int INTmeasure(CTP* ctp,int what)
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;
  // LM
  l0->ddr3_ssmread();
- if(l0->getOrbits()){ 
+ if(l0->getOrbits(1,2,3)){ 
    printf("ERROR in getting orbit \n");
    return 1;
  }
@@ -126,19 +126,23 @@ int INTconfigctp(CTP* ctp)
  L0BOARD2* l0=ctp->l0;
  // input switch
  l0->setSwitchAll0();
+ l0->setSwitch(1,1);
+ l0->setSwitch(2,2);
  l0->setSwitch(3,3);
  //l0->printSwitch();
  // enable rnd on input 3
- l0->setINRND1_24(3);
+ l0->setINRND1_24(0x7);
  // set lm rnd rate
  l0->setLMRND1rate(0xf000);
  // INT FUN 3
  for(int i=0;i<16;i++){
    w32 word=i+(0xf0f0<<16);
    l0->writeL0INTfunction(1,word);
+   w32 word2=i+(0x8888<<16);
+   l0->writeL0INTfunction(2,word2);
  }
  // select fun1
- l0->setL0INTSEL(1);
+ l0->setL0INTSEL(0x21);
  return 1;
 }
 ///////////////////////////////////////////////////////////
@@ -146,17 +150,27 @@ int main(int argc,char **argv){
  CTP ctp;
  if(argc==1)
  {
+  // measure without ctp configuration
   INTmeasure(&ctp,0);
  }else if(argc==3){
+  // set offset
   w32 del=atoi(argv[1]);
   w32 off=atoi(argv[2]);
   INTset(&ctp,2,del,off);
  }else if(argc==2){
   w32 what=atoi(argv[1]);
-  if(what==0)INTconfigctp(&ctp);
+  if(what==0){
+   // only configure ctp
+   INTconfigctp(&ctp);
+  }
   else if(what==1){
+   // configure and measure
    INTconfigctp(&ctp);
    INTmeasure(&ctp,1);
+  }else if(what==2){
+   // read orbits
+   printf("Starting to read orbit========================================\n");
+   ctp.readOrbits();
   }
   else{
    printf("Unexpected argument: %i \n",what);

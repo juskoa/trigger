@@ -3,6 +3,7 @@
 INTBOARD::INTBOARD(int vsp)
 :
 	BOARD("int",0x82c000,vsp,4),
+	INT_ORBIT_READ(0x140),
 	TCSET(0x400),
 	BCOFFSET(0x5a8)
 {

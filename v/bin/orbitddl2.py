@@ -43,8 +43,12 @@ def run(what):
   print "Taking data, please, wait ~ 30 secs ..."
   if what==0: 
    runcmd=dircf+'/ctp++/findLMOrbitOff.e > '+logfile
-  else:
+  elif what==1:
    runcmd=dircf+'/ctp++/findLMOrbitOff.e 1 > '+logfile
+  elif what==2:
+   runcmd=dircf+'/ctp++/findLMOrbitOff.e 2'
+  else:
+   print 'run: unknown option ',what
   print  runcmd
   os.system(runcmd)
 def anal():
@@ -143,6 +147,9 @@ orbitddl2.py configctp
 
 orbitddl2.py configrunset
 - config, measure and set orbit if delta !=0
+
+orbitddl2.py readorbit
+- read orbit from registers
 """
     rc=8
   else:
@@ -161,6 +168,8 @@ orbitddl2.py configrunset
    elif sys.argv[1] == 'configrunset':
       run(1)
       anal()
+   elif sys.argv[1] == 'readorbit':
+      run(2)
    else:
     print "nothing to do"
     rc=0

@@ -1,7 +1,8 @@
 #include "CTP.h"
 CTP::CTP():
 busy(0),l0(0),l1(0),l2(0),inter(0),numofltus(0),numoffos(0),
-vspctp(-1),vspltu(-1)
+vspctp(-1),vspltu(-1),
+debug(0)
 {
  for(int i=0;i<NUMOFFO;i++){
     fo[i]=0;
@@ -374,3 +375,20 @@ int CTP::startSWtrigger(char triggertype,w32 lm)
  return 0;
 }
 
+void CTP::readOrbits()
+{
+ for(int i=0;i<100000;i++){
+   CountTime();
+   w32 l0o=l0->readOrbit();
+   w32 l2o=l2->readOrbit();
+   w32 into=inter->readOrbit();
+   w32 time=CountTime();
+   int del1=l0o-l2o;
+   int del2=l0o-into;
+   if(i%10000 == 0)printf("%i \n",i);
+   if((abs(del1)>2) || (abs(del2)>1)){
+     printf("%i Time: %i usecs Orbits l0,l2,int: 0x%x 0x%x 0x%x %i %i \n",i,time,l0o,l2o,into,l0o-l2o,l0o-into);
+   }
+   usleep(1);
+ }
+}

@@ -6,7 +6,8 @@ class L2BOARD: public BOARD
 {
  public:
 	L2BOARD(int vsp);
-        w32 getl2ackn(){return vmer32(TCSTATUS);}
+        w32 getl2ackn(){return vmer(TCSTATUS);}
+        w32 readOrbit(){return vmer(L2_ORBIT_READ);}
 	void setClass(w32 index,w32 inputs,w32 cluster,w32 vetos,w32 invert);
 	void setClassesToZero();
 	void setTCSET(w32 w){vmew(TCSET,w);};
@@ -20,6 +21,7 @@ class L2BOARD: public BOARD
 
  private:
          // vme addresses
+         w32 const L2_ORBIT_READ;
          w32 const TCSET;
 	 w32 const TCSTATUS;
 	 w32 const TCCLEAR;

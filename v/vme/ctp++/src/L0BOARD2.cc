@@ -13,6 +13,7 @@ L0BOARD2::L0BOARD2(int vsp)
         DDR3_BUFF_DATA(0x2c0),
         SYNCAL(0x340),
 	L0_INTERACT1(0x3c4),L0_INTERACT2(0x3c8),L0_INTERACT_T(0x3cc),L0_INTERACTSEL(0x3d0),
+	L0_ORBIT_READ(0x3d4),
 	RND1_EN_FOR_INPUTS(0x3f0),
         //L0_CONDITION(0x400),
         //L0_INVERT(0x600),
@@ -597,7 +598,10 @@ void L0BOARD2::convertL02LMClassAll()
 //-----------------------------------------------------------------
 // Get orbits from ssm
 //
-int L0BOARD2::getOrbits()
+// int1=inp1&inp2
+// int2=inp3
+//
+int L0BOARD2::getOrbits(w32 inp1,w32 inp2,w32 inp3)
 {
  if(ssm1 == 0){printf("ssm1 missing \n");return 1;}
  if(ssm3 == 0){printf("ssm3 missing \n");return 1;}
@@ -628,14 +632,19 @@ int L0BOARD2::getOrbits()
   }
   //if(deb)printf("BCid from number: 0x%x \n",bcid);
   // Input checker - calculate IR at L0 board
-  if(ssm3[i]&(1<<22)){
+  // INT1
+  //if(ssm3[i]&(1<<22)){
+  bool int1=(ssm1[i]&(1<<(inp1+7)))&(ssm1[i]&(1<<(inp2+7)));  //v0and
+  bool int2=(ssm1[i]&(1<<(inp3+7)));                          //tvx
+  if(int1 || int2){
    // treba niekde pridat orbit
-   if((i-orbitssm+11)/3564){
+   if((i-orbitssm-4)<0){
      printf("Warning: loop broken. No harm. \n");
      break;
    }
-   irda.Inter[nint]=1;
-   irda.bc[nint]=(i-orbitssm+11);
+   irda.Inter[nint]=int1+int2*2;
+   //irda.bc[nint]=(i-orbitssm+11);
+   irda.bc[nint]=(i-orbitssm-4);
    if(deb){
       printf("Input 3: issm=%i bcidfromssm: 0x%x bcidfromnumber: 0x%x \n",i,irda.bc[nint],bcid);
    }

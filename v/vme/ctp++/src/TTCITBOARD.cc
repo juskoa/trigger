@@ -119,7 +119,7 @@ int TTCITBOARD::start_stopSSM(BUSYBOARD* bb)
  usleep(100000);
  // reset again - this makes ttc wait for input
  resetSSMAddress();
- w32 add=vmer(READ_SSM_ADDRESS);
+ //w32 add=vmer(READ_SSM_ADDRESS);
  //printf("0 address : 0x%x\n",add);
  //printf("control: 0x%x\n",vmer(CONTROL));
  // start triggers

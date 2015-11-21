@@ -40,10 +40,9 @@ class CTP
 	 int readBCStatus(int n,w32 delta);
 	 int readCounters();
 	 void printCounters();
+	 void readOrbits();
 	 list<BOARD*> boards;
  private:
-	 int numofltus;  //Number of ltus in crate, up to 4
-         int numoffos;   //Number of fos in crate up to 6
 	 void readBICfile();
 	 void readDBVALIDLTUS();
          void getboard(string const &line);
@@ -51,7 +50,10 @@ class CTP
          void getdetectorold(string const &line);
          void printboards();
          void checkFPGAversions() const;
+	 int numofltus;  //Number of ltus in crate, up to 4
+         int numoffos;   //Number of fos in crate up to 6
          int vspctp;      // ctp vme space
-         int vspltu;	  // ltu vmespace				     
+         int vspltu;	  // ltu vmespace
+	 int debug;				     
 };
 #endif

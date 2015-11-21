@@ -22,7 +22,8 @@ BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
  counters1 =  new w32[NCOUNTERS_MAX];
  counters2 =  new w32[NCOUNTERS_MAX];
  countdiff =  new w32[NCOUNTERS_MAX];
- getCounterNames(name);
+ printf("WARNING: reading counter names off\n");
+ //getCounterNames(name);
 }
 BOARD::~BOARD()
 {
