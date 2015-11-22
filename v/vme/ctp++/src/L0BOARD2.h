@@ -8,8 +8,8 @@ class L0BOARD2: public L0BOARD
 	L0BOARD2(int vsp);
 	~L0BOARD2();
 	void setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask); // obsolete
-	void setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare=1,w32 pf=0xf);
-	void setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask,w32 alrare=1,w32 pf=0xf);
+	void setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare=0,w32 pflm=0xf,w32 pfl0=0xf);
+	void setClassVetoesLM(w32 index,w32 cluster,w32 lmdeadtime,w32 clsmask,w32 alrare=0,w32 pf=0xf);
 	void setClassVetoes(w32 index,w32 cluster);
 	void setClassConditionL0(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 bcmask,w32 l0fun=0xf);
 	void setClassConditionLM(w32 index,w32 inputs,w32 rndtrg,w32 bctrg,w32 bcmask,w32 lmfun=0xf);

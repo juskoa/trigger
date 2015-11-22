@@ -150,7 +150,15 @@ int INTconfigctp(CTP* ctp)
  }
  // select fun1
  l0->setL0INTSEL(0x21);
- return 1;
+ return 0;
+}
+int INTconfigctpClass(CTP* ctp)
+{
+ L0BOARD2* l0=ctp->l0;
+ l0->setClassConditionL0(1,0xfffffb,0x3,0x3,0xfff);
+ l0->setClassVetoesL0(1,0x1,0,0);
+
+ return 0;
 }
 ///////////////////////////////////////////////////////////
 int main(int argc,char **argv){
@@ -173,7 +181,8 @@ int main(int argc,char **argv){
   else if(what==1){
    // configure and measure
    INTconfigctp(&ctp);
-   INTmeasure(&ctp,1);
+   INTconfigctpClass(&ctp);
+   //INTmeasure(&ctp,1);
   }else if(what==2){
    // read orbits
    printf("Starting to read orbit========================================\n");

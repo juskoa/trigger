@@ -179,12 +179,12 @@ void L0BOARD2::setClassVetoes(w32 index,w32 cluster,w32 bcm,w32 rare,w32 clsmask
  * set single class L0 vetoes at index with cluster,vetoes, no PF
  * Version with LM level
 */ 
-void L0BOARD2::setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare,w32 pf)
+void L0BOARD2::setClassVetoesL0(w32 index,w32 cluster,w32 lml0busy,w32 clsmask,w32 alrare,w32 pflm,w32 pfl0)
 {
- w32 word=0,bcmask=0;
- bcmask = vmer(L0_VETO+4*index)&0x000fff00;
+ w32 word=0,bcmask=0xfff;
+ //bcmask = vmer(L0_VETO+4*index)&0x000fff00;
  // Downscaling to be addeda
- word=cluster + (pf<<4)+(bcmask<<0)+(alrare<<20)+(lml0busy<<21) + (clsmask<<23);
+ word=cluster + (pfl0<<4)+(bcmask<<8)+(alrare<<20)+(lml0busy<<21) + (clsmask<<23) + (pflm<<24);
  vmew(L0_VETO+4*index,word);
 }
 /* 
