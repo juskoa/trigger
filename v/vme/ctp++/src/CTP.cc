@@ -380,7 +380,9 @@ void CTP::readOrbits()
  w32 na=1000;
  float sum1=0;
  float sum2=0;
- w32 error=0;
+ w32 error1=0;
+ w32 error2=0;
+ float av1,av2;
  w32 i;
  for(i=0;i<10u*na;i++){
    CountTime();
@@ -390,19 +392,26 @@ void CTP::readOrbits()
    w32 time=CountTime();
    int del1=l0o-l2o;
    int del2=l0o-into;
-   if(i%na == 0){
-     if(i)printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/((float)na),sum2/(float)na);
+   if((i%na == 0) && i){
+     av1=sum1/((float)na);
+     av2=sum2/((float)na);
+     printf("%i <l0-l2>=%f <l0-int>=%f \n",i,av1,av2);
      sum1=0;sum2=0;
-     error=0;
+     error1=0;
+     bool e2= (av1<1.16) || (av1>1.18) || (av2<0.97) || (av2>0.98);
+     if(e2){
+       printf("%i Time: %i usecs Orbits l0,l2,int: 0x%x 0x%x 0x%x %i %i \n",i,time,l0o,l2o,into,l0o-l2o,l0o-into);
+       error2++;
+     }
    }
    sum1+=del1;
    sum2+=del2;
    if((abs(del1)>2) || (abs(del2)>1)){
    //if(1){
-     error++;
+     error1++;
      printf("%i Time: %i usecs Orbits l0,l2,int: 0x%x 0x%x 0x%x %i %i \n",i,time,l0o,l2o,into,l0o-l2o,l0o-into);
    }
-   if(error>30){
+   if( (error1>30) || (error2>2)){
     printf("ORBIT OFFSET seems to be WRONG. \n");
     return;
    }
