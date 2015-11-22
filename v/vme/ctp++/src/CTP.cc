@@ -381,7 +381,8 @@ void CTP::readOrbits()
  float sum1=0;
  float sum2=0;
  w32 error=0;
- for(w32 i=0;i<10u*na;i++){
+ w32 i;
+ for(i=0;i<10u*na;i++){
    CountTime();
    w32 l0o=l0->readOrbit();
    w32 l2o=l2->readOrbit();
@@ -390,7 +391,7 @@ void CTP::readOrbits()
    int del1=l0o-l2o;
    int del2=l0o-into;
    if(i%na == 0){
-     printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/((float)na),sum2/(float)na);
+     if(i)printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/((float)na),sum2/(float)na);
      sum1=0;sum2=0;
      error=0;
    }
@@ -407,5 +408,6 @@ void CTP::readOrbits()
    }
    usleep(1);
  }
+ printf("%i <l0-l2>=%f <l0-int>=%f \n",i,sum1/((float)na),sum2/(float)na);
  printf("ORBIT offset seems to be OK. \n");
 }
