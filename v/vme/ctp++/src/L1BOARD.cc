@@ -12,6 +12,11 @@ L1BOARD::L1BOARD(int vsp)
   this->AddSSMmode("ingen",2); 
   this->AddSSMmode("outgen",3); 
 }
+void L1BOARD::setClass(w32 index,w32 inputs,w32 cluster,w32 vetos)
+{
+ w32 word=inputs+(vetos<<24)+(cluster<<28);
+ vmew(L1DEFINITION+index*4,word);
+}
 //----------------------------------------------------------------------------
 /* 
  * Check counters assuming classes are not configured

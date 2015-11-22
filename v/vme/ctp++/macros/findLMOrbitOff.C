@@ -155,9 +155,14 @@ int INTconfigctp(CTP* ctp)
 int INTconfigctpClass(CTP* ctp)
 {
  L0BOARD2* l0=ctp->l0;
+ L1BOARD* l1=ctp->l1;
+ L2BOARD* l2=ctp->l2;
+ BUSYBOARD* busy=ctp->busy;
  l0->setClassConditionL0(1,0xfffffb,0x3,0x3,0xfff);
  l0->setClassVetoesL0(1,0x1,0,0);
-
+ l1->setClass(1,0xffffff,1,0xf);
+ l2->setClass(1,0xfff,1,0xf,0x0);
+ busy->SetDAQBUSY(0);
  return 0;
 }
 ///////////////////////////////////////////////////////////
@@ -182,7 +187,8 @@ int main(int argc,char **argv){
    // configure and measure
    INTconfigctp(&ctp);
    INTconfigctpClass(&ctp);
-   //INTmeasure(&ctp,1);
+   usleep(100);
+   INTmeasure(&ctp,1);
   }else if(what==2){
    // read orbits
    printf("Starting to read orbit========================================\n");
