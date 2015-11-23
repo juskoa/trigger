@@ -327,7 +327,7 @@ clgroup: ==0xffffffff do not touch shm
 void readctpcounters(int clientid, w32 clgroup) {
 int ix,nclients,nclientslum,firstreading,samereading; 
 w32 *ctpc;
-w32 secs, mics, difmics, l2orbit; //, secs2, mics2, usecs;
+w32 secs, mics, difmics, l2orbit, ddl2_blocks; //, secs2, mics2, usecs;
 char msg[ERRMSGL];
 if((dimsflags & NO1MINFLAG) != 0) {
   if(clientid!=0) {
@@ -337,6 +337,7 @@ if((dimsflags & NO1MINFLAG) != 0) {
 ctpc=buf1;
 GetMicSec(&secs, &mics);
 l2orbit= vmer32(L2_ORBIT_READ);
+ddl2_blocks= vmer32(DDL2_BLOCK_COUNTER);
 readCounters(ctpc, NCOUNTERS, 0, 1); 
 #ifdef FAKECOUNTS
 nfakec++;
@@ -355,6 +356,7 @@ for(ix=CSTART_SPEC+3; ix<(CSTART_SPEC+3+16);ix++) {
 ctpc[CSTART_SPEC]= secs; //ctpc[spare_epochsecs]= secs;
 ctpc[CSTART_SPEC+1]= mics; //ctpc[spare_epochmics]= mics;
 ctpc[CSTART_SPEC+2]= l2orbit; //ctpc[spare_l2orbit]= l2orbit; 
+ctpc[CSTART_BUSY+NCOUNTERS_BUSY_DDL2_BLOCKS]= ddl2_blocks;   // DDL2 blocks (fom fy c709)
 for(ix=RUNXCOUNTERSSTART; ix<(RUNXCOUNTERSSTART+NPARTIT);ix++) {
   ctpc[ix]=PartRunNum[ix-RUNXCOUNTERSSTART];
 };
