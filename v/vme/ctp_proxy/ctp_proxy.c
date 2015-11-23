@@ -23,6 +23,7 @@ prepareRunConfig/registerRunConfig
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 #include "infolog.h"
 #ifdef CPLUSPLUS
 #include <dic.hxx>
@@ -2594,6 +2595,33 @@ if(part==NULL) {
 };
 return rc;
 }
+int readOrbit(int n)
+{
+ w32 l0or,l2or,intor;
+ w32 seconds1,micseconds1, seconds2,micseconds2,diff;
+ int cd1,cd2;
+ float count=0,sum1=0,sum2=0;
+ for(int i=0;i<n;i++){
+   GetMicSec(&seconds1, &micseconds1);
+   l0or= vmer32(L0_ORBIT_READ);
+   l2or= vmer32(L2_ORBIT_READ);
+   intor= vmer32(INT_ORBIT_READ);
+   GetMicSec(&seconds2, &micseconds2);
+   diff=DiffSecUsec(seconds2, micseconds2, seconds1, micseconds1);
+   if(diff>5)continue;
+   cd1= l0or-l2or;
+   cd2= l0or-intor;
+   count++;
+   sum1+=cd1;
+   sum2+=cd2;
+ }
+ float av1=sum1/count;
+ float av2=sum2/count;
+ printf("orbit diffs: %f %f \n",av1,av2);
+ if(fabsf(av1-1.17)>0.5) return 1;
+ if(fabsf(av2-0.98)>0.5) return 2;
+ return 0;
+}
 /*---------------------------------------------ctp_InitPartition()
 Timeout when loading partition is 20 seconds (including
 the switch of all LTUs global->stdalone).
@@ -2637,6 +2665,7 @@ rc: if !=0, errorReason set
 3: applyMask problem 
 4: addPartitions() problem
 5: checkmodLM (TRD in) partition problem
+6: DDL2 orbit error
 */
 int ctp_InitPartition(char *name,char *mask, int run_number, 
     char *ACT_CONFIG, char *errorReason) {
@@ -2654,11 +2683,18 @@ if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
   resetclock();
 }; */
 infolog_SetStream(name,0);
+if(readOrbit(1000)>0) {
+  sprintf(msg, "DDL2 Orbit unsynced, reconfigure CTP and start the run again");
+  infolog_trgboth(LOG_ERROR, msg); 
+  rc=6; goto RETX;
+} else {
+  infolog_trgboth(LOG_INFO, "DDL2 Orbit ok");
+};
 part=getPartitions(name, AllPartitions); 
 if(part!=NULL) { 
   sprintf(msg, "Attempt to Init %s, which is already loaded or started",name);
   infolog_trgboth(LOG_ERROR, msg); 
-  strncpy(errorReason, msg,ERRMSGL); rc=5; goto RET2;
+  strncpy(errorReason, msg,ERRMSGL); rc=5; goto RETX;
 };
 infolog_SetStream(name, run_number);
 npart= getNAllPartitions();

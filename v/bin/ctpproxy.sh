@@ -44,6 +44,9 @@ startnd   -debugging: start ctpproxy daemon without DAQLOGBOOK/readout
            (Use smicmd to send SMI cmds to ctpproxy)
 startnr   -debugging: start ctpproxy daemon without DAQreadout (i.e. with ECS+DAQ)
 startndlog-debugging: start ctpproxy daemon without DAQLOGBOOK (i.e. with ECS+readout)
+
+Optional 2nd parameter:
+configrunset -reads L0+INT SSMs and sets DDL2 Orbit in sync ( +33secs )
 EOF
 }
 export CORUNSET=$2
