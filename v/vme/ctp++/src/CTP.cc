@@ -398,7 +398,7 @@ void CTP::readOrbits()
      printf("%i <l0-l2>=%f <l0-int>=%f \n",i,av1,av2);
      sum1=0;sum2=0;
      error1=0;
-     bool e2= (av1<1.16) || (av1>1.18) || (av2<0.97) || (av2>0.98);
+     bool e2= (abs(av1-1.17)>0.5) || (abs(av2-0.98)>0.5);
      if(e2){
        printf("%i Time: %i usecs Orbits l0,l2,int: 0x%x 0x%x 0x%x %i %i \n",i,time,l0o,l2o,into,l0o-l2o,l0o-into);
        error2++;
@@ -406,7 +406,7 @@ void CTP::readOrbits()
    }
    sum1+=del1;
    sum2+=del2;
-   if((abs(del1)>2) || (abs(del2)>1)){
+   if((abs(del1)>3) || (abs(del2)>2)){
    //if(1){
      error1++;
      printf("%i Time: %i usecs Orbits l0,l2,int: 0x%x 0x%x 0x%x %i %i \n",i,time,l0o,l2o,into,l0o-l2o,l0o-into);
