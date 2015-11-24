@@ -272,6 +272,8 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     };
     printf("DDL2_IR 48..25 24..1: 0x%x 0x%x %s", inps48_25, inps24_1,
       &line[lineparsix]);
+    vmew32(INT_MASK_FOR_INPUTS_1_24, inps24_1);
+    vmew32(INT_MASK_FOR_INPUTS_1_24+4, inps48_25);
     goto CONT;
   };
   if(strcmp(parname,"PF_COMMON")==0) {
