@@ -36,7 +36,8 @@ class CTP
 	 int setSWtrigger(char triggertype,w32 BC, w32 detectors,w32 lm);
 	 int startSWtrigger(char triggertype,w32 lm);
 	 void clearSWTriggerFlags(){l0->setTCCLEAR();l1->setTCCLEAR();l2->setTCCLEAR();};
-	 int readCFG(string const &name);
+	 int Parsecfg();
+	 int ParseValidCTPInputs();
 	 int readBCStatus(int n,w32 delta);
 	 int readCounters();
 	 void printCounters();
@@ -50,10 +51,13 @@ class CTP
          void getdetectorold(string const &line);
          void printboards();
          void checkFPGAversions() const;
+	 int ProcessInputLine(const string &line);
 	 int numofltus;  //Number of ltus in crate, up to 4
          int numoffos;   //Number of fos in crate up to 6
          int vspctp;      // ctp vme space
          int vspltu;	  // ltu vmespace
 	 int debug;				     
+	 string INT1,INT2;
+	 vector<string> inputlist;
 };
 #endif

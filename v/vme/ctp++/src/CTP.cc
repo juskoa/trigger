@@ -1,4 +1,6 @@
 #include "CTP.h"
+#include <sstream>
+#include <vector>
 CTP::CTP():
 busy(0),l0(0),l1(0),l2(0),inter(0),numofltus(0),numoffos(0),
 vspctp(-1),vspltu(-1),
@@ -32,7 +34,7 @@ CTP::~CTP(){
 int CTP::readBCStatus(int n, w32 delta)
 {
  int ret=0;
- printf("#boards %i \n",boards.size());
+ printf("#boards %i \n",(int)boards.size());
  int nb=boards.size();
  int bcstat[nb][4];
  for(int i=0;i<nb;i++){
@@ -266,10 +268,90 @@ void CTP::getdetector(string const &line){
  return ;
 }
 //---------------------------------------------------------------------------
-// Reads ctp cfg file
-int CTP::readCFG(string const &name){
- // this should be available in ctplib ?
-return 0;
+//-----------------------------------------------------------
+int CTP::ParseValidCTPInputs()
+{
+  stringstream ss;
+ ifstream file;
+ //ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ ss << "/CFG/ctp/DB/ctpinputs.cfg";
+ string filename = getenv("VMECFDIR")+ss.str();
+ file.open(filename.c_str());
+ if(!file){
+  printf("ActiveRun: cannot open file: %s \n",filename.c_str());
+  return 1;
+ }else{
+  //printf("ActiveRun: File:%s opened. ",filename.c_str());
+ }
+ int rt=0;
+ string line;
+ while(getline(file,line)){
+   if(line[0]=='#') continue ;  // comment
+   if(line[0]=='l') continue ;  // l0function
+   rt=ProcessInputLine(line);
+   //cout << line << endl;
+ }
+ file.close();
+ return rt;
+}
+int CTP::ProcessInputLine(const string &line)
+// Process input line from VALID.CTPINPUTS
+{
+ vector<string> items;
+ splitstring(line,items," ");
+ int nitems = items.size();
+ // lm input
+ if((nitems==10)&& ( (items[3])=="M")){
+   cout << "skipping input: " << line << endl;
+   return 0;
+ }
+ if(nitems < 17){
+   //cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+   cout << "unexpected number of items in ctpinputs,cfg: line: " << nitems << endl;
+   cout << line << endl;
+   return 1;
+ }
+ // loop input list and add to configuration only if in the list
+ for(unsigned int i=0;i<inputlist.size();i++){
+  if(items[0].find(inputlist[i]) != string::npos){  
+    //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),atoi(items[7].c_str()),items[2]); 
+    //inp->Print();
+    //AddInput(inp);
+  } 
+ }
+ return 0;
+}
+//-----------------------------------------------------------
+int CTP::Parsecfg()
+{
+ stringstream ss;
+ ifstream file;
+ ss << "/CFG/ctp/DB/ctp.cfg";
+ string frcfgfile = getenv("VMECFDIR")+ss.str();
+ file.open(frcfgfile.c_str());
+ if(!file){
+  printf("Parsecfg: cannot open file: %s",frcfgfile.c_str());
+  return 1;
+ }else{
+  //print("ActiveRun: File: %s opened"+frcfgfile.c_str());
+ }
+ string line;
+ while(getline(file,line)){
+   vector<string> items;
+   splitstring(line,items," ");
+   int nitems = items.size();
+   if(nitems==0)continue;
+   if(items[0][0]=='#') continue;
+   if(items[0].find("L0_INTERACT1") != string::npos){
+     INT1=items[1].c_str();
+   }  
+   if(items[0].find("L0_INTERACT2") != string::npos){
+     INT2=items[1].c_str();
+   }
+ }
+ printf("Interactions: %s %s \n",INT1.c_str(),INT2.c_str());
+ return 0;
 }
 //---------------------------------------------------------------------------
 // Set default trigger

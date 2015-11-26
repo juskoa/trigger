@@ -57,7 +57,7 @@ int BOARD::readAllCountersNames()
   getline(counternamesfile,buffer);
   AllCounterNames.push_back(buffer);
  }
- printf("# of lines in cnames: %i \n",AllCounterNames.size());
+ printf("# of lines in cnames: %i \n",(int)AllCounterNames.size());
  return 0;
 }
 int BOARD::getCounterNames(const string& board)
@@ -74,7 +74,7 @@ int BOARD::getCounterNames(const string& board)
    splitstring(AllCounterNames[i],items," ");
    if(items.size() == 0) continue;
    if(items.size() != 5){
-     printf("Error: wrong syntax CounterNames: %i %s \n",items.size(),AllCounterNames[i].c_str());
+     printf("Error: wrong syntax CounterNames: %i %s \n",(int)items.size(),AllCounterNames[i].c_str());
      return 1;	
    }
    //cout << "#"<<items[2] << "#board:#" << board << "#compare: " << stripstring(items[2]).compare(0,2,board) << endl;

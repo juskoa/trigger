@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     string ssm("test3");
     l0->DumpSSM(ssm.c_str(),3);
     //l0->DumpSSM(ssm.c_str(),1);
-    l0->getOrbits();
+    l0->getOrbits(1,2,3);
     return 0;
     }
   case 3:
@@ -106,6 +106,9 @@ int main(int argc, char* argv[])
       l0->writeL0INTfunction(1,word);
     }
     return 0;
+   case 8:
+     ctp->Parsecfg();
+     return 0;
   default:
     printf("0 = read counters,ssm; dump ssm\n");
     printf("1 = write bcmasks \n");
@@ -115,6 +118,7 @@ int main(int argc, char* argv[])
     printf("5 = L0/LM fucntions \n");
     printf("6 = measure orbit phase\n");
     printf("7 = print switch\n");
+    printf("8 = patrse ctp.cfg\n");
     return 0;
  }
 }
