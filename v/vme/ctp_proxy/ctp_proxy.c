@@ -2682,7 +2682,7 @@ errorReason[0]='\0';
 if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
   resetclock();
 }; */
-infolog_SetStream(name,0);
+infolog_SetStream(name, run_number);
 if(readOrbit(1000)>0) {
   sprintf(msg, "DDL2 Orbit unsynced, reconfigure CTP and start the run again");
   infolog_trgboth(LOG_ERROR, msg); 
@@ -2696,7 +2696,6 @@ if(part!=NULL) {
   infolog_trgboth(LOG_ERROR, msg); 
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RETX;
 };
-infolog_SetStream(name, run_number);
 npart= getNAllPartitions();
 /*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS
 //------------------------------------------- prepare fresh .pcfg file:

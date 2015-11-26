@@ -39,22 +39,22 @@ def main():
   if len(sys.argv)==1:
     print """
 Usage:
-testIR_MONITORclient.py sync
+testIR_MONITORclient.py lumi
 pydim.dic_sync_info_service("%s", "F", 2)
 (used to work in run1 with ("F",) )
 """%servicename
     #sys.exit()
-  elif sys.argv[1]=="sync":
+  elif sys.argv[1]=="lumi":
     #if len(sys.argv)>2:
     #  servicefmt= sys.argv[2]
     #else:
     #  servicefmt= "C"
     #print "connecting to %s service fmt: %s"%(servicename, servicefmt)
     while True:
-      a= raw_input('enter q, or sync ":\n')
+      a= raw_input('enter q, or lumi:\n')
       print a
       if a=='q': break
-      if a=='sync':
+      if a=='lumi':
         try:
           #rclumi = pydim.dic_sync_info_service("IR_MONITOR/CTP/Luminosity", ("F",), 2)
           rclumi = pydim.dic_sync_info_service(servicename, "F", 2)
@@ -66,7 +66,7 @@ pydim.dic_sync_info_service("%s", "F", 2)
           print "exception ... "
       #pydim.dic_relese_service(serid) not available in pydim
   else:
-    print "sync expected..."
+    print "lumi expected..."
 
 if __name__ == "__main__":
     main()

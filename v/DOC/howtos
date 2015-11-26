@@ -38,7 +38,8 @@ ctpro >/dev/null
 which ctpro
 alias ctpro='cd /date/trigger/Linux; ./ctpServer'
 
-8. VMESITE=PRIVATE how to start runs:
+8. VMESITE=PRIVATE how to start runs
+------------------------------------
 /opt/dim/linux/dns &
 smicmd TRIGGER
 startClients.bash pydim start
@@ -46,3 +47,7 @@ ctpproxy.sh startnd
 
 alias sedev='cd ~/git/trigger; . v/bin/vmebse.bash ; unset DATE_DAQLOGBOOK_DIR ; unset ACT_DB ; export VMEDRIVER=SIMVME ; export DIM_DNS_NODE=localhost ; alias ctp="vmecrate nbi ctp" ; test -z `ps -C dns -o pid=` && /opt/dim/lnux/dns'
 
+sort ctpinputs.cfg
+------------------
+Sort by Switch input (8 field)
+sort -k8,8n ctpinputs.cfg |more
