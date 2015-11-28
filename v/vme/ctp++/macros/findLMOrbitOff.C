@@ -187,7 +187,7 @@ int main(int argc,char **argv){
    // configure and measure
    INTconfigctp(&ctp);
    INTconfigctpClass(&ctp);
-   usleep(300);
+   usleep(3000);
    INTmeasure(&ctp,1);
   }else if(what==2){
    // read orbits
