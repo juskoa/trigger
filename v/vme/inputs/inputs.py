@@ -8,53 +8,16 @@ class Inputs:
  def __init__(self):
   """
   """
-  self.l0inputs=None
-  self.inpphases=None
-  self.validctpinputs=None
+  self.ctpinputs=None
   self.prefix="../CFG/ctp/DB/"
  ##############################################################################################
- def checkVALIDCTPINPUTS(self):
-  """
-     Read VALID.CTPINPUTS,L0.INPUTS,INPUT.phases
-     Checks consistency of VALID.CTPINPUTS against L0.INPUTS and INPUT.phases 
-  """
-  if self.readL0inputs("L0.INPUTS"): return
-  if self.readPhases("INPUT.phases"): return
-  #if self.readVALIDCTPINPUTS("VALID.CTPINPUTS"): return
-  if self.readctpinputs("ctpinputs.cfg"): return
-  l0inputs=self.l0inputs
-  phases=self.inpphases
-  notinL0INPUTS=[]
-  noPhases=[]
-  for input in self.validctpinputs:
-    index=0
-    while(index< len(l0inputs) and input['namectp'] != l0inputs[index]['namectp']): index+=1
-    if index == len(l0inputs) and input['level']=='0':
-      notinL0INPUTS.append(input['namectp'])
-    else:
-      # Compare inputs
-      if input['level']=='0': self.Compare2Inputs(input,l0inputs[index])
-      # check phase
-      indexp=0
-      while(indexp<len(phases)) and input['namectp'] != phases[indexp]['namectp']:indexp+=1
-      if indexp ==  len(phases):
-       noPhases.append(input)
-      else:
-       phase=int(phases[indexp]['phase'])
-       #print input['namectp']," ",phase
-       edge='1'
-       if phase>=6 and phase <=19: edge='0'
-       if input['edge'] != edge: 
-          print "---> ",input['namectp'],' VALID.CTPINPUTS edge: ',input['edge'], ' edge from phases: ',edge
-  if(len(notinL0INPUTS)): 
-    print "---> L0 inputs in VALID.CTPINPUTS not found in L0.INPUTS:"
-    print ",".join(notinL0INPUTS).replace(",", " ")
-  if(len(noPhases)):
-    print "---> VALID.CTPINPUTS with phase not in table INPUT.phase:"
-    printlist=[]
-    for i in noPhases: printlist.append(i['namectp'])
-    print ",".join(printlist).replace(",", " ")
-  return      
+ def check(self):
+  if self.readctpinputs("ctpinputs.cfg")==1 : return 1 
+  #self.printctpinputs()
+  ret=self.checkInSw()
+  if ret: return ret
+  ret=self.checkL0LM()
+  return ret
  ##############################################################################################
  def Compare2Inputs(self,inpvctp,inpl0):
   """
@@ -71,17 +34,12 @@ class Inputs:
   print difference
   return 1
  ##############################################################################################
- def readVALIDCTPINPUTS(self,filename):
-  """
-  """
-  file=self.prefix+filename
-  lines = self.openFile(file)
-  if lines==None: 
-   print "Cannot open: ",file
-   return 1
-  self.validctpinputs = self.parseVALIDCTPINPUTS(lines)
-  #self.printVALIDCTPINPUTS()
-  return 0
+ def printctpinputs(self):
+  j=0
+  print "ctpinputs=============================================="
+  for i in self.ctpinputs: 
+   print j,' ',i
+   j+=1
  ##############################################################################################
  def readctpinputs(self,filename):
   """
@@ -91,42 +49,9 @@ class Inputs:
   if lines==None: 
    print "Cannot open: ",file
    return 1
-  self.validctpinputs = self.parsectpinputs(lines)
-  #self.printVALIDCTPINPUTS()
-  return 0
- ##############################################################################################
- def printVALIDCTPINPUTS(self):
-  for i in self.validctpinputs: print i
- ##############################################################################################
- def parseVALIDCTPINPUTS(self,lines):
-  """
-  """
-  valctpinps=[]
-  for line in lines:
-    line=line.strip(' ')
-    line=line.strip('\tab')
-    items=line.split(" ")
-    if(items[0][0]=="#"): continue
-    iteminp=[]
-    for i in items:
-      if i=='': continue
-      if i[0]=='#': break
-      iteminp.append(i.strip('\n'))
-    if len(iteminp) == 12:
-      input={}
-      input['namectp']=iteminp[0]
-      input['detector']=iteminp[2]
-      input['level']=iteminp[3]
-      input['signature']=iteminp[4]
-      input['inpnum']=iteminp[5]
-      input['dimnum']=iteminp[6]
-      input['configured']=iteminp[7]
-      input['edge']=iteminp[8]
-      input['delay']=iteminp[9]
-      input['deltamin']=iteminp[10]
-      input['deltamax']=iteminp[11]
-      valctpinps.append(input)
-  return sorted(valctpinps,key=itemgetter("namectp")) 
+  self.ctpinputs = self.parsectpinputs(lines)
+  if self.ctpinputs: return 0
+  else: return 1
  ##############################################################################################
  def parsectpinputs(self,lines):
   """
@@ -136,13 +61,31 @@ class Inputs:
     line=line.strip(' ')
     line=line.strip('\tab')
     items=line.split(" ")
+    #print items
     if(items[0][0]=="#"): continue
+    if(items[0][0]=="l"): continue  # function ignoring for the moment
     iteminp=[]
     for i in items:
       if i=='': continue
       if i[0]=='#': break
       iteminp.append(i.strip('\n'))
-    if len(iteminp) == 12:
+      #print iteminp,' ',len(iteminp)
+    nitems=len(iteminp)
+    if nitems < 4:
+      print "Incorrect line (too short):"
+      print line
+      return None;
+    if iteminp[3] == 'M': 
+      if nitems != 10:
+       print "Incorrect M level line (nitems=",nitems," != 10):"
+       print line
+       return None
+    else:
+      if nitems != 17:
+       print "Incorrect L0/L1/L2 line (nitems=",nitems," != 17):"
+       print line
+       return None
+    if len(iteminp) >= 10:
       input={}
       input['namectp']=iteminp[0]
       input['detector']=iteminp[2]
@@ -153,101 +96,76 @@ class Inputs:
       input['configured']=iteminp[7]
       input['edge']=iteminp[8]
       input['delay']=iteminp[9]
-      input['deltamin']=iteminp[10]
-      input['deltamax']=iteminp[11]
+      #input['deltamin']=iteminp[10]
+      #input['deltamax']=iteminp[11]
       valctpinps.append(input)
-  return sorted(valctpinps,key=itemgetter("namectp"))   
- ##############################################################################################
- def readPhases(self,filename):
+  #print input
+  return sorted(valctpinps,key=itemgetter("namectp")) 
+ ###############################################################################################
+ def checkInSw(self):
   """
+   check for configured inputs if 2 inputs connected to same input number
+   check for configured inputs if 2 inputs conneteced to same switch number
   """
-  file=self.prefix+filename
-  lines = self.openFile(file)
-  if lines==None: 
-   print "Cannot open: ",file
-   return 1
-  self.inpphases = self.parseInputsPhases(lines)
-  #self.printInpPhases()
+  inps=self.ctpinputs
+  leninp = len(inps)
+  for i in range(leninp):
+   if inps[i]['configured'] == '0': continue
+   if inps[i]['inpnum'] == '0': continue
+   for j in range(i+1,leninp):
+     if inps[j]['configured'] == '0': continue
+     if inps[j]['inpnum'] == '0': continue
+     if inps[i]['level'] != inps[j]['level']: continue
+     if inps[i]['inpnum'] == inps[j]['inpnum']:
+      print 'ERROR: inputs with same In : ---------------------------------------'
+      print inps[i]   
+      print inps[j]   
+      return 1
+     if inps[i]['configured'] == inps[j]['configured']:
+      print 'ERROR: inputs with same Sw : ---------------------------------------'
+      print inps[i]   
+      print inps[j]   
+      return 1
   return 0
- #############################################################################################
- def printInpPhases(self):
-  for i in self.inpphases: print i
- #############################################################################################
- def parseInputsPhases(self,lines):
+ ###############################################################################################
+ def checkL0LM(self):
   """
+   check if every LM input has same L0 input and diff of delays is 15
   """
-  inpphases=[]
-  for line in lines:
-    line=line.strip(' ')
-    line=line.strip('\tab')
-    items=line.split(" ")
-    if(items[0][0]=="#"): continue
-    itemph=[]
-    for i in items:
-      if i=='': continue
-      if i[0]=='#': break
-      itemph.append(i.strip('\n'))
-    if len(itemph) < 3:
-       print "Warning: parseInputsPhases: wrong number of items ", len(items)
-       print line
-    phase={}   
-    phase['namectp']=itemph[0]
-    phase['signature']=itemph[1]
-    iphase=itemph[2].split('/')
-    phase['phase']=iphase[0]
-    inpphases.append(phase)
-  return sorted(inpphases,key=itemgetter("namectp"))
- #############################################################################################
- def readL0inputs(self,filename):
-  """
-     Reads L0 inputs from file and creates input dictionary
-  """
-  file=self.prefix+filename
-  linesname=self.openFile(file)
-  if linesname==None:
-    print "Cannot open: ",file
-    return 1
-  inputs=self.ParseL0inputs(linesname)
-  self.l0inputs=self.inputs2dictionary(inputs)
-  #self.printInpsDict()
+  inps=self.ctpinputs
+  leninp = len(inps)
+  ret=0
+  for i in range(leninp):
+   if inps[i]['configured'] == '0': continue
+   if inps[i]['inpnum'] == '0': continue
+   if inps[i]['level'] != 'M': continue
+   flag=1
+   for j in range(leninp):
+     if inps[j]['configured'] == '0': continue
+     if inps[j]['inpnum'] == '0': continue
+     if inps[j]['level'] != '0': continue
+     if inps[i]['inpnum'] == inps[j]['inpnum']:
+      #print i,' ',j
+      #print inps[i]   
+      #print inps[j]   
+      flag=0
+      if inps[i]['namectp'] != inps[j]['namectp']: ret=1
+      if inps[i]['detector'] != inps[j]['detector']: ret+=10
+      if inps[i]['configured'] != inps[j]['configured']: ret+=100
+      if ret: print 'ERROR: different L0 and LM inputs: ', ret
+      delay= int(inps[j]['delay']) - int(inps[i]['delay'])
+      if delay != 15:
+       ret += 1000
+       print 'ERROR: wrong delays for L0/Lm inputs'
+      if ret:
+       print inps[i]   
+       print inps[j]   
+       return ret
+   if flag:
+     print 'ERROR: LM input not found in L0 inputs:'
+     print inps[i]
+     return 10000
   return 0
- ##############################################################################################
- def printInpsDict(self):
-  for i in self.l0inputs: print i
- ##############################################################################################
- def Compare2L0inputs(self,filename,sin):
-  """
-     Compares two L0.INPUTS files : filename and filename.act
-  """
-  filenameact=filename+".act"
-  linesname=self.openFile(filename)
-  if linesname==None: return
-  linesnameact=self.openFile(filenameact)
-  if linesnameact==None: return
-  inputs=self.ParseL0inputs(linesname)
-  inputsact=self.ParseL0inputs(linesnameact)
-  self.Compare(inputs,inputsact,sin)
- ############################################################################################### 
- def Compare(self,inputs,inputsact,sin):
-  """
-     Compare inputs in list format
-     sin=0 : compare inputs with same sin
-     sin=3: compare innnnnnputs with same ctpname
-  """
-  for inp in inputs:
-    for inpact in inputsact:
-      if inp[sin] == inpact[sin]: self.compare(inp,inpact)
- def compare(self,inp,inpact):
-  inum=0
-  flag=0
-  for i in inp:
-   if i != inpact[inum]:
-    print 'Input ',inp[0],' ',INPUT[inum],' ',inp[inum],' ',inpact[inum]
-    flag=1
-   inum +=1
-  if flag:
-   print inp
-   print inpact
  ############################################################################################### 
  def openFile(self,filename):
   """
@@ -264,78 +182,15 @@ class Inputs:
    lines=infile.readlines()
    infile.close()
    return lines
- #########################################################################################  
- def inputs2dictionary(self,inputs):
-  """
-     Creates inputs dictionary from inputs as tokens created by ParseL0inputs
-  """
-  inpsdict=[]
-  for i in inputs:
-    input={}
-    for j in range(12):input[INPUT[j]]=i[j]
-    inpsdict.append(input)
-  return sorted(inpsdict,key=itemgetter("namectp"))	
- ############################################################################################### 
- def ParseL0inputs(self,lines):
-  """
-     Input is tokenised line of file L0.inputs
-  """
-  inputs=[]
-  for line in lines:
-    line=line.strip(' ')
-    line=line.strip('\tab')
-    items=line.split(" ")
-    if(items[0][0]=="#"): continue
-    #print items
-    itemnum=0
-    input=[]
-    for i in items:
-      if i=='': continue
-      if i[0]=='#': break
-      input.append(i.strip('\n'))
-    if input[0] == '0': continue  
-    if(len(input)==1 and input[0]==''): continue
-    if(len(input)!= 12):
-      print "WARNING: wrong number of items: ",len(input)
-      print input
-      return None
-    #print input
-    inputs.append(input)
-  if(len(inputs) != 50):
-    print "Wrong number of inputs: ", len(inputs)
-    return None
-  return inputs
-################################################################################
-class InputPhasesEditor:
- """
-     Edit file INPUT.phases. Before saving archives old version.
- """
- def __init__(self,master,inputs):
-  """
-  """
-  self.master=master
-  if inputs:
-   print "inputs ok"
-   if inputs.readPhases("INPUT.phases"): return
-  else:
-   print "no inputs"
-   return 
-  self.menubar= myw.MywMenu(self.master,helptext="")
-  self.master.config(menu=self.menubar)
-  self.filemenu= self.menubar.addcascade('File')
-  self.showmenu= self.menubar.addcascade('Show')
-  self.textfr=Frame(self.master)
-  self.text=Text(self.master)
-  self.scroll=Scrollbar(self.text)
-  self.text.configure(yscrollcommand=self.scroll.set)
 ################################################################################  
 def main():
  print sys.argv
  #if len(sys.argv) == 2:
  if 1:
    inps=Inputs()
-   inps.checkVALIDCTPINPUTS()
-   return
+   ret=inps.check()
+   print 'ret=', ret
+   return ret
  elif len(sys.argv) == 1:
    # edit and archive - not finished 
    # instead in inputs_u.py at every measuremtn plot is saved
@@ -345,9 +200,5 @@ def main():
    f.mainloop()
  else:
    print "Wrong number of arguments." 
- #inps.readL0inputs(sys.argv[1])
- #inps.readPhases("INPUT.phases")
- #inps.readVALIDCTPINPUTS("VALID.CTPINPUTS")
- #l0inps.Compare2L0inputs(sys.argv[1],int(sys.argv[2]))
 if __name__ == "__main__":
     main()
