@@ -26,6 +26,7 @@ if [ -n "$1" ] ;then
   fi
 fi
 #defaults:
+export REDIS=~/Downloads/redis-3.0.5
 export VMESITE=SERVER
 export OS=Linux
 export DIMDIR=/opt/dim
@@ -139,7 +140,7 @@ alias ssh="ssh -2"
 alias vmecomp=$VMEBDIR/comp.py
 alias vmecrate=$VMEBDIR/crate.py
 alias showclockshift="$VMECFDIR/ttcmidaemons/monshiftclock2.py s"
-alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB; echo DIM_DNS_NODE:$DIM_DNS_NODE'
+alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB; echo DIM_DNS_NODE:$DIM_DNS_NODE; echo REDIS:$REDIS'
 if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' ] ;then
   echoint "Server cpu: $hname, alias defs in bin/setenv"
 elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then

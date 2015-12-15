@@ -5,10 +5,11 @@ Testing: uncomment dic.hxx include and main() at the end.
 g++ -I/opt/dim/dim -lpthread -L/opt/dim/linux -ldim bakery.c linux_c/timeroutines.o -o /tmp/bakerytest.exe 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/dim/linux
 
+30.11.2015 usleep(bakery->lockus) added in lockBakery()
 */
 #include <stdio.h>
 #include <string.h>
-//#include <unistd.h>
+#include <unistd.h>   // usleep
 #include "vmeblib.h"
 #include "bakery.h"
 
@@ -32,6 +33,9 @@ for(ix=0; ix<maxx; ix++) {
 bakery->minUsecs= 1000000000;
 bakery->lastsecs= 0; bakery->lastusecs= 0;
 bakery->Nlocks= 0; bakery->Nunlocks= 0;
+bakery->lockus= 0;
+if(strcmp(name,"ccread")==0) bakery->lockus= 500;
+if(strcmp(name,"sssmcr")==0) bakery->lockus= 100000;
 strcpy(bakery->name, name);
 }
 void lockBakery(Tbakery *bakery, int icu) {
@@ -67,7 +71,7 @@ for(ix=0; ix <bakery->Maxn; ix++) {
   //while ((Number[ix] != 0) && ((Number[ix], ix) < (Number[icu], icu))) {
   while (bakery->Number[ix] != 0) {
     //((Number[ix], ix) < (Number[icu], icu))
-    if(bakery->Number[ix] < bakery->Number[icu]) continue;
+    if(bakery->Number[ix] < bakery->Number[icu]) { usleep(bakery->lockus); continue;};
     break;
     ;     /* nothing */
   }

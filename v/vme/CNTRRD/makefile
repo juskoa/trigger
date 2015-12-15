@@ -2,6 +2,10 @@ SDIR= .
 ODIR= linux
 EXTRALIBS = -L$(DIMDIR)/linux -ldim
 VMEBLIB = -L$(VMEBDIR)/vmeblib/linux_s -lvmeb
+ifdef REDIS
+REDISLIB= -L$(REDIS)/deps/hiredis -l hiredis
+REDISINC= -I$(REDIS)/deps/hiredis
+endif
 CC=$(VMEGCC)
 ifeq ($(CC),g++)
 CFLAGS =-DCPLUSPLUS
@@ -18,7 +22,7 @@ ALL: $(ODIR)/readctpc $(ODIR)/readltuc $(ODIR)/analyse $(ODIR)/udpmonitor \
  $(ODIR)/udpclient
 
 $(ODIR)/readctpc: $(ODIR)/readctpc.o $(ODIR)/common.o
-	$(CC) $(LDFLAGS) -lm $< $(LIBS) $(ODIR)/common.o \
+	$(CC) $(LDFLAGS) -lm $< $(LIBS) $(REDISLIB) $(ODIR)/common.o \
  -o $@ $(EXTRALIBS)
 $(ODIR)/readltuc: $(ODIR)/readltuc.o $(ODIR)/common.o
 	$(CC) $(LDFLAGS) $< $(LIBS) $(ODIR)/common.o \
@@ -35,7 +39,7 @@ $(ODIR)/udpclient: $(ODIR)/udpclient.o
 
 $(ODIR)/readctpc.o:$(SDIR)/readctpc.c $(SDIR)/common.h
 	-mkdir -p $(ODIR)
-	$(CC) $(CFLAGS) -o $@ $(INCS) $<
+	$(CC) $(CFLAGS) -o $@ $(INCS) $(REDISINC) $<
 $(ODIR)/readltuc.o:$(SDIR)/readltuc.c $(SDIR)/common.h
 	$(CC) $(CFLAGS) -o $@ $(INCS) $<
 $(ODIR)/common.o:$(SDIR)/common.c $(SDIR)/common.h

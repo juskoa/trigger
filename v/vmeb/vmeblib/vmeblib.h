@@ -60,3 +60,12 @@ int daqlogbook_update_triggerClassCounter(unsigned int run, unsigned char classI
 int daqlogbook_update_triggerDetectorCounter(unsigned int run, const char *detector, unsigned long L2aCount);
 int daqlogbook_update_triggerInputCounter(unsigned int run, unsigned int inputId, unsigned int inputLevel, unsigned long long inputCount);
 int daqlogbook_update_triggerGlobalCounter(unsigned int run, unsigned long L2aCount, float ctpDuration);
+
+//ctp database
+void mydbDisconnect();
+int mydbConnect();
+void red_update_detsinrun(int runn, unsigned int detpattern);
+void red_clear_detsinrun(int runn);
+unsigned int red_get_detsinrun(int runn);
+void red_get_runs(int *runs, int *dets);
+

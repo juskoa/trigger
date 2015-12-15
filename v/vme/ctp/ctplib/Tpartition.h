@@ -331,6 +331,7 @@ typedef struct Tctpshm {
 char datetime[20];  // '\0' or dd.mm.yyyy hh:mm:ss of last SHM init
 Tbakery swtriggers; // see ctplib/swtrigger.c
 Tbakery ccread;     // ctp counters readings (see ctplib/readCounters.c)
+Tbakery ssmcr;     // vme/smaq/smaq2.c, ctp++/macros/findLMOrbitOff.C
 w32 GlobalFlags;    // bits: see above
 w32 active_cg;      // active classgroup. 255 during PAUSE
 Tdetector validLTUs[NDETEC];

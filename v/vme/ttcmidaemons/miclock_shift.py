@@ -380,7 +380,7 @@ Than start miclock again.
    BEAM1       	-change the ALICE clock to BEAM1
    LOCAL       	-change the ALICE clock to LOCAL
    getshift    	-display current clock shift
-   reset       	-reset current clock shift to 0
+   reset       	-reset current clock shift to 0. ONLY ONCE! (wait 3 minutes after)
    q            -quit this script
 """)
       #%WEB.clockchangemode)

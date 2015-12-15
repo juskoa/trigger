@@ -1,0 +1,704 @@
+# 1 "TRIGGER.smipp"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "TRIGGER.smipp"
+
+object: TTCMI/associated
+   state: OK
+   state: CLOCK_TRANSITION
+
+
+
+# 1 "TRIGGER.invoke" 1
+object: CTP/associated
+   parameters: EXECUTING_FOR="UNKNOWN", ERROR_REASON="UNKNOWN", ORBIT_NUMBER="UNKNOWN"
+   state: RUNNING
+      action: INIT_PARTITION (PARTITION, MASK, RUN_NUMBER, MODE, ACT_CONFIG)
+      action: START_PARTITION (PARTITION)
+      action: STOP_PARTITION (PARTITION)
+      action: PAUSE_PARTITION (PARTITION,DETECTORS)
+      action: RESUME_PARTITION (PARTITION,DETECTORS)
+      action: SYNC (PARTITION)
+   state: EXECUTING
+   state: LOAD_FAILURE
+      action: ACKNOWLEDGE
+   state: ERROR
+      action: RESET
+
+object: DAQ_CTP_SERVER/associated
+   state: RUNNING
+      action: ENABLE (PARTITION)
+      action: DISABLE (PARTITION)
+object: TIN-ACORDE/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-DAQ_TEST/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-EMCAL/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-MUON_TRG/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-PHOS/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-SPD/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-T0/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-TOF/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-TPC/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-TRD/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-V0/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: TIN-ZDC/associated
+   parameters: CTP_INPUTS = "UNDEFINED"
+   state: READY
+   state: NOT_READY
+   state: ERROR
+
+object: LTU-ACORDE/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-ACORDE_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-CPV/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-CPV_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-DAQ_TEST/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-DAQ_TEST_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-EMCAL/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-EMCAL_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-FMD/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-FMD_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-HMPID/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-HMPID_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-MUON_TRG/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-MUON_TRG_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-MUON_TRK/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-MUON_TRK_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-PHOS/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-PHOS_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-PMD/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-PMD_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-SDD/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-SDD_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-SPD/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-SPD_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-SSD/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-SSD_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-T0/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-T0_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-TOF/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-TOF_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-TPC/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-TPC_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-TRD/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-TRD_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-V0/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-V0_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-ZDC/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-ZDC_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+object: LTU-DAQ/associated
+   state: STANDALONE_STOPPED
+      action: START (CONFIGURATION,MODE,RUN_NUMBER)
+      action: SET_DEFAULT(NAME,VALUE)
+      action: NV_GOTOGLOBAL(PARTITION_NAME,RUN_NUMBER)
+   state: STANDALONE_STARTING
+   state: STANDALONE_RUNNING
+      action: STOP
+      action: PAUSE
+   state: STANDALONE_PAUSED
+      action: RESUME
+      action: STOP
+      action: SYNC
+   state: STANDALONE_STOPPING
+   state: GLOBAL
+      action: NV_GOTOSTANDALONE_STOPPED
+   state: ERROR
+      action: RESET
+
+object: LTU-DAQ_FWM
+   parameters: lockedby = "nobody"
+   state: EXCLUDED/initial_state
+      action: TAKE(LOCKER)
+         set lockedby = LOCKER
+      terminate_action/state=INLOCAL
+   state: INLOCAL
+      action: RETURN
+         set lockedby = "nobody"
+      terminate_action/state=EXCLUDED
+
+# 69 "TRIGGER.smipp" 2

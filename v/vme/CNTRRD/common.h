@@ -8,8 +8,8 @@ typedef struct {
   char type;
 } Tsorted;
 typedef struct {
-  int reladdr;
-  w32 prevcs;
+  int reladdr;   // in cnames.sorted2 (bufw32[])
+  w32 prevcs;    // previous and current readings
   w32 currcs;
 } Tcnt1;
 

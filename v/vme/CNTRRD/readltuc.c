@@ -27,7 +27,7 @@ extern "C" {
 
 #define MAXTEMPLATEL 20
 #define NLTUS 20
-char *LTUS[]={"spd", "sdd", "ssd", "tpc", "trd", "tof", "phos",
+const char *LTUS[]={"spd", "sdd", "ssd", "tpc", "trd", "tof", "phos",
   "cpv", "hmpid", "muon_trk", "muon_trg", "pmd",
   "fmd", "t0", "v0", "zdc", "acorde", "emcal", "daq", "ad"}; 
 //define NLTUS 2 
