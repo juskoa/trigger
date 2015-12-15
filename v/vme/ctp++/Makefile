@@ -39,4 +39,5 @@ obj/%.o: src/%.cc src/%.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm obj/*.o
+	rm obj/*.o || true
+	rm *.e || true
