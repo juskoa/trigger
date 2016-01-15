@@ -1,0 +1,391 @@
+PID 1844
+TTCit Initialization
+No Board number identification expected
+TTCit logic FPGA version = 23
+Initialization of the softeare TTCIT logic
+Thread attributes for the software MONITOR set successfully
+TTCIT logic internal state
+
+SSM mode = DEAD0001         SCOPE
+Nr. of sequences inspected = 0
+Count fractions of SSM sequences in SCOPE mode = 1
+Count fractions of SSM sequences in SEQ mode = 0
+Number of loops remaining = 0
+Stoft MONITOR status : STOPPED
+Resetting TTCIT
+Setting Snap Shot memory analyzer to default state
+Snap Shot Memory analyzer set up - O.K.
+TTCIT board configuration successfull
+OM : L0 - L1 time interval is set to 224
+     If needed use OM_SetTime_L0_L1(t) to change it
+OM : Default BCNT differene set to 0
+     If needed change the value of HW_BCNT_DIFFERENCE register
+On-Board Monitor initialization ........ OK
+:
+Dynamic memory allocation ........ SUCCESS
+SSM address counter = 1048573       BC FIFO level = 4
+SSM address counter = 1048573       BC FIFO level = 5
+SnapShot memory read : 1048573  words
+SSM address counter = 0       BC FIFO level = 5
+BC FIFO read :  5  words extracted
+SSM address counter = 0       BC FIFO level = 0
+FIFOs filled ........... SUCCESS
+
+
+SSM address counter = 0       BC FIFO level = 0
+ERROR MASK
+----------
+ 
+Error list      
+Error flags     0
+Last error tick 0     address: 0
+Nr. of errors stored : 0
+List of error occurences:
+ 
+ -- 
+ 
+  Addr     Ticks    A Channel     B Channel    TTC Rx - BCID - wrd
+-------------------------------------------------------------------
+ABCADDED  -000001    L0                                          
+00000103  +000259    L1-                                         
+00000104  +000260       -L1                          BE5         
+00000142  +000322                L1M Hdr  41F                 
+0000016E  +000366                L1M Dat  FFF                 
+0000019A  +000410                L1M Dat  FFF                 
+000001C6  +000454                L1M Dat  FFF                 
+000001F2  +000498                L1M Dat  FFC                 
+00000369  +000873                L2r Adr  BC4              BC4
+0002B1F2  +176626    L0                                          
+000531F0  +340464    L0                                          
+000532F4  +340724    L1-                                         
+000532F5  +340725       -L1                          556         
+00053333  +340787                L1M Hdr  00F                 
+0005335F  +340831                L1M Dat  FFF                 
+0005338B  +340875                L1M Dat  FFF                 
+000533B7  +340919                L1M Dat  FFF                 
+000533E3  +340963                L1M Dat  FFC                 
+0005355A  +341338                L2a Hdr  535              535
+00053586  +341382                L2a Dat  8A4                 
+000535B2  +341426                L2a Dat  5DD                 
+000535DE  +341470                L2a Dat  0FF                 
+0005360A  +341514                L2a Dat  FFF                 
+00053636  +341558                L2a Dat  FFF                 
+00053662  +341602                L2a Dat  FFF                 
+0005368E  +341646                L2a Dat  FFF                 
+0006333E  +406334    L0                                          
+00063442  +406594    L1-                                         
+00063443  +406595       -L1                          C0C         
+00063481  +406657                L1M Hdr  00F                 
+000634AD  +406701                L1M Dat  FFF                 
+000634D9  +406745                L1M Dat  FFF                 
+00063505  +406789                L1M Dat  FFF                 
+00063531  +406833                L1M Dat  FFC                 
+000636A8  +407208                L2r Adr  BEB              BEB
+00093EB7  +605879    L0                                          
+000A9AC3  +694979    L0                                          
+000A9BC7  +695239    L1-                                         
+000A9BC8  +695240       -L1                          BE5         
+000A9C06  +695302                L1M Hdr  41F                 
+000A9C32  +695346                L1M Dat  FFF                 
+000A9C5E  +695390                L1M Dat  FFF                 
+000A9C8A  +695434                L1M Dat  FFF                 
+000A9CB6  +695478                L1M Dat  FFC                 
+000A9E2D  +695853                L2a Hdr  BC4              BC4
+000A9E59  +695897                L2a Dat  8A4                 
+000A9E85  +695941                L2a Dat  640                 
+000A9EB1  +695985                L2a Dat  3FF                 
+000A9EDD  +696029                L2a Dat  FFF                 
+000A9F09  +696073                L2a Dat  FFF                 
+000A9F35  +696117                L2a Dat  FFF                 
+000A9F61  +696161                L2a Dat  FFF                 
+000EE697  +976535    L0                                          
+000EE79B  +976795    L1-                                         
+000EE79C  +976796       -L1                          BE5         
+000EE7DA  +976858                L1M Hdr  41F                 
+000EE806  +976902                L1M Dat  FFF                 
+000EE832  +976946                L1M Dat  FFF                 
+000EE85E  +976990                L1M Dat  FFF                 
+000EE88A  +977034                L1M Dat  FFC                 
+000EEA01  +977409                L2r Adr  BC4              BC4
+000F80BE  +1015998    L0                                          
+ --- 
+Read 62 events from the FIFO
+Seen  L0 signals 8
+Seen  L1 signals 5
+ 
+:
+SSM ANALYSIS:    COUNTERS
+-------------------------
+ 
+Number of                        L0   : 17
+Number of                        L1   : 11
+Number of                       L1m   : 11
+Number of                       L2a   : 6
+Number of                       L2r   : 5
+Number of           Unknown message   : 0
+Number of         L0-L1-L2 accepted   : 0
+Number of               L1 rejected   : 17
+Number of               L2 rejected   : 0
+Number of                       RoI   : 0
+Number of                L0L1 fakes   : 11
+ --- 
+SSM ANALYSIS:    DETECTED ERRORS
+--------------------------------
+ 
+Number of errors                  L0S   : 0
+Number of errors                  L1S   : 0
+Number of errors                  L1T   : 11
+Number of errors                  L1M   : 11
+Number of errors                 L1Mo   : 0
+Number of errors                  L1F   : 0
+Number of errors                  L2T   : 0
+Number of errors                 L2Ts   : 11
+Number of errors                  L2F   : 0
+Number of errors      L1-L2 BCID diff   : 0
+Number of errors                RoI-F   : 0
+Number of errors                RoI-S   : 0
+Number of errors                RoI-T   : 0
+ ---
+SSM ANALYSIS:    TIMING INFO
+----------------------------
+ 
+         L0 - L0 interval  : MEAN =   64448.00 : MIN =   8874 : MAX = 229514
+         L0 - L1 interval  : MEAN =     260.00 : MIN =    260 : MAX =    260
+    L1 - L2a/L2r interval  : MEAN =       0.00 : MIN = 9999999 : MAX =      0
+        L1 - L1m interval  : MEAN =       0.00 : MIN = 9999999 : MAX =      0
+    L1 - L2a/L2r in BC ID  : MEAN =       0.00 : MIN = 9999999 : MAX =      0
+   L1 - RoI time interval  : MEAN =       0.00 : MIN = 9999999 : MAX =      0
+ L1 - RoI BCID difference  : MEAN =       0.00 : MIN = 9999999 : MAX =      0
+ ---
+ERROR MASK
+----------
+ 
+Error list      L1T L1M L2Ts 
+Error flags     8C
+Last error tick 1032349     address: FC09D
+Nr. of errors stored : 33
+List of error occurences:
+Tick    24656    : ERROR = L1T
+Tick    24895    : ERROR = L1M
+Tick    25578    : ERROR = L2Ts
+Tick    33530    : ERROR = L1T
+Tick    33769    : ERROR = L1M
+Tick    34144    : ERROR = L2Ts
+Tick   215271    : ERROR = L1T
+Tick   215510    : ERROR = L1M
+Tick   216193    : ERROR = L2Ts
+Tick   290115    : ERROR = L1T
+Tick   290354    : ERROR = L1M
+Tick   290729    : ERROR = L2Ts
+Tick   356249    : ERROR = L1T
+Tick   356488    : ERROR = L1M
+Tick   357171    : ERROR = L2Ts
+Tick   400223    : ERROR = L1T
+Tick   400462    : ERROR = L1M
+Tick   400837    : ERROR = L2Ts
+Tick   667899    : ERROR = L1T
+Tick   668138    : ERROR = L1M
+Tick   668821    : ERROR = L2Ts
+Tick   692847    : ERROR = L1T
+Tick   693086    : ERROR = L1M
+Tick   693461    : ERROR = L2Ts
+Tick   752527    : ERROR = L1T
+Tick   752766    : ERROR = L1M
+Tick   753449    : ERROR = L2Ts
+Tick   791221    : ERROR = L1T
+Tick   791460    : ERROR = L1M
+Tick   791835    : ERROR = L2Ts
+Tick  1031427    : ERROR = L1T
+Tick  1031666    : ERROR = L1M
+Tick  1032349    : ERROR = L2Ts
+ 
+ -- 
+ 
+  Addr     Ticks    A Channel     B Channel    TTC Rx - BCID - wrd
+-------------------------------------------------------------------
+ABCADDED  -000001    L0                                          
+00005F4C  +024396    L0                                          
+00006050  +024656    L1-                                         
+>>---------->> E R R O R >>--> L1T
+00006051  +024657       -L1                          52A         
+0000608F  +024719                L1M Hdr  00F                 
+000060BB  +024763                L1M Dat  FFF                 
+000060E7  +024807                L1M Dat  FFF                 
+00006113  +024851                L1M Dat  FFF                 
+0000613F  +024895                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000062B6  +025270                L2a Hdr  509              509
+000062E2  +025314                L2a Dat  8F1                 
+0000630E  +025358                L2a Dat  7AC                 
+0000633A  +025402                L2a Dat  0FF                 
+00006366  +025446                L2a Dat  FFF                 
+00006392  +025490                L2a Dat  FFF                 
+000063BE  +025534                L2a Dat  FFF                 
+000063EA  +025578                L2a Dat  FFF                 
+>>---------->> E R R O R >>--> L2Ts
+000081F6  +033270    L0                                          
+000082FA  +033530    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000082FB  +033531       -L1                          BFC         
+00008339  +033593                L1M Hdr  00F                 
+00008365  +033637                L1M Dat  FFF                 
+00008391  +033681                L1M Dat  FFF                 
+000083BD  +033725                L1M Dat  FFF                 
+000083E9  +033769                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+00008560  +034144                L2r Adr  BDB              BDB
+>>---------->> E R R O R >>--> L2Ts
+00030247  +197191    L0                                          
+000347E3  +215011    L0                                          
+000348E7  +215271    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000348E8  +215272       -L1                          BE5         
+00034926  +215334                L1M Hdr  41F                 
+00034952  +215378                L1M Dat  FFF                 
+0003497E  +215422                L1M Dat  FFF                 
+000349AA  +215466                L1M Dat  FFF                 
+000349D6  +215510                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+00034B4D  +215885                L2a Hdr  BC4              BC4
+00034B79  +215929                L2a Dat  8F1                 
+00034BA5  +215973                L2a Dat  7E1                 
+00034BD1  +216017                L2a Dat  3FF                 
+00034BFD  +216061                L2a Dat  FFF                 
+00034C29  +216105                L2a Dat  FFF                 
+00034C55  +216149                L2a Dat  FFF                 
+00034C81  +216193                L2a Dat  FFF                 
+>>---------->> E R R O R >>--> L2Ts
+00046C3F  +289855    L0                                          
+00046D43  +290115    L1-                                         
+>>---------->> E R R O R >>--> L1T
+00046D44  +290116       -L1                          BE5         
+00046D82  +290178                L1M Hdr  41F                 
+00046DAE  +290222                L1M Dat  FFF                 
+00046DDA  +290266                L1M Dat  FFF                 
+00046E06  +290310                L1M Dat  FFF                 
+00046E32  +290354                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+00046FA9  +290729                L2r Adr  BC4              BC4
+>>---------->> E R R O R >>--> L2Ts
+00052E1D  +339485    L0                                          
+00056E95  +355989    L0                                          
+00056F99  +356249    L1-                                         
+>>---------->> E R R O R >>--> L1T
+00056F9A  +356250       -L1                          5B7         
+00056FD8  +356312                L1M Hdr  00F                 
+00057004  +356356                L1M Dat  FFF                 
+00057030  +356400                L1M Dat  FFF                 
+0005705C  +356444                L1M Dat  FFF                 
+00057088  +356488                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000571FF  +356863                L2a Hdr  596              596
+0005722B  +356907                L2a Dat  8F1                 
+00057257  +356951                L2a Dat  809                 
+00057283  +356995                L2a Dat  0FF                 
+000572AF  +357039                L2a Dat  FFF                 
+000572DB  +357083                L2a Dat  FFF                 
+00057307  +357127                L2a Dat  FFF                 
+00057333  +357171                L2a Dat  FFF                 
+>>---------->> E R R O R >>--> L2Ts
+00061A5B  +399963    L0                                          
+00061B5F  +400223    L1-                                         
+>>---------->> E R R O R >>--> L1T
+00061B60  +400224       -L1                          A6D         
+00061B9E  +400286                L1M Hdr  00F                 
+00061BCA  +400330                L1M Dat  FFF                 
+00061BF6  +400374                L1M Dat  FFF                 
+00061C22  +400418                L1M Dat  FFF                 
+00061C4E  +400462                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+00061DC5  +400837                L2r Adr  A4C              A4C
+>>---------->> E R R O R >>--> L2Ts
+0007087F  +460927    L0                                          
+000A2FF7  +667639    L0                                          
+000A30FB  +667899    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000A30FC  +667900       -L1                          BE5         
+000A313A  +667962                L1M Hdr  41F                 
+000A3166  +668006                L1M Dat  FFF                 
+000A3192  +668050                L1M Dat  FFF                 
+000A31BE  +668094                L1M Dat  FFF                 
+000A31EA  +668138                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000A3361  +668513                L2a Hdr  BC4              BC4
+000A338D  +668557                L2a Dat  8F1                 
+000A33B9  +668601                L2a Dat  860                 
+000A33E5  +668645                L2a Dat  3FF                 
+000A3411  +668689                L2a Dat  FFF                 
+000A343D  +668733                L2a Dat  FFF                 
+000A3469  +668777                L2a Dat  FFF                 
+000A3495  +668821                L2a Dat  FFF                 
+>>---------->> E R R O R >>--> L2Ts
+000A916B  +692587    L0                                          
+000A926F  +692847    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000A9270  +692848       -L1                          BE5         
+000A92AE  +692910                L1M Hdr  41F                 
+000A92DA  +692954                L1M Dat  FFF                 
+000A9306  +692998                L1M Dat  FFF                 
+000A9332  +693042                L1M Dat  FFF                 
+000A935E  +693086                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000A94D5  +693461                L2r Adr  BC4              BC4
+>>---------->> E R R O R >>--> L2Ts
+000AC1BF  +704959    L0                                          
+000B7A8B  +752267    L0                                          
+000B7B8F  +752527    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000B7B90  +752528       -L1                          859         
+000B7BCE  +752590                L1M Hdr  00F                 
+000B7BFA  +752634                L1M Dat  FFF                 
+000B7C26  +752678                L1M Dat  FFF                 
+000B7C52  +752722                L1M Dat  FFF                 
+000B7C7E  +752766                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000B7DF5  +753141                L2a Hdr  838              838
+000B7E21  +753185                L2a Dat  8F1                 
+000B7E4D  +753229                L2a Dat  878                 
+000B7E79  +753273                L2a Dat  0FF                 
+000B7EA5  +753317                L2a Dat  FFF                 
+000B7ED1  +753361                L2a Dat  FFF                 
+000B7EFD  +753405                L2a Dat  FFF                 
+000B7F29  +753449                L2a Dat  FFF                 
+>>---------->> E R R O R >>--> L2Ts
+000C11B1  +790961    L0                                          
+000C12B5  +791221    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000C12B6  +791222       -L1                          65B         
+000C12F4  +791284                L1M Hdr  00F                 
+000C1320  +791328                L1M Dat  FFF                 
+000C134C  +791372                L1M Dat  FFF                 
+000C1378  +791416                L1M Dat  FFF                 
+000C13A4  +791460                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000C151B  +791835                L2r Adr  63A              63A
+>>---------->> E R R O R >>--> L2Ts
+000F923B  +1020475    L0                                          
+000FBBFF  +1031167    L0                                          
+000FBD03  +1031427    L1-                                         
+>>---------->> E R R O R >>--> L1T
+000FBD04  +1031428       -L1                          BE5         
+000FBD42  +1031490                L1M Hdr  41F                 
+000FBD6E  +1031534                L1M Dat  FFF                 
+000FBD9A  +1031578                L1M Dat  FFF                 
+000FBDC6  +1031622                L1M Dat  FFF                 
+000FBDF2  +1031666                L1M Dat  FFC                 
+>>---------->> E R R O R >>--> L1M
+000FBF69  +1032041                L2a Hdr  BC4              BC4
+000FBF95  +1032085                L2a Dat  8F1                 
+000FBFC1  +1032129                L2a Dat  8C6                 
+000FBFED  +1032173                L2a Dat  3FF                 
+000FC019  +1032217                L2a Dat  FFF                 
+000FC045  +1032261                L2a Dat  FFF                 
+000FC071  +1032305                L2a Dat  FFF                 
+000FC09D  +1032349                L2a Dat  FFF                 
+>>---------->> E R R O R >>--> L2Ts
+ --- 
+Read 147 events from the FIFO
+Seen  L0 signals 17
+Seen  L1 signals 11
+ 
+:

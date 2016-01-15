@@ -861,8 +861,11 @@ if(ARGNOHTML==0) {
 if(ARGNOAPPMON==1) {
   printf("skipping apmon(..., -noapmon\n");
 } else {
+  char *apmonsw; char cmd[120];
+  apmonsw= getenv("APMON");
   // started in ~/CNTRRD pwd, i.e. apmonConfig.conf in ~/CNTRRD/
-  apmonpipe= openpipew((char *)"/home/alice/trigger/Downloads/ApMon_cpp-2.2.8/examples/example_3 >logs/apmon.log 2>&1");
+  sprintf(cmd, "%s/examples/example_3 >logs/apmon.log 2>&1", apmonsw);
+  apmonpipe= openpipew(cmd);
 };
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);

@@ -40,6 +40,7 @@ void UPPER(char *);
 //detectfile.c, environment.c
 int detectfile(char *name, int secs);
 int readfile(char *fname, char *mem, int maxlen);
+void readpw(char *facility, char *mem);
 void printenvironment();
 int envcmp(char *name, char *value);
 int popenread(char *cmd, char *output, int leng);

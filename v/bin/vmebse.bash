@@ -26,7 +26,9 @@ if [ -n "$1" ] ;then
   fi
 fi
 #defaults:
-export REDIS=~/Downloads/redis-3.0.5
+TRG_ADDONS=/home/dl6/local/sw
+export REDIS=$TRG_ADDONS/redis-3.0.5
+export APMON=$TRG_ADDONS/ApMon_cpp-2.2.8
 export VMESITE=SERVER
 export OS=Linux
 export DIMDIR=/opt/dim

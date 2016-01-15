@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+
 #include "hiredis.h"
+void readpw(char *facility, char *mem);
 
 char host[24]="avmes";   // "pcalicebhm10";
 static redisContext *context=NULL;
@@ -9,34 +11,6 @@ static struct config {
     int hostport;
 } config={host,6379};
 
-void mydbDisconnect() {
-if(context !=NULL) {
-  printf("INFO redisFree...\n");
-  redisFree(context);
-};
-}
-void mydbShutdown() {
-redisReply *reply;// int rc;
-reply= (redisReply *)redisCommand(context, "SHUTDOWN");
-freeReplyObject(reply);
-redisFree(context);
-}
-int mydbConnect() {
-int rc=REDIS_OK;
-if(context==NULL) {
-  //config.hostip = host; config.hostport = 6379;
-  context = redisConnect(config.hostip,config.hostport);
-  if(context->err) {
-    fprintf(stdout,"ERROR Could not connect to Redis at ");
-    fprintf(stdout,"%s:%d: %s\n",config.hostip,config.hostport,context->errstr);
-    redisFree(context);
-    context = NULL;
-    rc= REDIS_ERR;
-  } else {
-    printf("INFO redisConnect(%s,%d) ok.\n", config.hostip,config.hostport);
-  };
-}; return(rc);
-}
 void printReply1(redisReply *reply, int level) {
 #define MAXLEVEL 10
 int ix;
@@ -72,6 +46,50 @@ if(reply==NULL) {
 }
 void printReply(redisReply *reply) {
 printReply1(reply, 0);
+}
+
+void mydbDisconnect() {
+if(context !=NULL) {
+  printf("INFO redisFree...\n");
+  redisFree(context);
+};
+}
+void mydbShutdown() {
+redisReply *reply;// int rc;
+reply= (redisReply *)redisCommand(context, "SHUTDOWN");
+freeReplyObject(reply);
+redisFree(context);
+}
+int mydbConnect() {
+int rc=REDIS_OK;
+if(context==NULL) {
+  //config.hostip = host; config.hostport = 6379;
+  context = redisConnect(config.hostip,config.hostport);
+  if(context->err) {
+    fprintf(stdout,"ERROR Could not connect to Redis at ");
+    fprintf(stdout,"%s:%d: %s\n",config.hostip,config.hostport,context->errstr);
+    redisFree(context);
+    context = NULL;
+    rc= REDIS_ERR;
+  } else {
+    char pmsg[80];
+    redisReply *reply; char cmd[90]; char pwd[80];
+    readpw("redis", pwd);
+    if(strlen(pwd)>0) {
+      sprintf(cmd, "AUTH %s", pwd); 
+      reply= (redisReply *)redisCommand(context, cmd);
+      printReply(reply);
+      if((reply->type== REDIS_REPLY_STATUS) && (strcmp(reply->str,"OK")==0)) {
+        strcpy(pmsg,"ok, auth");
+      } else {
+        strcpy(pmsg,"ok, not auth (bad passwd)");
+      };
+    } else {
+      strcpy(pmsg,"ok, not auth (no passwd given)");
+    };
+    printf("INFO redisConnect(%s,%d) %s.\n", config.hostip,config.hostport, pmsg);
+  };
+}; return(rc);
 }
 
 /*===========================================*/

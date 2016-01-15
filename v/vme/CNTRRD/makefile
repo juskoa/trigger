@@ -17,11 +17,12 @@ CFLAGS += -Wall -g  -c
 INCS = -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib
 LDFLAGS = -pthread 
 LIBS = -L$(VMEBDIR)/vmeblib/linux_s -lvmeb
+LIBDEPS = $(VMEBDIR)/vmeblib/linux_s/libvmeb.a
 
 ALL: $(ODIR)/readctpc $(ODIR)/readltuc $(ODIR)/analyse $(ODIR)/udpmonitor \
  $(ODIR)/udpclient
 
-$(ODIR)/readctpc: $(ODIR)/readctpc.o $(ODIR)/common.o
+$(ODIR)/readctpc: $(ODIR)/readctpc.o $(ODIR)/common.o $(LIBDEPS)
 	$(CC) $(LDFLAGS) -lm $< $(LIBS) $(REDISLIB) $(ODIR)/common.o \
  -o $@ $(EXTRALIBS)
 $(ODIR)/readltuc: $(ODIR)/readltuc.o $(ODIR)/common.o
