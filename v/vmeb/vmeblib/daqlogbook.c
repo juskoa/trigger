@@ -1,7 +1,8 @@
 /* daqlogbook.c
 stdout: has to start with 'INFO ' or 'ERROR ' -routines here
-are called from vme/pydim/server.c which is popened from
-pydimserver.py
+are called from vme/pydim/server.c which is popened from pydimserver.py
+11.12.2015
+red_ added -update detectors in globruns
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -329,18 +330,20 @@ rc=0;
 return(rc);
 }
 /* update clusters info in DAQlogbook (6 clusters)
+   update redis db: hash gruns_dets runn:0xdetpattern
 */
 int daqlogbook_update_clusters(unsigned int runn, char *pname,
   TDAQInfo *daqi, 
   unsigned int ignoredaqlog) {    // on vme available in shm
-  //unsigned int effiout) {         // inp. dets effectively filtered out 
-int iclu,rc;
+  //unsigned int effiout)          // inp. dets effectively filtered out 
+int iclu,rc; w32 detpattern=0;
 printf("INFO daqlogbook_update_clusters: pname:%s runn:%d\n", pname, runn);
 for(iclu=0;iclu<NCLUST;iclu++) {
   if(daqi->masks[iclu]==0) continue;
   if(daqi->daqonoff==0) { // ctp readout active, set TRIGGER bit17 
     daqi->masks[iclu]= daqi->masks[iclu] | (1<<CTPLTUECSN);
   };
+  detpattern= detpattern | daqi->masks[iclu];   // all dets in given run
   //printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx effiout:0x%x\n", 
   printf("INFO daqlogbook_update_clusters: cluster:%d det/inp/class0-63/class64 mask:0x:%x %x %llx %llx\n", 
     iclu+1, daqi->masks[iclu], 
@@ -367,6 +370,7 @@ printf("INFO DAQlogbook_update_cluster(%d,...) not called\n", runn);
 rc=0;
 #endif
 };
+red_update_detsinrun(runn, detpattern);
 return(rc);
 }
 /* not needed -called directly in uupdate_triggerConfig

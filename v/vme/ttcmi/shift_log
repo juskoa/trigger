@@ -5,6 +5,7 @@
 3.2. BC1
 3.3. BCMAIN with corde 8484
 3.3.1 summary
+3.3.2 summary change by another 2ns 30.11.2015
 3.4. BCMAIN with corde 4864
 5. Conclusion
 
@@ -417,6 +418,45 @@ Anyhow, if it is, to get it to the same position as before: set BC_DELAY25_BC1 a
 Note2:
 If there is problem with Orbit vs. BCID numbers, set 
 ORBIN_DELAY25_ORB1 to 9 or 10ns (= 0x152 or 0x154) instead of old value 12ns (=0x158)
+
+3.3.2 summary change by another 2ns 30.11.2015
+----------------------------------------------
+Done:
+- $dbctp/clockshift:  is: 33 1006 998
+  30.11. 16:43: '0.130274' (<type 'float'>)
+- nastav na RF2TTC aj na corde rucne:
+      ORBIN_DELAY25_ORB1 0x7d020:158 -> possibly (if problem with smaq): 0x150
+                                        0x158-0x140= 24
+                                        cize i2c_setdelay(0x7D020, 20)
+       BC_DELAY25_BCMAIN 0x7d00c:161 -> 165 (cize 37)
+       BC_DELAY25_BC1    0x7d000:161 -> 165  to get it the same for BPTX
+- nastav CORDE rucne: (o 2000ps menej, = 200 countov)
+  set(7, 8060)    8060=10060-200
+
+- miclock.py:
+  resetforce
+  - pouzije 'old' meranie (sme na LOCAL clocku) cize na corde
+    sa objavi  po resetforce: 806-13= 793 a v $dbctp/clockshift:37 793 806
+
+Values before 17.11.2015:
+      ORBIN_DELAY25_ORB1 0x7d020:158
+       BC_DELAY25_BCMAIN 0x7d00c:15d
+          BC_DELAY25_BC1 0x7d000:15d
+
+Values after -2+2ns 30.11.2015:
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:165 ok
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:165 ok
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:158 possibly to be changed (if wrong bcids in smaq)
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
 
 3.4. BCMAIN with corde 4484
 ---------------------------

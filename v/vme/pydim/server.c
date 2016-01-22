@@ -20,6 +20,8 @@ Operation:
   classname* - class name
   cmd   -keyword
   cmd_system -command to be executed through system()
+
+11.12.2015: mydb, red_ added
 */
 #include <string.h>
 #include <stdio.h>
@@ -315,10 +317,13 @@ rc= getname_rn(dain->run1msg, pname, &rundec);
 if(check_xcounters()) return;
 if(rc==0) {
   //printf("INFO effiout:0x%x\n", effiout);
-  /*new from aug2015: effiout: bit pattern of inp. detectors effectively filtered out
-    not used: prepared if DAQ wants in future 'per cluster' -in that case 'per cluster' info
+  /*new from aug2015:
+  effiout: bit pattern of inp. detectors effectively filtered out
+  not used: prepared if DAQ wants in future 'per cluster' -in that 
+    case 'per cluster' info
    -should by passed in TDAQInfo structure from ctp proxy (now it is not) or
    -somehow, pydimserver.py should deliver 'per cluster' (now delivering 'per partition')
+  red_update_detsinrun() invoked also in following call
   */
   rc= daqlogbook_update_clusters(rundec, pname, dain, ignoreDAQLOGBOOK); //, effiout);
   printf("INFO Dorcfg rc=%i \n",rc);
@@ -360,7 +365,7 @@ if(rc==0) {
 // bmsg: binary message Tltucfg
 Tltucfg1 *dain; //int rc;
 dain= (Tltucfg1 *)bmsg;
-printf("INFO Dltucfg len:%d run:%d det:%s\n",*size,dain->run,dain->detector); 
+printf("INFO DOltucfg len:%d run:%d det:%s\n",*size,dain->run,dain->detector); 
 /*rc=*/ daqlogbook_update_LTUConfig(dain->run, dain->detector,
   dain->LTUFineDelay1, dain->LTUFineDelay2, dain->LTUBCDelayAdd);
 // INFO msg in daqlogbook...
@@ -599,6 +604,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
   };
 } else if((strncmp(mymsg,"rcfgdel ALL 0x...",11)==0)) {   //ctpproxy [re]start
   //int irc;
+  red_clear_detsinrun(0);
   reset_insver();
   readTables();
   ctpc_clear(); updateCNAMES();
@@ -629,6 +635,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
     sprintf(emsg,"pydimserver: bad part. name in %s cmd", mymsg);
   };
   if(emsg[0]=='\0') {
+    red_clear_detsinrun(runn);
     ctpc_delrun(runn); updateCNAMES();
   } else {
     infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
@@ -1042,6 +1049,8 @@ ctpc_clear(); ctpc_print(CNAMESString);
 rc= getINT12fromcfg(INT1String, INT2String, MAXINT12LINE);
 printf("INFO rc:%d INT1:%s INT2:%s\n", rc, INT1String, INT2String);
 
+rc= mydbConnect();
+
 dis_add_error_handler(error_handler);
 dis_add_exit_handler(exit_handler);
 dis_add_client_exit_handler (client_exit_handler);
@@ -1140,6 +1149,7 @@ rc= daqlogbook_close();
 if(rc==-1) {
   printf("ERROR DAQlogbook_close failed\n");
 };
+mydbDisconnect();
 stopserving();
 cshmDetach(); printf("INFO shm detached.\n");
 return(grc);

@@ -193,8 +193,8 @@ Problems: see corresponding files in:
    trigger@alidcsvme001:v/vme/WORK/  -ctpproxy ctpdim gcalib
    trigger@alidcsvme017:v/vme/WORK/  -ttcmidim diprfrx
    ~tri/logs                         -xcounters
-   trigger@alitrir:rl/monscal_root        -gmonscal sources
-   trigger@alitrir:rl/monscal_root/WORK   -gmonscal log
+   trigger@alitrir:rl/correlations/monscal_root        -gmonscal sources
+   trigger@alitrir:rl/correlations/monscal_root/WORK   -gmonscal log
    trigger@alitrir:IRS/LUMI_FILES/MASSI  IRS/LOG/LOG   -irdim
    $VMEWORKDIR/vme/masksServer.log/pid    -masksServer
 EOF

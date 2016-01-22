@@ -308,6 +308,8 @@ printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
 initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
 printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 initBakery(&ctpshmbase->ccread, "ccread", 5);
+printf("initBakery(ssmcr,4): 0:smaq 1:findLMOrbitOff 2:ctp.exe 3:inputs\n");
+initBakery(&ctpshmbase->ssmcr, "ssmcr", 4);
 
 setglobalflags(argc, argv);
 if(isArg(argc, argv, "configrunset")) {

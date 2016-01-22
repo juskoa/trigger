@@ -7,6 +7,8 @@
 #include <dirent.h>
 #include <string.h>
 
+#include "lexan.h"
+
 /*-----------------------*/ int detectfile(char *name, int maxsecs) {
 /* name: name of the file
    maxsecs: timeout in seconds (0: check only once and return)
@@ -77,4 +79,26 @@ f=fopen(fname,"r"); if(f==NULL) return(-1);
 sp=fread((void *)mem, 1, maxlen-1, f); 
 mem[sp]='\0';
 fclose(f); return(sp);
+}
+/*-----------------------*/ void readpw(char *facility, char *mem) {
+FILE *f; char *env;
+char fname[120];
+mem[0]='\0'; env= getenv("dbctp"); sprintf(fname,"%s/pwds.cfg", env);
+f=fopen(fname,"r"); if(f==NULL) return;
+while(1) {
+  int ixt; Ttokentype tt;
+  char line[100]; char ttext[100];
+  if( fgets(line, 100, f)==NULL) break;
+  ixt=0;
+  tt= nxtoken(line, ttext, &ixt);
+  if(tt != tSYMNAME) continue;   // each line:  symname "any string"
+  if( strcmp(facility,ttext) == 0) {
+    tt= nxtoken(line, ttext, &ixt);
+    if((tt == tSTRING) && (strlen(ttext)>2)) {   // i.e. take last occurence (if present in more lines)
+      ttext[strlen(ttext)-1]= '\0'; //remove trailing "
+      strcpy(mem, &ttext[1]);     // do not copy leading "
+    };
+  };
+};
+fclose(f);
 }

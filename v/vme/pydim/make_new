@@ -6,7 +6,10 @@ LIBS= $(CTPLD) $(VMEBLD)
 ifdef ACT_DB
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
 endif
-LIBS += $(daqLD) $(DIMLD) $(MYSQLLIBS)
+ifdef REDIS
+REDISLIB= -L$(REDIS)/deps/hiredis -l hiredis
+endif
+LIBS += $(daqLD) $(DIMLD) $(MYSQLLIBS) $(REDISLIB)
 
 CFLAGS += $(daqDEFS) $(daqINCDIRS) -I$(DIMinc) -I$(VMEBinc) -I$(VMECFDIR)/ctp_proxy -I$(CTPinc)
 #LDFLAGS = -lpthread  is in com_defs.make

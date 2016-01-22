@@ -1,7 +1,9 @@
 #!/usr/bin/python
+# dec 2015: see vistar.png for explanation, why we use
+#           DEFLUMI=1.0 and 1.0E27 dividing in Pb-Pb
 import string,types
 
-DEFLUMI=1.0
+DEFLUMI=1.0   # for Pb: 1.0, for p-p it was 3.0 (and 1E30)
 lumi= DEFLUMI
 lumi_source=None   # "dim" or "default". None: preproc.getlumi() never called
 

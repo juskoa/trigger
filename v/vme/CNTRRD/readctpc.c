@@ -11,6 +11,10 @@ cd ~/CNTRRD ; $VMECFDIR/CNTRRD/linux/readctpc
 
 13.2.2007 I2C,orbit (23 counters-> 1+11*4) added
 10.7. LTU volotages added
+2.12.2015 "B..." "I..." lines sent to apmonpipe (redis involved)
+4.12.2015 intCTPbusy (N_CTPDET:17) now also returned in html line
+          different from 'detectors': just busy time of DDL1 link in usecs given
+11.12.2015 red_ mydb added
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +33,7 @@ extern "C" {
 #include "common.h"
 #include "vmeblib.h"
 #include "udplib.h"
+#include "hiredis.h"
  
 #define MAXLINELE 80
 /* till 25.10.07: #define EPOCHSEC 725
@@ -41,8 +46,11 @@ extern "C" {
 #define l0timeix 15   // run1:13
 
 int ARGNORRD=0;
+int ARGNOAPPMON=0;
+int ARGNOHTML=0;
 FILE *rrdpipe=NULL;
 FILE *htmlpipe;
+FILE *apmonpipe=NULL;
 //FILE *dbgout=NULL;
 FILE *spurfile=NULL;
 int csock_gcalib=-1;   // sending gcalib messages to monitor
@@ -52,6 +60,7 @@ w32 debugl2s=0;
 w32 debugl0s=0;
 w32 debugl2r=0;
 w32 debugl1s=0;
+w32 debugl0swinp1=0;
 char *hname;
 w32 prevl0time=0;
 int firstreading=1;
@@ -59,10 +68,17 @@ unsigned int cntsFailed=0xdeaddeed;
 unsigned int cnts[NCOUNTERS];
 
 #define N24 24
-/* 5th column in cnames.sorted2: */
+#define N48 48
+#define N_CTPDET 17
+/* 5th column in cnames.sorted2:  
+LTUORDER: index corresponds to ECS number of the detector
+"-" -not defined (i.e. LTU not connected)
+""  -end of table
+N_CTPDET -ECS number reserved for CTP
+*/
 const char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
   "PHOS", "CPV", "PMD", "MUON_TRK", "MUON_TRG",
-  "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ","-","AD", ""}; 
+  "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ","-","AD", "-", "-",""}; 
 // by RL on TM 1.8.2012: THIS ONE USED FOR L1R CORRECTION
 // 28.11.2012: corrected to be equal with DQM: (pmd, muon_trg, v0):
 float l1rusecs[N24]={0, 7.0, 7.325, 6.65, 6.75, 6.705, 6.835,
@@ -89,7 +105,7 @@ one of WHATBUSY strings is set in redis.bsy_screen
 #define WHATBUSYS 4
 const char *WHATBUSY[]={"bsy/L0[us]", "bsy/L2s[us]", "readout[us]", "totalbsy[%]"};
 int avbsyix= 2;  // 0,1, or 2  or 3-> one of items in avbsys[]
-int allreads=0;
+w32 allreads=0;
 int measnum=1;   // 1..9
 Tcnt1 cs[NCS];
 Tcnt1 busy[N24];   // 24 busys, the same order as in VALID.LTUS
@@ -99,9 +115,11 @@ Tcnt1 l2s[N24];   // 24 l2strobes, the same order as in VALID.LTUS
 Tcnt1 l2r[N24];   // 24 l2reject, the same order as in VALID.LTUS
 Tcnt1 ppout[N24];   // 24 ppouts, not for each reading
 Tcnt1 l2cal[N24];   // 24 ppouts, as l0s, but not for each reading
-Tcnt1 intCTPbusy;
+Tcnt1 intCTPbusy[1];
+Tcnt1 l0swinps[N48];   // l0inp1..48
 typedef struct {
   int absy[WHATBUSYS];  // avbsyl0s, avbsyl2s(till Oct. 2012) -will be l2as, avreadout
+  int runn;             // 0: not in global, >0: in global runn, [N_CTP].runn is always 0
 } Tavbsy;
 
 Tavbsy avbusys[N24];      // usecs, -1: not connected   >999000: dead
@@ -164,7 +182,7 @@ if(signum==SIGUSR1) {   // signum: 10
 };
 if(signum==SIGUSR2) { prtTables(); };  // signum:12 
 if(signum==SIGPIPE) { 
-   printf("SIGPIPE received...\n");
+   printf("SIGPIPE received...\n"); // when html (pipe) down
 };
 fflush(stdout);
 }
@@ -191,6 +209,11 @@ if((strncmp(cname,"fo",2)==0) &&
   return(0);
 };
 }
+/*-------------------------------------------------- shiftcnt()
+Operation:
+cntstr[ix].prevcs= currcs;
+cntstr[ix].currcs= buff32[cntstr[ix].reladdr];
+*/
 void shiftcnt(Tcnt1 *cntstr, int ix, w32 *bufw32) {
 int rad;
 //w32 *bufw32= (w32 *)buffer;
@@ -207,6 +230,10 @@ if(strcmp(hname, "alidcscom835")!=0) {
       debugl2r= debugl2r+ 20*60;    // 20hz
       debugl1s= debugl1s+ 500*60;   // 500hz
     };
+  } else if(cntstr==intCTPbusy) {
+    //printf("CTPbusy:%d:0x%x\n", rad, bufw32[rad]);
+    //bufw32[rad]= bufw32[rad]+ allreads*16;   // CTP DDL1 busy time
+    ;
   } else if(cntstr==l2s) {
     bufw32[rad]= debugl2s;
   } else if(cntstr==l0s) {
@@ -215,15 +242,34 @@ if(strcmp(hname, "alidcscom835")!=0) {
     bufw32[rad]= debugl2r;
   } else if(cntstr==l1s) {
     bufw32[rad]= debugl1s;
+  } else if(cntstr==l0swinps) {
+    if(ix==0) {
+      int ix48;
+      debugl0swinp1= debugl0swinp1+ 10*60*allreads;   // +10hz/min
+      for(ix48=0; ix48<N48; ix48++) {
+        bufw32[rad+ix48]= debugl0swinp1 + ix*100*60;
+      };
+    } else {
+      bufw32[rad]= bufw32[rad] + (allreads%10)*ix*10*60;   // +0,..., 4700 hz for 1..48 inps
+    };
+    if(ix<=3) {
+      printf("   ix:%d bufw32[%d]:%d", ix, rad, bufw32[rad]); 
+      if(ix==3) printf("\n");
+    };
   } else {
-    printf("error internal in shiftcnt\n");
+    printf("ERROR internal in shiftcnt\n");
   };
 };
 cntstr[ix].prevcs= cntstr[ix].currcs; cntstr[ix].currcs= bufw32[rad];  
+// let's put the same previous reading with 1st reading (i.e. results in rate 0, not a big peek)
+if(allreads==0) {
+  cntstr[ix].prevcs= cntstr[ix].currcs;
+};
 }
+/*--------------------------------------------------- checktrigs() */
 w32 checktrigs(w32 trigsdif) {
 if(trigsdif<0) {
-  printf("error in gotcnts: trigsdif:%d\n", trigsdif);
+  printf("ERROR in gotcnts: trigsdif:%d\n", trigsdif);
   fflush(stdout);
   trigsdif=1;
 } else if(trigsdif==0)trigsdif=1;
@@ -238,8 +284,12 @@ foXl0outY xxx foX C SDD    X:1..6  Y:1..4     old (busy calculated with L0s)
 foXl0stroY xxx foX C SDD    X:1..6  Y:1..4
 
 foXppoutY xxx foX C SDD
+
+L0:
+l0inp1..48
 */
 int ix;
+int   l0inp1addr=0;    // l0inpXadr= l0inp1addr + (X-1) for X:1..48
 FILE *cnames;
 char *cfdir; char cnamesname[100];
 Tsorted pl;
@@ -268,8 +318,12 @@ while(1) {
     printf("parseLine rc: %d line:%s\n", rc, line);
     break;
   };
-  if(strncmp(pl.cname, "intCTPbusy", 10)==0) {
-     intCTPbusy.reladdr= pl.addr;
+  if(strcmp(pl.cname, "l0inp1")==0) {
+     l0inp1addr= pl.addr;
+     continue;
+  };
+  if(strcmp(pl.cname, "intCTPbusy")==0) {
+     intCTPbusy[0].reladdr= pl.addr;
      continue;
   };
   //if(pl.addr>3) break;
@@ -306,12 +360,28 @@ while(1) {
 fclose(cnames);
 for(ix=0; ix<N24; ix++) {
   if(LTUORDER[ix][0]=='\0') break;
-  printf("%s: %d\t%d\t%d\t%7.3f\n",
+  printf("%d:%s: %d\t%d\t%d\t%7.3f\n", ix,
     LTUORDER[ix], busy[ix].reladdr, l2s[ix].reladdr, ppout[ix].reladdr,
     l1rusecsClu[ix] );
 };
+printf("l0inp1addr:%d\n", l0inp1addr);
+for(ix=0; ix<48; ix++) {
+  l0swinps[ix].reladdr= l0inp1addr + ix;
+  l0swinps[ix].currcs= 0;
+};
 }
-/*------*/float calc_rate(Tcnt1 *counter, w32 *bufw32, float caltime) {
+/*------*/float calc_rate(Tcnt1 *counter, float caltime_usecs) {
+w32 l2dif; float rate;
+l2dif= dodif32(counter->prevcs, counter->currcs);
+if(l2dif==0) {
+  rate= 0.;
+} else {
+  rate= 1000000.0*l2dif/caltime_usecs;
+};
+if(rate<0.001) rate= 0.;
+return(rate);
+}
+/*------  float calc_rate_old(Tcnt1 *counter, w32 *bufw32, float caltime) {
 w32 l2dif; int rad; float rate;
 rad= counter->reladdr;
 if(rad != -1) { 
@@ -327,7 +397,7 @@ if(rad != -1) {
   rate= 0.;
 };
 return(rate);
-}
+} */
 #define do1streading() \
   caltime= -1.; \
   /* store prevl0time, prev_l2, prev_ppout for 5dets */ \
@@ -350,28 +420,112 @@ if(rcp==NULL) {
   printf("rrdpipe opened.\n");
 }; return(rcp);
 }
+FILE *openpipew(char *cmd) {
+FILE *rcp;
+rcp= popen(cmd, "w");
+if(rcp==NULL) {
+  printf("Cannot open %s\n", cmd);
+} else {
+  setlinebuf(rcp);
+  printf("%s opened.\n", cmd);
+}; return(rcp);
+}
+/*---------------------------------------------------- update_runns()
+O: update avbusys[0..23].runn from redis database
+*/
+void update_runns() {
+int ixr, runs[6], dets[6];
+for(ixr=0; ixr<N24; ixr++) { avbusys[ixr].runn= 0; };
+red_get_runs(runs,dets);
+for(ixr=0; ixr<6; ixr++) {   // all runs
+  int id, det;
+  if(runs[ixr]==0) break;
+  det= dets[ixr];
+  for(id=0; id<N24; id++) {
+    if( (1<<id) & det ) {
+      int oldrun;
+      oldrun= avbusys[id].runn;
+      if((oldrun !=0) && (oldrun != runs[ixr])) {
+        printf("ERROR: det:%d already in run:%d. New run:%d\n",
+          id, oldrun, runs[ixr]);
+      };
+      avbusys[id].runn= runs[ixr];
+    };
+  };
+};
+}
+/*---------------------------------------------------- db_getrunn(detn)
+rc: 0 if detector not in global run
+   >0 run number where detn is included
+*/
+int db_getrn(int detn) {
+int runn;
+if(strcmp(LTUORDER[detn], "-")==0) {runn=0;   // not connected
+} else if(strcmp(LTUORDER[detn], "")==0) {runn=0;   // end of table (detn=24) should never happen!
+//} else if((detn%4)==0) {runn=0;
+//} else {runn=222222;
+} else {
+  runn= avbusys[detn].runn;
+};
+return(runn);
+}
+#define MAX_APMONB 452
+#define MAX_APMONI 652
+/*---------------------------------------------------- update_apmonlineB
+Operation:
+if detN inside a run:   (use redis db)
+  - update line
+CTP always present with runn:0
+ * */
+void update_apmonlineB(char *apmonline, int detN, int avbusy) {
+int runn=0 ; char detpart[24];
+if(detN==N_CTPDET) {
+  runn=0;
+} else {
+  runn= db_getrn(detN);
+};
+if((runn!=0) || (detN==N_CTPDET)) {
+  sprintf(detpart," %d %d %d", detN, runn, avbusy);
+  if((strlen(detpart)+strlen(apmonline)) < MAX_APMONB) {
+    strcat(apmonline, detpart);
+  } else {
+    printf("ERROR: too long apmonlineB:'%s'+'%s'\n", apmonline, detpart);
+  };
+};
+}
+
 /*-----------------------*/ void gotcnts(void *tag, void *buffer, int *size) {
-int ix; //,ixx;   
+int ix, rcapmon; //,ixx;   
 int ndaso;
 w32 timedelta;
 float timesecs; //, caltime;
+unsigned int itimesecs;
 char dat[20]; char dmyhms[20];
-char htmlline[1000];
+// readout[us] 30.11.2015 15:43:52 minute 1000000 ...   39+24*8= 231
+#define MAX_HTMLLINE 300
+char htmlline[MAX_HTMLLINE];     // was 1000 before 30.11.2015
+// B epochT     det runN  avbusy
+// B 1448880367 10 245865 1000000...   maxlen: 13+24*18= 445
+char apmonlineB[MAX_APMONB];
+// I epochT     inp1 ... inp48   (float: 12.3f)
+// I 1448880367 40000000.222 ...       maxlen: 13+48*13= 637
+char apmonlineI[MAX_APMONI];
 w32 *bufw32= (w32 *)buffer;
 //printf("gotcnts tag:%d+1 size:%d rrdpibuready:%d\n", *(int *)tag, *size, rrdpibuready );
 //*(int *)tag= *(int *)tag  +1;
 if(*size != 4*NCOUNTERS) {
-  printf("error in gotcnts. Size:%d First word(if any):0x%x\n",
+  printf("ERROR in gotcnts. Size:%d First word(if any):0x%x\n",
     *size, *bufw32);
   return;
 };
 timesecs= bufw32[epochsecs]+ bufw32[epochmics]/1000000.;
+itimesecs= nearbyintf(timesecs);
 getdatetime(dmyhms);
 printf("%s %17.6f: %d counters\n", dmyhms, timesecs, *size/4); fflush(stdout);
 timedelta= dodif32(prevl0time, bufw32[l0timeix]);  // in 0.4micsecs
 prevl0time= bufw32[l0timeix];
 measnum++; if(measnum>=10) measnum=1;
-printf("intCTPbusy:%d:%d\n", intCTPbusy.reladdr, bufw32[intCTPbusy.reladdr]);
+// printf("intCTPbusy:%d:0x%x\n", intCTPbusy[0].reladdr, bufw32[intCTPbusy[0].reladdr]);
 /*------------------------------------------------------------ rrd */
 if(rrdpibuready==0) {
   //fprintf(rrdpipe, "update rrd/ctpcounters.rrd ");
@@ -426,13 +580,16 @@ printf("busytemp:%d l0temp:%d\n", bufw32[1514], bufw32[1516]);
 
 /*------------------------------------------------------------ html */
 sprintf(htmlline, "%s %s minute ", WHATBUSY[avbsyix], dat);
+sprintf(apmonlineB, "B %u ", itimesecs); sprintf(apmonlineI, "I %u ", itimesecs);
+update_runns();
 for(ix=0; ix<N24; ix++) {
   int rad,notdefined;
   notdefined=0;
   rad= busy[ix].reladdr;
+  //printf("ix:%d rad:%d\n", ix, rad);
   if(rad != -1) {
-    if(strcmp(hname, "alidcscom835")!=0) {
-      printf("Warning: arranging dbg values in non-p2 setup!...\n");
+    if((strcmp(hname, "alidcscom835")!=0) && (ix<2)) {
+      printf("Warning: ================================ arranging dbg values in non-p2 setup!...\n");
     };
     shiftcnt(busy, ix, bufw32);
     shiftcnt(l0s, ix, bufw32);
@@ -442,11 +599,22 @@ for(ix=0; ix<N24; ix++) {
     //shiftcnt(ppout, ix, bufw32); treated separately
     //shiftcnt(l2cal, ix, bufw32);
   } else {
+    if(ix==N_CTPDET) {
+      shiftcnt(intCTPbusy, 0, bufw32);
+    };
     notdefined=1;
   };
   if(allreads==0) goto RTRN;  // we need 2 readings at least
   if(notdefined==1) {
-    sprintf(htmlline, "%s -", htmlline);
+    if(ix==N_CTPDET) {
+      int avbusy;
+      //printf("prev curr:0x%x 0x%x\n", intCTPbusy[0].prevcs, intCTPbusy[0].currcs);
+      avbusy= (int)round( dodif32(intCTPbusy[0].prevcs, intCTPbusy[0].currcs)*0.4);
+      sprintf(htmlline, "%s %d", htmlline, avbusy);   // just busy in usecs for CTP
+      update_apmonlineB(apmonlineB, ix, avbusy);
+    } else {
+      sprintf(htmlline, "%s -", htmlline);
+    };
   } else {
     int cix;
     for(cix=0; cix<WHATBUSYS; cix++) {
@@ -503,22 +671,53 @@ for(ix=0; ix<N24; ix++) {
           //sprintf(htmlline, "%s %d", htmlline, 100*ix);
           sprintf(htmlline, "%s %d", htmlline, avbusy);
         };
+        update_apmonlineB(apmonlineB, ix, avbusy);
       };
     };
   };
 }; strcat(htmlline,"\n");
+strcat(apmonlineB,"\n");
 printf("%u=%s: l2orbit:%u busytemp:%u busyvolts:%x debugbusy:%u\n", 
   bufw32[epochsecs], dat, bufw32[l2orbit], bufw32[CSTART_SPEC+3],
   bufw32[CSTART_SPEC+4], debugbusy); 
 if(bufw32[epochsecs]==0) {
-  printf("error in gotcnts: bad time\n");
+  printf("ERROR in gotcnts: bad time\n");
   fflush(stdout);
   return;
 } else {
   /*int inforc;
   inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1 */
-  fwrite(htmlline, strlen(htmlline), 1, htmlpipe);   //fprintf(htmlpipe, htmlline);
-  printf("%s", htmlline);
+  if(ARGNOHTML==0) {
+    fwrite(htmlline, strlen(htmlline), 1, htmlpipe);   //fprintf(htmlpipe, htmlline);
+    printf("%s", htmlline);
+  };
+};
+
+/*------------------------------------------------------------ apmon 
+*/
+for(ix=0; ix<N48; ix++) {
+  float trigrate; //w32 trigsdif;
+  char strigrate[16];
+  shiftcnt(l0swinps, ix, bufw32);
+  /* trigsdif= dodif32(l0swinps[ix].prevcs, l0swinps[ix].currcs);
+  trigrate= round(trigsdif/(timedelta*0.4)); */
+  trigrate= calc_rate(&l0swinps[ix], 0.4*timedelta);
+  sprintf(strigrate, " %12.3f", trigrate);
+  strcat(apmonlineI, strigrate);
+}; strcat(apmonlineI,"\n");
+if(ARGNOAPPMON==0) {
+  rcapmon= fprintf(apmonpipe, "%s", apmonlineB);
+  if((w32)rcapmon != strlen(apmonlineB) )  {
+    printf("ERROR: apmonB fprintf rc:%d != line_len:%u\n", rcapmon, (int)strlen(apmonlineB));
+  } else {
+    printf("INFO apmonB pipe ok:%s", apmonlineB);
+  };
+  rcapmon= fprintf(apmonpipe, "%s", apmonlineI);
+  if((w32)rcapmon != strlen(apmonlineI) )  {
+    printf("ERROR: apmonI fprintf rc:%d != line_len:%u\n", rcapmon, (int)strlen(apmonlineI));
+  } else {
+    printf("INFO apmonI pipe ok:%s", apmonlineI);
+  };
 };
 /*------------------------------------------------------------ gcalib 
 for LTUs: TOF MUON_TRG T0 ZDC EMCAL. Attention: MUON_TRG cal. rate; 1/33secs
@@ -543,9 +742,9 @@ if(firstreading==1) {
       float l2rate, ppoutrate;
       if((ix==5) || (ix==11) || (ix==13) || (ix==15) || (ix==18) ) {
         // calibrated detector
-        l2rate= calc_rate(&l2cal[ix], bufw32, caltime);
+        l2rate= calc_rate_old(&l2cal[ix], bufw32, caltime);
         sprintf(udpm,"%s %s %.3f ", udpm, LTUORDER[ix], l2rate);
-        ppoutrate= calc_rate(&ppout[ix], bufw32, caltime);
+        ppoutrate= calc_rate_old(&ppout[ix], bufw32, caltime);
         sprintf(udpm,"%s %.3f ", udpm, ppoutrate);
       };
     };
@@ -613,7 +812,7 @@ allreads++; return;
 }
 
 /*------------------------------*/ int main(int argn, char **argv) {
-int inforc, ix, tag=137;
+int inforc, rc, ix, tag=137;
 for(ix=0; ix<argn; ix++) {
   //printf("arg%d:%s: ",i, argv[i]); 
   if(ix==0) continue;
@@ -621,8 +820,15 @@ for(ix=0; ix<argn; ix++) {
   if(strcmp(argv[ix], "-norrd") == 0){
     ARGNORRD=1;
     continue;
+  } else if(strcmp(argv[ix], "-noapmon") == 0){
+    ARGNOAPPMON=1;
+    continue;
+  } else if(strcmp(argv[ix], "-nohtml") == 0){
+    ARGNOHTML=1;
+    continue;
   };
 }; printf("\n");
+rc= mydbConnect();
 hname= getenv("HOSTNAME");
 //setbuf(stdout, NULL);   nebavi
 initbusyl0s();
@@ -640,22 +846,35 @@ if(ARGNORRD==1) {
   printf("%s rrdpipe OPENED. Opening /tmp/htmlfifo (will wait for htmlCtpBusy daemon running)...\n", hname);
 };
 rrdpibuready=0;
-htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
-// waiting on the above open until htmlCtpBusy is not started
-if(htmlpipe==NULL) {
-  printf("Cannot open /tmp/htmlfifo \n");
-  exit(8);
+if(ARGNOHTML==0) {
+  htmlpipe= fopen("/tmp/htmlfifo", "w");    // mkfifo /tmp/htmlfifo
+  // waiting on the above open until htmlCtpBusy is not started
+  if(htmlpipe==NULL) {
+    printf("Cannot open /tmp/htmlfifo \n");
+    exit(8);
+  };
+  printf("/tmp/htmlfifo opened, i.e. htmlCtpBusy daemon is running.setlinebuf()...\n");
+  setlinebuf(htmlpipe);
+} else {
+  printf("INFO -nohtml, html not updated\n");
 };
-printf("/tmp/htmlfifo opened, i.e. htmlCtpBusy daemon is running.setlinebuf()...\n");
-setlinebuf(htmlpipe);
+if(ARGNOAPPMON==1) {
+  printf("skipping apmon(..., -noapmon\n");
+} else {
+  char *apmonsw; char cmd[120];
+  apmonsw= getenv("APMON");
+  // started in ~/CNTRRD pwd, i.e. apmonConfig.conf in ~/CNTRRD/
+  sprintf(cmd, "%s/examples/example_3 >logs/apmon.log 2>&1", apmonsw);
+  apmonpipe= openpipew(cmd);
+};
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGUSR2, gotsignal); siginterrupt(SIGUSR2, 0);
 //signal(SIGPIPE, SIG_IGN);
 signal(SIGPIPE, gotsignal); siginterrupt(SIGPIPE, 0);
 
-printf("gcalib monitoring skipped.\n");
 csock_gcalib= udpopens((char *)"localhost", 9931);
-if(csock_gcalib==-1) {printf("udpopens error\n"); /* exit(8);*/ };
+if(csock_gcalib==-1) {printf("ERROR in udpopens\n"); /* exit(8);*/ };
+printf("gcalib monitoring skipped (csock_gcalib:%d)...\n", csock_gcalib);
 
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
 //dbgout= fopen("logs/dbgout.log", "w");
@@ -681,8 +900,11 @@ while(1) {
   };
 };
 if(rrdpipe) pclose(rrdpipe); 
-//pclose(htmlpipe);
+if(ARGNOHTML==0) {
+  ; //pclose(htmlpipe);
+};
 //fclose(dbgout);
+mydbDisconnect();
 dic_release_service(inforc);
 //udpclose(csock_gcalib);
 return(0);
