@@ -1,0 +1,8 @@
+#/bin/bash
+ps aux |grep smaqgui |grep -v grep
+ps aux |grep root.exe |grep -v grep
+pidgui=`ps -C root.exe -o ppid=`
+pidroot=`ps -C root.exe -o pid=`
+echo
+echo "killing $pidgui $pidroot ..."
+kill $pidgui $pidroot

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import string,types
 
-DEFLUMI=3.0
+DEFLUMI=1.0
 lumi= DEFLUMI
 lumi_source=None   # "dim" or "default". None: preproc.getlumi() never called
 
