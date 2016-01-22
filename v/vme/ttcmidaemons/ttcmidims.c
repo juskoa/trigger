@@ -544,14 +544,14 @@ if((freqs[0] != rfrx1[2].freq) ||
 //stat=qpllstat+1; //simulate change
 if(stat != qpllstat) {
   char msg[100];
+  if((stat | REF_MASK) != (qpllstat | REF_MASK)) {
+    sprintf(msg, "QPLL update (ref ignored here) rc:%d qpllstat:0x%x",
+      rc,stat);
+    prtLog(msg);
+  };
   qpllstat= stat;
   sprintf(qpllnow,"%3.3x", qpllstat);
   rc= dis_update_service(QPLLid);
-  if((stat | REF_MASK) != (qpllstat | REF_MASK)) {
-    sprintf(msg, "QPLL update (ref ignored here) rc:%d qpllstat:0x%x",
-      rc,qpllstat);
-    prtLog(msg);
-  };
   /*
   mainerr= (qpllstat & 0x2)>>1; mainlck= (qpllstat & 0x1);
   bc1err= (qpllstat & 0x80)>>7; bc1lck= (qpllstat & 0x40)>>6;
@@ -561,7 +561,7 @@ if(stat != qpllstat) {
   prtLog(buffer); */
 };
 nlogqpll++;
-if((nlogqpll % 36000)==0) {    // 3600:log 1 per 2 hours
+if((nlogqpll % 3600)==0) {    // 3600:log 1 per 2 hours
   char msg[100];
   sprintf(msg, "qpllstat%d:0x%x", nlogqpll, qpllstat);
   prtLog(msg);
