@@ -1,0 +1,35 @@
+ApMon notes.
+1. sources, compilationi, start
+2. config file
+
+=== 1. sources, compilation, start
+Here ($VMECFDIR/apmon/ ) only alice specific example_3.cpp is kept.
+There is a link from whole ApMon package pointing to this file.
+
+Whole ApMon package is in /home/dl6/local/sw/ApMon_cpp-2.2.8
+The name of this directory is in $APMON, which is set in vmebse.bash:
+export APMON=$TRG_ADDONS/ApMon_cpp-2.2.8
+
+$APMON/examples/example_3.cpp is linked to $VMECFDIR/apmon/   i.e.:
+[trigger@alidcscom835 examples]$ pwd
+/home/dl6/local/sw/ApMon_cpp-2.2.8/examples
+[trigger@alidcscom835 examples]$ ln -s /local/trigger/v/vme/apmon/example_3.cpp 
+
+Compiled executable is in  $APMON/examples directory.
+Compliation:
+[trigger@alidcscom835 examples]$ make
+...
+
+Start:
+Normally, example_3.exe is started using popen() from CNTRRD/readctpc.c,
+from working directory ~/CNTRRD i.e.:
+  apmonsw= getenv("APMON");
+  sprintf(cmd, "%s/examples/example_3 >logs/apmon.log 2>&1", apmonsw);
+  apmonpipe= openpipew(cmd);
+
+=== 2. config file
+is placed in $APMON/example.
+2 files: 
+apmonConfig_alice.conf   -used in p2 (used when VMESITE: ALICE)
+apmonConfig_lab.conf     -used elsewhere
+

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "hiredis.h"
@@ -62,6 +63,16 @@ redisFree(context);
 }
 int mydbConnect() {
 int rc=REDIS_OK;
+char *site;
+site= getenv("VMESITE");
+if(strcmp(site, "ALICE")==0) {
+  strcpy(config.hostip, "alitri");
+} else if(strcmp(site, "SERVER")==0) {
+  strcpy(config.hostip, "avmes");
+} else {
+  printf("ERROR VMESITE:%s (SERVER or ALICE expected)\n", site);
+  return(16);
+};
 if(context==NULL) {
   //config.hostip = host; config.hostport = 6379;
   context = redisConnect(config.hostip,config.hostport);

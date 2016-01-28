@@ -33,7 +33,7 @@ extern "C" {
 #include "common.h"
 #include "vmeblib.h"
 #include "udplib.h"
-#include "hiredis.h"
+//#include "hiredis.h"   no need (we use redisint.c)
  
 #define MAXLINELE 80
 /* till 25.10.07: #define EPOCHSEC 725
@@ -423,6 +423,7 @@ if(rcp==NULL) {
 FILE *openpipew(char *cmd) {
 FILE *rcp;
 rcp= popen(cmd, "w");
+printf("INFO opening %s\n", cmd);
 if(rcp==NULL) {
   printf("Cannot open %s\n", cmd);
 } else {
@@ -705,10 +706,11 @@ for(ix=0; ix<N48; ix++) {
   sprintf(strigrate, " %12.3f", trigrate);
   strcat(apmonlineI, strigrate);
 }; strcat(apmonlineI,"\n");
-if(ARGNOAPPMON==0) {
+if((ARGNOAPPMON==0) && (apmonpipe!=NULL)) {
   rcapmon= fprintf(apmonpipe, "%s", apmonlineB);
   if((w32)rcapmon != strlen(apmonlineB) )  {
-    printf("ERROR: apmonB fprintf rc:%d != line_len:%u\n", rcapmon, (int)strlen(apmonlineB));
+    printf("ERROR: apmonB fprintf rc:%d != line_len:%u, stopping apmon's B/I writes\n", rcapmon, (int)strlen(apmonlineB));
+    apmonpipe= NULL;
   } else {
     printf("INFO apmonB pipe ok:%s", apmonlineB);
   };
