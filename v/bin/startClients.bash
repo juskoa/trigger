@@ -121,6 +121,7 @@ if [ "$VMESITE" != 'PRIVATE' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10
 echo 'This script can be started only on trigger@alidcscom835 or trigger@pcalicebhm10/avmes'
 exit 8
 fi
+TRGVMEWORKDIR=~trigger/v/vme
 if [ "$VMESITE" = 'ALICE' ] ;then
   ctpvme=alidcsvme001
   ttcmivme=alidcsvme017
@@ -196,12 +197,12 @@ Problems: see corresponding files in:
    trigger@alitrir:rl/correlations/monscal_root        -gmonscal sources
    trigger@alitrir:rl/correlations/monscal_root/WORK   -gmonscal log
    trigger@alitrir:IRS/LUMI_FILES/MASSI  IRS/LOG/LOG   -irdim
-   $VMEWORKDIR/vme/masksServer.log/pid    -masksServer
+   $TRGVMEWORKDIR/masksServer.log/pid    -masksServer
 EOF
 exit
 fi
 dnames="pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
-cd ~/CNTRRD
+cd ~trigger/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
   dmn='all'
@@ -210,7 +211,7 @@ elif [ $# -eq 1 -a "$1" = "pids" ] ;then
   showpids
   dmn=pids
 elif [ $# -eq 1 ] ;then
-  echo "Current sttus of $1            (type help to get help message)"
+  #echo "Current sttus of $1            (type help to get help message)"
   dmn=$1
   sss='status'
 else
@@ -219,7 +220,7 @@ else
 fi
 echo $dnames | grep "$dmn " >/dev/null
 rc=$?
-echo "rc:$rc dmn:$dmn:"
+#echo "rc:$rc dmn:$dmn:"
 if [ "$dmn" != "all" -a "$rc" = "1" ] ;then
   echo "unknown daemon: $dmn"
   exit 8
@@ -246,9 +247,8 @@ if [ $dmn = "masksServer" -o "$dmn" = "all" ] ;then
     fi
   elif [ "$sss" = "status" ] ;then
     echo '----- masksServer status:'
-    if [ -f $VMEWORKDIR/WORK/masksServer.pid ] ; then
-      echo '----- masksServer status (1 process):'
-      echo "pid: `cat $VMEWORKDIR/WORK/masksServer.pid`"
+    if [ -f $TRGVMEWORKDIR/WORK/masksServer.pid ] ; then
+      echo "pid: `cat $TRGVMEWORKDIR/WORK/masksServer.pid`"
     else
       echo " not started"
     fi

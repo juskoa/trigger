@@ -24,7 +24,7 @@ from 9.4.2015 reserved for lmclst[1..8], lm_out
 #define NCOUNTERS_BUSY 160  // run1:105 +49spares + 6runx  run2: 300, but we read only 160
 #define NCOUNTERS_BUSY_SP1 113 //run1:105 run2:113 (187 spares, we read only 47 of them)
 //#define NCOUNTERS_BUSY_L2RS 129  // run1 only:129. 6*4 L2r FO counters (FO1, FO2,...)
-#define NCOUNTERS_BUSY_DDL2_BLOCKS 152  // from 23.11.
+#define NCOUNTERS_BUSY_DDL2_BLOCKS 152  // ddl2blocks from 23.11. (changed in CNTWEB/cnt.py + dimservices.c)
 #define NCOUNTERS_BUSY_TSGROUP 153  // active Time sharing class group
 #define NCOUNTERS_BUSY_RUNX1 154  // 6 RUNX counters from here (see dimcoff,dims)
 #define BYTIMERSCOUNTN 44      // 43: run2-bytime  39:run1-bytime see busyTools.c

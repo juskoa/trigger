@@ -4,9 +4,17 @@
 #echo "nothing done (actions commented out)"
 allvmes="alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007"
 op=$1
+if [ -z "$op" ] ;then
+    cat - <<-EOF
+cpltuttc
+checkltuttc
+CL2a -copy emcal's CL2a.slm to all
+EOF
+exit
+fi
 for hn in $allvmes ;do
   [ "$hn" == "alidcsvme002" ] && dets="ssd fmd t0"
-  [ "$hn" == "alidcsvme003" ] && dets="hmpid phos cpv"
+  [ "$hn" == "alidcsvme003" ] && dets="hmpid phos cpv ad"
   [ "$hn" == "alidcsvme004" ] && dets="trd zdc emcal"
   [ "$hn" == "alidcsvme005" ] && dets="tpc pmd acorde"
   [ "$hn" == "alidcsvme006" ] && dets="sdd muon_trk muon_trg daq"
@@ -30,11 +38,12 @@ for detname in $dets ;do
     ar835=~/188/ltuttc/$detname.cfg
     scp -p trigger@alidcscom188:$from188 $ar835
     ls -l $to835 $ar835
+  elif [ "$op" == "CL2a" ] ;then
+    cp /home/dl6/snapshot/alidcsvme004/home/alice/trigger/v/emcal/CFG/ltu/SLMproxy/CL2a.seq \
+       /home/dl6/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/SLMproxy/
+    echo "copy to: $hn $detname rc:$?"
   else
-    cat - <<-EOF
-cpltuttc
-checkltuttc
-EOF
+    echo "doing nothing for $hn $detname"
   fi
   # add l0only.slm to everybody:
   #ddir=/data/dl/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/SLMproxy

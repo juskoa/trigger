@@ -32,6 +32,8 @@ class Counter:
     self.coname=name
     if name=='spare17':   # run2: LM before vetos
       self.displayname= "l0LMbv"
+    elif name=='spare1484':   # run2: 4kBs DDL2 blocks
+      self.displayname= "ddl2blocks"
     elif displayname=='ctp' or displayname=='N':
       self.displayname=name
     else:
@@ -113,6 +115,9 @@ class Board:
         cname=lines[0]+ixstr
         self.counters.append(Counter(cname, lines[3], lines[4]))
     else:
+      #if cname=="spare1484":
+      #  self.counters.append(Counter("ddl2blocks", lines[3], lines[4]))
+      #else:
       self.counters.append(Counter(cname, lines[3], lines[4]))
   def select(self, lcnts):
     """ lcnts: list of counters to be selected

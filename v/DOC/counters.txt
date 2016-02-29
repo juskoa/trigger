@@ -151,9 +151,12 @@ ipf counters added, int counters renamed
 ddl2_blocks counter added instead of spare1484 (busy relative ad: 152):
 - vmeb/counters.py modified, ctp/ctpcounters.h
 #define NCOUNTERS_BUSY_DDL2_BLOCKS 152 
-i.e. it should be visible in rrd as  spare1484
-still todo:
+i.e. it should be visible in rrd as  spare1484 -arranged in CNTWEB/cnt.py
+still todo:  (??? seems not needed)
  cd $VMEBDIR ; ./counters.py printnames >~/cnameslm
  sort -n -k 2 -t ' ' cnameslm >cnameslm.sorted2
 dimcdistrib/cnames.sorted2 and $dbctp/cnames.sorted2i, manual change in 1 line:
-ddl2_blocks 298 l0 C ctp
+lmclstT 298 l0 C ctp
+
+29.2.2016
+CNTWEB/cnt.py: displayname ddl2blocks for spare1484
