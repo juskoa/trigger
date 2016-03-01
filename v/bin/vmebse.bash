@@ -15,6 +15,7 @@ fi
 }
 vdir=`pwd`/v     # before git: vdir='v'
 hname=`hostname -s`
+export LABSERVER='adls'
 export HOSTNAME=$hname
 if [ -n "$1" ] ;then
   if [ "$1" = 'swonly' ] ;then
@@ -38,7 +39,7 @@ export VMEGCC=g++ #export VMEGCC=gcc
 # cd trgdist (where v is) ; . bin/vmebse.bash ; cd
 if [ "$hname" = 'pcalicebhm10' ] ;then
   ult=/home/dl6/local/trigger
-elif [ "$hname" = 'avmes' ] ;then
+elif [ "$hname" = "$LABSERVER" ] ;then
   ult=/home/dl6/local/trigger
 elif [ "$hname" = 'alidcscom188' ] ;then
   ult=/data/dl/root/usr/local/trigger
@@ -84,11 +85,11 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
     export DIM_DNS_NODE=aldaqecs
     #export DIM_DNS_NODE=alidcscom188
   elif [ "$hname" = "altri1" ] ;then   # development
-    export SMAQ_C=avmes
+    export SMAQ_C=$LABSERVER
     export VMESITE=SERVER
     #export DIM_DNS_NODE=pcald30
     unset DATE_INFOLOGGER_DIR
-    export DIM_DNS_NODE=avmes
+    export DIM_DNS_NODE=$LABSERVER
   elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
     export SMAQ_C=pcalicebhm10
     export VMESITE=SERVER2
@@ -104,10 +105,10 @@ else               #------------------------------ server
   if [[ $LD_LIBRARY_PATH != *:$DIMDIR:* ]] ;then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIMDIR/linux:$SMIDIR/linux:$DIPLIB
   fi
-  if [ "$hname" = "avmes" ] ;then   # development ? 13.7. : as in p2
-    export SMAQ_C=avmes
+  if [ "$hname" = "$LABSERVER" ] ;then   # development ? 13.7. : as in p2
+    export SMAQ_C=$LABSERVER
     export VMESITE=SERVER
-    export DIM_DNS_NODE=avmes
+    export DIM_DNS_NODE=$LABSERVER
     unset DATE_INFOLOGGER_DIR
     if [ -d /opt/act ] ;then
       export ACT_DB=daq:daq@pcald30/ACT
@@ -120,7 +121,7 @@ else               #------------------------------ server
       export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
     fi
   elif [ "$hname" = "pcalicebhm10" ] ;then   # 13.7. development
-    export SMAQ_C=avmes
+    export SMAQ_C=$LABSERVER
     export VMESITE=SERVER2
     export DIM_DNS_NODE=pcalicebhm10
     if [ -d /opt/act ] ;then
@@ -143,7 +144,7 @@ alias vmecomp=$VMEBDIR/comp.py
 alias vmecrate=$VMEBDIR/crate.py
 alias showclockshift="$VMECFDIR/ttcmidaemons/monshiftclock2.py s"
 alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB; echo DIM_DNS_NODE:$DIM_DNS_NODE; echo REDIS:$REDIS'
-if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' ] ;then
+if [ "$hname" = 'alidcscom835' -o "$hname" = "$LABSERVER" ] ;then
   echoint "Server cpu: $hname, alias defs in bin/setenv"
 elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then
   #ctp vme cpu:

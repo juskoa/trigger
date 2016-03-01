@@ -35,14 +35,14 @@ fi
 }
 #-------------------------------------
 hname=`hostname -s`
-if [ "$hname" = 'avmes' ] ;then
+if [ "$hname" = 'adls' ] ;then
   p1="6" ; p2="0"
 elif [ "$hname" = 'pcalicebhm10' ] ;then
   p1="6" ; p2="0"
 elif [ "$hname" = 'alidcscom835' ] ;then
   p1="6" ; p2="1"
 else
-  echo 'This script can be started only from tri@alidcscom835, trigger@avmes'
+  echo 'This script can be started only from tri@alidcscom835, trigger@adls'
   exit
 fi
 getpid
@@ -77,7 +77,7 @@ elif [ "$1" == 'start' ] ;then    #----------------------- start
   xcounters daemon 
   executable linked in: $VMECFDIR/monscal++/linux/MonScal
   copied to: ~tri/xcountersdaq in P2
-             ~trigger/xcountersdaq on avmes (lab)
+             ~trigger/xcountersdaq on adls (lab)
              
   log: ~/$logdir/xcountersdaq.log"
 EOF

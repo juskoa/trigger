@@ -60,7 +60,7 @@ OTHERScmp=': ltu VME2FPGA fanio ttcmi bobr switch ttcit :'
 
 HOSTNAME=`hostname -s`
 if [ $HOSTNAME = 'pcalicebhm10' -o  $HOSTNAME = 'alidcscom188' \
-  -o  $HOSTNAME = 'alidcscom835' -o  $HOSTNAME = 'avmes' ] ;then
+  -o  $HOSTNAME = 'alidcscom835' -o  $HOSTNAME = 'adls' ] ;then
   SERVER=$HOSTNAME
 else
   unset SERVER
@@ -73,7 +73,7 @@ fi
 if [ "$#" -eq 0 ] ;then
 cat - <<-EOF
 Usage:
-Repeat 3 steps on avmes first, than on altri1 (alidcsvme008):
+Repeat 3 steps on adls first, than on altri1 (alidcsvme008):
 makeall allctp [clean] -comp/link vmeb, vmeb/vmeblib, ctplib,ctp,ctp_proxy,smaq
                         toobusy
 makeall allltu [clean] -   ltulib,ltu,SSMANA,VME2FPGA,ltu_proxy, ltudim

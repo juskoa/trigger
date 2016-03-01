@@ -24,8 +24,8 @@ if [ $HN = 'alidcscom835' ] ;then
   alias ctp="ssh -X -q -2 -f trigger@alidcsvme001 vmecrate nbi ctp"
   alias fanin=$ULT/bin/fanin
   alias dcson='rdesktop -g1280x1024 alitrion001'
-elif [ $HN = 'pcalicebhm10' -o $HN = 'avmes' ] ;then
-  export logctp=$CLRFS/alidcsvme001/home/alice/v/vme/WORK
+elif [ $HN = 'pcalicebhm10' -o $HN = 'adls' ] ;then
+  export logctp=$CLRFS/alitri1/home/alice/v/vme/WORK
   #export ULT=$CCRFS/usr/local/trigger
   export tr1='trigger@altri1.cern.ch'
   export tr2='trigger@altri2.cern.ch'
@@ -69,7 +69,6 @@ export lxp='jusko1@lxplus.cern.ch'
 alias cdult="cd $ULT"
 alias cdulv="cd $ULT/v/vme"
 alias getact="ssh trigger@alitri getact.bash"
-alias lth="ls -lt |head"
 alias sx="ssh $XY"
 alias xt='xterm -bg black -fg gray60 &'
 alias mail='pine -f /var/spool/mail/root'

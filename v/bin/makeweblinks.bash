@@ -3,7 +3,7 @@ function mkln() {
 rm -f $2
 ln -sf $1/$2 $2
 }
-if [ `hostname -s` = "avmes" -o `hostname -s` = "alidcscom835" ] ;then
+if [ `hostname -s` = "adls" -o `hostname -s` = "alidcscom835" ] ;then
   DIR=/home/dl6/local/trigger
   hm=/home/alice/trigger
 elif [ `hostname -s` = "alidcscom188" ] ;then

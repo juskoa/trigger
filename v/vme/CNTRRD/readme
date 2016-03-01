@@ -4,6 +4,7 @@ Content:
 3. how to debug
 4. new rrd database
 4A. new rrd databases for 2012:
+4B. new rrd databases for 2016 on adls
 4.1. udpmonitor, new rrd mon db:
 4.2. Notes for rrd scripting
 5. maintanance: start/stop all the daemons on alidcscom026
@@ -193,6 +194,17 @@ OK u:0.00 s:0.07 r:0.07
 startClients.bash ctpdim start
 startClients.bash rrd start
 startClients.bash html start
+
+4B. new rrd databases for 2016 on adls
+--------------------------------------
+cd ~/CNTRRD
+[trigger@adls CNTRRD]$ $VMECFDIR/CNTRRD/rrd.py cnow ctp
+RRD: ctp # of datasets: 1865
+OK u:0.04 s:1.04 r:3.34
+$VMECFDIR/CNTRRD/rrd.py cnow ltu
+...
+RRD: AD # of datasets: 26
+seems ok (ctpdim, rrd, html started)
 
 4.1. udpmonitor, new rrd mon db:
 --------------------------------

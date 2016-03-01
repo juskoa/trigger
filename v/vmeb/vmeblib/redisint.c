@@ -5,7 +5,7 @@
 #include "hiredis.h"
 void readpw(char *facility, char *mem);
 
-char host[24]="avmes";   // "pcalicebhm10";
+char host[24]="adls";   // "pcalicebhm10";
 static redisContext *context=NULL;
 static struct config {
     char *hostip;
@@ -68,7 +68,9 @@ site= getenv("VMESITE");
 if(strcmp(site, "ALICE")==0) {
   strcpy(config.hostip, "alitri");
 } else if(strcmp(site, "SERVER")==0) {
-  strcpy(config.hostip, "avmes");
+  strcpy(config.hostip, "adls");
+} else if(strcmp(site, "SERVER2")==0) {
+  strcpy(config.hostip, "pcalicebhm10");
 } else {
   printf("ERROR VMESITE:%s (SERVER or ALICE expected)\n", site);
   return(16);

@@ -32,6 +32,11 @@ SERVER_LINK := yes
 CLIENT_HOST := altri2
 SERVER_PREF := /home/dl6
 endif
+ifeq ($(HOSTNAME), adls)
+SERVER_LINK := yes
+CLIENT_HOST := altri1
+SERVER_PREF := /home/dl6
+endif
 ifeq ($(HOSTNAME), avmes)
 SERVER_LINK := yes
 CLIENT_HOST := altri1

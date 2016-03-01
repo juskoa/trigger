@@ -94,7 +94,7 @@ rc:
     print "HOSTNAME:",os.environ.get('HOSTNAME'),"-%s-"%hostname
     #if os.environ.get('VMESITE')=="SERVER" or os.environ.get('VMESITE')==None:
     os.environ["VMECFDIR"]="/local/trigger/v/vme"
-    if hostname=="avmes":
+    if (hostname=="adls") or (hostname=="avmes"):
       vmectp="altri1"
       #vmeswitch="trigger@altri2"
       #os.environ["ACT_DB"]= "daq:daq@pcald30/ACT"

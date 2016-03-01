@@ -116,9 +116,9 @@ ssh -2 trigger@$ttcmivme "$sshcmd"
 }
 #--------------------------------------------------
 hname=`hostname -s`
-if [ "$VMESITE" != 'PRIVATE' -a "$hname" != 'avmes' -a "$hname" != 'pcalicebhm10' \
+if [ "$VMESITE" != 'PRIVATE' -a "$hname" != 'adls' -a "$hname" != 'pcalicebhm10' \
      -a "$hname" != 'alidcscom835' ] ;then
-echo 'This script can be started only on trigger@alidcscom835 or trigger@pcalicebhm10/avmes'
+echo 'This script can be started only on trigger@alidcscom835 or trigger@pcalicebhm10/adls'
 exit 8
 fi
 TRGVMEWORKDIR=~trigger/v/vme

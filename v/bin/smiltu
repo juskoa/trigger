@@ -23,8 +23,8 @@ smicmd init partition decmask RUNN
 smicmd start/stop/pause/resume/sync/ack/reset partition
 
 General usage:
-1. make sure dns is running on avmes (/opt/dim/linux/dns)
-2.  smicmd TRIGGER      -start private TRIGGER domain (on avmes or altri1)
+1. make sure dns is running on adls (/opt/dim/linux/dns)
+2.  smicmd TRIGGER      -start private TRIGGER domain (on adls or altri1)
     ONLY 1 instance can be active (it will crash if another instance is running already)
 3. use smicmd partition init/start/stop/.... as suggested above
 4. Note about mask:  Give it in decimal notation, i.e:
