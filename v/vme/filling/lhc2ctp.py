@@ -2,6 +2,7 @@
 import sys,string,types
 ORBITL=3564
 CALIBbc=3009   #1st bc in orbit is 0
+# following is a tuple giving last BC in A resp. C gap:
 SHIFTS=(343, 3016)   # run1: SHIFTS=(345, 3018)
 #SHIFTS=(2610, 1719)   BEAM2 clock
 BCS_BEFORE=85   # was 16, TRD request: 85
@@ -114,7 +115,7 @@ class biggaps:
     self.gaps=[]   # Bgaps in descending order, sorted by Bgap length
     self.size=size # number of Bgaps stored
     for x in range(size):
-      self.gaps.append([-1,-1])   # >=0: [bc, Bgap before this bc]
+      self.gaps.append([-1,-1])   # >=0: [bc, length of Bgap before this bc including this bc]
       # i.e. (bc-Bgap) == BCnumber of Bbunch preceeding bc bunch 
       # 2.4.6
       # B...B   corresponds to [5,3]
@@ -456,8 +457,8 @@ later time (when .mask cretaed)
       bc_prev= bc
   #bgap.prt()
   # we know largest gaps, so can create Empty BCs (-70bcs -TRD request):
-  print "BC:%d 1.gap before:%d"%(bgap.gaps[0][0], bgap.gaps[0][1])
-  print "BC:%d 2.gap before:%d"%(bgap.gaps[1][0], bgap.gaps[1][1])
+  print "1.gap, before bc:%d, %d bcs"%(bgap.gaps[0][0], bgap.gaps[0][1]-1)
+  print "2.gap, before bc:%d, %d bcs"%(bgap.gaps[1][0], bgap.gaps[1][1]-1)
   # if bigger gap is >200, put both E bunches into this gap
   if bgap.gaps[0][1] >200:
     e1, err= bgap.getempty(0)
@@ -739,6 +740,7 @@ class FilScheme:
         self.mainsat= None
       else:
         self.mainsat= "mainsat"
+    self.prepareTmask(4)
   def insert(self, bace, bxn):
     for ix in range(len(self.bx[bace])):
       if bxn<self.bx[bace][ix]:
@@ -952,8 +954,8 @@ class FilScheme:
     bxac.sort()
     #print "mainsatAC(%s):"%AC,"length:",len(bxac)   #, bxac
     return bxac
-  def isin(self, list, ix):
-    for iv in list:
+  def isin(self, bclist, ix):
+    for iv in bclist:
       if ix==iv: return True
     return False
   def getACB(self, ix1):
@@ -1036,6 +1038,61 @@ class FilScheme:
     print "Summary: B:%d(I:%d nonB before/after:%d/%d) S/SA/SC:%d/%d/%d A:%d C:%d"%\
       (bb, bsi,I2B_BEFORE-1,I2B_AFTER-1,bs,bsa,bsc, 
       len(self.arch['A']), len(self.arch['C']))
+  def findfirstleft(self, bclist, bcstart):
+    """ find index into bclist on the left of bcstart
+bclist: ordered list of BCs (e.g. self.bx['B'])
+bcstart -find index of first item on the left of this bc
+"""
+    if len(bclist)== 1: return 0
+    prevbc= bclist[0]; previx=0
+    if prevbc >= bcstart: return bclist[len(bclist)]
+    for ix in range(1,len(self.bx['B'])):
+      bc= bclist[ix]
+      if bc >= bcstart: return previx
+      previx= ix
+      prevbc= bc
+    return previx
+  def prepareTmask(self, N):
+    """ N -number of bunches in Tmask
+goal: prepare self.bx['T'] ordered list, subset of B-bunches
+"""
+    self.bx['T']= []
+    if (len(self.bx['B'])== 0) or (N==0): return   # no B-bunches or no T-bunches required
+    if len(self.bx['B'])== 1:
+      self.bx['T'].append(self.bx['B'][0])   # just 1 B-bunch, take it
+      return
+    # we have at least 2 B-bunches...
+    aix= self.findfirstleft(self.bx['B'], SHIFTS[0])
+    cix= self.findfirstleft(self.bx['B'], SHIFTS[1])
+    bcixs= [aix, cix]     # start from this indexes into bxB going to the left
+    # possible cases:
+    #       gapA             gapC
+    #  B=aix           B=cix           or
+    #  B B=aix=cix                     or
+    #              B B=aix=cix         or...
+    bcixstart= [aix, cix]     # just remember for 'wrapped around' test
+    nextbeam= 0          # 0/1. next check will be done for this one (0:A 1:C)
+    bcsfound= 0          # numb. of BCs found before both gap (max. N)
+    excluded= [ False, False ]   # ? probaly not needed 2x (wrapping around happens for both)
+    for ix in range(len(self.bx['B'])):
+      # T <- B-bunch
+      self.bx['T'].append(self.bx['B'][bcixs[nextbeam]])
+      # go to the next B-bunch on the left (before)
+      if bcixs[nextbeam]==0:
+        bcixs[nextbeam]= len(self.bx['B']-1)
+      else:
+        bcixs[nextbeam]= bcixs[nextbeam]-1
+      # went around for this gap?
+      if (bcixs[nextbeam] == bcixstart[nextbeam]) or\
+         (bcixs[nextbeam] == bcixstart[1-nextbeam]):
+        break   # whole orbit done or we reached another gap
+      #if nxB in bx['T']:
+      #   exclude this (A/B) gap in next loops
+      #   if both A+B gaps not excluded: break
+      if len(self.bx['T']) >= N: break   # enough bunches found?
+      nextbeam= 1-nextbeam        # now another gap
+    self.bx['T'].sort()
+    print "prepareTmask:", self.bx['T']
   def getMasks(self):
     om= "# %s"%self.fsname
     om= om+"\n" + self.print1('E')
@@ -1048,6 +1105,7 @@ class FilScheme:
     self.arch['B']= self.bx['B']
     om= om+"\n" + self.print1('B')
     om= om+"\n" + "bcmB" +" "+ self.eN(self.bx['B'])
+    #print "getMask:bx[B]",self.bx['B'] # yes, it is ordered (0,...)
     om= om+"\n" + self.print1('I')
     om= om+"\n" + "bcmI" +" "+ self.eN(self.bx['I'])
     om= om+"""

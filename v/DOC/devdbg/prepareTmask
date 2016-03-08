@@ -1,0 +1,29 @@
+3.3.2016
+lhc2ctp -adding Tmask bcmT:
+if sch dip smaq:
+  alice= bu2bcstr()
+
+fs= FilScheme("", alice); 
+result: fs.bx['B']  A C E AorC I
+
+Let's bx['T'] is created in FilScheme().__init__()
+at the end, after bx['B'] has been prepared.
+procedure:
+bx['T']=[]
+findfirstleft() -for A and C gap
+for ix in range(len(self.bxB)):
+  -bx['T'].append(nxB)
+  -if nxB went around:
+     exclude this (A/B) gap in next loops
+     if both A+B gaps excluded: break
+  -if len(bx['T']>= N: break
+  -find nxB: next B-bunch to the left before A/B gap (A/B -alternating
+    in each new loop)
+self.bx['T'].sort
+
+see prepareTmask() and findfirstleft()
+mask= fs.getMasks()
+
+8.3.2016
+done (in lhc2ctp.py for fixed N=4), seems ok 
+todo: N in ACT. Suggestion: lightweight item (i.e. special file)?
