@@ -6,7 +6,7 @@
 3.3. BCMAIN with corde 8484
 3.3.1 summary
 3.3.2 summary change by another 2ns 30.11.2015
-3.4. BCMAIN with corde 4864
+3.4. BCMAIN with corde 4864 (just test)
 5. Conclusion
 
 1. before change
@@ -458,8 +458,8 @@ printBC_DELAYS()
   ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
       ORBOUT_DELAY25_GCR 0x7d054:100
 
-3.4. BCMAIN with corde 4484
----------------------------
+3.4. BCMAIN with corde 4864 (just test)
+---------------------------------------
 
 let's repeat ORBmain_out with CORDE shifted by
 4ns i.e. 8640 -> 4640ps, to see if measurement is working correctly

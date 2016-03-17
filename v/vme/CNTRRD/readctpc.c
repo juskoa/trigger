@@ -126,7 +126,7 @@ Tavbsy avbusys[N24];      // usecs, -1: not connected   >999000: dead
 
 #define MAXcalibDets 5
 // TOF MUON_TRG T0 ZDC EMCAL
-int calibDets[MAXcalibDets]={5,11,13,15,17};
+int calibDets[MAXcalibDets]={5,11,13,15,18};
 
 char spurfilename[80]="xx";
 char spurline[NCOUNTERS*16];
@@ -440,13 +440,13 @@ for(ixr=0; ixr<N24; ixr++) { avbusys[ixr].runn= 0; };
 red_get_runs(runs,dets);
 for(ixr=0; ixr<6; ixr++) {   // all runs
   int id, det;
-  if(runs[ixr]==0) break;
+  if(runs[ixr]==0) break;   // list of runs finished by 0
   det= dets[ixr];
   for(id=0; id<N24; id++) {
-    if( (1<<id) & det ) {
+    if( (1<<id) & det ) {   // id is included in run
       int oldrun;
       oldrun= avbusys[id].runn;
-      if((oldrun !=0) && (oldrun != runs[ixr])) {
+      if((id!=N_CTPDET) && (oldrun !=0) && (oldrun != runs[ixr])) {
         printf("ERROR: det:%d already in run:%d. New run:%d\n",
           id, oldrun, runs[ixr]);
       };
@@ -797,7 +797,7 @@ if(spurfile) {
     sprintf(spurline, "%s %x", spurline, bufw32[ix]);
   };fprintf(spurfile,"%s\n", spurline);
   //printf("spurlinelen:%d %s\n", strlen(spurline), spurline);
-  printf("spurlinelen:%d\n", (int)strlen(spurline));
+  //printf("spurlinelen:%d\n", (int)strlen(spurline));
 };
 /*
 printf(" addr    0x abs           diff\n");

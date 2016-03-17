@@ -30,7 +30,7 @@
  * the busy value and the busy limit.                                                                       
  * The detector numbers are the followings                                      
  * Attention: Numbers between 0 and 24 -> For now, det 20, 22, 23 are not implemented.                                                                         
- * ACO:16 AD0:21 CPV:8 EMC:18 FMD:12 HMP:6 MTR:10 MCH:11 PHS:7 PMD:9 SDD:1      
+ * ACO:16 AD0:21 CPV:8 EMC:18 FMD:12 HMP:6 MCH:10 MTR:11 PHS:7 PMD:9 SDD:1      
  * SPD:0 SSD:2 T00:13 TOF:5 TPC:3 TRD:4 TRI:17 TST:19 V00:14 ZDC:15'.           
  * For a non-defined detector, just send 0 as run number or nothing at all for this det
  * and nothing will be sent for this detector. Det number 20, 22 and 23 are not attributed
@@ -162,8 +162,8 @@ int main() {
        busy_limit[7] = 200;  //PHS                                              
        busy_limit[8] = 300;  //CPV                                              
        busy_limit[9] = 600;  //PMD                                              
-       busy_limit[10] = 400; //MTR = Muon_TRK                                   
-       busy_limit[11] = 200; //MCH = Muon_TRG                                   
+       busy_limit[10] = 400; //MCH = Muon_TRK                                   
+       busy_limit[11] = 200; //MTR = Muon_TRG                                   
        busy_limit[12] = 250; //FMD                                              
        busy_limit[13] = 0;   //T00 = T0                                         
        busy_limit[14] = 0;   //V00 = V0                                         
@@ -242,11 +242,11 @@ int main() {
 	    detectors[q].busy_limit = 600;
 	    break;
 	  case 10:
-	    sprintf(detectors[q].name, "DET(MTR)");
+	    sprintf(detectors[q].name, "DET(MCH)");
 	    detectors[q].busy_limit = 400;
 	    break;
 	  case 11:
-	    sprintf(detectors[q].name, "DET(MCH)");
+	    sprintf(detectors[q].name, "DET(MTR)");
 	    detectors[q].busy_limit = 200;
 	    break;
 	  case 12:
@@ -369,11 +369,11 @@ int main() {
       /*******************************************SENDING THE DATA TO MONALISA**************************************************************/
       try {
 	if((nDet==1) && (detectors[0].det_number==17)){ //If there is no global run: just B EPT 17 0 BusyValue -> TRI sent
-          printf("There is no global run \n");
+          //printf("There is no global run \n");
           valbusy = detectors[0].busy_value;
           vallimit = detectors[0].busy_limit;
-          printf("Busy time sent for %s: %d limit:%d\n", detectors[0].name, 
-            detectors[0].busy_value, detectors[0].busy_limit);
+          printf("Busy (ng) sent for %s: %d limit:%d\n",
+            detectors[0].name, detectors[0].busy_value, detectors[0].busy_limit);
           try {
             timestamp = time(NULL);
             apm -> sendTimedParameters((char *)"0", detectors[0].name, nParameters, paramNames, valueTypes, paramValues, timestamp);
@@ -389,7 +389,7 @@ int main() {
 	      printf("\nDet number %d is in 0 run: nothing sent \n\n", detectors[l].det_number);
 	    }
 	    else{
-	      printf("Detector number: %d\n", detectors[l].det_number);
+	      //printf("Detector number: %d\n", detectors[l].det_number);
 	      char run_sent[10];
 	      sprintf(run_sent, "%d", detectors[l].run_number);
 	      
@@ -397,32 +397,30 @@ int main() {
 	       * every time. Allow to see the other curves and to make clear that it is permanently                                                       
 	       * busy.*/
 	      valbusy = detectors[l].busy_value;
+	      vallimit = detectors[l].busy_limit;
 	      if ( valbusy >= 10000){
-		printf("Detector %s is permanently busy. %d changed to 10000\n", detectors[l].name, valbusy);
+		printf("Detector %s %d is permanently busy. %d changed to 10000\n", 
+                  detectors[l].name, run_sent, valbusy);
 		valbusy = 10000;
 	      }
 	      else {
-		printf("Busy time sent for %s: %d linit:%d\n",
-                  detectors[l].name, valbusy, detectors[l].busy_limit);
+		printf("Busy sent for %s %d: %d limit:%d\n",
+                  detectors[l].name, run_sent, valbusy, vallimit);
 	      }
 	      /**We also send the busy limit values.
 	       * They are needed for plotting busy time.
 	       * The comparaison busy value and busy limit is done in javascript
 	       */
-	      vallimit = detectors[l].busy_limit;
-	      printf("run value for %s: %s\n", detectors[l].name, run_sent);
-	      /**sends the datagram****/
-
-	      /**********FOR TRI*********/
+	      /* sending the datagram... */
 	      if(detectors[l].det_number==17){//For TRI detector, busy value is sent for each run number                                  
 		for(int k=0; k<r; k++){
-		  /**sends the datagram for TRI****/                                           
+		  /* for TRI */                                           
 		  try {
 		    timestamp = time(NULL);
 		    char *runs_tri=NULL; //Dynamic allocation because required type (char *)  
 		    runs_tri = (char *)malloc(sizeof(char));
 		    sprintf(runs_tri,"%d", global_runs[k]);//Convert to the right type 
-		    printf("TRI sent for run %s\n",runs_tri);
+		    //printf("TRI sent for run %s\n",runs_tri);
 		    apm -> sendTimedParameters((char *)runs_tri, detectors[l].name, nParameters, paramNames, valueTypes, paramValues, timestamp);
 		    free(runs_tri);
 		  } catch(runtime_error &e) {
@@ -623,7 +621,7 @@ int main() {
       int nInp = q; //total number of inputs
       //printf("Fulfill the arrays: ok\n");
       if(q==48){
-	printf("Number of inputs: 48 -> OK\n");
+	//printf("Number of inputs: 48 -> OK\n");
 	/*Allocates memory for the arrays*/
 	//CTP rate
 	paramNames = (char **)malloc(nParameters*sizeof(char *));
