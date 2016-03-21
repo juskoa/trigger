@@ -95,7 +95,10 @@ int INTBOARD::checkIR2L2a()
  printf("check IRs versus L2 on INT board: l2a: %i; found in IR: %i \n",l2a,ir);
  return 0;
 }
-void INTBOARD::getCTPReadOutList()
+//=====================================================================================
+// produces both readout inad ir
+//
+int INTBOARD::getCTPReadOutList()
 {
  int i=0,first=1,firstirda=1;
  int iCTPR=0,iIRDa=0;
@@ -113,8 +116,8 @@ void INTBOARD::getCTPReadOutList()
  if((sten=getChannel("ddl.fb_ten"))>32) rc=2;;
  if((sblockid=getChannel("ddl.fb_d[15]"))>32) rc=3;
  if(rc){
-  printf("Error: getCTPReadoutList: rc=%i \n ",rc);
-  return;
+  printf("ERROR: getCTPReadoutList: rc=%i \n ",rc);
+  return 1;
  }
  // Start to analyse data
  w32* sm=GetSSM();
@@ -123,18 +126,18 @@ void INTBOARD::getCTPReadOutList()
    if(bit(sm[i],sctrl)){
      eob=sm[i]&0xffff;
      if(eob != 0x64){
-       printf("getCTPRIRDList: Incorrect EOB in data: 0x%x \n",eob);
-       return;
+       printf("getCTPRIRDList: ERROR: Incorrect EOB in data: 0x%x \n",eob);
+       return 1;
      }
      //eob found and added to list
      if(iIRDa && iCTPR){
-      printf("getCTPRIRDList: ERROR iIRDa=%i iCTPR=%i \n",iIRDa,iCTPR);
-      return;
+      printf("getCTPRIRDList: ERROR issm=%i iIRDa=%i iCTPR=%i \n",i,iIRDa,iCTPR);
+      return 1;
      }
      if(!iIRDa && !iCTPR ){
       if(first) first=0; else{
-      printf("getCTPRIRDList: ERROR %i iIRDa=%i iCTPR=%i \n",i,iIRDa,iCTPR);
-      return;
+      printf("getCTPRIRDList: ERROR issm=%i iIRDa=%i iCTPR=%i \n",i,iIRDa,iCTPR);
+      return 1;
       }
      }
      if(iIRDa){
@@ -151,8 +154,8 @@ void INTBOARD::getCTPReadOutList()
        iCTPR=0;
        nCTPR++;
       }else{
-       printf("getCTPRIRDList: ERROR iCTPR != 13+5: %i \n",iCTPR);
-       return ;
+       printf("getCTPRIRDList: ERROR issm=%i iCTPR != 13+5: %i \n",i,iCTPR);
+       return 1;
       }
      }
      ctpr.eob=1;
@@ -181,8 +184,8 @@ void INTBOARD::getCTPReadOutList()
           irda.issm=i;
         }else if(iIRDa == 1){
           if(!(sm[i]&0x3000)){
-           printf("getCTPRIRDList: IR ERROR flag != 1 1\n");
-           return;
+           printf("getCTPRIRDList:issm=%i  IR ERROR flag != 1 1\n",i);
+           return 1;
           }
           irda.orbit=irda.orbit+(sm[i]&0xfff);
           irda.error2=(sm[i]&0x3000)>>12;
@@ -192,8 +195,8 @@ void INTBOARD::getCTPReadOutList()
          irda.bc[iIRDa-2] = (sm[i]&0xfff);
          //printf("%i %i %x\n",i,iIRDa-2,sm[i]);
         }else{
-         printf("getCTPRIRD: error in getting IRDA, iIRDA=%i issm=%i \n",iIRDa,i);
-         return;
+         printf("getCTPRIRD: ERROR in getting IRDA, iIRDA=%i issm=%i \n",iIRDa,i);
+         return 1;
         }
         iIRDa++;
         //printf("iIRDA=%i \n",iIRDa);
@@ -220,8 +223,8 @@ void INTBOARD::getCTPReadOutList()
        }else if(iCTPR < (13+5)){
          // L0,L1,L2 INPUTS
        }else{
-         printf("getCTPRIRD: error in getting CTPR iCTPR=%i issm=%i \n",iCTPR,i);
-         return;
+         printf("getCTPRIRD: ERROR in getting CTPR iCTPR=%i issm=%i \n",iCTPR,i);
+         return 1;
        }
        iCTPR++;    
        //printf("iCTPR=%i \n",iCTPR);
@@ -230,7 +233,7 @@ void INTBOARD::getCTPReadOutList()
    i++;
    }
  }
- return ;
+ return 0;
 }
 
 

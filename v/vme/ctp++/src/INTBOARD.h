@@ -9,7 +9,7 @@ class INTBOARD: public BOARD
 	w32 readOrbit(){return vmer(INT_ORBIT_READ);};
 	void setBCOFFSET(w32 val){vmew(BCOFFSET,val);};
 	void setTCSET(w32 w){vmew(TCSET,w);};
-	void getCTPReadOutList();
+	int  getCTPReadOutList();
 	void printReadOutList();
 	void printIRList();
 	int CheckCountersNoTriggers();

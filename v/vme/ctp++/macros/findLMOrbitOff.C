@@ -80,6 +80,9 @@ int findOffset2(deque<IRDda>& intir,deque<IRDda>& lm0ir,w32 &deltaret)
  return 0;
 } 
 int INTmeasure(CTP* ctp,int what)
+/*
+ * if what==1 it also sets new offset
+ */ 
 {
  INTBOARD *intb=ctp->inter;
  L0BOARD2* l0=ctp->l0;
@@ -95,7 +98,11 @@ int INTmeasure(CTP* ctp,int what)
  intb->StopSSM();
  cout << "Reading" << endl;
  intb->ReadSSM();
- intb->getCTPReadOutList();
+ if(intb->getCTPReadOutList()){
+  printf("ERROR in getting INT board IR/Redaout \n");
+  intb->DumpSSM("intb");
+  return 1;
+ }
  //intb->printReadOutList();
  //intb->printIRList();
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;

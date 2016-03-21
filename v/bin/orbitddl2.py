@@ -44,6 +44,7 @@ def run(what):
   if what==0: 
    runcmd=dircf+'/ctp++/findLMOrbitOff.e > '+logfile
   elif what==1:
+   # runcmd also sets new offset if changed
    runcmd=dircf+'/ctp++/findLMOrbitOff.e 1 > '+logfile
   elif what==2:
    runcmd=dircf+'/ctp++/findLMOrbitOff.e 2'
@@ -78,7 +79,7 @@ def anal():
         DELTA=str(num)
         if num==0:
          print "Everything ok"
-         return 1
+         return 2
         else:
          print "DELTA != 0 !"
          print i.strip()
@@ -156,7 +157,7 @@ orbitddl2.py readorbit
    if sys.argv[1] == 'run':
     run(0)
    elif sys.argv[1] == 'anal':
-    anal()
+    print anal()
    elif sys.argv[1] == 'analset':
     if anal()==0: 
       if DELTA==None or OFFSET==None: 
@@ -167,9 +168,20 @@ orbitddl2.py readorbit
       configctp() 
    elif sys.argv[1] == 'configrunset':
       run(1)
-      anal()
+      if anal()==1:
+       print "Second atempt for sync:"
+       run(1)
+       anal()
    elif sys.argv[1] == 'readorbit':
       run(2)
+   elif sys.argv[1] == 'test':
+      count=0
+      while 1: 
+       run(1)
+       ret = anal()
+       count+=1
+       print 'ret=',ret,' count=',count
+       if ret==1: break
    else:
     print "nothing to do"
     rc=0
