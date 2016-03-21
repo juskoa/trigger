@@ -113,7 +113,7 @@ else               #------------------------------ server
     if [ -d /opt/act ] ;then
       export ACT_DB=daq:daq@pcald30/ACT
     fi
-  elif [ "$hname" = 'alidcscom835' ] ;then
+  elif [ "$hname" = 'alidcscom835' -o "$hname" = 'alidcscom707' ] ;then
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
     export DIM_DNS_NODE=aldaqecs

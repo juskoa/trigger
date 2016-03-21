@@ -49,5 +49,6 @@ alias sedev='cd ~/git/trigger; . v/bin/vmebse.bash ; unset DATE_DAQLOGBOOK_DIR ;
 
 sort ctpinputs.cfg
 ------------------
-Sort by Switch input (8 field)
+Sort by Switch input (8th field)
 sort -k8,8n ctpinputs.cfg |more
+grep -v '^#' ctpinputs.cfg |sort -k8n,8n |more
