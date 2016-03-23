@@ -5,7 +5,7 @@ CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -I$(VMEBDIR)/vmeblib
 
 libctp++.a: time.o convert.o CTPRDIRD.o parse.o
-	rm libctp++.a
+	rm -f libctp++.a
 	ar -q libctp++.a *.o
 	rm *.o
 

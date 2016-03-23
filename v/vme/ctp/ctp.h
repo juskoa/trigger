@@ -342,7 +342,10 @@ VME addr of DDR3 data write = hex B0 -BF DDR3_BUFF_DATA
 #define DDR3_BUFF_DATA      0x92c0   /* read/write 16 regs from here */
 
 #define DDL2_STATUS 0x9304 /* bits: 4:fbTEN_N, 3:fbCTRL_N, 2:fiBEN_N, 1:fiLF_N, 0:fiDIR */
-/* fbTEN_N (Negstive), i.e. should be 0 in normal state when DDL2 TRANSFER enabled
+/* fbTEN_N (Negstive), i.e. should be 0 in normal state when DDL2 TRANSFER enabled ?
+in P2, when ok (i.e. DDL2_BLOCK_COUNTER counts): 0x1b b11011
+  lab, seems ctpserver stopped:                  0x1a b11010
+
 */
 #define DDL2_BLOCK_COUNTER 0x93d8  /* from c705. N of blocks (4092 bytes) sent over ddl2 */
 

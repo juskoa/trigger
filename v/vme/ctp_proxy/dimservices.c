@@ -190,11 +190,7 @@ for(ix=fromix; ix<MAXSWTRGREQS; ix++) {
 RTRN: return(rc);
 }
 /*-------------------------------------------------------- printactrs
-find by looking for client process id
-IN: cid
-    fromix 0..   from where to look for
-rc: -1 -cidat not found
-rc>=0  - cidat found at rc
+print table to stdout
 */
 void printactrs() {
 int ix;

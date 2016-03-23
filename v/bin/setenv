@@ -54,6 +54,16 @@ else
   export CLRFS=''
   cd ~/v/vme/WORK
 fi
+#ipbus:
+CACTUS=/opt/cactus
+if [ -d $CACTUS/lib ] ;then
+  if [[ $LD_LIBRARY_PATH != *$CACTUS/lib:* ]] ;then
+    export LD_LIBRARY_PATH=$CACTUS/lib:$LD_LIBRARY_PATH
+  fi
+  if [[ $PATH != *$CACTUS/bin:* ]] ;then
+    export PATH=$CACTUS/bin:$PATH
+  fi
+fi
 #cscope:
 export EDITOR=gvim
 export dbctp=$VMECFDIR/CFG/ctp/DB

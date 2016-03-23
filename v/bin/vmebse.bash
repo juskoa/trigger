@@ -82,6 +82,7 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
   if [ "$ix" = '6' ] ;then   #pit
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
+    export SERVER_NODE=alidcscom835
     export DIM_DNS_NODE=aldaqecs
     #export DIM_DNS_NODE=alidcscom188
   elif [ "$hname" = "altri1" ] ;then   # development
@@ -89,11 +90,13 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
     export VMESITE=SERVER
     #export DIM_DNS_NODE=pcald30
     unset DATE_INFOLOGGER_DIR
+    export SERVER_NODE=$LABSERVER
     export DIM_DNS_NODE=$LABSERVER
   elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
     export SMAQ_C=pcalicebhm10
     export VMESITE=SERVER2
     #export DIM_DNS_NODE=pcald30
+    export SERVER_NODE=pcalicebhm10
     export DIM_DNS_NODE=pcalicebhm10
   else
     export VMESITE=PRIVATE
@@ -107,6 +110,7 @@ else               #------------------------------ server
   fi
   if [ "$hname" = "$LABSERVER" ] ;then   # development ? 13.7. : as in p2
     export SMAQ_C=$LABSERVER
+    export MI_NODE=altri2
     export VMESITE=SERVER
     export DIM_DNS_NODE=$LABSERVER
     unset DATE_INFOLOGGER_DIR
@@ -117,6 +121,7 @@ else               #------------------------------ server
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
     export DIM_DNS_NODE=aldaqecs
+    export MI_NODE=alidcsvme017
     if [ -d /opt/act ] ;then   # needed only on server
       export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1
     fi
@@ -143,7 +148,7 @@ alias ssh="ssh -2"
 alias vmecomp=$VMEBDIR/comp.py
 alias vmecrate=$VMEBDIR/crate.py
 alias showclockshift="$VMECFDIR/ttcmidaemons/monshiftclock2.py s"
-alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB; echo DIM_DNS_NODE:$DIM_DNS_NODE; echo REDIS:$REDIS'
+alias vmedirs='echo   VMEDRIVER:$VMEDRIVER   VMESITE:$VMESITE   VMEGCC:$VMEGCC   SMAQ_C:$SMAQ_C; echo   VMEBDIR:$VMEBDIR;echo   VMECFDIR:$VMECFDIR; echo VMEWORKDIR:$VMEWORKDIR; echo DATE_INFOLOGGER_DIR:$DATE_INFOLOGGER_DIR   DATE_DAQLOGBOOK_DIR:$DATE_DAQLOGBOOK_DIR; echo ACT_DB:$ACT_DB; echo DIM_DNS_NODE:$DIM_DNS_NODE SERVER_NODE:$SERVER_NODE MI_NODE:$MI_NODE; echo REDIS:$REDIS'
 if [ "$hname" = 'alidcscom835' -o "$hname" = "$LABSERVER" ] ;then
   echoint "Server cpu: $hname, alias defs in bin/setenv"
 elif [ "$hname" = 'altri1' -o "$hname" = 'alidcsvme001' ] ;then

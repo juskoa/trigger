@@ -241,9 +241,25 @@ while(clocktran>=0) {
       printf("DLL_RESYNC + MININF not done!\n"); */
       DLL_RESYNC(DLL_info);
     } else {
+#define reslen 3200
+      int rc; char server[24]; char cmd[80]; char result[reslen];
+      if(envcmp("VMESITE", "ALICE")==0) {
+        strcpy(server, getenv("SERVER_NODE"));
+      } else {
+        strcpy(server, "adls");
+      };
+      infolog_trgboth(LOG_WARNING, "ALICE clock changed, restaring ctpproxy (25s)...");
+      sprintf(cmd, "ssh trigger@%s ctpproxy.py restart nomasks", server);
       setbcorbit(*(int *)tag); 
       nclients= dis_update_service(MICLOCKid);
       printf("updated MICLOCK clients:%d\n", nclients);
+      //printf("updated MICLOCK clients:%d, now ctpproxy.py restart nomasks...\n", nclients);
+      rc= popenread(cmd, result, reslen);
+      if(rc==EXIT_FAILURE) { 
+        printf("ERROR cmd:%s rc:%d\n", cmd, rc);
+      } else {
+        printf("result(len:%d):%s\n", strlen(result), result);
+      };  
     };
   };
   if(quit==1) clocktran=0;
@@ -277,14 +293,14 @@ if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
 // do not check when debug or lab:
 vmesite= getenv("VMESITE"); if(strcmp(vmesite,"PRIVATE")==0) { rc=0; goto OK; };
 if( (strncmp(hname,"alidcscom835",12)==0) ||
-    (strncmp(hname,"avmes",12)==0) ||
+    (strncmp(hname,"adls",4)==0) ||
     (strncmp(hname,"pcalicebhm10",12)==0)) {
   rc=0; goto OK;
 };
 rc=3;
 /*
 if(( strncmp(hname,"alidcscom835",12)==0) 
-   || ( strncmp(hname,"avmes",12)==0)
+   || ( strncmp(hname,"adls",4)==0)
    || ( strncmp(hname,"pcalicebhm10",12)==0)) {
   rc=0; goto OK;    // clock shift also from pydimserver!
 };
@@ -383,7 +399,8 @@ if(clocktran!=0)  {
       infolog_trgboth(LOG_FATAL, errmsg);
     } else {
       sprintf(errmsg, "checkstartthread tag:%d: newclock thread already started %d secs, cmd ignored...",
-        clocktag, diff_s); prtLog(errmsg); 
+        clocktag, diff_s); //prtLog(errmsg); 
+      infolog_trgboth(LOG_FATAL, errmsg);
     };
     return;  
   };
@@ -446,14 +463,15 @@ if(strncmp(msg,"BEAM1", 5)==0) { nwclocktag=1;
 } else if(strncmp(msg,"REF", 3)==0) { nwclocktag=3;
 } else if(strncmp(msg,"LOCAL", 5)==0) { nwclocktag=4;
 } else { 
-  sprintf(errmsg, "bad clock request:%s ignored.\n", msg); prtLog(errmsg); 
+  sprintf(errmsg, "bad clock request:%s ignored.\n", msg); infolog_trgboth(LOG_ERROR, errmsg); 
   return; 
 };
 getclocknow();
 if(clocktag==nwclocktag) {
-  sprintf(errmsg, "clock request:%s ignored (already set).\n", msg); prtLog(errmsg); 
+  sprintf(errmsg, "clock request:%s ignored (already set).\n", msg); infolog_trgboth(LOG_ERROR, errmsg); 
   return; 
 };
+sprintf(errmsg, "ALICE clock change to %s starting...\n", msg); infolog_trgboth(LOG_WARNING, errmsg); 
 checkstartthread(nwclocktag);
 }
 
@@ -686,7 +704,7 @@ if(micratepresent()) {
 if(envcmp("VMESITE", "ALICE")==0) {
   udpsock= udpopens("alidcscom835", send2PORT);
 } else {
-  udpsock= udpopens("avmes", send2PORT);
+  udpsock= udpopens("adls", send2PORT);
 }; */
 ds_register();
 

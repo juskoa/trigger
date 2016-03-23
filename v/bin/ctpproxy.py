@@ -72,7 +72,7 @@ def main():
     print """
 
 Usage:
-ctpproxy.py actrestart
+ctpproxy.py actrestart [nomasks]     default:domasks
             restart      -don't download ctp files from ACT
 rc:
  1: internal error (syntax in this script)
@@ -117,7 +117,8 @@ rc:
     print "VMESITE:",os.environ.get('VMESITE')
     print "VMECFDIR:",os.environ.get('VMECFDIR')
     sys.stdout.flush()
-    cmd=sys.argv[1]
+    cmd=sys.argv[1] ; maskoption="domasks"
+    if len(sys.argv) > 2: maskoption= sys.argv[2]   # nomasks or default:domasks
     if (cmd=='actrestart') or (cmd=='restart'):
       iop= iopipe("ssh -2 -q %s ctpproxy.sh stop"%vmectp,"")
       time.sleep(2)
@@ -157,27 +158,31 @@ rc:
                 time.sleep(30)
                 iop= iopipe("ssh -2 -q %s ctpproxy.sh status"%vmectp)
                 if iop.check("TRIGGER::CTP running.")>=0:
-                  f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
-                  lin1= f.readline() ; f.close()
-                  if lin1[:7]=="bcmasks":
-                    iop= iopipe("colschedule.bash update")
-                    if iop.check("Callback: OK")>=0:
+                  if maskoption == "domasks":
+                    f= open(os.path.join(dbctp,"FillingScheme"),"r") ; 
+                    lin1= f.readline() ; f.close()
+                    if lin1[:7]=="bcmasks":
+                      iop= iopipe("colschedule.bash update")
+                      if iop.check("Callback: OK")>=0:
+                        rc=0
+                      else:
+                        print iop.outlines
+                        rc=10   # can't update CTPRCFG/CS service
+                    else:
+                      #print "FillingScheme != BCMASK. -> CTPRCFG/CS not updated"
+                      print "FillingScheme == auto, reading DIP service..."
+                      sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
+                      import getfsdip
+                      rc=getfsdip.main("act")
+                      if rc==0:
+                        print "New masks prepared and CTPRCFG/CS DIM service updated"
+                      else:
+                        print "CTP masks not updated, filling scheme not ready through DIP"
+                      # if DIP not available, nothing should happen, that's why we force rc to 0
                       rc=0
-                    else:
-                      print iop.outlines
-                      rc=10   # can't update CTPRCFG/CS service
                   else:
-                    #print "FillingScheme != BCMASK. -> CTPRCFG/CS not updated"
-                    print "FillingScheme == auto, reading DIP service..."
-                    sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
-                    import getfsdip
-                    rc=getfsdip.main("act")
-                    if rc==0:
-                      print "New masks prepared and CTPRCFG/CS DIM service updated"
-                    else:
-                      print "CTP masks not updated, filling scheme not ready through DIP"
-                    # if DIP not available, nothing should happen, that's why we force rc to 0
-                    rc=0
+                    print "maskoption: %s -masks update skipped"%maskoption
+                    rc=0   # masks not update (nomasks option)
                 else:
                   print iop.outlines
                   rc=7   # can't start ctpproxy

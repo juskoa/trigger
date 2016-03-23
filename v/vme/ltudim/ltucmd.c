@@ -92,7 +92,7 @@ RESULTid= dic_info_service(cmd, MONITORED, 0, result,MAXRESULT+1,
 rc=waitinfocall();
 printf("1st rc:%d:%s<\n", rc, result);
 
-rc=executewait(DNDO, "TTCinit()\n");
+rc=executewait(DNDO, (char *)"TTCinit()\n");
 if(rc==1) { printf("%s<\n", result); 
 } else {
   printf("not executed. rc:%d\n", rc);

@@ -30,10 +30,10 @@ Usage:
 #define cmdlen 20
 char result[cmdlen], cmd[40];
 int rc;
-strcpy(cmd,"ls"); result[0]='\0';
-// $VMEBDIR//trigdb.pycd 2>/dev/null   -supress stderr
-// $VMEBDIR//trigdb.pycd 2>&1          -redirect stderr to result
-rc= popenexe(cmd, result, cmdlen);
+strcpy(cmd,"ls");
+// $VMEBDIR//trigdb.py   2>/dev/null   -supress stderr
+// $VMEBDIR//trigdb.py   2>&1          -redirect stderr to result
+rc= popenread(cmd, result, cmdlen);
 if(rc==EXIT_FAILURE) { 
   printf("error. rc:%d\n", rc, cmd);
 } else {
@@ -43,7 +43,7 @@ if(rc==EXIT_FAILURE) {
 int popenread(char *cmd, char *output, int leng) {
 int rc;
 FILE *read_fp;
-read_fp= popen(cmd,"r");
+output[0]= '/0'; read_fp= popen(cmd,"r");
 if(read_fp==NULL){
   return(EXIT_FAILURE);
 };

@@ -2,7 +2,8 @@ SDIR= .
 ODIR= linux
 DAQDIR = /opt/libDAQlogbook
 MYSQLLIBS=`/usr/bin/mysql_config --libs`
-EXTRALIBS = -L$(VMEBDIR)/vmeblib/linux_s -lvmeb -L$(DIMDIR)/linux -ldim -L$(DAQDIR) -lDAQlogbook $(MYSQLLIBS) 
+REDISLIB= -L$(REDIS)/deps/hiredis -l hiredis
+EXTRALIBS = -L$(VMEBDIR)/vmeblib/linux_s -lvmeb -L$(DIMDIR)/linux -ldim -L$(DAQDIR) -lDAQlogbook $(MYSQLLIBS) $(REDISLIB)
 CC=g++
 SFX=cxx
 CFLAGS = -Wall -g3 -I$(DIMDIR)/dim -I$(VMEBDIR)/vmeblib -I$(VMECFDIR)/ctp -I$(DAQDIR)
@@ -20,6 +21,9 @@ $(ODIR)/MonScal: $(ODIR)/MonScal.o $(ODIR)/Dim.o $(ODIR)/TrigConf.o \
 	$(ODIR)/TrigConf.o $(ODIR)/Counter.o $(ODIR)/Output.o $(ODIR)/Log.o \
 	$(ODIR)/main.o \
 	$(EXTRALIBS) -o $(ODIR)/MonScal
+	@echo -e "\nDo not forget to make it active by copying:"
+	@echo "cp linux MonScal HOME/xcountersdaq"
+	@echo "HOME is: ~tri(p2) or ~trigger(adls)"
 #	rm -f $(ODIR)/*.o
 
 $(ODIR)/test: $(ODIR)/test.o

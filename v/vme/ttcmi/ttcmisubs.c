@@ -351,7 +351,7 @@ if(cf != NULL) {
 };
 return(sp);
 }
-void setCordeshift() {
+void setCordeshift() {   // values from $dbctp/clockshift read and stored in RF2TTC+CORDE
 #define MAXdbhns 40
 w32 pol, halfns, dbhalfns, cordeval, dbcordeval, dblast_applied; 
 char dbhns[MAXdbhns]; int ldbhns;
