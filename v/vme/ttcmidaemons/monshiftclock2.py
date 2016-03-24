@@ -25,6 +25,12 @@ def callback2(now):
     print "callback2: '%d' (%s)" % (now, type(now))
 gshift=1000.0
 def getShift(what=None):
+  """rc: +/-float in [ns]
+         "old" if age of mesurement too old
+  what:force
+       rc: +/-float in [ns]
+
+  """
   global gshift
   gshift=1000.0
   if os.getenv("HOSTNAME")[:6] != "alidcs":

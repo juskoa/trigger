@@ -43,7 +43,7 @@ if(rc==EXIT_FAILURE) {
 int popenread(char *cmd, char *output, int leng) {
 int rc;
 FILE *read_fp;
-output[0]= '/0'; read_fp= popen(cmd,"r");
+output[0]= '\0'; read_fp= popen(cmd,"r");
 if(read_fp==NULL){
   return(EXIT_FAILURE);
 };

@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     string ssm("test3");
     l0->DumpSSM(ssm.c_str(),3);
     //l0->DumpSSM(ssm.c_str(),1);
-    l0->getOrbits();
+    l0->getOrbits(1,2,3);
     return 0;
     }
   case 3:

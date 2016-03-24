@@ -57,13 +57,27 @@ readall()
 
 2. change shift by 1ns
 ----------------------
-$dbctp/clockshift:
-29 963 953 -> 
-- nastav na RF2TTC aj na corde rucne
-- start miclock.py -> resetforce (takes old shift, todo:
-   shift from parameter!)
-33 863 963
----
+vstup: nastav podla toho co je v RF2TTC/CORDE hw:
+$dbctp/clockshift obsahuje: 29 963 953
+- RF2TTC aj corde by mal obsahovat 29 963 (nastav ak nie je)
+- meranie na skope (alebo sluzba "monshiftclock2.py get" ukazuje shit -0.065  (ns)
+- ak treba nastav na RF2TTC aj na corde inac (pockaj na vysledok merania
+  cca 3 min)!
+- start miclock.py -> resetforce (even old shift taken!)
+                      reset       nothing done, if measurement too old (>3mins)
+teraz by mal byt $dbctp/clockshift (aj hw) zmeneny o 60ps:
+33 863+-6 963
+
+vstup: $dbctp/clockshift   -toto nebavi
+- oprav $dbctp/clockshift na hodnoty ktore chceme mat
+- ttcmidims.sh stop
+- startni 'vmecrate ttcmi'
+    writeall()            -default delays
+      -> reset CORDE
+      ->setbcorbitMain()  -LOCAL clock
+        -> setCordeshift() -not done (because in LOCAL)
+           
+- ttcmidims.sh start        -tento pri starte nemeni delays v RF2TTC/CORDE
 
 3. calibrate
 ------------

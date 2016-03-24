@@ -32,7 +32,7 @@ char corde_len[]="0x7fc00";
 char corde_am[]="A32";
 
 w32 halfnsvme=0x140+29, cordevalvme=512;
-/* 3:p2     RF2TTC + RFRXs
+/* 7:p2     CORDE+RF2TTC + RFRXs
  * 0:altri1 (no RF2TTC, no RFRX) 
  * 2:altri2 (only RF2TTC)
  * 4: corde only
@@ -213,6 +213,22 @@ if(micratepresent()&1 ) {          //----------------------- RFRXs
 } else {
   printf("RFRXs not set (not p2)\n");
 };
+if(micratepresent()&0x4) {           //----------------------- CORDE
+  int vsp4;
+  vsp4=-1; 
+  rc2= vmxopenam(&vsp4, (char *)corde_base, (char *)corde_len,
+    (char *)corde_am);
+  printf("vmxopenam %s (CORDE) rc:%d vsp4:%d\n",
+    corde_base, rc2, vsp4);
+  vmxw32(vsp4, CORDE_RESET, 0);
+  vmxw32(vsp4, CORDE_RESET, 1);
+  vmxw32(vsp4, CORDE_RESET, 0);
+  rc2= vmxclose(vsp4);
+  printf("CORDE board reset done. vmxclose rc:%d\n",rc2);
+  //printf("CORDE board reset done. vmxclose NOT done\n");
+} else {
+  printf("CORDE not set (not p2 neither altri2 ?)\n");
+};
 if(micratepresent()&2 ) {          //----------------------- RF2TTC
   w32 adrpol, adrlen;
   printf("setting RF2TTC... vspRF2TTC:%d\n", vspRF2TTC);
@@ -258,22 +274,6 @@ if(micratepresent()&2 ) {          //----------------------- RF2TTC
   setbcorbitMain(4); printf("Using local clock\n");
   //setbcorbitBO1(1);
   //setorbitdelay(3563);
-};
-if(micratepresent()&0x4) {
-  int vsp4;
-  vsp4=-1; 
-  rc2= vmxopenam(&vsp4, (char *)corde_base, (char *)corde_len,
-    (char *)corde_am);
-  printf("vmxopenam %s (CORDE) rc:%d vsp4:%d\n",
-    corde_base, rc2, vsp4);
-  vmxw32(vsp4, CORDE_RESET, 0);
-  vmxw32(vsp4, CORDE_RESET, 1);
-  vmxw32(vsp4, CORDE_RESET, 0);
-  rc2= vmxclose(vsp4);
-  printf("CORDE board reset done. vmxclose rc:%d\n",rc2);
-  //printf("CORDE board reset done. vmxclose NOT done\n");
-} else {
-  printf("CORDE not set (not p2)\n");
 };
 /* vsp=-1; rc= vmxopenam(&vsp, "0x0f00000", "0x100000", "A32");
 printf("rf2ttc rc:%d vsp:%d\n", rc, vsp); */
@@ -351,11 +351,10 @@ if(cf != NULL) {
 };
 return(sp);
 }
-void setCordeshift() {   // values from $dbctp/clockshift read and stored in RF2TTC+CORDE
+void setCordeshift() { // read values from $dbctp/clockshift and store them in RF2TTC+CORDE
 #define MAXdbhns 40
 w32 pol, halfns, dbhalfns, cordeval, dbcordeval, dblast_applied; 
 char dbhns[MAXdbhns]; int ldbhns;
-  
   // check clockshift
   pol= i2cread_delay(BC_DELAY25_BCMAIN); halfns= pol-0x140;
   //printf("%24s 0x%x:0x%x=%d halfsns \n\n", "BC_DELAY25_BCMAIN", BC_DELAY25_BCMAIN, pol, halfns);

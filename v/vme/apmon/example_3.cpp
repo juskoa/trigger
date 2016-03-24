@@ -211,15 +211,15 @@ int main() {
 	    break;
 	  case 2:
 	    sprintf(detectors[q].name, "DET(SSD)");
-	    detectors[q].busy_limit = 300;
+	    detectors[q].busy_limit = 310;
 	    break;
 	  case 3:
 	    sprintf(detectors[q].name, "DET(TPC)");
-	    detectors[q].busy_limit = 600;
+	    detectors[q].busy_limit = 1000;
 	    break;
 	  case 4:
 	    sprintf(detectors[q].name, "DET(TRD)");
-	    detectors[q].busy_limit = 300;
+	    detectors[q].busy_limit = 600;
 	    break;
 	  case 5:
 	    sprintf(detectors[q].name, "DET(TOF)");
@@ -227,7 +227,7 @@ int main() {
 	    break;
 	  case 6:
 	    sprintf(detectors[q].name, "DET(HMP)");
-	    detectors[q].busy_limit = 300;
+	    detectors[q].busy_limit = 230;
 	    break;
 	  case 7:
 	    sprintf(detectors[q].name, "DET(PHS)");
@@ -243,7 +243,7 @@ int main() {
 	    break;
 	  case 10:
 	    sprintf(detectors[q].name, "DET(MCH)");
-	    detectors[q].busy_limit = 400;
+	    detectors[q].busy_limit = 1200;
 	    break;
 	  case 11:
 	    sprintf(detectors[q].name, "DET(MTR)");
@@ -251,7 +251,7 @@ int main() {
 	    break;
 	  case 12:
 	    sprintf(detectors[q].name, "DET(FMD)");
-	    detectors[q].busy_limit = 260;
+	    detectors[q].busy_limit = 300;
 	    break;
 	  case 13:
 	    sprintf(detectors[q].name, "DET(T00)");
@@ -287,7 +287,7 @@ int main() {
 	    break;
 	  case 21:
 	    sprintf(detectors[q].name, "DET(AD0)");
-	    detectors[q].busy_limit = 0;
+	    detectors[q].busy_limit = 10;
 	    break;
 	  case 22:
 	    sprintf(detectors[q].name, "UNDEF");

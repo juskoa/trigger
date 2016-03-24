@@ -413,7 +413,7 @@ Than start miclock again.
     elif a=='resetforce':
       cshift= getShift("force")
       if cshift != "old":
-        mylog.logm("Clock shift (%s ns) reset..."%cshift)
+        mylog.logm("Clock shift (%s ns) resetforce (i.e. may be old)..."%cshift)
         checkandsave(cshift,"fineyes", force='yes')
       else:
         mylog.logm("Clock shift measurement is too old, reset not done")
