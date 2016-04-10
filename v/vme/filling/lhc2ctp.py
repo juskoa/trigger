@@ -740,7 +740,7 @@ class FilScheme:
         self.mainsat= None
       else:
         self.mainsat= "mainsat"
-    self.prepareTmask(4)
+    #self.prepareTmask(4)
   def insert(self, bace, bxn):
     for ix in range(len(self.bx[bace])):
       if bxn<self.bx[bace][ix]:
@@ -1045,7 +1045,7 @@ bcstart -find index of first item on the left of this bc
 """
     if len(bclist)== 1: return 0
     prevbc= bclist[0]; previx=0
-    if prevbc >= bcstart: return bclist[len(bclist)]
+    if prevbc >= bcstart: return bclist[len(bclist)-1]
     for ix in range(1,len(self.bx['B'])):
       bc= bclist[ix]
       if bc >= bcstart: return previx

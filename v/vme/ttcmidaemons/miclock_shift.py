@@ -256,10 +256,14 @@ def callback_bm(ecsbm):
   if WEB.miclock==expclock:
     if bmname=="SQUEEZE":
       if cshift!='old':
-        checkandsave(cshift, bmname)   # fine shift
-        # it should certainly be less then 100ps after adjustment:
-        t= threading.Timer(10.0, checkShift)
-        t.start()
+        if False:
+          mylog.infolog("SQUEEZE: clock shift correction disabled",level='w')
+        else:
+          mylog.infolog("SQUEEZE: clock shift %s, applying correction ..."%cshift,level='w')
+          checkandsave(cshift, bmname)   # fine shift
+          # it should certainly be less then 100ps after adjustment:
+          t= threading.Timer(10.0, checkShift)
+          t.start()
       else:
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
@@ -288,7 +292,7 @@ def callback_bm(ecsbm):
       else:
         wf='w'
       mylog.infolog( "BEAM MODE:%s, clock %s not correct. miclock mode:%s"%\
-      (bmname, WEB.miclock,WEB.clockchangemode), level=wf )
+      (bmname, WEB.miclock,WEB.clockchangemode), level='w')
     if WEB.clockchangemode=='AUTO_NEVERCHANGE':  # it is on lhcint now to change th clock
       # change clock
       mylog.logm("changing clock to %s. Wait 3 half-minutes please..."%(expclock))

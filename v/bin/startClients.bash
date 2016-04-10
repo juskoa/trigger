@@ -183,7 +183,7 @@ gmonscal   running on trigger@alitrir. Creating:
            $server:v/vme/WORK/MONSCAL/inputs.png
            $server:v/vme/WORK/MONSCAL/RUNNUMBER_CLUSTER.png
 masksServer running on alitri. Commands: start/stop/status/update
-           See v/vme/WORK/masksServer.log,.pid 
+           See v/vme/WORK/masksServer.log,.pid, src: pydim/masksServer.py 
            DIM publications of CTPBCM/A,C,S,SA,... -masks available 
            in VALID.CTPINPUTS).
 ctpwsgi    running on alitri. start/stop/status

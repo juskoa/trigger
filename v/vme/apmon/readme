@@ -23,8 +23,11 @@ Compiled executable is in  $APMON/examples directory.
 Compliation:
 [trigger@alidcscom835 examples]$ make
 ...
+startClients.bash rrd stop
+startClients.bash rrd start
+startClients.bash html start
 
-Start:
+Start explained:
 Normally, example_3.exe is started using popen() from CNTRRD/readctpc.c,
 from working directory ~/CNTRRD i.e.:
   apmonsw= getenv("APMON");

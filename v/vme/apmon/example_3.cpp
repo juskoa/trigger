@@ -227,7 +227,7 @@ int main() {
 	    break;
 	  case 6:
 	    sprintf(detectors[q].name, "DET(HMP)");
-	    detectors[q].busy_limit = 230;
+	    detectors[q].busy_limit = 280;
 	    break;
 	  case 7:
 	    sprintf(detectors[q].name, "DET(PHS)");
@@ -243,7 +243,7 @@ int main() {
 	    break;
 	  case 10:
 	    sprintf(detectors[q].name, "DET(MCH)");
-	    detectors[q].busy_limit = 1200;
+	    detectors[q].busy_limit = 600;   //1200;
 	    break;
 	  case 11:
 	    sprintf(detectors[q].name, "DET(MTR)");

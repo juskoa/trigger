@@ -8,6 +8,7 @@
 3.3.2 summary change by another 2ns 30.11.2015
 3.4. BCMAIN with corde 4864 (just test)
 5. Conclusion
+6. Suggested change in April 2016:
 
 1. before change
 ----------------
@@ -59,7 +60,7 @@ readall()
 ----------------------
 vstup: nastav podla toho co je v RF2TTC/CORDE hw:
 $dbctp/clockshift obsahuje: 29 963 953
-- RF2TTC aj corde by mal obsahovat 29 963 (nastav ak nie je)
+- RF2TTC aj corde by mal obsahovat 29 963 (nastav ak nie je: vmecrate nbi ttcmi, vmecrate nbi corde)
 - meranie na skope (alebo sluzba "monshiftclock2.py get" ukazuje shit -0.065  (ns)
 - ak treba nastav na RF2TTC aj na corde inac (pockaj na vysledok merania
   cca 3 min)!
@@ -442,7 +443,7 @@ Done:
       ORBIN_DELAY25_ORB1 0x7d020:158 -> possibly (if problem with smaq): 0x150
                                         0x158-0x140= 24
                                         cize i2c_setdelay(0x7D020, 20)
-       BC_DELAY25_BCMAIN 0x7d00c:161 -> 165 (cize 37)
+       BC_DELAY25_BCMAIN 0x7d00c:161 -> 165 (cize 0x25=37)
        BC_DELAY25_BC1    0x7d000:161 -> 165  to get it the same for BPTX
 - nastav CORDE rucne: (o 2000ps menej, = 200 countov)
   set(7, 8060)    8060=10060-200
@@ -561,4 +562,46 @@ tak aj meranie nam dalo o 4ns horsiu hranicu (16.5ns)
 zatial co predtym sme mali 20ns pre ORBmain.
 
 recomended value: 8ns (pre CORDE 4640ps),
-pre ORBMAIN pre BC1 zrejme este mensia.
+
+6. Suggested change in April 2016:
+---------------------------------
+astav na RF2TTC aj na corde rucne:
+      ORBIN_DELAY25_ORB1 0x7d020:158
+       BC_DELAY25_BCMAIN 0x7d00c:165 -> 161 (cize 0x21=33)
+       BC_DELAY25_BC1    0x7d000:165 -> 161  to get it the same for BPTX
+- nastav CORDE rucne: (o 2000ps viac, = 200 countov)
+
+Toto by mal drzat rovnaky delay (co sme odobrali na rf2ttc, to sa pridalo na corde).
+Teraz treba doladit hodnotu na corde podla
+- pocasia (cize prva hodnota by mala byt podbna ako pred rokom, vid logbook, graf)
+- potom zmenit podla scopu resp. dim-hodnoty
+
+8.4.2016
+ cat $dbctp/clockshift
+37 857 850
+
+vmecrate nbi ttcmi
+BC_DELAY25_BCMAIN/BC1 0x165=37/0x165=37 halfsns
+
+vmecrate nbi corde
+eadall()
+ ORBMAIN: 200 =   512  *10ps
+    ORB2: 200 =   512  *10ps
+    ORB1: 200 =   512  *10ps
+  BCMAIN: 200 =   512  *10ps
+   BCREF: 200 =   512  *10ps
+     BC2: 200 =   512  *10ps
+     BC1: 359 =   857  *10ps
+
+-------------------
+astav na RF2TTC aj na corde rucne:
+      ORBIN_DELAY25_ORB1 0x7d020:158
+       BC_DELAY25_BCMAIN 0x7d00c:165 -> 15d (cize 0x1d=29)
+       BC_DELAY25_BC1    0x7d000:165 -> 15d  to get it the same for BPTX
+- nastav CORDE rucne: (o 2000ps viac, = 200 countov)
+
+- opravene aj v $dbctp/clockshift
+- avsak po restarte ttcmidims, corde je nastavena na 512 !
+  -> opravene rucne
+- takisto, set LOCAL clock (vidno z ttcmidims.log)
+  -opravene automaticky (clockmode bol v mode auto), po zmene clocku je corde ok
