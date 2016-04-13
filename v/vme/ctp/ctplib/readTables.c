@@ -644,6 +644,7 @@ return;
 I: dlist: "SPD,MUON_TRK"
 O: rc: detector pattern (bits 0..23 set for given detectors)
        -1 in case of bad dlist
+12.4.2016: "CTP" detector ignored
 */
 int detList2bitpat(char *dlist) {
 enum Ttokentype token; int ix=0; int rc=0;
@@ -652,12 +653,14 @@ while(1) {
   token= nxtoken(dlist, value, &ix); if(token==tEOCMD) break;
   if(token==tSYMNAME) {
     int bit;
-    bit= findLTUdetnum(value);
-    if(bit==-1) {
-      // sprintf(em1," unknown detector:%s",value);
-      rc=-1; break;
-    };
-    rc= rc | (1 << bit);
+    if(strcmp(value,"CTP")!=0) {
+      bit= findLTUdetnum(value);
+      if(bit==-1) {
+        // sprintf(em1," unknown detector:%s",value);
+        rc=-1; break;
+      };
+      rc= rc | (1 << bit);
+    }
   } else {
     rc=-1; break;
   };

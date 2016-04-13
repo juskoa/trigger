@@ -200,7 +200,7 @@ for (i=1;i<=n_params;i++) {
     strcpy(ACT_CONFIG,param);
   } else if(strcmp(parname,"DETECTORS") == 0) {
     // comma separated list of dets (e.g. "PMD,MUON_TRK")
-    detectors= detList2bitpat(param);
+    detectors= detList2bitpat(param);   // "CTP" will be ignored (bit not set)
     if(detectors==-1) {
       sprintf(errorReason, "Bad list of detectors:%s...",param);
       smi_set_parER();
