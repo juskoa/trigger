@@ -2061,8 +2061,8 @@ char emsg[ERRMSGL];
    //}
  }
  //software trigger with default setings
-#define MAX_XOD_ATTEMPTS 2
-iattempt=0;/*
+#define MAX_XOD_ATTEMPTS 3
+iattempt=0;/*  i.e. attempts counted from 0
 if(x=='E') {
    setomSSM(5,0x202);   //26 ms, FO L2 monitor mode
    startSSM1(5);
