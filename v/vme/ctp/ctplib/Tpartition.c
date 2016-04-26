@@ -1314,7 +1314,7 @@ if((detmask & realmask)!= detmask) {    // (| would be for 1=active)
   };
   sprintf(emsg, "applyMask: Detectors: %s not allowed in partition: %s, incorrect det. mask :0x%x dets:0x%x.",
     baddetstr, part->name, detmask, realmask );
-  prtError(emsg); infolog_trg(LOG_ERROR, emsg);
+  prtError(emsg); infolog_trg(LOG_FATAL, emsg);
   return(2);
 };
 part->MaskedDetectors=detmask;

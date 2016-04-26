@@ -80,6 +80,9 @@ vstup: $dbctp/clockshift   -toto nebavi
            
 - ttcmidims.sh start        -tento pri starte nemeni delays v RF2TTC/CORDE
 
+23.4.2016
+vid https://alice-logbook.cern.ch/logbook/date_online.php?p_cont=threadd&p_tid=535523&p_cidh=535529#le535529
+
 3. calibrate
 ------------
 3.1. DAC
