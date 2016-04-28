@@ -66,7 +66,7 @@ fi
 }
 function onlyserver() {
 hname=`hostname -s`
-if [ "$hname" != "avmes" -a "$hname" != "alidcscom835" -a "$hname" != "pcalicebhm10" -a "$hname" != "adls"] ;then
+if [ "$hname" != "alidcscom835" -a "$hname" != "pcalicebhm10" -a "$hname" != "adls" ] ;then
   return 8
 else
   #echo 'can be started only from trigger@alidcscom835 or pcalicebhm10/adls'

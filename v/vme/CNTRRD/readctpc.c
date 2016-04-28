@@ -82,7 +82,8 @@ const char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
   "FMD", "T0", "V0", "ZDC", "ACORDE", "-", "EMCAL", "DAQ","-","AD", "-", "-",""}; 
 // by RL on TM 1.8.2012: THIS ONE USED FOR L1R CORRECTION
 // 28.11.2012: corrected to be equal with DQM: (pmd, muon_trg, v0):
-float l1rusecs[N24]={0, 7.0, 7.325, 6.65, 6.75, 6.705, 6.835,
+// 28.4.2016 TPC: 6.65 -> 7.15
+float l1rusecs[N24]={0, 7.0, 7.325, 7.15, 6.75, 6.705, 6.835,
   7.9, 0.0, 16.0, 14.275, 7.1,
   8.26, 6.525, 0.0, 9.2, 7.025, 0.0, 8.125, 0.0,0.0,0.0};
 // by RL on TM 9.3.2012 

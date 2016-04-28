@@ -1,0 +1,7 @@
+html files in this directory should be archived in $VMECFDIR/CNTWEB/htmlarch/
+
+l12rtimes.html is created by "kill -s SIGUSR2 readctpcid"  from l1rusecs[] array
+-> see logs/readctpc.log for lines:
+got signal:12
+File htmls/l12rtimes.html opened
+
