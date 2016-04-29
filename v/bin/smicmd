@@ -33,6 +33,7 @@ see $VMEWORKDIR/WORK/smicmd.log
 EOF
 else
 cat - <<-EOF
+
 Partition name: $pname
 smicmd init PARTNAME decmask RUNN
 smicmd start/stop/pause/resume/sync/ack/reset PARTNAME
@@ -52,6 +53,7 @@ General usage:
 on altri2/bhm10:
 0x100 256 CPV  -only on altri2/bhm10
 
+LOAD_FAILURE: has to be ack-ed, i.e. 'smicmd ack partname'
 EOF
 fi
 echo "smiSendCommnad rc:" $?

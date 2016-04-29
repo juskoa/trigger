@@ -173,7 +173,7 @@ ctpdim:    DIM server running on alidcsvme001, reading counters once per minute
 ttcmidim:  DIM server monitoring/changing global clock (warning when 
            the clock change foreseen).
            miclock: the client controlling ttcmidim server
-irdim:     running on alitrir. DIM server processing Interaction records
+irdim:     running on alidcscom521. DIM server processing Interaction records
 xcounters: creating xcounters files and posting them to DCS XFS
            updating counters in DAQlogbook.    RUNS in tri account
            see ~tri/readme for more info about compile/start/stop
@@ -196,7 +196,7 @@ Problems: see corresponding files in:
    ~tri/logs                         -xcounters
    trigger@alitrir:rl/correlations/monscal_root        -gmonscal sources
    trigger@alitrir:rl/correlations/monscal_root/WORK   -gmonscal log
-   trigger@alitrir:IRS/LUMI_FILES/MASSI  IRS/LOG/LOG   -irdim
+   trigger@alidcscom521:IRS/LUMI_FILES/MASSI  IRS/LOG/LOG   -irdim
    $TRGVMEWORKDIR/masksServer.log/pid    -masksServer
 EOF
 exit

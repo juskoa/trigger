@@ -48,7 +48,10 @@ def getShift(what=None):
   age= time.time() - ts[0]
   if what != "force":
     if age>181: return "old"   # was 91 till 3.11.
-  return "%6.4f"%gshift[0]
+  rcshift= gshift[0]
+  if rcshift <= -23.5) and (-24.95 <= rcshift):
+    rcshift = -24.95 - rcshift
+  return "%6.4f"%rcshift
 def main():
   #if not pydim.dis_get_dns_node():
   #  print "Please set the environment variable DIM_DNS_NODE (aldaqecs)"

@@ -241,7 +241,7 @@ int rc;
 int ix=0,slen;
 unsigned long ACBEI[5]; // # of bits sets
 unsigned long ACBEItr[5]; // # of words for DB (do not count 0s at the end)
-char csName[200];
+char csName[200], daqlog_csName[205];
 unsigned int beamA[ORBITwb], beamC[ORBITwb], colliding[ORBITwb], empty[ORBITwb],ignored[ORBITwb];
 
 for(rc=0; rc<5; rc++) { ACBEI[rc]=0; ACBEItr[rc]=0; };
@@ -251,7 +251,10 @@ for(rc=0; rc<ORBITwb; rc++) {beamA[rc]=0; beamC[rc]=0;
 rc= getNextLine(&cs_string[ix]); slen=rc-1;
 if(slen > 0) {
   int loops;
+  char year[8], datetime[20];
   strncpy(csName, cs_string, slen); csName[slen]='\0'; ix= ix+rc;
+  getdatetime(datetime); // dmyhms:  string[20] dd.mm.yyyy hh:mm:ss */
+  strncpy(year, &datetime[6], 4); year[4]='\0'; sprintf(daqlog_csName, "%s_%s", year, csName);
   //printf("INFO csName:%s slen:%d\n",csName, slen);
   for(loops=0; loops<3*ORBITL; loops++ ) {
     char *abce; int bc; char line[80];
@@ -278,7 +281,7 @@ if(slen > 0) {
   if(rc==0) {
     /* For DAQ we need 'number of truncated bytes' -
        i.e. last non-zero word is in: */
-    //for(rc=ORBITwb-1; rc<=0; rc--) {
+    //for(rc=ORBITwb-1; rc<=0; rc--)
     for(rc=0; rc<ORBITwb; rc++) {
       if(beamA[rc]!=0) ACBEItr[0]= rc;
       if(beamC[rc]!=0) ACBEItr[1]= rc;
@@ -288,19 +291,19 @@ if(slen > 0) {
     };
     for(rc=0; rc<5; rc++) { ACBEItr[rc]= (ACBEItr[rc]+1)*4; }; // length in bytes
 #ifdef DAQLOGBOOK
-    rc= DAQlogbook_insert_triggerCollisionSchedule(runn, csName, 
+    rc= DAQlogbook_insert_triggerCollisionSchedule(runn, daqlog_csName, 
       beamA,ACBEItr[0], beamC,ACBEItr[1], colliding,ACBEItr[2], 
       empty,ACBEItr[3], ignored,ACBEItr[4]);
 #else
-    printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,...) not called", runn);
+    printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,%s,...) not called", runn,daqlog_csName);
     rc=0;
 #endif
     /* above OK */
     // printf("INFO daqlogbook_update_cs skipped\n");   //INVER
     printf("INFO number of bits ACBEI:%ld %ld %ld %ld %ld\n",
       ACBEI[0], ACBEI[1], ACBEI[2], ACBEI[3], ACBEI[4]);
-    printf("INFO daqlogbook_update_cs ACBEI:%ld %ld %ld %ld %ld rc:%d\n",
-      ACBEItr[0], ACBEItr[1], ACBEItr[2], ACBEItr[3], ACBEItr[4], rc);
+    printf("INFO daqlogbook_update_cs %s ACBEI:%ld %ld %ld %ld %ld rc:%d\n",
+      daqlog_csName, ACBEItr[0], ACBEItr[1], ACBEItr[2], ACBEItr[3], ACBEItr[4], rc);
   } else {
     printf("ERROR daqlogbook_update_cs error:%d",rc);
   };
@@ -309,7 +312,7 @@ if(slen > 0) {
 };
 if(rc!=0) {
   printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,%s,...) rc:%d",
-    runn,csName, rc);
+    runn,daqlog_csName, rc);
 };
 return(rc);
 }

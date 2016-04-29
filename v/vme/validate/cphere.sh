@@ -8,7 +8,7 @@ Start:
 EOF
   exit
 fi
-mkdir ~/validate ; cp MANIFEST setup.py ~/validate/ ; cd ~/validate
+mkdir -p ~/validate ; cp MANIFEST setup.py ~/validate/ ; cd ~/validate
 p1="$VMEBDIR/myw.py $VMEBDIR/trigdb.py $VMEBDIR/txtproc.py $VMEBDIR/downscaling.py"
 p2="$VMECFDIR/TRG_DBED/parted.py $VMECFDIR/TRG_DBED/validate.py \
 $VMECFDIR/TRG_DBED/syncdg.py $VMECFDIR/TRG_DBED/preproc.py $VMECFDIR/TRG_DBED/trgglobs.py"
