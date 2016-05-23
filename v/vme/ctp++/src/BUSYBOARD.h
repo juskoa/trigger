@@ -17,5 +17,12 @@ class BUSYBOARD: public BOARD
 	 w32 const SET_CLUSTER;
 	 w32 const DELAY_ADD;
 	 w32 const ORBIT_SELECT;
+	 w32 const BUSYMAX_DATA;
+	 w32 const BUSYMINI_DATA;
+	 w32 const MINIMAX_SELECT;
+	 w32 const MINIMAX_CLEAR;
+	 w32 const MINIMAX_LIMIT;
+	 w32 const BUSYLAST_SELECT;
+	 w32 const BUSY_CLUSTER;
 };
 #endif
