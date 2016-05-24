@@ -3,14 +3,14 @@
 #
 #echo "nothing done (actions commented out)"
 allvmes="alidcsvme002 alidcsvme003 alidcsvme004 alidcsvme005 alidcsvme006 alidcsvme007"
+noclassesdir=/usr/local/trigger/v/vme/ltu_proxy/noclasses
 op=$1
 if [ -z "$op" ] ;then
     cat - <<-EOF
 cpltuttc
-checkltuttc
-CL2a -copy emcal's CL2a.slm to all
+CL2a -copy emcal's SLMproxy/ CL2a.seq to all SLMproxy/
+slmseqlink - do SLM/l2ronly.slm SLMproxy/l2ronly.seq for all detectors using $noclassesdir/
 EOF
-exit
 fi
 for hn in $allvmes ;do
   [ "$hn" == "alidcsvme002" ] && dets="ssd fmd t0"
@@ -32,7 +32,7 @@ for detname in $dets ;do
     echo $hn:$detname
     mkdir -p /home/dl6/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu
       scp -p trigger@alidcscom188:$from188 $to835
-  elif [ "$op" == "cpltuttc" ] ;then
+  elif [ "$op" == "archive_cpltuttc" ] ;then
     from188=/data/dl/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/ltuttc.cfg
     to835=/home/dl6/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/ltuttc.cfg
     ar835=~/188/ltuttc/$detname.cfg
@@ -42,8 +42,17 @@ for detname in $dets ;do
     cp /home/dl6/snapshot/alidcsvme004/home/alice/trigger/v/emcal/CFG/ltu/SLMproxy/CL2a.seq \
        /home/dl6/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/SLMproxy/
     echo "copy to: $hn $detname rc:$?"
+  elif [ "$op" == "slmseqlink" ] ;then
+  # add l2ronly to everybody -prepared in $noclassesdir:
+    ddir=/home/dl6/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/SLMproxy
+    echo $ddir  
+    cd $ddir
+    cp $noclassesdir/l2ronly.slm ../SLM/
+    ln -s $noclassesdir/l2ronly.seq l2ronly.seq
   else
     echo "doing nothing for $hn $detname"
+    cd /home/dl6/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu
+    ls -ld SLM/l2ronly.slm SLMproxy/l2ronly.seq
   fi
   # add l0only.slm to everybody:
   #ddir=/data/dl/snapshot/$hn/home/alice/trigger/v/$detname/CFG/ltu/SLMproxy
