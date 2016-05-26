@@ -49,7 +49,7 @@ def getShift(what=None):
   if what != "force":
     if age>181: return "old"   # was 91 till 3.11.
   rcshift= gshift[0]
-  if rcshift <= -23.5) and (-24.95 <= rcshift):
+  if (rcshift <= -23.5) and (-24.95 <= rcshift):
     rcshift = -24.95 - rcshift
   return "%6.4f"%rcshift
 def main():

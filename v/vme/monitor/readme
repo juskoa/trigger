@@ -1,3 +1,31 @@
+General notes
+-------------
+goal: SMS to be sent in case of (to be checked):
+- something crashed, i.e.:
+
+- not to be sent is something was started by human intervention
+
+files
+-----
+udpsend.py -example, send udp to monitor on local machine
+threading_miclock.py -example using thread+udp (before included in miclock.py)
+
+check_rc: -ret. code from do_check() checking the status of a daemon
+--------
+OFF  -daemon is not running (no pid)
+IDLE -is on (pid found), but it is not clear if stuck
+ON   -is on and responding (i.e. fresh udp message)
+HUNG -not responding (pid found, but stuck)
+
+Actions:
+-------
+restart:
+ - check if on, kill if not on, start daemon
+idle:
+ - status returned pid: 
+   + SPECIAL for readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
+
+State machine (theory):
 state   check_rc  action    new state    note
 -----------------------------------------------
 down    off       start     rstrted      init:down
@@ -13,7 +41,7 @@ ok      idle      -         -
 ok      on,msg    -         -
         hung      restart   rstrted  
 
-The order according to monitor.py.main():
+State machine according to monitor.py.main():
 state   check_rc  action    new state    note
 -----------------------------------------------
 down    off       start     rstrted      init:down
@@ -36,20 +64,6 @@ ok      on,msg    -         ok
 
 -: no action, i.e. the state not changed
 
-check_rc: -ret. code from do_check() checking the status of a daemon
---------
-OFF  -daemon is not running (no pid)
-IDLE -is on (pid found), but it is not clear if stuck
-ON   -is on and responding (i.e. fresh udp message)
-HUNG -not responding (pid found, but stuck)
-
-Actions:
--------
-restart:
- - check if on, kill if not on, start daemon
-idle:
- - status returned pid: 
-   + SPECIAL for readctpc is reporting 'ok tof:l2rate:calrate t0:0:0 ... '
 
 Config:
 ------

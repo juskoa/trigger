@@ -40,7 +40,7 @@ Operation:
 - start using script -c makeall ...
 - unix2dos logfile
 - grep error + warning lines
-- starting(i.e. ssh) the same on client (only if this started on server)
+- starting(ssh ...) the same on client vme machine if this(makeallscript) started on server
 EOF
 fi
 

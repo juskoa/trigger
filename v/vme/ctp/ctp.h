@@ -541,6 +541,16 @@ LM0 board: this word does not exist, see L0_VETOr2 and LM counterpart is in LM_V
 #define INT_ORBIT_READ 0xc140   /* orbit counter synced with L2 */
 #define INT_MAX_CLEAR  0xc144   /* dummy wr: clear INT_FIFO_MAX */
 #define INT_FIFO_MAX   0xc148   /* counter read-only */
+/* 29.4.2016: we noticed, this register goes to 0x3ff with any fiLF signal
+and stays on that max. value (10bits register). 
+Marian: it should not go so high -there is a limit
+544 words in INT_FIFO_MAX raising intCTPbusy and also bit1 (0x2) 
+in INT_DISB_CTP_BUSY register.
+Seems, there are cases (happened 2 times today), when intCTPbusy is raised
+and is not released even after the fiLF release. In that case 
+CTP (and bit 1 in INT_DISB_CTP_BUSY) stay busy forever -> only way
+to cure it, is the configuration of INT board
+*/
 #define INT_DDL_EMU    0xc14c   /* 6..4 read/only bits:
 6: DDL filF   (link full)
 5: DDL fiBEN (busy enable negative)

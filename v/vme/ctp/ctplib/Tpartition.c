@@ -1312,7 +1312,7 @@ if((detmask & realmask)!= detmask) {    // (| would be for 1=active)
       strcat(baddetstr, dtname); strcat(baddetstr," ");
     };
   };
-  sprintf(emsg, "applyMask: Detectors: %s not allowed in partition: %s, incorrect det. mask :0x%x dets:0x%x.",
+  sprintf(emsg, "applyMask: Detectors: %s not allowed in partition %s (whole cluster(s) thrown out due to applied filter on CTP inputs...), required det. mask :0x%x, but only available dets:0x%x.",
     baddetstr, part->name, detmask, realmask );
   prtError(emsg); infolog_trg(LOG_FATAL, emsg);
   return(2);

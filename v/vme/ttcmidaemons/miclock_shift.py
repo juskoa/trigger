@@ -5,7 +5,7 @@
 # 26.4.2015 CTPDIM/BEAMMODE replaced by ALICEDAQ_LHCBeamMode (100chars)
 #  5.11.2015 DLL RESET enabled (2x: in checkandsave + SQUEEZE)
 import sys,os,os.path,string,pylog
-import signal,time,popen2,threading
+import signal,time,popen2,threading,socket
 
 # Import the pydim module
 import pydim
@@ -46,6 +46,40 @@ def rmzero(strg):
     rcstr= strg
   #
   return rcstr
+class myThread (threading.Thread):
+  def __init__(self, threadID, name, delay):
+    threading.Thread.__init__(self)
+    self.threadID = threadID
+    self.name = name
+    self.delay = delay
+    self.exitflag= 0
+  def run(self):
+    #print "Starting " + self.name
+    mylog.logm("Starting thread %s"%self.name)
+    self.udp2monitor()
+    #print "Exiting " + self.name
+    mylog.logm("Exiting thread %s"%self.name)
+  def stop(self):
+      self.exitflag= 1
+      self.join()
+  def udp2monitor(self):
+    global WEB
+    host = "localhost"
+    port = 9931
+    addr = (host,port)
+    sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    udpcount=0
+    while True:
+      #if exitFlag:
+      if self.exitflag:
+          break
+      time.sleep(self.delay)
+      message="miclock %s %d"%(WEB.lastbmname, udpcount)
+      sentrc= sock.sendto(message, addr)
+      udpcount= udpcount+1
+      #print "%s: %s sentrc:" % (time.ctime(time.time()), message), sentrc
+      if udpcount<4:   # log only firt few msgs
+        mylog.logm("%s: %s sentrc:%d" % (time.ctime(time.time()), message, sentrc))
 class web:
   def __init__(self):
     self.miclock='none'
@@ -216,6 +250,9 @@ def callback_bmold(bm):
   else:
     expclock= "?" ; bmname="???"
   mylog.logm("callback_bmold: "+bmname)
+  if os.environ['VMESITE'] != "ALICE":
+    mylog.logm("lab env, calling also callback_bm(%s)"%bmname)
+    callback_bm(bmname)
 def callback_fsn(fnum_name):
   fsn= rmzero(fnum_name)   # number or filling sheme name
   #if fsn!="" :mylog.logm("FSN:%s:"%fsn)
@@ -248,10 +285,13 @@ def callback_bm(ecsbm):
   #if (prev_bmname=="RAMP") or (bmname=="FLAT TOP"):
   if (bmname=="PREPARE RAMP") or (bmname=="RAMP"):
     sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
-    import getfsdip
-    reload(getfsdip)
-    mylog.logm("getfsdip.py act...")
-    getfsdip.main("act")
+    if os.environ['VMESITE'] != "ALICE":
+      mylog.logm("lab env, 'getfsdip.py act' call skipped")
+    else:
+      import getfsdip
+      reload(getfsdip)
+      mylog.logm("getfsdip.py act...")
+      getfsdip.main("act")
   cshift= getShift()
   if WEB.miclock==expclock:
     if bmname=="SQUEEZE":
@@ -371,8 +411,10 @@ Than start miclock again.
     resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
     #print "res...:", resbm, res, restran
     if not res or not restran or not resbm:
-      mylog.logm("Error registering with info_services"%d(resbm, res, restran))
+      mylog.logm("Error registering with info_services: "+str((resbm, res, restran)))
       sys.exit(1)
+  udpmon_thread= myThread(1, "udpmon", 30)
+  udpmon_thread.start()
   while True:
     #time.sleep(10)
     #man/auto     -change operation mode (manual or automatic) now:%s
@@ -439,6 +481,7 @@ Than start miclock again.
       mylog.flush()
       time.sleep(1)
   ##os.remove(MICLOCKID)
+  udpmon_thread.stop()
   os.remove(MICLOCKID)
   #pydim.dic_release_service(resbm)    -Segmentation fault when 'q'
   #pydim.dic_release_service(res)

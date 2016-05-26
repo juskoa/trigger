@@ -107,6 +107,9 @@ int INTmeasure(CTP* ctp,int what)
  //intb->printIRList();
  //cout << "offset: " << dec << intb->ssmtools.findOffset() << endl;
  // LM
+ cout << "LM status:" << endl;
+ l0->ddr3_status();
+ //
  l0->ddr3_ssmread();
  if(l0->getOrbits(1,2,3)){ 
    printf("ERROR in getting orbit \n");

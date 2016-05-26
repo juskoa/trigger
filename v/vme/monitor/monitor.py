@@ -15,6 +15,7 @@ def signal_handler(signal, stack):
   global quit
   log.logm("signal:%d received, quitting monitor.py..."%signal)
   log.logm("anyhow, waiting till udp timeout elapses...")
+  log.logm("rm %s..."%pidpath)
   log.flush()
   quit="quit"
   #time.sleep(2)
@@ -54,6 +55,20 @@ def gcalib_onfunc(inm):
   if checked == checked_0: rc0= None
   return [rc0, outmsg]
 
+def miclock_onfunc(inm):
+  """ inm: miclock clock beammode
+  rc:
+  [ON, msg] -ok
+"""
+  outmsg="" ; rc0= Daemon.ON
+  inms= string.split(inm)
+  ix=inm.find(' ')
+  if ix > 0:
+    msg= inm[(ix+1):]
+  else:
+    msg="noclock nobeammode"
+  return [rc0, msg]
+
 class Udp(Thread):
   def __init__(self, daemons):
     Thread.__init__(self)
@@ -75,9 +90,11 @@ class Udp(Thread):
         break
       data= self.waitudp()
       if data=="":
+        # when no udp packet received in UDP_TIMEOUT (should not happen with
+        # stable monitoring of more udp-processes)
         #log.logm("udp timeout")  
         continue
-      log.logm("udp:"+data)
+      #log.logm("udp:"+data)
       dname= string.split(data)[0]
       if self.daemons.has_key(dname):
         self.daemons[dname].regudp(data)
@@ -106,6 +123,7 @@ class Daemon:
   DOWN=0
   RESTARTED=1
   OK=2
+  MAXSMS=1   # max. sms message to be sent when daemon died
   def __init__(self,name, scb="scb", onfunc=None, autor='y'):
     """
     scb: 
@@ -151,15 +169,19 @@ class Daemon:
       self.logm('on, '+rc[1])
     # read .last2 file
   def do_check(self):
-    """ self.scb:
+    """ self.scb: defines a way how the status is checked:
     "scb" (StartClients.Bash way) -run localy (this script
           is supposed to run on server) startClients.bash
     "udp" check last udp message arrived from this Daemon
-    "hddtemp" check temp against ALARMhddtemp/OKhddtemp
-
-    rc: 0: on, msg
-        1: idle (e.g.: gcalib on, but no calib. triggers needed)
-        2: off (= not running)
+    "hddtemp" check temp against ALARMhddtemp/OKhddtemp.
+          Not ready for 835, but:
+[aj@pcalicebhm11 py]$ hddtemp /dev/sda
+/dev/sda: ST3250310AS: 37oC
+                         \xc2
+    rc: ON: on, msg
+        IDLE: idle (e.g.: gcalib on, but no calib. triggers needed)
+        OFF: off (= not running)
+        HUNG:
     """
     rc=[None]
     if self.scb=="hddtemp":
@@ -190,9 +212,14 @@ class Daemon:
     elif self.udplast:
       difsec= time.time()- self.udplast[0]
       if difsec<UDP_TIMEOUT: # we got fresh udp message
+        # let's decide from msg content if ok or not
         if self.onfunc:
           rc= self.onfunc(self.udplast[1])
           # should return: [None], [ON,msg] or [HUNG]
+        else:
+          self.logm("self.onfunc not defined")
+      else:
+        rc= [self.OFF, "no udp %d secs"%difsec]
     #else:
     #  rc= [None]
     if (rc[0]==None) and (self.scb=="scb"): 
@@ -239,11 +266,11 @@ class Daemon:
   def logm_mail(self, msg):
     global pitlab
     msg2= pitlab+' '+self.name + ': ' + msg
-    if self.sms_sent<2:   # send max. 2 messages
+    if self.sms_sent<self.MAXSMS:   # send max. MAXSMS messages for a daemon
       self.sms_sent= self.sms_sent+1
       self.logm(msg) #self.logm("mail:"+msg)
-      if self.sms_sent==2:
-        msg2= msg2+". SMSs DISABLED (max. 2)"
+      if self.sms_sent==self.MAXSMS:
+        msg2= msg2+". SMSs DISABLED (max. %d)"%self.MAXSMS
       send_mail(msg2)
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
@@ -274,8 +301,8 @@ class Daemon:
     iop[0].close()
     iop[1].close()
     return rc
-  def regudp(self, data):
-    self.udplast= [time.time(),data]
+  def regudp(self, udpdata):
+    self.udplast= [time.time(),udpdata]
 
 def main():
   global log
@@ -327,21 +354,31 @@ monitor.py stop
   # "pydim":Daemon("pydim", autor='n'),
   #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   # p2:
-  allds={"xcounters":Daemon("xcounters", autor='n'), 
-    "ctpwsgi":Daemon("ctpwsgi"), 
-    "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
-    "gcalib":Daemon("gcalib")}
-  # bhm10:
-  # allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
-  #
+  if os.environ['VMESITE'] == "ALICE":
+    allds={"xcounters":Daemon("xcounters", autor="n"), 
+      "ctpwsgi":Daemon("ctpwsgi"), 
+      "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+      "gcalib":Daemon("gcalib")}
+    # starts thread reading udp messages. Commented out from 13.7.2015
+    # until udp really used (now not used, so 'waitudp except' repeats...
+    #udpmsg=Udp(allds)   
+    log.logm("Udp not used.")
+  else:
+    # bhm10:
+    # allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
+    # adls: ttcmidim problematic (runs on altri2 which is on bhm10)
+    allds={"xcounters":Daemon("xcounters", autor="n"), 
+      "ctpwsgi":Daemon("ctpwsgi"), 
+      "html":Daemon("html"),
+      "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
+      "gcalib":Daemon("gcalib")}
+    # test in lab:
+    log.logm("Udp used...")
+    udpmsg=Udp(allds)   
   lin=""
   for dm in allds.keys():
     lin=lin+dm+" "
   log.logm("monitored daemons: "+lin)
-  # starts thread reading udp messages. Commented out from 13.7.2015
-  # until udp really used (now not used, so 'waitudp except' repeats...
-  #udpmsg=Udp(allds)   
-  log.logm("Udp not used.")
   while 1:
     for dmName in allds:
       dm= allds[dmName]
@@ -356,7 +393,8 @@ monitor.py stop
             dm.set_state(Daemon.RESTARTED)
             dm.logm_mail("DOWN/OK->OFF. restarted")
           else:
-            dm.logm_mail("DOWN/OK->OFF. not restarted (autor:NO)")
+            dm.set_state(Daemon.DOWN)
+            dm.logm_mail("DOWN/OK->OFF. not restarted (autrest:NO)")
         else:
           dm.logm_mail("DOWN/OK->OFF cannot restart")
       elif rc[0]==Daemon.HUNG:
@@ -366,7 +404,7 @@ monitor.py stop
             dm.do_restart()
             dm.set_state(Daemon.RESTARTED)
           else:
-            dm.logm_mail("DOWN/OK->HUNG. not restarted (autor:NO)")
+            dm.logm_mail("DOWN/OK->HUNG. not restarted (autrest:NO)")
         elif dm.state == Daemon.RESTARTED:
           dm.logm_mail("RESTARTED->HUNG cannot restart")
       elif rc[0]==Daemon.IDLE:
@@ -394,7 +432,7 @@ monitor.py stop
     if quit:
       #for dm in allds: no need (a1,a2 are logged in the time of their creation)
       #  dm.flush()
-      log.logm("quitting pid: %s..."%pidpath)
+      log.logm("quit. pid: %s..."%mypid)
       log.flush()
       #udpmsg.close()
       time.sleep(1)   #
