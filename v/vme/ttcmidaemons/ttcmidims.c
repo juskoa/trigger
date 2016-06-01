@@ -412,15 +412,15 @@ dim_start_thread(newclock, (void *)&newclocktag);
 }
 /*-----------------*/ void DLL_RESYNCcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];
+char clientid[100];
 char *msg= (char *)msgv; int rc; 
-sprintf(errmsg, "DLL_RESYNCcmd: tag:%d size:%d msg:%5.5s\n", 
-  *(int *)tag, *size, msg); prtLog(errmsg); 
+getclientid(clientid);
+sprintf(errmsg, "DLL_RESYNCcmd: tag:%d size:%d msg:%5.5s client:%s\n", 
+  *(int *)tag, *size, msg, clientid); prtLog(errmsg); 
 rc= authenticate("");
 //rc=0;
 if(rc!=0) {
   //sprintf(errmsg, "DLL_RESYNC not authenticated, but executed");prtLog(errmsg); 
-  char clientid[100];
-  getclientid(clientid);
   sprintf(errmsg, "DLL_RESYNC not allowed from client %s", clientid);prtLog(errmsg); 
 };
 

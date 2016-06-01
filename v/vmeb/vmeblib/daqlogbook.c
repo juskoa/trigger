@@ -255,7 +255,8 @@ if(slen > 0) {
   strncpy(csName, cs_string, slen); csName[slen]='\0'; ix= ix+rc;
   getdatetime(datetime); // dmyhms:  string[20] dd.mm.yyyy hh:mm:ss */
   strncpy(year, &datetime[6], 4); year[4]='\0'; sprintf(daqlog_csName, "%s_%s", year, csName);
-  //printf("INFO csName:%s slen:%d\n",csName, slen);
+  //printf("INFO csName:%s slen:%d daqlog_csName:%s:\n",csName, slen, daqlog_csName);
+  // daqlog_csName in db is seen in -> Trigger info -> Configuration
   for(loops=0; loops<3*ORBITL; loops++ ) {
     char *abce; int bc; char line[80];
     rc= getNextLine(&cs_string[ix]); slen=rc-1;
@@ -291,6 +292,7 @@ if(slen > 0) {
     };
     for(rc=0; rc<5; rc++) { ACBEItr[rc]= (ACBEItr[rc]+1)*4; }; // length in bytes
 #ifdef DAQLOGBOOK
+    printf("INFO DAQlogbook_insert_triggerCollisionSchedule(%d,%s,...)...\n", runn,daqlog_csName);
     rc= DAQlogbook_insert_triggerCollisionSchedule(runn, daqlog_csName, 
       beamA,ACBEItr[0], beamC,ACBEItr[1], colliding,ACBEItr[2], 
       empty,ACBEItr[3], ignored,ACBEItr[4]);

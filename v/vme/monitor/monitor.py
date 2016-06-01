@@ -358,11 +358,10 @@ monitor.py stop
     allds={"xcounters":Daemon("xcounters", autor="n"), 
       "ctpwsgi":Daemon("ctpwsgi"), 
       "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+      "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
       "gcalib":Daemon("gcalib")}
-    # starts thread reading udp messages. Commented out from 13.7.2015
-    # until udp really used (now not used, so 'waitudp except' repeats...
-    #udpmsg=Udp(allds)   
-    log.logm("Udp not used.")
+    log.logm("Udp used.")
+    udpmsg=Udp(allds)   
   else:
     # bhm10:
     # allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}

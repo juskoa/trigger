@@ -29,8 +29,7 @@ fi
 #  vdv='v'
 #fi
 vdv='stable'
-if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' -o \
- "$hname" = 'pcalicebhm10' -o "$hname" = 'alidcscom188' ] ;then
+if [ "$hname" = 'alidcscom835' -o "$hname" = 'adls' -o  "$hname" = 'pcalicebhm10' ] ;then
   #if [ "$hname" = 'alidcscom188' ] ;then
     #CCRFS=/data/dl/root  or /data/dl6/rootfs
     #CLRFS=/data/dl/snapshot  or /home/dl6/snapshot (see setenv)
@@ -41,7 +40,7 @@ if [ "$hname" = 'alidcscom835' -o "$hname" = 'avmes' -o \
     dhost='alidcsvme001'
     if [ "$hname" = 'pcalicebhm10' ] ;then
       dhost='altri2'
-    elif [ "$hname" = 'avmes' ] ;then
+    elif [ "$hname" = 'adls' ] ;then
       dhost='altri1'
     fi
     rdir=$CLRFS/$dhost/home/alice/trigger/v/vme/WORK

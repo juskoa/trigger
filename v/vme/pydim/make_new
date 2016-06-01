@@ -18,7 +18,7 @@ include $(VMEBDIR)/sc.make
 
 ifdef SERVER_LINK
 allEXES = $(EXEDIR)/server $(EXEDIR)/act_main $(EXEDIR)/comment2daqlog \
- $(EXEDIR)/client $(EXEDIR)/bcmcheck
+ $(EXEDIR)/client $(EXEDIR)/bcmcheck $(EXEDIR)/daqlogbookTest
 else
 EXEDIR= ./
 allEXES = $(EXEDIR)/client
@@ -47,6 +47,8 @@ $(EXEDIR)/client: client.c $(DIMDIR)/linux/libdim.a
 #	$(CC) $(CFLAGS) $(LDFLAGS) $< $(DIMLD) -o $@
 
 $(EXEDIR)/comment2daqlog: comment2daqlog.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
+$(EXEDIR)/daqlogbookTest: daqlogbookTest.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 $(EXEDIR)/act_main: act_main.c $(VMEBLIB)/libvmeb.a
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
