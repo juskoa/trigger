@@ -130,7 +130,7 @@ typedef struct {
 } Tavbsy;
 
 Tavbsy avbusys[N24];      // usecs, -1: not connected   >999000: dead
-
+int isGlobal[N24]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 #define MAXcalibDets 5
 // TOF MUON_TRG T0 ZDC EMCAL
 int calibDets[MAXcalibDets]={5,11,13,15,18};
@@ -493,12 +493,20 @@ if(detN==N_CTPDET) {
   runn= db_getrn(detN);
 };
 if((runn!=0) || (detN==N_CTPDET)) {
-  sprintf(detpart," %d %d %d", detN, runn, avbusy);
-  if((strlen(detpart)+strlen(apmonline)) < MAX_APMONB) {
-    strcat(apmonline, detpart);
+  /* do not update DET with first value in the run
+     always update CTPDET */
+  if((isGlobal[detN]>0) || (detN==N_CTPDET)) {
+    sprintf(detpart," %d %d %d", detN, runn, avbusy);
+    if((strlen(detpart)+strlen(apmonline)) < MAX_APMONB) {
+      strcat(apmonline, detpart);
+    } else {
+      printf("ERROR: too long apmonlineB:'%s'+'%s'\n", apmonline, detpart);
+    };
   } else {
-    printf("ERROR: too long apmonlineB:'%s'+'%s'\n", apmonline, detpart);
+    isGlobal[detN]=1;
   };
+} else {
+  isGlobal[detN]=0;   // DET is not in global
 };
 }
 

@@ -17,9 +17,11 @@ $APMON/examples/example_3.cpp is linked to $VMECFDIR/apmon/   i.e.:
 /home/dl6/local/sw/ApMon_cpp-2.2.8/examples
 [trigger@alidcscom835 examples]$ ln -s /local/trigger/v/vme/apmon/example_3.cpp 
 [trigger@alidcscom835 examples]$ ln -s /local/trigger/v/vme/apmon/apmonConfig_lab.conf
-[trigger@alidcscom835 examples]$ ln -s /local/trigger/v/vme/apmon/apmonConfig_lab.conf
+[trigger@alidcscom835 examples]$ ln -s /local/trigger/v/vme/apmon/apmonConfig_alice.conf
 
 Compiled executable is in  $APMON/examples directory.
+Installation:
+cd $APMON ; ./configure ; make clean ; make
 Compliation:
 [trigger@alidcscom835 examples]$ make
 ...

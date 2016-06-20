@@ -28,8 +28,6 @@ if [ -n "$1" ] ;then
 fi
 #defaults:
 TRG_ADDONS=/home/dl6/local/sw
-export REDIS=$TRG_ADDONS/redis-3.0.5
-export APMON=$TRG_ADDONS/ApMon_cpp-2.2.8
 export VMESITE=SERVER
 export OS=Linux
 export DIMDIR=/opt/dim
@@ -137,8 +135,11 @@ else               #------------------------------ server
   else
     export VMESITE=PRIVATE
     export DIM_DNS_NODE=localhost
+    export TRG_ADDONS=/local/sw
   fi
 fi
+export REDIS=$TRG_ADDONS/redis-3.0.5
+export APMON=$TRG_ADDONS/ApMon_cpp-2.2.8
 #if [ "$VMESITE" != ALICE ] ;then
 #  unset DATE_INFOLOGGER_DIR
 #fi
