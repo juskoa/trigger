@@ -20,6 +20,9 @@ cd ~/CNTRRD ; $VMECFDIR/CNTRRD/linux/readctpc
 23.5.2016         CPV: 0   -> 7.325 and L2r 107.265us 
           recompile, restart and kill -s USR2 pid to get new htmls/l12rtimes.html
 1.6. 2016 SSD 7.325 -> 9.1
+20.6. 2016 isGlobal[]] added, used in update_apmonlineB() to ignore first avbusy measured in global
+  to be passed to apmon
+
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -504,9 +507,13 @@ if((runn!=0) || (detN==N_CTPDET)) {
     };
   } else {
     isGlobal[detN]=1;
+    printf("INFO apmon 1st avbusy ignored for det %d\n", detN);
   };
 } else {
-  isGlobal[detN]=0;   // DET is not in global
+  if(isGlobal[detN]!=0) {   // DET was in global till now
+    isGlobal[detN]=0;   // DET is not in global
+    printf("INFO apmon det %d stdalone\n", detN);
+  };
 };
 }
 
@@ -733,7 +740,7 @@ if((ARGNOAPPMON==0) && (apmonpipe!=NULL)) {
   if((w32)rcapmon != strlen(apmonlineI) )  {
     printf("ERROR: apmonI fprintf rc:%d != line_len:%u\n", rcapmon, (int)strlen(apmonlineI));
   } else {
-    printf("INFO apmonI pipe ok:%s", apmonlineI);
+    ; // printf("INFO apmonI pipe ok:%s", apmonlineI);
   };
 };
 /*------------------------------------------------------------ gcalib 
