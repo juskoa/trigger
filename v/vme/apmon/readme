@@ -27,7 +27,7 @@ Compliation:
 ...
 startClients.bash rrd stop
 startClients.bash rrd start
-startClients.bash html start
+startClients.bash html start   (not needed! -done by monitor automatically )
 
 Start explained:
 Normally, example_3.exe is started using popen() from CNTRRD/readctpc.c,
@@ -44,3 +44,5 @@ apmonConfig_lab.conf     -used elsewhere
 
 === 3. history, bugs
 16.3. MCH <-> MTR fixed, apmon.log shortened
+13.6. TPC 1000us -> 1300 us
+

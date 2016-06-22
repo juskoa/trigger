@@ -49,8 +49,10 @@ def getShift(what=None):
   if what != "force":
     if age>181: return "old"   # was 91 till 3.11.
   rcshift= gshift[0]
+  #if (rcshift <= -1.16): return "old"
   if (rcshift <= -23.5) and (-24.95 <= rcshift):
-    rcshift = -24.95 - rcshift
+    #rcshift = -24.95 - (rcshift)   # till 11.6.2016
+    rcshift = -24.95 - (rcshift+1.16)   # phase_0:1.16ns from 11.6.2016 18:40
   return "%6.4f"%rcshift
 def main():
   #if not pydim.dis_get_dns_node():

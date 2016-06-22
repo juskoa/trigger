@@ -215,7 +215,7 @@ int main() {
 	    break;
 	  case 3:
 	    sprintf(detectors[q].name, "DET(TPC)");
-	    detectors[q].busy_limit = 1000;
+	    detectors[q].busy_limit = 1300;   // till 13.6.2016: 1000
 	    break;
 	  case 4:
 	    sprintf(detectors[q].name, "DET(TRD)");

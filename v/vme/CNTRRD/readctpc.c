@@ -20,9 +20,9 @@ cd ~/CNTRRD ; $VMECFDIR/CNTRRD/linux/readctpc
 23.5.2016         CPV: 0   -> 7.325 and L2r 107.265us 
           recompile, restart and kill -s USR2 pid to get new htmls/l12rtimes.html
 1.6. 2016 SSD 7.325 -> 9.1
+9.6. 2016 SSD 9.1 -> 8.1  
 20.6. 2016 isGlobal[]] added, used in update_apmonlineB() to ignore first avbusy measured in global
   to be passed to apmon
-
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,7 +90,7 @@ const char *LTUORDER[]={"SPD", "SDD", "SSD", "TPC", "TRD", "TOF", "HMPID",
 // by RL on TM 1.8.2012: THIS ONE USED FOR L1R CORRECTION
 // 28.11.2012: corrected to be equal with DQM: (pmd, muon_trg, v0):
 // 28.4.2016 TPC: 6.65 -> 7.15    23.5. CPV 0-> 7.325   1.6.2015 SSD 7.325->9.1
-float l1rusecs[N24]={0, 7.0, 9.1, 7.15, 6.75, 6.705, 6.835,
+float l1rusecs[N24]={0, 7.0, 8.1, 7.15, 6.75, 6.705, 6.835,
   7.9, 7.325, 16.0, 14.275, 7.1,
   8.26, 6.525, 0.0, 9.2, 7.025, 0.0, 8.125, 0.0,0.0,0.0};
 // by RL on TM 9.3.2012 
@@ -133,7 +133,7 @@ typedef struct {
 } Tavbsy;
 
 Tavbsy avbusys[N24];      // usecs, -1: not connected   >999000: dead
-int isGlobal[N24]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int isGlobal[N24]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};   // 1:det is in global
 #define MAXcalibDets 5
 // TOF MUON_TRG T0 ZDC EMCAL
 int calibDets[MAXcalibDets]={5,11,13,15,18};
@@ -441,19 +441,36 @@ if(rcp==NULL) {
   printf("%s opened.\n", cmd);
 }; return(rcp);
 }
-/*---------------------------------------------------- update_runns()
+/*---------------------------------------------------- update_avbusysrunn()
 O: update avbusys[0..23].runn from redis database
+21.06.2016: on top of info from redis (which is updated in INIT_PARTITION time),
+  also runnumber has to appear in runx counter (i.e. SOD sent already and EOD not sent yet)
+todo (perhaps): now, at the beginning of the run, all dets shown BUSY: due to
+usage of SOD/previous readings for avbusy calculation -this can be fixed by isGlobalRun[1..6] array,
+similarly like isGlobal[1..24] in update_apmonlineB,
+keeping info if this is the case (i.e. not to use SOD/previous readings).
 */
-void update_runns() {
+void update_avbusysrunn(w32 *bufw32) {
 int ixr, runs[6], dets[6];
 for(ixr=0; ixr<N24; ixr++) { avbusys[ixr].runn= 0; };
 red_get_runs(runs,dets);
 for(ixr=0; ixr<6; ixr++) {   // all runs
-  int id, det;
+  int id, det, runxix, runxixfound;
   if(runs[ixr]==0) break;   // list of runs finished by 0
+  // check if SOD sent for this run:
+  runxixfound=0;
+  for(runxix=CSTART_RUNX; runxix<CSTART_RUNX+6; runxix++) {
+    if(bufw32[runxix] == (w32)runs[ixr]) {
+      runxixfound= runxix;
+    };
+  };
+  if(runxixfound==0) {
+    printf("INFO SOD not sent yet or EOD sent already for run %d\n", runs[ixr]);
+    continue;   // SOD not sent yet
+  };
   det= dets[ixr];
   for(id=0; id<N24; id++) {
-    if( (1<<id) & det ) {   // id is included in run
+    if( (1<<id) & det ) {   // id is included in a run
       int oldrun;
       oldrun= avbusys[id].runn;
       if((id!=N_CTPDET) && (oldrun !=0) && (oldrun != runs[ixr])) {
@@ -484,7 +501,7 @@ return(runn);
 #define MAX_APMONI 652
 /*---------------------------------------------------- update_apmonlineB
 Operation:
-if detN inside a run:   (use redis db)
+uf detN inside a run:   (use redis db)
   - update line
 CTP always present with runn:0
  * */
@@ -601,10 +618,10 @@ epoch2date(bufw32[epochsecs], dat);
 printf("epoch: %s\n", dat);
 printf("busytemp:%d l0temp:%d\n", bufw32[1514], bufw32[1516]);
 
-/*------------------------------------------------------------ html */
+/*------------------------------------------------------------ html + prepare apmonlineB */
 sprintf(htmlline, "%s %s minute ", WHATBUSY[avbsyix], dat);
 sprintf(apmonlineB, "B %u ", itimesecs); sprintf(apmonlineI, "I %u ", itimesecs);
-update_runns();
+update_avbusysrunn(bufw32);
 for(ix=0; ix<N24; ix++) {
   int rad,notdefined;
   notdefined=0;
