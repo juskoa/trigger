@@ -1,3 +1,7 @@
+/* history
+22.06.2016
+instead of stack allocation (>2M) in readDatabase2Tpartition, line by line read used in ParseFile
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -607,7 +611,7 @@ if(rbif == NULL){
 };
 if(l0AB()==0) {bcmaskn=BCMASKN;} else {bcmaskn=4;};
 lenline= strlen(line);
-if(lenline < ((bcmaskn/4)*ORBITLENGTH+8)) {
+if(lenline < ((bcmaskn/4)*ORBITLENGTH+8)) { // 8:"BCMASKS "
   char errm[300];
   sprintf(errm, "BCMASK2Partition: short BCMASKS line (len:%d bcmaskn:%d) in .pcfg", lenline,bcmaskn);
   prtError(errm);
@@ -815,7 +819,9 @@ RETNULL: return(NULL);
   Return: error code (0=ok)
   Called by: readDatabase2Tpartition()
 */
-int ParseFile(char lines[][MAXLINECFG],Tpartition *part){
+//int ParseFile(char lines[][MAXLINECFG],Tpartition *part){
+int ParseFile(char *fnpath,Tpartition *part){
+FILE *cfgfile;
 int i,ix,retcode=0;
 int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
@@ -823,6 +829,12 @@ int allclgrps=0; int clg;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
 char errmsg[300]="";
 part->nclassgroups= 0;
+
+cfgfile=fopen(fnpath,"r");
+if(cfgfile == NULL){
+  sprintf(errmsg, "ParseFile: cannot open fnpath is:%s:\n", fnpath);
+  retcode=1; goto RETERR;
+};
 /*
 inplm= findInputName("0HCO");
 if(inplm>=0) {
@@ -832,59 +844,72 @@ if(inplm>=0) {
 printf("inplm:%d\n", inplm); fflush(stdout);
 */
 for(i=0;i<MAXNLINES;i++){
+  int linlen;
+  char linesi[MAXLINECFG];
   if((i>=MAXNLINES-1)) {
      sprintf(errmsg, "ParseFile: too long .pcfg file (> %d lines)", MAXNLINES);
      retcode= 1; goto RETERR;
   };
-  if( lines[i][0]=='#') continue;
-  if( lines[i][0]=='\0') break;   // end of cfg file
-  //printf("%s line",lines[i]);
-  if(strncmp("RBIF",lines[i],4) == 0){
+  if(fgets(linesi, MAXLINECFG,cfgfile) == NULL) break;   // end of cfg file
+  linlen= strlen(linesi);
+  if( linlen >= (MAXLINECFG-1) ) {
+    sprintf(errmsg, "ParseFile: too long line (%d chars) in .pcfg file ", linlen);
+    retcode= 1; goto RETERR;
+  };
+  if(linesi[0]=='\0') {
+    sprintf(errmsg, "ParseFile: empty line in .pcfg file");
+    retcode= 1; goto RETERR;
+  };
+  if( linesi[0]=='#') continue;
+  //printf("%s line",linesi);
+  if(strncmp("RBIF",linesi,4) == 0){
    //printf("RBIF found at %i line\n",i);
-   grbif=RBIF2Partition(lines[i],part->rbif);
+   grbif=RBIF2Partition(linesi,part->rbif);
    if(grbif == NULL) {
-     sprintf(errmsg,"ParseFile: RBIF2Partition error. line:%s",lines[i]);
+     sprintf(errmsg,"ParseFile: RBIF2Partition error. line:%s",linesi);
      retcode= 1; break;
    };
    part->rbif= grbif;  // MUST be here (parameter value passing  for part->rbif!)
    //printf("RBIF2Partition finished:\n"); printTRBIF(part->rbif);
-  } else if(strncmp("BCMASKS",lines[i],7) == 0){
-   //printf("BCMASKS found at %i line\n",i);
-   rcgrbif=BCMASK2Partition(lines[i],part->rbif);
+  } else if(strncmp("BCMASKS",linesi,7) == 0){
+   printf("BCMASKS line len:%d:%.20s...%s.\n",linlen, linesi, &linesi[linlen-20]);
+   /* possible memory leak with BCMASKS line: 
+      if happens even after update from 22.6.2016, look into RBIF -the only line
+      present before BCAMSKS line...
+   */
+   rcgrbif=BCMASK2Partition(linesi,part->rbif);
    if(rcgrbif == NULL) {
      sprintf(errmsg,"ParseFile: BCMASK2Partition error"); retcode= 1;
    };
    printf("BCMASK2Partition finished:\n"); printTRBIF(part->rbif);
-  } else if(strncmp("SDG ",lines[i],4) == 0){
-   if(SDGadd(lines[i], part->name)) {
+  } else if(strncmp("SDG ",linesi,4) == 0){
+   if(SDGadd(linesi, part->name)) {
      SDGclean(part->name);
      sprintf(errmsg,"ParseFile: SDGadd error"); retcode= 1;
      goto RETERR;
    };
-  } else  if(strncmp("PF.",lines[i],3) == 0){
-   if(PF2Partition(lines[i],part->rbif)) {
+  } else  if(strncmp("PF.",linesi,3) == 0){
+   if(PF2Partition(linesi,part->rbif)) {
      sprintf(errmsg,"ParseFile: PF2Partition error"); retcode= 1;
      goto RETERR;
    };
    ipf++;
-  } else if(strncmp("CLA",lines[i],3) == 0){
+  } else if(strncmp("CLA",linesi,3) == 0){
    int error;
    if(iklas >= NCLASS) {
     sprintf(errmsg,"ParseFile error: more than %d CLA lines in .pcfg",
-      NCLASS);
-    retcode=2;
+      NCLASS); retcode=2;
     goto RETERR;
    };
    if(part->klas[iklas] != NULL) {
     sprintf(errmsg,"ParseFile error: NULL pointer expected for klas %d",
-      iklas);
-    retcode=2;
+      iklas); retcode=2;
     goto RETERR;
    };
-   part->klas[iklas]=CLA2Partition(lines[i],&error, part->name);
+   part->klas[iklas]=CLA2Partition(linesi,&error, part->name);
    if((part->klas[iklas] == NULL) && error) {
      sprintf(errmsg, "ParseFile: CLA2Partition() rc:%d line:%s:", 
-       error, lines[i]);
+       error, linesi);
      retcode= 1; goto RETERR;
    };
    if(part->klas[iklas] == NULL) {
@@ -900,31 +925,36 @@ for(i=0;i<MAXNLINES;i++){
    };
    error= checkRBIFown(part->rbif, part->klas[iklas]);
    if(error) {
-     sprintf(errmsg,"ParseFile: checkRBIFown() rc:%d line:%s", error, lines[i]);
+     sprintf(errmsg,"ParseFile: checkRBIFown() rc:%d line:%s", error, linesi);
      retcode= 3; goto RETERR;
    };
    if(part->klas[iklas] != NULL)iklas++;
-  } else  if(strncmp("FO.",lines[i],3) == 0){
+  } else  if(strncmp("FO.",linesi,3) == 0){
    //if(ifo==0)printf("FO found at %i line\n",i);
-   if(FO2Partition(lines[i],part)) {
+   if(FO2Partition(linesi,part)) {
      sprintf(errmsg,"ParseFile: FO2Partition error"); retcode= 1;
    };
    ifo++;
-  } else  if(strncmp("BUSY",lines[i],4) == 0){
+  } else  if(strncmp("BUSY",linesi,4) == 0){
    //printf("BUSY found at %i line\n",i);
-  } else if(strncmp("PFL.",lines[i],4) == 0){
+  } else if(strncmp("PFL.",linesi,4) == 0){
    printf("PFL found at %i line\n",i);
-  } else if(strncmp("INRND1",lines[i],6) == 0){
+  } else if(strncmp("INRND1",linesi,6) == 0){
    printf("INRND1 found at %i line \n",i);
-   if(INPCTP2Partition(lines[i],part)){
+   if(INPCTP2Partition(linesi,part)){
      sprintf(errmsg,"ParseFile: INPCTP2Partition error"); 
      retcode= 5; goto RETERR;
    }
   } else {
-    sprintf(errmsg,"Unknown line %d in .pcfg file:%s", i, lines[i]);
+    sprintf(errmsg,"Unknown line %d in .pcfg file:%s", i, linesi);
     retcode= 4; goto RETERR;
   };
 };
+if(fclose(cfgfile)) {
+  sprintf(errmsg, "ParseFile: cannot close %s", fnpath);
+  infolog_trgboth(LOG_ERROR, errmsg);
+};
+
 //printTpartition("ParseFile", part);
 // all CLA lines processed, check classgroups -find which ones are used:
 allclgrps=0;
@@ -1013,68 +1043,40 @@ void readPartitionErrors(int error,char *filename){
   Called by: ctp_StartPartition()
 */
 Tpartition *readDatabase2Tpartition(char *filename_par){
- FILE *cfgfile;
 // char *environ;
- char fnpath[MAXNAMELENGTH+40];
- Tpartition *newpart=NULL;
- char lines[MAXNLINES][MAXLINECFG];
- char filename[MAXNAMELENGTH];
- int noflines=0,i;
- //printf("readDatabase2Tpartition:filename_par:%s:\n",filename_par);
- if( partmode[0] == '\0') {
+char fnpath[MAXNAMELENGTH+40];
+Tpartition *newpart=NULL;
+// bad idea (2764800 bytes on stack) char lines[MAXNLINES][MAXLINECFG];
+char filename[MAXNAMELENGTH];
+int i;
+//printf("readDatabase2Tpartition:filename_par:%s:\n",filename_par);
+if( partmode[0] == '\0') {
   strcpy(filename, filename_par);
- } else {
+} else {
   strcpy(filename, partmode);
- };
- //printf("readDatabase2Tpartition:partmode:%s:\n",partmode);
- /* Open file (valid till 6.8.2009):
- environ= getenv("VMECFDIR"); strcpy(fnpath, environ);
- strcat(fnpath,"/"); strcat(fnpath,PARTDBDIR); 
- strcat(fnpath, filename); strcat(fnpath, ".pcfg");*/
- strcpy(fnpath,"/tmp/");
- strcat(fnpath, filename); strcat(fnpath, ".pcfg");
- //printf("readDatabase2Tpartition:opening:%s:\n",fnpath);
- cfgfile=fopen(fnpath,"r");
- if(cfgfile == NULL){
-  printf("fnpath is:%s:\n", fnpath);
-  perror(strerror(errno));
-  readPartitionErrors(1,filename);
-  return NULL;
- }
- // Read file
- //printf("readDatabase2Tpartition:partmode:%s:reading file %s...\n",partmode,fnpath);
- while(fgets(lines[noflines],MAXLINECFG,cfgfile)){
-   if((strncmp(lines[noflines], "BCMASKS",7)==0) &&
-      (DBGmask==0)) { ;
-   } else {
-     ; //printf("readDatabase2Tpartition:%d:%s: ", strlen(lines[noflines]), lines[noflines]);
-   };
-     noflines++;
-     if(noflines >= MAXNLINES){
-       readPartitionErrors(4,filename);
-       return NULL;
-    }
- }; lines[noflines][0]='\0';   // eof
- if(fclose(cfgfile))readPartitionErrors(5,filename);
- if(noflines == 0){
-  readPartitionErrors(3,filename);
-  return NULL;
- }
- //printf("readDatabase2Tpartition: # of lines in file %s: %i\n",filename,noflines);
- // Create new partition in memory
- newpart = (Tpartition *) malloc(sizeof(Tpartition));
- if(newpart == NULL){ 
+};
+//printf("readDatabase2Tpartition:partmode:%s:\n",partmode);
+/* Open file (valid till 6.8.2009):
+environ= getenv("VMECFDIR"); strcpy(fnpath, environ);
+strcat(fnpath,"/"); strcat(fnpath,PARTDBDIR); 
+strcat(fnpath, filename); strcat(fnpath, ".pcfg");*/
+strcpy(fnpath,"/tmp/");
+strcat(fnpath, filename); strcat(fnpath, ".pcfg");
+//printf("readDatabase2Tpartition:partmode:%s:reading file %s...\n",partmode,fnpath);
+// Create new partition in memory
+newpart = (Tpartition *) malloc(sizeof(Tpartition));
+if(newpart == NULL){ 
   readPartitionErrors(2,filename);
   return NULL;
- }
- initTpartition(newpart,filename_par);
- //printTpartition("After init",newpart);
- //--------------------------------- Parse and copy
- if(ParseFile(lines,newpart)){
+}
+initTpartition(newpart,filename_par);
+//printTpartition("After init",newpart);
+//--------------------------------- Parse and copy
+if(ParseFile(fnpath,newpart)){
   readPartitionErrors(6,filename);
   goto ERROR;
- }
- if(DBGcfgin) printTpartition("After read from db", newpart);
+}
+if(DBGcfgin) printTpartition("After read from db", newpart);
 fflush(stdout);
  if(checkClustV0Tpartition(newpart)) goto ERROR;
  if(checkClustVl012Tpartition(newpart)) goto ERROR;
