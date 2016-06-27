@@ -78,6 +78,8 @@ Tchan rfrx1[3]= {{0.,0},{0.,0},{0.,0}};
 Tchan rfrx2[3]= {{0.,0},{0.,0},{0.,0}};
 float freqs[4]; // TTCMI/FREV_B1 FREV_B2 F40_B1 F40_B2
 
+char procid[80]=""; char hname[31]=""; char lastmsg[16]="lastmsg";
+
 int msleep(unsigned long milisec)
 {
     struct timespec req={0};
@@ -263,7 +265,7 @@ while(clocktran>=0) {
     };
   };
   if(quit==1) clocktran=0;
-};
+}; clocktran_s=0;
 }
 int  getclientid(char *procid){
 return(dis_get_client(procid));
@@ -276,7 +278,7 @@ rc: 0:ok  !=0 -client is not allowed to change the clock
 int ix,rc;
 //FILE *con; char line[80]=""; 
 char *envwd, *vmesite;
-char procid[80]; char fname[80]; char hname[31]="";
+char fname[80];
 envwd= getenv("VMEWORKDIR"); sprintf(fname, "%s/WORK/%smiclockid",envwd,subdir);
 rc= dis_get_client(procid);
 for(ix=0; ix<80; ix++) {
@@ -383,7 +385,7 @@ if(cosh>1023) {
 };
 }
 /*-----------------*/ void checkstartthread(int clocktag) {
-char errmsg[200];
+char errmsg[300];
 if(clocktran!=0)  {
   /* run1 way:
   sprintf(errmsg, "MICLOCK_SET: newclock thread already started! exiting..."); prtLog(errmsg); 
@@ -394,13 +396,13 @@ if(clocktran!=0)  {
   if(clocktran_s!=0) {          
     w32 diff_s, diff_u;
     DiffSecUsecFrom(clocktran_s, clocktran_u, &diff_s, &diff_u);
-    if(diff_s > (w32) (SLOT_S*5)) {
+    if(diff_s > (w32) (SLOT_S*4)) {
       sprintf(errmsg, "newclock thread stucked (%d secs). Trigger expert should restart ttcmidim and miclock client!", diff_s); prtLog(errmsg); 
       infolog_trgboth(LOG_FATAL, errmsg);
     } else {
-      sprintf(errmsg, "checkstartthread tag:%d: newclock thread already started %d secs, cmd ignored...",
-        clocktag, diff_s); //prtLog(errmsg); 
-      infolog_trgboth(LOG_FATAL, errmsg);
+      sprintf(errmsg, "checkstartthread tag:%d: newclock thread already started %d secs, cmd %s from procid %s@%s ignored...",
+        clocktag, diff_s, lastmsg, procid, hname); //prtLog(errmsg); 
+      infolog_trgboth(LOG_WARNING, errmsg);
     };
     return;  
   };
@@ -466,6 +468,7 @@ if(strncmp(msg,"BEAM1", 5)==0) { nwclocktag=1;
   sprintf(errmsg, "bad clock request:%s ignored.\n", msg); infolog_trgboth(LOG_ERROR, errmsg); 
   return; 
 };
+strcpy(lastmsg,msg);
 getclocknow();
 if(clocktag==nwclocktag) {
   sprintf(errmsg, "clock request:%s ignored (already set).\n", msg); infolog_trgboth(LOG_ERROR, errmsg); 
