@@ -7,7 +7,8 @@ serid: <type 'int'> 1
 enter any text or q:
 service_cb 20.03.2015 18:01:48  received: type: <type 'tuple'> ('155\x00',)
 AliceClock is: 155
-After:
+29.6.2016 ttcmidims DOES NOT initilises boards from now. I.e. Should be called with
+          parameter -writeall after power off/on the ttcmi crate. See ttcmi/shift_log
 
  * */
 #include <stdio.h>
@@ -602,10 +603,9 @@ while(1) {   //run forever
 */
 /*--------------------------------------------------------------- ds_register
 */
-void ds_register() {
+void ds_register(char *action) {
 int ix,rc=0; int rcexit=0;
 char command[MAXCMDL];
-
 if(micratepresent()& 0x2) {
   char msg[200]="";
   vspRF2TTC=0;
@@ -626,10 +626,16 @@ if(micratepresent()& 0x1) {
   printf("RFRXs not connected\n");
 };
 if(micratepresent()& 0x2) {
+  char msg[100];
   //w32 bcm, om;
   //bcm= vmer32(BCmain_MAN_SELECT); om= vmer32(ORBmain_MAN_SELECT);
   //printf("ds_register1: 0x%x 0x%x\n", bcm, om);
-  writeall(); 
+  if(strcmp(action,"-writeall")==0) {
+    sprintf(msg, "Initialising RF2TTC,CORDE,RFRX boards..."); prtLog(msg);
+    writeall(); 
+  } else {
+    sprintf(msg, "RF2TTC,CORDE,RFRX boards not touched"); prtLog(msg);
+  };
   //bcm= vmer32(BCmain_MAN_SELECT); om= vmer32(ORBmain_MAN_SELECT);
   //printf("ds_register2: 0x%x 0x%x\n", bcm, om);
 };
@@ -691,6 +697,10 @@ printf("not Starting the thread reading BC*QPLL_STATUS regs...\n");
 }
 
 int main(int argc, char **argv)  {
+char action[12]="";
+if(isArg(argc, argv, "-writeall")) {
+  strcpy(action, "-writeall");
+};
 infolog_SetFacility((char *)"CTP");
 infolog_SetStream("",0);
 setlinebuf(stdout);
@@ -709,7 +719,7 @@ if(envcmp("VMESITE", "ALICE")==0) {
 } else {
   udpsock= udpopens("adls", send2PORT);
 }; */
-ds_register();
+ds_register(action);
 
 while(1)  {  
   int rc=0;

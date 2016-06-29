@@ -608,3 +608,51 @@ astav na RF2TTC aj na corde rucne:
   -> opravene rucne
 - takisto, set LOCAL clock (vidno z ttcmidims.log)
   -opravene automaticky (clockmode bol v mode auto), po zmene clocku je corde ok
+
+7. poznamky z 26.6.2016
+-----------------------
+Urobene:
+- restart ttcmidims  (tesne pred SQUEEZE)
+- clock shift automaticky opraveny ked prisiel SQUEEZE:
+vypis z ttcmidims.log:
+...
+CORDE board reset done. vmxclose rc:0   ***1***
+...
+setting RF2TTC... vspRF2TTC:0
+ORB1_DAC:0xaa
+BC1/2/ref and ORB1/2 connected to their external inputs
+com2daq: rc:1 title:CLOCK
+Using local clock   ***1***
+getRFRX way:
+ref bc1 orbit1:5/40056.898438 5/40056.898438 160/11.245548 
+--- bc2 orbit2:5/96.828987 5/40113.960938 160/11.245526 
+26.06.2016 17:01:18: SHIFTcaba shiftnow:29 512 size:7
+26.06.2016 17:01:18: MICLOCKcaba clocknow:LOCAL size:6 clientid:2568@ALIDCSCOM779.cern.ch rc:10 ***1***
+...
+26.06.2016 17:05:25: MICLOCK_SETcmd: tag:3 size:6 msg:BEAM1
+procid:2568 wd:/home/alice/trigger/v/vme hname:ALIDCSCOM779.cern.ch rc:0
+---> zrejme alidcscom779 in auto-mode, a poziadal o zmenu...
+
+26.06.2016 17:06:56: ***  Warning:ALICE clock changed, restaring ctpproxy (25s)...
+setCordeshift: clockshift db:29 311 320 hw:29 512
+26.06.2016 17:06:56: SHIFTcaba shiftnow:29 311 size:7      ***2***
+
+26.06.2016 17:10:01: CORDE_SETcmd: size:3 msg:-24M1 :-24:-24
+procid:20699 wd:/home/alice/trigger/v/vme hname:alidcscom835.cern.ch rc:0
+26.06.2016 17:10:01: corde_shift(7, -24, ) orig:311 set to:287.
+26.06.2016 17:10:01: DAQlogbook updated (rc:void).Corde: 311 -> 287
+
+
+problem: ttcmidims ked sa restartuje, vola writeall() (cize reset CORDE a clock: LOCAL vid ***1*** ).
+
+  -co sa deje teraz pri restarte ttcmidims:
+   -vo writeall() drzim standardne hodnoty ostatnych registrov v RF2TTC/RFRX 
+   -tesne pred zmenou LOCAL->BEAM1 setbcorbitMain() vola setCordeshift(), ktory:
+    -precita $dbctp/clockshift
+    -podla toho opravi CORDE regs: BC_DELAY25_BCMAIN,BC_DELAY25_BC1,CORDE_DELREG
+    -zapise do daqlogbook tuto zmenu  vid ***2***
+
+done 29.6.2016:
+- ttcmidims, by default, NEMENI CORDE ani RFT2TTC ani RFRX
+- s parametrom '-writeall' resetne vsetko tak ako teraz
+

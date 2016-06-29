@@ -1076,7 +1076,7 @@ for(icla=0;icla<NCLASS;icla++){
       if((Nlm==0) && (Ngenslm==0) && (Nfuns==0) ) {
         char msg[200];
         sprintf(msg, "no LM input for TRD (i.e. 40mhz at LM level) in logical class (i.e. .pcfg CLA.%d)",icla+1);
-        infolog_trgboth(LOG_WARNING, msg);
+        infolog_trgboth(LOG_INFO, msg);
       };
       // copy L0-allrare flag (bit20) to LM_VETO (bit9):
       inpmsk= ((klas->l0vetos & 0x100000) >> 20) << 9;

@@ -4,7 +4,7 @@
 # to FXS
 #usage: xcounters.sh
 function getpid() {
-pidcmd=`ps ax -o'%p %u %a' |grep './xcountersdaq' |grep -v grep`
+pidcmd=`ps ax -o'%p %u %a' |grep './xcountersdaq' |grep -v grep|grep -v gview |grep -v gvim`
 #13643 trigger  ./linux/ttcmidims
 declare -a dl=($pidcmd)
 #echo -e "pid:${dl[0]} cmd:${dl[1]} "

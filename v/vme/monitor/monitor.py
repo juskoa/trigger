@@ -272,6 +272,8 @@ class Daemon:
       if self.sms_sent==self.MAXSMS:
         msg2= msg2+". SMSs DISABLED (max. %d)"%self.MAXSMS
       send_mail(msg2)
+      if self.name=='xcounters':
+        send_mail("DOWN:xcounters",to='41754111902@mail2sms.cern.ch')
   def flush(self):
     if self.a2!=None: log.logm(self.name+': '+self.a2, ltime= self.d2)
     if self.a1!=None: log.logm(self.name+': '+self.a1, ltime= self.d1)
