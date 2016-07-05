@@ -597,7 +597,7 @@ eadall()
      BC1: 359 =   857  *10ps
 
 -------------------
-astav na RF2TTC aj na corde rucne:
+nastav na RF2TTC aj na corde rucne:
       ORBIN_DELAY25_ORB1 0x7d020:158
        BC_DELAY25_BCMAIN 0x7d00c:165 -> 15d (cize 0x1d=29)
        BC_DELAY25_BC1    0x7d000:165 -> 15d  to get it the same for BPTX
@@ -646,7 +646,8 @@ procid:20699 wd:/home/alice/trigger/v/vme hname:alidcscom835.cern.ch rc:0
 problem: ttcmidims ked sa restartuje, vola writeall() (cize reset CORDE a clock: LOCAL vid ***1*** ).
 
   -co sa deje teraz pri restarte ttcmidims:
-   -vo writeall() drzim standardne hodnoty ostatnych registrov v RF2TTC/RFRX 
+   -vo writeall() drzime standardne hodnoty ostatnych registrov v RF2TTC/RFRX 
+                  -----------------------------------------------------------
    -tesne pred zmenou LOCAL->BEAM1 setbcorbitMain() vola setCordeshift(), ktory:
     -precita $dbctp/clockshift
     -podla toho opravi CORDE regs: BC_DELAY25_BCMAIN,BC_DELAY25_BC1,CORDE_DELREG
@@ -654,5 +655,35 @@ problem: ttcmidims ked sa restartuje, vola writeall() (cize reset CORDE a clock:
 
 done 29.6.2016:
 - ttcmidims, by default, NEMENI CORDE ani RFT2TTC ani RFRX
+  pozor: nadalej plati: vo writeall() drzime standardne hodnoty ostatnych registrov v RF2TTC/RFRX
+         cize ak dojde k ich zmene treba retartnut ttmidims s -writeall
 - s parametrom '-writeall' resetne vsetko tak ako teraz
+
+4.7.2016
+https://alice-logbook.cern.ch/logbook/date_online.php?p_cont=threadd&p_tid=543972&p_cidh=543972#le543972
+seems problem with orbit strobe. recent clock changes:
+ttcmidims1604261117.log:11.04.2016 09:26:07: corde_shift(7, -2, ) orig:675 set to:673.
+...
+                         04.07.2016 03:47:36: corde_shift(7, 9, ) orig:223 set to:232.
+Let's change 
+      ORBIN_DELAY25_ORB1 0x7d020:158 -> 0x154
+                                        0x154-0x140= 0x14 = 20
+                                        cize i2c_setdelay(0x7D020, 20)
+done (11:30):
+i2cset_delay(ORBIN_DELAY25_ORB1,20)
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:15d
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:154  <-- was 0x158 corresponds to:i2cset_delay(ORBIN_DELAY25_ORB1,24)
+          ttcmi/ttcmsubs.c modified accordingly
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
 
