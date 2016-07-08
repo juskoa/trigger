@@ -1,6 +1,12 @@
-/* 
+/* make -f analyse.make
 aj@tp:~/CNTRRD$ $VMECFDIR/CNTRRD/linux/analyse '20.05.2011 23:56:01' '21.05.2011 00:02:01' 11 out.file 1 2 4
 aj@tp:~/CNTRRD$ $VMECFDIR/CNTRRD/linux/analyse
+5.6.2016:
+- CSTART_RUNX: 896 for files <  ...2015.rawcnts
+              1486 for files >= ... 2015.rawcnts
+- Error ... >=NCOUNTERS changed to Warning
+- in case .rawcnts file not found, continue with next one if any
+- bug fixed in date_plus1()
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +17,8 @@ aj@tp:~/CNTRRD$ $VMECFDIR/CNTRRD/linux/analyse
 #define MAXLINE 20000
 #define MAXWORD 30
 #define MAXCOUNTERS NCOUNTERS+2 
+
+int CSTARTRUNX=1000000;
 /*------------------------------------------------------------char2i()
  Purpose: Character to integer converter
  Parameters: input char a
@@ -79,7 +87,10 @@ while(i<(int)length){
 //if((b =='h'))printf("num= 0x%x \n",*num);else printf("num= %i \n",*num);
 return 0;
 }
-//-----------------------------------------------------------------------
+/*-----------------------------------------------------------------------
+rc: 1 -attempt to read EOF
+    2 -too many counters in line (such line should be ignored)
+*/
 int parseline(FILE *file,char counters[][MAXWORD]){
  int k,c,nc;
  k=0;
@@ -89,7 +100,7 @@ int parseline(FILE *file,char counters[][MAXWORD]){
    c=fgetc(file);
    if(c== EOF) return 1;
    if(nc>=(NCOUNTERS+2)) {   // date time 970counters
-     printf("Error: nc:%d >= NCOUNTERS:%d counters[0:1]: %s %s\n",
+     printf("Warning: nc:%d >= NCOUNTERS:%d line (counters[0:1]: %s %s) ignored\n",
        nc, NCOUNTERS, counters[0], counters[1]);
      return 2;
    };
@@ -185,17 +196,20 @@ Note: for run1, use cnames1.sorted2 + analyse should be modified (or recompiled 
 ");
 };
 void date_plus1(char *date) {
-int y,m,d; char dc[20];
+int y,month,d; char dc[20];
 int dim[]={31,0,31,30,31,30,31,31,30,31,30,31};
-strncpy(dc,date,8); dc[2]='\0'; dc[5]='\0'; dc[10]='\0';
-y= atoi(&date[6]); m= atoi(&date[3]); d= atoi(&date[0]);
+strncpy(dc,date,10); dc[2]='\0'; dc[5]='\0'; dc[10]='\0';
+y= atoi(&dc[6]); month= atoi(&dc[3]); d= atoi(&dc[0]);
+if( (y<2009) || (y>2018)) {
+  printf("Bad date: %s y:%d \n", date, y); exit(8);
+};
 d=d+1;
 if( (y%4)==0 ) { dim[1]=29;} else {dim[1]=28;};
-if(d>dim[m]) {
-  d=1; m=m+1; 
-  if(m>12) {m=1; y= y+1; };
+if(d>dim[month-1]) {
+  d=1; month=month+1; 
+  if(month>12) {month=1; y= y+1; };
 };
-sprintf(dc,"%2.2d.%2.2d.%4.4d", d,m,y);
+sprintf(dc,"%2.2d.%2.2d.%4.4d", d,month,y);
 strncpy(date,dc,10);
 }
 FILE *open_rawcnts(char *date) {
@@ -221,12 +235,12 @@ if(argc==1) {
   if(file==NULL) {printf("Error: %s.rawcnts not found\n",date); return 2;};
   while(1) {
     int rc;
-    rc= parseline(file,counters); if(rc==1) break;
-    if(rc==2) { printf("Error: short array\n"); break; };
+    rc= parseline(file,counters); if(rc==1) break; // EOF
+    if(rc==2) { printf("Error: short array\n"); continue; };
     //printf("%s %s\n",counters[0],counters[1]);
     //oline[0]='\0';
     sprintf(oline, "%s %s ", counters[0], counters[1]);
-    for(i= CSTART_RUNX+2;i< CSTART_RUNX+2+6;i++){   // 898..893
+    for(i= CSTARTRUNX+2;i< CSTARTRUNX+2+6;i++){   // 898..893
       //w32 number; 
       char cnumber[MAXWORD];
       //converth2i(&number,i,counters);
@@ -257,6 +271,13 @@ if(argc==1) {
      1     2     3      4   5            6
   */
   strcpy(dati1, argv[1]); strcpy(dati2, argv[2]);
+  if(strncmp(&dati1[6],"2014",4) < 0 ) {
+  } else if(strncmp(&dati1[6],"2014",4) > 0 ) {
+    CSTARTRUNX= 896;
+  } else {
+    CSTARTRUNX= 1486;
+    printf("Bad year, no data in 2014\n"); return 3;
+  };
   strcpy(runc, argv[4]); runi=atoi(runc); strcpy(outfilepath, argv[5]);
   printf("%s %s %d %s. Counters' rel. addresses:\n", dati1, dati2, runi, outfilepath);
   runxpos=-1;
@@ -293,12 +314,16 @@ if(argc==1) {
     int rc; 
     rc= parseline(file,counters); 
     //printf("dbg1: %s %s\n", counters[0], counters[1]);
+    if(rc==2) continue;
     if(rc==1) {
-      if(strncmp(date,dati2,10)==0) break;
-      date_plus1(date);
-      file= open_rawcnts(date);
-      if(file==NULL) {printf("Error: %s.rawcnts not found\n",date); return 2;};
-      continue;
+      while (1) {
+        if(strncmp(date,dati2,10)==0) goto ALLDONE;
+        date_plus1(date);
+        file= open_rawcnts(date);
+        if(file!=NULL) break;
+        printf("Warning: %s.rawcnts not found, trying next one...\n",date);
+      };
+      continue;   //parse 1st line
     };
     if(strncmp(&dati1[0], &date[0], 10)==0) {  // check lower time only in 1st file 
       if(strncmp(counters[1], &dati1[11], 8)<0) { continue; };
@@ -307,7 +332,7 @@ if(argc==1) {
     if(strcmp(runc,"0")!=0) { // check run number if != 0
       if(runxpos == -1) {
         int irx;
-        for(irx= CSTART_RUNX+2;irx< CSTART_RUNX+2+6;irx++){
+        for(irx= CSTARTRUNX+2;irx< CSTARTRUNX+2+6;irx++){
           //printf("%d ",h2w32(counters[irx]));
           if(h2w32(counters[irx])==runi) {
             // run just started:
@@ -375,6 +400,7 @@ if(argc==1) {
     };
     olines++;
   };
+  ALLDONE:
   printf("%s: %d lines(or blocks in case of dimall) written\n", 
     outfilepath, olines);
 };

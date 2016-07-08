@@ -825,11 +825,12 @@ FILE *cfgfile;
 int i,ix,retcode=0;
 int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
-int allclgrps=0; int clg;
+int allclgrps=0; int clg,nreads;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
 char errmsg[300]="";
 part->nclassgroups= 0;
-
+nreads=0;
+REREAD1:
 cfgfile=fopen(fnpath,"r");
 if(cfgfile == NULL){
   sprintf(errmsg, "ParseFile: cannot open fnpath is:%s:\n", fnpath);
@@ -871,17 +872,32 @@ for(i=0;i<MAXNLINES;i++){
    };
    part->rbif= grbif;  // MUST be here (parameter value passing  for part->rbif!)
    //printf("RBIF2Partition finished:\n"); printTRBIF(part->rbif);
-  } else if(strncmp("BCMASKS",linesi,7) == 0){
-   printf("BCMASKS line len:%d:%.20s...%s.\n",linlen, linesi, &linesi[linlen-20]);
-   /* possible memory leak with BCMASKS line: 
-      if happens even after update from 22.6.2016, look into RBIF -the only line
-      present before BCAMSKS line...
-   */
-   rcgrbif=BCMASK2Partition(linesi,part->rbif);
-   if(rcgrbif == NULL) {
-     sprintf(errmsg,"ParseFile: BCMASK2Partition error"); retcode= 1;
-   };
-   printf("BCMASK2Partition finished:\n"); printTRBIF(part->rbif);
+  } else if(strncmp("BCMASKS",linesi,7) == 0) {
+    printf("BCMASKS line len:%d:%.20s...%s.\n",linlen, linesi, &linesi[linlen-20]);
+    /* possible memory leak with BCMASKS line: 
+       if happens even after update from 22.6.2016, look into RBIF -the only line
+       present before BCMASKS line...
+       It happened again: 08.07.2016 07:28:32
+       Modification: close cfgfile, open it again, and skip all lines till BCMASS line.
+    */
+    if(linlen < ((BCMASKN/4)*ORBITLENGTH+8)) {
+      if( nreads==0 ) { 
+        printf("BCMASKS line error str len/start after: %d/%.20s... read once more...\n", 
+          int(strlen(&linesi[linlen])), &linesi[linlen]);
+        nreads=1;
+        fclose(cfgfile); goto REREAD1;
+      } else {
+        sprintf(errmsg, "BCMASK2Partition: short BCMASKS line in .pcfg (2. read)");
+        retcode= 1; goto RETERR;
+      };
+    } else {
+      rcgrbif=BCMASK2Partition(linesi,part->rbif);
+      if(rcgrbif == NULL) {
+        sprintf(errmsg,"ParseFile: BCMASK2Partition error"); retcode= 1;
+        goto RETERR;
+      };
+      printf("BCMASK2Partition finished:\n"); printTRBIF(part->rbif);
+    };
   } else if(strncmp("SDG ",linesi,4) == 0){
    if(SDGadd(linesi, part->name)) {
      SDGclean(part->name);
@@ -950,10 +966,6 @@ for(i=0;i<MAXNLINES;i++){
     retcode= 4; goto RETERR;
   };
 };
-if(fclose(cfgfile)) {
-  sprintf(errmsg, "ParseFile: cannot close %s", fnpath);
-  infolog_trgboth(LOG_ERROR, errmsg);
-};
 
 //printTpartition("ParseFile", part);
 // all CLA lines processed, check classgroups -find which ones are used:
@@ -990,6 +1002,10 @@ if(DBGcfgin) {
 RETERR:
 if(errmsg[0]!='\0') {
   prtError(errmsg);
+  infolog_trgboth(LOG_ERROR, errmsg);
+};
+if(fclose(cfgfile)) {
+  sprintf(errmsg, "ParseFile: cannot close %s", fnpath);
   infolog_trgboth(LOG_ERROR, errmsg);
 };
 return retcode;
