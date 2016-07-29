@@ -51,7 +51,8 @@ if(vmesite !=NULL) {
     //strcpy(DAQlogbookDB, "trigger:trigger123@10.161.36.8/LOGBOOK");   // run1
     strcpy(DAQlogbookDB, "logbooktrg:ts0G9ce2@aldaqdb/LOGBOOK");
   } else if(strcmp(vmesite,"SERVER")==0) {
-    strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_CTP");
+    strcpy(DAQlogbookDB, "ctp:ctp@alice-daq-lab-ctpdb.cern.ch/LOGBOOK_CTP");
+    //strcpy(DAQlogbookDB, "daq:daq@pcald30/LOGBOOK_CTP");
     //strcpy(DAQlogbookDB, "daq:daq@137.138.143.230/LOGBOOK_CTP");   //pcald30's ip
     //strcpy(DAQlogbookDB, "daq:daq@128.141.139.225/LOGBOOK");  //slc6 (Franco)
   } else {

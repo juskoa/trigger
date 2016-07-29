@@ -75,7 +75,12 @@ def main(action):
     lsf= open(schname+".dip"); ee=lsf.read(); lsf.close;
     alice= lhc2ctp.bu2bcstr(ee, schname, format="from dip")
     lsf= open(schname+".alice","w"); lsf.write(alice); lsf.close;
-    mask= lhc2ctp.FilScheme("", alice); mask= mask.getMasks()
+    if os.path.exists("tmask_bunches.cfg"):
+       lsf= open("tmask_bunches.cfg","r"); TmaskN= int(lsf.readline()); lsf.close;
+    else:
+      TmaskN=10;
+      mylog.infolog("Warning: tmask_bunches.cfg not found, using %d for Tmask bunches calculation"%TmaskN)
+    mask= lhc2ctp.FilScheme("", alice,TmaskN=TmaskN); mask= mask.getMasks()
     lsf= open(schname+".mask","w"); lsf.write(mask); lsf.flush(); lsf.close;
     #os.fsync()
     #

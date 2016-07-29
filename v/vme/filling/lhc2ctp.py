@@ -1,5 +1,9 @@
 #!/usr/bin/python
-import sys,string,types
+"""
+26.7.2016 bug fixed in prepareTmask
+28.7.2016 prepareTmask: N taken from tmask_bunches.cfg file
+"""
+import sys,string,types,os.path
 ORBITL=3564
 CALIBbc=3009   #1st bc in orbit is 0
 # following is a tuple giving last BC in A resp. C gap:
@@ -669,7 +673,7 @@ later time (when .mask cretaed)
   return alice+errs
 
 class FilScheme:
-  def __init__(self, fsname="", fsxls=None, mainsat="b2"):
+  def __init__(self, fsname="", fsxls=None, mainsat="b2", TmaskN=10):
     """
     mainsat: None   -> main-main collisions
     """
@@ -677,6 +681,7 @@ class FilScheme:
     #self.mainsat= mainsat     # from parameter 
     #self.mainsat= None        # main-main
     self.mainsat= "mainsat"   # main-sat always: COMMON from 3.5.2012
+    self.TmaskN= TmaskN
     self.mask={}   # contains only meaningful (BACE) BCs: mask[3] is 'A B C or E'
     self.fsname= fsname
     self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[], 'I':[]}
@@ -740,7 +745,7 @@ class FilScheme:
         self.mainsat= None
       else:
         self.mainsat= "mainsat"
-    #self.prepareTmask(4)
+    self.prepareTmask()
   def insert(self, bace, bxn):
     for ix in range(len(self.bx[bace])):
       if bxn<self.bx[bace][ix]:
@@ -1040,24 +1045,25 @@ class FilScheme:
       len(self.arch['A']), len(self.arch['C']))
   def findfirstleft(self, bclist, bcstart):
     """ find index into bclist on the left of bcstart
-bclist: ordered list of BCs (e.g. self.bx['B'])
+bclist: ordered list of BCs (e.g. self.bx['B']) 
+        At least 1 item has to be present -0 is returned in this case
 bcstart -find index of first item on the left of this bc
 """
     if len(bclist)== 1: return 0
     prevbc= bclist[0]; previx=0
-    if prevbc >= bcstart: return bclist[len(bclist)-1]
+    if prevbc >= bcstart: return len(bclist)-1
     for ix in range(1,len(self.bx['B'])):
       bc= bclist[ix]
       if bc >= bcstart: return previx
       previx= ix
       prevbc= bc
     return previx
-  def prepareTmask(self, N):
-    """ N -number of bunches in Tmask
+  def prepareTmask(self):
+    """ self.TmaskN -number of bunches in Tmask
 goal: prepare self.bx['T'] ordered list, subset of B-bunches
 """
     self.bx['T']= []
-    if (len(self.bx['B'])== 0) or (N==0): return   # no B-bunches or no T-bunches required
+    if (len(self.bx['B'])== 0) or (self.TmaskN==0): return   # no B-bunches or no T-bunches required
     if len(self.bx['B'])== 1:
       self.bx['T'].append(self.bx['B'][0])   # just 1 B-bunch, take it
       return
@@ -1065,6 +1071,7 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
     aix= self.findfirstleft(self.bx['B'], SHIFTS[0])
     cix= self.findfirstleft(self.bx['B'], SHIFTS[1])
     bcixs= [aix, cix]     # start from this indexes into bxB going to the left
+    #print "bcixs start from:",bcixs
     # possible cases:
     #       gapA             gapC
     #  B=aix           B=cix           or
@@ -1074,9 +1081,12 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
     nextbeam= 0          # 0/1. next check will be done for this one (0:A 1:C)
     bcsfound= 0          # numb. of BCs found before both gap (max. N)
     excluded= [ False, False ]   # ? probaly not needed 2x (wrapping around happens for both)
+    #print "nextbeam:",nextbeam, "self.bx['B']:",self.bx['B']
     for ix in range(len(self.bx['B'])):
       # T <- B-bunch
-      self.bx['T'].append(self.bx['B'][bcixs[nextbeam]])
+      bnch= self.bx['B'][bcixs[nextbeam]]
+      if bnch not in self.bx['T']:
+        self.bx['T'].append(bnch)
       # go to the next B-bunch on the left (before)
       if bcixs[nextbeam]==0:
         bcixs[nextbeam]= len(self.bx['B']-1)
@@ -1089,10 +1099,11 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
       #if nxB in bx['T']:
       #   exclude this (A/B) gap in next loops
       #   if both A+B gaps not excluded: break
-      if len(self.bx['T']) >= N: break   # enough bunches found?
+      if len(self.bx['T']) >= self.TmaskN: break   # enough bunches found?
       nextbeam= 1-nextbeam        # now another gap
     self.bx['T'].sort()
-    print "prepareTmask:", self.bx['T']
+    #print "Tmask N:", self.bx['T']
+    print "Tmask N/realN:", self.TmaskN,'/',len(self.bx['T'])
   def getMasks(self):
     om= "# %s"%self.fsname
     om= om+"\n" + self.print1('E')
@@ -1106,6 +1117,10 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
     om= om+"\n" + self.print1('B')
     om= om+"\n" + "bcmB" +" "+ self.eN(self.bx['B'])
     #print "getMask:bx[B]",self.bx['B'] # yes, it is ordered (0,...)
+    # put Tmask after Bmask:
+    om= om+"\n" + self.print1('T')
+    om= om+"\n" + "bcmT" +" "+ self.eN(self.bx['T'])
+    #
     om= om+"\n" + self.print1('I')
     om= om+"\n" + "bcmI" +" "+ self.eN(self.bx['I'])
     om= om+"""
@@ -1306,8 +1321,13 @@ shows the bucket(s) for 'ABC or E-bunch' bc
   # take it directly from file:
   #lsf= open("/home/aj/act/domsk/125ns_48b_36_16_36Fromxls.alice"); 
   lsf= open(schname+".alice","r"); alice=lsf.read(); lsf.close;
+  if os.path.exists("tmask_bunches.cfg"):
+    lsf= open("tmask_bunches.cfg","r"); TmaskN= int(lsf.readline()); lsf.close;
+  else:
+    TmaskN=10;
+    print "Warning: tmask_bunches.cfg not found, using 10 for Tmask bunches calculation"
   # VALID.BCMASKS:
-  fs= FilScheme("", alice); mask= fs.getMasks()
+  fs= FilScheme("", alice, TmaskN=TmaskN); mask= fs.getMasks()
   if empty1==1: fs.printmap()
   if empty1==2: fs.printmap(ctpmsk='+ACS')
   if empty1==3: fs.printmap(ctpmsk='ACSE')

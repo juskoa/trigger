@@ -151,7 +151,7 @@ return(rc);
 I: 
 fn: 
 1. "CTP instance name"   -i.e. not starting with "/", get "/CTP/"+fn or /CTPlite/...
-                          according to ctplite
+                          according to ctplite ("CTP" or "CTPlite")
 2. starting with "/":    -complete item name, i.e.:
   - "/part PHYSICS_2/Source of CTP config"
   - "/part PHYSICS_2/CTP config"  -partition definition (.partition)
@@ -227,6 +227,8 @@ if((err=actdb_open())!=0) {
 };
 if((err= actdb_getdbfile("ctp.cfg",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s ctp.cfg %s %s\n", cfglist, actname, actversion);
+if((err= actdb_getdbfile("tmask_bunches.cfg",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
+sprintf(cfglist, "%s tmask_bunches.cfg %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("aliases.txt",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};
 sprintf(cfglist, "%s aliases.txt %s %s\n", cfglist, actname, actversion);
 if((err= actdb_getdbfile("ctpinputs.cfg",actname,actversion,"CTP")) !=0) {rc= err; goto STP;};

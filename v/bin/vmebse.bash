@@ -86,14 +86,12 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
   elif [ "$hname" = "altri1" ] ;then   # development
     export SMAQ_C=$LABSERVER
     export VMESITE=SERVER
-    #export DIM_DNS_NODE=pcald30
     unset DATE_INFOLOGGER_DIR
     export SERVER_NODE=$LABSERVER
     export DIM_DNS_NODE=$LABSERVER
   elif [ "$hname" = "altri2" -o "$hname" = "altrip2" ] ;then   # stable (daqecs)
     export SMAQ_C=pcalicebhm10
     export VMESITE=SERVER2
-    #export DIM_DNS_NODE=pcald30
     export SERVER_NODE=pcalicebhm10
     export DIM_DNS_NODE=pcalicebhm10
   else
@@ -113,7 +111,8 @@ else               #------------------------------ server
     export DIM_DNS_NODE=$LABSERVER
     unset DATE_INFOLOGGER_DIR
     if [ -d /opt/act ] ;then
-      export ACT_DB=daq:daq@pcald30/ACT
+      #export ACT_DB=daq:daq@pcald30/ACT
+      export ACT_DB=ctp:ctp@alice-daq-lab-ctpdb.cern.ch/ACT_CTP
     fi
   elif [ "$hname" = 'alidcscom835' -o "$hname" = 'alidcscom707' ] ;then
     export VMESITE=ALICE
@@ -128,7 +127,8 @@ else               #------------------------------ server
     export VMESITE=SERVER2
     export DIM_DNS_NODE=pcalicebhm10
     if [ -d /opt/act ] ;then
-      export ACT_DB=daq:daq@pcald30/ACT
+      #export ACT_DB=daq:daq@pcald30/ACT
+      export ACT_DB=ctp:ctp@alice-daq-lab-ctpdb.cern.ch/ACT_CTP
     fi
     unset DATE_DAQLOGBOOK_DIR
     unset ACT_DB
