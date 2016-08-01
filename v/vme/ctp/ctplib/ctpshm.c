@@ -28,6 +28,8 @@ if(ctpshmbase->datetime[0]=='\0') {
   ctpshmbase->active_cg=0;
   initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
   initBakery(&ctpshmbase->ccread, "ccread", 5);
+  printf("initBakery(ssmcr,4): 0:smaq 1:findLMOrbitOff 2:ctp.exe 3:inputs\n");
+  initBakery(&ctpshmbase->ssmcr, "ssmcr", 4);
 };
 if(validCTPINPUTs==NULL) {
   validCTPINPUTs= &ctpshmbase->validCTPINPUTs[0];

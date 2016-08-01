@@ -84,7 +84,7 @@ endif
 # compile:
 SMIinc = $(SMIDIR)/smixx
 DIMinc = $(DIMDIR)/dim
-CTPinc = $(CTPLIB)/..
+CTPinc = $(VMECFDIR)/ctp/ctplib
 VMEBinc = $(VMEBDIR)/vmeblib
 
 # link:

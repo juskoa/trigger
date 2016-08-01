@@ -71,7 +71,11 @@ for(ix=0; ix <bakery->Maxn; ix++) {
   //while ((Number[ix] != 0) && ((Number[ix], ix) < (Number[icu], icu))) {
   while (bakery->Number[ix] != 0) {
     //((Number[ix], ix) < (Number[icu], icu))
-    if(bakery->Number[ix] < bakery->Number[icu]) { usleep(bakery->lockus); continue;};
+    if(bakery->Number[ix] < bakery->Number[icu]) {
+      // if(bakery->lockus > 0) { usleep(bakery->lockus); }; 
+      usleep(bakery->lockus); // better, (not 100%cpu for lockus==0)
+      continue;
+    };
     break;
     ;     /* nothing */
   }

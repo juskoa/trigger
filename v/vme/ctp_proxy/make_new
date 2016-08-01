@@ -10,7 +10,7 @@ include $(VMEBDIR)/daq_defs.make
 #LIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(MYSQLLIBS) $(VMERCCLD)
 PROXYLIBS = $(CTPLD) $(VMEBLD) $(daqLD) $(DIMLD) $(VMERCCLD) -lrt  -lpthread
 
-CFLAGS += $(daqCCDEFS) $(daqINCDIRS) -I$(VMEBLIB)/.. -I$(VMECFDIR)/ctp_proxy -I$(CTPLIB)/.. -I$(DIMinc) -I$(SMIinc)
+CFLAGS += $(daqCCDEFS) $(daqINCDIRS) -I$(VMEBinc) -I$(VMECFDIR)/ctp_proxy -I$(CTPinc) -I$(DIMinc) -I$(SMIinc)
 
 include $(VMEBDIR)/sc.make
 ifdef SERVER_LINK
@@ -20,7 +20,7 @@ allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
  $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF \
  $(EXEDIR)/bakeryTest.exe
 endif
-$(info SERVER_LINK:$(SERVER_LINK):$(allEXES))
+$(info SERVER_LINK:$(SERVER_LINK): VMEBLD:$(VMEBLD):$(allEXES))
 
 #vonCTPLIBa= $(CTPLD) $(VMEBLD)
 LIBDEP = $(CTPLIB)/libctp.a $(VMEBLIB)/libvmeb.a
@@ -76,8 +76,8 @@ bakeryTest.o:bakeryTest.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
 #	$(CC) $(LDFLAGS) $< $(CTPLD) -o $@
-#	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) -o $@
-	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(VMERCCLD) -o $@
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) -o $@
+#	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(VMERCCLD) -o $@
 
 #------------------------------------------- gcalib
 gcalib.o:gcalib.c 
@@ -87,12 +87,17 @@ $(EXEDIR)/gcalib.exe: gcalib.o $(LIBDEP)
 	$(CC) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) $(LDFLAGS) -o $@
 
 #------------------------------------------- ctpshm
-main_shm.o:main_shm.c Tpartition.h $(VMEBLIB)/../shmaccess.h
+main_shm.o:main_shm.c Tpartition.h $(VMEBinc)/shmaccess.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 #$(EXEDIR)/ctpshm.exe: main_shm.o cfg2part.o $(LIBDEP)
 $(EXEDIR)/ctpshm.exe: main_shm.o $(LIBDEP)
 	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(infoLD) \
  $(VMERCCLD) -o $@
+#------------------------------------------- main_bakery
+main_bakery.o:main_bakery.c Tpartition.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(EXEDIR)/main_bakery.exe: main_bakery.o $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(infoLD)
 #------------------------------------------- act.exe
 main_act.o:main_act.c Tpartition.h 
 	$(CC) $(CFLAGS) $< -c -o $@
@@ -111,7 +116,7 @@ $(EXEDIR)/sendcomm: sendcomm.o
 	$(CC) $< $(LDFLAGS) $(DIMLD) -o $@
 
 #-------------------------
-$(CTPLIB)/libctp.a:$(CTPLIB)/../*.c
+$(CTPLIB)/libctp.a:$(CTPinc)/*.c
 	cd $(CTPLIB) ; make -f ../make_new
 $(VMEBLIB)/libvmeb.a:$(VMEBLIB)/../*.c
 	cd $(VMEBLIB); make -f ../make_new

@@ -585,12 +585,14 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
 } else if((strncmp(mymsg,"rcfgdel ignoreDAQLOGBOOK",23)==0)) {
   int rcdaq;
   ignoreDAQLOGBOOK=1;
-  printf("INFO closing DAQlogbook (ignoreDAQLOGBOOK from ctpproxy received)\n");
   rcdaq= daqlogbook_close();
   if(rcdaq==-1) {
     printf("ERROR DAQlogbook_close failed\n");
+  } else {
+    printf("INFO DAQlogbook closed:rc:%d (ignoreDAQLOGBOOK from ctpproxy received)\n",rcdaq);
   };
-  cshmSetGlobFlag(FLGignoreDAQLOGBOOK);
+  //stdoutyes=0;
+  //cshmSetGlobFlag(FLGignoreDAQLOGBOOK);
 } else if((strncmp(mymsg,"rcfgdel useDAQLOGBOOK",20)==0)) {
   int rcdaq;
   rcdaq= daqlogbook_open(); //rcdaq=0;
