@@ -1,0 +1,13 @@
+ M v/bin/startClients.bash
+ M v/vme/ctp/ctpcfg.py
+ M v/vme/ctp/ctplib/ctpshm.c
+ M v/vme/ctp_proxy/main_ctp.c
+ M v/vme/ctp_proxy/make_new
+ M v/vme/pydim/server.c
+ M v/vme/pydim/simpleServer.py
+ M v/vmeb/com_defs.make
+ M v/vmeb/vmeblib/bakery.c
+?? v/vme/ctp_proxy/main_bakery.c
+
+tar -czf ~/ssmsync.tgz v/bin/startClients.bash v/vme/ctp/ctpcfg.py v/vme/ctp/ctplib/ctpshm.c v/vme/ctp_proxy/main_ctp.c v/vme/ctp_proxy/make_new v/vme/pydim/server.c v/vme/pydim/simpleServer.py v/vmeb/com_defs.make v/vmeb/vmeblib/bakery.c v/vme/ctp_proxy/main_bakery.c v/DOC/ssmsync
+
