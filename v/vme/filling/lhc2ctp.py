@@ -1089,7 +1089,8 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
         self.bx['T'].append(bnch)
       # go to the next B-bunch on the left (before)
       if bcixs[nextbeam]==0:
-        bcixs[nextbeam]= len(self.bx['B']-1)
+        #print "tmask:", self.bx['B'],':'
+        bcixs[nextbeam]= len(self.bx['B'])-1
       else:
         bcixs[nextbeam]= bcixs[nextbeam]-1
       # went around for this gap?
@@ -1100,7 +1101,7 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
       #   exclude this (A/B) gap in next loops
       #   if both A+B gaps not excluded: break
       if len(self.bx['T']) >= self.TmaskN: break   # enough bunches found?
-      nextbeam= 1-nextbeam        # now another gap
+      nextbeam= 1-nextbeam        # alternate between both gaps
     self.bx['T'].sort()
     #print "Tmask N:", self.bx['T']
     print "Tmask N/realN:", self.TmaskN,'/',len(self.bx['T'])
