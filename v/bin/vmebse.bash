@@ -138,8 +138,13 @@ else               #------------------------------ server
     export TRG_ADDONS=/local/sw
   fi
 fi
-export REDIS=$TRG_ADDONS/redis-3.0.5
-export APMON=$TRG_ADDONS/ApMon_cpp-2.2.8
+if [ "$VMESITE" != "PRIVATE" ] ;then
+  export REDIS=$TRG_ADDONS/redis-3.0.5
+  export APMON=$TRG_ADDONS/ApMon_cpp-2.2.8
+#else
+#  export REDIS=~/Downloads/redis-3.0.5
+# leave it as defined in private site in .bashrc
+fi
 #if [ "$VMESITE" != ALICE ] ;then
 #  unset DATE_INFOLOGGER_DIR
 #fi

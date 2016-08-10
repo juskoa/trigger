@@ -298,18 +298,24 @@ signal(SIGKILL, gotsignal); siginterrupt(SIGKILL, 0); // -9
 signal(SIGTERM, gotsignal); siginterrupt(SIGTERM, 0); // kill pid
 signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);   // CTRL C   2
 partmode[0]='\0';
-printf("cshmInit i.e. initBakery(swtriggers/ccread if shm allocated)...\n");
+printf("cshmInit i.e. initBakery(swtriggers/ccread/ssmcr ONLY once, when shm allocated)...\n");
 /*printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
 printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 */
 cshmInit();
-
+/* changed in aug2016
 printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
-initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
-printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
-initBakery(&ctpshmbase->ccread, "ccread", 5);
-printf("initBakery(ssmcr,4): 0:smaq 1:findLMOrbitOff 2:ctp.exe 3:inputs\n");
-initBakery(&ctpshmbase->ssmcr, "ssmcr", 4);
+initBakery(&ctpshmbase->swtriggers, "swtriggers", swtriggers_N);
+printf("initBakery(ccread,6): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs 5:orbitddl2\n");
+initBakery(&ctpshmbase->ccread, "ccread", ccread_N);
+printf("initBakery(ssmcr,4): 0:smaq 1:orbitddl2 2:ctp 3:inputs\n");
+initBakery(&ctpshmbase->ssmcr, "ssmcr", ssmcr_N);
+*/
+printBakery(&ctpshmbase->swtriggers);
+printBakery(&ctpshmbase->ccread);
+printBakery(&ctpshmbase->ssmcr);
+unlockBakery(&ctpshmbase->swtriggers,swtriggers_ctpproxy);
+unlockBakery(&ctpshmbase->ccread,ccread_ctpproxy);
 
 setglobalflags(argc, argv);
 if(isArg(argc, argv, "configrunset")) {

@@ -1,0 +1,124 @@
+=== ssmsync main goal:
+when LM-SSM used, lock it first using "ssmcr" bakery. When
+lock acquired, lock counters using "ccread" bakery -this should
+be already arranged for a standard counters reading
+using readCounters.c routines. 
+
+News:
+1. new lockus (500us for counters, much more for ssmcr where longer
+  wait expected, todo: test experimentaly)
+
+2. new Tbakery-structure ssmcr
+  customers:
+  - smaq in v/vme/smaq2.c 
+    lock:inputsSMAQ, unlock: quit...
+       getCountersBoard() uses ccread/smaq lock for ANY board (the must:
+       to prevent conflict with readCounters() ! )
+  - orbitddl2.py run/configrunset
+    ? are standard readCounters.c routines used?
+
+  - ctp.exe
+    lock: when SSMcontrol/anyDDR3 started
+    unlock: when finished (todo: make sure also when crashing)
+    
+  - 'vmecrate inputs' (also signature check)
+    lock: when main started
+    unlock: when finished (todo: make sure also when crashing)
+
+3. monitoring 'who si keeping lock' (maybe with history how long
+   was it taken for each customer, introducing also PID ?)
+
+=== 3.8.2016 notes about new ssmsync branch from zenaj:
+
+ M v/bin/startClients.bash
+ M v/vme/ctp/ctpcfg.py
+ M v/vme/ctp/ctplib/ctpshm.c
+   cshmInit(): +initBakery(&ctpshmbase->ssmcr, "ssmcr", 4);
+
+ M v/vme/ctp_proxy/main_ctp.c
+               +initBakery(&ctpshmbase->ssmcr, "ssmcr", 4);
+ M v/vme/ctp_proxy/make_new
+ M v/vme/pydim/server.c
+ M v/vme/pydim/simpleServer.py
+ M v/vmeb/com_defs.make
+ M v/vmeb/vmeblib/bakery.c
+         // if(bakery->lockus > 0) { usleep(bakery->lockus); }; 
+      usleep(bakery->lockus); // better, (not 100%cpu for lockus==0)
+
+?? v/vme/ctp_proxy/main_bakery.c
+
+tar -czf ~/ssmsync.tgz v/bin/startClients.bash v/vme/ctp/ctpcfg.py v/vme/ctp/ctplib/ctpshm.c v/vme/ctp_proxy/main_ctp.c v/vme/ctp_proxy/make_new v/vme/pydim/server.c v/vme/pydim/simpleServer.py v/vmeb/com_defs.make v/vmeb/vmeblib/bakery.c v/vme/ctp_proxy/main_bakery.c v/DOC/ssmsync
+
+=== 8.8.
+done:
+- lib_stuff.make: modified to get it working for PRIVATE site (see afs:mails/bugs)
+
+- ctp_proxy/main_bakery.c -seems not uded (see bakeryTest.c)
+- ctp_proxy/bakeryTest.c -use this on efor tests
+
+Currently following is valid (can be tested with bakeryTest.exe):
+rule1: multiple lock/unlocks behave like single lock/unlock
+- double lock can be done by any process(i.e. when resource locked, it can be locked second time
+  by any other/the same process using the same customer number)
+- unlock can be done by any process, the unlock of 'double locked' resource leads to complete unlock
+
+rule2: process defines itself by 'customer number' (i.e. not protected against bad sequences
+ipcs -m   (on adls/alti1/11):
+0x00820000 44826654   aj         666        9824       3
+
+How to find out deadlock (who is keeping the lock)?:
+Bakery swtriggers:4 customers locks:10 unlocks:6 Min:6696129us
+customer0: 0 0
+customer1: 0 5   customers 2,3,1 asked for the lock in given order, customer2
+customer2: 0 3   holds it, while customers 3,1 are waiting till cust2 is done
+customer3: 0 4
+
+todo
+- update bakery.h
+         main_ctp.c -init bakery
+  -add orbitddl2 customer to ccread (i.e. +1 customer, number of customers goes up 5->6)
+  -use symbolic customer names from bakery.h
+done 9.8.2016
+
+- introduce ssmcr for LM0 SSM. Note: SSMs on other boards are not considered.
+  lock: before SSM is going to be used (i.e. before init or startSSM)
+    while ssmcr is locked, another lock (ccread) should be used in case
+      counters are involved (e.g. like in smaq/smaq2.c)
+  unlock: wehn SSM content read out (i.e. after ~ 20 secs).
+  ssmcr used in 4 tasks (customers):
+  - smaq: easiest in lock: in main() before initSSM, unlock: in main(). done
+          more sophisticated: unlock/lock in while loop in inputsSMAQ() (i.e.
+          release for a second before locking again for next SSM to give
+          chance to possible waiting orbitddl2 customer)
+  - orbitddl2
+  - ctp
+     -SSMcontrol: lock/unlock when panel opened/closed done (not ok when main quit button)
+     -DDR3 todo
+  - inputs
+      easiest: lock: in initmain() unlock: endmain() done
+
+- initBakery:
+  1. before init, lock all resources, than call init
+    possibly we need 'conditional lock' not to get stucked?  -bad idea. Better:
+    -in ctpproxy: lock, print info to log, unlock
+    -instead of 'init' unlock in time of the customer start all resources used, i.e.:
+     - ctpproxy swtriggers(0) ccread(0) done 10.8.2016
+     - gcalib   swtriggers(1) done
+     - ctp      swtriggers(2) ccread(2) ssmcr(2) done
+     - dims     swtriggers(3) ccread(1) done
+     - smaq                   ccread(3) ssmcr(0) done
+     - inputs                 ccread(4) ssmcr(3) done
+     - orbitddl2              ccread(5) ssmcr(1)
+
+- test orbitddl2 (longer lockus!)
+  done (on bhm11 seems ok)
+
+- introduce ?maybe not needed -customer number identifies an order of the locks
+  - pid -only the a pid which locked the resource can unlock (init allowed). 
+  - time of the lock (epoch?)
+  Now: no protection against incorrect use (i.e. unlock can be done by diffrent process)
+- c++ wrapper for bakery.[ch] done, see ctp_proxy/bakerytest.cc
+
+- ipcs -m, ipcrm shm SHMID with new on 835 and 001 to get shm of new length
+
+

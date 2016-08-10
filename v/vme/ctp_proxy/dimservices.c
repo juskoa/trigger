@@ -255,7 +255,7 @@ while(actrs[tagix].Ngenerated < actrs[tagix].N) {
 // still to be added (in GenSwtrg): pf,bcmask as symb. names
 todo= actrs[tagix].N;
 succeeded=GenSwtrg(todo, actrs[tagix].type, 
-  actrs[tagix].roc, actrs[tagix].bc,detectors,3, &orbitn);
+  actrs[tagix].roc, actrs[tagix].bc,detectors,swtriggers_dims, &orbitn);
 actrs[tagix].Ngenerated= succeeded;
 /*ncls=*/ updateservice(actrs[tagix].cid);
 
@@ -334,7 +334,7 @@ ctpc=buf1;
 GetMicSec(&secs, &mics);
 l2orbit= vmer32(L2_ORBIT_READ);
 ddl2_blocks= vmer32(DDL2_BLOCK_COUNTER);
-readCounters(ctpc, NCOUNTERS, 0, 1); 
+readCounters(ctpc, NCOUNTERS, 0, ccread_dims); 
 #ifdef FAKECOUNTS
 nfakec++;
 /*for(ix=0; ix<=(NCOUNTERS-1); ix++) {

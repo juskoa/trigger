@@ -25,7 +25,7 @@ for(cix=0; cix<BYTIMERSCOUNTN; cix++) {   // 24 byin* timers, busy_time
   mem[cix]= vmer32(copyread);
 };
 */
-getCountersBoard(board, BYTIMERSCOUNTN-1, mem, 0);  // 0: ctpproxy customer
+getCountersBoard(board, BYTIMERSCOUNTN-1, mem, ccread_ctp);  // 0: ctpproxy customer
 return(rc);
 }
 w32 findDeadBusys(w32 detpat) {

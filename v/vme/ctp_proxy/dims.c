@@ -74,6 +74,10 @@ if(rc!=0) {
 };
 
 cshmInit();
+printf("Unlocking bakery resources: swtriggers ccread...\n");
+unlockBakery(&ctpshmbase->swtriggers,swtriggers_dims);
+unlockBakery(&ctpshmbase->ccread,ccread_dims);
+
 checkCTP(); //we need it: ctpboards[] gets initialised
 //readTables(); done ONLY in ctpproxy
 //initCTP();

@@ -1,3 +1,6 @@
+# input par: SERVERLINK:
+# NO: this is not the server (i.e. set SERVER_LINK to empty
+# other: set SERVER_LINK accrding to hostname
 CC=$(VMEGCC)
 #COMMONCFLAGS= -Wall -g -D$(VMEDRIVER)
 COMMONCFLAGS= -Wall -Wno-write-strings -g -D$(VMEDRIVER)
@@ -44,13 +47,13 @@ SERVER_PREF := /home/dl6
 endif
 #ifeq ($(HOSTNAME),$(filter $(HOSTNAME),tp zenaj))
 ifeq ($(VMESITE), PRIVATE)
-ifeq ($(SERVERLINK), NO)
-SERVER_LINK := 
-else
-SERVER_LINK := yes
-endif
-#CLIENT_HOST := localhost   # needs: id_dsa.pub->authorized_keys
-SERVER_PREF := "NEEDED_WHERE?"
+ ifeq ($(SERVERLINK), NO)
+  SERVER_LINK := 
+ else
+  SERVER_LINK := yes
+ endif
+ #CLIENT_HOST := localhost   # needs: id_dsa.pub->authorized_keys
+ SERVER_PREF := "NEEDED_WHERE?"
 endif
 
 EXEDIR= ../linux
@@ -84,7 +87,7 @@ endif
 # compile:
 SMIinc = $(SMIDIR)/smixx
 DIMinc = $(DIMDIR)/dim
-CTPinc = $(CTPLIB)/..
+CTPinc = $(VMECFDIR)/ctp/ctplib
 VMEBinc = $(VMEBDIR)/vmeblib
 
 # link:

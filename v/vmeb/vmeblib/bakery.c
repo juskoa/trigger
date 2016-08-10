@@ -35,7 +35,7 @@ bakery->lastsecs= 0; bakery->lastusecs= 0;
 bakery->Nlocks= 0; bakery->Nunlocks= 0;
 bakery->lockus= 0;
 if(strcmp(name,"ccread")==0) bakery->lockus= 500;
-if(strcmp(name,"sssmcr")==0) bakery->lockus= 100000;
+if(strcmp(name,"sssmcr")==0) bakery->lockus= 500000;
 strcpy(bakery->name, name);
 }
 void lockBakery(Tbakery *bakery, int icu) {
@@ -71,7 +71,11 @@ for(ix=0; ix <bakery->Maxn; ix++) {
   //while ((Number[ix] != 0) && ((Number[ix], ix) < (Number[icu], icu))) {
   while (bakery->Number[ix] != 0) {
     //((Number[ix], ix) < (Number[icu], icu))
-    if(bakery->Number[ix] < bakery->Number[icu]) { usleep(bakery->lockus); continue;};
+    if(bakery->Number[ix] < bakery->Number[icu]) {
+      // if(bakery->lockus > 0) { usleep(bakery->lockus); }; 
+      usleep(bakery->lockus); // better, (not 100%cpu for lockus==0)
+      continue;
+    };
     break;
     ;     /* nothing */
   }

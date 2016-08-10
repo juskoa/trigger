@@ -98,6 +98,12 @@ elif [ "$VMESITE" = 'SERVER2' ] ;then
   ttcmivme=altri2
   server=$hname
   server27=NONE
+elif [ "$VMESITE" = 'PRIVATE' ] ;then
+  ctpvme=localhost
+  export cmpvme=localhost
+  ttcmivme=localhost
+  server=localhos
+  server27=NONE
 else
   echo "auxfunctions.getcpunames: bad VMESITE:$VMESITE"
 fi

@@ -1,4 +1,5 @@
 # cd $(VMECFDIR)/smaq ; make
+SERVERLINK:= NO
 include $(VMEBDIR)/com_defs.make
 #with infoLogger:
 #include $(VMEBDIR)/daq_defs.make
@@ -10,12 +11,15 @@ CFLAGS=$(COMMONCFLAGS) -I$(VMEBinc) -I$(CTPinc)
 LIBS = $(CTPLD) $(VMEBLD) $(VMERCCLD)
 LDFLAGS += -lm
 
-ifdef SERVER_LINK
-  $(error Error: to be executed on $(CLIENT_HOST))
+ifneq ($(VMESITE),PRIVATE) 
+ ifdef SERVER_LINK
+  $(error Error: to be executed on $(CLIENT_HOST) VMESITE:$(VMESITE))
+ endif
 endif
 OBJFILES=smaq.o ssm.o intint.o
 OBJFILES2=smaq2.o ssm.o intint.o
-all: smaqold.exe smaq2.exe checkdmp.exe
+#all: smaqold.exe smaq2.exe checkdmp.exe
+all: smaq2.exe checkdmp.exe
 smaqold.exe: $(OBJFILES)
 	$(CC) $(LDFLAGS) $(OBJFILES) $(LIBS) -o $@
 smaq2.exe: $(OBJFILES2) $(CTPLIB)/libctp.a 

@@ -26,7 +26,15 @@ ssmctl=None
 
 def ssmcend(ev=None):
   global vb, ssmctlframe
-  #print "ssmcend:",vb
+  #print "ssmcend:",vb,"ev:",ev
+  #ssmcend: <myw.VmeBoard instance at 0x7f621bab9518> ev: <Tkinter.Event instance at 0x292f638>
+  #ssmcend: None ev: <Tkinter.Event instance at 0x292cef0>
+  # None repats many times...
+  # i.e. 
+  if vb != None:
+   if vb.io != None:
+    vb.io.write("unlock_ssmcr...\n")
+    vb.io.execute("unlock_ssmcr()");
   vb=None; ssmctlframe=None; ssmctl=None
 def findCPosition(cname):
   import trigdb
@@ -300,6 +308,9 @@ Flags: symbolic meaning of SSMstatus bits.
     global vb
     vb=vbcmdlin
     self.tlfr=tlfr
+    # lockBakery(&ctpshmbase->ssmcr,ssmcr_ctp)
+    vb.io.write("lock_ssmcr...\n")
+    vb.io.execute("lock_ssmcr()");
     self.sms=[]   # list of all SSMs  [name, smsix]
     lines= string.split(vb.io.execute("gettableSSM(0)","no"),"\n")
     #lines=["busy nossm","l0 outgen", "ltu1 nossm","ltu2 notin"]
@@ -347,6 +358,9 @@ upgrade corresponding status fields in this window.
     for s in self.sms:
       s.readssmst()
   def quit(self):
+    #errmsg="ssmcontrol exiting...\n"
+    #vb.io.write(errmsg)
+    #print errmsg
     self.tlfr.destroy()
     ssmcend()
   def checkcname(self, val):

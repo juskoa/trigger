@@ -202,7 +202,7 @@ EOF
 exit
 fi
 dnames="pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
-cd ~trigger/CNTRRD
+cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
   dmn='all'

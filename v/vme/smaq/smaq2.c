@@ -581,7 +581,7 @@ if(intboard == 2){   // trigger on int1
 27,28: trigger on int1,2 (to be checked)
 inpnum_ix  -rel. address in counter's array
 */
-getCountersBoard(trigboard,counteroffset + NINP,l0first,3);
+getCountersBoard(trigboard,counteroffset + NINP,l0first,ccread_smaq);
 for(i=0;i<NINP;i++){
   int ic;
   ic= counteroffset+i+1;
@@ -603,7 +603,7 @@ for(i=0;i<NINP;i++){
    }; 
  };
 // 1st readings
-getCountersBoard(trigboard,countermax,last,3);
+getCountersBoard(trigboard,countermax,last,ccread_smaq);
 timeold=last[timeadr]; timebefore= timeold;
 
 if(inpnum)trigold=last[inpnum_ix];  //counting from 1
@@ -657,7 +657,7 @@ while(1){
     setstart_ssm(boards);
     // following should be after start -better to throw out rare signal and wait for other than
     // to take empty ssm
-    getCountersBoard(trigboard,countermax,last,3);
+    getCountersBoard(trigboard,countermax,last,ccread_smaq);
     time=last[timeadr]; trigcur=last[inpnum_ix]; trigold=trigcur;
     if(rc!=0) {
       break;
@@ -690,18 +690,17 @@ return 0;
 /*-----------------------------------------------------------
 */
 void initSMAQ() {
-int rc;
-//int vsp=-1;
-//rc= vmxopen(&vsp,"0x820000", "0xd000");
-rc= vmeopen("0x820000", "0xd000");
-if(rc!=0) {
- printf("vmeopen CTP vme:%d\n", rc); exit(8);
-};
+/* can be deleted:
 ctpshmbase= (Tctpshm *)mallocShared(CTPSHMKEY, sizeof(Tctpshm), &ctpsegid);
-//ctpshmbase= (Tctpshm *)malloc( sizeof(Tctpshm));
 validCTPINPUTs= &ctpshmbase->validCTPINPUTs[0];
 validLTUs= &ctpshmbase->validLTUs[0];
+*/
+cshmInit();
+printf("Unlocking bakery resources: ccread ssmcr...\n");
+unlockBakery(&ctpshmbase->ccread,ccread_smaq);
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_smaq);
 checkCTP();
+lockBakery(&ctpshmbase->ssmcr,ssmcr_smaq);
 ddr3_reset();
 initSSM();
 } 
@@ -724,6 +723,13 @@ in case it is empty string: do not scp/rm dump files.\n", dirname);
 int main(int argc, char **argv) {
 char *datadir;
 int inpnum;
+int rc;
+//int vsp=-1;
+//rc= vmxopen(&vsp,"0x820000", "0xd000");
+rc= vmeopen("0x820000", "0xd000");
+if(rc!=0) {
+ printf("ERROR vmeopen CTP vme:%d\n", rc); return(8);
+};
 //setseeds(3,3); 
 datadir= getenv("SMAQDATA");
 if(datadir !=NULL) {
@@ -742,6 +748,7 @@ if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) &&
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 initSMAQ();
 inputsSMAQ(0,inpnum);
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_smaq);
 vmeclose();
 return 0;
 }

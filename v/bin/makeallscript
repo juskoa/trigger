@@ -20,6 +20,7 @@ echo "starting the same on $cmpvme: makeallscript $1 $2"
 ssh -2 trigger@$cmpvme "makeallscript $1 $2"
 fi
 }
+mkdir -p ~/logs
 getcpunames
 if [ "$1" = "allctp" -o "$1" = "allltu" -o "$1" = "others" ] ;then
   runlog $1 $2

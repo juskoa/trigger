@@ -8,6 +8,7 @@
 #include "vmewrap.h"
 #include "ctp.h"
 #include "ssmctp.h"
+#include "bakery.h"
 #define NUMOFCHAN 32
 // 24 = inps, 32 = channels in L0 outmon
 #define NUMOFL0INPS (24+32)
@@ -239,7 +240,7 @@ void take1SSM(int board,int ntimes){
   usleep(30000);
   if(rare){
     printf("take1SSM:  2 rare,board,counter: %i %i %i ",rare,board,counter);
-    condstopSSM(board,counter,100,10000,4);
+    condstopSSM(board,counter,100,10000,ccread_inputs);
     printf(" finished succesfuly \n");
   }else{
     stopSSM(board);
@@ -288,7 +289,7 @@ void takerbSSM(int ntimes){
   startSSM1(board);
   usleep(30000);
   if(rare){
-    condstopSSM(board,counter,5000,13000,4);
+    condstopSSM(board,counter,5000,13000,ccread_inputs);
   }else{
    stopSSM(board);
   }
