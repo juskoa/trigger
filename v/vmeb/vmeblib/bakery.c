@@ -35,7 +35,7 @@ bakery->lastsecs= 0; bakery->lastusecs= 0;
 bakery->Nlocks= 0; bakery->Nunlocks= 0;
 bakery->lockus= 0;
 if(strcmp(name,"ccread")==0) bakery->lockus= 500;
-if(strcmp(name,"sssmcr")==0) bakery->lockus= 500000;
+if(strcmp(name,"ssmcr")==0) bakery->lockus= 500000;
 strcpy(bakery->name, name);
 }
 void lockBakery(Tbakery *bakery, int icu) {
@@ -91,8 +91,8 @@ bakery->Nunlocks= bakery->Nunlocks+1;
 }
 void printBakery(Tbakery *bp) {
 int i;
-printf("Bakery %s:%d customers locks:%d unlocks:%d Min:%dus\n", 
-  bp->name, bp->Maxn, bp->Nlocks, bp->Nunlocks, bp->minUsecs);
+printf("Bakery %s:%d:%dus locks:%d unlocks:%d Min:%dus\n", 
+  bp->name, bp->Maxn, bp->lockus, bp->Nlocks, bp->Nunlocks, bp->minUsecs);
 for(i=0;i< bp->Maxn;i++){ 
   printf("customer%d: %d %d\n", i, bp->Entering[i], bp->Number[i]);
 };
