@@ -1,6 +1,12 @@
 /* history
 22.06.2016
 instead of stack allocation (>2M) in readDatabase2Tpartition, line by line read used in ParseFile
+8.7.2016 2 attempts to read file in ParseFile in case of 'short BCMASKS line'
+5.8.2016 did not help, seems fgets is not reliable for lines longer  >4k
+  https://www.gnu.org/software/libc/manual/html_node/Line-Input.html
+Standard C has functions to do this, but they aren’t very safe: null characters and even (for gets) long lines can confuse them. So the GNU C Library provides the nonstandard getline function that makes it easy to read lines reliably.
+
+  fgets changed to: malloc + getline
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -827,9 +833,12 @@ int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
 int allclgrps=0; int clg,nreads;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
+char *linesip;
+size_t ngetline;
 char errmsg[300]="";
-part->nclassgroups= 0;
-nreads=0;
+part->nclassgroups= 0; nreads=0;
+ngetline= MAXLINECFG+1; linesip= (char *)malloc(ngetline); 
+
 REREAD1:
 cfgfile=fopen(fnpath,"r");
 if(cfgfile == NULL){
@@ -851,12 +860,14 @@ for(i=0;i<MAXNLINES;i++){
      sprintf(errmsg, "ParseFile: too long .pcfg file (> %d lines)", MAXNLINES);
      retcode= 1; goto RETERR;
   };
-  if(fgets(linesi, MAXLINECFG,cfgfile) == NULL) break;   // end of cfg file
-  linlen= strlen(linesi);
+  /*if(fgets(linesi, MAXLINECFG,cfgfile) == NULL) break;   // end of cfg file
+  linlen= strlen(linesi); instead use getline: */
+  linlen= getline( &linesip, &ngetline, cfgfile); if(linlen==-1) break;
   if( linlen >= (MAXLINECFG-1) ) {
     sprintf(errmsg, "ParseFile: too long line (%d chars) in .pcfg file ", linlen);
     retcode= 1; goto RETERR;
   };
+  strcpy(linesi, linesip);
   if(linesi[0]=='\0') {
     sprintf(errmsg, "ParseFile: empty line in .pcfg file");
     retcode= 1; goto RETERR;
@@ -1008,6 +1019,7 @@ if(fclose(cfgfile)) {
   sprintf(errmsg, "ParseFile: cannot close %s", fnpath);
   infolog_trgboth(LOG_ERROR, errmsg);
 };
+free(linesip);
 return retcode;
 BADGROUP:
 sprintf(errmsg,"Bad class group:%d for partition:%s",clg,part->name);
