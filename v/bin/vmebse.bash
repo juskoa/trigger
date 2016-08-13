@@ -109,7 +109,7 @@ else               #------------------------------ server
     export MI_NODE=altri2
     export VMESITE=SERVER
     export DIM_DNS_NODE=$LABSERVER
-    unset DATE_INFOLOGGER_DIR
+    #unset DATE_INFOLOGGER_DIR
     if [ -d /opt/act ] ;then
       #export ACT_DB=daq:daq@pcald30/ACT
       export ACT_DB=ctp:ctp@alice-daq-lab-ctpdb.cern.ch/ACT_CTP

@@ -278,6 +278,7 @@ return;
 }
 /*----------------------------------------*/ int main(int argc, char **argv) {
 int rc;
+int ssmcr_tries=0;
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 #ifdef PQWAY
 printf("main_ctp: opening rec/send queues...\n");
@@ -326,10 +327,19 @@ unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
   
 - swtriggers_gcalib/_dims cannot appear (no global runs becasue ctpproxy being restarted)
 */
-while(1) {  // do not allow SSM usage (smaq) because ctp_Initproxy is initialising it
+while(1) { // do not allow SSM usage (smaq) because ctp_Initproxy is initialising it
+  char msg[100];
   rc= lockBakeryTimeout(&ctpshmbase->ssmcr,ssmcr_ctpproxy, 10);
-  if(rc==1) break;  // locked
-  infolog_trgboth(LOG_WARNING, "Waiting for ssmcr resource. Is smaq stopped?");
+  if(rc==1) {
+    if(ssmcr_tries>0) {
+      sprintf(msg, "Got ssmcr resource after %d attempts", ssmcr_tries);
+      infolog_trgboth(LOG_INFO, msg);
+    };
+    break;  // ssmcr reserved for me now
+  };
+  ssmcr_tries++;
+  sprintf(msg,"%d secs Waiting for ssmcr resource. Is smaq stopped?", ssmcr_tries*10);
+  infolog_trgboth(LOG_WARNING, msg);
 };
 if(isArg(argc, argv, "configrunset")) {
   /* do we need before orbitddl2.py INT/L2 orbit in SYNC (automatic with L2a)?
