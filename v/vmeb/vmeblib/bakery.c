@@ -97,6 +97,58 @@ for(i=0;i< bp->Maxn;i++){
   printf("customer%d: %d %d\n", i, bp->Entering[i], bp->Number[i]);
 };
 }
+/* rc: 0: not locked, 1: ok resource locked */
+int lockBakeryTimeout(Tbakery *bakery, int icu, int timeout_secs) {
+int ix,mx=0;
+w32 secs,usecs, timeout_usecs;
+if(icu>=bakery->Maxn) {
+  printf("Error: lockBakery:%s: %d above max. customer #:%d \n",
+    bakery->name, icu, bakery->Maxn-1);
+  return(0);
+}; timeout_usecs= timeout_secs*1000000;
+GetMicSec(&secs, &usecs); 
+if(bakery->lastsecs!=0) {
+  w32 diffu;
+  diffu= DiffSecUsec(secs, usecs, bakery->lastsecs, bakery->lastusecs);
+  if(diffu<(bakery->minUsecs)) {
+    bakery->minUsecs= diffu;
+  };
+};
+bakery->lastsecs= secs; bakery->lastusecs= usecs;
+bakery->Nlocks= bakery->Nlocks+1;
+//cannot be here (ctp.exe count. reading) 
+//printf("lockBakery %s:%d:%ds %dus\n", bakery->name, icu, secs, usecs);
+bakery->Entering[icu]= true;
+//Number[icu]= 1 + max(Number[1], ..., Number[NUM_THREADS]);
+for(ix=0; ix<bakery->Maxn; ix++) {
+  if(bakery->Number[ix]>mx) mx=bakery->Number[ix];
+}; bakery->Number[icu]= 1 + mx;
+bakery->Entering[icu]= false;
+for(ix=0; ix <bakery->Maxn; ix++) {
+  // Wait until thread ix receives its number:
+  while (bakery->Entering[ix]) { ; };
+  // Wait until all threads with smaller numbers or with the same
+  // number, but with higher priority, finish their work:
+  //while ((Number[ix] != 0) && ((Number[ix], ix) < (Number[icu], icu))) {
+  while (bakery->Number[ix] != 0) {
+    //((Number[ix], ix) < (Number[icu], icu))
+    if(bakery->Number[ix] < bakery->Number[icu]) {
+      w32 secs2,usecs2, diffu;
+      // if(bakery->lockus > 0) { usleep(bakery->lockus); }; 
+      usleep(bakery->lockus); // better, (not 100%cpu for lockus==0)
+      GetMicSec(&secs2, &usecs2); 
+      diffu= DiffSecUsec(secs2, usecs2, secs, usecs);
+      if(diffu>= timeout_usecs) { // timeout
+        bakery->Number[icu]= 0;
+        return(0);
+      };
+      continue;
+    };
+    break;
+  }
+};
+return(1);
+}
 /*
 #define Ncustomers 5
 Tbakery ccread[Ncustomers];

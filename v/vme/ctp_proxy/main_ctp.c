@@ -303,7 +303,9 @@ printf("cshmInit i.e. initBakery(swtriggers/ccread/ssmcr ONLY once, when shm all
 printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 */
 cshmInit();
-/* changed in aug2016
+setglobalflags(argc, argv);
+
+/* changed in aug2016 (initBakery only once from now, when shm allocated)
 printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
 initBakery(&ctpshmbase->swtriggers, "swtriggers", swtriggers_N);
 printf("initBakery(ccread,6): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs 5:orbitddl2\n");
@@ -316,8 +318,19 @@ printBakery(&ctpshmbase->ccread);
 printBakery(&ctpshmbase->ssmcr);
 unlockBakery(&ctpshmbase->swtriggers,swtriggers_ctpproxy);
 unlockBakery(&ctpshmbase->ccread,ccread_ctpproxy);
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
 
-setglobalflags(argc, argv);
+/* Let' synchronise with smcr only, i.e. 
+- ccread_dims,... can go in parallel with ctp_Initproxy, 
+  orbitddl2: should use ccread_orbitddl2 customer when reading counters
+  
+- swtriggers_gcalib/_dims cannot appear (no global runs becasue ctpproxy being restarted)
+*/
+while(1) {  // do not allow SSM usage (smaq) because ctp_Initproxy is initialising it
+  rc= lockBakeryTimeout(&ctpshmbase->ssmcr,ssmcr_ctpproxy, 10);
+  if(rc==1) break;  // locked
+  infolog_trgboth(LOG_WARNING, "Waiting for ssmcr resource. Is smaq stopped?");
+};
 if(isArg(argc, argv, "configrunset")) {
   /* do we need before orbitddl2.py INT/L2 orbit in SYNC (automatic with L2a)?
   */
@@ -357,12 +370,15 @@ if(isArg(argc, argv, "configrunset")) {
     } else {
       infolog_trgboth(LOG_ERROR, cmd);
       infolog_trgboth(LOG_ERROR, "ctpproxy not started"); 
+      unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
       rc=8; goto STP;
     };
   };
 };
 // init CTP after calibration (e.g. to repair modifications done by orbitddl2.py)
-if((rc=ctp_Initproxy())!=0) goto STP; //exit(8);
+rc=ctp_Initproxy();
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
+if(rc!=0) goto STP;
 
 // DIM services not registered here (see ctpdims.c), they run in separae task:
 // ds_register();

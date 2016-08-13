@@ -2265,7 +2265,7 @@ printf("ctp_proxy ver: 06.04.2015\n");
 xcountersStop(0);           // clear list of active runs
 SDGinit();
 checkCTP();   /* check which boards are in the crate - ctpboards */
-cshmClear();
+cshmClear();  // clears only partition info in shm
 readTables(); // onlly in ctp_proxy and pydim/server.c
 if(initHW(&HWold)) return 1; // initialise and clean HWold structure
 if(initHW(&HW)) return 1;   // initialise and clean HW structure

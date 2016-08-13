@@ -44,7 +44,7 @@ Correct way:
     -init only when shm, allocated (in ctplib/ctpshm.c)
     -in ctpproxy: lock, print info/warning to log, unlock
     -instead of 'init' unlock in time of the customer start all resources used, i.e.:
-     - ctpproxy swtriggers(0) ccread(0)
+     - ctpproxy swtriggers(0) ccread(0) ssmcr(4)
      - gcalib   swtriggers(1)
      - ctp      swtriggers(2) ccread(2) ssmcr(2)
      - dims     swtriggers(3) ccread(1)
@@ -75,14 +75,16 @@ clgroups timer counters: just sending DIM cmd to dims, i.e. the locking managed
 #define ccread_inputs 4
 #define ccread_orbitddl2 5
 
-#define ssmcr_N 4
+#define ssmcr_N 5
 #define ssmcr_smaq 0
 #define ssmcr_orbitddl2 1
 #define ssmcr_ctp 2
 #define ssmcr_inputs 3
+#define ssmcr_ctpproxy 4   // whole ctp(also ssm) is initialised by ctpproxy
 
 void initBakery(Tbakery *bakery, char *name, int maxn);
 void lockBakery(Tbakery *bakery, int customer);
+int lockBakeryTimeout(Tbakery *bakery, int customer, int timeout);
 void unlockBakery(Tbakery *bakery, int customer);
 void printBakery(Tbakery *bakery);
 
