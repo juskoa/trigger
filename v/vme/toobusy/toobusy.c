@@ -74,9 +74,9 @@ Enter the time you wish to wait between busylong reads in seconds and the counte
 */
 void readBUSYlong(w32 delay){
  w32 counts1,counts2;
-counts2 = getCounter(0, 104, 2);
+counts2 = getCounter(0, 104, ccread_ctp);
 usleep(delay*1000000);
-counts1 = getCounter(0, 104, 2)-counts2;
+counts1 = getCounter(0, 104, ccread_ctp)-counts2;
   printf("There have been %i busies exceeding the current limit \n",counts2);
 }
 
@@ -155,13 +155,13 @@ if (timetotake>1800){
     readMINIMAXLimit();
     //measure busy increments
     sweeptimemicrosec = sweeptime*1000000;
-    //busylong = busylong - getCounter(0, 104, 2);
-    busyprevious = getCounter(0, 104, 2);
+    //busylong = busylong - getCounter(0, 104, ccread_ctp);
+    busyprevious = getCounter(0, 104, ccread_ctp);
     //printf("first busy count %i \n", busyprevious);
     usleep(sweeptimemicrosec); 
     //only, and set a default sweeptime;
     //measure busy increments
-    busylonga = getCounter(0, 104, 2);
+    busylonga = getCounter(0, 104, ccread_ctp);
     if(busylonga>=busyprevious){
       busylong = (busylonga-busyprevious);
     } else busylong = busylonga + (0xffffffff-busyprevious)+1;

@@ -1140,7 +1140,7 @@ while(1) {
     w32 l2orbit;   // let's do the same VME operation as in ctdims
     if(prt==0) {printf("readCounters(buf, %d\n", NCOUNTERS); prt=1; };
     l2orbit= vmer32(L2_ORBIT_READ); 
-    readCounters(ctpc, NCOUNTERS, 0, 2);
+    readCounters(ctpc, NCOUNTERS, 0, ccread_ctp);
   } else if(address==1) {
     readTVCounters(&ctpc[CSTART_SPEC+3]);
   } else if(address==2) {
@@ -1187,7 +1187,7 @@ int defcounts[]={NCOUNTERS_BUSY, NCOUNTERS_L0+NCOUNT200_L0,
 /*FGROUP SimpleTests 
 */
 void clearAllCounters() {
-clearCounters(2);
+clearCounters(ccread_ctp);
 }
 /*FGROUP SimpleTests 
 read+print N counters of the board from FROM counter (counting from 0). 
@@ -1208,7 +1208,7 @@ if(FROM > counts) FROM=0;
 printf("reading counters %d - %d from board %d", FROM, counts-1,board);
 // always starting from first counter:
 GetMicSec(&s1,&us1);
-getCountersBoard(board, counts-1, mem, 2);
+getCountersBoard(board, counts-1, mem, ccread_ctp);
 GetMicSec(&s2,&us2);
 usecs= DiffSecUsec(s2, us2, s1, us1);
 printf("getCountersBoard took %d us\n", usecs);
@@ -1231,7 +1231,7 @@ char fname[]="counters.dump";
 int ix,cnts[]={455,461,456,462,477,481,485,153,302,448,154,303,449,
 -1};
 w32 mem[CSTART_SPEC];
-readCounters(mem, CSTART_SPEC, 0, 2);
+readCounters(mem, CSTART_SPEC, 0, ccread_ctp);
 sprintf(fpath,"WORK/%s", fname);
 f= fopen(fpath,"w");
 if(f==NULL) {
@@ -1544,7 +1544,7 @@ while(1) {
   SSMS: printf("---> ssmstart(1)\n");
   ddr3_ssmstart(1);
   while(1) {
-    rcssm= condstopSSM(1, l0inp, waitloops,10, 2); 
+    rcssm= condstopSSM(1, l0inp, waitloops,10, ccread_ctp); 
     printf("condstopSSM rc:%d loops:%d\n", rcssm, loops);
     loops++;
     if(loops>= maxevents) break;
@@ -1580,6 +1580,16 @@ fclose(logf);
 return(rc);
 }
 /*FGROUP Common
+*/
+void lock_ssmcr() {
+lockBakery(&ctpshmbase->ssmcr,ssmcr_ctp);
+}
+/*FGROUP Common
+*/
+void unlock_ssmcr() {
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctp);
+}
+/*FGROUP Common
    rc: 0 -board ix is in the crate 
        1 -board ix is not in the crate
 */
@@ -1596,6 +1606,14 @@ for(ix=0; ix<6; ix++) {
   FOs[ix].cluster= 0;
   FOs[ix].tcluster= 0;
 };
+printf("unlocking resources: swtriggers ccread ssmcr...\n");
+unlockBakery(&ctpshmbase->swtriggers,swtriggers_ctp);
+unlockBakery(&ctpshmbase->ccread,ccread_ctp);
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctp);
+printf("Be aware: functions under DDR3 button do not lock/unlock L0 SSM usage!.\n\
+But SSMcontrol locks (unlocks when closed) ssmcr resource.\n\
+");
+
 /* check/configure all the CTP boards: */
 checkCTP();
 initSSM();

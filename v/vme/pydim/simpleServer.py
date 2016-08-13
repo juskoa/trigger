@@ -61,7 +61,7 @@ def main(servicename):
   a=""
   if servicename!="simpleServer":
     while True:
-      time.sleep(1)
+      time.sleep(9)
       pydim.dis_update_service(scopes)
       if quit: break
   else:

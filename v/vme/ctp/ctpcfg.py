@@ -94,7 +94,7 @@ print "l0AB():", l0abtxt, " l0C0():", l0c0txt
 Gl0C0= int(l0c0txt[0])
 if Gl0AB==0: Gl0AB= None   # None: L0 fi: >0xAB
 if Gl0C0==0: Gl0C0= None   # None: L0 fi: <0xC0
-print "Gl0AB/C0:",Gl0AB,'/',hex(Gl0C0)
+print "Gl0AB/C0:",Gl0AB,'/',Gl0C0
 
 HWEQMEM=1
 HWNEMEM=0

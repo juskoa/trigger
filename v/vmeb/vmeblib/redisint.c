@@ -71,6 +71,8 @@ if(strcmp(site, "ALICE")==0) {
   strcpy(config.hostip, "adls");
 } else if(strcmp(site, "SERVER2")==0) {
   strcpy(config.hostip, "pcalicebhm10");
+} else if(strcmp(site, "PRIVATE")==0) {
+  strcpy(config.hostip, "localhost");
 } else {
   printf("ERROR VMESITE:%s (SERVER or ALICE expected)\n", site);
   return(16);
@@ -95,7 +97,7 @@ if(context==NULL) {
       if((reply->type== REDIS_REPLY_STATUS) && (strcmp(reply->str,"OK")==0)) {
         strcpy(pmsg,"ok, auth");
       } else {
-        strcpy(pmsg,"ok, not auth (bad passwd)");
+        strcpy(pmsg,"ok, not auth (bad passwd see dbctp/pwds.cfg)");
       };
     } else {
       strcpy(pmsg,"ok, not auth (no passwd given)");

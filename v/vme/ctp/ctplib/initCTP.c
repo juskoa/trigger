@@ -188,6 +188,7 @@ init CTP. Should be called only once.
    -> i.e. use: 'vmecrate nbi ctp' for expert (ctp) sw.
    ctp_proxy, when restarted, calls this routine.
    Only 'system parameters' should be set here (i.e. timing...)
+Input: dbctp/ctp.cfg
 */
 void initCTP() {
 int ix;

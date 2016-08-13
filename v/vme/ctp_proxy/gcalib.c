@@ -367,7 +367,8 @@ while(1) {
     // generate calib. trigger:
     if(cshmGlobFlag(FLGignoreGCALIB)==0) {
       w32 orbitn;
-      rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].roc, ACTIVEDETS[ndit].calbc,1<<ndit, 1, &orbitn);
+      rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].roc, ACTIVEDETS[ndit].calbc,1<<ndit, 
+        swtriggers_gcalib, &orbitn);
       if(rcgt==12345678) {
         delDET(ndit); if(NACTIVE==0) goto STP;
         continue;
@@ -570,6 +571,8 @@ if(rc!=0) {
   printf("vmeopen CTP vme:%d\n", rc); exit(8);
 };
 cshmInit();
+unlockBakery(&ctpshmbase->swtriggers,swtriggers_gcalib);
+
 initDET(); // has to be after cshmInit()
 checkCTP(); 
 printf("No initCTP. initCTP left to be done by main ctp-proxy when started\n"); 

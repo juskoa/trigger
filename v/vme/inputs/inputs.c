@@ -720,7 +720,11 @@ void initmain() {
  char *datadir;
  //setseeds(3,3); 
  cshmInit();
+ printf("Unlocking bakery resources: ccread ssmcr...\n");
+ unlockBakery(&ctpshmbase->ccread,ccread_inputs);
+ unlockBakery(&ctpshmbase->ssmcr,ssmcr_inputs);
  checkCTP();
+ lockBakery(&ctpshmbase->ssmcr,ssmcr_inputs);
  initSSM();
  setL012mode();
  datadir= getenv("SMAQDATA");
@@ -729,6 +733,7 @@ void initmain() {
  };
 }
 void endmain() {
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_inputs);
 }
 void boardInit(){
 }

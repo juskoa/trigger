@@ -26,8 +26,10 @@ if(ctpshmbase->datetime[0]=='\0') {
   for(i=0;i<MNPART;i++){ shmpart[i].name[0]= '\0'; };
   ctpshmbase->GlobalFlags=0;
   ctpshmbase->active_cg=0;
-  initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
-  initBakery(&ctpshmbase->ccread, "ccread", 5);
+  initBakery(&ctpshmbase->swtriggers, "swtriggers", swtriggers_N);
+  initBakery(&ctpshmbase->ccread, "ccread", ccread_N);
+  printf("initBakery(ssmcr,4): 0:smaq 1:orbitddl2 2:ctp.exe 3:inputs\n");
+  initBakery(&ctpshmbase->ssmcr, "ssmcr", ssmcr_N);
 };
 if(validCTPINPUTs==NULL) {
   validCTPINPUTs= &ctpshmbase->validCTPINPUTs[0];
@@ -116,6 +118,7 @@ printf("GlobalFlags:%x active_cg:%d beammode:%d\n", ctpshmbase->GlobalFlags,
   ctpshmbase->active_cg, cshmBM());
 printBakery(&ctpshmbase->swtriggers);
 printBakery(&ctpshmbase->ccread);
+printBakery(&ctpshmbase->ssmcr);
 /*printf("VALID.CTPINPUTS: name Level/1..24 edge delay\n");
 for(i=0;i<NCTPINPUTS;i++){ 
   if(ctpshmbase->validCTPINPUTs[i].name[0] != '\0'){

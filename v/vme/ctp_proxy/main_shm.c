@@ -16,9 +16,9 @@ if(argc==1) {
   cshmPrint();
 } else if(argc==2) { 
   if(strcmp(argv[1], "lock")==0) {
-    lockBakery(&ctpshmbase->ccread, 3);
+    lockBakery(&ctpshmbase->ccread, ccread_smaq);
   } else if(strcmp(argv[1], "unlock")==0) {
-    unlockBakery(&ctpshmbase->ccread, 3);
+    unlockBakery(&ctpshmbase->ccread, ccread_smaq);
   };
   printBakery(&ctpshmbase->ccread);
 };

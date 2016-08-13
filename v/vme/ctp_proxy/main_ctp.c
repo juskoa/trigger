@@ -278,6 +278,7 @@ return;
 }
 /*----------------------------------------*/ int main(int argc, char **argv) {
 int rc;
+int ssmcr_tries=0;
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 #ifdef PQWAY
 printf("main_ctp: opening rec/send queues...\n");
@@ -298,20 +299,48 @@ signal(SIGKILL, gotsignal); siginterrupt(SIGKILL, 0); // -9
 signal(SIGTERM, gotsignal); siginterrupt(SIGTERM, 0); // kill pid
 signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);   // CTRL C   2
 partmode[0]='\0';
-printf("cshmInit i.e. initBakery(swtriggers/ccread if shm allocated)...\n");
+printf("cshmInit i.e. initBakery(swtriggers/ccread/ssmcr ONLY once, when shm allocated)...\n");
 /*printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
 printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
 */
 cshmInit();
-
-printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
-initBakery(&ctpshmbase->swtriggers, "swtriggers", 4);
-printf("initBakery(ccread,5): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs\n");
-initBakery(&ctpshmbase->ccread, "ccread", 5);
-printf("initBakery(ssmcr,4): 0:smaq 1:findLMOrbitOff 2:ctp.exe 3:inputs\n");
-initBakery(&ctpshmbase->ssmcr, "ssmcr", 4);
-
 setglobalflags(argc, argv);
+
+/* changed in aug2016 (initBakery only once from now, when shm allocated)
+printf("initBakery(swtriggers,4): 0:SOD/EOD 1:gcalib 2:ctp.exe 3:dims\n");
+initBakery(&ctpshmbase->swtriggers, "swtriggers", swtriggers_N);
+printf("initBakery(ccread,6): 0:proxy 1:dims 2:ctp+busytool 3:smaq 4:inputs 5:orbitddl2\n");
+initBakery(&ctpshmbase->ccread, "ccread", ccread_N);
+printf("initBakery(ssmcr,4): 0:smaq 1:orbitddl2 2:ctp 3:inputs\n");
+initBakery(&ctpshmbase->ssmcr, "ssmcr", ssmcr_N);
+*/
+printBakery(&ctpshmbase->swtriggers);
+printBakery(&ctpshmbase->ccread);
+printBakery(&ctpshmbase->ssmcr);
+unlockBakery(&ctpshmbase->swtriggers,swtriggers_ctpproxy);
+unlockBakery(&ctpshmbase->ccread,ccread_ctpproxy);
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
+
+/* Let' synchronise with smcr only, i.e. 
+- ccread_dims,... can go in parallel with ctp_Initproxy, 
+  orbitddl2: should use ccread_orbitddl2 customer when reading counters
+  
+- swtriggers_gcalib/_dims cannot appear (no global runs becasue ctpproxy being restarted)
+*/
+while(1) { // do not allow SSM usage (smaq) because ctp_Initproxy is initialising it
+  char msg[100];
+  rc= lockBakeryTimeout(&ctpshmbase->ssmcr,ssmcr_ctpproxy, 10);
+  if(rc==1) {
+    if(ssmcr_tries>0) {
+      sprintf(msg, "Got ssmcr resource after %d attempts", ssmcr_tries);
+      infolog_trgboth(LOG_INFO, msg);
+    };
+    break;  // ssmcr reserved for me now
+  };
+  ssmcr_tries++;
+  sprintf(msg,"%d secs Waiting for ssmcr resource. Is smaq stopped?", ssmcr_tries*10);
+  infolog_trgboth(LOG_WARNING, msg);
+};
 if(isArg(argc, argv, "configrunset")) {
   /* do we need before orbitddl2.py INT/L2 orbit in SYNC (automatic with L2a)?
   */
@@ -351,12 +380,15 @@ if(isArg(argc, argv, "configrunset")) {
     } else {
       infolog_trgboth(LOG_ERROR, cmd);
       infolog_trgboth(LOG_ERROR, "ctpproxy not started"); 
+      unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
       rc=8; goto STP;
     };
   };
 };
 // init CTP after calibration (e.g. to repair modifications done by orbitddl2.py)
-if((rc=ctp_Initproxy())!=0) goto STP; //exit(8);
+rc=ctp_Initproxy();
+unlockBakery(&ctpshmbase->ssmcr,ssmcr_ctpproxy);
+if(rc!=0) goto STP;
 
 // DIM services not registered here (see ctpdims.c), they run in separae task:
 // ds_register();

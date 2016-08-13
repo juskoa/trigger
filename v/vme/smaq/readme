@@ -47,3 +47,5 @@ smaq.c  -now corect shm is used (before private one was used!)
 
 16.3.2015
 attempt to use smaq2.c with LM0
+aug 2016
+- smaq2.c is used long time (make...)
