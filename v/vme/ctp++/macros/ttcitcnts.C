@@ -6,9 +6,8 @@ int main(){
  printf("vsp= %i \n",ttc->getvsp());
  w32 ver= ttc->getFPGAversion();
  printf("Version: 0x%x %i\n",ver,ver);
- ttc->start_stopSSM();
- ttc->Dump2quSSM();
- int ret=ttc->AnalyseSSM();
- ttc->DumptxtSSM();
- return ret;
+ for(w32 i=200;i<301;i++){
+    ttc->ReadAllCounters(i);
+ }
+ return 0;
 }
