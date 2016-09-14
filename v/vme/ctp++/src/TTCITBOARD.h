@@ -17,6 +17,7 @@ class TTCITBOARD: public BOARD
 	int start_stopSSM(LTUBOARD* ltu);
 	int start_stopSSM(BUSYBOARD* bb);
         void addclasspattern(w32 *pat);
+	int ReadAllCounters(w32 l0l1time);
         // SSM analysis
         void ClearQueues();
         int AnalyseSSM();
@@ -38,6 +39,9 @@ class TTCITBOARD: public BOARD
         w32 const READ_SSM_WORD;
         w32 const RESET;
         w32 const RESET_SNAPSHOT_N;
+        w32 const TIME_L0_L1;
+	w32 const RESET_COUNTERS;
+ 	w32 const COUNT_ERR_BCNT;
 	deque<ssmrecord*> qttcab;
         deque<w32*> classpatterns;
 };

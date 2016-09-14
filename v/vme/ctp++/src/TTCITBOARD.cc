@@ -10,8 +10,30 @@ STATUS(0xc),
 READ_SSM_ADDRESS(0x14),
 READ_SSM_WORD(0x18),
 RESET(0x28),
-RESET_SNAPSHOT_N(0x8c)
+RESET_SNAPSHOT_N(0x8c),
+TIME_L0_L1(0x24), 
+RESET_COUNTERS(0x40), // first counter-4
+COUNT_ERR_BCNT(0x88)  // last counter
 {
+}
+int TTCITBOARD::ReadAllCounters(w32 l0l1time)
+{
+ const char* names[18]={"L0","L1","L1m","L2a","L2r","ERR_PP","ERR_L0S","ERR_L1S","ERR_L1MM","ERR_L1MS","ERR_L1MI","ERR_L1MD","ERR_L2MM","ERR_L2MS","ERR_L2MI","ERR_L2MD","ERR_CAL","ERR_BCNT"};
+ w32 counts[18];
+ vmew(RESET_COUNTERS,0x0);
+ usleep(100000);
+ int i=0;
+ for(w32 add=RESET_COUNTERS+4;add<= COUNT_ERR_BCNT; add+=4){
+   counts[i]=vmer(add); i++;
+ }
+ vmew(TIME_L0_L1,l0l1time);
+ printf("======================L0L1time: %i \n",l0l1time);
+ i=0;
+ for(w32 add=RESET_COUNTERS+4;add<= COUNT_ERR_BCNT; add+=4){
+   printf("%i %s: %u \n",i,names[i],counts[i]); 
+   i++;
+ }
+ return 0;
 }
 void TTCITBOARD::ClearQueues()
 {
