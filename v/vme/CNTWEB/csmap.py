@@ -1,12 +1,15 @@
 #!/usr/bin/python
 #from cgi import escape
 #from urllib import unquote
-import sys,popen2,cntwebenv
+import sys,subprocess,cntwebenv
 from mod_python import util
 #sys.path.append(cntwebenv.VMECFDIR+"filling")
 #import lhc2ctp
 def cmdex(cmd, str1=None):
-  iop=  popen2.popen2(cmd, 1) #0- unbuffered, 1-line buffered
+  #iop=  popen2.popen2(cmd, 1) #0- unbuffered, 1-line buffered
+  p= subprocess.Popen(string.split(cmd), bufsize=1,
+    stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+  iop= (p.stdout, p.stdin)
   if str1:
     lines= iop[0].read()
   else:

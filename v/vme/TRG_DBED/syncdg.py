@@ -39,6 +39,8 @@ class TrgSDG:
     #import pdb ; pdb.set_trace()
     if self.sdgs.has_key(name):
       return "%s already defined"%name
+    elif len(name)>23:   # see limit in ctplib/Tparttion.c
+      return "%s too long:%d cahrs (max length: 23)"%(name,len(name))
     else:
       if len(self.sdgs)>=trgglobs.NCLS:
         return "too many definitions of sync. downscaling groups"

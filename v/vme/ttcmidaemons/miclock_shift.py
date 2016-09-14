@@ -5,7 +5,7 @@
 # 26.4.2015 CTPDIM/BEAMMODE replaced by ALICEDAQ_LHCBeamMode (100chars)
 #  5.11.2015 DLL RESET enabled (2x: in checkandsave + SQUEEZE)
 import sys,os,os.path,string,pylog
-import signal,time,popen2,threading,socket
+import signal,time,subprocess,threading,socket
 
 # Import the pydim module
 import pydim
@@ -162,7 +162,10 @@ def callback_manauto(auma):
 
 def getShift(what="s"):
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
-  iop= popen2.popen2(mcmd+" "+what, 1) #0- unbuffered, 1-line buffered
+  #iop= popen2.popen2(mcmd+" "+what, 1) #0- unbuffered, 1-line buffered
+  p= subprocess.Popen(string.split(mcmd+" "+what), bufsize=1,
+    stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+  iop= (p.stdout, p.stdin)
   line= iop[0].readline()
   iop[0].close()
   iop[1].close()

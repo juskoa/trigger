@@ -1,6 +1,7 @@
 #define MAXNAMELENGTH 80        // paths
 #define MAXCTPINPUTLENGTH 16    // ctp input name length (was 40 in run1)
 #define MAXPARTNAME 12
+#define MAXSDGNAME 24
 #define MAXDETNAME 12
 #define ERRMSGL 300
 // max. line length in .pcfg file: BCMASKS: 'BCMASKS '+3*3564+'\0' = 10701
@@ -269,7 +270,7 @@ typedef struct TBUSY{
 }TBUSY;
 
 typedef struct TSDGS{
-  char name[MAXPARTNAME];   // symbolic SDG name. "": empty field
+  char name[MAXSDGNAME];   // symbolic SDG name. "": empty field
   char pname[MAXPARTNAME];
   w32  l0pr;                // calculated from n% (always rnd downscale)
   int firstclass;  //1..50, 0: not allocated yet

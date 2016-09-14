@@ -16,11 +16,11 @@ char TRD_TECH[24]="";
 */
 int SDGadd(char *line, char *pname) {
 int ix,ixf=-1;
-char name[MAXPARTNAME]; w32 dsf;
+char name[MAXSDGNAME]; w32 dsf;
 enum Ttokentype token; char value[80];
 // line-> name dsf
 ix= 4; token=nxtoken(line, value, &ix);
-if(token==tSYMNAME) {
+if((token==tSYMNAME) && (strlen(value)<=(MAXSDGNAME-1)) ) {
   strcpy(name, value);
   token=nxtoken(line, value, &ix);
   if(token==tHEXNUM) {
@@ -33,7 +33,8 @@ if(token==tSYMNAME) {
   };
 } else {
   char emsg[300];
-  sprintf(emsg,"Symbolic name expected in 2nd column:%s",line);
+  sprintf(emsg,"Symbolic name (max. %d chars) expected in 2nd column:%s",
+    line, (MAXSDGNAME-1));
   infolog_trgboth(LOG_ERROR, emsg);
   return(1);
 };

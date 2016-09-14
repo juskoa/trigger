@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import popen2, os, os.path, string, sys, time, parted
+import subprocess, os, os.path, string, sys, time, parted
 def main():
   if hasattr(sys,'version_info'):
     if sys.version_info >= (2, 3):

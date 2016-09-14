@@ -13,7 +13,7 @@
 # 10.4.2014 mkfifo /tmp/micfifo   miclock.py fifo
 #
 import sys,os,os.path,string,pylog
-import signal,time,popen2,threading
+import signal,time,subprocess,threading
 
 # Import the pydim module
 import pydim
@@ -117,7 +117,10 @@ def callback1(now):
 
 def getShift():
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
-  iop= popen2.popen2(mcmd+" s", 1) #0- unbuffered, 1-line buffered
+  #iop= popen2.popen2(mcmd+" s", 1) #0- unbuffered, 1-line buffered
+  p= subprocess.Popen(string.split(mcmd+" s"), bufsize=1,
+    stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+  iop= (p.stdout, p.stdin)
   line= iop[0].readline()
   iop[0].close()
   iop[1].close()

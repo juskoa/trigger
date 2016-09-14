@@ -1,12 +1,14 @@
 #!/usr/bin/python
-import os,sys, popen2
+import os,sys, subprocess
 #sys.path.append(os.environ['VMEBDIR'])
 
 class iopipe:
   def __init__(self, nbcmd):
     self.nbcmd=nbcmd
-    print "popen2("+nbcmd+")"
-    self.iop= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
+    print "Popen("+nbcmd+")"
+    p= subprocess.Popen(string.split(nbcmd), bufsize=1,
+      stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+    self.iop= (p.stdout, p.stdin)
     self.printstdout()
   def printstdout(self):
     iline=0

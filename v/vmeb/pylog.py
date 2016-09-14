@@ -1,8 +1,11 @@
 #!/usr/bin/python
-import os,os.path,time,popen2,string
+import os,os.path,time,subprocess,string
 def iopipe(cmd, grep=''):
    #print "popen2("+cmd+")"
-   iop= popen2.popen2(cmd, 1) #0- unbuffered, 1-line buffered
+   #iop= popen2.popen2(cmd, 1) #0- unbuffered, 1-line buffered
+   p= subprocess.Popen(string.split(cmd), bufsize=1,
+     stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+   iop= (p.stdout, p.stdin)
    line=''
    if iop:
      if grep=='1':

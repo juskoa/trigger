@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.6",
+      version="5.7",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -30,6 +30,7 @@ from v5.2: the names of effectively filtered out trig. detectors preceded by '*'
 from v5.4: 4x 8-inputs l0f, new INRND1 option in .partition definition
 from v5.5: IR1/2 defined by 8 inputs, new PF on LM board               
      v5.6: minor changes (better syntax check of .partition file)
+     v5.7: minor change: the max. SDG name length check added (max. is 23)
 """,
       author="Anton Jusko",
       packages=["validate"],

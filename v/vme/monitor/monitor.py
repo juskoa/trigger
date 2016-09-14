@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os,sys,string,popen2,time,types,signal,socket,smtplib,pylog
+import os,sys,string,subprocess,time,types,signal,socket,smtplib,pylog
 from threading import Thread
 
 UDP_TIMEOUT=70
@@ -290,7 +290,10 @@ class Daemon:
       self.pid= pid
   def iopipe(self, cmd, lookfor=None):
     #rcode= self.iopipe(os.WEXITSTATUS(os.system("startClients.bash "+self.name+" status")))
-    iop= popen2.popen2(cmd, 1)
+    #iop= popen2.popen2(cmd, 1)
+    p= subprocess.Popen(string.split(cmd), bufsize=1,
+      stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+    iop= (p.stdout, p.stdin)
     rc=None
     while(1):
       line= iop[0].readline()
