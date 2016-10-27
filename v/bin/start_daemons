@@ -7,5 +7,7 @@ export HOME=/home/alice/trigger
 #sudo -H -u trigger /usr/local/trigger/bin/ltuproxy.sh startall  2>&1>/tmp/start_daemons.log
 # fix: 1. /etc/ld.so.conf.d/dimsmi.conf ; chroot /data/dl/root ldconfig
 # 2. [alidcscom188] /data/dl/root/usr/local/trigger/v/vme/ltu_proxy/linux > chmod ug+s ltu_proxy
-/usr/local/trigger/bin/ltuproxy.sh startall  2>&1>/tmp/start_daemons.log
+# remove bad shared memory, to get it created form disk file(s):
+/usr/local/trigger/bin/ltuproxy.sh killall  2>&1>/tmp/start_daemons.log
+/usr/local/trigger/bin/ltuproxy.sh startall  2>&1>>/tmp/start_daemons.log
 

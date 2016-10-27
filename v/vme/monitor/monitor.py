@@ -12,8 +12,9 @@ pitlab="lab"
 if string.find(os.environ["HOSTNAME"],"alidcscom")==0:
   pitlab="pit"
 def signal_handler(signal, stack):
-  global quit
+  global quit,pitlab
   log.logm("signal:%d received, quitting monitor.py..."%signal)
+  send_mail("%s sig:%d (1:HUP)"%(pitlab,signal))
   log.logm("anyhow, waiting till udp timeout elapses...")
   log.logm("rm %s..."%pidpath)
   log.flush()
@@ -439,6 +440,7 @@ monitor.py stop
       log.logm("quit. pid: %s..."%mypid)
       log.flush()
       #udpmsg.close()
+      send_mail(pitlab+"quit")
       time.sleep(1)   #
       #os.remove(pidpath)
       break

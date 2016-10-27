@@ -105,11 +105,13 @@ int string2int(char *cstr,int length,w32 *num,char b){
  if((length>8) && (b =='h')){
   char cstr20[20];
   strncpy(cstr20, cstr, 20); cstr[19]='\0';
-  printf("string2int error: length=%i >8 cstr[0..20]:%s\n",length,cstr20);
+  printf("string2int error: length=%i >8 cstr[0..20]:%s:\n",length,cstr20);
   return 1;
  }
  if(length>9 && b == 'd'){
-  printf("string2int error: length=%i >9 \n",length);
+  char cstr20[20];
+  strncpy(cstr20, cstr, 20); cstr[19]='\0';
+  printf("string2int error: length=%i >9 cstr[0..20]:%s:\n",length, cstr20);
   return 1;
  }
  *num=0;

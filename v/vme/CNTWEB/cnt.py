@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # note: http://pcalicebhm05.cern.ch/CNTWEB/cnt/     to initialise module
 # 14.2. i2c counters added (23 more)
+# 26.9. 2016 6 couters from l0intm1 (i.e. was l0intT) renamed on WEB cnts page
 import string, os,sys, cntcom
 
 #os.environ['VMECFDIR']="/data/ClientCommonRootFs/usr/local/trigger/vd/vme/"
@@ -58,7 +59,24 @@ class Counter:
     - runx cnts (run2: from spare1486runx)
     Note: 'display name' (seen in web) conversion is taken 
       into account in __init__
+    26.9.2016: discovered difference:
+    cnames.sorted2   ctpcounters.text
+l0strobe0   ok
+l0intm1     l0intT
+l0intm2     l0int1
+l0intmBCM   l0int2
+l0int01     l0intA
+l0int02     l0intB
+l0int0BCM   l0intD
+lmclst1     ok
     """
+    if nm=='l0intm1': nm= 'l0intT'
+    elif nm=='l0intm2': nm= 'l0int1'
+    elif nm=='l0intmBCM': nm= 'l0int2'
+    elif nm=='l0int01': nm= 'l0intA'
+    elif nm=='l0int02': nm= 'l0intB'
+    elif nm=='l0int0BCM': nm= 'l0intD'
+    else: pass
     return nm
   def makeImage(self):
     color="660000"

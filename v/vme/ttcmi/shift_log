@@ -687,3 +687,4 @@ printBC_DELAYS()
       ORBOUT_DELAY25_GCR 0x7d054:100
 
 
+checked 19.9.2016, values are the same
