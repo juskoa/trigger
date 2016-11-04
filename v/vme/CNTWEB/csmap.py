@@ -18,11 +18,13 @@ def cmdex(cmd, str1=None):
   return lines
 def form1(req):
   cspath= cntwebenv.dbctp+"COLLISIONS.SCHEDULE"
+  tbpath= cntwebenv.dbctp+"tmask_bunches.cfg"
   #otx= cmdex("ls -ld "+cspath)
   csf= open(cspath,"r"); csname= csf.readline().rstrip(); csf.close()
-  getmapcmd= "cd /tmp ; cp "+cspath+" "+csname+".alice"
+  #getmapcmd= "cd /tmp ; cp "+cspath+" "+csname+".alice"
+  getmapcmd= "cd /tmp ; cp "+ tbpath+" . ; cp "+cspath+" "+csname+".alice"
   #cmdex(cmd)
-  getmapcmd= getmapcmd +";"+ cntwebenv.VMECFDIR+"filling/lhc2ctp.py " + csname + ".alice 3"
+  getmapcmd= getmapcmd +";"+ cntwebenv.VMECFDIR+"filling/lhc2ctp.py " + csname + ".alice 1"
   csmap= cmdex(getmapcmd, str1="yes")
   return """
 <pre>

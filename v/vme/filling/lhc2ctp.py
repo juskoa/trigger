@@ -91,7 +91,7 @@ class trainset:
       train= self.trains[trainix]
       lng= lng+train[2]
     return lng
-  def prt(self):
+  def prttrainset(self):
     totbs= self.getlen()
     print "%s (%d bunches) trains:"%(self.name, totbs)
     for trainix in range(len(self.trains)):
@@ -114,15 +114,56 @@ C: .........1.1.........1.1
 class biggaps:
   GAPBEFORE=1
   BC=0
-  def __init__(self, forbidden_bcs,size=2):
-    self.forbidden_bcs= forbidden_bcs # LHCinfo() instance
-    self.gaps=[]   # Bgaps in descending order, sorted by Bgap length
-    self.size=size # number of Bgaps stored
+  def __init__(self, abcs, size=2):
+    """
+abcs:  -LHCinfo.abcs dict, i.e. abcs[bc] is 'A' 'C' 'B' ('E' maybe?), or
+       -FilScheme.bx dict, i.e.  {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[], 'I':[]}
+          where bx['B']: list of ints representing colliding BCs
+size: 2 is for LHCinfo case (we need 2 empty bunches only)
+"""
+    myabcs= {}
+    for bac in ('B', 'A', 'C'):
+      if abcs.has_key(bac):   #FilScheme case if at least one valid
+        for bc in abcs[bac]: myabcs[bc]= bac
+    if len(myabcs)>0:
+      self.abcs= myabcs
+    else:
+      self.abcs= abcs   #LHCinfo case
+    self.gaps=[]      # Bgaps in descending order, sorted by Bgap length
     for x in range(size):
       self.gaps.append([-1,-1])   # >=0: [bc, length of Bgap before this bc including this bc]
       # i.e. (bc-Bgap) == BCnumber of Bbunch preceeding bc bunch 
       # 2.4.6
       # B...B   corresponds to [5,3]
+    self.size=size    # number of Bgaps stored
+    # sortedB: list of bcs used to find biggest gaps, i.e:
+    # B-bunches if at least 1 colliding bunch
+    # A+C bunches if no colliding bunch (main-sat mode)
+    b=[]; ac=[]
+    for abc in self.abcs.keys():
+      if self.abcs[abc]=="B": b.append(abc)
+      elif self.abcs[abc]=="A" or self.abcs[abc]=="C": ac.append(abc)
+    if len(b)==0:
+      sortedB= ac
+    else:
+      sortedB= b
+    sortedB.sort()                # B or A/C bunches only, sorted
+    #print "self.abcs,sortedB:",self.abcs,sortedB
+    if len(sortedB)==1:   # just 1 bunch
+      self.update(sortedB[0], ORBITL)
+    elif len(sortedB)==0:   # should not happen!
+      self.update(3564, ORBITL)
+    else: 
+      bc_prev= sortedB[-1] 
+      for bc in sortedB:   # find 2 longest gaps B - B
+        dif= suborbit(bc, bc_prev)   # (dif-1): BCs between bc_prev and bc
+        self.update(bc, dif)
+        bc_prev= bc
+    self.rmtail()
+  def rmtail(self):
+    for ix in range(len(self.gaps)-1, -1, -1):
+      if self.gaps[ix]==[-1,-1]: del self.gaps[ix]
+    self.size= len(self.gaps)
   def prt(self):
     for x in range(self.size):
       print "biggap %d: "%x, self.gaps[x]
@@ -142,7 +183,6 @@ class biggaps:
     ix: gap number
     rc: emptybc, errorMessage
     """
-    ##global abcs
     msg=""
     bc= self.gaps[ix][self.BC]
     gap= self.gaps[ix][self.GAPBEFORE]
@@ -156,7 +196,8 @@ class biggaps:
           e2b= gap/2
           msg= msg+" E->A/C/B bunch distance is %d <70."%(gap/2)
         bc_e= suborbit(bc, e2b)
-        if not self.forbidden_bcs.has_key(bc_e): break
+        #if not self.forbidden_bcs.has_key(bc_e): break
+        if not self.abcs.has_key(bc_e): break   # not_forbidden bc found
       b2e= gap-e2b
       if (b2e)<100:
         msg= msg+" A/C/B->E distance is %d <100."%(b2e)
@@ -435,30 +476,8 @@ later time (when .mask cretaed)
     print alice+format+'\n'+errmsg
     return ""
   abcs= lhcfs.abcs; buckets= lhcfs.buckets
-  # sortedB: list of bcs used to find biggest gaps, i.e:
-  # B-bunches if at least 1 colliding bunch
-  # A+C bunches if no colliding bunch (main-sat mode)
-  b=[]; ac=[]
-  for abc in abcs.keys():
-    if abcs[abc]=="B": b.append(abc)
-    elif abcs[abc]=="A" or abcs[abc]=="C": ac.append(abc)
-  if len(b)==0:
-    sortedB= ac
-  else:
-    sortedB= b
-  sortedB.sort()                # B or A/C bunches only, sorted
-  bgap=biggaps(lhcfs.abcs)
-  #print "abcs,sortedB:",abcs,sortedB
-  if len(sortedB)==1:   # just 1 bunch
-    bgap.update(sortedB[0], ORBITL)
-  elif len(sortedB)==0:   # should not happen!
-    bgap.update(3564, ORBITL)
-  else: 
-    bc_prev= sortedB[-1] 
-    for bc in sortedB:   # find 2 longest gaps B - B
-      dif= suborbit(bc, bc_prev)   # (dif-1): BCs between bc_prev and bc
-      bgap.update(bc, dif)
-      bc_prev= bc
+  #print "abcs:",abcs
+  bgap=biggaps(abcs)
   #bgap.prt()
   # we know largest gaps, so can create Empty BCs (-70bcs -TRD request):
   print "1.gap, before bc:%d, %d bcs"%(bgap.gaps[0][0], bgap.gaps[0][1]-1)
@@ -496,7 +515,7 @@ later time (when .mask cretaed)
     buc1,buc2 = bc2buc('E', e1); buckets[e1]= BcAttrs(buc1,buc2, '', None)
     buc1,buc2 = bc2buc('E', e2); buckets[e2]= BcAttrs(buc1,buc2, '', None)
   lhcfs.do_sortedABCE()   # we have already E-bunches also
-  #lhcfs.locate_combs()   # done later in FillScheme
+  #lhcfs.locate_combs()   # done later in FilScheme
   #
   nbb=0   # numb. of colliding bcs
   for bc in lhcfs.sortedABCE:
@@ -592,7 +611,7 @@ later time (when .mask cretaed)
           # find B-areas:
           Nbb= buckets[bc].train[0]
           Bareas.add([bc, bc+(Nbb-1)*buckets[bc].train[1], Nbb])
-      Bareas.prt() # Aareas.prt() Careas.prt()
+      Bareas.prttrainset() # Aareas.prttrainset() Careas.prttrainset()
       enabled_trains=0; enabling=0; aorc='A'
       for bc in lhcfs.sortedABCE:
         if abcs[bc]==aorc and buckets[bc].train != None:
@@ -632,7 +651,8 @@ later time (when .mask cretaed)
   if buckets.has_key(CALIBbc):
     #buckets[CALIBbc].parasit='*'
     beamac= abcs[CALIBbc] 
-    print "%c-bunch %d NOT marked parasitic (L0firmware>0xAC)"%(beamac, CALIBbc)
+    # following line commented from 27.10.2016:
+    #print "%c-bunch %d NOT marked parasitic (L0firmware>0xAC)"%(beamac, CALIBbc)
     if beamac!='A':
       print
       print "ERROR: B-bunch (only A bunch allowed here) in LHC C-gap in calib. BC %d"%CALIBbc
@@ -673,15 +693,24 @@ later time (when .mask cretaed)
   return alice+errs
 
 class FilScheme:
-  def __init__(self, fsname="", fsxls=None, mainsat="b2", TmaskN=10):
+  def __init__(self, fsname="", fsxls=None, mainsat="b2", tmaskline="10"):
     """
-    mainsat: None   -> main-main collisions
+mainsat: None   -> main-main collisions
+tmaskline: string of 1 or 2 numbers :
+"NT"       -prepare Tmask (NT bcs) using standard A/C gaps
+"NT Ngaps" -prepare Tmask (NT bcs) using largest Ngaps in all B-gaps found
     """
     # FOLLOWING MUST be here (called also form getfsdip.py):
     #self.mainsat= mainsat     # from parameter 
     #self.mainsat= None        # main-main
     self.mainsat= "mainsat"   # main-sat always: COMMON from 3.5.2012
-    self.TmaskN= TmaskN
+    Nbc_gs= string.split(tmaskline)
+    if len(Nbc_gs)>=2:
+      self.TmaskN= int(Nbc_gs[0]); Ngaps= int(Nbc_gs[1])
+    elif len(Nbc_gs)==1:
+      self.TmaskN= int(Nbc_gs[0]); Ngaps= 0
+    else:
+      self.TmaskN= 0; Ngaps= 0
     self.mask={}   # contains only meaningful (BACE) BCs: mask[3] is 'A B C or E'
     self.fsname= fsname
     self.bx= {'B':[], 'A':[], 'C':[], 'E':[], 'AorC':[], 'I':[]}
@@ -693,7 +722,7 @@ class FilScheme:
       if ixline==0:
         if fsname=="":
           self.fsname= line
-        print "fsname:",self.fsname
+        #print "fsname:",self.fsname
       if line == "": continue
       if line[0] == "\n": continue
       if line[0] == "#": continue
@@ -720,6 +749,7 @@ class FilScheme:
         #self.bx['AorC'].append(bxn)   # A + C
         self.insert('AorC', bxn)
     Blen= len(self.bx['B'])
+    #print "FilScheme: bx['B']:", self.bx['B']
     if Blen>0:
       if Blen==1:
         self.bx['I'].append(self.bx['B'][0])
@@ -745,7 +775,7 @@ class FilScheme:
         self.mainsat= None
       else:
         self.mainsat= "mainsat"
-    self.prepareTmask()
+    self.prepareTmask(Ngaps)
   def insert(self, bace, bxn):
     for ix in range(len(self.bx[bace])):
       if bxn<self.bx[bace][ix]:
@@ -1009,7 +1039,14 @@ class FilScheme:
           bace= self.mask[ix1]
         else:
           bace='.'
-        line= line+bace
+        if self.isin(self.bx['T'], ix1):
+          if bace=='B':
+            line= line+'T'
+          else:
+            line= line+'?'
+            print "Error: bc %d is T but missing in B-mask"%(ix1)
+        else:
+          line= line+bace
       if ctpmsk=='+ACS':
         mskc= self.getACB(ix1)
         line2= line2+mskc
@@ -1058,8 +1095,13 @@ bcstart -find index of first item on the left of this bc
       previx= ix
       prevbc= bc
     return previx
-  def prepareTmask(self):
-    """ self.TmaskN -number of bunches in Tmask
+  def prepareTmask(self, ngaps=0):
+    """ I:
+ngaps: 0: old way (i.e. do not look for gaps, just use standard LHC gaps)
+      >0: use ngaps biggest gaps between B-bunches to place Tmask bcs
+self.TmaskN -number of bunches in Tmask
+self.bx['B']
+
 goal: prepare self.bx['T'] ordered list, subset of B-bunches
 """
     self.bx['T']= []
@@ -1067,25 +1109,39 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
     if len(self.bx['B'])== 1:
       self.bx['T'].append(self.bx['B'][0])   # just 1 B-bunch, take it
       return
-    # we have at least 2 B-bunches...
-    aix= self.findfirstleft(self.bx['B'], SHIFTS[0])
-    cix= self.findfirstleft(self.bx['B'], SHIFTS[1])
-    bcixs= [aix, cix]     # start from this indexes into bxB going to the left
+    # at least 2 B-bunches present:
+    if ngaps==0:   # use standard gaps
+      aix= self.findfirstleft(self.bx['B'], SHIFTS[0])
+      cix= self.findfirstleft(self.bx['B'], SHIFTS[1])
+      bcixs= [aix, cix]     # start from this indexes into bxB going to the left
+    else:
+      bgap=biggaps(self.bx, ngaps)
+      bgap.prt()
+      bcixs= []
+      for ix in range(bgap.size):
+        bix= self.findfirstleft(self.bx['B'], bgap.gaps[ix][0])
+        bcixs.append(bix)
     #print "bcixs start from:",bcixs
     # possible cases:
     #       gapA             gapC
     #  B=aix           B=cix           or
     #  B B=aix=cix                     or
     #              B B=aix=cix         or...
-    bcixstart= [aix, cix]     # just remember for 'wrapped around' test
+    #bcixstart= [aix, cix]     # just remember for 'wrapped around' test
+    bcixstart= []
+    for ix in range(len(bcixs)):
+      bcixstart.append(bcixs[ix])
     nextbeam= 0          # 0/1. next check will be done for this one (0:A 1:C)
-    bcsfound= 0          # numb. of BCs found before both gap (max. N)
-    excluded= [ False, False ]   # ? probaly not needed 2x (wrapping around happens for both)
+    bcsfound= 0          # numb. of BCs found before both gaps (max. N)
+    #excluded= [ False, False ]   # ? probaly not needed 2x (wrapping around happens for both)
     #print "nextbeam:",nextbeam, "self.bx['B']:",self.bx['B']
-    for ix in range(len(self.bx['B'])):
+    for ix in range(2*len(self.bx['B'])):
       # T <- B-bunch
+      #print "Tmask1: ix:%d bcixs[%d]:%d T:"%(ix, nextbeam,bcixs[nextbeam]), self.bx['T']
       bnch= self.bx['B'][bcixs[nextbeam]]
+      #print "Tmask: B[%d]:%d beam:%d T:"%(bcixs[nextbeam], bnch, nextbeam), self.bx['T']
       if bnch not in self.bx['T']:
+        #print "Tmask: adding:%d", bnch
         self.bx['T'].append(bnch)
       # go to the next B-bunch on the left (before)
       if bcixs[nextbeam]==0:
@@ -1093,18 +1149,25 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
         bcixs[nextbeam]= len(self.bx['B'])-1
       else:
         bcixs[nextbeam]= bcixs[nextbeam]-1
+      #print "Tmask: bcixs:",bcixs
       # went around for this gap?
-      if (bcixs[nextbeam] == bcixstart[nextbeam]) or\
-         (bcixs[nextbeam] == bcixstart[1-nextbeam]):
+      #if (bcixs[nextbeam] == bcixstart[nextbeam]) or\
+      # (bcixs[nextbeam] == bcixstart[1-nextbeam]):  #seems not good way
+      if (bcixs[nextbeam] == bcixstart[nextbeam]) and (nextbeam==1):
         break   # whole orbit done or we reached another gap
       #if nxB in bx['T']:
       #   exclude this (A/B) gap in next loops
       #   if both A+B gaps not excluded: break
-      if len(self.bx['T']) >= self.TmaskN: break   # enough bunches found?
-      nextbeam= 1-nextbeam        # alternate between both gaps
+      if len(self.bx['T']) >= self.TmaskN: break   # enough bunches found
+      #nextbeam= 1-nextbeam        # alternate between both gaps
+      nextbeam= 1+nextbeam        # alternate among all gaps
+      if nextbeam>=len(bcixs): nextbeam= 0
     self.bx['T'].sort()
     #print "Tmask N:", self.bx['T']
-    print "Tmask N/realN:", self.TmaskN,'/',len(self.bx['T'])
+    if ngaps==0:
+      print "Tmask req:%d gaps:%d/choosen:%d bcs using 2 standard LHC-gaps"%(self.TmaskN,ngaps,len(self.bx['T']))
+    else:
+      print "Tmask req:%d gaps:%d/choosen:%d bcs using %d gaps"%(self.TmaskN,ngaps,len(self.bx['T']),len(bcixs))
   def getMasks(self):
     om= "# %s"%self.fsname
     om= om+"\n" + self.print1('E')
@@ -1305,8 +1368,8 @@ or:
 lhc2ctp.py lhc_fs.alice [1-3]
 instead of .mask file, print map of all bunches to stdout
 1  -prints the .alice file map
-2  -prints the .alice map + A,C,S info 
-3  -prints A,C,S map 
+2  -prints the .alice map + ACS map in 2nd line 
+3  -prints ACS map
 
 4.
 lhc2ctp.py bc2buc ABCE bc
@@ -1317,18 +1380,18 @@ shows the bucket(s) for 'ABC or E-bunch' bc
     alice= bu2bcstr(ee, schname, empty1=empty1,empty2=empty2, format=alicef)
     if alice=="": return
     lsf= open(schname+".alice","w"); lsf.write(alice); lsf.close;
-    print "Alice collisions schedule written in file:\n",schname+".alice"
+    print "Alice collisions schedule written in file:",schname+".alice"
   #return
   # take it directly from file:
   #lsf= open("/home/aj/act/domsk/125ns_48b_36_16_36Fromxls.alice"); 
   lsf= open(schname+".alice","r"); alice=lsf.read(); lsf.close;
   if os.path.exists("tmask_bunches.cfg"):
-    lsf= open("tmask_bunches.cfg","r"); TmaskN= int(lsf.readline()); lsf.close;
+    lsf= open("tmask_bunches.cfg","r"); tmaskline= lsf.readline().strip(); lsf.close;
   else:
-    TmaskN=10;
-    print "Warning: tmask_bunches.cfg not found, using 10 for Tmask bunches calculation"
+    tmaskline="10";
+    print 'Warning: tmask_bunches.cfg not found, using "10" for Tmask bunches calculation'
   # VALID.BCMASKS:
-  fs= FilScheme("", alice, TmaskN=TmaskN); mask= fs.getMasks()
+  fs= FilScheme("", alice, tmaskline=tmaskline); mask= fs.getMasks()
   if empty1==1: fs.printmap()
   if empty1==2: fs.printmap(ctpmsk='+ACS')
   if empty1==3: fs.printmap(ctpmsk='ACSE')

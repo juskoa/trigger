@@ -78,8 +78,8 @@ class myThread (threading.Thread):
       sentrc= sock.sendto(message, addr)
       udpcount= udpcount+1
       #print "%s: %s sentrc:" % (time.ctime(time.time()), message), sentrc
-      if udpcount<4:   # log only firt few msgs
-        mylog.logm("%s: %s sentrc:%d" % (time.ctime(time.time()), message, sentrc))
+      #if udpcount<4:   # log only first few msgs
+      #  mylog.logm("%s: %s sentrc:%d" % (time.ctime(time.time()), message, sentrc))
 class web:
   def __init__(self):
     self.miclock='none'
@@ -156,7 +156,7 @@ def callback_manauto(auma):
   #if auma=='AUTO' or auma=='MANUAL':
   aumanz= rmzero(auma)
   #mylog.logm("callback_manauto:%s:%s:"%(auma,aumanz))
-  mylog.logm("callback_manauto:%s:"%(aumanz))
+  mylog.logm("SL interface mode:%s:"%(aumanz))
   WEB.clockchangemode= aumanz
   WEB.save()
 
@@ -235,7 +235,7 @@ def checkandsave(csf_string, fineshift="None", force=None):
   else:
     arg=("none",)
     res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-    #mylog.logm("DLL_RESYNC not started...")   # CJI
+    #mylog.logm("DLL_RESYNC after clock shift adjustement not started...")   # CJI
 def checkShift(what="s"):
   cshift= getShift(what)
   mylog.logm("checkShift: after 10 secs:"+ cshift)
@@ -310,7 +310,7 @@ def callback_bm(ecsbm):
       else:
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
-        #mylog.logm("DLL_RESYNC after clock shift NOT started...")   # CJI
+        #mylog.logm("DLL_RESYNC not started...")   # CJI
     mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP_NOSCOPE":   # never do this (no scope)
       if os.environ['VMESITE']=='ALICE':
@@ -430,7 +430,7 @@ Than start miclock again.
    LOCAL       	-change the ALICE clock to LOCAL
    getshift    	-display current clock shift
    reset       	-reset current clock shift to 0. ONLY ONCE! (wait 3 minutes after)
-   q            -quit this script
+   q            -quit this script (takes ~1 minute to exit)
 """)
       #%WEB.clockchangemode)
     except:
@@ -440,17 +440,21 @@ Than start miclock again.
     if (a!='q') and (a!='') and \
       (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
       (a!='getshift') and (a!='reset') and (a!='resetforce') and \
-      (a!='REF') and (a!='man') and (a!='auto') and (a!='show') :
+      (a!='REF') and (a!='man') and (a!='auto') and (a!='show') and (a!='dllresync') :
       mylog.logm('bad input:%s'%a) ; continue
     if a=='q': break
     if a=='': continue
     if a=='auto':
-      mylog.logm("Attempt to go to auto... Forbidden, no action")
+      mylog.logm("Attempt to go to auto... Forbidden (can be done from SL interface), no action")
       #WEB.clockchangemode='auto'
       #WEB.save()
+    elif a=='dllresync':
+      res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
+      mylog.logm("TTCMI/DLL_RESYNC sent")
     elif a=='man':
-      WEB.clockchangemode='MANUAL'
-      WEB.save()
+      mylog.logm("Attempt to go to manual... Forbidden (done from SL interface), no action")
+      #WEB.clockchangemode='MANUAL'
+      #WEB.save()
     elif a=='show':
       WEB.show()
     elif (a=='getshift'):
