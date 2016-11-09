@@ -40,9 +40,9 @@ def application(environ, start_response):
   myvar= "PATH_INFO:%s REMOTE_HOST:%s"%\
     (environ["PATH_INFO"], environ["REMOTE_HOST"])
   resp="???"
-  if (environ["REMOTE_HOST"]=="pcalicebhm11.cern.ch") or \
+  if (environ["REMOTE_HOST"]=="pcalicebhm11.dyndns.cern.ch") or \
      (environ["REMOTE_HOST"]=="alidcscom512.cern.ch") or \
-     (environ["REMOTE_HOST"]=="aldaqacr07.cern.ch"):
+     (environ["REMOTE_HOST"]=="arc27.cern.ch"):
     if environ["PATH_INFO"]=="/":
       resp= "form definititon with CTP controls here"
     elif environ["PATH_INFO"]=="/setbsy":
@@ -53,11 +53,11 @@ def application(environ, start_response):
       # return getfsdip.log? or rc ?
     elif environ["PATH_INFO"]=="/prtenv":
       #resp= None
-      body= prtenv(environ)
+      resp= prtenv(environ)
     else:
       resp= "uknown action:"+environ["PATH_INFO"]
   else:
-    resp= "required action can be done only from trigger desktop machine (%s)"%(environ["REMOTE_HOST"])
+    resp= "required action can be done only from trigger desktop machine (not from %s)"%(environ["REMOTE_HOST"])
   #
   if resp==None:
     body= prtenv(environ)
