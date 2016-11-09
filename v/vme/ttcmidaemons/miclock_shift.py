@@ -297,7 +297,8 @@ def callback_bm(ecsbm):
       getfsdip.main("act")
   cshift= getShift()
   if WEB.miclock==expclock:
-    if bmname=="SQUEEZE":
+    #if bmname=="SQUEEZE":
+    if bmname=="ADJUST":   # from 7.11.2016 15:45 we use ADJUST
       if cshift!='old':
         if False:
           mylog.infolog("SQUEEZE: clock shift correction disabled",level='w')

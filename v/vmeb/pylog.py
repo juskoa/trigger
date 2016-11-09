@@ -1,13 +1,18 @@
 #!/usr/bin/python
-import os,os.path,time,subprocess,string
+import os,os.path,time,subprocess,string,types
 def iopipe(cmd, grep=''):
    #print "popen2("+cmd+")"
    #iop= popen2.popen2(cmd, 1) #0- unbuffered, 1-line buffered
-   p= subprocess.Popen(string.split(cmd), bufsize=1,
+   if type(cmd)==types.ListType:
+     cmdl= cmd
+   else:
+     cmdl= string.split(cmd)
+   p= subprocess.Popen(cmdl, bufsize=1,
      stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
    iop= (p.stdout, p.stdin)
    line=''
    if iop:
+     #print "pylog.iopipe ioplen:",len(iop)    (2)
      if grep=='1':
        line= iop[0].readline()
      elif grep!='':   # return 1st line starting with given string
@@ -16,6 +21,8 @@ def iopipe(cmd, grep=''):
          if line =='': break
          if string.find(line, grep)==0:
            break
+     else:            # return array of stdout lines
+       line= iop[0].readlines()
      iop[0].close()
      iop[1].close()
    return line
@@ -92,8 +99,9 @@ class Pylog:
       #iopipe("/opt/infoLogger/log -%s %s"%(level, msg))
       #iopipe("infologger.sh -%s '%s'"%(level, msg))
       #iopipe("infologger.sh -%s '%s'"%(level, msg))
-      iopipe("cat /dev/null | /opt/infoLogger/log -f CTP -l OPS %s -s %s '%s'"%\
-        (part, level, msg))
+      # seems not ok from getfsdip.py  with cat (ok from cmdline )
+      #iopipe("cat /dev/null | /opt/infoLogger/log -f CTP -l OPS %s -s %s '%s'"%\
+      iopipe(['/opt/infoLogger/log', '-f', 'CTP', '-l', 'OPS', part, '-s', level, '%s'%msg])
     self.logm("%s:%s: %s"%(level, partition, msg))
 def main(argv):
   if len(argv) < 2:

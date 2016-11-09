@@ -30,7 +30,7 @@ def main(action):
       else: action='test'
   if os.environ['VMESITE'] == 'ALICE':
     #cmd= os.path.join(os.environ["VMECFDIR"], "filling/linux/fill2file")
-    cmd= os.path.join(os.environ["VMECFDIR"], "pydim//fsclient.py")
+    cmd= os.path.join(os.environ["VMECFDIR"], "pydim/fsclient.py")
     #mylog.infolog("reading filling scheme from DIP...")
     dipout= string.split(pylog.iopipe(cmd, "fs "))
   else:
@@ -76,12 +76,12 @@ def main(action):
     alice= lhc2ctp.bu2bcstr(ee, schname, format="from dip")
     lsf= open(schname+".alice","w"); lsf.write(alice); lsf.close;
     if os.path.exists("../tmask_bunches.cfg"):
-      lsf= open("../tmask_bunches.cfg","r"); TmaskN= int(lsf.readline()); lsf.close;
-      mylog.infolog("ACT parameter Tmask bunches: %d"%TmaskN)
+      lsf= open("../tmask_bunches.cfg","r"); tmaskline= lsf.readline(); lsf.close;
+      mylog.infolog("ACT parameter Tmask bunches: %s"%tmaskline)
     else:
-      TmaskN=80;
-      mylog.infolog("tmask_bunches.cfg not found, using %d for Tmask bunches calculation"%TmaskN, level='w')
-    mask= lhc2ctp.FilScheme("", alice,TmaskN=TmaskN); mask= mask.getMasks()
+      tmaskline="80";
+      mylog.infolog("tmask_bunches.cfg not found, using %s for Tmask bunches calculation"%tmaskline, level='w')
+    mask= lhc2ctp.FilScheme("", alice,tmaskline=tmaskline); mask= mask.getMasks()
     lsf= open(schname+".mask","w"); lsf.write(mask); lsf.flush(); lsf.close;
     #os.fsync()
     #
