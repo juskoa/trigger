@@ -4,6 +4,7 @@
 #
 # 26.4.2015 CTPDIM/BEAMMODE replaced by ALICEDAQ_LHCBeamMode (100chars)
 #  5.11.2015 DLL RESET enabled (2x: in checkandsave + SQUEEZE)
+# 17.11.2016  we use SQUEEZE again (not ADJUST) for clockshift adjustment
 import sys,os,os.path,string,pylog
 import signal,time,subprocess,threading,socket
 
@@ -297,8 +298,8 @@ def callback_bm(ecsbm):
       getfsdip.main("act")
   cshift= getShift()
   if WEB.miclock==expclock:
-    #if bmname=="SQUEEZE":
-    if bmname=="ADJUST":   # from 7.11.2016 15:45 we use ADJUST
+    if bmname=="SQUEEZE":
+    #if bmname=="ADJUST":   # from 7.11.-17.11. 2016 15:45 we used ADJUST
       if cshift!='old':
         if False:
           mylog.infolog("SQUEEZE: clock shift correction disabled",level='w')
@@ -335,7 +336,7 @@ def callback_bm(ecsbm):
         wf='f'
       else:
         wf='w'
-      mylog.infolog( "BEAM MODE:%s, clock %s not correct. miclock mode:%s"%\
+      mylog.infolog( "BEAM MODE:%s, clock %s not correct. ALICE/LHC/TTCMI/CLOCK_MODE:%s"%\
       (bmname, WEB.miclock,WEB.clockchangemode), level='w')
     if WEB.clockchangemode=='AUTO_NEVERCHANGE':  # it is on lhcint now to change th clock
       # change clock
@@ -443,13 +444,16 @@ Than start miclock again.
       (a!='getshift') and (a!='reset') and (a!='resetforce') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') and (a!='dllresync') :
       mylog.logm('bad input:%s'%a) ; continue
-    if a=='q': break
+    if a=='q': 
+      print "wait a minute until stop done properly..."
+      break
     if a=='': continue
     if a=='auto':
       mylog.logm("Attempt to go to auto... Forbidden (can be done from SL interface), no action")
       #WEB.clockchangemode='auto'
       #WEB.save()
     elif a=='dllresync':
+      arg=("none",)
       res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
       mylog.logm("TTCMI/DLL_RESYNC sent")
     elif a=='man':

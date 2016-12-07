@@ -19,5 +19,6 @@ fi
 #ls -lt ctp_proxy*.log |head -$lastn
 echo "pars: $# examining file: $clog"
 echo
-grep -e '^SMIRTL' $mine $extpat1 $clog |grep -v 'state EXECUTING'
-echo grep -e '^SMIRTL' $mine \'$extpat1\' $clog \| grep -v 'state EXECUTING'
+grep -e '^SMIRTL' $mine $extpat1 $clog |grep -v 'state EXECUTING' | grep -v 'in state RUNNING'
+echo grep -e '^SMIRTL' $mine \'$extpat1\' $clog \| grep -v 'state EXECUTING' -v 'in state RUNNING'
+

@@ -53,7 +53,7 @@ def main(action):
     bcdip= int(dipout[3])
     bcwritten= int(dipout[4])
     mylog.infolog("DIP: %s %d/%d bunches"%(dipout[1], bcdip, bcwritten))
-    if bcwritten<1:
+    if bcwritten<2:   #was 1 before fill 5533 (23.11.2016  18:34)
        mylog.infolog("Trying to get filling scheme from DIP: no BCs published", level='w')
        rc=2
     else:
