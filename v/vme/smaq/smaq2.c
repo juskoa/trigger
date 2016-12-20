@@ -13,6 +13,7 @@ two new features:
 send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 22.9. shmaccess (or malloc) added
 14.11. compile/link ok (mainly symbolic links created)
+16.11.2016 -mypid printed, help exteneded: DO NOT USE CTRL-C
 */
 #include <stdio.h>
 #include <unistd.h>    /* usleep */
@@ -36,7 +37,7 @@ send 'bobr' DIM command to ACR07/BOBR server running on aldaqacr07 machine
 #include "ssmctp.h"
 #include "intint.h"
 
-int quit=0;
+int quit=0, mypid;
 char dirname[40]="last";
 char SMAQ_C[20]="";
 void getdatetime(char *);
@@ -716,7 +717,10 @@ printf("Expected: one argument - input number\n\
 input number: CTPnumber (i.e.1..24), not switch number\n\
 ");
 printf("$SMAQDATA:\"%s\"\n\
-in case it is empty string: do not scp/rm dump files.\n", dirname);
+in case it is empty string: do not scp+rm dump files.\n\
+\n\
+STOP: use kill -s USR1 %d (or smaq kill)\n\
+      DO NOT USE CTRL-C !", dirname, mypid);
 }
 /*********************************************************
 */
@@ -735,6 +739,7 @@ datadir= getenv("SMAQDATA");
 if(datadir !=NULL) {
   strcpy(dirname, datadir);
 };
+mypid= getpid();
 if(argc != 2){
   printhelp();
   return 1;
@@ -744,7 +749,10 @@ if(((inpnum<1 )|| (inpnum>48)) && ((inpnum<101 )|| (inpnum>148)) &&
    ((inpnum<51 )|| (inpnum>74)) ){
   printhelp();
   return 2;
- }
+}; 
+printf("\n\
+STOP ssm reading using: kill -s USR1 %d (or smaq kill)\n\
+     DO NOT USE CTRL-C !", mypid);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 initSMAQ();
 inputsSMAQ(0,inpnum);

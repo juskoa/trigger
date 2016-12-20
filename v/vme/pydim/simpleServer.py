@@ -48,7 +48,7 @@ def main(servicename):
     mylog("No Dim DNS node found. Please set the environment variable DIM_DNS_NODE")
     sys.exit(1)
   mypid= str(os.getpid())
-  mylog.logm("dns:%s mypid:%s"%(pydim.dis_get_dns_node(), mypid))
+  mylog.logm("dns:%s service:%s mypid:%s"%(pydim.dis_get_dns_node(), servicename, mypid))
   if servicename=="simpleServer":
     scopes = pydim.dis_add_service("simpleServer", "C", scope_cb, 33)
   else:
@@ -56,7 +56,7 @@ def main(servicename):
   # A service must be updated before using it.
   print "Updating the services ..."
   pydim.dis_update_service(scopes)
-  pydim.dis_start_serving("example of simple server")
+  pydim.dis_start_serving(servicename)
   mylog.logm("Starting the server "+servicename)
   a=""
   if servicename!="simpleServer":
