@@ -551,7 +551,7 @@ void cshmDelPartition(char *part);
 void cshmPausePartition(Tpartition *part);
 w32 cshmQueryPartition(Tpartition *part);
 void cshmResumePartition(Tpartition *part);
-int cshmGlobalDets();
+int cshmGlobalDets(w32 *det2runn);
 int cshmsetLUT(int lutn, char *m4);
 int cshmgetLUT(int lutn, char *m4);
 int cshmsetintLUT(int lutn, char *m4);

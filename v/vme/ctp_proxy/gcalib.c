@@ -48,10 +48,10 @@ typedef struct t {
 } Ttime;
 typedef struct ad {
   int deta;   //-1:not active, 1:active
-  int period;      // in ms (the planning of next c. trig.). 0:NO GLOB. CALIBRATON
+  int periodms;      // in ms (the planning of next c. trig.). 0:NO GLOB. CALIBRATON
   int calbc;       // 3556->3011 from 31.3.2011 (or from ltu_proxy)
   int roc;         // Readout COntrol (3 bits)
-  int past_prot, future_prot;
+  w32 runn, daqperiod; // while deta active, daqperiod keeps updated with each orbit wrap
   char name[12];
   Ttime caltime;   //time of next cal. trigger. secs=0: not initialised
   Ttime lasttime;  //time of last cal. trigger. secs=0: not initialised
@@ -122,7 +122,7 @@ while(fgets(line, MAXLINELENGTH, gcalcfg)){
     if(token==tINTNUM) {         // period in ms
       milsec= str2int(value);
     } else {strcpy(em1,"bad period (integer expected ms) in gcalib.cfg"); goto ERR; };
-    ACTIVEDETS[det].period= milsec;
+    ACTIVEDETS[det].periodms= milsec;
     token=nxtoken(line, value, &ix);
     if(token==tINTNUM) {         // roc (decimal)
       roc= str2int(value);
@@ -130,7 +130,7 @@ while(fgets(line, MAXLINELENGTH, gcalcfg)){
     } else if(token != tEOCMD) {
       strcpy(em1,"bad ROC (0-7 expected) in gcalib.cfg"); goto ERR;
     };
-    sprintf(em1,"gcalib.cfg:%s %d %d", ACTIVEDETS[det].name, ACTIVEDETS[det].period,
+    sprintf(em1,"gcalib.cfg:%s %d %d", ACTIVEDETS[det].name, ACTIVEDETS[det].periodms,
       ACTIVEDETS[det].roc);
     prtLog(em1);
   } else {strcpy(em1,"LTU name expected"); goto ERR; };
@@ -168,20 +168,21 @@ if(ACTIVEDETS[ix].deta!=-1) {
   strcpy(active,"NOT ACTIVE");
 };
 sprintf(msg, "%2d: %s %s. rate:%d ms. attempts/sent:%d/%d", 
-  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
+  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].periodms,
   ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 prtLog(msg);
 }
-/*--------------------*/int addDET(int det) {
+/*--------------------*/int addDET(int det, w32 runn) {
 int rc=0; //OK:added or was added already. 1:not added
 printf("addDET:%d %s\n",det, ACTIVEDETS[det].name);
-if( ACTIVEDETS[det].period==0) {
+if( ACTIVEDETS[det].periodms==0) {
   printf("addDET:WARN %d not configured for global calibration\n",det); rc=1;
 } else if(ACTIVEDETS[det].deta==1) {
   printf("addDET:WARN %d already active\n",det);
 } else {
   //int bc;
   ACTIVEDETS[det].deta= 1; 
+  ACTIVEDETS[det].runn= runn; 
   ACTIVEDETS[det].sent= 0; ACTIVEDETS[det].attempts= 0; 
   ACTIVEDETS[det].caltime.secs= 0;   // unset
   ACTIVEDETS[det].caltime.usecs= 0;
@@ -213,10 +214,11 @@ only at start!)
 rc: number of active detectors
 --------------------*/int shmupdateDETs() {
 int ix,gdets; int actdets=0;
-gdets= cshmGlobalDets();
+w32 det2runn[NDETEC];
+gdets= cshmGlobalDets(det2runn);
 for(ix=0; ix<NDETEC; ix++) {
-  if(ACTIVEDETS[ix].period==0) continue;  // not to be calibrated (according to .cfg)
-  if(ACTIVEDETS[ix].deta==-1) {   //not active check if in global run
+  if(ACTIVEDETS[ix].periodms==0) continue;  // not to be calibrated (according to .cfg)
+  if(ACTIVEDETS[ix].deta==-1) {   //not active, check if in global run
     if((gdets & (1<<ix))==(1<<ix)) {
       if(ix==T00) {   // T0
         //w32 beammode;
@@ -226,7 +228,7 @@ for(ix=0; ix<NDETEC; ix++) {
           continue;       // we do not want to calibrate T0 during  STABLE EBAMS
         };
       }
-      if(addDET(ix)==0) actdets++;
+      if(addDET(ix, det2runn[ix])==0) actdets++;
     };
   } else {   // ix is active
     printf("updateDETS:active det:%d\n", ix);
@@ -256,7 +258,9 @@ int ix,bc,det;
 // 1st phase -very first defaults
 for(ix=0; ix<NDETEC; ix++) {
   ACTIVEDETS[ix].deta=-1;
-  ACTIVEDETS[ix].period=0;   // no cal. triggers
+  ACTIVEDETS[ix].runn= 0;
+  ACTIVEDETS[ix].daqperiod= 0;
+  ACTIVEDETS[ix].periodms=0;   // no cal. triggers
   ACTIVEDETS[ix].roc=0;
   ACTIVEDETS[ix].calbc=3011;     // was 3556 till 31.3.2011
   if(ctpshmbase->validLTUs[ix].name[0] != '\0'){
@@ -265,13 +269,13 @@ for(ix=0; ix<NDETEC; ix++) {
     strcpy(ACTIVEDETS[ix].name,"nocalib");
   };
 };NACTIVE=0;
-ACTIVEDETS[SDD].period=0;    // todo: exception: 1 means: 3 triggs (3x50ms) spaced 15*60000ms
-ACTIVEDETS[TOF].period=0;  // 200;
-ACTIVEDETS[MTR].period=0; // 33000
-ACTIVEDETS[T00].period=0;  // 1000;
-ACTIVEDETS[ZDC].period=0;    // 10000;
-ACTIVEDETS[EMC].period=0;  // 2000 (1000 .. 5000)
-ACTIVEDETS[DAQ].period=0;
+ACTIVEDETS[SDD].periodms=0;    // todo: exception: 1 means: 3 triggs (3x50ms) spaced 15*60000ms
+ACTIVEDETS[TOF].periodms=0;  // 200;
+ACTIVEDETS[MTR].periodms=0; // 33000
+ACTIVEDETS[T00].periodms=0;  // 1000;
+ACTIVEDETS[ZDC].periodms=0;    // 10000;
+ACTIVEDETS[EMC].periodms=0;  // 2000 (1000 .. 5000)
+ACTIVEDETS[DAQ].periodms=0;
 /*strcpy(ACTIVEDETS[SDD].name, "SDD");
 strcpy(ACTIVEDETS[TOF].name, "TOF");
 strcpy(ACTIVEDETS[MTR].name, "MTR");
@@ -292,7 +296,7 @@ if(bc>0) {
   printf("ERROR: cannot contact %s(%d) ltu proxy.CALIBBC set to:%d\n",
     ACTIVEDETS[det].name, det, ACTIVEDETS[det].calbc);
 };
-// 3rd phase: period (and roc?) from $dbctp/gcalib.cfg
+// 3rd phase: periodms (and roc?) from $dbctp/gcalib.cfg
 read_gcalibcfg();
 }  
 /*---------------------------------------------*/ void printDETS() {
@@ -332,12 +336,14 @@ for(ix=0; ix<NDETEC; ix++) {
 }
 /*--------------------*/ int globalcalDET(int det){ 
 int gdets; int rc=0;
-gdets= cshmGlobalDets();
+w32 det2runn[NDETEC];
+gdets= cshmGlobalDets(det2runn);
 if((gdets & (1<<det))==(1<<det)) rc=1;
 return(rc);
 }
 /*--------------------*/ void calthread(void *tag) {
 Ttime ct,deltaTtime; w32 delta; int sddburst=0;
+w32 orbitn_last= -1;
 //printf("calthread:\n");
 threadactive=1;
 if(DBGCMDS) {
@@ -374,6 +380,13 @@ while(1) {
         continue;
       };
       ACTIVEDETS[ndit].attempts++;
+      if(orbitn > orbitn_last) {
+        orbitn_last= orbitn;
+      } else {
+        orbitn_last= orbitn;
+        // change ACTIVEDETS[ix].daqperiod for all active dets:
+        // later...
+      };
     } else {
       rcgt=0; // cal. trigger not generated (disabled during start/stop part)
     };
@@ -397,7 +410,7 @@ while(1) {
     }; */
   };
   // the planning of next cal. trigger for ndit detector:
-  // NextTime= CurrentTime + period[ndit] i.e.
+  // NextTime= CurrentTime + periodms[ndit] i.e.
   // IS THE SAME IN EITHER CASE (successful or unsuccsessful)
   if( ACTIVEDETS[ndit].caltime.secs==0) {   // wait 2 secs before 1st cal. event
     char msg[200];
@@ -405,7 +418,7 @@ while(1) {
     prtLog(msg);
     deltaTtime.secs=2; deltaTtime.usecs=0;
   } else {
-    deltaTtime.secs=0; deltaTtime.usecs=1000*ACTIVEDETS[ndit].period;
+    deltaTtime.secs=0; deltaTtime.usecs=1000*ACTIVEDETS[ndit].periodms;
   };
   if(ndit==SDD) {   // SDD 3x50ms every 15minutes
     sddburst++;
@@ -500,7 +513,7 @@ if(token==tSYMNAME) {
       if(token == tINTNUM) {
         det= str2int(value);
         if(adddel=='a') {
-          rc= addDET(det);
+          rc= addDET(det, 0);
         } else {
           rc= delDET(det);
         };

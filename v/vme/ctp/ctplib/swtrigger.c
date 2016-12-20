@@ -413,7 +413,8 @@ if(detectors & 0x20000) {
   detectors= detectors & (~0x20000);
 };
 if(trigtype=='c') {
-  status= cshmGlobalDets();
+  w32 det2runn[NDETEC];   // not used here, just to satisfy next call...
+  status= cshmGlobalDets(det2runn);
   //if(strcmp("ALICE", getenv("VMESITE"))==0) 
   if(strcmp("ALICE", "ALICE")==0) {
     if((status & detectors)!=detectors) {
@@ -431,7 +432,7 @@ if(trigtype=='c') {
 };
 lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig(trigtype,roc,BC,detectors)!=0) {
-  l2a=0; goto RELEASERET; //return 0;
+  l2a=0; goto RELEASERET;
 };
 #ifdef SIMVME
 l2a++ ; goto RELEASERET;
@@ -445,7 +446,7 @@ while(((itr<ntriggers) && ((flag=startswtrig(&orbitnloc))))){
   else if(flag ==10)lm++;
   else {
     printf(" GenSwtrg: unexpected flag %i\n",flag);
-    goto RELEASERET; //return l2a;
+    goto RELEASERET;
   }
   itr++;
   //usleep(60000000);
@@ -472,51 +473,17 @@ if(DBGswtrg4) {
   printf("lm, l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
 };
 TRIGTYPE='.';
-// return i;
-return l2a;
+if((trigtype=='c') && (ntriggers==1)) {
+  // 1 calib. event, i.e. special RC: 0xffffff00 + flag
+  // flag 0x4: ok -full cal. event successfully generated
+  //           see startswtrig() for possible flags
+  return(0xffffff00 | flag);
+} else {
+  return l2a;
+};
 }
 /* see ctplib.h */
 int  GenSwtrg_op(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors) {
 w32 orbitn;
 return(GenSwtrg(ntriggers, trigtype, roc, BC, detectors, 2, &orbitn ));
 }
-/* called only in case of problem with gcalib. Idea: print
-out (vmew32f()) all vme access */
-/*von
-int GenSwtrg2(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, int customer ){
-int itr=0;
-int l0=0,l1=0,l2a=0,l2r=0;
-w32 status;
-status=vmer32(L0_TCSTATUS);
-if((status&0x10)==0x10){
-  printf(" GenSwtrg: TC busy. L0 TC_STATUS:0x%x\n", status);
-  return 0;
-}
-if(detectors & 0x20000) {
-  printf("GenSwtrg: CTP (ECS number 17) cannot be sw triggered, bit17 removed\n");
-  detectors= detectors & (~0x20000);
-};
-if(trigtype=='c') {
-  status= cshmGlobalDets();
-  if((status & detectors)!=detectors) {
-    printf("GenSwtrg: calibrated dets:%x but dets in global run(s):%x\n", 
-      detectors,status);
-    return 12345678;   //magic used in ctp/testclass.py
-  };
-};
-lockBakery(&ctpshmbase->swtriggers, customer);
-if( setswtrig2(trigtype,roc,BC,detectors)!=0) {
-  l2a=0; goto RELEASERET; //return 0;
-};
-RELEASERET:
-unlockBakery(&ctpshmbase->swtriggers, customer);
-if(DBGswtrg2) {
-  printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
-    itr,trigtype, detectors);
-  printf("l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
-};
-TRIGTYPE='.';
-// return i;
-return l2a;
-}
-*/
