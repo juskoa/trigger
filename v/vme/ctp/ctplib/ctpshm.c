@@ -144,7 +144,7 @@ for(i=0;i<MNPART;i++){
     printDetector2Clust(&shmpart[i].Detector2Clust[0]);
   };
 };
-printf("Detectors in global runs:%x i.e.:\n  ", cshmGlobalDets(det2runn));
+printf("Detectors in global runs:%x i.e. det:runn...:\n  ", cshmGlobalDets(det2runn));
 for(i=0; i<NDETEC; i++) {
   if(det2runn[i]!=0) printf("%d:%d ", i, det2runn[i]);
 };

@@ -118,6 +118,11 @@ int setswtrig(char trigtype, int roc, w32 BC, w32 ctprodets){
 w32 daqonoff, word, INTtcset, busyclusterT, overlap, bsysc[NCLUST+1];
 int rc=0, i, idet, ifo, iconnector;
 w32 testclust[NFO],rocs[NFO];
+/* following 3 lines are in gcalib.c 
+#ifdef SIMVME
+srand(73);
+#endif
+*/
 #define TRDECSM 0x10
 if( (((BC>3563) && (BC!=0xfff)) && (trigtype !='a')) 
   ){
@@ -305,6 +310,8 @@ Operation:
           8 = bad request (neither of: c s a)
           9 = LM request timeout
          10 = killed at LM
+         11 = setswtrig did not went through (GenSwtrg)
+   orbitn[3]: orbitN tsec tusec   (only for 'c', for others, only orbitN
 */
 char reason[9][40]={"Fail", "killed at L0", "killed at L1", "L2r", "OK",
   "PP timeout", "L0 timeout", "L2a/r timeout","bad TRIGTYPE (!= c s a)"};
@@ -313,8 +320,18 @@ int startswtrig(w32 *orbitn){
  int ret,i;
 //w32 itime=0,time[20]; 
 //time[itime++]=CountTime();
+#ifdef SIMVME
+// set orbitn, rnd ret
+*orbitn= rand() & 0xffffff;
+ret= *orbitn & 0x1f; if(ret>10) ret=4;   //i.e. most probably L2a ok
+if(TRIGTYPE == 'c') { // set orbitn[1,2]
+  GetMicSec(&orbitn[1], &orbitn[2]);
+};
+goto RETERR;
+#endif
 *orbitn= vmer32(L2_ORBIT_READ); vmew32(L0_TCSTART,0); 
 if(TRIGTYPE == 'c'){ i=0;
+  GetMicSec(&orbitn[1], &orbitn[2]);
   while(getPPrqst() && i<TIMEOUT)i++;
   if(i>=TIMEOUT){
     ret=5; goto RETERR;
@@ -373,7 +390,7 @@ if(flag == 4){         // L2r ack
 }else if(flag == 8){   // L2a ack
   ret= 4; goto RET;
 }else{
-  printf("startswtrig: FAIL, flag=%i %i I should never be here.\n",flag,i);
+  printf("startswtrig: FAIL, flag=%i should never be here (i=%d).\n",flag,i);
   return 0; // there should be l2a or l2r 
 }
  // Time
@@ -389,16 +406,18 @@ return(ret);
 }
 int msgpres=0;
 /* ------------------------------------------------------------ GenSwtrg 
-orbitn: orbit number read just before the first trigger generation, i.e.
+orbitn[0]: orbit number read just before the first trigger generation, i.e.
         it is always <= of ORBITID of the sw. trigger event
+orbitn[1,2]: tsec tusec -ONLY IN CASE OF 'c' trigger !
 RC: number of L2a successfully generated, or
-    12345678: cal. triggers stopped becasue det. is not in global run
+    12345678: cal. triggers stopped because det. is not in global run or
+    0xffffffxx: where xx is flag (see above). ONLY IN CASE of one 'c' trigger
 */
 int  GenSwtrg(int ntriggers,char trigtype, int roc, w32 BC,w32 detectors, 
               int customer, w32 *orbitn ){
 int flag,itr=0;
 int l0=0,l1=0,l2a=0,l2r=0, lm=0;
-w32 status, orbitnloc;
+w32 status, orbitnloc[3];
 if(l0C0()) {
   status=vmer32(L0_TCSTATUS);
 } else {
@@ -432,13 +451,15 @@ if(trigtype=='c') {
 };
 lockBakery(&ctpshmbase->swtriggers, customer);
 if( setswtrig(trigtype,roc,BC,detectors)!=0) {
-  l2a=0; goto RELEASERET;
+  l2a=0; flag=11; goto RELEASERET;
 };
-#ifdef SIMVME
-l2a++ ; goto RELEASERET;
-#endif
-while(((itr<ntriggers) && ((flag=startswtrig(&orbitnloc))))){
-  if(itr==0) *orbitn= orbitnloc;
+while(((itr<ntriggers) && ((flag=startswtrig(orbitnloc))))){
+  if(itr==0) {
+    *orbitn= orbitnloc[0];
+    if(trigtype == 'c') {   // also time in case of cal. trigger
+      orbitn[1]= orbitnloc[1]; orbitn[2]= orbitnloc[2];
+    };
+  };
   if(flag == 1)l0++;
   else if(flag == 2)l1++;
   else if(flag == 3)l2r++;
@@ -470,7 +491,7 @@ unlockBakery(&ctpshmbase->swtriggers, customer);
 if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
-  printf("lm, l0,l1,l2r,l2a: %i %i %i %i \n",l0,l1,l2r,l2a);
+  printf("flag lm/l0,l1,l2r,l2a: %i %i %i %i \n",flag,l0,l1,l2r,l2a);
 };
 TRIGTYPE='.';
 if((trigtype=='c') && (ntriggers==1)) {

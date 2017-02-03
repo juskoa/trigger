@@ -2684,9 +2684,14 @@ if((getPartitionsN(AllPartitions)==0) && strcmp(name,"PHYSICS_1")==0) {
 }; */
 infolog_SetStream(name, run_number);
 if(readOrbit(1000)>0) {
-  sprintf(msg, "DDL2 Orbit unsynced, reconfigure CTP and start the run again");
-  infolog_trgboth(LOG_ERROR, msg); 
-  rc=6; goto RETX;
+  if(cshmGlobFlag(FLGignoreDAQRO)) {
+    sprintf(msg, "DDL2 Orbit unsynced ignored (NODAQRO option)");
+    infolog_trgboth(LOG_ERROR, msg); 
+  } else {
+    sprintf(msg, "DDL2 Orbit unsynced, reconfigure CTP and start the run again");
+    infolog_trgboth(LOG_ERROR, msg); 
+    rc=6; goto RETX;
+  };
 } else {
   infolog_trgboth(LOG_INFO, "DDL2 Orbit ok");
 };
@@ -2937,7 +2942,7 @@ UNSETRET:
   copyHardware(&HW,&HWold);
   unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
   deletePartitions(part); part=NULL;
-  gcalibUpdate();
+  // gcalibUpdate();  commented out 8.1.2017
   goto RET;  //UNSETRETadb;
 }
 

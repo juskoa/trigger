@@ -13,12 +13,12 @@ EMC requirement is to disable such cases (e.g. in run 263866 there were
 Possible solutions:
 1. Disable A-(C-)masks between pre-pulse and calibration BCs.
 2. Use a special L0 input for calibration triggers
-3. raise CTP busy (using sw) after issuing pre-pulse to make sure HW triggers
+3. raise CTP busy (using sw) in time of pre-pulse to make sure HW triggers
    do not kill calib. triggers.
   - All/Rare mechanism, or raise cluster busy?
 4. gcalib daemon writes info about all the pre-pulses 
    in the output file for each global run.  Using this file, 
-   LED-events (especially those not followed by CL0) can
+   LED-events (the ones not followed by CL0) can
    be filtered out in offline data.
 
 Todo:
@@ -29,12 +29,9 @@ Todo:
 
 todo (step 4.):
 - ctp_proxy/gcalib.c
-  - introduce 'period' counting (solely in gcalib)
-    0: at SOD, initialise orbitn_last -> will be used for period++
-    - see orbitn_last, daqperiod, seems at SOD we need
-      to store ACTIVEDETS[ix].daqperiod =0 and orbit_sod= current orbit,
-      and then to keep actual daqperiod+orbit for each calibrated detector.
-   'todo later...'
+  - introduce 'period' counting (solely in gcalib), as done in DAQ
+    NOT DONE. tsec+usec will be written instead together with orbitn
+   
   - introduce run# for each detector
     1. from redis db or 
     2. change cshmGlobalDets: seems better to modify cshmGlobalDets returning 
@@ -50,13 +47,73 @@ todo (step 4.):
     rc new: valid in case of 1 CL0 trigger only!
     flag 1..10 (4 ok)   -i.e. RC is: 0xffffff00 | flag
     done 19.12.2016 (special RC in case of 'one calib trigger'
-  - open file ppN.data for each run if at least 1 cal. detector is in
-    maybe: 'only if emcal is in' ?
-  - write one line for each cal. event: 
-    det period orbitid rc
-  - close at EOD
+  - new DFS: done in main. 
+    delete DFS:  done in main
+  - open file WORK/pp_N.data for each run if at least 1 cal. detector active
+    in addDET() using findoralloc_df method.
+    done 
+    note: maybe 'only if emcal is in'? (not done)
+  - write one line for each cal. event (in calthread() after GenSwtrg ): 
+    det tsec tusec orbitid rc
+    where rc: 4: ok
+    done
+  - close at EOD, i.e. in delDET()
+    done
 - swtrigger.c   -modify startswtrig() to return meaningfull rc 
   (as said  above for GenSwtrg)
 - modify all programs checking rc from GenSwtrg() -probably
   not needed ( one CL0 generated ONLY from gcalib.c)
+Seems working, 17.1.2017 on aj@11:
+[aj@pcalicebhm11 vme]$ tail pp_9.data
+7 587d0245 7a542 eae84f 4
+6 587d0246 53 e21b73 4
+7 587d0246 476 a34262 2
+7 587d0246 7a5f1 9ae43d 4
+7 587d0247 52d bd69d4 4
+7 587d0247 7a6a0 4e0652 4
+6 587d02a6 f07ab a67610 4
+7 587d02a6 f07c9 77d83c 4
+7 587d02a7 76702 3f505b 4
+7 587d02a7 f0875 6f578b 4
+
+17.01.2017 15:50:08: calthread start. DFS.ffala:1
+17.01.2017 15:50:08: 1st planning:HMPID          1484664608     835937
+17.01.2017 15:50:08: 1st planning:PHOS   1484664608     835950
+...
+17.01.2017 15:53:03: close_df: closing det:7
+17.01.2017 15:53:03:  7: PHOS NOT ACTIVE. rate:500 ms. fileix:0 attempts/sent:359/255
+close_df: det:6 already closed.
+17.01.2017 15:53:03:  6: HMPID NOT ACTIVE. rate:2000 ms. fileix:0 attempts/sent:88/53
+17.01.2017 15:53:03: calthread stop.
+grep '^6 ' pp_10.data |wc
+88
+grep '^6 ' pp_10.data | grep '4$' |wc
+     53     265    1374
+grep '^7 ' pp_10.data |wc
+    359    1795    9299
+grep '^7 ' pp_10.data | grep '4$' |wc
+    255    1275    6607
+ok
+todo: test on altri1
+
+=== aj@11:
+Allow ssh .pcfg -> ctp machine:
+allowmeon.bash aj localhost
+echo $DIM_DNS_NODE (pcald30)
+
+redis:
+alias redisstart='cd $VMEWORKDIR/WORK/REDIS; $REDIS/src/redis-server trgredis.conf'
+redisstart    (needs ~/v/vme/WORK/REDIS/... )
+
+smicmd TRIGGER
+[aj@pcalicebhm11 WORK]$ tail -f smicmd.log 
+LOAD_FAILURE -> ack, ERROR -> reset
+
+startClients.bash pydim start
+ctpproxy.sh startnd
+
+$dbctp/gcalib.cfg
+[aj@pcalicebhm11 vme]$ /home/aj/git/trigger/v/vme/ctp_proxy/linux/gcalib.exe 
+hmpidphos.partition
+
 
