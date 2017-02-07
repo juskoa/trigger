@@ -85,9 +85,14 @@ ctpshmbase->GlobalFlags= ctpshmbase->GlobalFlags | ((newbm<<8) & FLGBMmask);
 }
 /*---------------------------------------------------cshmGlobalDets()
 rc: mask of all detectors in all global runs (paused partitions EXCLUDED)
+det2runn[detn]: run number  (0 if detector not included in glboal run)
 */
-int cshmGlobalDets() {
+int cshmGlobalDets(w32 *det2runn) {
 int i,gdets=0; Tpartitionshm *shmpart;
+//w32 det2runn[NDETEC];
+for(i=0;i<NDETEC;i++){
+  det2runn[i]= 0;
+};
 shmpart= &ctpshmbase->startedParts[0];
 for(i=0;i<MNPART;i++){ 
   int id;
@@ -97,6 +102,7 @@ for(i=0;i<MNPART;i++){
     w32 logclu;
     logclu= shmpart[i].Detector2Clust[id];
     if(logclu==0) continue;
+    det2runn[id]= shmpart[i].run_number;
     gdets= gdets | (1<<id);
   };
 }; return(gdets);
@@ -105,6 +111,7 @@ for(i=0;i<MNPART;i++){
 */
 void cshmPrint() {
 int i; Tpartitionshm *shmpart;
+w32 det2runn[NDETEC];
 shmpart= &ctpshmbase->startedParts[0];
 printf("VALID.LTUS:\n");
 for(i=0;i<NDETEC;i++){ 
@@ -137,8 +144,11 @@ for(i=0;i<MNPART;i++){
     printDetector2Clust(&shmpart[i].Detector2Clust[0]);
   };
 };
-printf("Detectors in global runs:%x\n", cshmGlobalDets());
-printf("l0f1..4 lm1..4:\n");
+printf("Detectors in global runs:%x i.e. det:runn...:\n  ", cshmGlobalDets(det2runn));
+for(i=0; i<NDETEC; i++) {
+  if(det2runn[i]!=0) printf("%d:%d ", i, det2runn[i]);
+};
+printf("\nl0f1..4 lm1..4:\n");
 for(i=0;i<8;i++){ 
   char lnam[4]; int ixl;
   if(i<4) {strcpy(lnam, "l0f"); ixl= i+1;

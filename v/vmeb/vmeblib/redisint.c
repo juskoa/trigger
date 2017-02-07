@@ -41,6 +41,7 @@ if(reply==NULL) {
     printReply1(reply->element[ixa], level+1);
   };
 } else {
+  //printf("ERROR in reply"); nebavi -ked je redis server down, krachne aj tak
   printf("INFO %sreply->type:%d (?) str:%s len:%d\n",
     clevel, reply->type, reply->str, reply->len);
 };
@@ -97,10 +98,10 @@ if(context==NULL) {
       if((reply->type== REDIS_REPLY_STATUS) && (strcmp(reply->str,"OK")==0)) {
         strcpy(pmsg,"ok, auth");
       } else {
-        strcpy(pmsg,"ok, not auth (bad passwd see dbctp/pwds.cfg)");
+        strcpy(pmsg,"ERROR not auth (bad passwd see dbctp/pwds.cfg)");
       };
     } else {
-      strcpy(pmsg,"ok, not auth (no passwd given)");
+      strcpy(pmsg,"ERROR not auth (no passwd given)");
     };
     printf("INFO redisConnect(%s,%d) %s.\n", config.hostip,config.hostport, pmsg);
   };
@@ -129,6 +130,7 @@ if(runn==0) {
 };
 reply= (redisReply *)redisCommand(context, cmd);
 printReply(reply);
+if(reply==NULL) return;
 freeReplyObject(reply);
 }
 /* ret: 0xffffffff in case of error */

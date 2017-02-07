@@ -47,11 +47,12 @@ typedef struct t {
   w32 secs; w32 usecs;
 } Ttime;
 typedef struct ad {
-  int deta;   //-1:not active, 1:active
-  int period;      // in ms (the planning of next c. trig.). 0:NO GLOB. CALIBRATON
+  int deta;   //-1:not active, 1:active i.e. triggered/runn valid
+  int periodms;      // in ms (the planning of next c. trig.). 0:NO GLOB. CALIBRATON
   int calbc;       // 3556->3011 from 31.3.2011 (or from ltu_proxy)
   int roc;         // Readout COntrol (3 bits)
-  int past_prot, future_prot;
+  int fileix;      // pointer to DATAFILES
+  w32 runn;
   char name[12];
   Ttime caltime;   //time of next cal. trigger. secs=0: not initialised
   Ttime lasttime;  //time of last cal. trigger. secs=0: not initialised
@@ -61,6 +62,112 @@ typedef struct ad {
 
 int NACTIVE;
 Tacde ACTIVEDETS[NDETEC];
+
+// DataFiles referenced solely from delDet() addDET() and calthread()
+class DataFiles {
+private:
+typedef struct opened {
+  w32 runn;
+  FILE *dataf;   // opened if runn!=0
+} Topened;
+Topened DATAFILES[6];
+int ffala;   // first free item after the last allocated one (i.e. 0..6)
+int find_df(w32 runn);   // rc: 0..5, -1 if not available
+public:
+DataFiles();
+~DataFiles();
+//int open_df(w32 runn);   // rc: -1 if not available
+int findoralloc_df(w32 runn);  // rc:0..5, -1: full table
+void close_df(int ixdet);   // ix: 0..NDET-1. Also delete in DATAFILES table
+void write_df(int ixdet, char *line);
+int getffala();
+};
+//DataFiles::DataFiles(Tacde *det_table) {
+DataFiles::DataFiles() {
+for(int ix=0; ix<6; ix++) {
+  DATAFILES[ix].runn=0; DATAFILES[ix].dataf=0;
+};
+ffala=0;
+}
+DataFiles::~DataFiles() {
+for(int ix=0; ix<6; ix++) {
+  FILE *fd;
+  fd= DATAFILES[ix].dataf;
+  if(fd != 0) {
+    printf("WARN: closing DATAFILES[%d]\n", ix);
+    fclose(fd);
+  };
+};
+}
+int DataFiles::getffala() {
+return(ffala);
+}
+
+int DataFiles::find_df(w32 runn) {
+int ix=0;
+while(1) {
+  if(ix>=ffala) return(-1);
+  if(DATAFILES[ix].runn==runn) return(ix);
+  ix++;
+};
+}
+int DataFiles::findoralloc_df(w32 runn) {
+int ff=-1; int ix=0;
+while(1) {
+  if(ix>=ffala) {   // not found, going to allocate...
+    char fname[24];
+    if(ff == -1) {
+      if(ffala==6) return(-1);
+      ff= ffala; ffala++;
+    };
+    DATAFILES[ff].runn=runn;
+    sprintf(fname,"WORK/pp_%d.data", runn);
+    DATAFILES[ff].dataf= fopen(fname, "a"); // open file
+    return(ff); 
+  } else {
+    if(DATAFILES[ix].runn==runn) return(ix);   // ok already opened
+    if((DATAFILES[ix].runn==0) && (ff== -1)) ff= ix;   // first free (in case alloc needed)
+    ix++;
+  };
+};
+}
+/*int DataFiles::open_df(w32 runn) {
+}*/
+void DataFiles::close_df(int ixdet) {
+FILE *fd; int ix,ixin; char msg[80];
+ixin= ACTIVEDETS[ixdet].fileix;
+if(ixin== -1) {
+  printf("close_df: det:%d pointing to closed file (-1).\n", ixdet);
+  return;
+};
+fd= DATAFILES[ixin].dataf;
+if(DATAFILES[ixin].runn == 0) {
+  printf("close_df: det:%d already closed.\n", ixdet);
+  return;
+};
+sprintf(msg, "close_df: closing det:%d", ixdet); prtLog(msg);
+fclose(fd);
+DATAFILES[ixin].dataf= 0;
+DATAFILES[ixin].runn= 0;
+ix= ffala-1;
+while(1) {
+  if(DATAFILES[ix].runn==0) ffala= ix;
+  if(ix==0) break;
+  ix--;
+};
+}
+void DataFiles::write_df(int ixdet, char *line) {
+FILE *fd; int ix;
+ix= ACTIVEDETS[ixdet].fileix;
+if( DATAFILES[ix].runn!=0) {
+  fd= DATAFILES[ix].dataf;
+  fprintf(fd, line);
+} else {
+  printf("ERROR: runn=0 in write_df(%d, %s", ix, line);
+};
+}
+
+DataFiles *DFS;
 
 void gotsignal(int signum) {
 char msg[100];
@@ -122,7 +229,7 @@ while(fgets(line, MAXLINELENGTH, gcalcfg)){
     if(token==tINTNUM) {         // period in ms
       milsec= str2int(value);
     } else {strcpy(em1,"bad period (integer expected ms) in gcalib.cfg"); goto ERR; };
-    ACTIVEDETS[det].period= milsec;
+    ACTIVEDETS[det].periodms= milsec;
     token=nxtoken(line, value, &ix);
     if(token==tINTNUM) {         // roc (decimal)
       roc= str2int(value);
@@ -130,7 +237,7 @@ while(fgets(line, MAXLINELENGTH, gcalcfg)){
     } else if(token != tEOCMD) {
       strcpy(em1,"bad ROC (0-7 expected) in gcalib.cfg"); goto ERR;
     };
-    sprintf(em1,"gcalib.cfg:%s %d %d", ACTIVEDETS[det].name, ACTIVEDETS[det].period,
+    sprintf(em1,"gcalib.cfg:%s %d %d", ACTIVEDETS[det].name, ACTIVEDETS[det].periodms,
       ACTIVEDETS[det].roc);
     prtLog(em1);
   } else {strcpy(em1,"LTU name expected"); goto ERR; };
@@ -167,25 +274,27 @@ if(ACTIVEDETS[ix].deta!=-1) {
 } else {
   strcpy(active,"NOT ACTIVE");
 };
-sprintf(msg, "%2d: %s %s. rate:%d ms. attempts/sent:%d/%d", 
-  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].period,
+sprintf(msg, "%2d: %s %s. rate:%d ms. fileix:%d attempts/sent:%d/%d", 
+  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].periodms, ACTIVEDETS[ix].fileix,
   ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 prtLog(msg);
 }
-/*--------------------*/int addDET(int det) {
+/*--------------------*/int addDET(int det, w32 runn) {
 int rc=0; //OK:added or was added already. 1:not added
 printf("addDET:%d %s\n",det, ACTIVEDETS[det].name);
-if( ACTIVEDETS[det].period==0) {
+if( ACTIVEDETS[det].periodms==0) {
   printf("addDET:WARN %d not configured for global calibration\n",det); rc=1;
 } else if(ACTIVEDETS[det].deta==1) {
   printf("addDET:WARN %d already active\n",det);
 } else {
   //int bc;
   ACTIVEDETS[det].deta= 1; 
+  ACTIVEDETS[det].runn= runn; 
   ACTIVEDETS[det].sent= 0; ACTIVEDETS[det].attempts= 0; 
   ACTIVEDETS[det].caltime.secs= 0;   // unset
   ACTIVEDETS[det].caltime.usecs= 0;
   ACTIVEDETS[det].lasttime.secs= 0;   // unset
+  ACTIVEDETS[det].fileix= DFS->findoralloc_df(runn);
   NACTIVE++;
   if(NACTIVE>NDETEC) {
     printf("addDET:ERROR NACTIVE:%d\n",NACTIVE); rc=1;
@@ -196,10 +305,14 @@ return(rc);
 /*--------------------*/int delDET(int det) {
 int rc=0;  //OK: deleted or was deleted
 if(ACTIVEDETS[det].deta==-1) {
-  printf("delDET:WARN %d already not active\n",det);
+  if(ACTIVEDETS[det].periodms!=0) {   // do not print if not in global
+    printf("delDET:WARN %d already not active\n",det);
+  };
 } else {
+  DFS->close_df(det);
   ACTIVEDETS[det].deta=-1; NACTIVE--;
   printDET1(det);
+  // check if another detector still in the same runn, if not: close pp_N.data file
   if(NACTIVE<0) {
     printf("delDET:ERROR NACTIVE:%d\n",NACTIVE); rc=1;
   };
@@ -213,10 +326,11 @@ only at start!)
 rc: number of active detectors
 --------------------*/int shmupdateDETs() {
 int ix,gdets; int actdets=0;
-gdets= cshmGlobalDets();
+w32 det2runn[NDETEC];
+gdets= cshmGlobalDets(det2runn);
 for(ix=0; ix<NDETEC; ix++) {
-  if(ACTIVEDETS[ix].period==0) continue;  // not to be calibrated (according to .cfg)
-  if(ACTIVEDETS[ix].deta==-1) {   //not active check if in global run
+  if(ACTIVEDETS[ix].periodms==0) continue;  // not to be calibrated (according to .cfg)
+  if(ACTIVEDETS[ix].deta==-1) {   //not active, check if in global run
     if((gdets & (1<<ix))==(1<<ix)) {
       if(ix==T00) {   // T0
         //w32 beammode;
@@ -226,7 +340,7 @@ for(ix=0; ix<NDETEC; ix++) {
           continue;       // we do not want to calibrate T0 during  STABLE EBAMS
         };
       }
-      if(addDET(ix)==0) actdets++;
+      if(addDET(ix, det2runn[ix])==0) actdets++;
     };
   } else {   // ix is active
     printf("updateDETS:active det:%d\n", ix);
@@ -256,8 +370,10 @@ int ix,bc,det;
 // 1st phase -very first defaults
 for(ix=0; ix<NDETEC; ix++) {
   ACTIVEDETS[ix].deta=-1;
-  ACTIVEDETS[ix].period=0;   // no cal. triggers
+  ACTIVEDETS[ix].runn= 0;
+  ACTIVEDETS[ix].periodms=0;   // no cal. triggers
   ACTIVEDETS[ix].roc=0;
+  ACTIVEDETS[ix].fileix= -1;
   ACTIVEDETS[ix].calbc=3011;     // was 3556 till 31.3.2011
   if(ctpshmbase->validLTUs[ix].name[0] != '\0'){
     strcpy(ACTIVEDETS[ix].name, ctpshmbase->validLTUs[ix].name);
@@ -265,13 +381,13 @@ for(ix=0; ix<NDETEC; ix++) {
     strcpy(ACTIVEDETS[ix].name,"nocalib");
   };
 };NACTIVE=0;
-ACTIVEDETS[SDD].period=0;    // todo: exception: 1 means: 3 triggs (3x50ms) spaced 15*60000ms
-ACTIVEDETS[TOF].period=0;  // 200;
-ACTIVEDETS[MTR].period=0; // 33000
-ACTIVEDETS[T00].period=0;  // 1000;
-ACTIVEDETS[ZDC].period=0;    // 10000;
-ACTIVEDETS[EMC].period=0;  // 2000 (1000 .. 5000)
-ACTIVEDETS[DAQ].period=0;
+ACTIVEDETS[SDD].periodms=0;    // todo: exception: 1 means: 3 triggs (3x50ms) spaced 15*60000ms
+ACTIVEDETS[TOF].periodms=0;  // 200;
+ACTIVEDETS[MTR].periodms=0; // 33000
+ACTIVEDETS[T00].periodms=0;  // 1000;
+ACTIVEDETS[ZDC].periodms=0;    // 10000;
+ACTIVEDETS[EMC].periodms=0;  // 2000 (1000 .. 5000)
+ACTIVEDETS[DAQ].periodms=0;
 /*strcpy(ACTIVEDETS[SDD].name, "SDD");
 strcpy(ACTIVEDETS[TOF].name, "TOF");
 strcpy(ACTIVEDETS[MTR].name, "MTR");
@@ -292,7 +408,7 @@ if(bc>0) {
   printf("ERROR: cannot contact %s(%d) ltu proxy.CALIBBC set to:%d\n",
     ACTIVEDETS[det].name, det, ACTIVEDETS[det].calbc);
 };
-// 3rd phase: period (and roc?) from $dbctp/gcalib.cfg
+// 3rd phase: periodms (and roc?) from $dbctp/gcalib.cfg
 read_gcalibcfg();
 }  
 /*---------------------------------------------*/ void printDETS() {
@@ -332,7 +448,8 @@ for(ix=0; ix<NDETEC; ix++) {
 }
 /*--------------------*/ int globalcalDET(int det){ 
 int gdets; int rc=0;
-gdets= cshmGlobalDets();
+w32 det2runn[NDETEC];
+gdets= cshmGlobalDets(det2runn);
 if((gdets & (1<<det))==(1<<det)) rc=1;
 return(rc);
 }
@@ -341,14 +458,16 @@ Ttime ct,deltaTtime; w32 delta; int sddburst=0;
 //printf("calthread:\n");
 threadactive=1;
 if(DBGCMDS) {
-  prtLog("calthread start.");
+  char msg[100];
+  sprintf(msg, "calthread start. DFS.ffala:%d", DFS->getffala());
+  prtLog(msg);
 };
 while(1) {
   int ndit;
   heartbeat++; if(heartbeat>0xfffffff0) heartbeat=0;
-  ndit= findnextcDET();   // find closest one in time
+  ndit= findnextcDET();   // find closest one in time. ndit: index into ACTIVEDETS
   //printf("det:%s %d %d\n", ACTIVEDETS[ndit].name, ACTIVEDETS[ndit].caltime.secs, ACTIVEDETS[ndit].caltime.usecs);
-  if(ndit==-1) goto STP;
+  if(ndit==-1) goto STP;  // cal. triggers not needed, stop thread
   if(globalcalDET(ndit)==0) {
     delDET(ndit); if(NACTIVE==0) goto STP;
     continue;
@@ -366,20 +485,38 @@ while(1) {
     };
     // generate calib. trigger:
     if(cshmGlobFlag(FLGignoreGCALIB)==0) {
-      w32 orbitn;
+      w32 orbitn[3];   // orbitn tsec tusec
       rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].roc, ACTIVEDETS[ndit].calbc,1<<ndit, 
-        swtriggers_gcalib, &orbitn);
+        swtriggers_gcalib, orbitn);
+      ct.secs= orbitn[1]; ct.usecs= orbitn[2];
       if(rcgt==12345678) {
         delDET(ndit); if(NACTIVE==0) goto STP;
         continue;
+      } else {
+        w32 rcgtold;
+        rcgtold= rcgt;
+        if((rcgt & 0xffffff00)== 0xffffff00) {   // spec. case: one cal. trigger
+          char line[80];
+          rcgt= rcgt & 0xff;
+          // update pp_N.data file: det tsec tusec orbitid rc
+          sprintf(line,"%x %x %x %x %x\n", ndit, orbitn[1], orbitn[2],orbitn[0], rcgt);
+          DFS->write_df(ndit, line);
+        } else {
+          char msg[100];
+         sprintf(msg,"ERROR: got 0x%x instead of 0xffffff.., deactivating det. %d...",
+            rcgtold, ndit);
+          prtLog(msg);
+          delDET(ndit); if(NACTIVE==0) goto STP;
+          continue;
+        };
       };
       ACTIVEDETS[ndit].attempts++;
     } else {
       rcgt=0; // cal. trigger not generated (disabled during start/stop part)
     };
-    getcurtime(&ct); // time of cal. trigger just attempted to be generated
+    // getcurtime(&ct); // time of cal. trigger just attempted to be generated. Commented out 8.1.2017
     // movd up ACTIVEDETS[ndit].attempts++;
-    if(rcgt==1) {
+    if(rcgt==4) {    // 4:l2a OK, generated
       if(ACTIVEDETS[ndit].lasttime.secs==0) {
         milisecs=0;
       } else {
@@ -397,7 +534,7 @@ while(1) {
     }; */
   };
   // the planning of next cal. trigger for ndit detector:
-  // NextTime= CurrentTime + period[ndit] i.e.
+  // NextTime= CurrentTime + periodms[ndit] i.e.
   // IS THE SAME IN EITHER CASE (successful or unsuccsessful)
   if( ACTIVEDETS[ndit].caltime.secs==0) {   // wait 2 secs before 1st cal. event
     char msg[200];
@@ -405,7 +542,7 @@ while(1) {
     prtLog(msg);
     deltaTtime.secs=2; deltaTtime.usecs=0;
   } else {
-    deltaTtime.secs=0; deltaTtime.usecs=1000*ACTIVEDETS[ndit].period;
+    deltaTtime.secs=0; deltaTtime.usecs=1000*ACTIVEDETS[ndit].periodms;
   };
   if(ndit==SDD) {   // SDD 3x50ms every 15minutes
     sddburst++;
@@ -470,7 +607,9 @@ strncpy(msg, mymsg, msglen); msg[msglen]='\0';
   msg[*size-1]='\0';
 }; */
 /*msg: 
-u         -update from SHM (this cmd is issued by ctp_proxy at SOR)
+u         -update from SHM (this cmd is issued by ctp_proxy at
+           Start, Resume
+          Following (a,d) cmnds used only from cmdline by admin when debugging
 a 0 2 5   -add detectors for calibration (valid only for active run)
 d 0 5     -delete detectors from calibration 
 */
@@ -487,8 +626,8 @@ if(token==tSYMNAME) {
         startThread();
       } else { // 1: 2nd global run (ok) or what?
         // perhaps, here we should stop/start active thread.
-        sprintf(em1,"u:ads:%d, threadactive is 1, i.e. 2nd global?", ads); 
-        //goto ERR;
+        sprintf(em1,"u:ads:%d, threadactive, i.e. 2nd global?", ads); 
+        printf("DOcmd warning: %s/n", em1); //goto ERR;
         ;
       };
     };
@@ -500,7 +639,7 @@ if(token==tSYMNAME) {
       if(token == tINTNUM) {
         det= str2int(value);
         if(adddel=='a') {
-          rc= addDET(det);
+          rc= addDET(det, 0);
         } else {
           rc= delDET(det);
         };
@@ -547,7 +686,7 @@ dis_stop_serving();
 }
 
 /*------------------------------------*/ int main(int argc, char **argv)  {
-int rc,ads; char msg[100];
+int rc,ads,ix; char msg[100];
 /*
 if(argc<3) {
   printf("Usage: ltuserver LTU_name base\n\
@@ -563,6 +702,7 @@ if(argc>1) {
 setlinebuf(stdout);
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
+signal(SIGINT, gotsignal); siginterrupt(SIGINT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 sprintf(msg, "gcalib starting, ver 2 %s %s...", __DATE__, __TIME__);
 prtLog(msg);
@@ -574,6 +714,7 @@ cshmInit();
 unlockBakery(&ctpshmbase->swtriggers,swtriggers_gcalib);
 
 initDET(); // has to be after cshmInit()
+DFS= new DataFiles();
 checkCTP(); 
 printf("No initCTP. initCTP left to be done by main ctp-proxy when started\n"); 
 //initCTP();
@@ -587,6 +728,10 @@ if(ads>0){
     printf("ads:%d but threadactive is 1 at the start", ads);   //cannot happen
   };
 };
+#ifdef SIMVME
+printf("srand(73), (SIMVME)...\n");
+srand(73);
+#endif
 printDETS();
 while(1)  {  
   /* the activity of calthread is checked here:
@@ -614,7 +759,15 @@ while(1)  {
   beammode= get_DIMW32("CTPDIM/BEAMMODE");  //cannot be used inside callback
   //ds_update();
 };  
-stopDIM(); cshmDetach();
+sprintf(msg, "Exiting gcalib. quit:%d...\n",quit); prtLog(msg);
+stopDIM(); 
+// stop all active dets:
+for(ix=0; ix<NDETEC; ix++) {
+  rc= delDET(ix);
+  if(rc!=0) { printf("delDET(%d) rc:%d", ix, rc); };
+};
+delete DFS;
+cshmDetach();
 vmeclose();
 exit(0);
 }   
