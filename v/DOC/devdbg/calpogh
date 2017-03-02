@@ -116,4 +116,5 @@ $dbctp/gcalib.cfg
 [aj@pcalicebhm11 vme]$ /home/aj/git/trigger/v/vme/ctp_proxy/linux/gcalib.exe 
 hmpidphos.partition
 
-
+=== 7.2.2017
+calpogh branch merged into master, compiled on adls

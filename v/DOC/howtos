@@ -1,3 +1,4 @@
+grep ^=== howtos
 === print out current L0 inputs:
 [alidcscom026] /data/ClientCommonRootFs/usr/local/trigger/v/vmeb > python
 Python 2.3.4 (#1, Dec 11 2007, 21:18:01) 
@@ -64,3 +65,35 @@ alias sedev='cd ~/git/trigger; . v/bin/vmebse.bash ; unset DATE_DAQLOGBOOK_DIR ;
 Sort by Switch input (8th field)
 sort -k8,8n ctpinputs.cfg |more
 grep -v '^#' ctpinputs.cfg |sort -k8n,8n |more
+
+=== orbit sync in ddl2 (after powercut)
+altri2:  vmecrate ttcmi=0x0f00000              -to get clock in lab!
+altri1: 
+vmecrate ctp
+-> File -> load ajddl12.cfg
+   i.e.: 5 green bits in Classes: LMrrnd2 LMdeadtime LMclassmask 
+                                  LM-L0busy Classmask
+-> File -> write hw
+-> LTU HMPID: disable busy, put in GLOBAL
+-> check counters (L2aseq rate >0)
+orbitddl2.py configrunset                  -should be ok now
+
+=== start daemons
+check redis@835 or redis@adls account. redstatus,...
+startClients.bash pydim start
+ctpproxy.sh startnd
+ctpproxy.sh stop
+ctpdims start
+startClients.bash xcounters start
+ctpproxy.sh startnd
+startClients.bash rrd start
+startClients.bash html start
+startClients.bash masksServer start
+startClients.bash udpmon start
+startClients.bash gcalib start
+only in p2:
+startClients.bash ttcmidim start     (in lab on altri2, not needed)
+startClients.bash gmonscal start
+irdim: ik
+
+

@@ -491,7 +491,7 @@ unlockBakery(&ctpshmbase->swtriggers, customer);
 if(DBGswtrg4) {
   printf(" GenSwtrg: %i %c-triggers generated for detectors:0x%x.\n",
     itr,trigtype, detectors);
-  printf("flag lm/l0,l1,l2r,l2a: %i %i %i %i \n",flag,l0,l1,l2r,l2a);
+  printf("flag lm/l0,l1,l2r,l2a: %d %i %i %i %i \n",flag,l0,l1,l2r,l2a);
 };
 TRIGTYPE='.';
 if((trigtype=='c') && (ntriggers==1)) {

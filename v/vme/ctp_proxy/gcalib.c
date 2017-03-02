@@ -50,7 +50,7 @@ typedef struct ad {
   int deta;   //-1:not active, 1:active i.e. triggered/runn valid
   int periodms;      // in ms (the planning of next c. trig.). 0:NO GLOB. CALIBRATON
   int calbc;       // 3556->3011 from 31.3.2011 (or from ltu_proxy)
-  int roc;         // Readout COntrol (3 bits)
+  int logroc;         // Log: bit 4 (0x10) Readout COntrol: (4 low bits, 0xf)
   int fileix;      // pointer to DATAFILES
   w32 runn;
   char name[12];
@@ -111,18 +111,20 @@ while(1) {
   ix++;
 };
 }
+/* 
+ * */
 int DataFiles::findoralloc_df(w32 runn) {
 int ff=-1; int ix=0;
 while(1) {
   if(ix>=ffala) {   // not found, going to allocate...
     char fname[24];
     if(ff == -1) {
-      if(ffala==6) return(-1);
+      if(ffala==6) return(-1);   // internal error (all entries allocated)
       ff= ffala; ffala++;
     };
-    DATAFILES[ff].runn=runn;
     sprintf(fname,"WORK/pp_%d.data", runn);
     DATAFILES[ff].dataf= fopen(fname, "a"); // open file
+    DATAFILES[ff].runn=runn;
     return(ff); 
   } else {
     if(DATAFILES[ix].runn==runn) return(ix);   // ok already opened
@@ -199,9 +201,11 @@ prtLog(msg);
 /* Operation:
 - read gcalib.cfg
 gcalib.cfg:
-#ltuname period[ms] roc
-HMPID 2000
-DAQ 3000 6
+#ltuname period[ms] roc [log]
+HMPID 2000 0 y
+DAQ 3000 6 n
+i.e. y: log all cal. request in pp_N.data file
+     n: (or nothing) - do not log cal. requests
 ----------------------------------------*/ void read_gcalibcfg() {
 FILE* gcalcfg;
 enum Ttokentype token;
@@ -213,7 +217,8 @@ if(gcalcfg==NULL) {
   return;
 };
 while(fgets(line, MAXLINELENGTH, gcalcfg)){
-  int ix,det,milsec, roc;
+  int ix,det,milsec, roc,log;
+  roc=0; log=0;
   printf("Decoding line:%s ",line);
   if(line[0]=='#') continue;
   if(line[0]=='\n') continue;
@@ -233,12 +238,24 @@ while(fgets(line, MAXLINELENGTH, gcalcfg)){
     token=nxtoken(line, value, &ix);
     if(token==tINTNUM) {         // roc (decimal)
       roc= str2int(value);
-      ACTIVEDETS[det].roc= roc;
     } else if(token != tEOCMD) {
       strcpy(em1,"bad ROC (0-7 expected) in gcalib.cfg"); goto ERR;
     };
-    sprintf(em1,"gcalib.cfg:%s %d %d", ACTIVEDETS[det].name, ACTIVEDETS[det].periodms,
-      ACTIVEDETS[det].roc);
+    token=nxtoken(line, value, &ix);
+    if(token==tSYMNAME) {
+      if(value[0]=='y') {
+        log= 1;
+      } else if(value[0]=='n') {
+        log= 0;
+      } else {
+        strcpy(em1,"bad LOG option (y or n expected) in gcalib.cfg"); goto ERR;
+      }
+    } else if(token != tEOCMD) {
+      strcpy(em1,"bad LOG option (y or n expected) in gcalib.cfg"); goto ERR;
+    };
+    ACTIVEDETS[det].logroc= (log<<4) | roc;
+    sprintf(em1,"gcalib.cfg:%s %dms 0x%x", ACTIVEDETS[det].name, ACTIVEDETS[det].periodms,
+      ACTIVEDETS[det].logroc);
     prtLog(em1);
   } else {strcpy(em1,"LTU name expected"); goto ERR; };
 };
@@ -274,8 +291,9 @@ if(ACTIVEDETS[ix].deta!=-1) {
 } else {
   strcpy(active,"NOT ACTIVE");
 };
-sprintf(msg, "%2d: %s %s. rate:%d ms. fileix:%d attempts/sent:%d/%d", 
-  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].periodms, ACTIVEDETS[ix].fileix,
+sprintf(msg, "%2d: %s %s. rate:%d ms. logroc:0x%x fileix:%d attempts/sent:%d/%d", 
+  ix,ACTIVEDETS[ix].name, active, ACTIVEDETS[ix].periodms, 
+  ACTIVEDETS[ix].logroc, ACTIVEDETS[ix].fileix,
   ACTIVEDETS[ix].attempts, ACTIVEDETS[ix].sent); 
 prtLog(msg);
 }
@@ -294,7 +312,9 @@ if( ACTIVEDETS[det].periodms==0) {
   ACTIVEDETS[det].caltime.secs= 0;   // unset
   ACTIVEDETS[det].caltime.usecs= 0;
   ACTIVEDETS[det].lasttime.secs= 0;   // unset
-  ACTIVEDETS[det].fileix= DFS->findoralloc_df(runn);
+  if((ACTIVEDETS[det].logroc & 0x10) != 0) {
+    ACTIVEDETS[det].fileix= DFS->findoralloc_df(runn);
+  };
   NACTIVE++;
   if(NACTIVE>NDETEC) {
     printf("addDET:ERROR NACTIVE:%d\n",NACTIVE); rc=1;
@@ -372,7 +392,7 @@ for(ix=0; ix<NDETEC; ix++) {
   ACTIVEDETS[ix].deta=-1;
   ACTIVEDETS[ix].runn= 0;
   ACTIVEDETS[ix].periodms=0;   // no cal. triggers
-  ACTIVEDETS[ix].roc=0;
+  ACTIVEDETS[ix].logroc=0;     // no log, roc+0
   ACTIVEDETS[ix].fileix= -1;
   ACTIVEDETS[ix].calbc=3011;     // was 3556 till 31.3.2011
   if(ctpshmbase->validLTUs[ix].name[0] != '\0'){
@@ -486,7 +506,7 @@ while(1) {
     // generate calib. trigger:
     if(cshmGlobFlag(FLGignoreGCALIB)==0) {
       w32 orbitn[3];   // orbitn tsec tusec
-      rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].roc, ACTIVEDETS[ndit].calbc,1<<ndit, 
+      rcgt= GenSwtrg(1, 'c', ACTIVEDETS[ndit].logroc&0xf, ACTIVEDETS[ndit].calbc,1<<ndit, 
         swtriggers_gcalib, orbitn);
       ct.secs= orbitn[1]; ct.usecs= orbitn[2];
       if(rcgt==12345678) {

@@ -33,8 +33,8 @@ if((token==tSYMNAME) && (strlen(value)<=(MAXSDGNAME-1)) ) {
   };
 } else {
   char emsg[300];
-  sprintf(emsg,"Symbolic name (max. %d chars) expected in 2nd column:%d",
-    line, (MAXSDGNAME-1));
+  sprintf(emsg,"Symbolic name (max. %d chars) expected in 2nd column:%s",
+    (MAXSDGNAME-1), line);
   infolog_trgboth(LOG_ERROR, emsg);
   return(1);
 };

@@ -158,7 +158,7 @@ Available only in P2:
              ttcmidim 
              irdim 
              xcounters
-             diprfrx
+             diprfrx   -not used from 2016
              gmonscal
 Purpose:
 pydim:     ~/v/vme/WORK/RCFG/*.rcfg files creation/deleting
@@ -178,6 +178,7 @@ xcounters: creating xcounters files and posting them to DCS XFS
            updating counters in DAQlogbook.    RUNS in tri account
            see ~tri/readme for more info about compile/start/stop
 diprfrx    DIP service publishing the LHC TTCmi RF -see http://cern.ch/ttcpage1
+           not used from 2016
 gcalib     sending cal. triggers to the detectores during global run
 gmonscal   running on trigger@alitrir. Creating: 
            $server:v/vme/WORK/MONSCAL/inputs.png
@@ -201,7 +202,7 @@ Problems: see corresponding files in:
 EOF
 exit
 fi
-dnames="pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters diprfrx gcalib gmonscal masksServer ctpwsgi diprfrx"
+dnames="pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters gcalib gmonscal masksServer ctpwsgi"
 cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
@@ -383,13 +384,13 @@ if [ $dmn = "xcounters" -o "$dmn" = 'all' ] ;then #------------------- xcounters
     st3 xcounters xcounters.sh tri@$server $sss
   fi
 fi
-if [ $dmn = "diprfrx" -o "$dmn" = 'all' ] ;then #------------------- diprfrx
-  if [ "$VMESITE" != "ALICE" ] ;then
-    echo "diprfrx available only in the pit"
-  else
-    st3 diprfrx diprfrx.sh trigger@$ttcmivme $sss
-  fi
-fi
+#if [ $dmn = "diprfrx" -o "$dmn" = 'all' ] ;then #------------------- diprfrx
+#  if [ "$VMESITE" != "ALICE" ] ;then
+#    echo "diprfrx available only in the pit"
+#  else
+#    st3 diprfrx diprfrx.sh trigger@$ttcmivme $sss
+#  fi
+#fi
 #if [ $dmn = "monscal" -o "$dmn" = 'all' ] ;then #-------------------- monscal
 #  st3 monscal monscal.sh trigger@$server $sss
 #fi
