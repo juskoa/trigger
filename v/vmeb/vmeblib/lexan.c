@@ -104,6 +104,9 @@ if( cmd[0] == '[') {
 if( cmd[0] == ']') { 
   cmd[1]='\0'; iline++; tt=tRIGHTA; goto RET;
 };
+if( cmd[0] == '#') { 
+  cmd[1]='\0'; iline++; tt=tCROSS; goto RET;
+};
 
 /*------------------ hexadecimal number: */
 if( line[iline] == '0' && line[iline+1] == 'x' ) {

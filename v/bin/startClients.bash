@@ -202,7 +202,8 @@ Problems: see corresponding files in:
 EOF
 exit
 fi
-dnames="pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters gcalib gmonscal masksServer ctpwsgi"
+# do not forget space at the begining !
+dnames='\ pydim html rrd rrdc rrdno udpmon ctpproxy ctpdim ttcmidim irdim xcounters gcalib gmonscal masksServer ctpwsgi'
 cd ~/CNTRRD
 if [ $# -eq 0 ] ;then
   echo "Current status:                 (type help to get help message)"
@@ -219,8 +220,9 @@ else
   dmn=$1
   sss=$2
 fi
-echo $dnames | grep "$dmn " >/dev/null
+echo $dnames | grep " $dmn" >/dev/null
 rc=$?
+#echo $dnames
 #echo "rc:$rc dmn:$dmn:"
 if [ "$dmn" != "all" -a "$rc" = "1" ] ;then
   echo "unknown daemon: $dmn"

@@ -219,7 +219,7 @@ if(gcalcfg==NULL) {
 while(fgets(line, MAXLINELENGTH, gcalcfg)){
   int ix,det,milsec, roc,log;
   roc=0; log=0;
-  printf("Decoding line:%s ",line);
+  //printf("Decoding line:%s ",line);
   if(line[0]=='#') continue;
   if(line[0]=='\n') continue;
   ix=0; token= nxtoken(line, value, &ix);
@@ -248,15 +248,15 @@ while(fgets(line, MAXLINELENGTH, gcalcfg)){
       } else if(value[0]=='n') {
         log= 0;
       } else {
-        strcpy(em1,"bad LOG option (y or n expected) in gcalib.cfg"); goto ERR;
+        sprintf(em1,"bad LOG option %s (y or n expected) in gcalib.cfg", value); goto ERR;
       }
-    } else if(token != tEOCMD) {
-      strcpy(em1,"bad LOG option (y or n expected) in gcalib.cfg"); goto ERR;
+    } else if((token != tEOCMD) && (token!=tCROSS)) {
+      sprintf(em1,"bad LOG option  %s(y or n expected) in gcalib.cfg", value); goto ERR;
     };
     ACTIVEDETS[det].logroc= (log<<4) | roc;
     sprintf(em1,"gcalib.cfg:%s %dms 0x%x", ACTIVEDETS[det].name, ACTIVEDETS[det].periodms,
       ACTIVEDETS[det].logroc);
-    prtLog(em1);
+    prtLog(em1); em1[0]='\0';
   } else {strcpy(em1,"LTU name expected"); goto ERR; };
 };
 ERR: 

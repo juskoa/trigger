@@ -1,12 +1,44 @@
 #!/bin/bash
+function getmask() {
+ltu=`echo $1 | tr /a-z/ /A-Z/`
+echo "looking for $ltu..."
+mask=""
+while read line ;do 
+  nn=$(($nn+1));
+  if test -z "$line" ;then
+    continue
+  fi
+  #set - $line
+  set - $(IFS="= "; echo $line)
+  #echo $nn: $line
+  #echo "   1:$1 2:$2"
+  if [ "$ltu" = "$1" ] ;then
+    mask=$((1<<$2))
+    break
+  fi
+done < "$dbctp/VALID.LTUS"
+}
 #pname="PHYSICS_1"
 pname="$2"
 if [ "$1" = 'init' ] ;then
-  if [ -z "$4" ] ;then
-    echo "smicmd init partition decmask RUNN"
+  #echo "\$#" $#
+  if [ $# -eq 4 ] ;then
+    getmask $3   # result available in $mask
+    if [ -z "$mask" ] ;then
+      mask=$3   # unknown detector, i.e. decimal mask given
+      printf -v hmask "0x%x" $mask
+      echo "decimal mask: $mask = $hmask"
+    else
+      printf -v hmask "0x%x" $mask
+      echo "detector: $3 corresponding mask:$mask =  $hmask"
+    fi
+    # following does not work (MASK obligatory!)
+    #/opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps RUN_NUMBER $3 -ps ACT_CONFIG NO
+    # ACO 65536 PHOS: 128   HMPID:64    PHOS+HMPID:128+64=192
+    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK $mask -ps RUN_NUMBER $4 -ps ACT_CONFIG NO
   else
-# ACO 65536 PHOS: 128   HMPID:64    PHOS+HMPID:128+64=192
-    /opt/smi/linux/smiSendCommand TRIGGER::CTP INIT_PARTITION -ps PARTITION $pname -ps MASK $3 -ps RUN_NUMBER $4 -ps ACT_CONFIG NO
+    echo "smicmd init partition decmask RUNN        or"
+    echo "smicmd init partition detname RUNN        has to be given"
   fi
 elif [ "$1" = "start" ] ;then
     /opt/smi/linux/smiSendCommand TRIGGER::CTP START_PARTITION -ps PARTITION $pname
@@ -36,6 +68,8 @@ cat - <<-EOF
 
 Partition name: $pname
 smicmd init PARTNAME decmask RUNN
+                     detname    -in case only 1 detector allowed in partition,
+                                 its name can be given (e.g. hmpid)
 smicmd start/stop/pause/resume/sync/ack/reset PARTNAME
 
 General usage:

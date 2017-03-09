@@ -33,8 +33,8 @@ function helpout() {
 cat - <<-EOF
 Bad parameter:$1. One of the following expected:
 status    -check if ctpproxy is started
-stop      -ask ctpproxy to stop. ctpproxy will wait for the stop of all 
-           active partitions (check with ECS operator). 
+stop      -ask ctpproxy to stop. Will be ignored if partition(s) active.
+           (check with ECS operator). 
 kill      -stop ctpproxy immediately. This option should not be used!
 restart =  kill + start (preferred way is: 'ctpproxy [stop status start]')
 

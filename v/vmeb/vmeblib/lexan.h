@@ -6,7 +6,7 @@ enum Ttokentype{tNONE, tERR, tSYMNAME, tSTRING, tINTNUM, tHEXNUM,
                 tASSIGN, tEQS, tPLUS, tMINUS, tMULT, tDIV,
              /* operators end */
                 tLEFT, tRIGHT, tLEFTA, tRIGHTA,
-                tCOMMA, tDOT };
+                tCOMMA, tDOT, tCROSS };
 
 void copy2nl(char *dest, char *src, int maxlen);
 enum Ttokentype nxtoken(char *line, char *cmd, int *ix);
