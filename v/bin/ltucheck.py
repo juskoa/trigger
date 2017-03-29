@@ -148,6 +148,8 @@ def main():
     print """Usage:
 ltucheck.py state
   -check state of all LTUs (stdalone/global)
+ltucheck.py temp
+  -check temperature of all LTUs
 ltucheck.py busy [ltu]
   -print average busy time (busy/L0) in micsecs. If ltu not given, 
    measure for all LTUs (all ltu_proxies have to be restarted after March 3rd)
@@ -175,6 +177,8 @@ ltucheck.py restart[loop] [sms]  (loop: repeat in the loop every 5 min)
         time.sleep(300)
     elif sys.argv[1]=='printversion':
       all.printversion()
+    elif sys.argv[1]=='temp':
+      all.printversion(cmd='ReadTemperature()')
     elif sys.argv[1]=='state':
       print "1:stdalone   0: GLOBAL"
       all.printversion(cmd='getsgmode()')

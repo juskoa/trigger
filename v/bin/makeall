@@ -151,8 +151,9 @@ cleanmake c MORELTUS $CLEAN
 # 
 cleancmp fanio $CLEAN
 cleancmp ttcmi $CLEAN
-cleancmp bobr $CLEAN
-cleancmp switch $CLEAN
+echo "skipping packages: bobr switch"
+#cleancmp bobr $CLEAN
+#cleancmp switch $CLEAN
 cleancmp ttcit $CLEAN
 elif [ "$1" = "inputs" ] ;then
 cleancmp inputs $CLEAN

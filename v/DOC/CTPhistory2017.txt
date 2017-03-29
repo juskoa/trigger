@@ -1,0 +1,26 @@
+=== 29.3.2017 ipcs -m problem
+rcmd 'ipcs -m'
+- shoudl respond for all LTUs with something like:
+------ Shared Memory Segments --------
+key        shmid      owner      perms      bytes      nattch     status      
+0x00810000 0          trigger    666        340        2     <--- PROBLEM
+0x00811000 32769      trigger    666        340        2                       
+0x00812000 65538      trigger    666        340        2                       
+0x00813000 98307      trigger    666        340        2  
+
+Seems shmid=0 is remnant from reboot -somehow it happens, that ltuproxy
+when started automatically after reboot gets shmid:0. Seems this is wrong -
+at least ReadTemperature() (ltucheck.py temp) does not work properly
+for some LTUs...
+shmid:0 is usually assigned to the ltu with dial:0
+
+=== 29.3.2017 makeallscript   
+[trigger@alidcscom835 logs]$ cp -a *.log old/
+makeallscript allctp clean
+makeallscript allltu clean
+makeallscript others clean
+
+makeall: Skipping bobr switch (i.. in future won't be compiled)
+rcmd [2-7] 'ltuproxy killall'
+rcmd [2-7] 'ltuproxy startall'
+see DOC/howtos  -other daemons stop/start

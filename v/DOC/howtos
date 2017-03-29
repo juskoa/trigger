@@ -84,7 +84,8 @@ startClients.bash pydim start
 ctpproxy.sh startnd
 ctpproxy.sh stop
 ctpdims start
-startClients.bash xcounters start
+startClients.bash xcounters start    
+  seems better: ssh tri@local host ; xcounters.sh stop/start
 ctpproxy.sh startnd
 startClients.bash rrd start
 startClients.bash html start

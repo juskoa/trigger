@@ -16,7 +16,7 @@ echo -e "================================= grepping error+warning lines:"
 grep -i 'error\|warning' ~/logs/$logname |grep -v 'lrcc_error\|prtError.o'
 if [ "$VMEDRIVER" = "SIMVME" ] ;then
 echo
-echo "starting the same on $cmpvme: makeallscript $1 $2"
+echo "SIMVME! -> starting the same on $cmpvme: makeallscript $1 $2"
 ssh -2 trigger@$cmpvme "makeallscript $1 $2"
 fi
 }
