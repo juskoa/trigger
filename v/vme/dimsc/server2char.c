@@ -14,7 +14,7 @@
 
 #define MXLINE 100
 unsigned int qpllstat;
-char qpllstatc[MXLINE+1];
+char qpllstatc[MXLINE];
 unsigned int QPLLid;
 int quit=0;
 
@@ -50,7 +50,7 @@ int update_qpll(char *line) {
 int rc;
 strncpy(qpllstatc, line, MXLINE); qpllstatc[MXLINE]='\0'; 
 rc= dis_update_service(QPLLid);   // rc:1 at least 1 client active, 0: no clients active
-printf("update_qpll: qpllstatc:%s rc:%d\n", qpllstatc, rc);
+printf("QPLL update qpllstatc:%s rc:%d\n", qpllstatc, rc);
 return(rc);
 }
 
@@ -58,7 +58,7 @@ void QPLLcaba(void *tag, void **msgpv, int *size, int *dmmy) {
 char **msgp= (char **)msgpv;
 printf("QPLLcaba tag:%d\n", *(int *)tag);
 *msgp= qpllstatc;
-*size= strlen(qpllstatc)+1;   // including string termination byte (0)
+*size= strlen(qpllstatc)+1;
 }
 int main(int argc, char **argv)  {
 char command[200];
@@ -73,24 +73,14 @@ QPLLid=dis_add_service(command, 0, qpllstatc, MXLINE,
 
 printf("serving...\n");
 dis_start_serving(MYNAME);  
-/*
 while(1)  {   // update every 5 secs
-  int rc; char line[MXLINE];
-  qpllstat=qpllstat+1; sprintf(line,"%d %d", qpllstat,10*qpllstat);
-  rc= update_qpll(line);
+  int rc;
+  qpllstat=qpllstat+1; sprintf(qpllstatc,"%d %d", qpllstat,10*qpllstat);
+  rc= update_qpll();
   //if(rc!=1) break;
   printf("sleeping 5secs...\n"); fflush(stdout);
   dtq_sleep(5); // sleep(5) ; 
-};  */
-printf("processing stdin...\n");
-while(1)  {   // update from stdin
-  int rc; char line[MXLINE];
-  //printf("enter any text (q: quit server):"); fflush(stdin);
-  fgets(line, MXLINE, stdin);
-  if(strcmp(line,"q\n")==0) break;
-  rc= update_qpll(line);
-  //if(rc!=1) break;
-};
+};  
 dis_remove_service(QPLLid);
 exit(0);
 }   

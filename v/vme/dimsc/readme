@@ -11,3 +11,7 @@ An example od dim server/client.
 4. Start client:
   linux/client
   - the short 'usage mesage' will be printed
+
+=== 29.3.2017 added client2, server2
+client2int.c server2int.c    -unsigned int service
+client2char.c server2char.c  -char* service

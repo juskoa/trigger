@@ -898,7 +898,7 @@ int nclients;
 sprintf(msg, "oldbusy: %6.4f newbusytime:%6.4f", busytime1sec, newbt);
 busytime1sec= newbt;
 nclients= dis_update_service(MONBUSYid);
-sprintf(msg,"%s nclients:%d\n", msg, nclients);
+sprintf(msg,"%s nclients:%d", msg, nclients);
 dimlogprt("updateMONBUSY", msg);
 /*if(oldnbusyclients != nclients) {   // # of clients changed
     int ix;

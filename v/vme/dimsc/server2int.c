@@ -12,10 +12,7 @@
 #endif
 #define MYNAME "TTCMI"
 
-#define MXLINE 100
-unsigned int qpllstat;
-char qpllstatc[MXLINE+1];
-unsigned int QPLLid;
+unsigned int qpllstat=0, QPLLid;
 int quit=0;
 
 void gotsignal(int signum) {
@@ -46,20 +43,19 @@ default:
 };
 }
 
-int update_qpll(char *line) {
+int update_qpll() {
 int rc;
-strncpy(qpllstatc, line, MXLINE); qpllstatc[MXLINE]='\0'; 
+qpllstat=qpllstat+1;
 rc= dis_update_service(QPLLid);   // rc:1 at least 1 client active, 0: no clients active
-printf("update_qpll: qpllstatc:%s rc:%d\n", qpllstatc, rc);
+printf("QPLL update qpllstat:%d rc:%d\n", qpllstat, rc);
 return(rc);
 }
-
-void QPLLcaba(void *tag, void **msgpv, int *size, int *dmmy) {
-char **msgp= (char **)msgpv;
+/*
+void QPLLcaba(void *tag, void **addr, int *size, int *dmmy) {
 printf("QPLLcaba tag:%d\n", *(int *)tag);
-*msgp= qpllstatc;
-*size= strlen(qpllstatc)+1;   // including string termination byte (0)
-}
+*addr= &qpllstat;
+*size= sizeof(qpllstat);
+}*/
 int main(int argc, char **argv)  {
 char command[200];
 setlinebuf(stdout);
@@ -67,30 +63,21 @@ signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);
 signal(SIGQUIT, gotsignal); siginterrupt(SIGQUIT, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 strcpy(command, MYNAME); strcat(command, "/QPLL");
-QPLLid=dis_add_service(command, 0, qpllstatc, MXLINE,
-  QPLLcaba, 88);  printf("%s\n", command);
-//  NULL, 88);  printf("%s\n", command);
+QPLLid=dis_add_service(command, "L", &qpllstat, 4,
+//  QPLLcaba, 88);  printf("%s\n", command);
+  NULL, 88);  printf("%s\n", command);
 
 printf("serving...\n");
 dis_start_serving(MYNAME);  
-/*
-while(1)  {   // update every 5 secs
-  int rc; char line[MXLINE];
-  qpllstat=qpllstat+1; sprintf(line,"%d %d", qpllstat,10*qpllstat);
-  rc= update_qpll(line);
+while(1)  {  
+  int rc;
+  rc= update_qpll();
   //if(rc!=1) break;
   printf("sleeping 5secs...\n"); fflush(stdout);
-  dtq_sleep(5); // sleep(5) ; 
-};  */
-printf("processing stdin...\n");
-while(1)  {   // update from stdin
-  int rc; char line[MXLINE];
-  //printf("enter any text (q: quit server):"); fflush(stdin);
-  fgets(line, MXLINE, stdin);
-  if(strcmp(line,"q\n")==0) break;
-  rc= update_qpll(line);
-  //if(rc!=1) break;
-};
+  sleep(5) ; 
+  //dtq_sleep(5);
+  //printf("slept 5...\n"); fflush(stdout);
+};  
 dis_remove_service(QPLLid);
 exit(0);
 }   

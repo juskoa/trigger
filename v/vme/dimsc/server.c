@@ -248,7 +248,7 @@ while(1) {
   }; */
   STATESET:
   printf("Status:%s\n",StatusString);
-  sleep(1);  
+  sleep(10);  
 };  
 }   
 

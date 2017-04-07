@@ -67,6 +67,8 @@ fmt default: "C"
       pydim.dic_cmnd_service("CTPDIM/DO", ("SLEEP 1\x00",),"C")
     elif asp[0]=="sec60":
       pydim.dic_cmnd_service("CTPDIM/DO", ("SLEEP 60\x00",),"C")
+    else:
+      print "unknown input..."
   #pydim.dic_relese_service(serid) not available in pydim
 
 if __name__ == "__main__":
