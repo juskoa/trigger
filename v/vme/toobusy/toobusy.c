@@ -1,5 +1,5 @@
 /* Compile/link toobusy.exe:
-g++ -DBUSYEXE -I $VMEBDIR/vmeblib -I $VMECFDIR/ctp -I$VMECFDIR/ctp_proxy toobusy.c -Lctplib -lctp -L $VMEBDIR/vmeblib -lvmeb -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc  -o toobusy.exe
+g++ -DBUSYEXE -I $VMEBDIR/vmeblib -I $VMECFDIR/ctp -I$VMECFDIR/ctp_proxy toobusy.c -L$VMECFDIR/ctp/ctplib/linux_c -lctp -L $VMEBDIR/vmeblib/linux_c -lvmeb -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc  -o linux_c/toobusy.exe
 */ 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +15,8 @@ g++ -DBUSYEXE -I $VMEBDIR/vmeblib -I $VMECFDIR/ctp -I$VMECFDIR/ctp_proxy toobusy
 #include "../ctp_proxy/Tpartition.h"
 #include <unistd.h>
 
+// run1:104  run2: 1444-1332= 112
+#define bylongbusy 112
 //void mysleep(w32 delta);
 
 w32 CountTime();
@@ -74,9 +76,9 @@ Enter the time you wish to wait between busylong reads in seconds and the counte
 */
 void readBUSYlong(w32 delay){
  w32 counts1,counts2;
-counts2 = getCounter(0, 104, ccread_ctp);
+counts2 = getCounter(0, bylongbusy, ccread_ctp);
 usleep(delay*1000000);
-counts1 = getCounter(0, 104, ccread_ctp)-counts2;
+counts1 = getCounter(0, bylongbusy, ccread_ctp)-counts2;
   printf("There have been %i busies exceeding the current limit \n",counts2);
 }
 
@@ -126,10 +128,10 @@ currmax = rangemax;
   //again need default stepsize
     currmini=rounddown(1.*currmin/stepsize);
  
-//w32 busylongold = getCounter(0, 104);
+//w32 busylongold = getCounter(0, bylongbusy);
  
 // printf("first busylongold read is: %i \n", busylongold);
-// w32 busylong = getCounter(0, 104);
+// w32 busylong = getCounter(0, bylongbusy);
 
 myfile=fopen("busysweep","w");
 if(myfile==NULL) {
@@ -155,13 +157,13 @@ if (timetotake>1800){
     readMINIMAXLimit();
     //measure busy increments
     sweeptimemicrosec = sweeptime*1000000;
-    //busylong = busylong - getCounter(0, 104, ccread_ctp);
-    busyprevious = getCounter(0, 104, ccread_ctp);
+    //busylong = busylong - getCounter(0, bylongbusy, ccread_ctp);
+    busyprevious = getCounter(0, bylongbusy, ccread_ctp);
     //printf("first busy count %i \n", busyprevious);
     usleep(sweeptimemicrosec); 
     //only, and set a default sweeptime;
     //measure busy increments
-    busylonga = getCounter(0, 104, ccread_ctp);
+    busylonga = getCounter(0, bylongbusy, ccread_ctp);
     if(busylonga>=busyprevious){
       busylong = (busylonga-busyprevious);
     } else busylong = busylonga + (0xffffffff-busyprevious)+1;
@@ -194,10 +196,7 @@ return 0;
 }
 
 #ifdef BUSYEXE
-/* Compile/link toobusy.exe:
-g++ -DBUSYEXE -I $VMEBDIR/vmeblib -I $VMECFDIR/ctp -I$VMECFDIR/ctp_proxy toobusy.c -Lctplib -lctp -L $VMEBDIR/vmeblib -lvmeb -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc  -o toobusy.exe
-*/ 
-
+/* Compile/link toobusy.exe: see above */ 
 int main(int argn, char **argv) {
 int ix,rccret,rcbt,vsp=0; w32 l0ver;
 int par[5];
@@ -209,7 +208,7 @@ for(ix=1; ix<argn; ix++) {
   par[ix-1]= atoi(argv[ix]);
 };
 micwait(1);
-rccret= vmxopenam(&vsp, "0x820000","0xd000","A24");
+rccret= vmxopenam(&vsp, (char *)"0x820000",(char *)"0xd000",(char *)"A24");
 if(rccret!=0) {
   printf("vmeopen rc:%d\n", rccret); exit(8);
 };

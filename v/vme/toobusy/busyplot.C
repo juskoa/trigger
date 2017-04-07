@@ -15,7 +15,7 @@ Double_t busyplot()
  
  gSystem->Exec("sh $VMECFDIR/toobusy/read5.sh");
    
-ifstream myfile("busysweep");
+ifstream myfile("/home/alice/trigger/v/vme/WORK/busysweep");
 if (myfile.is_open()) {
   Int_t i=0;
   while (! myfile.eof() ) {

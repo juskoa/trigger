@@ -34,9 +34,9 @@ read a b c d e
 echo "numbers: $a $b $c $d $e"
 #measure $a $b $c $d $e
 
-ssh -2 trigger@alidcsvme001 "cd ~/v/vme/WORK ; \$VMECFDIR/toobusy/linux/toobusy.exe $a $b $c $d $e"
+ssh -2 trigger@alidcsvme001 "cd ~/v/vme/WORK ; \$VMECFDIR/toobusy/linux_c/toobusy.exe $a $b $c $d $e"
 
 echo sshrc:$?
 # now copy file:
-scp -2 trigger@alidcsvme001:v/vme/WORK/busysweep .
+scp -2 trigger@alidcsvme001:\~/v/vme/WORK/busysweep ~/v/vme/WORK/
 echo scp rc:$?
