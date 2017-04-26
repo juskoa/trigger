@@ -79,6 +79,17 @@ vmecrate ctp
 orbitddl2.py configrunset                  -should be ok now
 
 === start daemons
+[root@alidcscom835 ~]# service httpd start
+      adls
+
+only in p2:
+tri@alidcscom707 -> root -> mount /local
+alidcscom835:/home/dl6/local /local nfs ro,defaults 0 0
+alidcscom521 mounts:
+
+startClients.bash ttcmidim start     (in lab on altri2, not needed)
+startClients.bash gmonscal start     from trigger@alitrir (707)
+
 check redis@835 or redis@adls account. redstatus,...
 startClients.bash pydim start
 ctpproxy.sh startnd
@@ -86,15 +97,12 @@ ctpproxy.sh stop
 ctpdims start
 startClients.bash xcounters start    
   seems better: ssh tri@local host ; xcounters.sh stop/start
-ctpproxy.sh startnd
 startClients.bash rrd start
 startClients.bash html start
+startClients.bash ctpwsgi start
 startClients.bash masksServer start
-startClients.bash udpmon start
 startClients.bash gcalib start
-only in p2:
-startClients.bash ttcmidim start     (in lab on altri2, not needed)
-startClients.bash gmonscal start
+startClients.bash udpmon start
+cd monitor
 irdim: ik
-
 
