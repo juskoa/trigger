@@ -48,8 +48,8 @@ if((argc<2) || (argc>4)) {
 1.\n\
 client DETECTOR_NAME/SET_OPTIONCODE CODE N\n\
 where: DETECTOR_NAME is SPD,MUON_TRG,EMC... (i.e. capitals)\n\
-       CODE          is required option code:\n\
-          0   Normal\n\
+       CODE          is required option code (number or a letter):\n\
+          0   Normal  \n\
           1   Toggling\n\
           2   Signature\n\
           3   Random \n\
@@ -84,7 +84,18 @@ if(argc==4) {                    // signal# (1,2,...)
   strcpy(ctpinput, "1");   // default is 1
 };
 if(argc>=3) {                    // option code (0-3)
+  char fc;
   strncpy(ocode, argv[2], 2);
+  fc= ocode[0];
+  if((fc<'0') || (fc>'3')) {
+    if((fc=='N') || (fc=='n')) { strcpy(ocode,"0");
+    } else if((fc=='T') || (fc=='t')) { strcpy(ocode,"1");
+    } else if((fc=='S') || (fc=='s')) { strcpy(ocode,"2");
+    } else if((fc=='R') || (fc=='r')) { strcpy(ocode,"3");
+    } else {
+      printf("Bad CODE: %s, n t s or r expected\n", ocode); return(8);
+    };
+  };
 } else {
   strcpy(ocode, "0");   // default is normal
 };

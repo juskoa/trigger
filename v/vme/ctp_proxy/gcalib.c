@@ -1,3 +1,5 @@
+/* 9.5.2017 write_df: commentd out line writing in gcalib.log file
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -52,7 +54,7 @@ typedef struct ad {
   int calbc;       // 3556->3011 from 31.3.2011 (or from ltu_proxy)
   int logroc;         // Log: bit 4 (0x10) Readout COntrol: (4 low bits, 0xf)
   int fileix;      // pointer to DATAFILES
-  w32 runn;
+  w32 runn;        // !=0 for detector not choosen for pp_N.data file
   char name[12];
   Ttime caltime;   //time of next cal. trigger. secs=0: not initialised
   Ttime lasttime;  //time of last cal. trigger. secs=0: not initialised
@@ -164,8 +166,8 @@ ix= ACTIVEDETS[ixdet].fileix;
 if( DATAFILES[ix].runn!=0) {
   fd= DATAFILES[ix].dataf;
   fprintf(fd, line);
-} else {
-  printf("ERROR: runn=0 in write_df(%d, %s", ix, line);
+} else {   // in case 'n' in gcalib.cfg file
+  ; //printf("ERROR: runn=0 in write_df(%d, %s", ix, line);
 };
 }
 

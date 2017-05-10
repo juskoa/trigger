@@ -2,7 +2,8 @@
 include makefile_common
 SDIR= .
 LIBS = $(EXTRALIBS)
-all: $(ODIR) $(ODIR)/server $(ODIR)/server2 $(ODIR)/client2 $(ODIR)/client_stamped
+all: $(ODIR) $(ODIR)/server $(ODIR)/client \
+ $(ODIR)/server2 $(ODIR)/client2 $(ODIR)/client_stamped
 $(ODIR):
 	mkdir -p $(ODIR)
 $(ODIR)/server:	$(SDIR)/server.c $(DIMDIR)/$(ODIR)/libdim.a

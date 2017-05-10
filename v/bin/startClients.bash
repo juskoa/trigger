@@ -180,9 +180,11 @@ xcounters: creating xcounters files and posting them to DCS XFS
 diprfrx    DIP service publishing the LHC TTCmi RF -see http://cern.ch/ttcpage1
            not used from 2016
 gcalib     sending cal. triggers to the detectores during global run
-gmonscal   running on trigger@alitrir. Creating: 
+gmonscal   running on trigger@alitrir. 
+           Creating: 
            $server:v/vme/WORK/MONSCAL/inputs.png
            $server:v/vme/WORK/MONSCAL/RUNNUMBER_CLUSTER.png
+           Config: $server:$dbctp/../monscal/inputs.mcfg
 masksServer running on alitri. Commands: start/stop/status/update
            See v/vme/WORK/masksServer.log,.pid, src: pydim/masksServer.py 
            DIM publications of CTPBCM/A,C,S,SA,... -masks available 
