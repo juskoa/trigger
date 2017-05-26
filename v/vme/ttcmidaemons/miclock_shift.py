@@ -239,7 +239,7 @@ def checkandsave(csf_string, fineshift="None", force=None):
     #mylog.logm("DLL_RESYNC after clock shift adjustement not started...")   # CJI
 def checkShift(what="s"):
   cshift= getShift(what)
-  mylog.logm("checkShift: after 10 secs:"+ cshift)
+  mylog.logm("checkShift: after 20 secs:"+ cshift)
 def callback_bmold(bm):
   #print "callback_bmold: '%s' (%s)" % (bm, type(bm))
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
@@ -298,16 +298,17 @@ def callback_bm(ecsbm):
       getfsdip.main("act")
   cshift= getShift()
   if WEB.miclock==expclock:
-    if bmname=="SQUEEZE":
+    if bmname=="FLAT TOP":
+    #if bmname=="SQUEEZE":  # used before 26.05.2017
     #if bmname=="ADJUST":   # from 7.11.-17.11. 2016 15:45 we used ADJUST
       if cshift!='old':
         if False:
-          mylog.infolog("SQUEEZE: clock shift correction disabled",level='w')
+          mylog.infolog("FLAT TOP: clock shift correction disabled",level='w')
         else:
-          mylog.infolog("SQUEEZE: clock shift %s, applying correction ..."%cshift,level='w')
+          mylog.infolog("FLAT TOP: clock shift %s, applying correction ..."%cshift,level='w')
           checkandsave(cshift, bmname)   # fine shift
           # it should certainly be less then 100ps after adjustment:
-          t= threading.Timer(10.0, checkShift)
+          t= threading.Timer(20.0, checkShift)
           t.start()
       else:
         arg=("none",)

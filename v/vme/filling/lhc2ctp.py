@@ -480,8 +480,10 @@ later time (when .mask cretaed)
   bgap=biggaps(abcs)
   #bgap.prt()
   # we know largest gaps, so can create Empty BCs (-70bcs -TRD request):
-  print "1.gap, before bc:%d, %d bcs"%(bgap.gaps[0][0], bgap.gaps[0][1]-1)
-  print "2.gap, before bc:%d, %d bcs"%(bgap.gaps[1][0], bgap.gaps[1][1]-1)
+  for bgix in range(bgap.size):
+    print "%d.gap, before bc:%d, %d bcs"%(bgix+1,bgap.gaps[bgix][0], bgap.gaps[bgix][1]-1)
+  #print "bgap.gaps:", bgap.gaps
+  #print "2.gap, before bc:%d, %d bcs"%(bgap.gaps[1][0], bgap.gaps[1][1]-1)
   # if bigger gap is >200, put both E bunches into this gap
   if bgap.gaps[0][1] >200:
     e1, err= bgap.getempty(0)

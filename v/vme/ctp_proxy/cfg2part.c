@@ -835,13 +835,20 @@ int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
 int allclgrps=0; int clg,nreads;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
-char *linesip;
+char *newlinesip;   //allocate before 1st one freed
+char *linesip=NULL;
 size_t ngetline;
 char errmsg[300]="";
-part->nclassgroups= 0; nreads=0;
-ngetline= MAXLINECFG+1; linesip= (char *)malloc(ngetline); 
-
+part->nclassgroups= 0; nreads=0;   // >1: ignore RBIF (done already when nreads was 0)
+ngetline= MAXLINECFG+1; 
 REREAD1:
+newlinesip= (char *)malloc(ngetline); 
+if(linesip!=NULL) free(linesip);
+linesip= newlinesip;
+if(linesip==NULL) {
+  sprintf(errmsg, "BCMASK2Partition: malloc(%d) failed", int(ngetline));
+  retcode= 1; goto RETERR;
+};
 cfgfile=fopen(fnpath,"r");
 if(cfgfile == NULL){
   sprintf(errmsg, "ParseFile: cannot open fnpath is:%s:\n", fnpath);
@@ -877,7 +884,10 @@ for(i=0;i<MAXNLINES;i++){
   if( linesi[0]=='#') continue;
   //printf("%s line",linesi);
   if(strncmp("RBIF",linesi,4) == 0){
-   //printf("RBIF found at %i line\n",i);
+   if(nreads>0) {
+     printf("RBIF line %d ignored (nreads:%d)\n",i,nreads);
+     continue;
+   };
    grbif=RBIF2Partition(linesi,part->rbif);
    if(grbif == NULL) {
      sprintf(errmsg,"ParseFile: RBIF2Partition error. line:%s",linesi);
@@ -886,21 +896,21 @@ for(i=0;i<MAXNLINES;i++){
    part->rbif= grbif;  // MUST be here (parameter value passing  for part->rbif!)
    //printf("RBIF2Partition finished:\n"); printTRBIF(part->rbif);
   } else if(strncmp("BCMASKS",linesi,7) == 0) {
-    printf("BCMASKS line len:%d:%.20s...%s.\n",linlen, linesi, &linesi[linlen-20]);
+    printf("BCMASKS line len:%d:%.20s...%s. &linesip:0x%x\n",linlen, linesi, &linesi[linlen-20], linesip);
     /* possible memory leak with BCMASKS line: 
        if happens even after update from 22.6.2016, look into RBIF -the only line
        present before BCMASKS line...
        It happened again: 08.07.2016 07:28:32
-       Modification: close cfgfile, open it again, and skip all lines till BCMASS line.
+       Modification: close cfgfile, open it again, and skip all lines till BCMASK line.
     */
     if(linlen < ((BCMASKN/4)*ORBITLENGTH+8)) {
-      if( nreads==0 ) { 
+      if( nreads<=1 ) { 
         printf("BCMASKS line error str len/start after: %d/%.20s... read once more...\n", 
           int(strlen(&linesi[linlen])), &linesi[linlen]);
-        nreads=1;
+        nreads++;
         fclose(cfgfile); goto REREAD1;
       } else {
-        sprintf(errmsg, "BCMASK2Partition: short BCMASKS line in .pcfg (2. read)");
+        sprintf(errmsg, "BCMASK2Partition: short BCMASKS line in .pcfg (%d reads)", nreads);
         retcode= 1; goto RETERR;
       };
     } else {
@@ -1014,7 +1024,7 @@ if(DBGcfgin) {
 };
 RETERR:
 if(errmsg[0]!='\0') {
-  prtError(errmsg);
+  //prtError(errmsg);
   infolog_trgboth(LOG_ERROR, errmsg);
 };
 if(fclose(cfgfile)) {
