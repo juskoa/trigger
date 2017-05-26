@@ -273,9 +273,9 @@ if(argc==1) {
   strcpy(dati1, argv[1]); strcpy(dati2, argv[2]);
   if(strncmp(&dati1[6],"2014",4) < 0 ) {
   } else if(strncmp(&dati1[6],"2014",4) > 0 ) {
-    CSTARTRUNX= 896;
+    CSTARTRUNX= 1486;   // 896;  changed:24.5.2017
   } else {
-    CSTARTRUNX= 1486;
+    CSTARTRUNX= 896;    //1486;  changed:24.5.2017
     printf("Bad year, no data in 2014\n"); return 3;
   };
   strcpy(runc, argv[4]); runi=atoi(runc); strcpy(outfilepath, argv[5]);
@@ -333,7 +333,7 @@ if(argc==1) {
       if(runxpos == -1) {
         int irx;
         for(irx= CSTARTRUNX+2;irx< CSTARTRUNX+2+6;irx++){
-          //printf("%d ",h2w32(counters[irx]));
+          //printf("runx[%d]: %d ",irx, h2w32(counters[irx]));
           if(h2w32(counters[irx])==runi) {
             // run just started:
             runxpos= irx;
