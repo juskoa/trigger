@@ -316,6 +316,7 @@ printf("INFO DOrcfg msg:%s", dain->run1msg);
 rc= getname_rn(dain->run1msg, pname, &rundec);
 if(check_xcounters()) return;
 if(rc==0) {
+  infolog_SetStream(pname, rundec);
   //printf("INFO effiout:0x%x\n", effiout);
   /*new from aug2015:
   effiout: bit pattern of inp. detectors effectively filtered out
@@ -357,8 +358,10 @@ if(rc==0) {
   } else {
     char emsg[ERRMSGL];
     sprintf(emsg,"DAQlogbook_update_cluster failed. rc:%d", rc);
-    infolog_trgboth(LOG_FATAL, emsg);
+    infolog_trg(LOG_FATAL, emsg);
+    printf("ERROR %s\n", emsg);
   };
+  infolog_SetStream("", 0);
 };
 }
 /*--------------------*/ void DOltucfg(void *tag, void *bmsg, int *size)  {
@@ -533,7 +536,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
       sprintf(emsg,"ERROR %s (run:%d) not found in ACT, might be OK if shift leader disabled it in ACT (i.e. is in 'Local File' mode)", pname, rundec); 
       infoerr=LOG_ERROR;
     } else {
-      sprintf(emsg,"actdb_getPartition(%s) run:%d rc:%d (-2: partition not available in ACT)", pname,rundec,rc); 
+      sprintf(emsg,"ERROR actdb_getPartition(%s) run:%d rc:%d (-2: partition not available in ACT)", pname,rundec,rc); 
       infoerr=LOG_ERROR;
     };
   } else if(mymsg[0]=='A') {
@@ -784,7 +787,7 @@ strcat(aliname, "alignment2daq");
 rl= readdbfile(aliname, alignment, MAXALIGNMENTLEN); alignment[rl]='\0';
 if(alignment=='\0') {
   infolog_trg(LOG_FATAL, "Alignment info in DAQlogbook is empty");
-  printf("ERROR Alignment info in DAQlogbook is empty");
+  printf("ERROR Alignment info in DAQlogbook is empty\n");
 };
 printf("INFO alignment file len:%d (MAX:%d)\n",rl, MAXALIGNMENTLEN );
 sprintf(cfgname,"%s/WORK/RCFG/r%d.rcfg", envWORK, runn);
@@ -853,7 +856,7 @@ if(t1==tINTNUM) {
   runn= str2int(value);
 } else {
   sprintf(emsg,"pydim update_ctpins: bad line:%60s",line);
-  infolog_trg(LOG_ERROR, emsg); printf("%s\n",emsg);
+  infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
   return;
 };
 for(ixc=0; ixc<NCTPINPUTS; ixc++) {
@@ -865,7 +868,7 @@ for(ixc=0; ixc<NCTPINPUTS; ixc++) {
     ctpc_addinp(ixin, runn);
   } else {
     sprintf(emsg,"pydim update_ctpins: bad line:%60s",line);
-    infolog_trg(LOG_ERROR, emsg); printf("%s\n",emsg);
+    infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
     ctpc_delrun(runn);
     break;
   };
