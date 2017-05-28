@@ -5,6 +5,8 @@
 # 26.4.2015 CTPDIM/BEAMMODE replaced by ALICEDAQ_LHCBeamMode (100chars)
 #  5.11.2015 DLL RESET enabled (2x: in checkandsave + SQUEEZE)
 # 17.11.2016  we use SQUEEZE again (not ADJUST) for clockshift adjustment
+# 26.5. 2017 FLAT TOP instead of SQUEEZE time forclock adjustment
+# 26.5. 2017 FLAT TOP + 60 secs
 import sys,os,os.path,string,pylog
 import signal,time,subprocess,threading,socket
 
@@ -237,9 +239,9 @@ def checkandsave(csf_string, fineshift="None", force=None):
     arg=("none",)
     res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
     #mylog.logm("DLL_RESYNC after clock shift adjustement not started...")   # CJI
-def checkShift(what="s"):
+def checkShift(delay):
   cshift= getShift(what)
-  mylog.logm("checkShift: after 20 secs:"+ cshift)
+  mylog.logm("checkShift: after %d secs:"%delay + cshift)
 def callback_bmold(bm):
   #print "callback_bmold: '%s' (%s)" % (bm, type(bm))
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
@@ -306,11 +308,13 @@ def callback_bm(ecsbm):
           mylog.infolog("FLAT TOP: clock shift correction disabled",level='w')
         else:
           mylog.infolog("FLAT TOP: clock shift %s, applying correction ..."%cshift,level='w')
-          checkandsave(cshift, bmname)   # fine shift
+          #checkandsave(cshift, bmname)   # fine shift
+          cst= threading.Timer(60.0, checkandsave(cshift, bmname))   # from 29.5.2017
+          cst.start()
           # it should certainly be less then 100ps after adjustment:
-          t= threading.Timer(20.0, checkShift)
+          t= threading.Timer(90.0, checkShift(30))   # 90= 60+30
           t.start()
-      else:
+      else:   # normally done in checkandsave
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
         #mylog.logm("DLL_RESYNC not started...")   # CJI
