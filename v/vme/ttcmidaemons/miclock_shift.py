@@ -6,7 +6,8 @@
 #  5.11.2015 DLL RESET enabled (2x: in checkandsave + SQUEEZE)
 # 17.11.2016  we use SQUEEZE again (not ADJUST) for clockshift adjustment
 # 26.5. 2017 FLAT TOP instead of SQUEEZE time forclock adjustment
-# 26.5. 2017 FLAT TOP + 60 secs
+# 26.5. 2017 FLAT TOP + 60 secs bug
+#  1.6. 2017 FLAT TOP + 50 secs check +30s, tested in lab (using pydim/simpleClient.py )
 import sys,os,os.path,string,pylog
 import signal,time,subprocess,threading,socket
 
@@ -240,7 +241,7 @@ def checkandsave(csf_string, fineshift="None", force=None):
     res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
     #mylog.logm("DLL_RESYNC after clock shift adjustement not started...")   # CJI
 def checkShift(delay):
-  cshift= getShift(what)
+  cshift= getShift()
   mylog.logm("checkShift: after %d secs:"%delay + cshift)
 def callback_bmold(bm):
   #print "callback_bmold: '%s' (%s)" % (bm, type(bm))
@@ -298,9 +299,11 @@ def callback_bm(ecsbm):
       reload(getfsdip)
       mylog.logm("getfsdip.py act...")
       getfsdip.main("act")
-  cshift= getShift()
   if WEB.miclock==expclock:
     if bmname=="FLAT TOP":
+      mylog.infolog("FLAT TOP: waiting 50secs before reading current clock shift...",level='w')
+      time.sleep(50)   # give BPM 50 secs at least to measure the shift
+      cshift= getShift()
     #if bmname=="SQUEEZE":  # used before 26.05.2017
     #if bmname=="ADJUST":   # from 7.11.-17.11. 2016 15:45 we used ADJUST
       if cshift!='old':
@@ -308,13 +311,15 @@ def callback_bm(ecsbm):
           mylog.infolog("FLAT TOP: clock shift correction disabled",level='w')
         else:
           mylog.infolog("FLAT TOP: clock shift %s, applying correction ..."%cshift,level='w')
-          #checkandsave(cshift, bmname)   # fine shift
-          cst= threading.Timer(60.0, checkandsave(cshift, bmname))   # from 29.5.2017
-          cst.start()
+          checkandsave(cshift, bmname)   # fine shift
+          #cst= threading.Timer(60.0, checkandsave,(cshift, bmname))   # from 29.5.2017
+          #cst.start()
           # it should certainly be less then 100ps after adjustment:
-          t= threading.Timer(90.0, checkShift(30))   # 90= 60+30
+          #t= threading.Timer(90.0, checkShift, (30,))   # 90= 60+30
+          t= threading.Timer(30.0, checkShift, (30,))
           t.start()
       else:   # normally done in checkandsave
+        mylog.infolog("FLAT TOP: clock shift %s, applying DLL_RESYNC instead of clock adjustment ..."%cshift,level='w')
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
         #mylog.logm("DLL_RESYNC not started...")   # CJI
@@ -423,6 +428,8 @@ Than start miclock again.
     if not res or not restran or not resbm:
       mylog.logm("Error registering with info_services: "+str((resbm, res, restran)))
       sys.exit(1)
+  else:
+    mylog.logm("VMESITE: %s"%os.environ['VMESITE'])
   udpmon_thread= myThread(1, "udpmon", 30)
   udpmon_thread.start()
   while True:

@@ -225,10 +225,14 @@ def main():
    f.mainloop()
  else:
    print """Wrong number of arguments. Usage:
+Check ctpinputs.cfg:
 $VMECFDIR/inputs/inputs.py         -> input file: $dbctp/ctpinputs.cfg
 $VMECFDIR/inputs/inputs.py fnpath  -> input file: fnpath
 
-print ordered L0 inputs:
+Print all inputs:
+inputs.py fn pctp
+
+Print ordered L0 inputs:
 inputs.py fn ctpin    -by ctp input number
 inputs.py fn swin     -by switch number
    """ 

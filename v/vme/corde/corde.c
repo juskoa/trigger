@@ -136,7 +136,7 @@ delay: register to be changed
 4:BCMAIN 
 5:BCREF 
 6:BC2 
-7:BC1
+7:BC1   <- this one (CORDE_DELREG) used for ALICE clock shift before rf2ttc board
 */
 void up(int delay, int ms) {
 w32 regad;

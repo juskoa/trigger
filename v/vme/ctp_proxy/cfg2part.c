@@ -7,6 +7,12 @@ instead of stack allocation (>2M) in readDatabase2Tpartition, line by line read 
 Standard C has functions to do this, but they aren’t very safe: null characters and even (for gets) long lines can confuse them. So the GNU C Library provides the nonstandard getline function that makes it easy to read lines reliably.
 
   fgets changed to: malloc + getline
+
+April/May 2017 
+- reread the file (i.e. new fopen), with ignoring RBIF line (preceeding BCMASKS)
+- malloc repeated in case of 'short BCMASKS' error -did not help
+28.5.2017 run 270933 -appeared again
+- own (mygetline) using fgetc used instead of getline()
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -816,6 +822,42 @@ for(ixrbf=0; ixrbf<ixrbifdim; ixrbf++) {
 return grbif;
 RETNULL: return(NULL);
 }
+/*
+I: line -pointer to memory of ngetline length bytes (i.e. max. (ngetline-1) chars)
+rc: length of the line or -1 in case of EOF
+*/
+int  mygetline( char *line, size_t ngetline, FILE *cfgfile) {
+unsigned int lng=0;
+line[0]= '\0';
+while (1) {
+  char ch;
+  /*if(feof(cfgfile)) {
+    if (lng==0) {
+      return(-1);
+    } else {
+      return(lng);
+    };
+  };*/
+  if(lng >= (ngetline-1) ) {
+    break;
+  };
+  ch = fgetc(cfgfile);
+  if(feof(cfgfile)) {
+    if (lng==0) {
+      return(-1);
+    } else {
+      return(lng);
+    };
+  };
+  line[lng]= ch;
+  lng++;
+  line[lng]='\0';
+  //printf("%c", ch);
+  if(ch == '\n') break;
+};
+//printf("mygetline len:%d line:%s:",lng,line);
+return(lng);
+} 
 //int clg_defaults[MAXCLASSGROUPS]= {0,1,1,1,1,1,6,7,119,9};  see Tpartition.h
 /*----------------------------------------------------ParseFile()
   Purpose: to transform the partition written in the format of cfg file
@@ -871,12 +913,14 @@ for(i=0;i<MAXNLINES;i++){
   };
   /*if(fgets(linesi, MAXLINECFG,cfgfile) == NULL) break;   // end of cfg file
   linlen= strlen(linesi); instead use getline: */
-  linlen= getline( &linesip, &ngetline, cfgfile); if(linlen==-1) break;
+  //linlen= getline( &linesip, &ngetline, cfgfile); if(linlen==-1) break;  replaced 28.5.2017
+  linlen= mygetline( linesip, ngetline, cfgfile); if(linlen<=0) break;
   if( linlen >= (MAXLINECFG-1) ) {
     sprintf(errmsg, "ParseFile: too long line (%d chars) in .pcfg file ", linlen);
     retcode= 1; goto RETERR;
   };
   strcpy(linesi, linesip);
+  //printf("ParseFile linesi:%s:",linesi);
   if(linesi[0]=='\0') {
     sprintf(errmsg, "ParseFile: empty line in .pcfg file");
     retcode= 1; goto RETERR;
@@ -896,7 +940,8 @@ for(i=0;i<MAXNLINES;i++){
    part->rbif= grbif;  // MUST be here (parameter value passing  for part->rbif!)
    //printf("RBIF2Partition finished:\n"); printTRBIF(part->rbif);
   } else if(strncmp("BCMASKS",linesi,7) == 0) {
-    printf("BCMASKS line len:%d:%.20s...%s. &linesip:0x%x\n",linlen, linesi, &linesi[linlen-20], linesip);
+    printf("BCMASKS line len (fgetc):%d:%.20s...%s. &linesip:%p\n",linlen, linesi, &linesi[linlen-20],
+      (void *)linesip);
     /* possible memory leak with BCMASKS line: 
        if happens even after update from 22.6.2016, look into RBIF -the only line
        present before BCMASKS line...

@@ -2129,7 +2129,7 @@ overlap= calcOverlap(hw->busy.set_cluster);
 vmew32(BUSY_OVERLAP, overlap);
 if(DBGbusy)printf("BUSY_OVERLAP:0x%x\n", overlap);
 // finally enable all allowed classes on L0 level:
-printf("Finally allow all allowed classes:\n");
+//printf("Finally allow all allowed classes:\n"); removed 30.5.2017
 for(int i=0;i<NCLASS;i++) {
   w32 l0vets;
   klas=hw->klas[i];
