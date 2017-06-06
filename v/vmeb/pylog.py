@@ -87,7 +87,8 @@ class Pylog:
     level: i(nfo) w(arning) e(rror) f(atal)
     partition: partition name
 """
-    if self.info: 
+    #if self.info: 
+    if True:   # infolog() call: -> send msg unconditionally to operator!
       if partition!="":
         part= "-p "+partition
       else:

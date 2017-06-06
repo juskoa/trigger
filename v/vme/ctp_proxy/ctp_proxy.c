@@ -1418,7 +1418,8 @@ for(ips=0;ips<NSDGS;ips++){                   //loop over all SDGS
   sprintf(errmsg,"addClasses2HW:SDGS with illrgal partition %s ips:%d",
     SDGS[ips].pname, ips);
   //infolog_trgboth(LOG_ERROR, errmsg); rcode=2; goto ERRRET;
-  infolog_trg(LOG_INFO, errmsg);
+  //infolog_trg(LOG_INFO, errmsg);  from 6.6. 2017 just in ctp_proxy.log (dbg info message)
+  prtLog(errmsg);
   continue;
   OKPART:
   for(pclass=0; pclass<NCLASS; pclass++) { // all classes

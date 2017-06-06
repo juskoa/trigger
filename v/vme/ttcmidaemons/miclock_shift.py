@@ -323,7 +323,6 @@ def callback_bm(ecsbm):
         arg=("none",)
         res= pydim.dic_cmnd_service("TTCMI/DLL_RESYNC", arg, "C")
         #mylog.logm("DLL_RESYNC not started...")   # CJI
-    mylog.logm("BEAM MODE:%s, clock: %s OK, shift:%s"%(bmname, expclock, cshift))
     if bmname=="RAMP_NOSCOPE":   # never do this (no scope)
       if os.environ['VMESITE']=='ALICE':
         import sctel
