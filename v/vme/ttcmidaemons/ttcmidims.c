@@ -366,7 +366,7 @@ if(cosh>1023) {
   sprintf(errmsg, "corde_shift(%x, %d, ) orig:%d set to:%d.",
     CORDE_DELREG, shift, origshift, cosh); 
   prtLog(errmsg); 
-  sprintf(errmsg,"CORDE shift: %d -> %d ps",origshift*10, cosh*10);
+  sprintf(errmsg,"ALICE clock phase w.r.t. BEAM1 (CORDE shift) correction done: %d ps -> %d ps",origshift*10, cosh*10);
   infolog_trg(LOG_INFO, errmsg);
   // update $dbctp/clockshift,  daqlogbook and SHIFTid service:
   // not done here (can we use DIM client library here?), but in miclock.py

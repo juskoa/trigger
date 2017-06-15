@@ -110,14 +110,14 @@ int string2int(char *cstr,int length,w32 *num,char b){
  }
  if((length>8) && (b =='h')){
   char cstr20[20];
-  strncpy(cstr20, cstr, 20); cstr[19]='\0';
-  printf("string2int error: length=%i >8 cstr[0..20]:%s:\n",length,cstr20);
+  strncpy(cstr20, cstr, 20); cstr20[19]='\0';
+  printf("string2int error: length=%i >8 cstr[0..18]:%s:\n",length,cstr20);
   return 1;
  }
  if(length>9 && b == 'd'){
   char cstr20[20];
-  strncpy(cstr20, cstr, 20); cstr[19]='\0';
-  printf("string2int error: length=%i >9 cstr[0..20]:%s:\n",length, cstr20);
+  strncpy(cstr20, cstr, 20); cstr20[19]='\0';
+  printf("string2int error: length=%i >9 cstr[0..18]:%s:\n",length, cstr20);
   return 1;
  }
  *num=0;
@@ -326,7 +326,7 @@ TKlas *CLA2Partition(char *line,int *error, char *pname){
  w32 l1definition,l1inverted,l2definition;
 int sdgix=-1;   // -1: not SDG class
 char emsg[300];
-char clsnum[3];
+char clsnum[4];
  *error=1;
  i=0;
 if(l0AB()==0) {   //firmAC
@@ -334,7 +334,7 @@ if(l0AB()==0) {   //firmAC
 } else {
   mskCLAMASK=0x10000;
 }
-strncpy(clsnum,&line[4],2); clsnum[2]='\0';
+strncpy(clsnum,&line[4],3); clsnum[3]='\0';
 while(line[i] != ' ' && (i<MAXLINECFG))i++;
 j=i++;    // i.e. j=i; i=i+1
 /* now:
@@ -342,7 +342,7 @@ j=i++;    // i.e. j=i; i=i+1
 CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
        i
       j 
-alco valid for:
+also valid for:
 CLA.001 0x
        ji
 */
@@ -350,7 +350,7 @@ CLA.001 0x
 /* 
       0123456789.1
 CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
-                 i
+                 i               ctrue
       j 
                 1   -here 1st parameter is pointing. 2nd = 11-3=8
 */
@@ -367,11 +367,11 @@ CLA.01 0xffffffff 0x0 0x7feffdf1 0x1fffea 0x1fffffff 0x0 0x1f000fff 1
  /* printf("cfg2part:%s:chars:%d, i=%d j=%d\n",&line[i-1],i-j-3,i,j);
 CLA.01 0xbfffffff 0x0 0x7fffffb1 0x1fae13 0x1bffffff 0x0 0x1f000fff
     i-j-3=6                     j        i
- line[j+1]: start of prescaler: symname or 0x23
-            length of symname or hexnumber is: i-j-1
+ line[j+1]: start of prescaler: symname or 0x23...
+            length of symname: i-j-1 or in case of hexnumber: i-j-3 (0x not counted!)
  */
  if(strncmp(&line[j+1],"0x",2)!=0) {   // SDG symname
-   char symname[12];
+   char symname[MAXSDGNAME];
    strncpy(symname, &line[j+1], i-j-1); symname[i-j-1]='\0';
    sdgix= SDGfind(symname, pname);
    if(sdgix==-1) {   // unknown SDG name in class definition
