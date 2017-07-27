@@ -138,8 +138,9 @@ class Daemon:
             [self.ON, msg_temp]    -temperature ok
             [self.HUNG, msg_temp]  -high temperature (msg sent)
             [self.OFF]             -cannot measure
+    "script" run name.sh script returning: ON or OFF
 
-    onfunc: execute with each UDP message (scb="udp")
+    onfunc: execute with each UDP message (implies scb="udp")
             onfunc() should return: [None], [ON,msg] or [HUNG]
 
     autor: 'y' automatic restart
@@ -171,7 +172,7 @@ class Daemon:
     # read .last2 file
   def do_check(self):
     """ self.scb: defines a way how the status is checked:
-    "scb" (StartClients.Bash way) -run localy (this script
+    "scb" (StartClients.bash way) -run localy (this script
           is supposed to run on server) startClients.bash
     "udp" check last udp message arrived from this Daemon
     "hddtemp" check temp against ALARMhddtemp/OKhddtemp.
@@ -179,6 +180,7 @@ class Daemon:
 [aj@pcalicebhm11 py]$ hddtemp /dev/sda
 /dev/sda: ST3250310AS: 37oC
                          \xc2
+    "script"
     rc: ON: on, msg
         IDLE: idle (e.g.: gcalib on, but no calib. triggers needed)
         OFF: off (= not running)
@@ -223,14 +225,25 @@ class Daemon:
         rc= [self.OFF, "no udp %d secs"%difsec]
     #else:
     #  rc= [None]
-    if (rc[0]==None) and (self.scb=="scb"): 
-      # we could not decide from udp, check at least status if possible,
-      # i.e. 'scb':
-      self.getpid()
-      if self.pid!=None:
-        rc= [self.IDLE]
+    if (rc[0]==None):
+      if self.scb=="scb": 
+        # we could not decide from udp, check at least status if possible,
+        # i.e. 'scb':
+        self.getpid()
+        if self.pid!=None:
+          rc= [self.IDLE]
+        else:
+          rc= [self.OFF]
+      elif self.scb=="script":
+        line= self.iopipe(self.name+".sh", "drwxrwxrwx 1 root root")
+        #self.logm("getpid:pidline:"+pidline+":")
+        if line:
+          #pid= string.split(pidline)[1]
+          rc= [self.ON, line]
+        else:
+          rc= [self.OFF, line]
       else:
-        rc= [self.OFF]
+        pass 
     return rc
   def do_stop(self):
     pass
@@ -319,8 +332,8 @@ def main():
   if (len(sys.argv)>1) and ((sys.argv[1]=='stop') or (sys.argv[1]=='restart') ):
     if pid: 
       print "stopping %s..."%pid
-      os.kill(int(pid), signal.SIGHUP)
       #os.remove(pidpath)
+      os.kill(int(pid), signal.SIGHUP)
     else:
       print "monitor.py not active"
     if sys.argv[1]=='stop': return
@@ -365,7 +378,8 @@ monitor.py stop
       "ctpwsgi":Daemon("ctpwsgi"), 
       "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
       "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
-      "gcalib":Daemon("gcalib")}
+      "gcalib":Daemon("gcalib"),
+      "mnt521":Daemon("mnt521",scb="script", autor="n")}
     log.logm("Udp used.")
     udpmsg=Udp(allds)   
   else:
@@ -440,7 +454,7 @@ monitor.py stop
       log.logm("quit. pid: %s..."%mypid)
       log.flush()
       #udpmsg.close()
-      send_mail(pitlab+"quit")
+      #send_mail(pitlab+"quit")
       time.sleep(1)   #
       #os.remove(pidpath)
       break
