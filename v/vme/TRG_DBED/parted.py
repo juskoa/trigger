@@ -19,6 +19,7 @@ VERSION: 6 LINDF REPL added
 VERSION: 7 >=7 from now
 6.9.2015
 VERSION: 8 new PF
+27.7.2017 in case of 'no LTU in cluster' Error: Readout detectors missing in cluster "+clusname
 """
 from Tkinter import *
 import os,sys,glob,string,shutil,types
@@ -3321,6 +3322,10 @@ Logical class """+str(clanum)+", cluster:"+cluster.name+", class name:"+ cls.get
           # test for L0pr,BCM1/2/3/4, all, rare:
           PrintError(clstring+" -unknown Trigger descriptor", self)
       clltus= redline(inf)         # LTUs line
+      #print "clltus:", clltus, " len:",len(clltus)
+      if len(clltus)<2:            # at least 2 chars for AD/V0/T0 (shortest name)
+        PrintError("Readout detectors missing in cluster "+clusname, self)
+        break
       for name in string.split(clltus):   #-------------LTUS
         ltu= TDLTUS.findLTU(name)
         #print "loadfile:",name, ltu.name

@@ -80,3 +80,12 @@ Traceback (most recent call last):
   File "<stdin>", line 1, in ?
 AttributeError: 'module' object has no attribute 'dicxcmnd_callback'
 fixed: by adding /opt/dim/linux/libdim.so in ld command (see buildso.sh)
+
+Adding service estimating the length of the ctp readout 
+-------------------------------------------------------
+ddl1bytes= 3564*4*5/(40*10**6/ir1rate)              minimum
+ddl1bytes= 3564*4*5/(40*10**6/(ir1rate+ir2rate))    maximum
+
+ddl2bytes= ddl2blocks*4096*5/11223
+
+fixedbytes= 18*4 ? (L2a length)

@@ -73,7 +73,7 @@ smicmd init PARTNAME decmask RUNN
 smicmd start/stop/pause/resume/sync/ack/reset PARTNAME
 
 General usage:
-1. make sure dns is running on adls (/opt/dim/linux/dns)
+1. make sure dns is running on adls (nohup /opt/dim/linux/dns &)
 2.  smicmd TRIGGER      -start private TRIGGER domain (on adls or altri1)
     ONLY 1 instance can be active (it will crash if another instance is running already)
 3. use smicmd init/start/stop/.... PARTNAME as suggested above

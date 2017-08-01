@@ -61,6 +61,9 @@ $dbctp/gcalib.cfg
 
 alias sedev='cd ~/git/trigger; . v/bin/vmebse.bash ; unset DATE_DAQLOGBOOK_DIR ; unset ACT_DB ; export VMEDRIVER=SIMVME ; export DIM_DNS_NODE=localhost ; alias ctp="vmecrate nbi ctp" ; test -z `ps -C dns -o pid=` && /opt/dim/lnux/dns'
 
+=== smicmd -imitating ECS actions
+smicmd    -without parameters, help is printed
+
 === sort ctpinputs.cfg
 Sort by Switch input (8th field)
 sort -k8,8n ctpinputs.cfg |more

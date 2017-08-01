@@ -1,6 +1,7 @@
 Contents:
 1. Prepare .rpm
-1A. check .rpm
+1A. adding tkinter dependance
+1B. check .rpm
 2. History
 3. Problems
 
@@ -18,7 +19,8 @@ and start ./cphere.sh
 - answer 'y' when asked about removing files in pwd
 
 .noarch.rpm is left in ~/validate/dist directory
-Adding tkinter dependance (to the just created .rpm):
+1A. Adding tkinter dependance (to the just created .rpm)
+--------------------------------------------------------
 modify ~/validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
 adding 2 lines after 'Vendor:' line:
 Requires: tkinter
@@ -42,7 +44,7 @@ Not urgent, just improving 'test' for act. If deplyed in p2
 I can close RC-5930/1.
 Cheers, Anton
 
-1A. check .rpm
+1B. check .rpm
 --------------
 avmes:
 scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-4.0-1.noarch.rpm aj@pcalicebhm11:Downloads/
@@ -103,6 +105,9 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 - 5.6 without tkinter dependance,minor changes (better syntax check of .partition file)
 14.9.2016
 - 5.7  the max. SDG name length check added (max. is 23), tkinter dependance added
+28.7.2017
+- 5.8 Error: Readout detectors missing in cluster NAME   added
+  rpm creation tested, tkinter dependance not added, neither released to Vasco yet!
 
 3. Problems
 -----------

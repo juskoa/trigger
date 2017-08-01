@@ -823,7 +823,7 @@ return grbif;
 RETNULL: return(NULL);
 }
 /*
-I: line -pointer to memory of ngetline length bytes (i.e. max. (ngetline-1) chars)
+I: line -pointer to memory of ngetline bytes (i.e. max. (ngetline-1) chars)
 rc: length of the line or -1 in case of EOF
 */
 int  mygetline( char *line, size_t ngetline, FILE *cfgfile) {
@@ -860,7 +860,7 @@ return(lng);
 } 
 //int clg_defaults[MAXCLASSGROUPS]= {0,1,1,1,1,1,6,7,119,9};  see Tpartition.h
 /*----------------------------------------------------ParseFile()
-  Purpose: to transform the partition written in the format of cfg file
+  Purpose: to transform the partition written in the format of .pcfg file
            to structure Partition
   Parameters:            
        Input: cfg file stored in array of characters
@@ -868,6 +868,7 @@ return(lng);
        Output: part
   Return: error code (0=ok)
   Called by: readDatabase2Tpartition()
+31.7.2017: use stack instead of malloc
 */
 //int ParseFile(char lines[][MAXLINECFG],Tpartition *part){
 int ParseFile(char *fnpath,Tpartition *part){
@@ -877,20 +878,22 @@ int iklas=0,ipf=0,ifo=0;
 TRBIF *grbif,*rcgrbif;
 int allclgrps=0; int clg,nreads;
 int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
-char *newlinesip;   //allocate before 1st one freed
-char *linesip=NULL;
+//char *newlinesip;   //allocate before 1st one freed
+//char *linesip=NULL;
 size_t ngetline;
 char errmsg[300]="";
 part->nclassgroups= 0; nreads=0;   // >1: ignore RBIF (done already when nreads was 0)
+char linesip[MAXLINECFG+1];
 ngetline= MAXLINECFG+1; 
 REREAD1:
+/*
 newlinesip= (char *)malloc(ngetline); 
 if(linesip!=NULL) free(linesip);
 linesip= newlinesip;
 if(linesip==NULL) {
   sprintf(errmsg, "BCMASK2Partition: malloc(%d) failed", int(ngetline));
   retcode= 1; goto RETERR;
-};
+}; */
 cfgfile=fopen(fnpath,"r");
 if(cfgfile == NULL){
   sprintf(errmsg, "ParseFile: cannot open fnpath is:%s:\n", fnpath);
@@ -1076,7 +1079,7 @@ if(fclose(cfgfile)) {
   sprintf(errmsg, "ParseFile: cannot close %s", fnpath);
   infolog_trgboth(LOG_ERROR, errmsg);
 };
-free(linesip);
+//free(linesip);  is on stack
 return retcode;
 BADGROUP:
 sprintf(errmsg,"Bad class group:%d for partition:%s",clg,part->name);
