@@ -75,6 +75,7 @@ cnames.sorted2   -valid for run2 (from 2014)
 Similar file ltunames.sorted2 is supplied for LTU counters, 
 published by LTU DIM servers. This file does not contain 5th column
 (detector) present in cnames.sorted2.
+See also DOC/counters.txt
 
 counter_name 
 ------------

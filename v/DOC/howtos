@@ -23,12 +23,14 @@ CTRL-D
 /opt/smi/linux/smiSendCommand TRIGGER::CTP STOP_PARTITION -ps PARTITION pamb2 -dbg
 -dbg: don't send, just see how it looks like. 
 
-=== mount samba on alidcscom188: -----------------------
+=== mount samba on alidcscom188:  obsolete see mount massi files
 [root@alidcscom188 dcsScripts]# pwd
 /root/dcsScripts
 [root@alidcscom188 dcsScripts]# ./mntDcsUser juskoa
 - type nice passwd 4x
 - use /mnt/alidcsfs001/Scratch/tri for our backups
+=== mount massi files from 1.8.2017 (root sudo)
+mount /mnt/alidcsfs001/Scratch_data
 
 === python recompile: python -m compileall .    (see bin/pyrecomp)
 

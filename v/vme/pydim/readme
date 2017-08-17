@@ -1,5 +1,4 @@
-Files in this directory
------------------------
+=== Files in this directory
 1. Server -popen to C:
 server.c       -DIM server, listening to:
     CTPRCFG/RCFG commands
@@ -12,8 +11,13 @@ pydimserver.py -works with server.c (popen), waiting messages from ctpproxy
 Client -popen to C:
 client.c       - DIM client (in c)
 
-------------------------------------
-2. examples using /opt/pydim:
+fsclient.py    -returns on stout fsname fillN bunchesA bunchesAll
+[trigger@alidcscom835 pydim]$ ./fsclient.py 
+fs 25ns_2556b_2544_2215_2332_144bpi_20inj 6046 396 792
+
+simpleServer.py -daq/MONBUSY (1/sec busy debugging)
+
+=== 2. examples using /opt/pydim:
 Installation of pydim from rpm on 707 (19.3.2012):
 [alidcscom188] /data/dl/root/usr/local/trigger/root/Addons_64 > scp $dagw:/afs/cern.ch/lhcb/project/web/online/online-rpm-repo/slc5X/x86_64/RPMS/pydim-1.3.4-1.slc5.x86_64.rpm .
 [root@alidcscom707 Addons_64]# rpm -ivh pydim-1.3.4-1.slc5.x86_64.rpm
@@ -21,8 +25,7 @@ Installation of pydim from rpm on 707 (19.3.2012):
 simpleServer.py
 simpleClient.py
 
-------------------------------------
-3. py-extension (swig):
+=== 3. py-extension (swig):
 Client -python extension using dimclient:
 clientpy.c, clientpy.i - python extension (swig) for DIM client
 clientpy.py    -py extension (built by buildso.sh)
@@ -41,8 +44,7 @@ finddims.py    -check availability of ctpdims, ltudims
    
 simple/clientpy.[ic] -simple version (only 1 DIM server)
 
-Usage:
-------
+=== Usage
 Start server:
 linux/server
 Start c-client:
@@ -66,12 +68,11 @@ dicxcmnd_callback:CTPRCFG/RCFG pclieEJJJw
 Callback: OK+3secs
 
 
---------------------------------------------------
-Notes:
+=== Notes
 nm -D clientpy.so
 
-Cases
---------------
+=== Problems and fixes
+=== link. libdim.so
 >>> import clientpy
 ImportError: ./_clientpy.so: undefined symbol: dic_cmnd_callback_
 >>> import clientpy
@@ -81,11 +82,18 @@ Traceback (most recent call last):
 AttributeError: 'module' object has no attribute 'dicxcmnd_callback'
 fixed: by adding /opt/dim/linux/libdim.so in ld command (see buildso.sh)
 
-Adding service estimating the length of the ctp readout 
--------------------------------------------------------
+=== 4.8.2017 Adding service estimating the length of the ctp readout 
 ddl1bytes= 3564*4*5/(40*10**6/ir1rate)              minimum
 ddl1bytes= 3564*4*5/(40*10**6/(ir1rate+ir2rate))    maximum
 
-ddl2bytes= ddl2blocks*4096*5/11223
+ddl2bytes= ddl2blocksrate*4096*5/11223
 
 fixedbytes= 18*4 ? (L2a length)
+
+daqbytes= ddl1bytes + ddl2bytes + fixedbytes
+
+ir?rate,ddl2blocksrate - in [1/s]
+can be calculated from  counters:
+int1 1495
+int2 1496
+ddl2blocks = spare1484
