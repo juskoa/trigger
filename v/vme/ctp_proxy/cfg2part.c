@@ -882,8 +882,8 @@ int clgrps[MAXCLASSGROUPS]={0,0,0,0,0,0,0,0,0,0};
 //char *linesip=NULL;
 size_t ngetline;
 char errmsg[300]="";
-part->nclassgroups= 0; nreads=0;   // >1: ignore RBIF (done already when nreads was 0)
 char linesip[MAXLINECFG+1];
+part->nclassgroups= 0; nreads=0;   // >1: ignore RBIF (done already when nreads was 0)
 ngetline= MAXLINECFG+1; 
 REREAD1:
 /*

@@ -23,22 +23,30 @@ def findbusy(fn, datum, timefrom, timeto):
     linen= linen+1
     if line== '\n': continue
     ll= string.split(line," ")
-    if ll[0][:14]!="updateMONBUSY:": continue
+    if ll[0][:14]=="updateMONBUSY:":
 #                   01234567890123
 # updateMONBUSY:18.05.2016 09:10:07:oldbusy: 0.0000 newbusytime:0.0545 nclients:0
 # 0                        1                 2      3                  4
 #:0             1                   2       3                   4
-    dat = string.split(ll[0],":")[1]
-    tim = ll[1][:8]
-    oldb= ll[2]
-    newb= string.split(ll[3],":")[1]
-    #print string.strip(line)
-    #print "dat:", dat, tim, oldb, newb
-    if (dat == datum) and (tim>= timefrom) and (tim<= timeto):
-    #if (dat == datum):
+      dat = string.split(ll[0],":")[1]
+      tim = ll[1][:8]
+      oldb= ll[2]
+      newb= string.split(ll[3],":")[1]
       #print string.strip(line)
-      print "%s %s %s -> %s"%(dat, tim, oldb, newb)
-      linenok= linenok+1
+      #print "dat:", dat, tim, oldb, newb
+      if (dat == datum) and (tim>= timefrom) and (tim<= timeto):
+      #if (dat == datum):
+        #print string.strip(line)
+        print "%s %s %s -> %s"%(dat, tim, oldb, newb)
+        linenok= linenok+1
+    elif ll[0][:7]=="cmdCMD:":
+#                    0123456
+# cmdCMD:06.09.2017 15:33:28:ttcrxreset fee rc:0
+# 0                 1                   2   3
+      if (dat == datum) and (tim>= timefrom) and (tim<= timeto):
+        print "%s %s %s %s %s"%(dat, tim, ll[1][9:], ll[2], ll[3].strip())
+        linenok= linenok+1
+    else: continue
     #if linenok>5: break
   fi.close()
   
