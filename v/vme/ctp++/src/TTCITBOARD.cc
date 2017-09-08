@@ -20,13 +20,13 @@ int TTCITBOARD::ReadAllCounters(w32 l0l1time)
 {
  const char* names[18]={"L0","L1","L1m","L2a","L2r","ERR_PP","ERR_L0S","ERR_L1S","ERR_L1MM","ERR_L1MS","ERR_L1MI","ERR_L1MD","ERR_L2MM","ERR_L2MS","ERR_L2MI","ERR_L2MD","ERR_CAL","ERR_BCNT"};
  w32 counts[18];
+ vmew(TIME_L0_L1,l0l1time);
  vmew(RESET_COUNTERS,0x0);
  usleep(100000);
  int i=0;
  for(w32 add=RESET_COUNTERS+4;add<= COUNT_ERR_BCNT; add+=4){
    counts[i]=vmer(add); i++;
  }
- vmew(TIME_L0_L1,l0l1time);
  printf("======================L0L1time: %i \n",l0l1time);
  i=0;
  for(w32 add=RESET_COUNTERS+4;add<= COUNT_ERR_BCNT; add+=4){
