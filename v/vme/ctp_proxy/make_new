@@ -1,6 +1,6 @@
 # test makefile: start: make linux/XXX   where XXX is:
 # ctp_proxy  -for ref's ctp_proxy
-# test    -testing ctp_proxy functions interactively  
+# test_nfs-testing NFS mounted file 
 # dims    - dim server part testing (later dim server will be
 #           started from ctp_Initproxy)
 # dimc    -testing example of dim client using dims (CTPDIM/) sevices
@@ -16,7 +16,7 @@ include $(VMEBDIR)/sc.make
 ifdef SERVER_LINK
 allEXES = $(EXEDIR)/act.exe $(EXEDIR)/dimc $(EXEDIR)/sendcomm $(EXEDIR)/ctpshm.exe
 else
-allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test $(EXEDIR)/dims \
+allEXES = $(EXEDIR)/ctp_proxy $(EXEDIR)/test_nfs $(EXEDIR)/dims \
  $(EXEDIR)/gcalib.exe $(EXEDIR)/ctpshm.exe $(EXEDIR)/main_TRBIF \
  $(EXEDIR)/bakeryTest.exe
 endif
@@ -26,7 +26,7 @@ $(info SERVER_LINK:$(SERVER_LINK): VMEBLD:$(VMEBLD):$(allEXES))
 LIBDEP = $(CTPLIB)/libctp.a $(VMEBLIB)/libvmeb.a
 
 proxyOBJS= ctp_proxy.o cfg2part.o clgroups.o \
- dimservices.o fixedcnts.o
+ dimservices.o fixedcnts.o 
 main_TRBIFOBJS= cfg2part.o 
 
 all: $(EXEDIR) $(allEXES)
@@ -53,11 +53,16 @@ clgroups.o:clgroups.c Tpartition.h
 fixedcnts.o:fixedcnts.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-#------------------------------------------ test
-test.o:test.c ctp_proxy.h Tpartition.h
+#------------------------------------------ test_nfs
+#test.o:test.c ctp_proxy.h Tpartition.h
+#	$(CC) $(CFLAGS) -c -o $@ $<
+#$(EXEDIR)/test: test.o $(proxyOBJS) $(LIBDEP)
+#	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) -o $@
+test_nfs.o:test_nfs.c ctp_proxy.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
-$(EXEDIR)/test: test.o $(proxyOBJS) $(LIBDEP)
-	$(CC) $(LDFLAGS) $< $(proxyOBJS) $(PROXYLIBS) -o $@
+$(EXEDIR)/test_nfs: test_nfs.o $(LIBDEP)
+	$(CC) $(LDFLAGS) $< $(PROXYLIBS) -o $@
+
 Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 main_TRBIF.o:main_TRBIF.c ctp.h Tpartition.h
@@ -66,14 +71,14 @@ $(EXEDIR)/main_TRBIF: main_TRBIF.o $(main_TRBIFOBJS) $(LIBDEP)
 	$(CC) $(LDFLAGS) $< $(main_TRBIFOBJS) $(PROXYLIBS) -o $@
 
 #------------------------------------------- dims
-dims.o:dims.c dimtypes.h
+dims.o:dims.c dimtypes.h Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/dims: dims.o dimservices.o $(LIBDEP)
 	$(CC) $(LDFLAGS) $< dimservices.o $(PROXYLIBS) -o $@ 
 
 #------------------------------------------- bakeryTest
 # only 1 of following 2 lines should be commented
-bakeryTest.o:bakeryTest.c 
+bakeryTest.o:bakeryTest.c Tpartition.h
 #bakeryTest.o:bakeryTest.cc
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
@@ -82,7 +87,7 @@ $(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
 #	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(VMERCCLD) -o $@
 
 #------------------------------------------- gcalib
-gcalib.o:gcalib.c 
+gcalib.o:gcalib.c Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/gcalib.exe: gcalib.o $(LIBDEP)
 #	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) -o $@
@@ -101,10 +106,10 @@ main_bakery.o:main_bakery.c Tpartition.h
 $(EXEDIR)/main_bakery.exe: main_bakery.o $(LIBDEP)
 	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(infoLD)
 #------------------------------------------- act.exe
-main_act.o:main_act.c Tpartition.h 
+main_act.o:main_act.c Tpartition.h $(VMEBinc)/shmaccess.h
 	$(CC) $(CFLAGS) $< -c -o $@
 $(EXEDIR)/act.exe: main_act.o cfg2part.o $(LIBDEP) $(actDEP)
-	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(actLD) $(MYSQLLIBS) -o $@
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(actLD) $(infoLD) $(MYSQLLIBS) -o $@
 #-------------------------------------------- dimc
 dimc.o:dimc.c dimtypes.h
 	$(CC) $(CFLAGS) -c -o $@ $<

@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>  // opendir,closedir
+#include <dirent.h>
+#include <libgen.h>   // dirname
 
 #include "lexan.h"
 #define MAXNAMELENGTH 80        // paths
@@ -13,7 +16,11 @@
 FILE *openFile(char *fname, char *rw) {
 FILE *cfgfile;
 char *environ;
+char *dirn; 
+char cmd[MAXNAMELENGTH+40+40];
+//DIR *dirstream; int rc=8; char cfnpath[MAXNAMELENGTH+40];
 char fnpath[MAXNAMELENGTH+40];
+char cfnpath[MAXNAMELENGTH+40];
 if(fname[0]=='/') { // absolute
   strcpy(fnpath,fname);
 } else {  // relative path
@@ -21,7 +28,16 @@ if(fname[0]=='/') { // absolute
   strcat(fnpath,"/");
   strcat(fnpath,"CFG/ctp/DB/"); strcat(fnpath, fname);
 };
-printf("INFO openFile:%s %s\n", fnpath, rw);
+/* invalidate NFS cache: not working (a nfs-mounted-file not refreshed on client)
+strcpy(cfnpath, fnpath); dirn= dirname(cfnpath);
+dirstream= opendir(dirn); 
+if(dirstream !=NULL) {rc=closedir(dirstream);};
+printf("INFO openFile:%s %s dir:%s closedir rc:%d\n", fnpath, rw, dirn, rc);
+*/
+/* 'ls' invalidated the nfs cache: */
+strcpy(cfnpath, fnpath); dirn= dirname(cfnpath);
+sprintf(cmd,"/bin/ls %s 2>&1 >/dev/null", dirn); system(cmd);
+printf("INFO openFile:%s %s dir:%s\n", fnpath, rw, dirn);
 cfgfile=fopen(fnpath,rw);
 if(cfgfile == NULL){
   printf("ERROR fnpath:%s:\n", fnpath);

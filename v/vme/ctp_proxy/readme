@@ -1,6 +1,7 @@
 Content:
 1.List of files
 1.1. executables
+1.2. make
 2. proxy notes
 3.The description of .pcfg file
   .rcfg file format: see TRG_DBED/DOC 
@@ -42,6 +43,39 @@ dimccounters.c  -an example of DIM client reading CTP counters
 dimcswtrg.c     -example of SWTRG requests client (obsolete -
                  last version is in aj@pcalicebhm05:dimcdistrib/)
 
+1.2. make
+---------
+ctp_proxy]$ grep 'Tpartition.h' *.c
+ bakeryTest.c:#include "Tpartition.h"
+ cfg2part.c:#include "Tpartition.h"
+ cfg2part.c://int clg_defaults[MAXCLASSGROUPS]= {0,1,1,1,1,1,6,7,119,9};  see Tpartition.h
+ clgroups.c:#include "Tpartition.h"
+ ctp_proxy.c:#include "Tpartition.h"
+ dims.c:#include "Tpartition.h"
+ dimservices.c:#include "Tpartition.h"
+ gcalib.c:#include "Tpartition.h"
+ main_act.c:#include "Tpartition.h"
+ main_bakery.c:#include "Tpartition.h"
+ main_ctp.c:#include "Tpartition.h"
+ main_shm.c:#include "Tpartition.h"
+ main_TRBIF.c:#include "Tpartition.h"
+ test.c:#include "Tpartition.h"
+
+ctp_proxy]$ grep 'Tpartition.h' make_new
+ main_ctp.o:main_ctp.c Tpartition.h ctp_proxy.h
+ ctp_proxy.o:ctp_proxy.c ctp_proxy.h Tpartition.h 
+ dimservices.o:dimservices.c Tpartition.h
+ cfg2part.o:cfg2part.c Tpartition.h 
+ clgroups.o:clgroups.c Tpartition.h 
+ test.o:test.c ctp_proxy.h Tpartition.h
+ Tpartition.o: Tpartition.c $(VMEBinc)/lexan.h Tpartition.h
+ main_TRBIF.o:main_TRBIF.c ctp.h Tpartition.h
+ dims.o:dims.c dimtypes.h Tpartition.h
+ bakeryTest.o:bakeryTest.c Tpartition.h
+ gcalib.o:gcalib.c Tpartition.h
+ main_shm.o:main_shm.c Tpartition.h $(VMEBinc)/shmaccess.h
+ main_bakery.o:main_bakery.c Tpartition.h
+ main_act.o:main_act.c Tpartition.h
 1.1. executables
 ----------------
 test

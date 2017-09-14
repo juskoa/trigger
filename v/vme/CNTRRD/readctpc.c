@@ -434,13 +434,13 @@ if(rcp==NULL) {
 }
 FILE *openpipew(char *cmd) {
 FILE *rcp;
+printf("INFO opening %s ...\n", cmd); fflush(stdout);
 rcp= popen(cmd, "w");
-printf("INFO opening %s\n", cmd);
 if(rcp==NULL) {
   printf("Cannot open %s\n", cmd);
 } else {
   setlinebuf(rcp);
-  printf("%s opened.\n", cmd);
+  printf("%s opened.\n", cmd); fflush(stdout);
 }; return(rcp);
 }
 /*---------------------------------------------------- update_avbusysrunn()
@@ -748,6 +748,7 @@ for(ix=0; ix<N48; ix++) {
   strcat(apmonlineI, strigrate);
 }; strcat(apmonlineI,"\n");
 if((ARGNOAPPMON==0) && (apmonpipe!=NULL)) {
+  //printf("INFO: apmonlineB len:%d %s\n", (int)strlen(apmonlineB), apmonlineB);
   rcapmon= fprintf(apmonpipe, "%s", apmonlineB);
   if((w32)rcapmon != strlen(apmonlineB) )  {
     printf("ERROR: apmonB fprintf rc:%d != line_len:%u, stopping apmon's B/I writes\n", rcapmon, (int)strlen(apmonlineB));
@@ -917,13 +918,13 @@ signal(SIGPIPE, gotsignal); siginterrupt(SIGPIPE, 0);
 
 csock_gcalib= udpopens((char *)"localhost", 9931);
 if(csock_gcalib==-1) {printf("ERROR in udpopens\n"); /* exit(8);*/ };
-printf("gcalib monitoring skipped (csock_gcalib:%d)...\n", csock_gcalib);
+printf("gcalib monitoring skipped (csock_gcalib:%d)...\n", csock_gcalib); fflush(stdout);
 
 //inforc= ftell(htmlpipe); printf("ftell:%d\n", inforc); always -1
 //dbgout= fopen("logs/dbgout.log", "w");
 inforc= dic_info_service((char *)"CTPDIM/MONCOUNTERS", MONITORED, 0, 
   cnts,4*(NCOUNTERS), gotcnts, tag, &cntsFailed, 4); 
-//printf("CTPDIM/MONCOUNTERS service id:%d\n", inforc);
+printf("CTPDIM/MONCOUNTERS service id:%d\n", inforc); fflush(stdout);
 while(1) {
   //sleep(100);
   //printf("dtq_sleep ...\n");

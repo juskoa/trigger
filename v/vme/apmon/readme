@@ -44,5 +44,5 @@ apmonConfig_lab.conf     -used elsewhere
 
 === 3. history, bugs
 16.3. MCH <-> MTR fixed, apmon.log shortened
-13.6. TPC 1000us -> 1300 us
+13.6.2016 TPC 1000us -> 1300 us
 

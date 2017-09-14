@@ -60,13 +60,14 @@ see dims.c dimservices.c
 // bit number reserved for CTP readout,i.e. non exiting LTU, 
 // but place in validLTUs[CTPLTUECSN] reserved anyhow
 #define CTPLTUECSN 17
+#define FLG_FILTEREDOUT 0x1
 typedef struct Tinput{
   char name[MAXCTPINPUTLENGTH];   // "" empty item
   int detector;    // ECS/DAQ Detector number (0..) or -1 if not found
   int level;       // 0,1,2
   w32 signature;
   int inputnum;    // 1..24: for L0/1, 1..12: for L2, 0:not connected to classes
-  int dimnum;      // order number of cable. 1 if only 1 input cable given
+  int dimnum;      // FNNN F: 8flags NNN: 24 bits for dimnumber. F:0x1 input filtered out
   int switchn;     /* 1..48 switch input number
          0: not switchinput (i.e. L1/2 input or not connected at all) */
   int edge;        // 0:positive  1: negative -1: notdefined
@@ -504,7 +505,7 @@ void getctp_alignment(Tpartition *partit, char *af, int leng, w32 l0finputs);
 Tdetector *findLTUdaqdet(int daqdetnum);
 Tdetector *findLTU(char *ltuname);
 int findLTUdetnum(char *ltuname);
-void bit2name(w32 ctprodets, char *detname);
+int bit2name(w32 ctprodets, char *detname);
 int detList2bitpat(char *dlist);
 int findINPdaqdet(int level, int input);
 int findLMINPdaqdet(int input);

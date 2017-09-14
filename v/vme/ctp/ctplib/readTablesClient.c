@@ -234,46 +234,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     goto CONT;
   };
   if(strcmp(parname,"DDL2_IR")==0) {
-    // DDL2_IR 0TVX 0VBA ALL ...
-    int ixt, lineparsix;
-    w32 inps24_1=0, inps48_25=0;   // 0: input disabled for IR
-    lineparsix= ix;
-    for(ixt=0; ixt<48; ixt++) {
-      int i48,swin;
-      token=nxtoken1(line, value, &ix);
-      if(token==tEOCMD) break;
-      if(strcmp(value,"ALL")==0) {
-        inps24_1=0xffffff; inps48_25=0xffffff;
-        break;
-      };
-      i48= findInputName(value);
-      if(i48==-1) {   // not found
-        printf("ERROR input %s not found in ctpinputs.cfg\n", value);
-        continue;
-      };
-      if(validCTPINPUTs[i48].level!=0) {
-        printf("ERROR input %s not L0 level in ctpinputs.cfg\n", value);
-        continue;
-      };
-      if(validCTPINPUTs[i48].inputnum==0) {   // not connected
-        printf("ERROR input %s not connected in ctpinputs.cfg\n", value);
-        continue;
-      };
-      swin= validCTPINPUTs[i48].switchn;
-      if(swin==0) {   // not connected
-        printf("ERROR input %s not wired in ctpinputs.cfg\n", value);
-        continue;
-      };
-      if(swin>24) {
-        inps48_25= inps48_25 | (1<<(swin-25));
-      } else {
-        inps24_1= inps24_1 | (1<<(swin-1));
-      };
-    };
-    printf("DDL2_IR 48..25 24..1: 0x%x 0x%x %s", inps48_25, inps24_1,
-      &line[lineparsix]);
-    vmew32(INT_MASK_FOR_INPUTS_1_24, inps24_1);
-    vmew32(INT_MASK_FOR_INPUTS_1_24+4, inps48_25);
+    updateDDL2IR(line);     // DDL2_IR 0TVX 0VBA ALL ...
     goto CONT;
   };
   if(strcmp(parname,"PF_COMMON")==0) {

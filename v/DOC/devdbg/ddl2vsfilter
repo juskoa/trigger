@@ -1,0 +1,147 @@
+=== Problem:
+1.
+filter (list of trigger detectors whose inputs need to be ignored) in ACT is not taken into account
+when INT_MASK_FOR_INPUTS_1_24/+4 (DDL2_IR line in ctp.cfg) is set
+2.
+also consider monitoring of valid inputs (i.e. DDL2_IR after filter applied) and issue 
+alarm if input rate is high (ringing)
+
+ctp/ctplib/readTablesClient.c
+-here DDL2_IR line is processed, using global array validCTPINPUTs
+ only on vme comp. HAS TO BE DONE ONLY AFTER validCTPINPUTs filled in -
+ i.e. files should be processed in correct order, ctp.cfg 
+ should be read after ctpinputs.cfg -seems ok:
+ ctp_Initproxy() ctp_proxy.c:
+   readTables() readTables.c               <- read ctpinputs.cfg
+   initCTP() initCTP.c
+     loadcheckctpcfg() readTablesClient.c  <- read ctp.cfg and program DDL2_IR
+
+=== Todo:
+-update validCTPINPUTs[].dimnum item with a flag 'filtered out'
+-i.e.:
+ -1) reset all 'filtered out' flags to 0 at ctpproxy restart
+     done anyhow in readTables():  validCTPINPUTs[ixtab].dimnum= a3[3];
+ -2) set these flags according to a $dbctp/filter -can be done only after 
+     ctpinputs.cfg read in shared memory in readTables()/readTables.c
+     Note: seems filter file is read in only on server (not on alidcsvme001) now!
+     done
+
+-3) check 'filtered out' flag when 'connected input' is checked (in loadcheckctpcfg() readTablesClient.c)
+    done
+
+The 'filtered out' flag in validCTPINPUTs shm should be always consistent -updated 
+with each change (ctp.cfg or ctpinputs.cfg -> ctpproxy restart) on alidcsvme001
+
+-Warning: 'filtered out' flag is NOT updated on 835 machine (pydim server
+ also has a connection to shared memory!)
+
+test on adls 23.8.2017:
+VALID.LTUS: HMPID PHOS TOF TRD
+filter: TOF PHOS
+ctp.cfg DDL2_IR 0OM2 0PH0 0HCO
+ctpinputs.cfg
+#nam = det      L Si  In dn Sw E  D DeltaMin DeltaMax ppn nameweb eq dimdns dimservice #any
+0HCO = TRD      0  83  0  0 11 0 17 1000 1000 NA TRD-CBB_LM_1 0 NA NA #3B1 11.1.2015: LM
+0OM2 = TOF      0  60  9  1 31 0  3 1000 1000 NA tofl0_1 0 NA NA #1A13
+0PH0 = PHOS     0   4 17  0 48 1  0 1000 1000 NA 18651 0 NA NA #2B13
+seems ok
+
+=== light items in ACT: is filter light item ?
+From ctpcfg_ACT2daq:
+...i.e. we do not need
+to reconfigure ctpproxy after filter change -it just becomes valid with
+the next run...
+
+Conclusion (*2) choosen): 
+ 1) after filter change, reconfigure ctp (this way abandoned) or
+*2) arrange an update of FLG_FILTEREDOUT flags for all inputs + DDL2_IR reprograming 
+   at the SOR when there is no run active:
+messages:
+SOR1 (i.e. no active runs):
+INFO no change in filtered inputs, ok.   ONLY LOG
+ -see: update_dimnum(0) call in ctp_proxy.c
+INFO The list of filtered inputs changed, DDL2 readout was updated accordingly
+
+SOR (i.e. there is an active run already)
+ERROR The list of filtered inputs changed, DDL2 not updated (will be done when there is no active run)
+
+=== 25.8.2017 test on adls
+filter:ZDC TOF
+patritions: hmpid (HMPID) PHYSICS_1 (PHOS TRD)
+ctp_proxy start:
+INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r
+25.08.2017 11:13:29: ***  Warning:Filtering out a not connected input 0ZED
+...
+INFO 11:0ZED filtered out
+...
+Warning input 0OM2 filtered out
+ERROR input 0HCO not connected in ctpinputs.cfg
+DDL2_IR 48..25 24..1: 0x800000 0x0  0OM2 0PH0 0HCO
+...
+- seems ok
+
+smicmd init hmpid 64 1
+INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r
+25.08.2017 14:44:10: no change in filtered inputs, ok.
+
+filter change to ZDC only
+smicmd init PHYSICS_1 128 1
+INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r
+25.08.2017 14:51:24: ***  Warning:The list of filtered inputs changed, DDL2 not updated (will be done when there is no active run)
+
+smicmd stop hmpid
+smicmd stop PHYSICS_1
+smicmd init PHYSICS_1 128 3
+
+=== Problem: nfs cache: when filter changed on server, client does not see 
+   changed file -seems cache updated after several (up to 15 minutes!) minutes.
+Solutions:
+*1. Mount the NFS share on the client with the noac option to disable attribute caching, 
+   or use acdirmin=0,acdirmax=0 to just disable directory caching.
+- neskusal som
+*2. add cto (close-to-open) option in client fstab for adls:/home/dl6/local 
+altri1> mount
+...
+adls:/home/dl6/local on /ram/local type nfs4 (rw,relatime,vers=4,rsize=524288,wsize=524288,namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=172.26.53.213,minorversion=0,local_lock=none,addr=128.142.192.234)
+
+fstab.altri1: adls:/home/dl6/local /local nfs rw,cto 0 0
+umount /local
+mount adls:/home/dl6/local /local
+adls:/home/dl6/local on /ram/local type nfs4 (rw,relatime,vers=4,rsize=524288,wsize=524288,namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=172.26.53.213,minorversion=0,local_lock=none,addr=128.142.192.234)
+
+- cto nebavi
+*3. opnedir/closedir on directory containing file on client invalidates the NFS cache.
+- ctplib/fileManip.c modified (28.8.2017 in lab) with opendir/closedir to
+  invalidate NFS cache.
+- ctp_proxy/test_nfs.c -reading filter on client. NFS-cache invalidation
+  does not work (at least not using opendir/closedir).
+
+29.8.2017
+- opendir/closedir removed from fileManip.c (not working)
+
+lookupcache=none fstab.altri1 see:https://serverfault.com/questions/380303/nfs-cache-file-content-not-updated-on-client-when-modified-on-server/382728#382728
+- not working after umount/mount /ram/local.
+After reboot:
+- not working even after reboot
+
+*4. 'ls $dbctp' command forces cache refresh on client
+
+'ls $dbctp' in 'openFile(): ok, seems works (tested with ctp_proxy/linux/test_nfs).
+===30.8.2017
+ repeat test from 25.8.
+smicmd init PHYSICS_1 128 5
+30.08.2017 11:30:25: no change in filtered inputs: ZDC TOF
+...
+-filter change: ZDC TOF -> ZDC
+
+smicmd init hmpid 64 6
+30.08.2017 11:35:25: ***  Warning:The list of filtered inputs changed, DDL2 not updated (will be done at SOR when there is no other active run)
+
+smicmd stop hmpid
+smicmd stop PHYSICS_1
+smicmd init hmpid 64 7
+DDL2_IR 48..25 24..1: 0x800000 0x400  0OM2 0PH0 0HCO
+30.08.2017 11:38:40: The list of filtered inputs changed, DDL2 readout was updated accordingly
+...
+
+=== 14.9.2017 commit + deploy in p2

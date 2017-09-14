@@ -30,7 +30,7 @@ involved or unknow detector
 */
 int getCALIBBC2(w32 ctprodets) {
 char detname[20]; int rc;
-bit2name(ctprodets, detname);
+if(bit2name(ctprodets, detname)!= 1) {return(-1); };
 // ask ltuproxy for CALIBRATION_BC:
 if(detname[0]!='\0') {
   rc= getCALIBBC(detname);

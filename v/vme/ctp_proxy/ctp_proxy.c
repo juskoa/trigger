@@ -2703,6 +2703,25 @@ if(part!=NULL) {
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RETX;
 };
 npart= getNAllPartitions();
+if(npart==0) {   // DDL2IR can be updated (no part. active)
+  int rc;
+  rc= update_dimnum(0);
+  if(rc==1) { // filter changed -> update DDL2 is needed
+    rc= updateDDL2IR("");
+    if(rc==0) {
+      sprintf(msg,"The list of filtered inputs changed, DDL2 readout was updated accordingly");
+      infolog_trgboth(LOG_INFO, msg); 
+    } else {
+      infolog_trgboth(LOG_FATAL, "DDL2_IR line does not with DDL2_IR (internal ctpproxy error) ...");
+    };
+  }
+} else {
+  int rc;
+  rc= update_dimnum(1);
+  if(rc==1) {
+    infolog_trgboth(LOG_WARNING, "The list of filtered inputs changed, DDL2 not updated (will be done at SOR when there is no other active run)");
+  };
+};
 /*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };

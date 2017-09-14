@@ -681,6 +681,7 @@ w32 dodif32(w32 before, w32 now);    // substract 2 counters
 int getINT12fromcfg(char *int1, char *int2, int max12);
 void readTables();
 int loadcheckctpcfg();
+int updateDDL2IR(char *line);
 int Detector2Connector(int idet,int *ifoM1,int *iconnectorM1);
 
 void printLTUname(int fo, int foc);

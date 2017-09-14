@@ -68,6 +68,72 @@ if((strcmp(name,"SDD")==0) ||
   rc=1;   // triggering detector
 }; return(rc);
 }
+/*------------------------------------------------------------update_dimnum()
+checkchangeonly: 0: update validCTPINPUTs   1: just check if filter changed
+rc: 0: filter file did not change
+    1: filter line changed, validCTPINPUTsi[].dimnum updated
+    2: filter line changed, validCTPINPUTsi[].dimnum updated, ERRORS in filter line!
+    3: filter not available
+*/
+int update_dimnum(int checkchangeonly) {
+FILE *filfile; int rc=0;  // 0: filter did not change  1: changed
+char line[MAXLINELENGTH], value[MAXCTPINPUTLENGTH];
+static char lastfilterline[200]="";  // last filter line (checked at SOR)
+filfile=openFile("filter","r");
+if(filfile == NULL) { return(3); };
+while(fgets(line, MAXLINELENGTH, filfile)){
+  int ix,tkns;
+  //printf("Decoding line:%s ",line);
+  if(line[0]=='#') continue;
+  if(line[0]=='\n') continue;
+  ix=0; tkns=0; 
+  if(strcmp(line, lastfilterline)==0) {
+    char em1[ERRMSGL];
+    sprintf(em1, "no change in filtered inputs: %s", line);
+    infolog_trg(LOG_INFO, em1);
+    break;
+  }; 
+  rc= 1; 
+  if(checkchangeonly==1) break;
+  strncpy(lastfilterline, line, 200); lastfilterline[199]='\0';
+  while(1) {   // ZDC ACORDE MUON_TRG ...
+    //Tdetector *ltuitem;
+    enum Ttokentype token;
+    int ltuecsn,ixtab;
+    char em1[ERRMSGL];
+    token= nxtoken1(line, value, &ix);
+    if(token==tEOCMD) break;
+    if(token!=tSYMNAME) {
+      sprintf(em1,"%s is not a valid detector name in filter file", value); prtError(em1);
+      rc= 2;
+      continue;
+    };
+    //ltuitem= *findLTU(value);
+    ltuecsn= findLTUdetnum(value);
+    //if(ltuitem==NULL) {
+    if(ltuecsn==-1) {
+      sprintf(em1,"%s is not a detector name in filter file", value); prtError(em1);
+      rc= 2;
+      continue;
+    };
+    for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
+      if( validCTPINPUTs[ixtab].name[0] != '\0') {      // valid entry
+        if( validCTPINPUTs[ixtab].detector==ltuecsn) {  //
+          validCTPINPUTs[ixtab].dimnum= validCTPINPUTs[ixtab].dimnum | (FLG_FILTEREDOUT<<24);
+          if(((validCTPINPUTs[ixtab].switchn==0) && (validCTPINPUTs[ixtab].level==0)) ||
+             (validCTPINPUTs[ixtab].inputnum==0)
+            ) {
+            sprintf(em1,"Filtering out a not connected input %s", validCTPINPUTs[ixtab].name);
+            prtLog(em1);
+          };
+        };
+      };
+    };
+  };
+};
+fclose(filfile);
+return(rc);
+};
 /*------------------------------------------------------------readTables()
 read files: VALID.LTUS into validLTUs[]
             ctpinputs.cfg into validCTPINPUTs[]
@@ -265,7 +331,7 @@ RTRN:
 fclose(cfgfile);
 /*----------------------------------------------- ctpinputs.cfg */
 cfgfile=openFile("ctpinputs.cfg","r");
-if(cfgfile == NULL) return;
+if(cfgfile == NULL) { return; };
 for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   validCTPINPUTs[ixtab].name[0]='\0';
   validCTPINPUTs[ixtab].detector=-1;
@@ -273,7 +339,7 @@ for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
   validCTPINPUTs[ixtab].signature=0xffffffff;
   validCTPINPUTs[ixtab].inputnum=-1;  // 0..24 (0..12 for L2)
   validCTPINPUTs[ixtab].lminputnum=-1;  // 0..12
-  validCTPINPUTs[ixtab].dimnum=-1;
+  validCTPINPUTs[ixtab].dimnum=-1;      // -1: not set yet
   validCTPINPUTs[ixtab].switchn=-1;   // 1..48 for L0, 0: for others
   validCTPINPUTs[ixtab].edge=-1;
   validCTPINPUTs[ixtab].delay=-1;
@@ -430,13 +496,22 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
   sprintf(emsg, "ERROR ctpinputs.cfg line ignored:%s\n %s",line,em1); 
   prtWarning(emsg);
 };
+update_dimnum(0);
 printf("INFO readTables LM inputs: ixtab name lmin lmdel\n");
 for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
-  int lmin;
+  int lmin,flgs;
+  if( (validCTPINPUTs[ixtab].name[0] == '\0') || (validCTPINPUTs[ixtab].dimnum == -1)) continue;
   lmin=validCTPINPUTs[ixtab].lminputnum;
+  flgs=validCTPINPUTs[ixtab].dimnum>>24;
   if(lmin > 0) {
     printf("INFO %d:%s -> %d %d\n", ixtab,validCTPINPUTs[ixtab].name, lmin,
       validCTPINPUTs[ixtab].lmdelay);
+  };
+  if(flgs&FLG_FILTEREDOUT) {
+    printf("INFO %d:%s filtered out\n", ixtab,validCTPINPUTs[ixtab].name);
+  };
+  if(flgs&0xfe) {   // only 'filtered out' flag (0x1) existing for now
+    printf("INTERROR %d:%s flgs: 0x%x\n", ixtab,validCTPINPUTs[ixtab].name, flgs);
   };
 };
 goto RTRNctp;
@@ -496,7 +571,7 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
      (validCTPINPUTs[ix].inputnum==input)  // && (validCTPINPUTs[ix].configured==1) 
     ) {
     if(level==0) {
-      if(validCTPINPUTs[ix].switchn!=0) {   // conneted
+      if(validCTPINPUTs[ix].switchn!=0) {   // connected
         return(ix);
       };
     } else {   // do not care about switchn
@@ -549,7 +624,7 @@ for(ix=0; ix<NCTPINPUTS; ix++) {
      (validCTPINPUTs[ix].inputnum==input)  // && (validCTPINPUTs[ix].configured==1) 
     ) {
     if(level==0) {
-      if(validCTPINPUTs[ix].switchn!=0) {   // conneted
+      if(validCTPINPUTs[ix].switchn!=0) {   // connected
         return(validCTPINPUTs[ix].detector);
       };
     } else {   // do not care about switchn
@@ -614,8 +689,8 @@ for(ix=0; ix<NDETEC; ix++) {
 }; //printf("\n");
 return(-1);
 }
-/*------------------------------------------------------------ bit2name() */
-void bit2name(w32 ctprodets, char *detname){
+/*------------------------------------------------------------ bit2nameold() 
+int bit2name(w32 ctprodets, char *detname){
 int ix, det=-1;
 Tdetector *ltuitem;
 for(ix=0; ix<24; ix++) {
@@ -638,6 +713,34 @@ if(ltuitem==NULL) {
   detname[0]='\0'; return;};   // unknown detector
 strcpy(detname, ltuitem->name);
 return;
+} */
+/*------------------------------------------------------------ bit2name() 
+ctprodets: bit pattern of readout detectors
+out: rc: number of detectors in bit pattern
+     detname: e.g.: "SPD,MUON_TRK,TOF"
+*/
+int bit2name(w32 ctprodets, char *detname){
+int ix, det=-1, ndet=0;
+Tdetector *ltuitem;
+detname[0]='\0';
+for(ix=0; ix<24; ix++) {
+  if(ctprodets & (1<<ix)) {
+    det= ix;
+    ltuitem= findLTUdaqdet(det); 
+    if(ltuitem==NULL) {
+      printf("ERROR bit2name: detector %d not found in VALID.LTUS, det. pattern:0x%x\n",
+        det, ctprodets);
+    } else {
+      ndet++;
+      if(ndet==1) {
+        sprintf(detname, "%s",ltuitem->name);
+      } else {
+        sprintf(detname, "%s,%s",detname,ltuitem->name);
+      };
+    };
+  };
+};
+return(ndet);
 }
 
 /*------------------------------------------------------------detList2bitpat()

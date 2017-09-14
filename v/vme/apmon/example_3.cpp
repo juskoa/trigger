@@ -16,9 +16,9 @@
  *
  * The user has to enter a command such as the following:                       
  * './example_3
- * /**************BUSY VALUES**********                                                                 
+ * **************BUSY VALUES**********                                                                 
  * B epochtime Det_Number1 run_number1 Busy_value1 Det_Number2 run_number2 Busy_value2 .....                                                                     
- * /**************CTP INPUTS**********
+ * **************CTP INPUTS**********
  * I epochtime INP1 INP2 ... INP48
  *
  * DETECTORS BUSY VALUES:
@@ -134,6 +134,7 @@ int main() {
     //ApMon *apm = new ApMon(filename);
     apm = new ApMon(filename);
   };
+  printf("INFO ApMon instantiated.\n"); fflush(stdout);
   while(condition){                                           
     int p = 0;       //Indicates the position in the read of command line
     int q = 0;       //Fulfills the arrays of detectors or ctp_inputs
@@ -173,13 +174,14 @@ int main() {
        busy_limit[18] = 300; //EMCAL                                            
        busy_limit[19] = 200;//TST = Test_DAQ                                    
        busy_limit[21] = 0;  //AD0 = AD     
-       /***************************************Data coming from the user**********************************************/
+       ***************************************Data coming from the user**********************************************/
 
 
     nCommand++;
-    printf("command number: %d\n", nCommand);
+    //printf("command number: %d\n", nCommand); fflush(stdout);
                                                     
     read(user_text, 1000);
+    //printf("user_text: %s\n", user_text); fflush(stdout);
     //Separation of the blanc spaces and storage in an array                    
     textfin = strtok(user_text, " ");
     
@@ -404,8 +406,7 @@ int main() {
 		valbusy = 10000;
 	      }
 	      else {
-		printf("Busy sent for %s %d: %d limit:%d\n",
-                  detectors[l].name, run_sent, valbusy, vallimit);
+		; //printf("Busy sent for %s %d: %d limit:%d\n", detectors[l].name, run_sent, valbusy, vallimit);
 	      }
 	      /**We also send the busy limit values.
 	       * They are needed for plotting busy time.
@@ -442,7 +443,7 @@ int main() {
 	  }
 	}      
 	  /*************************************************epochtime*************************************************/
-	  printf("etime: %d \n ", etime);
+	  //printf("etime: %d \n ", etime);
 	  timeSent = etime;
 	  try {
 	    timestamp = time(NULL);
@@ -658,7 +659,7 @@ int main() {
 	    }
 	  } //for l
 	  /**********************epochtime*************************************/
-	  printf("etime: %d\n ", etime);
+	  //printf("etime: %d\n ", etime);
 	  timeSent = etime;
 	  try {
 	    timestamp = time(NULL);

@@ -92,6 +92,7 @@ signal(SIGTERM, gotsignal); siginterrupt(SIGTERM, 0);
 signal(SIGBUS, gotsignal); siginterrupt(SIGBUS, 0);
 
 printf("ctp_proxy TESTER, ACT_CONFIG:%s \n", ACT_CONFIG);
+printf("OBSOLETE! use smicmd instead...\n"); exit(4);
 partmode[0]='\0';
 infolog_SetFacility("CTP"); infolog_SetStream("",0);
 cshmInit();

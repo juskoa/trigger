@@ -34,10 +34,12 @@ void getlhc2ctpOrbit(int vspbobr, w32 *bst2ctp, w32 *bst3124);
 
 //readtables.c:
 int isTrigDet(char *name);
+int update_dimnum(int checkchangeonly);
+int findSwitchInput(int swinput);
+//fileManip
 FILE *openFile(char *fname, char *rw);
 int readdbfile(char *fname, char *mem, int maxlen);
 int writedbfile(char *fname, char *mem);
-int findSwitchInput(int swinput);
 
 /*readCounters.c:
 customer:

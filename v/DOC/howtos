@@ -48,7 +48,7 @@ allowmeon.bash aj localhost
 echo $DIM_DNS_NODE
 /opt/dim/linux/dns &
 
-redis:
+redis:  redis@adls or 835 
 alias redisstart='cd $VMEWORKDIR/WORK/REDIS; $REDIS/src/redis-server trgredis.conf'
 redisstart    (needs ~/v/vme/WORK/REDIS/... )
 
@@ -83,6 +83,7 @@ vmecrate ctp
 -> check counters (L2aseq rate >0)
 orbitddl2.py configrunset                  -should be ok now
 
+===apmon see $VMECFDIR/apmon/
 === start daemons
 [root@alidcscom835 ~]# service httpd start
       adls
