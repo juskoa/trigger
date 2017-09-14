@@ -8,14 +8,10 @@ struct ScopeData{
 };
 int main()
 {
- //char *format={"D:4"};
  char format[4];
  char sco[256];
  strcpy(format,"D:4");
  printf("format= %s \n",format);
- ScopeData* a = new ScopeData;
- int asize=  sizeof(*a);
- //DimService scope("ScopeServer/SIGMAS",format,(void*)a,asize);
  DimService scope("ScopeTest/SIGMAS",sco);
  DimServer::start("ScopeTest"); 
  while(1){

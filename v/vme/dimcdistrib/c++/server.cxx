@@ -8,29 +8,24 @@ struct ScopeData{
 };
 int main()
 {
- //char *format={"D:4"};
  char format[4];
- char sco[256];
  strcpy(format,"D:4");
- printf("format= %s \n",format);
  ScopeData* a = new ScopeData;
  int asize=  sizeof(*a);
- //DimService scope("ScopeServer/SIGMAS",format,(void*)a,asize);
- DimService scope("ScopeTest/SIGMAS",sco);
- DimServer::start("ScopeTest"); 
+ DimService scope("ScopeServer/SIGMAS",format,(void*)a,asize);
+ DimServer::start("ScopeTest");
+ int nn=0; 
  while(1){
-   //a->time=time(0);
    int ttt=time(0);
    double tt=(ttt % 10000);
-   std::ostringstream ss;
-   ss << tt;
-   float a=1./3.;
-   ss << " " << a;
-   std::string sss(ss.str());
-   strncpy(sco,sss.c_str(),256);
-   printf("time=%s \n",sco);  
+   a->time=tt;
+   a->val1=nn;
+   a->val2=2*nn;
+   a->val3=3*nn;
+   printf("time=%f %f %f %f \n",a->time,a->val1,a->val2,a->val3);  
    scope.updateService();
    usleep(3000000);
+   nn++;
  };
  return 0;
 }
