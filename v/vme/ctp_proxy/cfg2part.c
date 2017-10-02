@@ -16,6 +16,7 @@ April/May 2017
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>   // usleep
 #include <string.h>
 #include <errno.h>
 #include "vmewrap.h"
@@ -952,11 +953,11 @@ for(i=0;i<MAXNLINES;i++){
        Modification: close cfgfile, open it again, and skip all lines till BCMASK line.
     */
     if(linlen < ((BCMASKN/4)*ORBITLENGTH+8)) {
-      if( nreads<=1 ) { 
+      if( nreads<=3 ) { 
         printf("BCMASKS line error str len/start after: %d/%.20s... read once more...\n", 
           int(strlen(&linesi[linlen])), &linesi[linlen]);
         nreads++;
-        fclose(cfgfile); goto REREAD1;
+        fclose(cfgfile); usleep(500000); goto REREAD1;
       } else {
         sprintf(errmsg, "BCMASK2Partition: short BCMASKS line in .pcfg (%d reads)", nreads);
         retcode= 1; goto RETERR;

@@ -56,6 +56,7 @@ int MICLOCK_TRANSITIONid;
 int SLOT_S= 30;
 int quit=0; 
 int udpsock;
+int rcnewclock= 0;   // 0: newclock not running, 888:active
 int clocktag=0;   // in agreement with clocknow
 int newclocktag;  /* has to be here (thread parameter)
 1..4 -clock change event
@@ -225,6 +226,7 @@ return(tag);
 - clock change
 - DLL_RESYNC
 */
+rcnewclock= 888;
 printf("newclock thread started. clocktran:%d tag:%d quit:%d\n", 
   clocktran, *(int *)tag, quit); fflush(stdout);
 while(clocktran>=0) {
@@ -267,6 +269,7 @@ while(clocktran>=0) {
   };
   if(quit==1) clocktran=0;
 }; clocktran_s=0;
+rcnewclock= 0;
 }
 int  getclientid(char *procid){
 return(dis_get_client(procid));
@@ -398,7 +401,7 @@ if(clocktran!=0)  {
     w32 diff_s, diff_u;
     DiffSecUsecFrom(clocktran_s, clocktran_u, &diff_s, &diff_u);
     if(diff_s > (w32) (SLOT_S*4)) {
-      sprintf(errmsg, "newclock thread stucked (%d secs). Trigger expert should restart ttcmidim and miclock client!", diff_s); prtLog(errmsg); 
+      sprintf(errmsg, "newclock thread stucked (%d secs). Trigger expert should restart ttcmidim and check miclock client!", diff_s); prtLog(errmsg); 
       infolog_trgboth(LOG_FATAL, errmsg);
     } else {
       sprintf(errmsg, "checkstartthread tag:%d: newclock thread already started %d secs, cmd %s from procid %s@%s ignored...",
@@ -409,9 +412,10 @@ if(clocktran!=0)  {
   };
 };
 clocktran=3; strcpy(clocktransition,"3"); GetMicSec(&clocktran_s, &clocktran_u);
-newclocktag= clocktag;
+newclocktag= clocktag; rcnewclock= 0;
 sprintf(errmsg, "newclock thread starting. tag:%d \n", newclocktag); prtLog(errmsg); 
 dim_start_thread(newclock, (void *)&newclocktag);
+printf("rcnewclock:%d\n",rcnewclock);
 }
 /*-----------------*/ void DLL_RESYNCcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];

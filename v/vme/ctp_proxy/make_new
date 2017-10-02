@@ -83,15 +83,15 @@ bakeryTest.o:bakeryTest.c Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/bakeryTest.exe: bakeryTest.o $(LIBDEP)
 #	$(CC) $(LDFLAGS) $< $(CTPLD) -o $@
-	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) -o $@
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(infoLD) -o $@
 #	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(VMERCCLD) -o $@
 
 #------------------------------------------- gcalib
 gcalib.o:gcalib.c Tpartition.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(EXEDIR)/gcalib.exe: gcalib.o $(LIBDEP)
-#	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) -o $@
-	$(CC) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) $(LDFLAGS) -o $@
+	$(CC) $(LDFLAGS) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(infoLD) -o $@
+#	$(CC) $< $(CTPLD) $(VMEBLD) $(DIMLD) $(VMERCCLD) $(LDFLAGS) -o $@
 
 #------------------------------------------- ctpshm
 main_shm.o:main_shm.c Tpartition.h $(VMEBinc)/shmaccess.h
