@@ -1,0 +1,42 @@
+Current status: det/MONBUSY dim service publishing busy time 1/s when change >1%
+The DIM service is used by hmpid only and 
+logged in file ltudimserver.log (see also script bin/ltudimserverlog.py
+
+Goal: replace (resp. add for hmpid) ZMQ message for web/database gui.
+
+1. 
+ltu_proxy.c ->ds_register() -> popen2(ltu.c)
+ltu.c initmain() -> starting scthread
+ltu.c scthread() -> readCNTS2SHM()
+readCNTS2SHM(): 1/s readings into SHM
+
+2.
+ltudimservices.c updateMONBUSY() -called from ltu_proxy.c main()!
+(i.e. updateMONBUSY should be in separate file!):
+while(1) {
+  if(fabs(newbusyf-prevbusyf)>0.01) updateMONBUSY(newbusyf); 
+  sleep(1);
+}
+
+todo:
+- install czmq libzmq on atri1
+- add zmq msg publishing in ltudimservices.c updateMONBUSY()
+- args options added:
+  -zmq   zmq + det/MONBUSY dim service
+  -nomonbusy    -do not publish det/MONBUSY
+  
+=== status 24.10.2017
+[trigger@alictpserverlab ctp3-mon]$ pubsub/publisher.cpp
+- C++ version of publisher.py
+Now preparing mcl.cxx (in aj@11:EXAMPS/dimc++):
+- read DIM messages from det/MONBUSY
+- join all messages with the same timestamp (second)
+- bin them in 1s bins
+- create json -> to be sent over zmq
+
+see also:
+- aliases sdorun sdo
+- to be started in docker, i.e.: . /home/trigger/bin/docenv
+- afs mails/done/ctp3-mon -private notes
+- 
+              

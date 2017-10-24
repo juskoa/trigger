@@ -1315,9 +1315,17 @@ class TrgClass:
       if k=='cg':
         self.classgroup= int(pars['cg'])
         continue
+      if k=='bc1' or k=='bc2' or k=='rnd1' or k=='rnd2' or k=='rare' or k=='all':
+        if vv!='ON':
+          PrintError("%s= ignored. '=...' not expected after %s  "%(k,k))
+          self.trde= None; break
       if k=='L0pr':
-        if vv!='ON': self.L0pr=vv
-        continue
+        if vv!='ON':
+          self.L0pr=vv
+          continue
+        else:
+          PrintError("L0pr ignored. '=F%' expected (where F is float or integer number) ")
+          self.trde= None; break
       if k=='bc1':
         self.optinps[2]=1; continue
       if k=='bc2':
@@ -1330,11 +1338,14 @@ class TrgClass:
         PrintWarning("bcm in .partition file converted to BCM (valid from 11.9.2008)")
         k= 'BCM'+ k[3:]
       if k[:3]=='BCM':
-        if k[3:]=="":
-          PrintError("BCMXXX, XXX non-empty, expected in:"+clstring)
-          self.trde= None
-          break
-        bcmix= int(k[3:])   # 1..12
+        if vv!='ON':
+          PrintError("BCM[1..12] without '=...' expected in:"+clstring)
+          self.trde= None; break
+        try:
+          bcmix= int(k[3:])   # 1..12
+        except:
+          PrintError("BCMXX (XX: 1..12) expected in:"+clstring)
+          self.trde= None; break
         if (bcmix>=1) and (bcmix<=12):
           self.bcms[bcmix-1]= 1
           x=self.get_clsnamepart1(k)
@@ -1346,10 +1357,16 @@ class TrgClass:
           continue
         else:
           PrintError("Bad BCM%s in:"%bcmix,clstring)
-          self.trde= None
-          break
+          self.trde= None; break
       if k[:2]=='PF':
-        bcmix= int(k[2:])   # 1..4
+        if vv!='ON':
+          PrintError("PF[1..4] without '=...' expected in:"+clstring)
+          self.trde= None; break
+        try:
+          bcmix= int(k[2:])   # 1..4
+        except:
+          PrintError("PF[1..4] expected in:"+clstring)
+          self.trde= None; break
         if (bcmix>=1) and (bcmix<=4):
           self.pfs[bcmix-1]= 1
           x=self.get_clsnamepart2(k)

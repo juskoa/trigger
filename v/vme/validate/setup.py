@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.8",
+      version="5.9",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -32,6 +32,7 @@ from v5.5: IR1/2 defined by 8 inputs, new PF on LM board
      v5.6: minor changes (better syntax check of .partition file)
      v5.7: minor change: the max. SDG name length check added (max. is 23)
      v5.8: minor change: check if # of LTUs>0 for each cluster
+     v5.9: minor change: added syntax checks (i.e. BCM1=0.5% now error)
 """,
       author="Anton Jusko",
       packages=["validate"],
