@@ -111,7 +111,7 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
   rpm creation tested, tkinter dependance not added, neither released to Vasco yet!
 24.10.2017
 - 5.9. improved parser in parted.py (now BCM1=0.5% regarded as an error)
-  - +tkinter, on web, sent to Vasco
+  - +tkinter, on web, sent to Vasco, deployd in P2
 
 3. Problems
 -----------

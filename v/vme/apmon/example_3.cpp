@@ -229,7 +229,7 @@ int main() {
 	    break;
 	  case 6:
 	    sprintf(detectors[q].name, "DET(HMP)");
-	    detectors[q].busy_limit = 280;
+	    detectors[q].busy_limit = 320;   // 280 till 3.10.2017
 	    break;
 	  case 7:
 	    sprintf(detectors[q].name, "DET(PHS)");
@@ -374,8 +374,8 @@ int main() {
           //printf("There is no global run \n");
           valbusy = detectors[0].busy_value;
           vallimit = detectors[0].busy_limit;
-          printf("Busy (ng) sent for %s: %d limit:%d\n",
-            detectors[0].name, detectors[0].busy_value, detectors[0].busy_limit);
+          /*printf("Busy (ng) sent for %s: %d limit:%d\n",
+            detectors[0].name, detectors[0].busy_value, detectors[0].busy_limit);*/
           try {
             timestamp = time(NULL);
             apm -> sendTimedParameters((char *)"0", detectors[0].name, nParameters, paramNames, valueTypes, paramValues, timestamp);

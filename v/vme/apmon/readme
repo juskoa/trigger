@@ -45,4 +45,5 @@ apmonConfig_lab.conf     -used elsewhere
 === 3. history, bugs
 16.3. MCH <-> MTR fixed, apmon.log shortened
 13.6.2016 TPC 1000us -> 1300 us
+ 3.10.2017 HMP 280 -> 320 in example_3.cpp
 

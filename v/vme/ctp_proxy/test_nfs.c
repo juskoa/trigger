@@ -14,7 +14,7 @@
 
 int quit=0;
 /*---------------------------------------------*/ void gotsignal(int signum) {
-char msg[100]; int rc;
+char msg[100];
 // SIGUSR1:  // kill -s USR1 pid
 signal(signum, gotsignal); siginterrupt(signum, 0);
 sprintf(msg, "got signal:%d", signum);
@@ -43,19 +43,21 @@ void entername(char *prompt, char *pname){
   fgets(pname,80,stdin); pname[strlen(pname)-1]='\0';  // get rid of NL
   //strcpy(pname,"database/"); strcat(pname, name);
 }
+char finame[]="filtertest";
 void printHelp() {
 printf(
-"o  -open/read/close $dbctp/filter file d\n\
-:\n");
+"o  -open/read/close $dbctp/%s file d\n\
+q  -quit\n\
+:\n", finame);
 };
 void orc() {
 FILE *ffile;
 char cline[MAXLINELENGTH];
-ffile=openFile("filter","r");
+ffile=openFile(finame,"r");
 if(ffile == NULL) {
-  printf("filter not present...\n"); return;
+  printf("%s not present...\n", finame); return;
 };
-printf("filter:\n");
+printf("%s:\n", finame);
 while(fgets(cline, MAXLINELENGTH, ffile)){
   printf(cline);
 }; fclose(ffile);
@@ -79,8 +81,7 @@ while(1) {
   if((c = mygetchar()) == 'q') break;
   switch(c){
    case 'o':
-       orc();
-       break;
+       orc(); break;
    case 'l':
         entername("Partition name:", pname);
         printf("Loading partition %s  enter mask (integer or 0xHHH..):",pname);
