@@ -1,0 +1,257 @@
+ctp_proxy1710270234.log:DDL2_IR 48..25 24..1: 0x818050 0x65e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MUL 0EMC 0DMC 0SH2 0SH1 0SMB 0OM2
+ctp_proxy1710270312.log:DDL2_IR 48..25 24..1: 0x818050 0x65e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MUL 0EMC 0DMC 0SH2 0SH1 0SMB 0OM2
+ctp_proxy1710270458.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710270609.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710271212.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710271441.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710271441.log:DDL2_IR 48..25 24..1: 0x818000 0x478267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710271441.log:27.10.2017 13:43:07: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710271443.log:DDL2_IR 48..25 24..1: 0x818000 0x478267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710271449.log:DDL2_IR 48..25 24..1: 0x818000 0x478267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+
+ctp_proxy1710271925.log:
+27.10.2017 14:49:29: Starting L0 orbit calibration (30s...)
+INFO readTables:2:0TVX 13 L0 72 in:0 3 switch:3 edge:1 del:18 deltas:1000 1000
+INFO readTables:10:0HCO 4 L0 83 in:12 0 switch:11 edge:0 del:17 deltas:1000 1000
+
+INFO 10:0HCO -> 12 2
+INFO 10:0HCO filtered out     <-ok (TRD filter)
+
+DDL2_IR 48..25 24..1: 0x0 0x0 
+DDL2_IR 48..25 24..1: 0x0 0x0 
+15:29:31: The list of filtered inputs changed, DDL2 readout was updated accordingly
+
+ctp_proxy1710271935.log:
+27.10.2017 19:25:33: Starting L0 orbit calibration (30s...)
+INFO readTables:2:0TVX 13 L0 72 in:3 3 switch:3 edge:1 del:18 deltas:1000 1000
+INFO 2:0TVX -> 3 3
+INFO 2:0TVX filtered out
+DDL2_IR 48..25 24..1: 0x18000 0x478000  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2   <-ok
+27.10.2017 19:35:17: got signal:3
+
+ctp_proxy1710271938.log:
+27.10.2017 19:35:21: Starting L0 orbit calibration (30s...)
+INFO readTables:2:0TVX 13 L0 72 in:3 3 switch:3 edge:1 del:18 deltas:1000 1000
+INFO 2:0TVX -> 3 3
+INFO 2:0TVX filtered out
+
+
+DDL2_IR 48..25 24..1: 0x0 0x0 
+27.10.2017 19:35:17: got signal:3
+
+ctp_proxy1710271944.log:DDL2_IR 48..25 24..1: 0x0 0x0 
+
+ctp_proxy1710271947.log:
+27.10.2017 19:44:22: Starting L0 orbit calibration (30s...)
+INFO readTables:2:0TVX 13 L0 72 in:3 3 switch:3 edge:1 del:18 deltas:1000 1000
+INFO 2:0TVX -> 3 3
+INFO 2:0TVX filtered out
+DDL2_IR 48..25 24..1: 0x18000 0x478000  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+
+ctp_proxy1710272058.log:
+27.10.2017 19:47:08: Starting L0 orbit calibration (30s...)
+INFO readTables:2:0TVX 13 L0 72 in:3 3 switch:3 edge:1 del:18 deltas:1000 1000
+INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r dir:/local/trigger/v/vme/CFG/ctp/DB
+INFO 2:0TVX -> 3 3
+INFO 2:0TVX filtered out
+19:47:35: CTP readout ON
+DDL2_IR 48..25 24..1: 0x0 0x0 
+
+ctp_proxy1710272115.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+-seems different ctp.cfg but old filter?
+ctp_proxy1710272254.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710272338.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280059.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280139.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280139.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+showRCFG:
+-rw-r--r--. 1 trigger alice 12118 Oct 28 02:15 r281159.rcfg
+-rw-r--r--. 1 trigger alice 11874 Oct 28 02:12 r281158.rcfg
+-rw-r--r--. 1 trigger alice 13514 Oct 28 02:08 r281157.rcfg
+-rw-r--r--. 1 trigger alice 13514 Oct 28 01:26 r281156.rcfg ===
+-rw-r--r--. 1 trigger alice 13514 Oct 28 01:23 r281155.rcfg ===
+-rw-r--r--. 1 trigger alice  1603 Oct 27 19:53 r281136.rcfg
+
+-rw-r--r--. 1 trigger alice   634482 Oct 28 03:13 ctp_proxy1710280313.log
+-rw-r--r--. 1 trigger alice   689251 Oct 28 02:25 ctp_proxy1710280225.log
+-rw-r--r--. 1 trigger alice    35812 Oct 28 01:49 ctp_proxy1710280150.log
+-rw-r--r--. 1 trigger alice    35831 Oct 28 01:42 01:39:48 ctp_proxy1710280146.log no ORBIT CAL.
+
+-rw-r--r--. 1 trigger alice   453872 Oct 28 01:31 00:59:37 ctp_proxy1710280139.log ===
+-rw-r--r--. 1 trigger alice    38548 Oct 28 00:59          ctp_proxy1710280059.log -here: 00:59:33: got signal:3
+-rw-r--r--. 1 trigger alice    38604 Oct 27 23:37          ctp_proxy1710272338.log ttcmidims restarted?
+-rw-r--r--. 1 trigger alice    38548 Oct 27 22:54 21:15:53 ctp_proxy1710272254.log
+-rw-r--r--. 1 trigger alice    38548 Oct 27 21:15 20:58:06 ctp_proxy1710272115.log 20:58:38 Global pp2017.v7 ctinputs.cfg:pp2017.v20
+-rw-r--r--. 1 trigger alice   101333 Oct 27 20:58 19:47:08 ctp_proxy1710272058.log 19:47:44 Global tech.v1
+
+-rw-r--r--. 1 trigger alice    36243 Oct 27 19:47 19:44:22 ctp_proxy1710271947.log 19:44:54 Global pp2017.v7
+-rw-r--r--. 1 trigger alice    35590 Oct 27 19:44 19:38:42 ctp_proxy1710271944.log 19:39:14 Global tech.v1
+-rw-r--r--. 1 trigger alice    35590 Oct 27 19:38 19:35:21 ctp_proxy1710271938.log
+-rw-r--r--. 1 trigger alice    36243 Oct 27 19:35 19:25:33 ctp_proxy1710271935.log
+-rw-r--r--. 1 trigger alice   292009 Oct 27 19:25 14:49:29 ctp_proxy1710271925.log
+-rw-r--r--. 1 trigger alice    35542 Oct 27 14:49          ctp_proxy1710271449.log
+
+daqlogbook:
+13:42:20 Light off: EMCAL TRD
+14:35:37 Light off: AD EMCAL PHOS T0 TRD V0
+14:35:57 Light off: AD EMCAL PHOS T0 TRD V0
+14:41:36 Global ctp.cfg: pp2017.v7 ctpinputs: pp2017.v20
+14:44:15 Global ctp.cfg: pp2017.v7 ctpinputs: pp2017.v20
+         -> ctp_proxy1710271449.log
+14:50:01 Global tech.v1 ctpinputs cosmic2017.v8
+14:50:40 Light VALID.DESCRIPTORS
+17:17:22 Light off: EMCAL PHOS T0 TRD V0
+  pydim: 27.10.2017 17:20:01 reloading parted (reload request from ctpproxy)...
+         27.10.2017 17:20:01 received:INFO filterlen:12 filter:ACT database err:0
+         off: EMCAL PHOS T0 TRD V0
+  pydim: 27.10.2017 17:20:01 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:TRD PHOS T0 V0 EMCAL
+            4x PHYSICS_1
+         -> ctp_proxy1710271925.log
+19:26:05 Global ctp.cfg: pp2017.v7 ctpinputs: pp2017.v20
+19:31:29 Light off: EMCAL                                 <- from here T0 shoud not be filtered out
+         Problem: a 'INFO actdb_getff' line in pydim missing
+         Reason: partition not started at all in ctp_proxy1710271935.log
+
+         -> ctp_proxy1710271935.log
+19:35:53 Global ctp.cfg: tech.v1
+            no partition started!
+         -> ctp_proxy1710271938.log
+
+19:39:14 Global tech.v1
+19:39:58 Light off: EMCAL
+            no partition started!
+         -> ctp_proxy1710271944.log
+
+19:44:54 Global pp2017.v7
+            no partition started!
+         -> ctp_proxy1710271947.log
+19:47:44 Global tech.v1
+  seems bad filter here
+
+19:52:42 Light off: ACO AD EMC MUON_TRG PHOS SPD T0 TOF TPC TRD V0 ZDC
+  pydim: 27.10.2017 19:53:47 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:SPD TPC TRD TOF PHOS MUON_TRG T0 V0 ZDC ACORDE EMCAL AD
+
+20:55:45 Light off: ZDC
+            only TEST_1 started
+         -> ctp_proxy1710272058.log 
+
+20:58:38 Global pp2017.v7 ctinputs.cfg:pp2017.v20    -> ctp_proxy1710272115.log:
+  ddl2 should be ok from here -i.e. proxy restarted!, but was not:
+  20:58:06: Starting L0 orbit calibration (30s...)
+  INFO readTables:2:0TVX 13 L0 72 in:3 3 switch:3 edge:1 del:18 deltas:1000 1000
+  
+  INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r dir:/local/trigger/v/vme/CFG/ctp/DB
+  27.10.2017 20:58:32: Filtering out a not connected input 0SMH
+  27.10.2017 20:58:32: Filtering out a not connected input 0TSC
+  27.10.2017 20:58:32: Filtering out a not connected input 0TCE
+
+  ...  ctpinputs.cfg was ok, but filter not:
+  INFO 0:0T0C -> 11 4
+  INFO 0:0T0C filtered out
+  INFO 1:0T0A -> 12 4
+  INFO 1:0T0A filtered out
+  INFO 2:0TVX -> 3 3
+  INFO 2:0TVX filtered out
+  INFO 3:0TSC filtered out   todo: should be different message (e.g.: anyhow not connected)
+  INFO 4:0TCE filtered out
+  ...
+  INFO 46:1EJ1 filtered out  todo: probably should not be printed (L1 not considered anyhow)
+
+20:59:05: Light VALID.DESCRIPTORS pp2016.v31
+21:15:48: ***  Warning:ALICE clock changed, restaring ctpproxy (25s)...
+21:15:53: ctpproxy restarted, action (Global or Light) not seen in daqlogbook -restart from ttcmidims
+  filter: still old
+
+21:51:34: Light VALID.DESCRIPTORS pp2016.v32
+21:52:43 Light off: SPD ZDC
+   27.10.2017 23:37:59: got signal:3   -seems restart from ttcmidims?
+            no partition started!
+         -> ctp_proxy1710280059.log
+01:00:11 Global pp2017.v7 ctinputs.cfg:pp2017.v20   -> ctp_proxy1710280139.log -> all inps filtered out!  -> i.e. seems still old 'filter' file from 19:52:42 
+
+01:02:22 Light off: SPD ZDC
+   pydim: 28.10.2017 01:23:04 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:SPD ZDC
+
+02:11:13 Light off: SPD ZDC
+ctp_proxy1710280139.log:28.10.2017 01:26:07: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710280146.log:DDL2_IR 48..25 24..1: 0x818000 0x7e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280150.log:DDL2_IR 48..25 24..1: 0x818000 0x7e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280225.log:DDL2_IR 48..25 24..1: 0x818000 0x7e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280225.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280225.log:28.10.2017 02:15:46: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710280225.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280225.log:28.10.2017 02:20:25: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710280313.log:DDL2_IR 48..25 24..1: 0x818000 0x406267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280313.log:DDL2_IR 48..25 24..1: 0x818000 0x406267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280313.log:28.10.2017 02:34:32: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710280313.log:DDL2_IR 48..25 24..1: 0x818000 0x406267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280313.log:28.10.2017 02:54:42: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710280313.log:DDL2_IR 48..25 24..1: 0x800000 0x6000  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280313.log:28.10.2017 02:56:59: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710280332.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280633.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280701.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280740.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710281120.log:DDL2_IR 48..25 24..1: 0x818000 0x6267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710281239.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710281243.log:DDL2_IR 48..25 24..1: 0x800000 0x40001  0MSL 0T0C 0PH0
+ctp_proxy1710281334.log:DDL2_IR 48..25 24..1: 0x800000 0x40001  0MSL 0T0C 0PH0
+ctp_proxy1710281334.log:DDL2_IR 48..25 24..1: 0x0 0x1  0MSL 0T0C 0PH0
+ctp_proxy1710281334.log:28.10.2017 13:01:31: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710281336.log:DDL2_IR 48..25 24..1: 0x0 0x400007  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710281408.log:DDL2_IR 48..25 24..1: 0x0 0x400007  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710282009.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710282009.log:DDL2_IR 48..25 24..1: 0x818000 0x406267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710282009.log:28.10.2017 16:29:30: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710282009.log:DDL2_IR 48..25 24..1: 0x818000 0x406267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710282009.log:28.10.2017 17:41:06: The list of filtered inputs changed, DDL2 readout was updated accordingly
+ctp_proxy1710282104.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710282205.log:DDL2_IR 48..25 24..1: 0x818000 0x47e267  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy.log:DDL2_IR 48..25 24..1: 0x18000 0x478000  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+
+=== 2.11.2017
+[trigger@alidcscom835 logs]$ grep 'actdb_getff: ' pydimserver.log
+27.10.2017 16:10:39 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:TRD PHOS T0 V0 EMCAL AD
+27.10.2017 17:20:01 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:TRD PHOS T0 V0 EMCAL
+27.10.2017 19:53:47 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:SPD TPC TRD TOF PHOS MUON_TRG T0 V0 ZDC ACORDE EMCAL AD
+28.10.2017 01:23:04 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:SPD ZDC
+28.10.2017 01:26:07 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:SPD ZDC
+28.10.2017 02:08:03 received:INFO actdb_getff: /local/trigger/v/vme/CFG/ctp/DB/filter written:SPD ZDC
+
+infoLogger: ctp %filtered%inputs
+Info	27/10/17	17:20:01	alidcsvme001	CTP		no change in filtered inputs: TRD PHOS T0 V0 EMCAL AD
+Info	27/10/17	19:53:47	alidcsvme001	CTP		no change in filtered inputs: TRD PHOS T0 V0 EMCAL
+Info	28/10/17	01:23:04	alidcsvme001	CTP		no change in filtered inputs: SPD TPC TRD TOF PHOS MUON_TRG T0 V0 ZDC ACORDE EMCAL AD
+Info	28/10/17	01:26:07	alidcsvme001	CTP		The list of filtered inputs changed, DDL2 readout was updated accordingly
+Info	28/10/17	02:08:03	alidcsvme001	CTP		no change in filtered inputs: SPD ZDC
+Info	28/10/17	02:12:22	alidcsvme001	CTP		no change in filtered inputs: SPD ZDC
+
+[trigger@alidcscom835 WORK]$ grep -e '1: rcfgdel' -e 'ing INIT_PARTITION' -e 'DDL2_IR ' ctp_proxy1710272*.log ctp_proxy1710280059.log ctp_proxy1710280139.log
+ctp_proxy1710272058.log:DDL2_IR 48..25 24..1: 0x0 0x0 
+ctp_proxy1710272058.log:27.10.2017 19:47:36: timestamp:prepareRunConfig1: rcfgdel ALL 0xc709
+ctp_proxy1710272058.log:SMIRTL - Fri Oct 27 19:53:47 2017 - TRIGGER::CTP executing INIT_PARTITION/PARTITION=TEST_1/MASK=2194879/RUN_NUMBER=281136/MODE=UNDEFINED/ACT_CONFIG=YES
+ctp_proxy1710272058.log:27.10.2017 19:53:47: timestamp:prepareRunConfig1: rcfgdel reload 0xc709
+ctp_proxy1710272058.log:27.10.2017 20:53:34: timestamp:prepareRunConfig1: rcfgdel TEST_1 281136
+ctp_proxy1710272115.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710272115.log:27.10.2017 20:58:34: timestamp:prepareRunConfig1: rcfgdel ALL 0xc709
+ctp_proxy1710272254.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710272254.log:27.10.2017 21:16:21: timestamp:prepareRunConfig1: rcfgdel ALL 0xc709
+ctp_proxy1710272338.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710272338.log:27.10.2017 22:54:45: timestamp:prepareRunConfig1: rcfgdel ALL 0xc709
+ctp_proxy1710280059.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280059.log:27.10.2017 23:38:31: timestamp:prepareRunConfig1: rcfgdel ALL 0xc709
+
+ctp_proxy1710280139.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280139.log:28.10.2017 01:00:05: timestamp:prepareRunConfig1: rcfgdel ALL 0xc709
+ctpproxy restart: still filter from 19:53:47 used, i.e. from the time of a last partition start ? 
+
+ctp_proxy1710280139.log:SMIRTL - Sat Oct 28 01:23:04 2017 - TRIGGER::CTP executing INIT_PARTITION/PARTITION=PHYSICS_1/MASK=2457087/RUN_NUMBER=281155/MODE=UNDEFINED/ACT_CONFIG=YES
+ctp_proxy1710280139.log:28.10.2017 01:23:04: timestamp:prepareRunConfig1: rcfgdel reload 0xc709
+ctp_proxy1710280139.log:28.10.2017 01:24:23: timestamp:prepareRunConfig1: rcfgdel PHYSICS_1 281155
+
+ctp_proxy1710280139.log:SMIRTL - Sat Oct 28 01:26:07 2017 - TRIGGER::CTP executing INIT_PARTITION/PARTITION=PHYSICS_1/MASK=2457087/RUN_NUMBER=281156/MODE=UNDEFINED/ACT_CONFIG=YES
+ctp_proxy1710280139.log:DDL2_IR 48..25 24..1: 0x0 0x0  0VBA 0VBC 0T0C 0T0A 0TVX 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC 0SH2
+ctp_proxy1710280139.log:28.10.2017 01:26:07: timestamp:prepareRunConfig1: rcfgdel reload 0xc709
+ctp_proxy1710280139.log:28.10.2017 01:27:27: timestamp:prepareRunConfig1: rcfgdel PHYSICS_1 281156
+
+

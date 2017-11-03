@@ -28,7 +28,7 @@ if(ctpshmbase->datetime[0]=='\0') {
   ctpshmbase->active_cg=0;
   initBakery(&ctpshmbase->swtriggers, "swtriggers", swtriggers_N);
   initBakery(&ctpshmbase->ccread, "ccread", ccread_N);
-  printf("initBakery(ssmcr,4): 0:smaq 1:orbitddl2 2:ctp.exe 3:inputs\n");
+  printf("INFO initBakery(ssmcr,4): 0:smaq 1:orbitddl2 2:ctp.exe 3:inputs\n");
   initBakery(&ctpshmbase->ssmcr, "ssmcr", ssmcr_N);
 };
 if(validCTPINPUTs==NULL) {
@@ -74,7 +74,7 @@ if(isArg(argc, argv, flagName)) {
 } else {
   cshmClearGlobFlag(flag); strcpy(onoff,"OFF");
 };
-printf("%s:%s\n", onoff, flagName);
+printf("INFO %s:%s\n", onoff, flagName);
 }   
 int cshmBM() {
 return((ctpshmbase->GlobalFlags & FLGBMmask)>>8);

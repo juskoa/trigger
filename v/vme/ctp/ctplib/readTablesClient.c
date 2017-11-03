@@ -234,7 +234,7 @@ while(fgets(line, MAXLINELENGTH, cfgfile)){
     goto CONT;
   };
   if(strcmp(parname,"DDL2_IR")==0) {
-    updateDDL2IR(line);     // DDL2_IR 0TVX 0VBA ALL ...
+    if(updateDDL2IR(line) >1) grc=2;     // DDL2_IR 0TVX 0VBA ALL ...
     goto CONT;
   };
   if(strcmp(parname,"PF_COMMON")==0) {

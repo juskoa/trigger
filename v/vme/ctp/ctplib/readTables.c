@@ -77,29 +77,42 @@ rc: 0: filter file did not change
 */
 int update_dimnum(int checkchangeonly) {
 FILE *filfile; int rc=0;  // 0: filter did not change  1: changed
-char line[MAXLINELENGTH], value[MAXCTPINPUTLENGTH];
+int filterdone=0; w32 flgbit;
 static char lastfilterline[200]="";  // last filter line (checked at SOR)
+char line[MAXLINELENGTH], value[MAXCTPINPUTLENGTH];
+flgbit= FLG_FILTEREDOUT<<24;
 filfile=openFile("filter","r");
 if(filfile == NULL) { return(3); };
 while(fgets(line, MAXLINELENGTH, filfile)){
-  int ix,tkns;
+  int ix,tkns,ixtab;
+  char em1[ERRMSGL];
   //printf("Decoding line:%s ",line);
   if(line[0]=='#') continue;
+  if(filterdone==1) break;
   if(line[0]=='\n') continue;
   ix=0; tkns=0; 
   if(strcmp(line, lastfilterline)==0) {
-    char em1[ERRMSGL];
     sprintf(em1, "no change in filtered inputs: %s", line);
-    infolog_trg(LOG_INFO, em1);
+    infolog_trgboth(LOG_INFO, em1);
     break;
+  } else {
+    sprintf(em1, "New filter: %s", line);
+    infolog_trgboth(LOG_INFO, em1);
   }; 
-  rc= 1; 
+  filterdone=1; rc= 1; 
   if(checkchangeonly==1) break;
+  sprintf(em1, "CTP inputs filter:%s", line); infolog_trgboth(LOG_INFO, em1);
   strncpy(lastfilterline, line, 200); lastfilterline[199]='\0';
+  // before going over all dets, reset all FLG_FILTEREDOUT flags:
+  for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
+    if( validCTPINPUTs[ixtab].name[0] != '\0') {      // valid entry
+      validCTPINPUTs[ixtab].dimnum= validCTPINPUTs[ixtab].dimnum & (~flgbit);
+    };
+  };
   while(1) {   // ZDC ACORDE MUON_TRG ...
     //Tdetector *ltuitem;
     enum Ttokentype token;
-    int ltuecsn,ixtab;
+    int ltuecsn;
     char em1[ERRMSGL];
     token= nxtoken1(line, value, &ix);
     if(token==tEOCMD) break;
@@ -118,8 +131,8 @@ while(fgets(line, MAXLINELENGTH, filfile)){
     };
     for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
       if( validCTPINPUTs[ixtab].name[0] != '\0') {      // valid entry
-        if( validCTPINPUTs[ixtab].detector==ltuecsn) {  //
-          validCTPINPUTs[ixtab].dimnum= validCTPINPUTs[ixtab].dimnum | (FLG_FILTEREDOUT<<24);
+        if( validCTPINPUTs[ixtab].detector==ltuecsn) {  // detector filtered out
+          validCTPINPUTs[ixtab].dimnum= validCTPINPUTs[ixtab].dimnum | flgbit;
           if(((validCTPINPUTs[ixtab].switchn==0) && (validCTPINPUTs[ixtab].level==0)) ||
              (validCTPINPUTs[ixtab].inputnum==0)
             ) {

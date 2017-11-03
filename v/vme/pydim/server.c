@@ -609,7 +609,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
   };
   stdoutyes=0;
 } else if((strncmp(mymsg,"rcfgdel ALL 0x...",11)==0)) {   //ctpproxy [re]start
-  //int irc;
+  //int irc;              1...5....1
   printf("INFO rcfgdel ALL 0x... (redis, readTables...)\n");
   red_clear_detsinrun(0);
   reset_insver();
@@ -1057,6 +1057,9 @@ rc= getINT12fromcfg(INT1String, INT2String, MAXINT12LINE);
 printf("INFO rc:%d INT1:%s INT2:%s\n", rc, INT1String, INT2String);
 
 rc= mydbConnect();
+if (rc!=0) {
+  printf("ERROR can't connet to REDIS, exiting...\n"); exit(8);
+};
 
 dis_add_error_handler(error_handler);
 dis_add_exit_handler(exit_handler);

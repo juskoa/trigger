@@ -2704,22 +2704,31 @@ if(part!=NULL) {
 };
 npart= getNAllPartitions();
 if(npart==0) {   // DDL2IR can be updated (no part. active)
-  int rc;
-  rc= update_dimnum(0);
-  if(rc==1) { // filter changed -> update DDL2 is needed
-    rc= updateDDL2IR("");
-    if(rc==0) {
+  int rcl;
+  rcl= update_dimnum(0);   // update validCTPINPUTs[] with (possible changed) filter line
+  if(rcl==0) {
+    ;
+  }else if(rcl==1) { // filter changed -> update DDL2 is needed
+    rcl= updateDDL2IR("");
+    if(rcl==0) {
       sprintf(msg,"The list of filtered inputs changed, DDL2 readout was updated accordingly");
       infolog_trgboth(LOG_INFO, msg); 
+    } else if(rcl==1) {
+      infolog_trgboth(LOG_WARNING, "Some warnings connected with input filter ignored.");
     } else {
-      infolog_trgboth(LOG_FATAL, "DDL2_IR line does not with DDL2_IR (internal ctpproxy error) ...");
+      infolog_trgboth(LOG_ERROR, "DDL2_IR line does not start with DDL2_IR."); 
     };
+  } else if(rcl==2) {
+      sprintf(msg,"Errors in filter line");
+      infolog_trgboth(LOG_ERROR, msg); 
+  } else if(rcl==3) {
+      infolog_trgboth(LOG_WARNING, "CTP configuration filter file not available"); 
   }
 } else {
-  int rc;
-  rc= update_dimnum(1);
-  if(rc==1) {
-    infolog_trgboth(LOG_WARNING, "The list of filtered inputs changed, DDL2 not updated (will be done at SOR when there is no other active run)");
+  int rcl;
+  rcl= update_dimnum(1);
+  if(rcl==1) {
+    infolog_trgboth(LOG_WARNING, "The list of filtered inputs changed, DDL2 not updated (will be done at next SOR when there is no other active run)");
   };
 };
 /*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS

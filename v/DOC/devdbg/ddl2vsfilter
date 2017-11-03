@@ -15,6 +15,20 @@ ctp/ctplib/readTablesClient.c
    readTables() readTables.c               <- read ctpinputs.cfg
    initCTP() initCTP.c
      loadcheckctpcfg() readTablesClient.c  <- read ctp.cfg and program DDL2_IR
+       updateDDL2IR(line) updateDDL2IR.c    static char archline[250]="";
+         vmew32(INT_MASK_FOR_INPUTS_1_24...             ********
+
+ ctp_InitPartition() ctp_proxy.c
+  if(npart==0) 
+    rc= update_dimnum(0);  -> readTables.c
+      openFile("filter"
+      static char lastfilterline[200]=""; // last filter line (checked at SOR)
+                  **************
+      validCTPINPUTs[] update...
+    updateDDL2IR("");
+     updateDDL2IR takes here old (from time of ctp_proxy start) DDL2_IR line? No -this is ok
+Bug found 3.11. in update_dimnum(): first all FLG_FILTEREDOUT flags need to be reset to 0
+before setting them.
 
 === Todo:
 -update validCTPINPUTs[].dimnum item with a flag 'filtered out'
@@ -54,10 +68,10 @@ the next run...
 
 Conclusion (*2) choosen): 
  1) after filter change, reconfigure ctp (this way abandoned) or
-*2) arrange an update of FLG_FILTEREDOUT flags for all inputs + DDL2_IR reprograming 
-   at the SOR when there is no run active:
+*2) arrange  an update of FLG_FILTEREDOUT flags for all inputs + DDL2_IR reprograming 
+   at the SOR (in ctpproxy) when there is no OTHER run active:
 messages:
-SOR1 (i.e. no active runs):
+SOR1 (i.e. no other active runs):
 INFO no change in filtered inputs, ok.   ONLY LOG
  -see: update_dimnum(0) call in ctp_proxy.c
 INFO The list of filtered inputs changed, DDL2 readout was updated accordingly
@@ -72,7 +86,8 @@ ctp_proxy start:
 INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r
 25.08.2017 11:13:29: ***  Warning:Filtering out a not connected input 0ZED
 ...
-INFO 11:0ZED filtered out
+INFO 11:0ZED filtered out 
+
 ...
 Warning input 0OM2 filtered out
 ERROR input 0HCO not connected in ctpinputs.cfg
@@ -95,7 +110,7 @@ smicmd init PHYSICS_1 128 3
 
 === Problem: nfs cache: when filter changed on server, client does not see 
    changed file -seems cache updated after several (up to 15 minutes!) minutes.
-Solutions:
+Solutions 4 -seems only last one ok:
 *1. Mount the NFS share on the client with the noac option to disable attribute caching, 
    or use acdirmin=0,acdirmax=0 to just disable directory caching.
 - neskusal som
@@ -116,8 +131,7 @@ adls:/home/dl6/local on /ram/local type nfs4 (rw,relatime,vers=4,rsize=524288,ws
 - ctp_proxy/test_nfs.c -reading filter on client. NFS-cache invalidation
   does not work (at least not using opendir/closedir).
 
-29.8.2017
-- opendir/closedir removed from fileManip.c (not working)
+29.8.2017 - opendir/closedir removed from fileManip.c (not working)
 
 lookupcache=none fstab.altri1 see:https://serverfault.com/questions/380303/nfs-cache-file-content-not-updated-on-client-when-modified-on-server/382728#382728
 - not working after umount/mount /ram/local.
@@ -145,3 +159,51 @@ DDL2_IR 48..25 24..1: 0x800000 0x400  0OM2 0PH0 0HCO
 ...
 
 === 14.9.2017 commit + deploy in p2
+=== 1.11.2017 problem: NFS mounted $dbctp on alidcsvme001 (read only) not working in spite of 'ls $dbctp' in openFile()
+Incident: 27.10.2017 filter changed, but the change not seen in alidcsvme001! see ddl2filter.log
+- ctp_proxy/test_nfs -started several 10s times in P2 (i.e. readonly NFS), works alwasy
+- is it not a bug (e.g. if new filter is subset of the old one, the old one stays in place?
+
+Seems problem was in:
+27.10.2017 19:53:47 reloading parted (reload request from ctpproxy)...
+There were no 'reload requests' in between -see ddl2filter.log
+28.10.2017 01:23:04 reloading parted (reload request from ctpproxy)...
+
+
+Todo (only if sure that 'ls $dbctp' is not working in openFile):
+alidcsvme001:v/vme/WORK/DB -here always fresh copy of ctpinputs.cfg and filter files (more files ?) from server
+
+openFile: should look first into WORK/DB directory compare file with $dbctp and issue warning if different.
+File in WORK/B should be taken if newer!
+
+=== 2.11.2017 seems bug is in static archline vs lastfilterline -> it should be the same ariable!
+test:
+filter: PHOS V0
+ctp.cfg: DDL2_IR 0OB3 0PH0 0HCO 0VBA 0TVX
+ctpptoxy.sh startnd
+ctp_proxy.log:
+Warning input 0PH0 filtered out
+Warning input 0VBA filtered out
+DDL2_IR 48..25 24..1: 0x200 0x404  0OB3 0PH0 0HCO 0VBA 0TVX
+
+change filter: PHOS
+smicmd init PHYSICS_1 128 3
+02.11.2017 16:40:34: CTP inputs filter:PHOS
+
+Warning input 0PH0 filtered out
+Warning input 0VBA filtered out
+DDL2_IR 48..25 24..1: 0x200 0x404  0OB3 0PH0 0HCO 0VBA 0TVX    <-incorrect
+02.11.2017 16:40:34: The list of filtered inputs changed, DDL2 readout was updated accordingly
+
+Now using only EXTERN archline{[];....
+filter: PHOS V0
+ctp.cfg: DDL2_IR 0OB3 0PH0 0HCO 0VBA 0TVX
+ctpptoxy.sh startnd
+ctp_proxy.log:
+Warning input 0PH0 filtered out
+Warning input 0VBA filtered out
+DDL2_IR 48..25 24..1: 0x200 0x404  0OB3 0PH0 0HCO 0VBA 0TVX
+
+change filter: PHOS
+smicmd init PHYSICS_1 128 3
+
