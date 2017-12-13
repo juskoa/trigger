@@ -2,7 +2,7 @@
 # 4.11. when measurement not complete, restart telnet with next measurement
 import sys,time,string,signal,os,random,pydim, pylog
 quit= ""
-
+monbusy= 0.
 def signal_handler(signal, stack):
   global quit
   mylog.logm("signal:%d received."%signal)
@@ -30,7 +30,9 @@ def scope_cb(tag):
   # Remember, the callback function must return a tuple
   return ("%s. %s"%(now,"blabla"),)
 def monbusy_cb(tag):
-  monbusy= float(random.randint(0,1000))/1000.
+  global monbusy
+  #monbusy= float(random.randint(0,1000))/1000.
+  monbusy= monbusy+1.
   mylog.logm("monbusy_cb tag:%s rc:%f"%(tag,monbusy))
   return (monbusy,)
 def epochtime():
@@ -61,7 +63,7 @@ def main(servicename):
   a=""
   if servicename!="simpleServer":
     while True:
-      time.sleep(9)
+      time.sleep(1)
       pydim.dis_update_service(scopes)
       if quit: break
   else:

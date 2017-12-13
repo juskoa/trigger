@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os,sys,string,subprocess,time,types,signal,socket,smtplib,pylog
+import stat
 from threading import Thread
 
 UDP_TIMEOUT=70
@@ -34,6 +35,12 @@ def send_mail(text, subject='', to='41754112090@mail2sms.cern.ch'):
   mailServer = smtplib.SMTP("cernmx.cern.ch")
   mailServer.sendmail(sender, to, message)
   mailServer.quit()
+
+def file_age_in_secs(pathname):
+  if os.path.exists(pathname):
+    return time.time() - os.stat(pathname)[stat.ST_MTIME]
+  else:
+    return None
 
 def gcalib_onfunc(inm):
   """ inm: gcalib 18.08.2011 09:57:50  TOF 92.917 4.903  MUON_TRG 88.031 0.017  
@@ -125,7 +132,7 @@ class Daemon:
   RESTARTED=1
   OK=2
   MAXSMS=1   # max. sms message to be sent when daemon died
-  def __init__(self,name, scb="scb", onfunc=None, autor='y'):
+  def __init__(self,name, scb="scb", onfunc=None, autor='y', filename=None, age=None):
     """
     scb: 
     "scb": startClients.bash way check (i.e. name used 
@@ -138,7 +145,8 @@ class Daemon:
             [self.ON, msg_temp]    -temperature ok
             [self.HUNG, msg_temp]  -high temperature (msg sent)
             [self.OFF]             -cannot measure
-    "script" run name.sh script returning: ON or OFF
+    "shscript" run name.sh script returning: ON or OFF
+    "fileage" check if filename's age < age secs
 
     onfunc: execute with each UDP message (implies scb="udp")
             onfunc() should return: [None], [ON,msg] or [HUNG]
@@ -149,6 +157,11 @@ class Daemon:
     self.name= name
     self.autor= autor
     self.scb= scb
+    self.filename= filename
+    self.age= age
+    if scb=="fileage":
+      self.lastage= file_age_in_secs(self.filename)
+      self.autor= 'n'
     if scb=="hddtemp":
       self.autor='n'
       self.hightempstate= False
@@ -180,7 +193,9 @@ class Daemon:
 [aj@pcalicebhm11 py]$ hddtemp /dev/sda
 /dev/sda: ST3250310AS: 37oC
                          \xc2
-    "script"
+    "shscript"  -only one application (mnt521), i.e. not tested thoroughly
+    "fileage"
+
     rc: ON: on, msg
         IDLE: idle (e.g.: gcalib on, but no calib. triggers needed)
         OFF: off (= not running)
@@ -234,7 +249,7 @@ class Daemon:
           rc= [self.IDLE]
         else:
           rc= [self.OFF]
-      elif self.scb=="script":
+      elif self.scb=="shscript":
         line= self.iopipe(self.name+".sh", "drwxrwxrwx 1 root root")
         #self.logm("getpid:pidline:"+pidline+":")
         if line:
@@ -242,14 +257,26 @@ class Daemon:
           rc= [self.ON, line]
         else:
           rc= [self.OFF, line]
+      elif self.scb=="fileage":
+        secs= file_age_in_secs(self.filename)
+        if (secs!=None) and (secs<=self.age):
+          if self.lastage==None:
+            self.lastage= secs
+          rc= [self.ON, "ON after %.1f secs"%self.lastage]
+        else:
+          rc= [self.OFF]
+          self.lastage= secs
       else:
         pass 
     return rc
   def do_stop(self):
     pass
   def do_start(self):
-    self.iopipe("startClients.bash "+self.name+" start")
-    self.logm("started")
+    if self.scb=="scb":
+      self.iopipe("startClients.bash "+self.name+" start")
+      self.logm("started")
+    else:
+      self.logm("Non scb, how to start it?")
   def do_restart(self):
     """ 
     kill + start
@@ -373,24 +400,30 @@ monitor.py stop
   # "pydim":Daemon("pydim", autor='n'),
   #  "DiskTemp":Daemon("DiskTemp",scb="hddtemp")}
   # p2:
+  inputsfn= os.path.join(os.environ['VMEWORKDIR'], "WORK","MONSCAL","inputs.png")
   if os.environ['VMESITE'] == "ALICE":
     allds={"xcounters":Daemon("xcounters", autor="n"), 
       "ctpwsgi":Daemon("ctpwsgi"), 
       "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
       "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
       "gcalib":Daemon("gcalib"),
-      "mnt521":Daemon("mnt521",scb="script", autor="n")}
+      "mnt521":Daemon("mnt521",scb="shscript", autor="n"),
+      "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122)
+    }
     log.logm("Udp used.")
     udpmsg=Udp(allds)   
   else:
     # bhm10:
     # allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
     # adls: ttcmidim problematic (runs on altri2 which is on bhm10)
+    # "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122),
     allds={"xcounters":Daemon("xcounters", autor="n"), 
       "ctpwsgi":Daemon("ctpwsgi"), 
       "html":Daemon("html"),
       "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
-      "gcalib":Daemon("gcalib")}
+      "gcalib":Daemon("gcalib"),
+      "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122)
+    }
     # test in lab:
     log.logm("Udp used...")
     udpmsg=Udp(allds)   

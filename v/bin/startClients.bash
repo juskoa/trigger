@@ -180,7 +180,7 @@ xcounters: creating xcounters files and posting them to DCS XFS
 diprfrx    DIP service publishing the LHC TTCmi RF -see http://cern.ch/ttcpage1
            not used from 2016
 gcalib     sending cal. triggers to the detectores during global run
-gmonscal   running on trigger@alitrir. 
+gmonscal   running on trigger@alitrir. I.e. "gmonscal.sh start" FROM trigger@altrir !
            Creating: 
            $server:v/vme/WORK/MONSCAL/inputs.png
            $server:v/vme/WORK/MONSCAL/RUNNUMBER_CLUSTER.png

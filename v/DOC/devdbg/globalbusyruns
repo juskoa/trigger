@@ -1,0 +1,9 @@
+Goal: monitor also the age of inputs.png in BUSY screen
+
+P2:
+~/CNTRRD/htmls/pngs:
+lrwxrwxrwx. 1 trigger alice    38 Mar 30  2015 inputs.png -> ../../../v/vme/WORK/MONSCAL/inputs.png
+[trigger@alidcscom835 pngs]$ ls -l $VMEWORKDIR/WORK/MONSCAL/inputs.png
+-rw-r--r--. 1 trigger alice 23866 Nov  7 11:35 /home/alice/trigger/v/vme/WORK/MONSCAL/inputs.png
+
+monitor/monitor.py -"fileage" added monitoring age of inputs.png
