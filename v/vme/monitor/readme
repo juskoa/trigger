@@ -129,9 +129,8 @@ hddtemp -no sense on alidcscom835:
 [trigger@alidcscom835 NOTES]$ hddtemp /dev/sda
 /dev/sda: Dell VIRTUAL DISK: S.M.A.R.T. not available
 
-may 2016
-udp expected/monitored from miclock 1/min!
-25.6. 2016
-roman sms added when  xcounters down
-2017
-mnt521 added
+may 2016 udp expected/monitored from miclock 1/min!
+25.6. 2016 roman sms added when  xcounters down
+summer 2017 mnt521 added
+7.11.2017 fileage added monitoring gmonscal through the age if its inputs.png
+

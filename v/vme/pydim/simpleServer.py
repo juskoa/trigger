@@ -2,8 +2,12 @@
 # 4.11. when measurement not complete, restart telnet with next measurement
 import sys,time,string,signal,os,random,pydim, pylog
 quit= ""
+<<<<<<< HEAD
 lastbusy= 0.
 
+=======
+monbusy= 0.
+>>>>>>> 9daafd64226832d835ac052b1febf8a642dd3204
 def signal_handler(signal, stack):
   global quit
   mylog.logm("signal:%d received."%signal)
@@ -31,8 +35,14 @@ def scope_cb(tag):
   # Remember, the callback function must return a tuple
   return ("%s. %s"%(now,"blabla"),)
 def monbusy_cb(tag):
+<<<<<<< HEAD
   global lastbusy
   monbusy= lastbusy
+=======
+  global monbusy
+  #monbusy= float(random.randint(0,1000))/1000.
+  monbusy= monbusy+1.
+>>>>>>> 9daafd64226832d835ac052b1febf8a642dd3204
   mylog.logm("monbusy_cb tag:%s rc:%f"%(tag,monbusy))
   return (monbusy,)
 def epochtime():
