@@ -76,6 +76,7 @@ General usage:
 1. make sure dns is running on adls (nohup /opt/dim/linux/dns &)
 2.  smicmd TRIGGER      -start private TRIGGER domain (on adls or altri1)
     ONLY 1 instance can be active (it will crash if another instance is running already)
+    usefull (open in separate window): tail -f $VMEWORKDIR/WORK/smicmd.log
 3. use smicmd init/start/stop/.... PARTNAME as suggested above
 4. Note about mask:  Give it in decimal notation, i.e:
 0x80 128 PHOS

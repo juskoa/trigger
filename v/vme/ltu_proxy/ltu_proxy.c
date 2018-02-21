@@ -289,7 +289,7 @@ infolog_trgboth(LOG_ERROR, msg); goto RETURN;
 int main(int argc, char **argv) {
 int rcso=0;
 int argi=0;  
-int isecs=60; float prevbusyf, newbusyf=0;
+int notupdated=0, isecs=60; float prevbusyf, newbusyf=0;
 /*----------------------------------------------------------- defaults: */
 strcpy(BoardBaseAddress, "0xdeadde");
 strcpy(BoardSpaceLength, "0x1000");
@@ -460,8 +460,11 @@ while(1) {
   prevbusyf= newbusyf;
   newbusyf= ltushm->busyfraction;
   //printf("ltuproxymain: %d prev/now:%6.4f %6.4f\n", isecs, prevbusyf, newbusyf); fflush(stdout);
-  if(fabs(newbusyf-prevbusyf)>0.01) {
+  if( (fabs(newbusyf-prevbusyf)>0.01) || (notupdated>=120) ) {
     updateMONBUSY(newbusyf);   
+    notupdated= 0;
+  } else {
+    notupdated++;
   };
   if(QUIT==1) {
     // freeShared(buf1,...);     -for SSM yes, but not for counters

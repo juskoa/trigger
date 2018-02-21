@@ -1,4 +1,4 @@
-Current status: det/MONBUSY dim service publishing busy time 1/s when change >1%
+Current status: det/MONBUSY dim service publishing busy time 1/s when changed >1%
 The DIM service is used by hmpid only and 
 logged in file ltudimserver.log (see also script bin/ltudimserverlog.py
 
@@ -29,7 +29,7 @@ todo:
 [trigger@alictpserverlab ctp3-mon]$ pubsub/publisher.cpp
 - C++ version of publisher.py
 Now preparing mcl.cxx (in aj@11:EXAMPS/dimc++):
-- read DIM messages from det/MONBUSY
+- read DIM messages from det/MONBUSY from all dets
 - join all messages with the same timestamp (second)
 - bin them in 1s bins
 - create json -> to be sent over zmq
@@ -38,5 +38,4 @@ see also:
 - aliases sdorun sdo
 - to be started in docker, i.e.: . /home/trigger/bin/docenv
 - afs mails/done/ctp3-mon -private notes
-- 
               

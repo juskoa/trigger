@@ -2,12 +2,11 @@
 # 4.11. when measurement not complete, restart telnet with next measurement
 import sys,time,string,signal,os,random,pydim, pylog
 quit= ""
-<<<<<<< HEAD
 lastbusy= 0.
-
-=======
-monbusy= 0.
->>>>>>> 9daafd64226832d835ac052b1febf8a642dd3204
+avlt= {"trd":0.05, "zdc" :0.1, "emcal":0.15, "tpc":0.20, "pmd":0.25,
+  "acorde":0.30, "sdd":0.35, "muon_trk":0.40, "muon_trg":0.45,
+  "daq":0.50, "ssd":0.55, "fmd":0.60, "t0":0.65, "hmpid":0.70,
+  "phos":0.75, "cpv":0.80, "ad":0.85, "spd":0.90, "tof":0.95, "v0":0.0}
 def signal_handler(signal, stack):
   global quit
   mylog.logm("signal:%d received."%signal)
@@ -35,15 +34,11 @@ def scope_cb(tag):
   # Remember, the callback function must return a tuple
   return ("%s. %s"%(now,"blabla"),)
 def monbusy_cb(tag):
-<<<<<<< HEAD
   global lastbusy
   monbusy= lastbusy
-=======
-  global monbusy
   #monbusy= float(random.randint(0,1000))/1000.
-  monbusy= monbusy+1.
->>>>>>> 9daafd64226832d835ac052b1febf8a642dd3204
-  mylog.logm("monbusy_cb tag:%s rc:%f"%(tag,monbusy))
+  #monbusy= monbusy+1.
+  #mylog.logm("monbusy_cb tag:%s rc:%f"%(tag,monbusy))
   return (monbusy,)
 def epochtime():
   return "%.3f"%time.time()   #epoch
@@ -53,7 +48,7 @@ def loctime(epoch_str):
   return rc   # dd.mm hh:mm
 
 def main(servicename):
-  global mylog,lastbusy
+  global mylog,lastbusy,avlt
   #mylog= pylog.Pylog("simpleServer","ttyYES")
   mylog= pylog.Pylog(None,"ttyYES")   # only tty (no file log)
   if not pydim.dis_get_dns_node():
@@ -64,7 +59,7 @@ def main(servicename):
   if servicename=="simpleServer":
     scopes = pydim.dis_add_service("simpleServer", "C", scope_cb, 33)
   else:
-    scopes = pydim.dis_add_service(servicename, "F", monbusy_cb, 34)
+    scopes = pydim.dis_add_service(servicename+"/MONBUSY", "F", monbusy_cb, 34)
   # A service must be updated before using it.
   print "Updating the services ..."
   pydim.dis_update_service(scopes)
@@ -74,14 +69,18 @@ def main(servicename):
   if servicename!="simpleServer":
     while True:
       time.sleep(1)
-      monbusy= float(random.randint(0,1000))/1000.
-      lastbusy= monbusy
-      if (monbusy>=0.4) and (monbusy<=0.9):
+      monbusy= float(random.randint(0,1000))/1000.   # 0 .. 1
+      if avlt.has_key(servicename):
+        monbusy= avlt[servicename] + monbusy/10.
+        if monbusy>1.: monbusy= 1.
+      #if (monbusy>=0.2) and (monbusy<=0.9):
+      if abs(lastbusy - monbusy)<0.01:
         pass # no update if 0.6 ..0.9
-        print "no update (%f)"%lastbusy
+        print "no update last: %f now:%f"%(lastbusy, monbusy)
       else:
-        #lastbusy= monbusy
+        lastbusy= monbusy
         pydim.dis_update_service(scopes)
+        print "updated       : %f now:%f"%(lastbusy, monbusy)
       if quit: break
   else:
     while True:
