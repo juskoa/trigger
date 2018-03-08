@@ -97,6 +97,7 @@ switch on: alidcsvme017 first/(off->last  -> clock!)
 
 only in p2 (2 spaces):
   tri@alidcscom707 -> root -> mount /local
+  /etc/fstab:
   alidcscom835:/home/dl6/local /local nfs ro,defaults 0 0
   alidcscom521 mounts:
 [tri@alidcscom521 ~]$ df -h
@@ -108,21 +109,32 @@ tmpfs                 2.0G     0  2.0G   0% /dev/shm
                        17T  1.5T   15T  10% /mnt/alidcsfs001/Scratch_data
 //alidcsbackup.cern.ch/Backup/tri
                        17T  4.2T   12T  26% /mnt/archive
+  if not mounted:
+check:
+[root@alidcscom521 ~]# ls -l /mnt/alidcsfs001/Scratch_data/
+total 0
+mount:
+sudo su -
+mount -t cifs //alidcsfs001.cern.ch/Scratch_data /mnt/alidcsfs001/Scratch_data -o "rw,domain=CERN,user=juskoa"
 
 startClients.bash ttcmidim start     startinit after poweroff
+[trigger@alidcsvme017 WORK]$ ttcmidims.sh startinit
+
   in lab on altri2, not needed, but should be started once after boot)
 
 check redis@835 or redis@adls account. redstatus,...
-                   redis@cw835 account. redstatus,...
+                   redis@835 account. redstatus,...
 startClients.bash pydim start
 ctpproxy.sh startnd
 ctpproxy.sh stop
 ctpdims start
-  at P2:  startClients.bash xcounters start    
+  at P2:  startClients.bash xcounters start    (startne v tri accounte!)
   in lab: ssh tri@local host ; xcounters.sh stop/start
 
+alidcsvme001>
 orbitddl2.py readorbit
 orbitddl2.py configrunset
+orbitddl2.py readorbit
 ctpproxy.sh start
 
 startClients.bash rrd start
@@ -132,9 +144,9 @@ startClients.bash html start
   available only in p2
 
 startClients.bash ctpwsgi start
-startClients.bash masksServer start
+startClients.bash masksServer start    rm v/vme/WORK/masksServer.pid
 startClients.bash gcalib start
 startClients.bash udpmon start
-cd monitor
+cd monitor ; ./monitor.py
 irdim: ik
 

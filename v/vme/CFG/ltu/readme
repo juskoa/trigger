@@ -107,3 +107,8 @@ improved timing, TTC-A/B output configurable (Honza)
 18.3.2015
 ltu2_BC.rbf   (ltu_BC not yet available)
 fixed problem with a bit in TTCvi_mode (Marian)
+28.2.2018
+ltu_D3.rbf
+BUSY1 -> L1 i.e. converter LVDS to ECL
+BUSY2 -> ORBIT(out) i.e. converter LVDS to ECL
+

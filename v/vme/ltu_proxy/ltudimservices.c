@@ -587,8 +587,7 @@ if(rc==-1) {
 *msgp= (char *)&busytime1sec;  // better?:
 //*msgpvoid= (void *)&busytime1sec;
 *size= 4;
-sprintf(msg,"size:%d float contnt:%6.4f \n", *size, busytime1sec);
-dimlogprt("MONBUSYcaba",msg);
+//sprintf(msg,"size:%d float contnt:%6.4f \n", *size, busytime1sec); dimlogprt("MONBUSYcaba",msg);
 }
 /*--------------------------------------------------------- readUntilColon()
 if us==1: update service() called, i.e. ResultString is 
