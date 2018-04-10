@@ -189,4 +189,17 @@ ltu_proxies:
   LOG1SEC 1        (FLGlog1sec)  in ltu 'defaults', default: 0
   can be set interactively by: cd ltu_proxy ; linux/ltu_shm 81X000 L   (N: no log)
 
+=== 10.4.2018 comp/link in p2
+[trigger@alidcscom835 examples]$ mv Makefile.am Makefile.am_orig
+[trigger@alidcscom835 examples]$ cp ~/aj/Makefile.am .
+cd $APMON ; ./configure 
+copy to ~/aj
+make clean ; make
 
+[trigger@alidcscom835 ApMon_cpp-2.2.8]$ mv aclocal.m4 ~/aj/
+[trigger@alidcscom835 ApMon_cpp-2.2.8]$ aclocal && libtoolize --force && autoreconf
+./configure
+make
+ok
+
+	
