@@ -36,10 +36,20 @@ def scope_cb(tag):
 def monbusy_cb(tag):
   global lastbusy
   monbusy= lastbusy
+  avbusy= lastbusy*1000   # us
+  if lastbusy<0.01:
+    l2arate= 9999
+  else:
+    l2arate= 100/lastbusy
+  t= time.time()
+  secs= int(t)
+  micsecs= int((10**6)*(t-secs))
   #monbusy= float(random.randint(0,1000))/1000.
   #monbusy= monbusy+1.
   #mylog.logm("monbusy_cb tag:%s rc:%f"%(tag,monbusy))
-  return (monbusy,)
+  #return (monbusy,)
+  print "  ", secs, micsecs, monbusy,avbusy,l2arate
+  return (secs, micsecs, monbusy,avbusy,l2arate)
 def epochtime():
   return "%.3f"%time.time()   #epoch
 def loctime(epoch_str):   
@@ -59,7 +69,8 @@ def main(servicename):
   if servicename=="simpleServer":
     scopes = pydim.dis_add_service("simpleServer", "C", scope_cb, 33)
   else:
-    scopes = pydim.dis_add_service(servicename+"/MONBUSY", "F", monbusy_cb, 34)
+    #scopes = pydim.dis_add_service(servicename+"/MONBUSY", "F", monbusy_cb, 34)
+    scopes = pydim.dis_add_service(servicename+"/MONBUSY", "I:2;F:3", monbusy_cb, 34)
   # A service must be updated before using it.
   print "Updating the services ..."
   pydim.dis_update_service(scopes)

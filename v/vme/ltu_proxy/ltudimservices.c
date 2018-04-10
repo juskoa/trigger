@@ -42,8 +42,16 @@ unsigned int CALIBBCid;
 unsigned int COUNTERSid;
 unsigned int MONBUSYid;
 w32 *buf1=NULL;     // shm
-w32 prevcnts[LTUNCOUNTERSall];   // counters 1sec before
-float busytime1sec=0.0;
+//w32 prevcnts[LTUNCOUNTERSall];   // counters 1sec before commented 5.4.2018
+
+/*float busytime1sec=0.0;  instead (in ltu.h):
+struct TData{
+ int epchts;
+ int epchtu;
+ float busyfraction,avbusy,l2arate;
+}; */
+TData MONBUSYdata;
+int msgssent= 0;   // for check lost msgs between det/MONBUSY server and client
 
 int actcid=0;         /* active client id. 0: nobody active */
 FILE *PUTFILE;   // !=NULL upload active
@@ -574,7 +582,7 @@ void MONBUSYcaba(int *tag, unsigned int **msgpint, int *size) {
 char **msgp= (char **)msgint;
 #endif
 int rc;
-char msg[ERRMSGL];
+//char msg[ERRMSGL];
 /*sprintf(msg, "sizeorig:%d LTUNCOUNTERSall:%d\n", *size, LTUNCOUNTERSall);
 dimlogprt("MONCOUNTERScaba",msg); */
 rc=updateNMCclients('b');
@@ -584,9 +592,8 @@ if(rc==-1) {
   *size= strlen(ResultString)+1;   // "" -empty string is 1 byte message
   return;
 };
-*msgp= (char *)&busytime1sec;  // better?:
-//*msgpvoid= (void *)&busytime1sec;
-*size= 4;
+*msgp= (char *)&MONBUSYdata;   // &busytime1sec;
+*size= 20;   // 4;
 //sprintf(msg,"size:%d float contnt:%6.4f \n", *size, busytime1sec); dimlogprt("MONBUSYcaba",msg);
 }
 /*--------------------------------------------------------- readUntilColon()
@@ -891,14 +898,30 @@ if(clientid==0) {
   dimlogprt("updateMONCOUNTERSservice",msg);
 };
 }
-void updateMONBUSY(float newbt) {
+//void updateMONBUSY(float newbt) {
+void updateMONBUSY(TData *newdata) {
 char msg[ERRMSGL];
 int nclients;
-sprintf(msg, "oldbusy: %6.4f newbusytime:%6.4f", busytime1sec, newbt);
-busytime1sec= newbt;
-nclients= dis_update_service(MONBUSYid);
-sprintf(msg,"%s nclients:%d", msg, nclients);
-dimlogprt("updateMONBUSY", msg);
+sprintf(msg, "%d bt: %6.4f -> %6.4f %8.2f %8.2f", 
+  newdata->epchts, MONBUSYdata.busyfraction, newdata->busyfraction,
+  newdata->avbusy,newdata->l2arate);
+  MONBUSYdata.epchts= newdata->epchts;
+  MONBUSYdata.epchtu= newdata->epchtu;
+  MONBUSYdata.busyfraction= newdata->busyfraction;
+  MONBUSYdata.avbusy= newdata->avbusy;
+  MONBUSYdata.l2arate= newdata->l2arate;
+/* new way: I:2;F:3 secs, micsecs, monbusy(0..1),avbusy(s),l2arate(hz) */
+nclients= dis_update_service(MONBUSYid); msgssent++;
+if((MONBUSYdata.epchts % 1000) == 0) {
+  sprintf(msg,"%s nclients:%d epchts:%d sent:%d", 
+    msg, nclients, newdata->epchts, msgssent);
+  msgssent= 0;
+  dimlogprt("updateMONBUSY", msg);
+};
+if(ltushm->ltucfg.flags & FLGlog1sec) {   // i.e. LOG1SEC YES in 'defaults editor'
+  sprintf(msg,"%s nclients:%d", msg, nclients);
+  dimlogprt("updateMONBUSY", msg);
+};
 /*if(oldnbusyclients != nclients) {   // # of clients changed
     int ix;
     sprintf(msg, "clients now: %d\n", nclients); 
@@ -1029,7 +1052,8 @@ COUNTERSid=dis_add_service(command,0, buf1, 4*LTUNCOUNTERSall,
   MONCOUNTERScaba, 4568);  
 sprintf(logmsg, "%s%s COUNTERSid:%d\n", logmsg, command,COUNTERSid);
 strcpy(command, MYDETNAME); strcat(command, "/MONBUSY");
-MONBUSYid=dis_add_service(command,"F", &busytime1sec, 4,
+//MONBUSYid=dis_add_service(command,"F", &busytime1sec, 4,
+MONBUSYid=dis_add_service(command,"I:2;F:3", &MONBUSYdata, 20,
   MONBUSYcaba, 4571);  
 sprintf(logmsg, "%s%s MONBUSYid:%d\n", logmsg, command,MONBUSYid);
 

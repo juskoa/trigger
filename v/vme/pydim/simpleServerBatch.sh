@@ -3,6 +3,7 @@
 s_dnames="trd zdc emcal tpc pmd acorde sdd muon_trk muon_trg daq ssd fmd t0 cpv ad spd tof v0"
 #s_dnames="trd zdc emcal pmd sdd muon_trk muon_trg daq ssd fmd t0 hmpid phos cpv as spd tof v0"
 #s_dnames="t0 v0 cpv"
+# ps aux |grep python
 # killall python
 for dn in $s_dnames ;do
   #sleep $((RANDOM % MAXWAIT))   MAXWAIT: in seconds

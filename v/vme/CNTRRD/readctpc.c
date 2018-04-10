@@ -55,7 +55,9 @@ extern "C" {
 
 int ARGNORRD=0;
 int ARGNOAPPMON=0;
+int ARGDBGLAB=0;
 int ARGNOHTML=0;
+char ARGSENDALL[10]="";
 FILE *rrdpipe=NULL;
 FILE *htmlpipe;
 FILE *apmonpipe=NULL;
@@ -231,7 +233,7 @@ int rad;
 //w32 *bufw32= (w32 *)buffer;
 rad= cntstr[ix].reladdr;
 // debug: change bufw32 if busy according to avbsyix:
-if(strcmp(hname, "alidcscom835")!=0) {
+if((ARGDBGLAB==1) && (strcmp(hname, "alidcscom835")!=0)) {
   if(cntstr==busy) {
     bufw32[rad]= debugbusy;
     if(ix==0) {
@@ -316,8 +318,8 @@ for(ix=0; ix<N24; ix++) {
   ppout[ix].reladdr=-1;
   l2cal[ix].reladdr=-1;
 };
-cfdir= getenv("VMECFDIR");
-strcpy(cnamesname, cfdir); strcat(cnamesname, "/dimcdistrib/cnames.sorted2");
+//cfdir= getenv("VMECFDIR"); strcpy(cnamesname, cfdir); strcat(cnamesname, "/dimcdistrib/cnames.sorted2");
+cfdir= getenv("dbctp"); strcpy(cnamesname, cfdir); strcat(cnamesname, "/cnames.sorted2");
 cnames= fopen(cnamesname, "r");
 while(1) {
   int rc,isdet; char *rcp;
@@ -630,7 +632,7 @@ for(ix=0; ix<N24; ix++) {
   rad= busy[ix].reladdr;
   //printf("ix:%d rad:%d\n", ix, rad);
   if(rad != -1) {
-    if((strcmp(hname, "alidcscom835")!=0) && (ix<2)) {
+    if((ARGDBGLAB==1) && (strcmp(hname, "alidcscom835")!=0) && (ix<2)) {
       printf("Warning: ================================ arranging dbg values in non-p2 setup!...\n");
     };
     shiftcnt(busy, ix, bufw32);
@@ -867,11 +869,22 @@ for(ix=0; ix<argn; ix++) {
   } else if(strcmp(argv[ix], "-noapmon") == 0){
     ARGNOAPPMON=1;
     continue;
+  } else if(strcmp(argv[ix], "-dbglab") == 0){
+    ARGDBGLAB=1;
+    continue;
+  } else if(strcmp(argv[ix], "-sendall") == 0){
+    strcpy(ARGSENDALL, "sendall");
+    continue;
   } else if(strcmp(argv[ix], "-nohtml") == 0){
     ARGNOHTML=1;
     continue;
   };
 }; printf("\n");
+if(strlen(ARGSENDALL)==0) {
+  printf("NO detectors busy data (only TRG) sent to apmon(example_3)\n");
+} else {
+  printf("sendall arg will be used when starting apmon(example_3)\n");
+};
 rc= mydbConnect();
 hname= getenv("HOSTNAME");
 //setbuf(stdout, NULL);   nebavi
@@ -908,7 +921,7 @@ if(ARGNOAPPMON==1) {
   char *apmonsw; char cmd[120];
   apmonsw= getenv("APMON");
   // started in ~/CNTRRD pwd, i.e. apmonConfig.conf in ~/CNTRRD/
-  sprintf(cmd, "%s/examples/example_3 >logs/apmon.log 2>&1", apmonsw);
+  sprintf(cmd, "%s/examples/example_3 %s >logs/apmon.log 2>&1", apmonsw, ARGSENDALL);
   apmonpipe= openpipew(cmd);
 };
 signal(SIGUSR1, gotsignal); siginterrupt(SIGUSR1, 0);

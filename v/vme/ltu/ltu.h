@@ -271,6 +271,7 @@ EXTRN w32 Gltuver;  // has to be 0xf3 or 0xbX
 #define FLGfecmd12 2        // 1: hmpid (fecmd12 to be sent) 0: not hmpid
 #define FLGextorbit 0x4     // 1: external 0: internal orbit
 #define FLGscthread 0x8     // 1: active 0: not active
+#define FLGlog1sec  0x10    // 1: active 0: not active
 #define IXG_calibration_roc 0 
 #define IXltuver 1 
 #define IXGpp_time 2 
@@ -309,6 +310,12 @@ typedef struct {
   float global_calibration_rate;   //valid if FLGglobal_calibration 
   w32 plist[MAXPARLIST];
 } Tltucfg;
+typedef struct {
+ w32 epchts;
+ w32 epchtu;
+ float busyfraction,avbusy,l2arate;   // 0..1(busy), micsecs, hz
+} TData;
+
 /*the structure of shared memory segment shared among:
 - ltu_proxy
 - ltu.exe (popened from ltu_proxy)
@@ -329,7 +336,8 @@ typedef struct {
   w32 id;    // shmkey (filled when allocated)
   Tltucfg ltucfg;
   w32 ltucnts[LTUNCOUNTERSall];
-  float busyfraction;   // 0.0 .. 1.0
+  //float busyfraction;   // 0.0 .. 1.0
+  TData d1sec;
 } Tltushm;
 /*
 typedef union a{

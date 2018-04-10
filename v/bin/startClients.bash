@@ -196,7 +196,7 @@ Problems: see corresponding files in:
    ~/CNTRRD/logs                     -pydim html rrd
    trigger@alidcsvme001:v/vme/WORK/  -ctpproxy ctpdim gcalib
    trigger@alidcsvme017:v/vme/WORK/  -ttcmidim diprfrx
-   ~tri/logs                         -xcounters
+   ~tri/logs (~/logs in lab)         -xcounters
    trigger@alitrir:rl/correlations/monscal_root        -gmonscal sources
    trigger@alitrir:rl/correlations/monscal_root/WORK   -gmonscal log
    trigger@alidcscom521:IRS/LUMI_FILES/MASSI  IRS/LOG/LOG   -irdim
@@ -322,7 +322,12 @@ END {printf "%s", pids}
     else
       rrdno=''
     fi
+    # args: -noapmon -dbglab -sendall -nohtml -norrd
+    # -dbglab: set fake values in l0s,l1s,l2s,l2r,busy counters/timer
+    # apmon old way (i.e. sent ctp-counters) to apmon3: -sendall + stop apmon4 daemon
+    # apmon new way (i.e. sent ltu-counters) to apmon4 + tri to apmon3: start apmon4 daemon
     nohup $VMECFDIR/CNTRRD/linux/readctpc $rrdno >logs/readctpc.log &
+    #nohup $VMECFDIR/CNTRRD/linux/readctpc $rrdno >logs/readctpc.log &
     echo 'check if html is running.' 
     #nohup linux/readctpc >logs/readctpc.log &
 # always after readctpc restart, /tmp/htmlfifo has to be read out.

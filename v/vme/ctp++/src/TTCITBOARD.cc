@@ -1,4 +1,5 @@
 #include "TTCITBOARD.h"
+#include <bitset>
 //---------------------------------------------------------------------
 TTCITBOARD::TTCITBOARD(string const name,w32 const boardbase,int vsp)
 :
@@ -565,7 +566,7 @@ void TTCITBOARD::DumpqueSSM2file(const char *name)
  }
 }
 /*============================================================================
- * Text dump for visual debuging
+ * Text dump for visual debuging assumes alice run2 format
  */
 void TTCITBOARD::DumptxtSSM()
 {
@@ -583,6 +584,25 @@ void TTCITBOARD::DumptxtSSM()
      string dd=ttcadl[header];
      printf("%7i %s 0x%1x 0x%3x \n",j,dd.c_str(),header,data);
    }
+ }
+}
+/*============================================================================
+ * Text dump for visual debuging no assumtions
+ */
+void TTCITBOARD::DumphexbinSSM()
+{
+ for(int i =Mega-1;i>=0;i--){
+   int j=Mega-1-i;
+   if(ssm[i] & 0x20000){
+     printf("%7i A chanel 0x%x  b",j, ssm[i]);
+     std::cout << std::bitset<20>(ssm[i]) << std::endl;
+   }
+   //if(ssm[i] & 0x10000){
+   //if(ssm[i] & 0x1ffff){
+ //  if(ssm[i] ){
+     printf("%7i B chanel 0x%05x  b", j, ssm[i]);
+     std::cout << std::bitset<20>(ssm[i]) << std::endl;
+ //  }
  }
 }
 /*============================================================================

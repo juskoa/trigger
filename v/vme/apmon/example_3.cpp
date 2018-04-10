@@ -1,5 +1,7 @@
-/*********************************************************************ApMon: EXAMPLE_3.CPP*****************************************************************************************************/                                                                             
-/**\file example_3.cpp                                                          
+/*****ApMon: EXAMPLE_3.CPP*******************************************
+28.3. 2018: sendall arg: if not given in args, only CTP sent to apm
+
+example_3.cpp                                                          
  * This ApMon file is responsible for sending CTP inputs rates and DET busy values
  * to MonALISA. The user selects what kind of data he wants to send. If busy values,
  * he writes a "B" in the beginning of command line. If CTP inputs, "I".
@@ -24,8 +26,7 @@
  * DETECTORS BUSY VALUES:
  * There is a maximum of 6 different run numbers that can be entered in the command line.                                                                      
  * For each of this run, this program selects the corresponding detectors and busy value/limit                                                                 
- * and then sends it to MonALISA.                                               
- * The format expected in MonALISA is: for a given run number, there is a list of detectors,                                                                   
+ * and then Vsends it to MonALISA.                                               
  * like DET(SPD) or DET(TPC) for example. For each of these detector, it is possible to get                                                                   
  * the busy value and the busy limit.                                                                       
  * The detector numbers are the followings                                      
@@ -80,6 +81,7 @@ struct ctp_inp {
   float input_rate;
 };
 
+int sendall=0;
 /**********************************************FUNCTIONS**********************************************/
 /**Function freeBuffer()                                                        
  * Free memory stored in the buffer while using fgets                           
@@ -113,11 +115,31 @@ int read(char *text, int size){
   }
 }
 
-int main() {
+void printParameters(char *str1, char *detname, int nParameters, 
+  char **paramNames, int *valueTypes, char **paramValues, long timestamp){
+char line[300];
+sprintf(line, "%s %s:%d ", str1, detname, nParameters);
+for(int ix=0; ix<nParameters; ix++) {
+  int val;
+  val= *(int *)paramValues[ix];
+  sprintf(line, "%s %s:%d", line, paramNames[ix], val);
+}; strcat(line,"\n");
+printf(line); fflush(stdout);
+}
+int main(int argc, char **argv) {
   bool condition = true;
   int nCommand = 0;
   char *vmesite, *apmondir; char filename[40]="";
   ApMon *apm;
+  printf("args:");
+  for(int ix=0; ix<argc; ix++) {
+    if(ix==0) continue;
+    if(strcmp(argv[ix], "sendall")==0) {
+      printf(" sendall"); sendall=1;
+    } else {
+      printf(" ?%s", argv[ix]);
+    };
+  }; printf("\n");
   vmesite= getenv("VMESITE");
   apmondir= getenv("APMON");
   if(strcmp(vmesite,"ALICE")==0) {
@@ -151,6 +173,7 @@ int main() {
     //Sending epoch time                                                        
     char **paramNames2, **paramValues2;
     int *valueTypes2;
+
 
     /* Table containing the busy limit values ---> Det 20, 22 and 23 are not defined yet                                   
        busy_limit[0] = 0;    //SPD                                              
@@ -321,7 +344,7 @@ int main() {
 	p++;
 	textfin  = strtok(NULL, " ");
       }
-      /************************************RUN NUMBERS*****************************************************************************************/
+      /****************RUN NUMBERS*****************************/
 
       int nDet = q; //q is the number of detectors
       int global_runs[6];//Stores the different run numbers for sending TRI busy values                                                                                                      
@@ -335,18 +358,17 @@ int main() {
         if((detectors[k].run_number!=global_runs[0])&&(detectors[k].run_number!=global_runs[1])&&(detectors[k].run_number!=global_runs[2])&&(detectors[k].run_number!=global_runs[3])&&(detectors[k]
 .run_number!=global_runs[4])&&(detectors[k].run_number!=global_runs[5])&&(detectors[k].run_number!=0)){
           if(r>=6){
-            printf("More than 6 runs!\n");
+            printf("ERROR: More than 6 runs!\n");
           }
           global_runs[r]=detectors[k].run_number;
-          printf("global runs: %d ", global_runs[r]);
-          printf("r=%d\n",r);
+          printf("global runs: %d r=%d\n", global_runs[r], r);
           r++;
         }
       }
-      /*************************************************CHECKING POINT***********************************************************/
+      /*********CHECKING POINT***************************************/
       //printf("ok\n");
       
-      /****************************************PREPARING THE FORMAT OF THE DATA SENT TO MONALISA*****************************************************/
+      /***PREPARING THE FORMAT OF THE DATA SENT TO MONALISA*************/
       /* allocate memory for the arrays */
       paramNames = (char **)malloc(nParameters * sizeof(char *));
       paramValues = (char **)malloc(nParameters * sizeof(char *));
@@ -368,9 +390,9 @@ int main() {
       paramValues2[0] = (char *)&timeSent;
       //printf("ok1\n");
       
-      /*******************************************SENDING THE DATA TO MONALISA**************************************************************/
+      /***SENDING THE DATA TO MONALISA**********************/
       try {
-	if((nDet==1) && (detectors[0].det_number==17)){ //If there is no global run: just B EPT 17 0 BusyValue -> TRI sent
+	if((nDet==1) && (detectors[0].det_number==17)){ //no global run: just B EPT 17 0 BusyValue -> TRI sent
           //printf("There is no global run \n");
           valbusy = detectors[0].busy_value;
           vallimit = detectors[0].busy_limit;
@@ -378,7 +400,10 @@ int main() {
             detectors[0].name, detectors[0].busy_value, detectors[0].busy_limit);*/
           try {
             timestamp = time(NULL);
-            apm -> sendTimedParameters((char *)"0", detectors[0].name, nParameters, paramNames, valueTypes, paramValues, timestamp);
+            printParameters((char *)"0", detectors[0].name, nParameters, 
+              paramNames, valueTypes, paramValues, timestamp);
+            apm -> sendTimedParameters((char *)"0", detectors[0].name, nParameters, 
+              paramNames, valueTypes, paramValues, timestamp);
           } catch(runtime_error &e) {
             fprintf(stderr, "Send operation failed: %s\n", e.what());                         
           }
@@ -422,6 +447,8 @@ int main() {
 		    runs_tri = (char *)malloc(sizeof(char));
 		    sprintf(runs_tri,"%d", global_runs[k]);//Convert to the right type 
 		    //printf("TRI sent for run %s\n",runs_tri);
+                    printParameters(runs_tri, detectors[l].name, nParameters, 
+                      paramNames, valueTypes, paramValues, timestamp);
 		    apm -> sendTimedParameters((char *)runs_tri, detectors[l].name, nParameters, paramNames, valueTypes, paramValues, timestamp);
 		    free(runs_tri);
 		  } catch(runtime_error &e) {
@@ -430,34 +457,38 @@ int main() {
 		}
 	      }
 	      else{ /*************OTHER DETECTORS************/
+               if(sendall==1) {
 		try {
 		  timestamp = time(NULL);
 		  // 42: run number, my_name: detname
+		  printParameters((char *)run_sent, detectors[l].name, nParameters, paramNames, valueTypes, paramValues, timestamp);
 		  apm -> sendTimedParameters((char *)run_sent, detectors[l].name, nParameters, paramNames, valueTypes, paramValues, timestamp);
 		} catch(runtime_error &e) {
 		  fprintf(stderr, "Send operation failed: %s\n", e.what());
 		  //exit(-1); 
 		}
+               }
 	      }
 	    }
 	  }
 	}      
-	  /*************************************************epochtime*************************************************/
+	  /*****************************epochtime*****************************/
 	  //printf("etime: %d \n ", etime);
 	  timeSent = etime;
 	  try {
 	    timestamp = time(NULL);
+	    printParameters((char *)"EPT", (char *)"epochtime", 1, paramNames2, valueTypes2, paramValues2, timestamp);
 	    apm -> sendTimedParameters((char *)"EPT", (char *)"epochtime", 1, paramNames2, valueTypes2, paramValues2, timestamp);
 	  } catch(runtime_error &e) {
 	    fprintf(stderr, "send operation failed: %s\n", e.what());
 	  }
       } catch(runtime_error &e) {
-	fprintf(stderr, "%s\n", e.what());
+	fprintf(stderr, "catch busy %s\n", e.what());
       }
-    /****************SENDING CTP INPUTS RATE***************************************************************************/
+    /****************SENDING CTP INPUTS RATE***********************************/
     }
     else if(strcmp(textfin,type_ctp)==0){
-      //printf("\n**************CTP INPUTS SELECTED**************************************\n\n");
+      //printf("\n**************CTP INPUTS SELECTED******************\n\n");
       float valfloat;           //CTP Input rate sent to MonALISA
       ctp_inp ctp_inputs[48];   //Storage of CTP inputs data (name, input rate)
       textfin  = strtok(NULL, " ");
@@ -668,7 +699,7 @@ int main() {
 	    fprintf(stderr, "send operation failed: %s\n", e.what());
 	  }
 	} catch (runtime_error &e){
-          fprintf(stderr, "%s\n", e.what());
+          fprintf(stderr, "catch inputs %s\n", e.what());
         }
       } else {
 	printf("Bad line received: WRONG INPUTS NUMBER (expected:48, got:%d)\n", q);
@@ -678,7 +709,7 @@ int main() {
       printf("\n\n bad line received \n\n");
       condition = false;
     }
-    printf("\n"); fflush(stdout);
+    //printf("\n"); fflush(stdout);
   }
   delete apm;
   return 0;

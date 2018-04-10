@@ -12,16 +12,17 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "../../vmeb/vmeblib/vmeblib.h"
 #include "../../vmeb/vmeblib/lexan.h"
 #include "vmewrap.h"
 
 #define LTUMAIN
 #include "ltu.h"
-
 void *mallocShared(w32, int, int *);
+/*
 double rnlx();
 w32 dodif32(w32 before, w32 now);
-void setseeds(long,int);
+void setseeds(long,int); */
 
 int  SSMsetom(w32 opmode);
 w32 ERgetselector();
@@ -349,15 +350,15 @@ printf("%d %d %d\n", micsecs, maxtrigs, enadis);
 
 /*----------------------------------------------------------- SimpleTests */
 
-/* FGROUP SimpleTests
+/*FGROUP SimpleTests
 Test busy logic. Both BUSY inputs on front panel should be disconnected
 (i.e. they are in BUSY state).
 Operation:
-- clear BUSY_COUNTER and both timers
 - loop over the following (number of loops is given in busys parameter):
   - start BUSY signal (as required by source parameter)
   - sleep (as required by length parameter)
   - stop BUSY signal
+  - sleep (as required by length parameter)
 Parameters:
 source -source of busy signal. More sources (e.g. 7 -> all)
         can be specified by combining 3 least significant bits.
@@ -367,14 +368,16 @@ source -source of busy signal. More sources (e.g. 7 -> all)
 busys  -number of generated BUSY signals
 length -an approximate length of each BUSY signal 
         in 1 micsecs intervals
+*/
+void busylogic(w32 source, int busys, int length) {
+/*
 clearcnts -0 don't clear BUSY_COUNTER and both timers, and leave BUS1,2,sw
              untouched
            1       clear BUSY_COUNTER and both timers, disable
 	     source at the beginning
 */
-void busylogic(w32 source, int busys, int length, int clearcnts) {
-int nbs;
-w32 busyinputs,bt,sbt;
+int nbs, clearcnts=0;
+w32 busyinputs; //,bt,sbt;
 if(clearcnts) {
   setBUSY(0);          /* disable BUSY inputs */
   vmew32(SW_BUSY,0);   /* disable sw BUSY */
@@ -392,12 +395,14 @@ for(nbs=0; nbs<busys; nbs++) {
   */
   if( busyinputs!=0) setBUSY(0); 
   if( (source & 0x4) !=0) vmew32(SW_BUSY, 0);   /* BUSY OFF */
+  micwait(length);
   if(quit!=0) break;
 };
-bt= getCounter(BUSY_TIMERrp);
+/* bt= getCounter(BUSY_TIMERrp);
 sbt=getCounter(SUBBUSY1_TIMERrp);
 printf("BUSY_COUNTER:%d\n   BUSY_TIMER:%d(%f ms)\nSUBBUSY1_TIMER:%d(%f ms)\n",
-  getCounter(BUSY_COUNTERrp), bt, bt*0.0004, sbt, sbt*0.0004);
+  getCounter(BUSY_COUNTERrp), bt, bt*0.0004, sbt, sbt*0.0004); */
+printf("%d busy signals generated.\n", nbs);
 }
 /*FGROUP SimpleTests
 action: Flash memory -> FPGA
@@ -457,7 +462,7 @@ return;
 /*FGROUP SimpleTests
 */ 
 void printBusyFraction() {
-printf("busy fraction: %6.4f\n", ltushm->busyfraction);
+printf("busy fraction: %6.4f\n", ltushm->d1sec.busyfraction);
 };
 /* FGROUP SimpleTests
 Generate trigs triggers. Each Trigger is followed by the busy signal wide
@@ -762,24 +767,34 @@ if(rc_scthread==0) {
 };
 }
 void *scthread(void *dummy) {
-w32 ptime, pbusy,ntime=0,nbusy=0,nloop=0;
+w32 ptime, pbusy,pl2a, ntime=0,nbusy=0,nloop=0,nl2a=0;
 ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGscthread;
 while(1) {
-  float deltatime,deltasbusy;
+  float deltatime,deltasbusy,deltal2a;
   if(quit==888) break;
   //printf("scthread: readCNTS2SHM...\n");
-  ptime= ntime; pbusy= nbusy;
-  readCNTS2SHM();
+  ptime= ntime; pbusy= nbusy; pl2a= nl2a;
+  readCNTS2SHM(); GetMicSec(&ltushm->d1sec.epchts, &ltushm->d1sec.epchtu);
   ntime= ltushm->ltucnts[LTU_TIMErp];
   nbusy= ltushm->ltucnts[SUBBUSY_TIMERrp];
+  nl2a= ltushm->ltucnts[L2a_COUNTERrp];
   if(nloop>0) {
     deltatime= dodif32(ptime, ntime);
     deltasbusy= dodif32(pbusy, nbusy);
-    ltushm->busyfraction= (1.0*deltasbusy)/deltatime;
-    if( (ltushm->busyfraction<0.0) || ( ltushm->busyfraction > 1.0)) {
+    deltal2a= dodif32(pl2a, nl2a);
+    ltushm->d1sec.busyfraction= (1.0*deltasbusy)/deltatime;
+    if(deltal2a==0) { 
+      if(ltushm->d1sec.busyfraction>0.5) {
+        ltushm->d1sec.avbusy= 10001;   // DEAD
+      } else {
+        ltushm->d1sec.avbusy= 0;
+      };
+    } else { ltushm->d1sec.avbusy= (0.4*deltasbusy)/deltal2a; }; // us
+    ltushm->d1sec.l2arate= (1.0*deltal2a)/(0.0000004*deltatime);
+    if( (ltushm->d1sec.busyfraction<0.0) || ( ltushm->d1sec.busyfraction > 1.0)) {
       printf("ERROR in scthread: %d 0x%x 0x%x 0x%x 0x%x\n",
         nloop, ptime, ntime, pbusy, nbusy);
-      ltushm->busyfraction= 1.0;
+      ltushm->d1sec.busyfraction= 1.0;
     };
   };
   usleep(1000000); nloop++;

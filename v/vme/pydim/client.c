@@ -21,12 +21,15 @@ stdout: OK (server exists)
 #define STATLEN strlen(OCCMD)
 #define MAXSTATUS 100 
 #define MAXCNAMESString (100*6 + 60 + 5)*80  //100 classes, 60 inps, 5: epoch...
+#define MAXGRUNSString 40
+
 #define MAXMESSAGE 400
 
 char cmd[80];
 char message[MAXMESSAGE];
 
 char StatusString[MAXSTATUS]="blabla";   
+char StatusGRUNS[MAXGRUNSString+1]="blabla";   
 char StatusCNString[MAXCNAMESString+1]="CNAMESblabla";   
 char StatusFailed[MAXSTATUS]="Status failed";   /* /STATUS service failed */
 
@@ -42,6 +45,7 @@ cnames     -test CTPRCFG/CNAMES\n\
 intupdate  -test CTPRCFG/INT1,2 update\n\
 rcfg partname runNumber 0xmask clu1 clu2 ... clu6 cla1 ... cla50\n\
 STATUS     -to demonstrate DIM response when service used for command\n\
+gruns      -ONCE_ONLY request from CTPRCFG/GRUNS (MONITORED anuhow)\n\
 ");
 }
 
@@ -65,9 +69,13 @@ char *buf= ( char *)buffer;
 //printf("CNAMEScallback tag:%d size:%d buf200:%200.200s\n", *(int *)tag, *size, buf);
 printf("CNAMEScallback tag:%d size:%d buf:%s===\n", *(int *)tag, *size, buf);
 }
+void GRUNScallback(void *tag, void *buffer, int *size) {
+char *buf= ( char *)buffer;
+printf("GRUNScallback tag:%d size:%d buf:%s===\n", *(int *)tag, *size, buf);
+}
 
 int main(int argc, char **argv) {
-int rc=0, csinfo, cnamesinfo;
+int rc=0, csinfo, cnamesinfo, grunsinfo;
 if((argc<2) || (argc>3)) {
   printf("Usage:    linux/client servername/command\n");
   printf("  i.e.      linux/client CTPRCFG/RCFG\n");
@@ -101,8 +109,12 @@ csinfo= dic_info_service("CTPRCFG/CS", MONITORED, 0,
 printf("CTPRCFG/CS MONITORED started:%d:%s:\n", csinfo, StatusString);
 cnamesinfo= dic_info_service("CTPRCFG/CNAMES", MONITORED, 0, 
   NULL,MAXCNAMESString, 
-  CNAMEScallback, 3488, StatusFailed, strlen(StatusFailed)+1);
+  CNAMEScallback, 3489, StatusFailed, strlen(StatusFailed)+1);
 printf("CTPRCFG/CNAMES MONITORED started:%d:%s:\n", cnamesinfo, StatusCNString);
+grunsinfo= dic_info_service("CTPRCFG/GRUNS", MONITORED, 0, 
+  NULL,MAXGRUNSString, 
+  GRUNScallback, 3490, StatusFailed, strlen(StatusFailed)+1);
+printf("CTPRCFG/GRUNS MONITORED started:%d:%s:\n", grunsinfo, StatusGRUNS);
 
 setlinebuf(stdout);
 printhelp();
@@ -152,6 +164,12 @@ while(1) {
       NULL, 3488, StatusFailed, strlen(StatusFailed)+1);
     usleep(1000000);
     printf("%s CNAMES:%s:\n",cmd, StatusCNString);
+  } else if(strcmp(message,"gruns\n")==0) {
+    rc= dic_info_service("CTPRCFG/GRUNS", ONCE_ONLY, 1, 
+      StatusGRUNS,MAXGRUNSString, 
+      NULL, 3441, StatusFailed, strlen(StatusFailed)+1);
+    usleep(1000000);
+    printf("%s CNAMES:%s:\n",cmd, StatusGRUNS);
   } else {                           // send command
     // command:
     // clockshift ttcmi_halfns cordedelPS/10 last_measuredshiftPS*10

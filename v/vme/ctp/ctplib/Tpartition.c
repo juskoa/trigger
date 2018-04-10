@@ -2008,7 +2008,7 @@ for(int i=0;i<NPF;i++){
 
 //------------------------------------------- classes
 skipped[0]='\0';
-/*strcpy(skipped,"NO CLASS POGRAMMING!"); rwclasses(); if(NCLASS==12345678) {
+/*strcpy(skipped,"NO CLASS POGRAMMING!"); rwclasses(); if(NCLASS==12345678) 
 printf("load2HW:only 6 classes,no L0vetos  written\n");
 for(i=0;i<6;i++) */
 for(w32 i=0;i<NCLASS;i++) {
@@ -2141,7 +2141,7 @@ for(int i=0;i<NCLASS;i++) {
   bb=4*(i+1);
   //l0vets= (klas->l0vetos & 0x00ffffff) | ((hw->sdgs[i])<<24);
   l0vets= klas->l0vetos;
-  printTKlas(klas, i);
+  //printTKlas(klas, i);
   //if((l0vets & 0x800000)==0) {
   vmew32(L0_VETOr2+bb,  l0vets);
   //};

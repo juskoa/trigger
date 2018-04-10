@@ -1,0 +1,192 @@
+http://monalisa.cern.ch/monalisa__Documentation__ApMon_User_Guide__apmon_ug_cpp.html
+
+pipe from readctpc.c:
+INFO apmonB pipe ok:B 1501604992  0 275015 0 1 275015 1024 2 275015 266 3 275015
+ 307 5 275015 0 7 275015 172 8 275015 200 10 275015 321 11 275015 144 12 275015 
+272 17 0 0 18 275013 173 21 275015 0
+
+B time det1 runn avbusy_us ]
+
+MonALISA running on pcaldvmh04
+- see vme/apmon/ .conf
+
+Steps:
+1. send only ctp inputs from example_3  (done: 'sendall' arg added)
+2. prepare example_4 sending fake LTUs busy times -> see apmon4.cpp
+3. modify ltuproxy -adding new dim service AVBUSY
+
+2. 
+char **paramNames, **paramValues;
+char *paramNames[2]= {"busyLimit", "busyTime"}   "epochtime"
+int valueTypes[2]= { XDR_INT32, XDR_INT32 };
+int vallimit;
+char *paramValues[2]; paramValues[0]= (char *)&vallimit;
+
+apm->sendTimedParameters((char *)run_sent, // "252253",
+  detectors[l].name,  "DET(MCH)"
+  nParameters,        2 paramaters sent (busy limit and value)
+  paramNames,         
+  valueTypes, 
+  paramValues, 
+  timestamp);         timestamp = time(NULL);
+
+runn det limit avbusy        -> ecs/sd
+EPT epochtime  1520716288
+...
+5 DET(HMP):2  busyLimit:320 busyTime:4939
+5 DET(TRI):2  busyLimit:0 busyTime:0
+EPT epochtime:1  epochtime:1520716288
+5 DET(HMP):2  busyLimit:320 busyTime:4939
+5 DET(TRI):2  busyLimit:0 busyTime:0
+EPT epochtime:1  epochtime:1520716288
+
+=== 12.3.2018
+apmon4.cpp ok, i.e.
+- DIM + apmon + redis + compile + link ok
+todo:
+- abandon redis (or use 'bus' communication upon a change in global runs?),
+instead, create/use DIM services:
+1. (in future if needed):
+CTPRCFG/GRUNS: "start/stop tstamp runn detname"   (if also stdalone needed)
+
+2. in pydim/server.c
+CTPRCFG/GRUNS service updated at SOD/EOD/PAUSE/RESUME : msg
+2 12     9 12 = 40 chars
+s tstamp n dets -run n started with detectors dets(hex pattern without 0x, e.g.: bc9)
+c tstamp 0      -clear all
+c tstamp n      -run n stopped
+L               -start logging in v/vme/WORK/apmon4.log
+N               - stop logging
+todo:
+p dets          -pause 
+r dets          -resume
+tstamp: date +%s   date -d  @1520716288
+        timestamp = time(NULL);
+
+in CNTRRD/readctpc.c apmon/example_3.cpp:
+- -'sendall' arg added. I.e. when started without this parameter, no busy data send to
+   apmon
+todo: start apmon4 automatically as separate daemon?
+
+todo: apmon4.cpp -EPT epchtime send after all dets sent ?
+
+3.
+udate of the CTPRCFG/GRUNS service can be done  by CTPRCFG/RCFG (DOcmd() msg: "grunsup") 
+from here:
+A: server.c:  red_clear_detsinrun(0);   (ctpproxy restart) done
+B: server.c:    red_clear_detsinrun(runn);                 done
+[aj@pcalicebhm11 vmeb]$ grep red_update_detsinrun */*.c
+vmeblib/daqlogbook.c:red_update_detsinrun(runn, detpattern);
+vmeblib/redisint.c:void red_update_detsinrun(int runn, unsigned int detpattern) {
+called from:
+C: daqlogbook.c daqlogbook_update_clusters() called ONLY from: pydim/server.c
+
+-seems we do not need update (in DOcmd), instead  dis_update_service(GRUNSid)
+can be called from A: B: C: in server.c -yes for A: B:, for C:
+runn,detpattern needed in server.c : 
+todo:
+1. -> add 1 output parameter added in  daqlogbook_update_clusters <-abandoned,or
+2. -> retrieve detpattern from redis: red_get_detsinrun(runn)   done
+HGET gruns_dets 253352
+
+4. testing
+pydim/client.c -ONCE_ONLY + MONITORED test prepared done
+-> vid EXAMPS/dimc++ -22.3. zacaty class Gruns...
+-> copied to adls:vme/apmon/
+-> 28.3.: vme/apmon/grunsctrl.py: creating/deleting runs in CTPRCFG/GRUNS service
+   updating it using CTPRCFG/DO command, msg: "grunsup s..."
+
+=== 3.4. problem: seems fixed (rerstart grunsctrl.py tomorrow).
+No active run
+s 1522770452 27 25b764
+s 1522770482 28  8088b
+s 1522770512 29 200000
+Error: run 29 dets:200000
+Error: run 29 dets:200000
+
+=== 4.4. AVBUSY vs ltu/MONBUSY
+old:
+ltuproxy publishes: det/MONBUSY float number 0..1
+new det/AVBUSY publishes
+times     w32
+timemics  w32
+busytime  float   busy/time [0..1]
+avbusy    float   busy/l2a  [usecs]
+l2arate   float   l2a/time  [hz]
+
+todo:
+- notes how to start old/new way in p2 (test before in lab)
+
+Hi Vasco and Adam,
+I started again, run 269. 
+All values are fake but hmpid and phos -these
+2 detectors are 'real' LTUs, unfortunatelly
+I cannot easily make a busy for them. 
+
+A 'measurement' represents 'average busy' = busytime/L2a,
+in micsecs, calculated every second, special cases:
+If L2a = 0 and busy/time > 0.5  10001 is published.
+If L2a = 0 and busy/time <=0.5  0     is published.
+
+A new value is sent to ECS-SD when
+the age of the last sent value is >= 5 secs. The value is an average
+of last five 'measurements'.
+
+I can arrange limit values (0 or 10001) for hmpid and phos in real time
+or add/change run number when you tell me.
+Cheers, Anton
+
+=== problem 6.4.2018
+ when clciked on 'Check' in check/start/busys widget, 
+monitoring continues, but:
+ltudimserver.log:
+updateMONBUSY:06.04.2018 14:37:53:bt: 0.0002 -> 0.0002     6.74    35.83 nclients:2
+>06.04.2018 14:38:04:vmeopr32(BUSY_STATUS)>
+<06.04.2018 14:38:04:Server restarted./ram/home/alice/trigger/v/phos
+<
+[trigger@adls WORK]$ ps aux |grep ltu
+trigger  17721  0.4  0.0 174548  3872 pts/18   Sl   13:45   0:16 /home/dl6/local/trigger/v/vme/ltudim/lin64/ltuclient phos
+trigger  17724  0.4  0.0 174548  1832 pts/18   Sl   13:47   0:16 /home/dl6/local/trigger/v/vme/ltudim/lin64/ltuclient phos -noboardInit
+
+ltuclient_17721.log:
+DBGexecute:phos/PIPE:1:open phos 2.12
+< ...
+DBGexecute:phos/DO:1:vmeopr32(BUSY_STATUS)
+kill 17721
+client_exit_handler:06.04.2018 14:52:03:deleting:r:2 6/17721@adls.cern.ch
+
+-> ???
+
+=== procedure in P2:
+
+New way for ECS-SD:
+startClients.bash rrd stop
+modify readctpc start WITHOUT arg: -sendall -> see startClients.bash)
+apmon4.sh start
+startClients.vash rrd start
+startClients.vash html start
+
+Old way for ECS-SD:
+apmon4.sh stop
+modify readctpc WITH arg: -sendall -> see startClients.bash)
+startClients.vash rrd stop
+startClients.vash rrd start
+startClients.vash html start
+
+=== 9.4.
+1/sec logging control:
+every 1000s message:
+received DET(AD0):807 at:1523336000
+resp in ltudimsetrver.log:
+updateMONBUSY:09.04.2018 18:06:40:bt: 0.0000 -> 0.0000     0.00  9520.09 nclients:1 sent:981
+updateMONBUSY:09.04.2018 18:06:41:bt: 0.0000 -> 0.0000     0.00  9605.99 nclients:1
+
+apmon4: 
+  msg to CTPRCFG/GRUNS: 'L' -> log   'N' -> nolog. Default: nolog
+  interactive set/reset: [trigger@adls apmon]$ ./grunsctrl.py 
+
+ltu_proxies:
+  LOG1SEC 1        (FLGlog1sec)  in ltu 'defaults', default: 0
+  can be set interactively by: cd ltu_proxy ; linux/ltu_shm 81X000 L   (N: no log)
+
+

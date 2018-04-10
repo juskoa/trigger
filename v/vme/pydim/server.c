@@ -78,9 +78,11 @@ unsigned int effiout=0xdeadbeaf, indets=0xdeadbeaf;
 
 #define MAXCIDAT 80
 #define MAXINT12LINE 100
-int INT1id, INT2id, CSid, CNAMESid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did,SETBMid;
+int INT1id, INT2id, CSid, CNAMESid, CTPRCFGRCFGid, CTPRCFGid,LTUCFGid,C2Did,SETBMid, GRUNSid;
 char INT1String[MAXINT12LINE]="int1 source";
 char INT2String[MAXINT12LINE]="int2 source";
+#define MAXGRUNSString 40
+char GRUNSString[MAXGRUNSString]="c 0 0";
 #define MAXCSString 80000
 char CSString[MAXCSString]="collisions schedule";
 #define MAXCNAMESString (100*6 + 60 + 5)*80  //100 classes, 60 inps, 5: epoch...
@@ -103,6 +105,7 @@ dis_remove_service(SETBMid);
 dis_remove_service(INT1id);
 dis_remove_service(INT2id);
 dis_remove_service(CSid);
+dis_remove_service(GRUNSid);
 dis_stop_serving();
 }
 /*----------------------------------------------------*/ 
@@ -299,6 +302,12 @@ if(xpid[0]=='\0') {
   xrc=0;
 };return(xrc);
 }
+/*------------*/ void update_GRUNS(char action, int runn, unsigned int dets) {
+unsigned int tstamp; int rc;
+tstamp= time(NULL); sprintf(GRUNSString, "%c %d %d %x", action, tstamp, runn, dets); 
+rc= dis_update_service(GRUNSid);
+printf("INFO GRUNS update %s rc: %d\n", GRUNSString, rc);
+}
 /*--------------------*/ void DOrcfg(void *tag, void *bmsg, int *size)  {
 // bmsg: binary message TDAQInfo
 TDAQInfo *dain; int rc; unsigned int rundec; char pname[40];
@@ -330,6 +339,15 @@ if(rc==0) {
   printf("INFO Dorcfg rc=%i \n",rc);
   //printf("%s",dain->run1msg); fflush(stdout);  moved down
   if(rc==0) { // inputs -> DAQ
+    unsigned int detpat;
+    detpat=red_get_detsinrun(rundec); 
+    if(detpat==0xffffffff) {
+      printf("ERROR red_get_detsinrun() failed for run %d\n", rundec);
+      detpat= 0;
+    } else {
+      printf("INFO red_get_detsinrun() run %d dets:0x%x\n", rundec, detpat);
+    };
+    update_GRUNS('s', rundec, detpat);
     int level,maxinp,ix,ind,rcu;
     for(level=0; level<3; level++) {
       if(level==2) {maxinp=12; }
@@ -487,6 +505,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
    csupdate
    aliasesupdate
    intupdate
+   grunsup s timestamp runn dets
    clockshift
    rcfg  -OBSOLETE!
    resetclock   -just write out
@@ -612,6 +631,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
   //int irc;              1...5....1
   printf("INFO rcfgdel ALL 0x... (redis, readTables...)\n");
   red_clear_detsinrun(0);
+  update_GRUNS('c', 0, 0);
   reset_insver();
   readTables();
   ctpc_clear(); updateCNAMES();
@@ -643,6 +663,7 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
   };
   if(emsg[0]=='\0') {
     red_clear_detsinrun(runn);
+    update_GRUNS('c', runn, 0);
     ctpc_delrun(runn); updateCNAMES();
   } else {
     infolog_trg(LOG_ERROR, emsg); printf("ERROR %s\n",emsg);
@@ -669,6 +690,12 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
   rc1= dis_update_service(INT1id);
   rc2= dis_update_service(INT2id);
   printf("INFO INT1/INT2 update for %d/%d clients\n", rc1, rc2);
+  stdoutyes=0;
+} else if((strncmp(mymsg,"grunsup ",8)==0)) {
+  int rc1;
+  strcpy(GRUNSString, &mymsg[8]);
+  rc1= dis_update_service(GRUNSid);
+  printf("INFO GRUNS update %s for %d clients\n", &mymsg[8], rc1);
   stdoutyes=0;
 } else if((strncmp(mymsg,"clockshift ",11)==0)) {
   char halfns[20]; int ix,rc;
@@ -1099,6 +1126,9 @@ printf("INFO DIM service:%s id:%d\n", cmd, CSid);
 sprintf(cmd, "%s/CNAMES", servername);   // CTPRCFG/CNAMES
 CNAMESid=dis_add_service(cmd,"C", CNAMESString, MAXCNAMESString, CNAMEScaba, 4570);
 printf("INFO DIM service:%s id:%d\n", cmd, CNAMESid);
+sprintf(cmd, "%s/GRUNS", servername);   // CTPRCFG/GRUNS
+GRUNSid=dis_add_service(cmd,"C", GRUNSString, MAXGRUNSString, NULL, 4571);
+printf("INFO DIM service:%s id:%d\n", cmd, GRUNSid);
 
 dis_start_serving(servername);  
 while(1) {

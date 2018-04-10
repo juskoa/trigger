@@ -47,7 +47,7 @@ int syncemu();
 extern int QUIT;
 extern w32 *buf1;
 void updateMONCOUNTERSservice(int uc);    // update DIM service 1/min
-void updateMONBUSY(float newbusyf);   
+void updateMONBUSY(TData *newdata);   
 void readltucounters();
 
 /*------------------------------------------------------------ isNotNONE()
@@ -451,17 +451,27 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
 printf(" main loop /1sec\n"); fflush(stdout);
 { 
 while(1) {
+  int update; TData d1s;
   if(isecs>=60) {
     updateMONCOUNTERSservice(0);    // update DIM service 1/min
     isecs= 0;
   };
   dtq_sleep(1); isecs++;   // dtq_sleep(60) before 24.9.2014
   //usleep(1000000); isecs++;  // nebavi ani toto
-  prevbusyf= newbusyf;
-  newbusyf= ltushm->busyfraction;
+  update= 0;
+  d1s.epchts= ltushm->d1sec.epchts;
+  d1s.epchtu= ltushm->d1sec.epchtu;
+  if( (fabs(d1s.busyfraction - ltushm->d1sec.busyfraction)>0.01) || (notupdated>=120) ||
+      (fabs(d1s.l2arate - ltushm->d1sec.l2arate) > 1) ) {
+    update= 1;
+  };
+  d1s.busyfraction= ltushm->d1sec.busyfraction;
+  d1s.avbusy= ltushm->d1sec.avbusy;
+  d1s.l2arate= ltushm->d1sec.l2arate;
+  prevbusyf= newbusyf; newbusyf= d1s.busyfraction;
   //printf("ltuproxymain: %d prev/now:%6.4f %6.4f\n", isecs, prevbusyf, newbusyf); fflush(stdout);
-  if( (fabs(newbusyf-prevbusyf)>0.01) || (notupdated>=120) ) {
-    updateMONBUSY(newbusyf);   
+  if( update>0 ) {
+    updateMONBUSY(&d1s);
     notupdated= 0;
   } else {
     notupdated++;

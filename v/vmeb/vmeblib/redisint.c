@@ -141,7 +141,7 @@ sprintf(cmd, "HGET %s %d", gdetsname, runn);
 reply= (redisReply *)redisCommand(context, cmd);
 printReply(reply);
 if(reply->type == REDIS_REPLY_STRING) {
-  n= sscanf(reply->str,"%d", &dets);
+  n= sscanf(reply->str,"0x%x", &dets);
   if(n!=1) {
     dets= 0xffffffff;
   }

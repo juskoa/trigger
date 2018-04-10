@@ -1,0 +1,37 @@
+=== 28.2.2018 yum install automake libtool
+
+[trigger@adls ApMon_cpp-2.2.8]$ ./configure
+make
+...
+make[2]: Entering directory `/home/dl6/local/sw/ApMon_cpp-2.2.8'
+/bin/sh ./libtool --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I./     -g -O2 -MT ApMon.lo -MD -MP -MF .deps/ApMon.Tpo -c -o ApMon.lo ApMon.cpp
+libtool: Version mismatch error.  This is libtool 2.4.2 Debian-2.4.2-1.2ubuntu1, but the
+libtool: definition of this LT_INIT comes from libtool 2.2.6b.
+libtool: You should recreate aclocal.m4 with macros from libtool 2.4.2 Debian-2.4.2-1.2ubuntu1
+libtool: and run autoconf again.
+make[2]: *** [ApMon.lo] Error 63
+make[2]: Leaving directory `/home/dl6/local/sw/ApMon_cpp-2.2.8'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/home/dl6/local/sw/ApMon_cpp-2.2.8'
+make: *** [all] Error 2
+
+rm aclocal.m4
+[trigger@adls ApMon_cpp-2.2.8]$ aclocal && libtoolize --force && autoreconf
+libtoolize: putting auxiliary files in `.'.
+libtoolize: linking file `./ltmain.sh'
+libtoolize: Consider adding `AC_CONFIG_MACRO_DIR([m4])' to configure.ac and
+libtoolize: rerunning libtoolize, to keep the correct libtool macros in-tree.
+libtoolize: Consider adding `-I m4' to ACLOCAL_AMFLAGS in Makefile.am.
+
+./configure
+make    bavi!
+
+=== 9.3.2018
+make  bavi pre apmon4 -zmeneny iba examples/Makefile.am +
+./configure ; make
+
+11.3.
+rm aclocal.m4
+[trigger@adls ApMon_cpp-2.2.8]$ aclocal && libtoolize --force && autoreconf
+[trigger@adls examples]$ make example_3
+

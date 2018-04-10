@@ -62,7 +62,7 @@ l0invAC=L0_INVERTac; minAC=0;
 bb= klas*4; klasix=klas-1;
 if(notInCrate(1)==0) {   // L0 board
   w32 mskbit;
-  printf("setClassInit:%d:%x %x %x %x\n", klas, condition,invert,veto,scaler);
+  //printf("setClassInit:%d:%x %x %x %x\n", klas, condition,invert,veto,scaler);
   //Klas[klasix].regs[0]= condition; 
   vmew32(L0_CONDITION+bb, condition);
   if(klas>minAC) {  /* only for inverted klasses ! */
@@ -106,7 +106,7 @@ void setClassInitLM(int klas, w32 lmcondition, w32 lminvert, w32 lmveto) {
 int bb,klasix;
 bb= klas*4; klasix=klas-1;
 if(notInCrate(1)==0) {   // L0 board
-  printf("setClassInitLM:%d:%x %x %x\n", klas, lmcondition,lminvert,lmveto);
+  //printf("setClassInitLM:%d:%x %x %x\n", klas, lmcondition,lminvert,lmveto);
   vmew32(LM_CONDITION+bb, lmcondition);
   vmew32(LM_INVERT+bb, lminvert);
   vmew32(LM_VETO+bb, lmveto);

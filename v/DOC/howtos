@@ -83,7 +83,7 @@ vmecrate ctp
 -> check counters (L2aseq rate >0)
 altri1: orbitddl2.py configrunset                  -should be ok now
 
-=== apmon see $VMECFDIR/apmon/
+=== apmon see $VMECFDIR/apmon/   + $APMON
 === switch on/off crates (11.1.2018):
 alitrion001 -> seems nothing is here
 alitriwn001:
