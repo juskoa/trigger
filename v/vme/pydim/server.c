@@ -347,7 +347,7 @@ if(rc==0) {
     } else {
       printf("INFO red_get_detsinrun() run %d dets:0x%x\n", rundec, detpat);
     };
-    update_GRUNS('s', rundec, detpat);
+    //update_GRUNS('s', rundec, detpat);   moved to ctp_roxy.generateXOD
     int level,maxinp,ix,ind,rcu;
     for(level=0; level<3; level++) {
       if(level==2) {maxinp=12; }

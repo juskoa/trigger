@@ -201,5 +201,10 @@ make clean ; make
 ./configure
 make
 ok
+=== problem: INIT_PARTITION -> START_PARTITION
+ update_GRUNS('s', rundec, detpat);
+is invoked in DOrcfg in time INIT_PARTITION
+
+
 
 	

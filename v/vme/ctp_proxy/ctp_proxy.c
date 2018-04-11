@@ -2074,6 +2074,15 @@ if(x=='E') {
  time in STD_ALONE mode -see ltu_proxy/ltu_utils.c sodeod().   
 */
 if(strcmp(&part->name[strlen(part->name)-2],"_U")!=0) {
+ if(strcmp(SEY,"SOD")==0) {
+   int rcdic; w32 epchts,epchtu; char dimcom[16];
+   char grunsupd[50];
+   GetMicSec(&epchts, &epchtu);
+   sprintf(grunsupd,"grunsup s %d %d %x", epchts, part->run_number, detectors);
+   strcpy(dimcom,"CTPRCFG/RCFG");
+   rcdic= dic_cmnd_service(dimcom, grunsupd, strlen(grunsupd)+1);
+   infolog_trg(LOG_INFO, grunsupd);
+ };
 #ifndef TEST   
   while((GenSwtrg(1,'s', xod, 1750, detectors, 0, orbitn) == 0) && (iattempt<MAX_XOD_ATTEMPTS)){
    iattempt++;
