@@ -92,7 +92,7 @@ while(fgets(line, MAXLINELENGTH, filfile)){
   if(line[0]=='\n') continue;
   ix=0; tkns=0; 
   if(strcmp(line, lastfilterline)==0) {
-    sprintf(em1, "no change in filtered inputs: %s", line);
+    sprintf(em1, "INFO no change in filtered inputs: %s", line);
     infolog_trgboth(LOG_INFO, em1);
     break;
   } else {

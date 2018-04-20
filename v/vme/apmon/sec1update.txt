@@ -204,7 +204,38 @@ ok
 === problem: INIT_PARTITION -> START_PARTITION
  update_GRUNS('s', rundec, detpat);
 is invoked in DOrcfg in time INIT_PARTITION
+- moved to genXOD in ctp_proxy.c
+
+=== problem: still peaks at the start of run
+Action:
+added logactive controlling Log/Nolog
+added nminr + Log/Nolog upon DIM request
+
+=== case: see in lab if still peaks:
+cd $APMON/examples
+ make apmon4
+g++ -DHAVE_CONFIG_H -I. -I.. -I../ -I/opt/dim/dim     -MT apmon4.o -MD -MP -MF .deps/apmon4.Tpo -c -o apmon4.o apmon4.cpp
+mv -f .deps/apmon4.Tpo .deps/apmon4.Po
+/bin/sh ../libtool --tag=CXX   --mode=link g++     -o apmon4 apmon4.o -L../ -lpthread -lm -lapmoncpp -L/opt/dim/linux -ldim -L/home/dl6/local/trigger/v/vmeb/vmeblib/linux_s -lvmeb -L/home/dl6/local/sw/redis-3.0.5/deps/hiredis -lhiredis 
+libtool: link: g++ -o .libs/apmon4 apmon4.o  -L/home/dl6/local/sw/ApMon_cpp-2.2.8 -lm /home/dl6/local/sw/ApMon_cpp-2.2.8/.libs/libapmoncpp.so -lpthread -L/opt/dim/linux -ldim -L/home/dl6/local/trigger/v/vmeb/vmeblib/linux_s -lvmeb -L/home/dl6/local/sw/redis-3.0.5/deps/hiredis -lhiredis -Wl,-rpath -Wl,/usr/local/lib
+
+apmon4.sh stop
+          start
+
+[trigger@adls WORK]$ pwd
+/home/alice/trigger/v/vme/WORK
+[trigger@adls WORK]$ tail -f apmon4.log 
+[trigger@adls apmon]$ ./grunsctrl.py 
+dns: adls
+a[dd] [runn] d[elete]  D[elete all] Log Nolog r[andom automat] p[rint]q[uit]>
+L
+
+[trigger@adls pardefs]$ smicmd stop PHYSICS_1
+[trigger@adls ltu_proxy]$ ps aux |grep python 
+-> many, let's debug with SPD
+
+L
+a 33 t      -adding only 1 det in run 33
 
 
 
-	

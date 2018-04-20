@@ -25,7 +25,7 @@ class GRUNS:
     n= self.nextrun
     self.nextrun= self.nextrun+1
     return n
-  def addrun(self, runi=""):
+  def addrun(self, runi="", oneonly=False):
     if len(self.rs)>=6:
       print "6 active runs already:", self.rs
       return
@@ -49,10 +49,11 @@ class GRUNS:
       lastdet= 1<<idet
       if lastdet & freedets:
         #lastdet is free
-        if (random.randint(0,1)) or (lastdet & self.HMPIDPHOS):
+        if (random.randint(0,1)) or (lastdet & self.HMPIDPHOS) or oneonly:
           # assign it if PHOS HMPID
           freedets2= freedets2 | lastdet
           lastdet= 0   # assigned
+        if oneonly: break
       else:
         lastdet= 0
     if (freedets2==0) and (lastdet!=0): 
@@ -116,14 +117,15 @@ def main():
   print "dns:",pydim.dis_get_dns_node()
   grs= GRUNS()
   while True:
-    line= raw_input("a[dd] [runn] d[elete]  D[elete all] Log Nolog r[andom automat] p[rint]q[uit]>")
+    line= raw_input("a[dd] [runn] [t] d[elete]  D[elete all] Log Nolog r[andom automat] p[rint]q[uit]>")
     if len(line)<1:break
     c= line[0]
     spl= string.split(line)
-    arg1= ""
+    arg1= "" ; arg2= False
     if len(spl)>=2: arg1= spl[1]
+    if len(spl)>=3: arg2= True
     if c=='q': break
-    if c=='a': grs.addrun(arg1)
+    if c=='a': grs.addrun(arg1, arg2)
     if c=='d': grs.delrun()
     if c=='D': grs.delall()
     if c=='p': grs.prtall()

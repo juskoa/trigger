@@ -41,21 +41,27 @@ struct Data{
 
 class Detector : public DimInfo {
 private:
-  int lastepchsecs, n5;
+  int lastepchsecs, n5;   // send out after 5 secs
+  int nminr;   // Number of Measurements In Run   (1/s measurements)
   float average_ecs;
   Data *data; //float *dd;
   int detecs;
   char dimname[20];
   char sdname[20];
   int limit;
-  int logactive;
+  int logactive;   // works with nminr, i.e. printing always 1st 6 measurements
   int received;
   char run_number[10];
   void printParameters(char *infostr, char *runnstr, char *detname, 
     int nParameters, char **paramNames, int *valueTypes, char **paramValues,
     long timestamp){
     char line[300];
-    if(logactive==0) return;
+    if((logactive==0) && (nminr>=6)){
+      if(nminr==6) {
+        printf("stoplog6 %d %s %s\n", timestamp, runnstr, detname);
+      };
+     return;
+    };
     sprintf(line, "%s %d %s %s:%d ", infostr, timestamp,
     runnstr, detname, nParameters);
     for(int ix=0; ix<nParameters; ix++) {
@@ -76,9 +82,12 @@ private:
     int valueTypes[2]= { XDR_INT32, XDR_INT32 };
     //int valueTypes[2]= { 2, 2 };
     //paramValues[0]= (char *)limit;
-    data= (Data *)getData(); //*dd = getFloat();
-    dsize= getSize();  // should be Datalen
-    avbusy= data->avbusy; //avbusy= int(*dd*100);
+    data= (Data *)getData();
+    dsize= getSize();
+    avbusy= data->avbusy;
+    //if(strcmp(run_number,"0")==0) {   // Simulate a high busy time when not in a run
+    //  avbusy= 10000;
+    //};
     timestamp = data->epchts;   // time(NULL);
     /*printf("Data %s:%d: %d/%d %.4f %.4f %.4f\n", dimname, dsize,
       data->epchts,data->epchtu,data->btime,data->avbusy,data->l2arate);
@@ -91,21 +100,28 @@ private:
       printf("received %s:%d at:%d\n", sdname, received, timestamp); fflush(stdout);
       received= 0;
     };
-    n5= n5+1; average_ecs= average_ecs + data->avbusy;
-    if(lastepchsecs+5 <= data->epchts) {
-      sendecs= 1;
-      lastepchsecs= data->epchts;
-      average_ecs= average_ecs/n5;
-    } else {
-      sendecs= 0;
-    };
     if(strcmp(run_number,"0")!=0) {
+      char istr[40];
+      nminr= nminr+1;
+      //if(nminr<=1) return;   // ignore 1st mesurement
+      n5= n5+1; average_ecs= average_ecs + avbusy;
+      if(lastepchsecs == 0) lastepchsecs= data->epchts;   // wait 5 secs after 1st measurement
+      if(lastepchsecs+5 <= data->epchts) {
+        sendecs= 1;   // send out A: last measured (nothing came) or B: average of last 1..5 values:
+        lastepchsecs= data->epchts;
+        average_ecs= average_ecs/n5;
+      } else {
+        sendecs= 0;
+        sprintf(istr, "avrg n:%d", n5);
+        printParameters(istr, run_number, sdname, 
+          nParameters, (char **)paramNames, 
+          valueTypes, paramValues, timestamp);
+      };
       try {   // this det in run
-        char istr[40];
         if( sendapm==1 ) {
           if( sendecs==1 ) {
             avbusy= average_ecs;
-            sprintf(istr, "n:%d", n5);
+            sprintf(istr, "SEND n:%d", n5);
             n5= 0; average_ecs= 0;
             apm -> sendTimedParameters(run_number, sdname,
               nParameters, (char **)paramNames, 
@@ -116,9 +132,11 @@ private:
           };
         } else {
           if( sendecs==1 ) {
-            sprintf(istr, "     n:%d", n5);
+            sprintf(istr, "nae  n:%d", n5);
             avbusy= average_ecs;
             n5= 0; average_ecs= 0;
+          } else {
+            sprintf(istr, "nane n:%d", n5);
           };
           printParameters(istr, run_number, sdname, 
             nParameters, (char **)paramNames, 
@@ -140,7 +158,7 @@ public :
     data = new Data;
     strcpy(dimname, dim_name); strcpy(run_number, "0");
     detecs= detn; 
-    lastepchsecs= 0; n5= 0; average_ecs= 0; received= 0; logactive=0;
+    lastepchsecs= 0; n5= 0; average_ecs= 0; received= 0; logactive=0; nminr= 0;
     sprintf(sdname,"DET(%s)", sd_name); limit= lim;
   };
   void updateRunn(int runn) {
@@ -149,7 +167,7 @@ public :
   };
   void resetRunn(char *runs) {
     if(strcmp(run_number,runs)==0) {
-      strcpy(run_number, "0");
+      strcpy(run_number, "0"); nminr= 0;
       printf("resetRunn: %s %s -> 0\n", sdname, runs);
     };
   };

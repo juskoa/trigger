@@ -85,7 +85,7 @@ def main(servicename):
         monbusy= avlt[servicename] + monbusy/10.
         if monbusy>1.: monbusy= 1.
       #if (monbusy>=0.2) and (monbusy<=0.9):
-      if abs(lastbusy - monbusy)<0.01:
+      if abs(lastbusy - monbusy)<0.04:  # 0.01
         pass # no update if 0.6 ..0.9
         print "no update last: %f now:%f"%(lastbusy, monbusy)
       else:
