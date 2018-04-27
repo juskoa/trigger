@@ -768,28 +768,44 @@ if(rc_scthread==0) {
 }
 void *scthread(void *dummy) {
 w32 ptime, pbusy,pl2a, ntime=0,nbusy=0,nloop=0,nl2a=0;
+// following necessary for readout time (l2r not taken into account!
+// -we do not have it):
+w32 pl1rs,nl1rs=0;
 ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGscthread;
 while(1) {
   float deltatime,deltasbusy,deltal2a;
   if(quit==888) break;
   //printf("scthread: readCNTS2SHM...\n");
   ptime= ntime; pbusy= nbusy; pl2a= nl2a;
+  // following necessary for readout time:
+  pl1rs= nl1rs;
   readCNTS2SHM(); GetMicSec(&ltushm->d1sec.epchts, &ltushm->d1sec.epchtu);
   ntime= ltushm->ltucnts[LTU_TIMErp];
   nbusy= ltushm->ltucnts[SUBBUSY_TIMERrp];
   nl2a= ltushm->ltucnts[L2a_COUNTERrp];
+  // following necessary for readout time:
+  nl1rs= ltushm->ltucnts[L0_COUNTERrp] - ltushm->ltucnts[L1_ONLYrp];
   if(nloop>0) {
     deltatime= dodif32(ptime, ntime);
     deltasbusy= dodif32(pbusy, nbusy);
     deltal2a= dodif32(pl2a, nl2a);
     ltushm->d1sec.busyfraction= (1.0*deltasbusy)/deltatime;
-    if(deltal2a==0) { 
+    if(deltal2a==0) {    // no L2a
       if(ltushm->d1sec.busyfraction>0.5) {
         ltushm->d1sec.avbusy= 10001;   // DEAD
       } else {
         ltushm->d1sec.avbusy= 0;
       };
-    } else { ltushm->d1sec.avbusy= (0.4*deltasbusy)/deltal2a; }; // us
+    } else { 
+      float usdeltabusy; w32 l1rs, busyl1r;
+      usdeltabusy= 0.4*deltasbusy;
+      /* correction for readout time: */
+      l1rs= dodif32(pl1rs, nl1rs); 
+      busyl1r= l1rs* ltushm->ltucfg.plist[IXl1rtime]/1000.;
+      usdeltabusy= usdeltabusy - busyl1r; if(usdeltabusy<0.) usdeltabusy= 0.;
+      // average time [us]
+      ltushm->d1sec.avbusy= usdeltabusy/deltal2a;
+    };
     ltushm->d1sec.l2arate= (1.0*deltal2a)/(0.0000004*deltatime);
     if( (ltushm->d1sec.busyfraction<0.0) || ( ltushm->d1sec.busyfraction > 1.0)) {
       printf("ERROR in scthread: %d 0x%x 0x%x 0x%x 0x%x\n",
@@ -821,9 +837,11 @@ shmcnts= ltushm->ltucnts;
 if(ltushm->id==0) {   //just allocated
   ltushm->id=shmkey;
   ltuDefaults(&(ltushm->ltucfg)); ttcDefaults(&(ltushm->ltucfg)); readltuttcdb(&(ltushm->ltucfg));
-  printf("Shared memory allocated and initialised %x\n",shmkey);
+  printf("Shared memory allocated and initialised %x detecsnum:%d L1rtime:%d ns\n",shmkey,
+    ltushm->ltucfg.plist[IXecsnum], ltushm->ltucfg.plist[IXl1rtime]);
 } else {
-  printf("Connected to shared memory %x\n",shmkey);
+  printf("Connected to shared memory %x detecsnum:%d L1rtime:%d ns\n",shmkey,
+    ltushm->ltucfg.plist[IXecsnum], ltushm->ltucfg.plist[IXl1rtime]);
 };
 // ltushm->ltucfg.plist[IXltuver]= Gltuver;  can be in shm? (shm
 // can be shared by tasks controlling the same LTU), so it can

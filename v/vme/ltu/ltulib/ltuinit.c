@@ -397,10 +397,23 @@ if (access(FD1FILE,F_OK) == 0) {
 return(fd1ps);
 }
 */
+#define L1RTIMELEN 23
+typedef struct {
+  char detname[12];
+  unsigned int l1rtime;     // [ns]
+} Tl1rtime;
+
+Tl1rtime L1RTIME[L1RTIMELEN]= { 
+{"spd", 0}, {"sdd",7000}, {"ssd",8100}, {"tpc",7150}, {"trd",6750}, 
+{"tof",6705}, {"hmpid",6835}, {"phos",7900}, {"cpv",7325}, {"pmd",13130}, 
+{"muon_trk",14275}, {"muon_trg",7100}, {"fmd",8260}, {"t0",6525}, {"v0",0}, 
+{"zdc",9200}, {"acorde",7025}, {"-",0}, {"emcal",8125}, {"daq",0},
+{"-",0},{"ad",0}, {"-",0}};
+
 /*--------------------------------------------------------- readltuttcdb() */
 void readltuttcdb(Tltucfg *ltc) {
 enum Ttokentype token;
-char *vmecfdir;
+char *vmecfdir; int ix; char detname[16]="";
 FILE *cfgfile;
 char fnpath[80]; char line[80]; char msg[200];
 vmecfdir= getenv("VMEWORKDIR"); 
@@ -408,12 +421,38 @@ if(vmecfdir == NULL){
   printf("readltuttcdb ERROR: VMEWORKDIR environment variable not defined:\n");
   return;
 };
+/* Init parameters not accessible through ltuttc.cfg. Why here ?
+The only way to get det name is from vmecfdir, e.g.:
+/home/alice/trigger/v/phos
+todo: fill ltc->plist[IXl1rtime] (0 default) according to CNTRRD/l1rusecs[] *1000
+*/
+for(ix=strlen(vmecfdir)-1; ix>0; ix--) {
+  if(vmecfdir[ix]=='/') {
+    strcpy(detname, &vmecfdir[ix+1]);
+    break;
+  };
+};
+ltc->plist[IXl1rtime]=0;
+ltc->plist[IXecsnum]= 0xff;
+if(strlen(detname)>0) {
+  for(ix=0; ix<L1RTIMELEN; ix++) {
+    if(strcmp(detname, L1RTIME[ix].detname) == 0) break;
+  };
+  if(ix>=L1RTIMELEN) {
+    printf("L1Rtime set to 0 (unknown detector: %s)\n", detname);
+  } else {
+    ltc->plist[IXl1rtime]= L1RTIME[ix].l1rtime;
+    ltc->plist[IXecsnum]= ix;
+    printf("L1Rtime %s: %d ns\n", detname, ltc->plist[IXl1rtime]);
+  }
+} else {
+  printf("L1Rtime set to 0, detname not known\n");
+};
 strcpy(fnpath, vmecfdir);
-strcat(fnpath, "/CFG/ltu/ltuttc");
-//strcat(fnpath, BoardBaseAddress);
-strcat(fnpath, ".cfg");
+strcat(fnpath, "/CFG/ltu/ltuttc.cfg");
 //printf("readltuttc(): fnpath:%s\n", fnpath);
 if(detectfile(fnpath, 0) <= 0) {
+  printf("readltuttcdb WARNING: $VMEWORKDIR/ltuttc.cfg not present\n");
   return;
 };
 cfgfile=fopen(fnpath,"r");
@@ -422,7 +461,7 @@ if(cfgfile == NULL){
   perror(msg); perror(strerror(errno));
   return;
 };
-printf("\nReading settings from file:%s\n",fnpath);
+printf("\nReading %s settings from file:%s\n",detname, fnpath);
 while(fgets(line, 80, cfgfile)){
   int ix;
   char name[80]; char value[80];

@@ -2946,7 +2946,7 @@ if(load2HW(&HW, tsname)){
   rc= 4; goto UNSETRET;
 }
 cshmAddPartition(part);
-usleep(2000000);   // at least 2secs for: DIM transmission + read counters
+//usleep(2000000);   // 2 secs. sleep moved to later time from 24.4.2018
 disableNEVERACTIVE(part);
 clgroup= nextclassgroup(part);
 if(clgroup > 0) {
@@ -2961,6 +2961,7 @@ if(clgroup > 0) {
   clgroup= 0xffffffff; // if this part not using TS, do not update shm
 };
 xcountersStart(part->run_number, clgroup);
+usleep(2000000);   // moved here 24.4.2018
 //UNSETRETadb: 
 unsetPartDAQBusy(part, 0);   //von unsetALLDAQBusy();
 gcalibUpdate();

@@ -53,7 +53,8 @@ LTU FPGA:80-bc   -reserved
 //#define LTU_SW_VER "5.0 17.01.2014"    // run2:100 classes
 //#define LTU_SW_VER "5.1 17.06.2014"    // SEUbit not checked for fpgaver<0xb8
 //#define LTU_SW_VER "5.2 23.06.2014"    // CTPemu: spacing in us possible
-#define LTU_SW_VER "5.3 22.08.2014"    // 0xb9
+//#define LTU_SW_VER "5.3 22.08.2014"  // 0xb9
+#define LTU_SW_VER "5.4 27.05.2018"    // 0xb9, 1s monitor, readout time
 
 /*REGSTART32 */
 /* VME FPGA: */
@@ -280,6 +281,8 @@ EXTRN w32 Gltuver;  // has to be 0xf3 or 0xbX
 #define IXSorbit_time 5 
 #define IXrate_limit 6 
 #define IXdefedit_id 7 
+#define IXl1rtime 8   // l1r time in ns (l1rusecs*1000 -see CNTRRD/readctpc.c)
+#define IXecsnum  9  // ECS number (set in readltuttcdb). 0xff if not known
 //#define IXbc_offset 6 
 typedef struct {
   int l1format; // "L1_FORMAT"

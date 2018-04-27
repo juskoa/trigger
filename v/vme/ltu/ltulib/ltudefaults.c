@@ -24,5 +24,7 @@ printf("PP_TIMEg/s:%d/%d ORBIT_TIMEg/s:%d/%d\n",
   ltc->plist[IXGpp_time], ltc->plist[IXSpp_time],
   ltc->plist[IXGorbit_time], ltc->plist[IXSorbit_time]);
 printf("RATE_LIMIT:%x \n", ltc->plist[IXrate_limit]);
+printf("ecsnum::0x%x \n", ltc->plist[IXecsnum]);
+printf("l1rtime::0x%x \n", ltc->plist[IXl1rtime]);
 }
 
