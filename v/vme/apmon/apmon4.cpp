@@ -52,6 +52,7 @@ private:
   int logactive;   // works with nminr, i.e. printing always 1st 6 measurements
   int received;
   char run_number[10];
+  unsigned int rn_tstamp;   // SOD of this run (valid only with run_number>0)
   void printParameters(char *infostr, char *runnstr, char *detname, 
     int nParameters, char **paramNames, int *valueTypes, char **paramValues,
     long timestamp){
@@ -105,10 +106,11 @@ private:
       nminr= nminr+1;
       //if(nminr<=1) return;   // ignore 1st mesurement
       n5= n5+1; average_ecs= average_ecs + avbusy;
-      if(lastepchsecs == 0) lastepchsecs= data->epchts;   // wait 5 secs after 1st measurement
-      if(lastepchsecs+5 <= data->epchts) {
-        sendecs= 1;   // send out A: last measured (nothing came) or B: average of last 1..5 values:
-        lastepchsecs= data->epchts;
+      if(lastepchsecs == 0) lastepchsecs= timestamp;      // wait 5 secs after 1st measurement
+      if(lastepchsecs+5 <= timestamp) {
+        // send out A: last measured (nothing came) or B: average of last 1..5 values:
+        sendecs= 1;   
+        lastepchsecs= timestamp;   
         average_ecs= average_ecs/n5;
       } else {
         sendecs= 0;
@@ -116,6 +118,10 @@ private:
         printParameters(istr, run_number, sdname, 
           nParameters, (char **)paramNames, 
           valueTypes, paramValues, timestamp);
+      };
+      if(rn_tstamp+10 > timestamp) {
+        // do not send out first 10 measurements after SOD
+        sendecs= 0;
       };
       try {   // this det in run
         if( sendapm==1 ) {
@@ -156,14 +162,14 @@ public :
   //Detector(const char *dim_name, int detn, const char *sd_name, int lim): DimInfo(dim_name,-1) { dd = new float; 
   Detector(const char *dim_name, int detn, const char *sd_name, int lim): DimInfo(dim_name, (void *)&data, Datalen) {
     data = new Data;
-    strcpy(dimname, dim_name); strcpy(run_number, "0");
+    strcpy(dimname, dim_name); strcpy(run_number, "0"); rn_tstamp= 0;
     detecs= detn; 
     lastepchsecs= 0; n5= 0; average_ecs= 0; received= 0; logactive=0; nminr= 0;
     sprintf(sdname,"DET(%s)", sd_name); limit= lim;
   };
-  void updateRunn(int runn) {
-    sprintf(run_number, "%d", runn);
-    printf("updateRunn: %s %s\n", sdname, run_number);
+  void updateRunn(int runn, unsigned int tst) {
+    sprintf(run_number, "%d", runn); rn_tstamp= tst;
+    printf("updateRunn: %s %s %d\n", sdname, run_number, tst);
   };
   void resetRunn(char *runs) {
     if(strcmp(run_number,runs)==0) {
@@ -203,7 +209,7 @@ N               -no log /s
         for(int ixd=0; ixd<MAXDETS; ixd++) {
           if(alldets[ixd]==NULL) continue;
           if( detpat & (1<<ixd) ) {
-            alldets[ixd]-> updateRunn(runn);
+            alldets[ixd]-> updateRunn(runn, tstamp);
           };
         };
       };
@@ -215,7 +221,7 @@ N               -no log /s
         if(runn==0) {   // c tstamp 0
           for(int ixd=0; ixd<MAXDETS; ixd++) {
             if(alldets[ixd]==NULL) continue;
-            alldets[ixd]-> updateRunn(0);
+            alldets[ixd]-> updateRunn(0, 0);
           };
         } else {
           char runs[20];
@@ -251,7 +257,7 @@ public :
       for(int ixd=0; ixd<MAXDETS; ixd++) {
         if(alldets[ixd]==NULL) continue;
         if( dets[ixr] & (1<<ixd) ) {
-          alldets[ixd]-> updateRunn(runs[ixr]);
+          alldets[ixd]-> updateRunn(runs[ixr], 0);
         };
       };
     };
