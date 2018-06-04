@@ -34,7 +34,7 @@ else
   if [ -z "$spid" ] ;then
     echo "$dname is not running"
   else
-    echo "$dname is running, pid: $spid user:$user"
+    echo "$dname is running, pid: $spid user:$user host:alidcscom707"
   fi
 fi
 

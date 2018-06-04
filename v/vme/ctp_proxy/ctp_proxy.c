@@ -2712,6 +2712,7 @@ if(part!=NULL) {
   strncpy(errorReason, msg,ERRMSGL); rc=5; goto RETX;
 };
 /*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS
+usleep(2000000);        // 1sec to allow load from ACT ?
 npart= getNAllPartitions();
 if(npart==0) {   // DDL2IR can be updated (no part. active)
   int rcl;
@@ -2738,7 +2739,7 @@ if(npart==0) {   // DDL2IR can be updated (no part. active)
   int rcl;
   rcl= update_dimnum(1);
   if(rcl==1) {
-    infolog_trgboth(LOG_ERROR, "The list of filtered inputs changed, list of inputs in DDL2 not updated (will be done at next SOR when there is no other active run)");
+    infolog_trgboth(LOG_WARNING, "The list of filtered inputs changed, list of inputs in DDL2 not updated (will be done at next SOR when there is no other active run)");
   };
 };
 /*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS -moved up 18.5.2018
