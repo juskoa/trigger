@@ -2319,6 +2319,7 @@ rc= dic_cmnd_callback(dimcom, cmd, strlen(cmd)+1, callback, TAGctprestart);
 printf("rc from \"CTPRCFG/RCFG rcfgdel ignore/useDAQLOGBOOK\":%d (1 is OK,but check callback)\n", rc);
 usleep(1000000);
 prepareRunConfig(NULL,2);  // mv all lurking .rcfg to delmeh/
+prepareRunConfig(NULL,3);  // get fresh filter from ACT
 usleep(1000000);
 if(pydimok==1) {rc=0; } else {rc=1;};
 
@@ -2742,7 +2743,7 @@ if(npart==0) {   // DDL2IR can be updated (no part. active)
     infolog_trgboth(LOG_WARNING, "The list of filtered inputs changed, list of inputs in DDL2 not updated (will be done at next SOR when there is no other active run)");
   };
 };
-/*if(npart==0) {*/ prepareRunConfig(NULL,3); //};  reload parted ALWAYS -moved up 18.5.2018
+/*if(npart==0) { prepareRunConfig(NULL,3);};   reload parted ALWAYS -moved up 12.6.2018 */
 //------------------------------------------- prepare fresh .pcfg file:
 if( partmode[0] == '\0'){strcpy(name2, name);}else{ strcpy(name2, partmode); };
 sprintf(msg,"rm -f /tmp/%s.pcfg", name2); ret=system(msg);

@@ -94,6 +94,7 @@ void getdatetime(char *);
 //int actdb_open();
 //int actdb_close();
 int actdb_getPartition(char *name, char *filter, char *actname, char *actver);
+void  actdb_getff(char *filter, int opclose);
 
 /*----------------------------------------------------*/ 
 void stopserving() {
@@ -643,7 +644,11 @@ if((strncmp(mymsg,"pcfg ",5)==0) || (strncmp(mymsg,"Ncfg ",5)==0) ||
   //readTables();
   //ctpc_clear(); updateCNAMES();
   //printf("INFO rcfgdel reload\n");
-  ;
+  char emsg[200];
+  char filter[20000]="";
+  actdb_getff(filter, 1);
+  sprintf(emsg,"INFO filter: %s  downloaded from ACT", filter);
+  infolog_trgboth(LOG_INFO, emsg);
 } else if((strncmp(mymsg,"rcfgdel ",8)==0)) {   // rcfgdel partname runn
   enum Ttokentype t1; int ixl, runn; char pname[16]; char intval[16];;
   char emsg[200];

@@ -207,3 +207,66 @@ DDL2_IR 48..25 24..1: 0x200 0x404  0OB3 0PH0 0HCO 0VBA 0TVX
 change filter: PHOS
 smicmd init PHYSICS_1 128 3
 
+=== 18.5.2018
+286568
+around 17:03 0PH0 went mad
+ECS Start Time:	17/05/2018 16:16:32
+CTP Start Time:	17/05/2018 16:17:49
+CTP End Time:	17/05/2018 18:14:19
+
+-rw-r--r--. 1 trigger alice  171485 May 17 19:20 ctp_proxy1805171920.log
+-rw-r--r--. 1 trigger alice  343400 May 17 18:15 ctp_proxy1805171815.log
+-rw-r--r--. 1 trigger alice  184487 May 17 14:49 ctp_proxy1805171449.log
+
+17.05.2018 14:53:31 received:INFO actdb_getff:trgInput_PHOS:ON
+17.05.2018 16:16:33 received:INFO actdb_getff:trgInput_PHOS:OFF
+17.05.2018 18:17:34 received:INFO actdb_getff:trgInput_PHOS:OFF
+
+Start run 286568:
+ECS Start Time:	17/05/2018 16:16:32
+-> ctp_proxy1805171815.log
+SMIRTL - Thu May 17 16:16:33 2018 - TRIGGER::CTP executing INIT_PARTITION/PARTITION=PHYSICS_1/MASK=2456959/RUN_NUMBER=286568
+...
+INIT partition: PHYSICS_1 mask: 2456959 run:286568
+orbit diffs: 1.167671 0.973896 
+17.05.2018 16:16:33: DDL2 Orbit ok
+INFO openFile:/local/trigger/v/vme/CFG/ctp/DB/filter r dir:/local/trigger/v/vme/CFG/ctp/DB
+17.05.2018 16:16:33: New filter: ZDC
+17.05.2018 16:16:33: CTP inputs filter:ZDC
+17.05.2018 16:16:33: Filtering out a not connected input 0ZED
+ERROR input 0VGA not found in ctpinputs.cfg
+ERROR input 0UGC not connected in ctpinputs.cfg
+ERROR input 0OMU not connected in ctpinputs.cfg
+DDL2_IR 48..25 24..1: 0x818000 0x7e261  0VBA 0VBC 0T0C 0VGA 0UGC 0OMU 0V0M 0UBA 0UBC 0PH0 0MSL 0MSH 0MLL 0MUL 0EMC 0DMC
+17.05.2018 16:16:33: ***  Warning:Some warnings connected with input filter ignored.
+17.05.2018 16:16:33: timestamp:prepareRunConfig1: rcfgdel reload 0xc709
+
+-> reading ACT/filter (pydimserver.log):
+17.05.2018 16:16:33 received:rcfgdel reload 0xc709
+17.05.2018 16:16:33 reloading parted (reload request from ctpproxy)...
+17.05.2018 16:16:33 received:INFO filterlen:12 filter:ACT database err:0
+17.05.2018 16:16:33 received:INFO actdb_getff:trgInput_PHOS:OFF
+
+action: prepareRunConfig moved up -before the DDL2 IR update in ctp_InitPartition()
+=== logbook
+Martino found a bug in the 'trigger inputs filtering out' procedure:
+When an input detector filtered out (ACT Lightweight operation), the classes with concerned input are removed, but
+the input was not removed from the list of inputs contributing to DDL2 IR for the run immediately started after
+(happened in run 286568 -0PH0 was NOT removed from the list of inputs contributing to DDL2 IR, it happened
+only later in run 286569 when CTP was reconfigured).
+See https://alice-logbook.cern.ch/logbook/date_online.php?p_cont=threadd&p_tid=588758&p_cidh=588758#le588758
+
+For runs started after run 286624 it should be fixed.
+Note: see also
+
+https://alice-logbook.cern.ch/logbook/date_online.php?p_cont=threadd&p_tid=580010&p_cidh=580599#le580599
+
+=== 10.6.2018 still not ok (run 287874)
+seems actdb_getf in actdb_getPartition() is not enough -in addition (or instead), it should be called in 'rcfgdel reload'
+can be done:
+with new par: 'rcfgdel filter'  -reloading only filter -called from INIT_PART time in ctp_proxy
+1. ctp_proxy.c: remove 2nd call: prepareRunConfig(NULL,3);     done
+2. pydim/server.c: 'rcfgdel reload' added: actdb_getff() call   (no action before in this part)   done
+   also added in ctp_InitProxy   done
+3. 2s -> 3s ?: leaving 2s
+-> deployd in P2 12.6.2018

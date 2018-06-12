@@ -96,12 +96,12 @@ while(fgets(line, MAXLINELENGTH, filfile)){
     infolog_trgboth(LOG_INFO, em1);
     break;
   } else {
-    sprintf(em1, "New filter: %s", line);
+    sprintf(em1, "INFO New filter: %s", line);
     infolog_trgboth(LOG_INFO, em1);
   }; 
   filterdone=1; rc= 1; 
   if(checkchangeonly==1) break;
-  sprintf(em1, "CTP inputs filter:%s", line); infolog_trgboth(LOG_INFO, em1);
+  sprintf(em1, "INFO CTP inputs filter:%s", line); infolog_trgboth(LOG_INFO, em1);
   strncpy(lastfilterline, line, 200); lastfilterline[199]='\0';
   // before going over all dets, reset all FLG_FILTEREDOUT flags:
   for(ixtab=0; ixtab<NCTPINPUTS; ixtab++) {
