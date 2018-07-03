@@ -22,7 +22,9 @@ and start ./cphere.sh
 1A. Adding tkinter dependance (to the just created .rpm)
 --------------------------------------------------------
 modify ~/validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
-adding 2 lines after 'Vendor:' line:
+BuildArch: noarch -> BuildArch: x86_64    (aliases.exe)
+
+add 2 lines after 'Vendor:' line:
 Requires: tkinter
 %define _topdir /home/alice/trigger/validate/build/bdist.linux-x86_64/rpm
 
@@ -32,23 +34,29 @@ rpmbuild -bb validate/build/bdist.linux-x86_64/rpm/SPECS/validate.spec
 rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.2-1.noarch.rpm
 rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.7-1.noarch.rpm
 rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.9-1.noarch.rpm
+rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.10-1.x86_64.rpm
+                                                           validate-debuginfo-5.10-1.x86_64.rpm
+
 i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
+resp. in x86_64/. validate-debuginfo-5.10-1.x86_64.rpm is subset of  validate-5.10-1.x86_64.rpm
 
 scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.7-1.noarch.rpm juskoa@lxplus:www/validate/
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.10-1.x86_64.rpm juskoa@lxplus:www/validate/
 modify www/Welcome.html
 
 Email to Vasco:
 Hi Vasco, 
 can you install at nearest occassion
-http://juskoa.web.cern.ch/juskoa/validate/validate-5.9-1.noarch.rpm
+http://juskoa.web.cern.ch/juskoa/validate/validate-5.10-1.x86_64.rpm
 in p2?
-Not urgent, just improving syntax checks of .partition file.
+I managed to add /usr/bin/aliases.exe checking the syntax of aliases.txt in working directory
 Cheers, Anton
 
 1B. check .rpm
 --------------
 avmes:
 scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-4.0-1.noarch.rpm aj@pcalicebhm11:Downloads/
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.10-1.x86_64.rpm aj@pcalicebhm11:Downloads/
 
 cd $dbctp
 scp ttcparts.cfg VALID.CTPINPUTS L0.INPUTS VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMASKS VALID.LTUS ttcparts.cfg  gcalib.cfg filter clockshift aj@pcalicebhm11:/home/aj/git/trigger/v/vme/CFG/ctp/DB/
@@ -58,6 +66,8 @@ scp ttcparts.cfg ctpinputs.cfg VALID.DESCRIPTORS ctp.cfg TRIGGER.PFS VALID.BCMAS
 install on 11:
 rpm -e validate
 rpm -ivh ~aj/Downloads/validate-3.0-1.noarch.rpm
+rpm -ivh ~aj/Downloads/validate-5.10-1.x86_64.rpm
+
 export dbctp_pardefs=~/git/trigger/v/vme/CFG/ctp/pardefs
 export dbctp=~/git/trigger/v/vme/CFG/ctp/DB
 python /usr/lib/python2.6/site-packages/validate/validate.py simple3
@@ -112,6 +122,14 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
 24.10.2017
 - 5.9. improved parser in parted.py (now BCM1=0.5% regarded as an error)
   - +tkinter, on web, sent to Vasco, deployd in P2
+3.7.2018
+- 5.10 aliases.exe addded, i.e.:
+  - cphere.sh:
+    echo "%_binaries_in_noarch_packages_terminate_build 0" > ~/.rpmmacros
+  - setup.py
+    data_files=[("bin", ["/home/alice/trigger/validate/aliases.exe"])]
+      (has to be absolute path!)
+  -> aliases.exe goes to /usr/bin/
 
 3. Problems
 -----------
