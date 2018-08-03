@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.9",
+      version="5.10",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -22,6 +22,12 @@ return code:
 0         -the names of triggering detectors printed to stdout: det1 *det2
 8         -error message printed to stdout
 
+Validation of aliases.txt file:
+./aliases.exe
+return code:
+0         -ok, note about number of aliases printed to stdout
+8         -error message printed to stdout
+
 news: 
 from v4.0: ctpinputs.cfg instead of CTP.SWITCH VALID.CTPINPUTS L0.INPUTS
 from v5.0: $dbctp/filter preferred, if not available trgInput_* (ON/OFF) used
@@ -33,10 +39,12 @@ from v5.5: IR1/2 defined by 8 inputs, new PF on LM board
      v5.7: minor change: the max. SDG name length check added (max. is 23)
      v5.8: minor change: check if # of LTUs>0 for each cluster
      v5.9: minor change: added syntax checks (i.e. BCM1=0.5% now error)
+     v5.10: aliases.exe (x86_64) 
 """,
       author="Anton Jusko",
       packages=["validate"],
       package_dir={"validate":"./"},
+      data_files=[("bin", ["/home/alice/trigger/validate/aliases.exe"])]
      )
 #      package_dir={"validate":"./"},
 #nebavi:      setup_requires=["tkinter"],
