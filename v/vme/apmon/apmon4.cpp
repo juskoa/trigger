@@ -41,8 +41,8 @@ struct Data{
 
 class Detector : public DimInfo {
 private:
-  int lastepchsecs, n5;   // send out after 5 secs
-  int nminr;   // Number of Measurements In Run   (1/s measurements)
+  int lastepchsecs, n5;   // send out after 5 secs always. lastepchsecs: time when n5 became 0
+  int nminr, sent;   // Number of Measurements In Run (1/s measurements), sent to ecs
   float average_ecs;
   Data *data; //float *dd;
   int detecs;
@@ -57,9 +57,9 @@ private:
     int nParameters, char **paramNames, int *valueTypes, char **paramValues,
     long timestamp){
     char line[300];
-    if((logactive==0) && (nminr>=6)){
-      if(nminr==6) {
-        printf("stoplog6 %d %s %s\n", timestamp, runnstr, detname);
+    if((logactive==0) && (nminr>=10)){
+      if(nminr==10) {
+        printf("stoplog10 %d %s %s\n", timestamp, runnstr, detname);
       };
      return;
     };
@@ -98,62 +98,49 @@ private:
     // apply average over 5 secs for data sent to ECS status display:
     received++;
     if((timestamp%1000)==0) {
-      printf("received %s:%d at:%d\n", sdname, received, timestamp); fflush(stdout);
+      printf("received1000 %s:%d nminr:%d sent:%d at:%d\n", 
+        sdname, received, nminr, sent, timestamp); fflush(stdout);
       received= 0;
     };
     if(strcmp(run_number,"0")!=0) {
       char istr[40];
       nminr= nminr+1;
       //if(nminr<=1) return;   // ignore 1st mesurement
-      n5= n5+1; average_ecs= average_ecs + avbusy;
-      if(lastepchsecs == 0) lastepchsecs= timestamp;      // wait 5 secs after 1st measurement
-      if(lastepchsecs+5 <= timestamp) {
-        // send out A: last measured (nothing came) or B: average of last 1..5 values:
-        sendecs= 1;   
-        lastepchsecs= timestamp;   
-        average_ecs= average_ecs/n5;
-      } else {
-        sendecs= 0;
-        sprintf(istr, "avrg n:%d", n5);
-        printParameters(istr, run_number, sdname, 
-          nParameters, (char **)paramNames, 
-          valueTypes, paramValues, timestamp);
-      };
-      if(rn_tstamp+10 > timestamp) {
-        // do not send out first 10 measurements after SOD
-        sendecs= 0;
+      sendecs= 0;
+      if(rn_tstamp+4 < timestamp) {  // start averiging only 5s after SOD
+        n5= n5+1; average_ecs= average_ecs + avbusy;
+        if(lastepchsecs == 0) lastepchsecs= timestamp;      // wait 5 secs after 1st measurement
+        if(lastepchsecs+5 <= timestamp) {   // it is time to send out data
+          // A: last measured (nothing came) or B: average of last 1..5 values:
+          sendecs= 1;   
+        };
       };
       try {   // this det in run
-        if( sendapm==1 ) {
-          if( sendecs==1 ) {
-            avbusy= average_ecs;
-            sprintf(istr, "SEND n:%d", n5);
-            n5= 0; average_ecs= 0;
+        if( sendecs==1 ) {
+          average_ecs= average_ecs/n5;
+          avbusy= average_ecs;
+          sprintf(istr, "SEND n:%d nminr:%d", n5, nminr);
+          n5= 0; lastepchsecs= timestamp; average_ecs= 0;
+          if( sendapm==1 ) {
             apm -> sendTimedParameters(run_number, sdname,
               nParameters, (char **)paramNames, 
               valueTypes, paramValues, timestamp);
-            printParameters(istr, run_number, sdname, 
-              nParameters, (char **)paramNames, 
-              valueTypes, paramValues, timestamp);
+            sent= sent+1;
           };
         } else {
-          if( sendecs==1 ) {
-            sprintf(istr, "nae  n:%d", n5);
-            avbusy= average_ecs;
-            n5= 0; average_ecs= 0;
-          } else {
-            sprintf(istr, "nane n:%d", n5);
-          };
-          printParameters(istr, run_number, sdname, 
-            nParameters, (char **)paramNames, 
-            valueTypes, paramValues, timestamp);
+          sprintf(istr, "avrg n:%d nminr:%d", n5, nminr);
         };
+        printParameters(istr, run_number, sdname, 
+          nParameters, (char **)paramNames, 
+          valueTypes, paramValues, timestamp);
       //} catch(runtime_error &e) {
       } catch(int e) {
         printf("Send operation failed: %d\n", e);
         //fprintf(stderr, "Send operation failed: %s\n", e.what());
         //exit(-1); 
       };
+    } else {
+      n5= 0; lastepchsecs= timestamp; average_ecs= 0;
     };
     //usleep(2100000); //nebavi
     //tili.Update(t, name, *dd);
@@ -164,7 +151,7 @@ public :
     data = new Data;
     strcpy(dimname, dim_name); strcpy(run_number, "0"); rn_tstamp= 0;
     detecs= detn; 
-    lastepchsecs= 0; n5= 0; average_ecs= 0; received= 0; logactive=0; nminr= 0;
+    n5= 0; lastepchsecs= 0; average_ecs= 0; received= 0; logactive=0; nminr= 0; sent= 0;
     sprintf(sdname,"DET(%s)", sd_name); limit= lim;
   };
   void updateRunn(int runn, unsigned int tst) {
@@ -173,7 +160,7 @@ public :
   };
   void resetRunn(char *runs) {
     if(strcmp(run_number,runs)==0) {
-      strcpy(run_number, "0"); nminr= 0;
+      strcpy(run_number, "0"); nminr= 0; nminr= 0;
       printf("resetRunn: %s %s -> 0\n", sdname, runs);
     };
   };
