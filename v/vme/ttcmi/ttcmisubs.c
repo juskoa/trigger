@@ -258,7 +258,9 @@ if(micratepresent()&2 ) {          //----------------------- RF2TTC
   i2cset_delay(ORBIN_DELAY25_ORB2, 0);
   */
   //i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.12.2014 (rf2ttcscope)
-  i2cset_delay(ORBIN_DELAY25_ORB1, 0x14);   // from 4.07.2016
+  //i2cset_delay(ORBIN_DELAY25_ORB1, 0x14);   // from 4.07.2016
+  //i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.08.2018 bad direction?) -CDH errors
+  i2cset_delay(ORBIN_DELAY25_ORB1, 0x12);   // from 5.08.2018
   i2cset_delay(ORBIN_DELAY25_ORB2, 0x11);   // not used anyhow
   //vmew32(ORBmain_COARSE_DELAY,2);
   vmew32(ORBmain_COARSE_DELAY,3564);

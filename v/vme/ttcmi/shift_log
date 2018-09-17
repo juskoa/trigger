@@ -9,6 +9,7 @@
 3.4. BCMAIN with corde 4864 (just test)
 5. Conclusion
 6. Suggested change in April 2016:
+7. actions 4.8.2018
 
 1. before change
 ----------------
@@ -688,3 +689,43 @@ printBC_DELAYS()
 
 
 checked 19.9.2016, values are the same
+
+7. actions 4.8.2018
+-------------------
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15d  0x1d=29 (also for BPTX) new: 15b
+i2c_setdelay(0x7D000, 27)
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:15d  0x1d=29   new: 15b
+i2c_setdelay(0x7D00C, 27)
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:154 -> 0x158   0x152! see below
+i2c_setdelay(0x7D020, 18)  -> now: orbit cal. ok (was not before)
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
+- ttcmi/ttcmisubs.c ORBIN_DELAY25_ORB1 in writeall() modified
+  ssh8 ; vmecomp ttcmi
+  835: cd vme/ttcmidaemons ; make
+- $dbctp/clockshift:  29 11 27 -> 27 110 11
+  + reset shift from miclock interactive window: -> 27 99 11
+
+see daqlogbook:
+https://alice-logbook.cern.ch/logbook/date_online.php?p_cont=threadd&p_tid=595952&p_cidh=596041#le596041
+and pictures (in ~juskoa/www/
+scope: 
+juskoa:www/shift/p1_before.png
+                 p3_after.png
+File -> exit and logoff
+
+5.8.2018
+runs 290499 - 290540: bad BCmasks -> i.e. bad numbering in alice
+Correction today:
+      ORBIN_DELAY25_ORB1 0x7d020:152 (was 0x158 from yesterday) 
+also vme/ttcmi/ttcmisubs.c was modified (0x152)
+
