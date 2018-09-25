@@ -173,11 +173,10 @@ startClients.vash rrd stop
 startClients.vash rrd start
 startClients.vash html start
 
-=== 9.4.
-1/sec logging control:
+=== 9.4.  1/sec logging control:
 every 1000s message:
 received DET(AD0):807 at:1523336000
-resp in ltudimsetrver.log:
+resp in ltudimserver.log:
 updateMONBUSY:09.04.2018 18:06:40:bt: 0.0000 -> 0.0000     0.00  9520.09 nclients:1 sent:981
 updateMONBUSY:09.04.2018 18:06:41:bt: 0.0000 -> 0.0000     0.00  9605.99 nclients:1
 
@@ -203,12 +202,17 @@ make
 ok
 === problem: INIT_PARTITION -> START_PARTITION
  update_GRUNS('s', rundec, detpat);
-is invoked in DOrcfg in time INIT_PARTITION
-- moved to genXOD in ctp_proxy.c
+is invoked in pydim/server.c DOrcfg in time of INIT_PARTITION
+- moved to genXOD in ctp_proxy.c: 
+  - CTPRCFG/RCFG cmd msg: grunsup s epocht runn det_pat_hexadigits
+    -> pydimserver -> updating service CTPRCFG/GRUNS published string: 
+       "action timestmp runn det_pat"
+       "c 0 0"  -see apmon4.cpp for details
+  - SOD generated AFTER this action
 
 === problem: still peaks at the start of run
 Action:
-added logactive controlling Log/Nolog
+added logactive controlling Log/Nolog in apmon4.cpp
 added nminr + Log/Nolog upon DIM request
 
 === case: see in lab if still peaks:
@@ -237,5 +241,14 @@ L
 L
 a 33 t      -adding only 1 det in run 33
 
+=== 25.7.2018 debug
+in adls:
+checkout
 
+done in P2: (to get it running with new apmon4):
+cd $APMON/examples
+ make apmon4
+apmon4.sh stop
+          start
 
+see mails/problems/apmon_peak -> to be contibued after 20.8. (seems peak is result of a bug in data...)

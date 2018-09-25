@@ -789,28 +789,37 @@ while(1) {
     deltatime= dodif32(ptime, ntime);
     deltasbusy= dodif32(pbusy, nbusy);
     deltal2a= dodif32(pl2a, nl2a);
-    ltushm->d1sec.busyfraction= (1.0*deltasbusy)/deltatime;
-    if(deltal2a==0) {    // no L2a
-      if(ltushm->d1sec.busyfraction>0.5) {
-        ltushm->d1sec.avbusy= 10001;   // DEAD
-      } else {
-        ltushm->d1sec.avbusy= 0;
+    if(ltushm->ltucfg.flags & FLGfakebusy) {
+      int n60;
+      n60= (ltushm->d1sec.epchts) % 60;
+      ltushm->d1sec.avbusy= 10.0*n60;
+      if(ltushm->d1sec.avbusy <300.0) ltushm->d1sec.avbusy= 299.0;
+      ltushm->d1sec.busyfraction= 0.0;
+      ltushm->d1sec.l2arate= 0.1;
+    } else {   // real data
+      ltushm->d1sec.busyfraction= (1.0*deltasbusy)/deltatime;
+      if(deltal2a==0) {    // no L2a
+        if(ltushm->d1sec.busyfraction>0.5) {
+          ltushm->d1sec.avbusy= 10001;   // DEAD
+        } else {
+          ltushm->d1sec.avbusy= 0;
+        };
+      } else { 
+        float usdeltabusy; w32 l1rs, busyl1r;
+        usdeltabusy= 0.4*deltasbusy;
+        /* correction for readout time: */
+        l1rs= dodif32(pl1rs, nl1rs); 
+        busyl1r= l1rs* ltushm->ltucfg.plist[IXl1rtime]/1000.;
+        usdeltabusy= usdeltabusy - busyl1r; if(usdeltabusy<0.) usdeltabusy= 0.;
+        // average time [us]
+        ltushm->d1sec.avbusy= usdeltabusy/deltal2a;
       };
-    } else { 
-      float usdeltabusy; w32 l1rs, busyl1r;
-      usdeltabusy= 0.4*deltasbusy;
-      /* correction for readout time: */
-      l1rs= dodif32(pl1rs, nl1rs); 
-      busyl1r= l1rs* ltushm->ltucfg.plist[IXl1rtime]/1000.;
-      usdeltabusy= usdeltabusy - busyl1r; if(usdeltabusy<0.) usdeltabusy= 0.;
-      // average time [us]
-      ltushm->d1sec.avbusy= usdeltabusy/deltal2a;
-    };
-    ltushm->d1sec.l2arate= (1.0*deltal2a)/(0.0000004*deltatime);
-    if( (ltushm->d1sec.busyfraction<0.0) || ( ltushm->d1sec.busyfraction > 1.0)) {
-      printf("ERROR in scthread: %d 0x%x 0x%x 0x%x 0x%x\n",
-        nloop, ptime, ntime, pbusy, nbusy);
-      ltushm->d1sec.busyfraction= 1.0;
+      ltushm->d1sec.l2arate= (1.0*deltal2a)/(0.0000004*deltatime);
+      if( (ltushm->d1sec.busyfraction<0.0) || ( ltushm->d1sec.busyfraction > 1.0)) {
+        printf("ERROR in scthread: %d 0x%x 0x%x 0x%x 0x%x\n",
+          nloop, ptime, ntime, pbusy, nbusy);
+        ltushm->d1sec.busyfraction= 1.0;
+      };
     };
   };
   usleep(1000000); nloop++;

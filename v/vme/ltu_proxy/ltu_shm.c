@@ -20,13 +20,13 @@ char action='?';
 //cshmInit();
 if(argc==1) {
   printf("Usage:\n");
-  printf("ltu_shm 81X000 [L | N]\n");
+  printf("ltu_shm 81X000 [L | N | F | R]\n");
   return(8);
 } else if(argc>=2) { 
   if( strncmp(argv[1], "81", 2)==0) {
     shmkey=hex2int(argv[1]);
     if(argc>2) { 
-      if((argv[2][0]=='L') || (argv[2][0]=='N')) { 
+      if((argv[2][0]=='L') || (argv[2][0]=='N') || (argv[2][0]=='F') || (argv[2][0]=='R')) { 
         action= argv[2][0];
       };
     };
@@ -49,6 +49,10 @@ if(action=='L') {
   ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGlog1sec;
 } else if(action=='N') {
   ltushm->ltucfg.flags= ltushm->ltucfg.flags & (~FLGlog1sec);
+} else if(action=='F') {
+  ltushm->ltucfg.flags= ltushm->ltucfg.flags | FLGfakebusy;
+} else if(action=='R') {
+  ltushm->ltucfg.flags= ltushm->ltucfg.flags & (~FLGfakebusy);
 } else {
   ;
 };

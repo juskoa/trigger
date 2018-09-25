@@ -26,7 +26,7 @@ elif [ "$sss" == 'start' ] ;then    #----------------------- start
     cd  $VMEWORKDIR/WORK
     savelog apmon4
     nohup $executable apm > apmon4.log &
-    echo "$executable started"
+    echo "$executable started, see v/vme/WORK/apmon4.log"
   fi
 else
   if [ -z "$spid" ] ;then

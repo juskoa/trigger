@@ -449,9 +449,12 @@ if(vmeopen(BoardBaseAddress,BoardSpaceLength)) {
   smi_set_state(state);
 };
 printf(" main loop /1sec\n"); fflush(stdout);
-{ 
+{ TData d1s;
+d1s.busyfraction= ltushm->d1sec.busyfraction;
+d1s.avbusy= ltushm->d1sec.avbusy;
+d1s.l2arate= ltushm->d1sec.l2arate;
 while(1) {
-  int update; TData d1s;
+  int update; 
   if(isecs>=60) {
     updateMONCOUNTERSservice(0);    // update DIM service 1/min
     isecs= 0;
@@ -462,7 +465,8 @@ while(1) {
   d1s.epchts= ltushm->d1sec.epchts;
   d1s.epchtu= ltushm->d1sec.epchtu;
   if( (fabs(d1s.busyfraction - ltushm->d1sec.busyfraction)>0.01) || (notupdated>=120) ||
-      (fabs(d1s.l2arate - ltushm->d1sec.l2arate) > 1) ) {
+      (fabs(d1s.l2arate - ltushm->d1sec.l2arate) > 1) ||
+      (fabs(d1s.avbusy - ltushm->d1sec.avbusy) > 2) ) {
     update= 1;
   };
   d1s.busyfraction= ltushm->d1sec.busyfraction;

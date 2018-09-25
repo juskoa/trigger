@@ -72,6 +72,7 @@ sort -k8,8n ctpinputs.cfg |more
 grep -v '^#' ctpinputs.cfg |sort -k8n,8n |more
 
 === orbit sync in ddl2 (after powercut)
+
 altri2:  vmecrate ttcmi=0x0f00000              -to get clock in lab!
 altri1: 
 vmecrate ctp
@@ -79,9 +80,12 @@ vmecrate ctp
    i.e.: 5 green bits in Classes: LMrrnd2 LMdeadtime LMclassmask 
                                   LM-L0busy Classmask
 -> File -> write hw
--> LTU HMPID: disable busy, put in GLOBAL
+-> LTU HMPID: disable busy, put in GLOBAL, check ctp counter byin1 -hmpid not busy
 -> check counters (L2aseq rate >0)
 altri1: orbitddl2.py configrunset                  -should be ok now
+problem:
+17.09.2018 13:52:06: Starting L0 orbit calibration (30s...)
+17.09.2018 13:52:11: ***  Error:L0 orbit calibration: getCTPRIRDList: ERROR: Incorrect EOB in data: 0xbaab
 
 === apmon see $VMECFDIR/apmon/   + $APMON
 === switch on/off crates (11.1.2018):

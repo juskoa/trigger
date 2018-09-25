@@ -14,6 +14,8 @@ g++ -lpthread apmon4.o -L/opt/dim/linux -ldim -L/home/aj/git/trigger/v/vmeb/vmeb
 #include <unistd.h>   // usleep
 #include <dic.hxx>
 #include <time.h>
+#include <mutex>          // std::mutex
+
 #include "ApMon.h"
 
 int mydbConnect();
@@ -21,6 +23,7 @@ void mydbDisconnect();
 void red_get_runs(int runs[6], int dets[6]);
 
 int sendapm= 0;
+mutex mtx;           // mutex for critical section
 ApMon *apm;
 void my_handler(int s){
   printf("Caught signal %d\n",s);
@@ -41,27 +44,31 @@ struct Data{
 
 class Detector : public DimInfo {
 private:
-  int lastepchsecs, n5;   // send out after 5 secs always. lastepchsecs: time when n5 became 0
+  int lastepchsecs;   // send out after 5 secs always. lastepchsecs: time when n5 became 0
   int nminr, sent;   // Number of Measurements In Run (1/s measurements), sent to ecs
+  int n5;
   float average_ecs;
-  Data *data; //float *dd;
+  Data *data; //float *dd;  received form ltu_proxy
   int detecs;
   char dimname[20];
   char sdname[20];
   int limit;
   int logactive;   // works with nminr, i.e. printing always 1st 6 measurements
-  int received;
   char run_number[10];
+  int received;
+  long timestamp;
+  int avbusy, lastavbusy;
+  int sendingagain;
   unsigned int rn_tstamp;   // SOD of this run (valid only with run_number>0)
   void printParameters(char *infostr, char *runnstr, char *detname, 
     int nParameters, char **paramNames, int *valueTypes, char **paramValues,
     long timestamp){
     char line[300];
-    if((logactive==0) && (nminr>=10)){
-      if(nminr==10) {
-        printf("stoplog10 %d %s %s\n", timestamp, runnstr, detname);
+    if((logactive==0) and (sent>=12)){
+      if(sent==12) {
+        printf("stoplog10 %d %s %s\n", timestamp, runnstr, detname); fflush(stdout);
       };
-     return;
+      return;
     };
     sprintf(line, "%s %d %s %s:%d ", infostr, timestamp,
     runnstr, detname, nParameters);
@@ -74,15 +81,8 @@ private:
     printf(line); fflush(stdout);
   };
   void infoHandler() {
-    long timestamp;
-    int nParameters= 2;
-    int sendecs, dsize; int avbusy=0;
-    const char *paramNames[2]= {"busyLimit", "busyTime"};
-    char *paramValues[2]= {(char *)&limit, (char *)&avbusy};
+    int sendecs, dsize; 
     //char *paramValuesECS[2]= {(char *)&limit, (char *)&average_ecs}; bad with private item
-    int valueTypes[2]= { XDR_INT32, XDR_INT32 };
-    //int valueTypes[2]= { 2, 2 };
-    //paramValues[0]= (char *)limit;
     data= (Data *)getData();
     dsize= getSize();
     avbusy= data->avbusy;
@@ -90,9 +90,10 @@ private:
     //  avbusy= 10000;
     //};
     timestamp = data->epchts;   // time(NULL);
-    /*printf("Data %s:%d: %d/%d %.4f %.4f %.4f\n", dimname, dsize,
-      data->epchts,data->epchtu,data->btime,data->avbusy,data->l2arate);
-    */
+    if(logactive==1) {
+      printf("Data %s:%d: %d/%d %.4f %.4f %.4f\n", dimname, dsize,
+        data->epchts,data->epchtu,data->btime,data->avbusy,data->l2arate); fflush(stdout);
+    };
     // CTP only if no global run
     // CTP always in global run
     // apply average over 5 secs for data sent to ECS status display:
@@ -102,45 +103,27 @@ private:
         sdname, received, nminr, sent, timestamp); fflush(stdout);
       received= 0;
     };
-    if(strcmp(run_number,"0")!=0) {
+    if((strcmp(run_number,"0")!=0) or (strcmp(run_number,"0")==0)) {
       char istr[40];
       nminr= nminr+1;
       //if(nminr<=1) return;   // ignore 1st mesurement
       sendecs= 0;
-      if(rn_tstamp+4 < timestamp) {  // start averiging only 5s after SOD
-        n5= n5+1; average_ecs= average_ecs + avbusy;
-        if(lastepchsecs == 0) lastepchsecs= timestamp;      // wait 5 secs after 1st measurement
+      if(rn_tstamp+1 < timestamp) {  // start averiging 1s after SOD
+        mtx.lock();
+        n5= n5+1; average_ecs= average_ecs + avbusy; lastavbusy= avbusy;
+        mtx.unlock();
+     /* if(lastepchsecs == 0) lastepchsecs= timestamp;      // wait 5 secs after 1st measurement
         if(lastepchsecs+5 <= timestamp) {   // it is time to send out data
           // A: last measured (nothing came) or B: average of last 1..5 values:
           sendecs= 1;   
-        };
-      };
-      try {   // this det in run
-        if( sendecs==1 ) {
-          average_ecs= average_ecs/n5;
-          avbusy= average_ecs;
-          sprintf(istr, "SEND n:%d nminr:%d", n5, nminr);
-          n5= 0; lastepchsecs= timestamp; average_ecs= 0;
-          if( sendapm==1 ) {
-            apm -> sendTimedParameters(run_number, sdname,
-              nParameters, (char **)paramNames, 
-              valueTypes, paramValues, timestamp);
-            sent= sent+1;
-          };
-        } else {
-          sprintf(istr, "avrg n:%d nminr:%d", n5, nminr);
-        };
-        printParameters(istr, run_number, sdname, 
-          nParameters, (char **)paramNames, 
-          valueTypes, paramValues, timestamp);
-      //} catch(runtime_error &e) {
-      } catch(int e) {
-        printf("Send operation failed: %d\n", e);
-        //fprintf(stderr, "Send operation failed: %s\n", e.what());
-        //exit(-1); 
+        }; */
       };
     } else {
-      n5= 0; lastepchsecs= timestamp; average_ecs= 0;
+      if(n5>0) {
+        mtx.lock();
+        n5= 0; lastepchsecs= timestamp; average_ecs= 0;
+        mtx.unlock();
+      };
     };
     //usleep(2100000); //nebavi
     //tili.Update(t, name, *dd);
@@ -151,17 +134,18 @@ public :
     data = new Data;
     strcpy(dimname, dim_name); strcpy(run_number, "0"); rn_tstamp= 0;
     detecs= detn; 
-    n5= 0; lastepchsecs= 0; average_ecs= 0; received= 0; logactive=0; nminr= 0; sent= 0;
+    n5= 0; lastepchsecs= 0; average_ecs= 0; avbusy= 0; received= 0; logactive=0; nminr= 0; sent= 0;
+    sendingagain= 0;
     sprintf(sdname,"DET(%s)", sd_name); limit= lim;
   };
   void updateRunn(int runn, unsigned int tst) {
     sprintf(run_number, "%d", runn); rn_tstamp= tst;
-    printf("updateRunn: %s %s %d\n", sdname, run_number, tst);
+    printf("updateRunn: %s %s %d\n", sdname, run_number, tst); fflush(stdout);
   };
   void resetRunn(char *runs) {
     if(strcmp(run_number,runs)==0) {
-      strcpy(run_number, "0"); nminr= 0; nminr= 0;
-      printf("resetRunn: %s %s -> 0\n", sdname, runs);
+      strcpy(run_number, "0"); nminr= 0; sendingagain= 0;
+      printf("resetRunn: %s %s -> 0\n", sdname, runs); fflush(stdout);
     };
   };
   void printlogs(int logs) {
@@ -169,6 +153,50 @@ public :
       logactive= 1;
     } else {
       logactive= 0;
+    };
+  };
+  void sendtoecs() {
+    if(strcmp(run_number,"0")!=0) {
+      char istr[40]; 
+      if(n5>0) { // new data, send it
+        mtx.lock();
+        average_ecs= average_ecs/n5;
+        avbusy= average_ecs;
+        sprintf(istr, "SEND n:%d nminr:%d", n5, nminr);
+        n5= 0; lastepchsecs= timestamp; average_ecs= 0;
+        mtx.unlock();
+        sendingagain= 0;
+      } else {
+        sprintf(istr, "SEND again %d",sendingagain);
+        sendingagain= sendingagain+1;
+      };
+      try {
+        int nParameters= 2;
+        int valueTypes[2]= { XDR_INT32, XDR_INT32 };
+        const char *paramNames[2]= {"busyLimit", "busyTime"};
+        char *paramValues[2]= {(char *)&limit, (char *)&avbusy};
+        if( sendapm==1 ) {
+         if(sendingagain==1) {
+           avbusy= lastavbusy;
+         };
+         //if(sendingagain<=1) { timestamp= time(NULL);  // no 'again' (update only once + 1)
+         if(sendingagain>=0) { timestamp= time(NULL);    //  send the same data again
+          //if(avbusy>10000 ) avbusy=888; // to see something at https://pcald24.cern.ch/dev/busy
+
+          apm -> sendTimedParameters(run_number, sdname,
+            nParameters, (char **)paramNames, 
+            valueTypes, paramValues, timestamp);
+          sent= sent+1;
+          printParameters(istr, run_number, sdname, 
+            nParameters, (char **)paramNames, 
+            valueTypes, paramValues, timestamp);
+         };
+        };
+      } catch(int e) {
+        printf("Send operation failed: %d\n", e); fflush(stdout);
+        //fprintf(stderr, "Send operation failed: %s\n", e.what());
+        //exit(-1); 
+      };
     };
   };
 }; 
@@ -191,7 +219,7 @@ N               -no log /s
       unsigned int detpat;
       n= sscanf(&msg[2], "%d %d %x", &tstamp, &runn, &detpat);
       if(n!=3) {
-        printf("ERROR: bad msg: %s\n", msg);
+        printf("ERROR: bad msg: %s\n", msg); fflush(stdout);
       } else {
         for(int ixd=0; ixd<MAXDETS; ixd++) {
           if(alldets[ixd]==NULL) continue;
@@ -203,7 +231,7 @@ N               -no log /s
     } else if(msg[0]=='c') {   // c tstamp 0   c tstamp n
       n= sscanf(&msg[2], "%d %d", &tstamp, &runn);
       if(n!=2) {
-        printf("ERROR: bad msg: %s\n", msg);
+        printf("ERROR: bad msg: %s\n", msg); fflush(stdout);
       } else {
         if(runn==0) {   // c tstamp 0
           for(int ixd=0; ixd<MAXDETS; ixd++) {
@@ -230,7 +258,7 @@ N               -no log /s
         alldets[ixd]-> printlogs(0);
       };
     } else {
-      printf("ERROR: bad msg: %s\n", msg);
+      printf("ERROR: bad msg: %s\n", msg); fflush(stdout);
     };
   }
 public :
@@ -320,8 +348,17 @@ ecsn=21; alldets[ecsn]= new Detector("ad/MONBUSY", ecsn, "AD0", 10);
 rc= mydbConnect(); printf("mydbConnect rc:%d\n", rc);
 gruns= new Gruns();
 printf("mydbDisconnect...\n"); mydbDisconnect();
-while(1) pause();
+while(1) { //pause();
+  //usleep(5000000); //nebavi
+  sleep(5); //bavi?
+  //if(logactive!=0) {
+  //printf("sleep 5\n"); fflush(stdout);
+  //};
+  for(int ix=0; ix<MAXDETS; ix++) {
+    if(alldets[ix]==NULL) continue;
+    alldets[ix]->sendtoecs();
+  };
+};
 return 0;
 }
-
 

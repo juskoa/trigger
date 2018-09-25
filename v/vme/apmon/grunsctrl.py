@@ -1,7 +1,7 @@
 #!/bin/env python
 
 import sys,time,string,types,pydim,random
-#import redis
+import redis
 
 def redis_test():
   r= redis.StrictRedis(host='adls', password="nasedatasutu.")
@@ -17,7 +17,7 @@ def redis_test():
   #r.delete("globalruns")
 class GRUNS:
   ALLDETS= 0x2dffff
-  HMPIDPHOS= (1<<6) | (1<<7)
+  HMPIDPHOS= (1<<6) | (1<<7)   # HMP: 0x40  PHS: 0x80
   def __init__(self):
     self.rs= {}
     self.nextrun= 10
@@ -117,7 +117,7 @@ def main():
   print "dns:",pydim.dis_get_dns_node()
   grs= GRUNS()
   while True:
-    line= raw_input("a[dd] [runn] [t] d[elete]  D[elete all] Log Nolog r[andom automat] p[rint]q[uit]>")
+    line= raw_input("a[dd] [runn] [t] d[elete]  D[elete all] Log Nolog r[andom automat] R[edis_test] p[rint]q[uit]>")
     if len(line)<1:break
     c= line[0]
     spl= string.split(line)
@@ -129,6 +129,7 @@ def main():
     if c=='d': grs.delrun()
     if c=='D': grs.delall()
     if c=='p': grs.prtall()
+    if c=='R': redis_test()
     if c=='L':
       grs.updatedims("L")
       print "Logging ON: v/vme/WORK/apmon4.log"

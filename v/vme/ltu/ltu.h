@@ -273,6 +273,7 @@ EXTRN w32 Gltuver;  // has to be 0xf3 or 0xbX
 #define FLGextorbit 0x4     // 1: external 0: internal orbit
 #define FLGscthread 0x8     // 1: active 0: not active
 #define FLGlog1sec  0x10    // 1: active 0: not active
+#define FLGfakebusy  0x20   // 1: fake busy 0: real data
 #define IXG_calibration_roc 0 
 #define IXltuver 1 
 #define IXGpp_time 2 
@@ -316,7 +317,7 @@ typedef struct {
 typedef struct {
  w32 epchts;
  w32 epchtu;
- float busyfraction,avbusy,l2arate;   // 0..1(busy), micsecs, hz
+ float busyfraction; float avbusy; float l2arate;   // 0..1(busy), micsecs, hz
 } TData;
 
 /*the structure of shared memory segment shared among:
