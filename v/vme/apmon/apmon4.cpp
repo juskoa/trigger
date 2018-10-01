@@ -141,6 +141,11 @@ public :
   void updateRunn(int runn, unsigned int tst) {
     sprintf(run_number, "%d", runn); rn_tstamp= tst;
     printf("updateRunn: %s %s %d\n", sdname, run_number, tst); fflush(stdout);
+    if(runn>0) {
+      mtx.lock();
+      n5= 0; lastepchsecs= timestamp; average_ecs= 0;
+      mtx.unlock();
+    };
   };
   void resetRunn(char *runs) {
     if(strcmp(run_number,runs)==0) {
