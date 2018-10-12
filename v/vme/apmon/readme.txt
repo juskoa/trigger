@@ -75,9 +75,10 @@ cca 120s between why?  -> forced message after 2min sent from
 linux/ltu_shm 811000 L
 linux/ltu_shm 811000 N
 
-
 === 4. history, bugs
 16.3. MCH <-> MTR fixed, apmon.log shortened
 13.6.2016 TPC 1000us -> 1300 us
  3.10.2017 HMP 280 -> 320 in example_3.cpp
 26.3. 2018 ACO 120 -> 123
+
+25.9.2018 update apmon4.cpp also in P2, old apmon4.cpp left in ~/aj on 835

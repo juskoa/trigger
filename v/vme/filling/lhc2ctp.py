@@ -1170,6 +1170,13 @@ goal: prepare self.bx['T'] ordered list, subset of B-bunches
       print "Tmask req:%d gaps:%d/choosen:%d bcs using 2 standard LHC-gaps"%(self.TmaskN,ngaps,len(self.bx['T']))
     else:
       print "Tmask req:%d gaps:%d/choosen:%d bcs using %d gaps"%(self.TmaskN,ngaps,len(self.bx['T']),len(bcixs))
+  def upcpattern(self):
+    # upc group requirement: bcmB & (BCid%4 == 1 || BCid%4 == 2), i.e. 
+    rc= ""
+    for bc in range(ORBITL/4):
+      rc= rc+"HLLH"
+    #rc= "891(HLLH)"
+    return rc
   def getMasks(self):
     om= "# %s"%self.fsname
     om= om+"\n" + self.print1('E')
@@ -1235,6 +1242,7 @@ bcmGC 2897H121L546H"""
       #om= om+"\n" + self.print2("ACE", bcxs)
       om= om+"\n" + satbcm+"ACE " + self.eN(bcxs)
       om= om+"\n" + "bcmD" +" "+ self.cosmicAllowed()
+      om= om+"\n" + "bcmU" +" "+ self.upcpattern()
     self.printSummary()
     return om
 
