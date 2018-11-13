@@ -667,7 +667,7 @@ w32 calcINT_BCOFFSET();
 
 void readBICfile();
 void checkCTP();   // configure
-void initCTP();    // initialise system parameters
+int initCTP();    // initialise system parameters
 void setClassInitLM(int klas, w32 lmcondition, w32 lminvert, w32 lmveto);
 
 int softLEDimplemented(int board);

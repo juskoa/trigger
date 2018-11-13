@@ -910,17 +910,36 @@ sprintf(msg, "%d bt: %6.4f -> %6.4f %8.2f %8.2f",
   MONBUSYdata.busyfraction= newdata->busyfraction;
   MONBUSYdata.avbusy= newdata->avbusy;
   MONBUSYdata.l2arate= newdata->l2arate;
-/* new way: I:2;F:3 secs, micsecs, monbusy(0..1),avbusy(s),l2arate(hz) */
-nclients= dis_update_service(MONBUSYid); msgssent++;
+/* new way: I:2;F:3 = secs, micsecs, monbusy(0..1),avbusy(s),l2arate(hz) */
+/* sometimes (muon_trigger):
+                                                 busyfraction       avbusy   l2arate
+updateMONBUSY:16.10.2018 17:04:19:1539702259 bt: 0.0675 -> 0.0590   145.34   405.63 nclients:2
+updateMONBUSY:16.10.2018 17:04:20:1539702260 bt: 0.0590 -> 0.0650   144.38   450.37 nclients:2
+updateMONBUSY:16.10.2018 17:04:21:1539702261 bt: 0.0650 -> 0.0598     0.00   413.99 nclients:2
+updateMONBUSY:16.10.2018 17:04:22:1539702262 bt: 0.0598 -> 0.0599   144.40   414.99 nclients:2
+...
+
+I.e. a case 'avbusy<0.001 and l2arate>0 and newbusyfraction>0 it is better not to publish
+(bad measurement).
+muon_trg:avbusy<0.001 and l2arate>0 and newbusyfraction>0
+spd: newbusyfraction is always 0 -> i.e. not to be taken into account for spd
+*/
+if((newdata->avbusy<0.001) && (newdata->l2arate>0) &&
+  (newdata->busyfraction>0.0)) {
+  sprintf(msg,"%s not published ", msg);
+} else {
+  nclients= dis_update_service(MONBUSYid); msgssent++;
+};
 if((MONBUSYdata.epchts % 1000) == 0) {
   sprintf(msg,"%s nclients:%d epchts:%d sent:%d", 
     msg, nclients, newdata->epchts, msgssent);
   msgssent= 0;
   dimlogprt("updateMONBUSY", msg);
-};
-if(ltushm->ltucfg.flags & FLGlog1sec) {   // i.e. LOG1SEC YES in 'defaults editor'
-  sprintf(msg,"%s nclients:%d", msg, nclients);
-  dimlogprt("updateMONBUSY", msg);
+} else {
+  if(ltushm->ltucfg.flags & FLGlog1sec) {   // i.e. LOG1SEC YES in 'defaults editor'
+    sprintf(msg,"%s nclients:%d", msg, nclients);
+    dimlogprt("updateMONBUSY", msg);
+  };
 };
 /*if(oldnbusyclients != nclients) {   // # of clients changed
     int ix;

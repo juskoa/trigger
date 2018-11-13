@@ -2279,8 +2279,8 @@ cshmClear();  // clears only partition info in shm
 readTables(); // onlly in ctp_proxy and pydim/server.c
 if(initHW(&HWold)) return 1; // initialise and clean HWold structure
 if(initHW(&HW)) return 1;   // initialise and clean HW structure
-initCTP();    /* has to be after initHW(&HW). Init system pars in CTP boards + INT* in HW */
-
+rc= initCTP();    /* has to be after initHW(&HW). Init system pars in CTP boards + INT* in HW */
+if(rc!=0) return(rc);
 /* alignment info has to be created AFTER ctp.cfg reading: */
 getctp_alignment(NULL, alignment, MAXALIGNMENTLEN, 0);
 if(alignment=='\0') {

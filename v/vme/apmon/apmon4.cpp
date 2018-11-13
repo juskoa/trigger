@@ -324,31 +324,31 @@ printf("INFO ApMon instantiated.\n"); fflush(stdout);
 for(int ix=0; ix<MAXDETS; ix++) {
   alldets[ix]= NULL;
 };
-ecsn=0 ; alldets[ecsn]= new Detector("spd/MONBUSY", ecsn, "SPD", 0);
+ecsn=0 ; alldets[ecsn]= new Detector("spd/MONBUSY", ecsn, "SPD", 500);   //pp:0  pb:500
 ecsn=1 ; alldets[ecsn]= new Detector("sdd/MONBUSY", ecsn, "SDD", 1100);
 ecsn=2 ; alldets[ecsn]= new Detector("ssd/MONBUSY", ecsn, "SSD", 310);
-ecsn=3 ; alldets[ecsn]= new Detector("tpc/MONBUSY", ecsn, "TPC", 1300);
+ecsn=3 ; alldets[ecsn]= new Detector("tpc/MONBUSY", ecsn, "TPC", 1000);  // pp:1300
 ecsn=4 ; alldets[ecsn]= new Detector("trd/MONBUSY", ecsn, "TRD", 600);
-ecsn=5 ; alldets[ecsn]= new Detector("tof/MONBUSY", ecsn, "TOF", 0);
+ecsn=5 ; alldets[ecsn]= new Detector("tof/MONBUSY", ecsn, "TOF", 300);   // pp:0
 
-ecsn=6 ; alldets[ecsn]= new Detector("hmpid/MONBUSY", ecsn, "HMP", 320);
+ecsn=6 ; alldets[ecsn]= new Detector("hmpid/MONBUSY", ecsn, "HMP", 380); // pp:320
 
-ecsn=7 ; alldets[ecsn]= new Detector("phos/MONBUSY", ecsn, "PHS", 200);
-ecsn=8 ; alldets[ecsn]= new Detector("cpv/MONBUSY", ecsn, "CPV", 300);
-ecsn=9 ; alldets[ecsn]= new Detector("pmd/MONBUSY", ecsn, "PMD", 600);
+ecsn=7 ; alldets[ecsn]= new Detector("phos/MONBUSY", ecsn, "PHS", 185);  // pp:200
+ecsn=8 ; alldets[ecsn]= new Detector("cpv/MONBUSY", ecsn, "CPV", 450);   // pp:300
+ecsn=9 ; alldets[ecsn]= new Detector("pmd/MONBUSY", ecsn, "PMD", 500);   // pp:600
 ecsn=10; alldets[ecsn]= new Detector("muon_trk/MONBUSY", ecsn, "MCH", 600);
-ecsn=11; alldets[ecsn]= new Detector("muon_trg/MONBUSY", ecsn, "MTR", 200);
+ecsn=11; alldets[ecsn]= new Detector("muon_trg/MONBUSY", ecsn, "MTR", 170); // pp:200
 
-ecsn=12; alldets[ecsn]= new Detector("fmd/MONBUSY", ecsn, "FMD", 300);
+ecsn=12; alldets[ecsn]= new Detector("fmd/MONBUSY", ecsn, "FMD", 250);  // pp:300
 
-ecsn=13; alldets[ecsn]= new Detector("t0/MONBUSY", ecsn, "T00", 0);
-ecsn=14; alldets[ecsn]= new Detector("v0/MONBUSY", ecsn, "V00", 0);
-ecsn=15; alldets[ecsn]= new Detector("zdc/MONBUSY", ecsn, "ZDC", 200);
-ecsn=16; alldets[ecsn]= new Detector("acorde/MONBUSY", ecsn, "ACO", 200);
+ecsn=13; alldets[ecsn]= new Detector("t0/MONBUSY", ecsn, "T00", 7);   // pp:0
+ecsn=14; alldets[ecsn]= new Detector("v0/MONBUSY", ecsn, "V00", 7);   // pp:0
+ecsn=15; alldets[ecsn]= new Detector("zdc/MONBUSY", ecsn, "ZDC", 150);    // pp:200
+ecsn=16; alldets[ecsn]= new Detector("acorde/MONBUSY", ecsn, "ACO", 130); // pp:200
 //ecsn=17; alldets[ecsn]= new Detector("trg/MONBUSY", ecsn, "TRI", 0);
-ecsn=18; alldets[ecsn]= new Detector("emcal/MONBUSY", ecsn, "EMC", 300);
-ecsn=19; alldets[ecsn]= new Detector("daq/MONBUSY", ecsn, "TST", 200);
-ecsn=21; alldets[ecsn]= new Detector("ad/MONBUSY", ecsn, "AD0", 10);
+ecsn=18; alldets[ecsn]= new Detector("emcal/MONBUSY", ecsn, "EMC", 190);  // pp:300
+ecsn=19; alldets[ecsn]= new Detector("daq/MONBUSY", ecsn, "TST",   0);    // pp:200
+ecsn=21; alldets[ecsn]= new Detector("ad/MONBUSY", ecsn, "AD0", 7);       // pp:10
 
 rc= mydbConnect(); printf("mydbConnect rc:%d\n", rc);
 gruns= new Gruns();

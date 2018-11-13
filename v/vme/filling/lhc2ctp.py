@@ -701,6 +701,7 @@ mainsat: None   -> main-main collisions
 tmaskline: string of 1 or 2 numbers :
 "NT"       -prepare Tmask (NT bcs) using standard A/C gaps
 "NT Ngaps" -prepare Tmask (NT bcs) using largest Ngaps in all B-gaps found
+see: https://alice.its.cern.ch/jira/browse/CTP-24?filter=-2
     """
     # FOLLOWING MUST be here (called also form getfsdip.py):
     #self.mainsat= mainsat     # from parameter 

@@ -189,10 +189,12 @@ init CTP. Should be called only once.
    ctp_proxy, when restarted, calls this routine.
    Only 'system parameters' should be set here (i.e. timing...)
 Input: dbctp/ctp.cfg
+rc: 0: ok   >0 error:
+
 */
-void initCTP() {
-int ix;
-resetPLLS();
+int initCTP() {
+int ix,rc;
+rc=0; resetPLLS();
 for(ix=1; ix<=NCLASS; ix++) {
   //klas,w32 condition, w32 invert, w32 veto, w32 scaler,
   //            w32 l1def, w32 l1invert, w32 l2def
@@ -357,7 +359,9 @@ for(ix=0; ix<NCTPBOARDS; ix++) {
 ix= loadcheckctpcfg();
 if(ix!=0) {
     infolog_trgboth(LOG_FATAL, (char *)"incorrect ctp.cfg file");
+    rc= 1;
 };
+return(rc);
 }
 /*---------------------------------------------------  int nnis1nn(ix) { */
 /* ix: board number (0-10).

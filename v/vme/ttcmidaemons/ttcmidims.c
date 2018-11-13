@@ -57,6 +57,7 @@ int SLOT_S= 30;
 int quit=0; 
 int udpsock;
 int rcnewclock= 0;   // 0: newclock not running, 888:active
+int newclockstarts= 0;   // increased (+1) by each newclock start 
 int clocktag=0;   // in agreement with clocknow
 int newclocktag;  /* has to be here (thread parameter)
 1..4 -clock change event
@@ -227,6 +228,7 @@ return(tag);
 - DLL_RESYNC
 */
 rcnewclock= 888;
+newclockstarts++;
 printf("newclock thread started. clocktran:%d tag:%d quit:%d\n", 
   clocktran, *(int *)tag, quit); fflush(stdout);
 while(clocktran>=0) {
@@ -413,9 +415,10 @@ if(clocktran!=0)  {
 };
 clocktran=3; strcpy(clocktransition,"3"); GetMicSec(&clocktran_s, &clocktran_u);
 newclocktag= clocktag; rcnewclock= 0;
-sprintf(errmsg, "newclock thread starting. tag:%d \n", newclocktag); prtLog(errmsg); 
+sprintf(errmsg, "newclock thread starting. tag:%d starts:%d\n", newclocktag, newclockstarts); prtLog(errmsg); 
 dim_start_thread(newclock, (void *)&newclocktag);
-printf("rcnewclock:%d\n",rcnewclock);
+dtq_sleep(1);
+printf("rcnewclock:%d starts:%d\n",rcnewclock, newclockstarts);
 }
 /*-----------------*/ void DLL_RESYNCcmd(void *tag, void *msgv, int *size)  {
 char errmsg[200];

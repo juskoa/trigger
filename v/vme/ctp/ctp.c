@@ -129,7 +129,7 @@ void setAB(w32 A, w32 B);
 */
 
 /*FGROUP LM0 */
-void initCTP();
+int initCTP();
 /*---------------------------------------------------------------- INT  */
 /*FGROUP INT
 read/print 2 counters: L2_ORBIT_READ and INT_ORBIT_READ
@@ -1625,6 +1625,7 @@ gettableSSM(0);
 void endmain() {
 }
 void boardInit() {
+int rc;
 printf("boardInit()...\n");
 /*int ix;
 for(ix=0; ix<6; ix++) {    moved to initmain (2.2.2007)
@@ -1639,7 +1640,7 @@ for(ix=0; ix<6; ix++) {    moved to initmain (2.2.2007)
 3. ctp.exe is called from command line interface:
    alidcsvme001:/home/.custom.rc (when booted)
 */
-initCTP();
-/*printf("Enabling real inputs/outputs ...\n");  */
+rc= initCTP();
+printf("initCTP rc:%d\n",rc);
 }
 

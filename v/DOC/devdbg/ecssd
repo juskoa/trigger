@@ -1,0 +1,9 @@
+ECS-SD shows peeaks. Seems casued by incorrect measurements:
+                                                 busyfraction       avbusy   l2arate
+updateMONBUSY:16.10.2018 17:04:19:1539702259 bt: 0.0675 -> 0.0590   145.34   405.63 nclients:2
+updateMONBUSY:16.10.2018 17:04:20:1539702260 bt: 0.0590 -> 0.0650   144.38   450.37 nclients:2
+updateMONBUSY:16.10.2018 17:04:21:1539702261 bt: 0.0650 -> 0.0598     0.00   413.99 nclients:2
+updateMONBUSY:16.10.2018 17:04:22:1539702262 bt: 0.0598 -> 0.0599   144.40   414.99 nclients:2
+
+Action 31.10.2018:
+ltudimservices.c modified -it does not publish the bad case.
