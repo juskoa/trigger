@@ -289,4 +289,4 @@ make apmon4
 apmon4.sh stop
           start
 
-
+=== 16.11.2018 FMD: 320us

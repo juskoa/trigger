@@ -82,12 +82,13 @@ class symbols:
       if npowertxt == None:
         return "Expected: 'FIXPOWER N float' in line:%s"%(fixll+" "+value)
       try:
-        npower= int(npowertxt)
+        npower= eval(npowertxt)  # int(npowertxt)
       except:
-        return "Expected: 'FIXPOWER int float' in line:%s"%(fixll+" "+value)
-      dfn= dfn1
-      for n in range(npower-1):
-        dfn= dfn*dfn1
+        return "Expected: 'FIXPOWER exp_float float' in line:%s"%(fixll+" "+value)
+      #dfn= dfn1
+      #for n in range(npower-1):
+      #  dfn= dfn*dfn1
+      dfn= dfn1**npower
     if dfn<0.000001: df= "0%"
     elif dfn>0.99999: df= "100%"
     else: df= "%.7f"%(dfn*100) + '%'   # g: can return 1.1e-05 !, better f

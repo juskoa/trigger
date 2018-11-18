@@ -339,7 +339,7 @@ ecsn=9 ; alldets[ecsn]= new Detector("pmd/MONBUSY", ecsn, "PMD", 500);   // pp:6
 ecsn=10; alldets[ecsn]= new Detector("muon_trk/MONBUSY", ecsn, "MCH", 600);
 ecsn=11; alldets[ecsn]= new Detector("muon_trg/MONBUSY", ecsn, "MTR", 170); // pp:200
 
-ecsn=12; alldets[ecsn]= new Detector("fmd/MONBUSY", ecsn, "FMD", 250);  // pp:300
+ecsn=12; alldets[ecsn]= new Detector("fmd/MONBUSY", ecsn, "FMD", 320);  // pp:300
 
 ecsn=13; alldets[ecsn]= new Detector("t0/MONBUSY", ecsn, "T00", 7);   // pp:0
 ecsn=14; alldets[ecsn]= new Detector("v0/MONBUSY", ecsn, "V00", 7);   // pp:0
