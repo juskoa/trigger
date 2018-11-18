@@ -2,7 +2,7 @@
 #from distutils.core import setup
 from setuptools import setup
 setup(name="validate",
-      version="5.10",
+      version="5.11",
       description="Validate .partition file with CTP config",
       long_description="""
 Validate .partition file with CTP config
@@ -40,6 +40,7 @@ from v5.5: IR1/2 defined by 8 inputs, new PF on LM board
      v5.8: minor change: check if # of LTUs>0 for each cluster
      v5.9: minor change: added syntax checks (i.e. BCM1=0.5% now error)
      v5.10: aliases.exe (x86_64) 
+     v5.11: FIXPOWER N df: now, N can be also float number
 """,
       author="Anton Jusko",
       packages=["validate"],

@@ -36,12 +36,15 @@ rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.7-1.noarch
 rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.9-1.noarch.rpm
 rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.10-1.x86_64.rpm
                                                            validate-debuginfo-5.10-1.x86_64.rpm
+rpm -qRp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.11-1.x86_64.rpm
+                                                           validate-debuginfo-5.11-1.x86_64.rpm
 
 i.e. new .rpm left in validate/build/bdist.linux-x86_64/rpm/RPMS/noarch
-resp. in x86_64/. validate-debuginfo-5.10-1.x86_64.rpm is subset of  validate-5.10-1.x86_64.rpm
+resp. in x86_64/.validate-debuginfo-5.10-1.x86_64.rpm is subset of  validate-5.10-1.x86_64.rpm
 
 scp validate/build/bdist.linux-x86_64/rpm/RPMS/noarch/validate-5.7-1.noarch.rpm juskoa@lxplus:www/validate/
 scp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.10-1.x86_64.rpm juskoa@lxplus:www/validate/
+scp validate/build/bdist.linux-x86_64/rpm/RPMS/x86_64/validate-5.11-1.x86_64.rpm juskoa@lxplus:www/validate/
 modify www/Welcome.html
 
 Email to Vasco:
@@ -51,6 +54,13 @@ http://juskoa.web.cern.ch/juskoa/validate/validate-5.10-1.x86_64.rpm
 in p2?
 I managed to add /usr/bin/aliases.exe checking the syntax of aliases.txt in working directory
 Cheers, Anton
+
+Hi Vasco, Roberto,
+I prepared new version of validate (5.11). Would you please deploy it in P2 at nearest
+occassion?
+
+Cheers,Anton
+http://juskoa.web.cern.ch/juskoa/validate/validate-5.11-1.x86_64.rpm
 
 1B. check .rpm
 --------------
@@ -130,6 +140,8 @@ python /usr/lib/python2.6/site-packages/validate/validate.py simple3
     data_files=[("bin", ["/home/alice/trigger/validate/aliases.exe"])]
       (has to be absolute path!)
   -> aliases.exe goes to /usr/bin/
+18.11.2018 
+- 5.11 FIXPOWER N df: now, N can be also float number
 
 3. Problems
 -----------

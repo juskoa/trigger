@@ -31,6 +31,26 @@ Dynamic:
   -lumi does not need to be considered for new df calculation
   implementation: very probably after LS1
 
+13.11.2018 mail sent to Martino explaining algorithm:
+
+symname FIXLUM f
+symname FIXLOSS f
+symname FIXPOWER N f
+
+where f is float number, N is integer.
+
+Result (dsf) is a string calculated using 'lumi' taken from 
+Ivan's dim service IR_MONITOR/CTP/Luminosity this way:
+
+FIXLUM:   x= f/lumi
+FIXLOSS:  x= (f/lumi)**2
+FIXPOWER: x= (f/lumi)**N
+
+x is now converteed to string:
+if x<0.000001: dsf= "0%"
+elif x>0.99999: dsf= "100%"
+else: dsf= "%.7f"%(dfn*100) + '%'  
+
 ------------------
 Obsolete notes:
 .partition syntax:
