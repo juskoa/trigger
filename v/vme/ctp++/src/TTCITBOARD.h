@@ -21,7 +21,9 @@ class TTCITBOARD: public BOARD
         // SSM analysis
         void ClearQueues();
         int AnalyseSSM();
+	int AnalyseSSMRun3();
         void Dump2quSSM();
+        void Dump2quSSMRun3();
         void DumptxtSSM();
         void DumphexbinSSM();
         void DumpqueSSM2file(const char *filename);
@@ -29,7 +31,7 @@ class TTCITBOARD: public BOARD
 	int CheckClassPatternSSM();
         void Print();
  private:
-	enum{NL1words=9,NL2words=13};
+	enum{NL1words=9,NL2words=13,NL1words3=7};
 	//
 	w32 *ssm;
         // vme addresses

@@ -141,6 +141,8 @@ After reboot:
 *4. 'ls $dbctp' command forces cache refresh on client
 
 'ls $dbctp' in 'openFile(): ok, seems works (tested with ctp_proxy/linux/test_nfs).
+See also: https://www.avidandrew.com/understanding-nfs-caching.html
+
 ===30.8.2017
  repeat test from 25.8.
 smicmd init PHYSICS_1 128 5

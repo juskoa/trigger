@@ -446,6 +446,131 @@ int TTCITBOARD::AnalyseSSM()
  if(ret==0) printf("NO ERROR detected. \n");
  return ret;
 }
+/*
+ * Analyse que dump for Run3 ttc
+ * Assume that TTC sequence start from beginning
+ *
+*/
+int TTCITBOARD::AnalyseSSMRun3()
+{
+ int ret=0;
+ if(qttcab.size() ==  0){
+   printf("Empty ssm memory \n");
+   return 0;
+ }
+ w32 l0,i0;
+ w32 issm0=qttcab[0]->issm;
+ int l0dist=0;
+ if(issm0 == 282){
+   l0=2;
+   l0dist=282-280;
+   i0=0;
+ }else if(issm0 == 3){
+   l0=0;
+   i0=8;
+   l0dist=3-281;
+   printf("L1=3, skipping 1st L1 mes \n");
+   //return 1;
+ }else{
+   printf("Error: first L1 expected at 3 or 282  but found at %i \n",qttcab[0]->issm);
+   //printf("Warning: first L1 expected at 282  or at 3 but found at  ------------------ %i\n",qttcab[0]->issm);
+   return 2;
+ }
+ // Is L0 last ?
+ ssmrecord *ss=qttcab[qttcab.size()-1];
+ //printf("Last---------------%i %i\n",ss->ttcode,ss->data);
+ //
+ w32 cl0=1,cl1=0,cl1m=0;
+ deque<w32> L1;
+ deque<w32*> L1m;
+ //w32 L0L1time=260;
+ w32 L0L1time=280;
+ w32 l1mes[NL1words3+1]; // one flag
+ l1mes[0]=0;
+ int l0dists[5];
+ for(int i=0;i<5;i++)l0dists[i]=0;
+ for(w32 i=i0;i<qttcab.size();i++){
+   //printf("%i data=%i head= %i \n",qttcab[i]->issm,qttcab[i]->data,qttcab[i]->ttcode);
+   w32 il1;
+   ssmrecord *ss=qttcab[i];
+   w32 issm=ss->issm;
+   if(ss->ttcode == 0){
+     if((ss->data==1)){
+      // L0 received 
+      if((issm-l0)<L0L1time){
+        return 1;
+      }
+      // disatnce between l0
+      int ddist=issm-l0dist;
+      if(ddist == 999) l0dists[0]++;
+      else if(ddist==1000)l0dists[1]++;
+      else if(ddist==1001)l0dists[2]++;
+      else if(ddist==1002)l0dists[3]++;
+      else l0dists[4]++;
+      if(ddist != 1000)
+      {
+	printf("dist != 1000 at %i : %i \n",issm,ddist);
+	ret++;
+      }
+      //
+      l0dist=issm;	
+      l0=issm;
+      cl0++;
+     } else {
+      // L1 received
+      if((issm-l0) != L0L1time){
+        printf("Error: L0L1 time violation - L1 arrived not in time: %i %i %i \n",issm-l0,issm,l0);
+        //return 1;
+        return 0;
+      }
+      L1.push_back(issm);
+      cl1++;
+     }
+   } else if(ss->ttcode == 1){
+     // L1h
+     if(l1mes[0]){
+       printf("Error: L1 shorter than 9 issm=%i \n",issm);
+       return 1;
+     }else{
+       // new L1 message
+       l1mes[0]=1;
+       l1mes[1]=ss->tdata;
+       il1=2;
+       cl1m++;
+     }
+   } else if(ss->ttcode == 2){
+     //L1 data
+     if(l1mes[0]==0){
+       printf("Error: L1 data without header issm=%i \n", issm);
+       return 1;
+     }
+     l1mes[il1]=ss->tdata;
+     //printf("il1= %i \n",il1);
+     if(il1==NL1words3){
+       // last word of L1 mess
+       il1=0;
+       l1mes[0]=0;      
+       //L1m.push_back(issm);
+       w32* pp = new w32[NL1words3+1];
+       pp[0]=issm;
+       for(int ii=1;ii<NL1words3+1;ii++)pp[ii]=l1mes[ii];
+       L1m.push_back(pp); // thos to be changed for pointers
+     }
+     il1++;
+   }else{ 
+    printf("Error: unexpected code %i at %i \n",ss->ttcode,issm);
+    return 1;
+   }   
+ }
+ printf("# counts  : L0: %i L1: %i L1m: %i \n",cl0,cl1,cl1m);
+ printf("# fifo sizes : L1 %i L1m %i \n",L1.size(),L1m.size());
+ printf("L0 distances 999,1000,1001,1002,other: %i %i %i %i %i\n",l0dists[0],l0dists[1],l0dists[2],l0dists[3],l0dists[4]);
+ if(cl0 != cl1){
+   //printf("Warning: different number of L0 and L1 detected. \n");
+   //return 1;
+ }
+ return ret; 
+}
 int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
 {
     if(L2m[2]==0xffffffff) return 0;   // L2r
@@ -542,6 +667,50 @@ void TTCITBOARD::Dump2quSSM()
    }
  } 
 }
+void TTCITBOARD::Dump2quSSMRun3()
+{
+ string ttcadl[]={"ZERO","L1h","L1d","L2h","L2d","L2r ","RoIh","RoId"};
+ if(ssm==0){
+   printf("Dump2quSSM: no ssm found , quiting. \n");
+   return;
+ }
+ int notactive=Mega+10;
+ int achan=notactive;
+ for(int i =Mega-1;i>=0;i--){
+   int j=Mega-1-i;
+   if(ssm[i] & 0x20000){
+     if(achan==notactive){
+       // L0 or L1
+       achan=i;
+     }else if(achan==i+1){
+      //L1 
+      //printf("L1 at %i \n",j-1);
+      achan=notactive;
+      ssmrecord *l1 = new ssmrecord(j-1,2);
+      qttcab.push_back(l1);
+     }else{
+      printf("Error \n");
+     }
+   }else{
+      if(achan != notactive){
+        //printf("L0 at %i \n",j-1);
+        achan=notactive;
+        ssmrecord *l0 = new ssmrecord(j-1,1);
+        qttcab.push_back(l0);
+      }
+   }
+   if(ssm[i] & 0x10000){
+     w32 header=(ssm[i]&0xf000)>>12;
+     w32 data=ssm[i]&0xfff;
+     ////printf("%7i Data 0x%1x 0x%3x \n", j,ssm[i]&0xf000,data);
+     string dd=ttcadl[header];
+     //printf("%7i %s 0x%1x 0x%3x \n",j,dd.c_str(),header,data);
+     ssmrecord *ss = new ssmrecord(j,header,0,0,data,0);
+     qttcab.push_back(ss);
+   }
+ } 
+}
+
 void TTCITBOARD::DumpqueSSM2file(const char *name)
 {
  char filename[200];
@@ -597,12 +766,14 @@ void TTCITBOARD::DumphexbinSSM()
      printf("%7i A chanel 0x%x  b",j, ssm[i]);
      std::cout << std::bitset<20>(ssm[i]) << std::endl;
    }
+
    //if(ssm[i] & 0x10000){
    //if(ssm[i] & 0x1ffff){
- //  if(ssm[i] ){
+  // if(ssm[i] ){
+   else if(ssm[i] & 0x10000){ 
      printf("%7i B chanel 0x%05x  b", j, ssm[i]);
      std::cout << std::bitset<20>(ssm[i]) << std::endl;
- //  }
+   }
  }
 }
 /*============================================================================
