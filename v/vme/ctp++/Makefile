@@ -1,7 +1,7 @@
 #FILE          = ltustart
 
 CXX           = g++
-CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -Isrc
+CXXFLAGS      = -g -std=c++0x -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -Isrc
 LDFLAGS       = -g -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc
 LIBS          = -lg++ -lm -ldl -rdynamic
 GLIBS         = -L/usr/X11R6/lib -lX11 -lm -ldl -rdynamic

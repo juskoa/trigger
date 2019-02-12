@@ -1,6 +1,14 @@
 #include "TTCITBOARD.h"
 #include "libctp++.h"
-int main(){
+#include <string>
+int main(int argc, char *argv[]){
+ int Nperiod = 999;
+ if(argc==2)
+ {
+	std::string speriod=argv[1];
+	Nperiod = std::stoi(speriod);
+ }
+ printf("Period: %i \n",Nperiod);
  w32 err=0;
  int NN=100;
  int vmesp=-1;
@@ -9,6 +17,7 @@ int main(){
  printf("vsp= %i \n",ttc->getvsp());
  w32 ver= ttc->getFPGAversion();
  printf("Version: 0x%x %i\n",ver,ver);
+ ttc->setNperiod(Nperiod);
  for(int i=0;i<NN;i++){
    printf("--------------------> i= %i \n",i);
    ttc->start_stopSSM();

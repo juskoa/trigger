@@ -10,6 +10,8 @@ class TTCITBOARD: public BOARD
 	TTCITBOARD(string const name,w32 const boardbase,int vsp);
 	w32 getFPGAversion(){ return vmer(VERSION);}
 	w32 getStatus(){return vmer(STATUS);};
+	void setNperiod(w32 T){f_Nperiod=T;}
+	void setL0L1dist(w32 dist){f_L0L1dist=dist;};
 	void resetSSMAddress(){vmew(RESET_SNAPSHOT_N,0xff);}
         int readSSM();
 	int startSSM();
@@ -22,6 +24,7 @@ class TTCITBOARD: public BOARD
         void ClearQueues();
         int AnalyseSSM();
 	int AnalyseSSMRun3();
+	int analyseL1mRun3(w32* mes);
         void Dump2quSSM();
         void Dump2quSSMRun3();
         void DumptxtSSM();
@@ -45,6 +48,9 @@ class TTCITBOARD: public BOARD
         w32 const TIME_L0_L1;
 	w32 const RESET_COUNTERS;
  	w32 const COUNT_ERR_BCNT;
+	w32 f_Nperiod; // trigger period for testing
+	w32 f_L0L1dist;
+	w32 f_lastbcid,f_lastorbit;
 	deque<ssmrecord*> qttcab;
         deque<w32*> classpatterns;
 };

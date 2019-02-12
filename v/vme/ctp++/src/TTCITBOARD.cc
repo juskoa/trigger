@@ -14,7 +14,8 @@ RESET(0x28),
 RESET_SNAPSHOT_N(0x8c),
 TIME_L0_L1(0x24), 
 RESET_COUNTERS(0x40), // first counter-4
-COUNT_ERR_BCNT(0x88)  // last counter
+COUNT_ERR_BCNT(0x88),  // last counter
+f_lastbcid(0xffffffff),f_lastorbit(0xffffffff)
 {
 }
 int TTCITBOARD::ReadAllCounters(w32 l0l1time)
@@ -453,22 +454,32 @@ int TTCITBOARD::AnalyseSSM()
 */
 int TTCITBOARD::AnalyseSSMRun3()
 {
+ // Parameters to check
+ //
+ // Distance between L0 triggers
+ int L0DISTGEN=f_Nperiod;
+ // L0-L1 distance
+ uint L0L1DIST=300;
+ //uint L0L1DIST=300;
+ //
  int ret=0;
  if(qttcab.size() ==  0){
    printf("Empty ssm memory \n");
    return 0;
  }
+ f_lastbcid=0xffffffff;
+ f_lastorbit=0xffffffff;
  w32 l0,i0;
  w32 issm0=qttcab[0]->issm;
  int l0dist=0;
- if(issm0 == 282){
+ if(issm0 == (L0L1DIST+2)){
    l0=2;
-   l0dist=282-280;
+   l0dist=2;//282-280;
    i0=0;
  }else if(issm0 == 3){
    l0=0;
    i0=8;
-   l0dist=3-281;
+   l0dist=3-(L0L1DIST+1);//281;
    printf("L1=3, skipping 1st L1 mes \n");
    //return 1;
  }else{
@@ -484,7 +495,7 @@ int TTCITBOARD::AnalyseSSMRun3()
  deque<w32> L1;
  deque<w32*> L1m;
  //w32 L0L1time=260;
- w32 L0L1time=280;
+ w32 L0L1time=L0L1DIST;
  w32 l1mes[NL1words3+1]; // one flag
  l1mes[0]=0;
  int l0dists[5];
@@ -502,14 +513,14 @@ int TTCITBOARD::AnalyseSSMRun3()
       }
       // disatnce between l0
       int ddist=issm-l0dist;
-      if(ddist == 999) l0dists[0]++;
-      else if(ddist==1000)l0dists[1]++;
-      else if(ddist==1001)l0dists[2]++;
-      else if(ddist==1002)l0dists[3]++;
+      if(ddist == L0DISTGEN-1 ) l0dists[0]++;
+      else if(ddist == L0DISTGEN)l0dists[1]++;
+      else if(ddist == L0DISTGEN+1 )l0dists[2]++;
+      else if(ddist == L0DISTGEN+2)l0dists[3]++;
       else l0dists[4]++;
-      if(ddist != 1000)
+      if(ddist != L0DISTGEN)
       {
-	printf("dist != 1000 at %i : %i \n",issm,ddist);
+	printf("dist != %i at %i : %i \n",L0DISTGEN, issm,ddist);
 	ret++;
       }
       //
@@ -555,6 +566,7 @@ int TTCITBOARD::AnalyseSSMRun3()
        pp[0]=issm;
        for(int ii=1;ii<NL1words3+1;ii++)pp[ii]=l1mes[ii];
        L1m.push_back(pp); // thos to be changed for pointers
+       if(analyseL1mRun3(pp)) return 1;;	
      }
      il1++;
    }else{ 
@@ -564,12 +576,45 @@ int TTCITBOARD::AnalyseSSMRun3()
  }
  printf("# counts  : L0: %i L1: %i L1m: %i \n",cl0,cl1,cl1m);
  printf("# fifo sizes : L1 %i L1m %i \n",L1.size(),L1m.size());
- printf("L0 distances 999,1000,1001,1002,other: %i %i %i %i %i\n",l0dists[0],l0dists[1],l0dists[2],l0dists[3],l0dists[4]);
+ printf("L0 distances %i,%i,%i,%i,other: %i %i %i %i %i\n",L0DISTGEN-1,L0DISTGEN,L0DISTGEN+1,L0DISTGEN+2,l0dists[0],l0dists[1],l0dists[2],l0dists[3],l0dists[4]);
  if(cl0 != cl1){
    //printf("Warning: different number of L0 and L1 detected. \n");
    //return 1;
  }
  return ret; 
+}
+int TTCITBOARD::analyseL1mRun3(w32* mes)
+{
+ if(f_lastbcid==0xffffffff)
+ {
+   f_lastbcid=mes[4];
+   f_lastorbit=mes[7]+(mes[6] << 12);
+   printf("1st BCID: 0x%x 1st ORBIT: 0x%x \n",f_lastbcid,f_lastorbit);
+ }
+ else
+ {
+   // check bcid
+   w32 bcid=mes[4];
+   w32 newbcid = (f_lastbcid+f_Nperiod) % 3564;
+   if( bcid != newbcid)
+   {
+	printf("ssm pos: %i BCID error: bcid: 0x%x expected: 0x%x \n",mes[0],bcid,newbcid);
+	return 1;
+   }
+   // check orbit
+   w32 orbit=mes[7]+(mes[6] << 12);
+   w32 neworbit = f_lastorbit + (f_lastbcid+f_Nperiod)/3564;
+   //if(newbcid<bcid) neworbit+=1;
+   neworbit = neworbit % 0xffffff;
+   if( orbit != neworbit)
+   {
+	printf("ssm pos: %i ORBIT error: orbit: 0x%x expected: 0x%x \n",mes[0],orbit,neworbit);
+	return 1;
+   }
+   f_lastbcid=bcid;
+   f_lastorbit=orbit;
+ }
+ return 0;
 }
 int TTCITBOARD::CompareL1L2Data(w32* L1m,w32* L2m)
 {
