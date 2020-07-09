@@ -58,6 +58,7 @@ fi
 function ProxyOn() {
 #declare -a doexist=(`$SMIBIN/proxyExists $proxyname`)
 line=`$SMIBIN/proxyExists $1`
+ps --columns 120 -C python o user,pid,args | awk '{if(index($4,"ltud_server.py")>0) {printf "%8s %7d ltud_server.py %s %s %s %s\n", $1, $2, $5, $6, $7, $8}}'
 }
 function StartProxy() {
 # $1 -dtn (ssd, acorde, spd,...)

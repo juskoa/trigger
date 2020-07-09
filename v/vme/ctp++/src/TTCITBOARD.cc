@@ -490,7 +490,7 @@ int TTCITBOARD::AnalyseSSMRun3()
  // Is L0 last ?
  ssmrecord *ss=qttcab[qttcab.size()-1];
  //printf("Last---------------%i %i\n",ss->ttcode,ss->data);
- //
+ //////
  w32 cl0=1,cl1=0,cl1m=0;
  deque<w32> L1;
  deque<w32*> L1m;

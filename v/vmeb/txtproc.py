@@ -345,16 +345,16 @@ def main():
   #expr= "a & b & (~c)& (~d)& (~e)& (~f)& (~g)& (~h)& (~i)& (~j)& (~k)& (~l)" 
   #expr= "a & ~b & ~c & ~d & ~e & ~f & ~g & ~h & ~i & ~j & ~k & ~l " 
   #tbl= ["a","b","c","d","e","f","g","h","i","j","k","l"]
-  tbl= ["a","b","c","d","e","f","g","h"]
-  expr= "a|b|c|d|e|f|g|h" ; 
+  #tbl= ["a","b","c","d","e","f","g","h"]
+  #expr= "a|b|c|d|e|f|g|h" ; 
   #expr= "h"
   #expr= "a&e" ; tbl= ["a","b","c","d","e","f"]
   #expr= "(~0VBA)&(~0VBC)"
   #expr= "0SMB & 0VBA&0VBC" ; tbl= ['0SMB', '0VBA', '0VBC', '0BPA']  # 0x8080
   #expr= "0VBA&0VBC" ; tbl= ['0SMB', '0VBA', '0VBC', '0BPA']   # 0x4040
   #
-  txtlut= log2tab(expr, tbl)
-  print expr, tbl, txtlut, "L:",len(txtlut)
+  #txtlut= log2tab(expr, tbl)
+  #print expr, tbl, txtlut, "L:",len(txtlut)
   #expr= "a & (~b)& (~c)& (~d)" ; tbl= ["a","b","c","d"]
   #expr= "(~a) & b& (~c)& (~d)" ; tbl= ["a","b","c","d"]
   #expr= "(~a) & (~b)& (~c)& (~d)" ; tbl= ["a","b","c","d"]
@@ -364,7 +364,7 @@ def main():
   #print string.digits
   #print varsInExpr("T0 | TRFpre & blabla")
   #bcm= BCmask("3L4H 3(H2(L3h)LH)")
-  #bcm= BCmask("3L4H 3(LH)3600L") ; print str(bcm.bcm2bits(0))
+  bcm= BCmask("3L4H 3(LH)3600L") ; print str(bcm.bcm2bits(0))
   #bcm= BCmask("")
   #bcm= BCmask("3X("); bcm.setbits()
 

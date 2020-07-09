@@ -20,7 +20,7 @@ can be invoked togethether with physics triggers being active)
 #define TIMEOUT 100      /* <10 with mysleep(10) */
 #define DBGswtrg2 1
 #define DBGswtrg3 1
-#define DBGswtrg4 0
+#define DBGswtrg4 1
 
 int l0C0();
 
