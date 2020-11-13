@@ -19,8 +19,9 @@ endif
 ifdef SERVER_LINK
 S_OBJS := ranlux.o lexan.o timeroutines.o dodif32.o \
  prtError.o shmaccess.o infolog.o detectfile.o environment.o \
- daqlogbook.o udplib.o actdb.o $(dimwrapo) bakery.o doItemName.o \
- redisint.o
+ daqlogbook.o udplib.o actdb.o $(dimwrapo) bakery.o \
+ doItemName.o
+# redisint.o
 else
 # daqlogbook.o removed 5.8.2013 for client
 S_OBJS = vmewrap.o ranlux.o lexan.o vmesim.o timeroutines.o \
@@ -47,8 +48,8 @@ bakery.o: bakery.c bakery.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 daqlogbook.o: daqlogbook.c daqlogbook.h
 	$(CC) $(CFLAGS) -c -o $@ $<
-redisint.o: redisint.c
-	$(CC) $(CFLAGS) -I$(REDIS)/deps/hiredis -c -o $@ $<
+#redisint.o: redisint.c
+#	$(CC) $(CFLAGS) -I$(REDIS)/deps/hiredis -c -o $@ $<
 #%.o: %.c    nebavi
 .o: .c .h
 	$(CC) $(CFLAGS) -o $@ $<
