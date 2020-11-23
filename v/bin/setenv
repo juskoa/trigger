@@ -45,7 +45,7 @@ elif [ "$HN" = 'alidcscom707' -o "$HN" = 'alidcscom521' ] ;then
   export CLRFS=''
   #export ULT=/usr/local/trigger
   alias vncv="vncviewer -shared alidcscom707:1"
-elif [ $HN = 'altri2' -o $HN = 'alidcsvme001' ] ;then
+elif [ $HN = 'altri2' -o $HN = 'altri23' -o $HN = 'alidcsvme001' ] ;then
   alias ctp="vmecrate nbi ctp"
   cd ~/v/vme/WORK
 else

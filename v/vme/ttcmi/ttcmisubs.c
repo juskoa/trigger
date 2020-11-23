@@ -480,7 +480,7 @@ if(present==-1) {
   } else {
     char *hn;
     hn= getenv("HOSTNAME");
-    if(strcmp(hn, "altri2")==0) {
+    if(strncmp(hn, "altri2",6)==0) {   // altri2,22,23,24
       havemicrate= 2;  // RF2TTC only
     } else {
       havemicrate= 0;

@@ -4,9 +4,16 @@
 . $VMECFDIR/../bin/auxfunctions
 #
 hname=`hostname -s`
-if [ "$VMESITE" != "PRIVATE" -a "$hname" != 'alidcsvme017' -a "$hname" != 'altri2' ] ;then
-  echo 'Debug? ttcmi boards available only on alidcsvme017 (or altri2 for test)'
-  #exit
+if [ ! -e /dev/vme_rcc ] ;then           #-------------------- not VME CPU
+  echo 'Debug? VMERCC not available'
+  exit
+fi
+
+#if [ "$VMESITE" != "PRIVATE" -a "$hname" != 'alidcsvme017' -a "$hname" != 'altri2' ] ;then
+if [ "$hname" != 'altri23' -a "$hname" != 'altri22' ] ;then
+  #echo 'Debug? ttcmi boards available only on alidcsvme017 (or altri2 for test)'
+  echo 'Debug? ttcmi control available only from new C8 VP-E24 CPUs'
+  exit
 fi
 getpid 'linux/ttcmidims'
 if [ "$1" == 'stop' ] ;then   #-------------------------- stop

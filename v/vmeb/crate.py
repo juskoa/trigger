@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 from Tkinter import *
 import os, sys,string
 import myw
