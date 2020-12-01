@@ -1,0 +1,29 @@
+[trigger@altri2 rf2ttc]$ ./rf2ttc
+Usage:
+rf2ttc.exe local|beam1|switch|status 
+[trigger@altri2 rf2ttc]$ ./rf2ttc status
+mbc mo:0 2             local
+status: 0xa8
+vmxclose rc:0
+[trigger@altri2 rf2ttc]$ ./rf2ttc local
+status: 0x69   l->l:    MM: 01 ok
+vmxclose rc:0
+[trigger@altri2 rf2ttc]$ ./rf2ttc status
+mbc mo:0 2
+status: 0x69
+vmxclose rc:0
+[trigger@altri2 rf2ttc]$ ./rf2ttc beam1
+status: 0x68    l->b:    MM: 00   noError, LOL
+vmxclose rc:0
+[trigger@altri2 rf2ttc]$ ./rf2ttc status
+mbc mo:3 0      beam1
+status: 0x68
+vmxclose rc:0
+[trigger@altri2 rf2ttc]$ ./rf2ttc local
+status: 0x69    b->l:    MM: 01 ok
+vmxclose rc:0
+[trigger@altri2 rf2ttc]$ ./rf2ttc status
+mbc mo:0 2
+status: 0x69
+vmxclose rc:0
+
