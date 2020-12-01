@@ -1,4 +1,5 @@
 #include "LTUBOARD.h"
+#include <unistd.h>
 //---------------------------------------------------------------------
 LTUBOARD::LTUBOARD(string const name,w32 const boardbase,int vsp)
 :

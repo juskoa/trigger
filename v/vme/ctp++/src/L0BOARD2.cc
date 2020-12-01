@@ -1,4 +1,6 @@
 #include "L0BOARD2.h"
+#include <unistd.h>
+
 L0BOARD2::L0BOARD2(int vsp)
 :
 	L0BOARD(vsp),

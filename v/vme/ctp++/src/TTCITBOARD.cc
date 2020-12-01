@@ -1,4 +1,6 @@
 #include "TTCITBOARD.h"
+#include <unistd.h>
+
 #include <bitset>
 //---------------------------------------------------------------------
 TTCITBOARD::TTCITBOARD(string const name,w32 const boardbase,int vsp)

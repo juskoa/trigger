@@ -1,11 +1,11 @@
 #FILE          = ltustart
 
-CXX           = g++ -std=c++0x
-CXXFLAGS      = -g -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -Isrc
+CXX           = g++
+CXXFLAGS      = -g -std=c++0x -Wall -fPIC -Ilib/ -I$(VMEBDIR)/vmeblib -Isrc
 LDFLAGS       = -g -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc
 LIBS          = -lg++ -lm -ldl -rdynamic
 GLIBS         = -L/usr/X11R6/lib -lX11 -lm -ldl -rdynamic
-VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/usr/local/include
+VMERCCCXX    =  -g -DVMERCC -I$(VMEBDIR)/vmeblib -I/usr/local/include -I//ATLAS/tdaq_drivers/
 
 #x/L0BOARD.cc x/L0BOARD1.cc x/L0BOARD2.cc
 FILES = x/BOARDBASIC.cc x/BOARD.cc x/SSMTOOLs.cc x/LTUBOARD.cc x/CTP.cc x/CONNECT.cc \
@@ -14,30 +14,32 @@ x/L1BOARD.cc x/L2BOARD.cc x/INTBOARD.cc x/DETECTOR.cc \
 x/FOBOARD.cc x/TTCITBOARD.cc x/BUSYBOARD.cc x/ssmrecord.cc
 
 SRCS=$(subst x/,src/,$(FILES))
-OBJ = $(subst x/,/home/alice/trigger/ctp++/obj/,$(FILES))
-OBJFILES = $(OBJ:.cc=.o) /home/alice/trigger/ctp++/obj/vmewrap.o
+OBJ = $(subst x/,obj/,$(FILES))
+OBJFILES = $(OBJ:.cc=.o) obj/vmewrap.o
 HFILES =   $(SRCS:.cc=.h)
 .SECONDARY: $(OBJFILES)
 
-all: readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e ltuttcit.e \
-ttcit1ssm.e l0.e ctpda.e ctpltuttcit.e int.e ctprolm0.e findLMOrbitOff.e
+all: ttcitRun3.e
+#	readCTPcounters.e readBCstatus.e ttcit.e ctpttcit.e ctpstart.e startttc.e readttc.e ltu.e fo.e ttcittest.e l1inmon.e ltuttcit.e \
+ttcit1ssm.e l0.e ctpda.e ctpltuttcit.e int.e ctprolm0.e findLMOrbitOff.e \
+ttcitkubo.e
 # debugging
 #all: $(FILE).e
 #	@echo SRCS    : $(SRCS)
 #	@echo HFILES  : $(HFILES)
 #	@echo OBJFILES: $(OBJFILES)
 
-/home/alice/trigger/ctp++/%.e: /home/alice/trigger/ctp++/obj/%.o $(OBJFILES)
+%.e: obj/%.o $(OBJFILES)
 	g++ $< $(OBJFILES) $(LDFLAGS) $(GLIBS) lib/libctp++.a -o $@
 
-/home/alice/trigger/ctp++/obj/%.o:  macros/%.C
+obj/%.o:  macros/%.C
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-/home/alice/trigger/ctp++/obj/vmewrap.o: $(VMEBDIR)/vmeblib/vmewrap.c
-	g++ -c $(VMERCCCXX) $(VMEBDIR)/vmeblib/vmewrap.c -o /home/alice/trigger/ctp++/obj/vmewrap.o
+obj/vmewrap.o: $(VMEBDIR)/vmeblib/vmewrap.c
+	g++ -c $(VMERCCCXX) $(VMEBDIR)/vmeblib/vmewrap.c -o obj/vmewrap.o
 
-/home/alice/trigger/ctp++/obj/%.o: src/%.cc src/%.h
+obj/%.o: src/%.cc src/%.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm /home/alice/trigger/ctp++/obj/*.o || true
-	rm /home/alice/trigger/ctp++/*.e || true
+	rm obj/*.o || true
+	rm *.e || true

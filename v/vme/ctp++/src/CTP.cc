@@ -1,4 +1,6 @@
 #include "CTP.h"
+#include <unistd.h>
+
 CTP::CTP():
 busy(0),l0(0),l1(0),l2(0),inter(0),numofltus(0),numoffos(0),
 vspctp(-1),vspltu(-1),

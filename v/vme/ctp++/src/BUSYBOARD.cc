@@ -1,4 +1,6 @@
 #include "BUSYBOARD.h"
+#include <unistd.h>
+
 BUSYBOARD::BUSYBOARD(int vsp)
 :
 BOARD("busy",0x828000,vsp,4),

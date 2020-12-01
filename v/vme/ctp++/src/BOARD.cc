@@ -1,4 +1,5 @@
 #include "BOARD.h"
+#include <unistd.h>
 std::vector<string> BOARD::AllCounterNames;
 
 BOARD::BOARD(string const name,w32 const boardbase,int vsp,int nofssmmodes)
