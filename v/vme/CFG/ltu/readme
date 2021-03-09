@@ -100,7 +100,8 @@ BUSY2 -> L1  i.e. LVDS to ECL
 15.12.2014
 ltu_logic_vD2.rbf
 BUSY1 -> out_prepulse(NIM)),
-BUSY2 -> out_L1(ECL) + BUSY(LVDS))
+BUSY2 -> out_L1(ECL) INVERTED + BUSY(LVDS))
+see vD6 for not INVERTED L1(ECL) output
 3.3.2015
 ltu_logic_BB.rbf, ltu2_logic_BB.rbf
 improved timing, TTC-A/B output configurable (Honza)
@@ -120,4 +121,9 @@ Note: all coneverters (ltu_D*.rbf), when loaded with VMEfirmware
 0xa9 (i.e. vmecrate nbi ltu=0x813000 -> stdfuncs -> read VERSION_ADD/0xC),
 will load FPGA firmware from FM automatically, i.e. no VME CPU
 needed to initiate FM->FPGA firmware load.
+
+2.3.2021  je aj na twiki: https://twiki.cern.ch/twiki/bin/view/ALICE/LTUConverter
+Na starej doske bol SPARE - ECL:w
+ out, na novej je to ORBIT - NIM in
+9.3.2021 ltu_logic_vD6.rbf as D2 but INVERTED L1.ecl out
 
