@@ -125,5 +125,5 @@ needed to initiate FM->FPGA firmware load.
 2.3.2021  je aj na twiki: https://twiki.cern.ch/twiki/bin/view/ALICE/LTUConverter
 Na starej doske bol SPARE - ECL:w
  out, na novej je to ORBIT - NIM in
-9.3.2021 ltu_logic_vD6.rbf as D2 but INVERTED L1.ecl out
+9.3.2021 ltu_logic_vD6.rbf as D2 but INVERTED L1.ecl out (see twiki)
 
