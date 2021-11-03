@@ -81,8 +81,10 @@ if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
     export SERVER_NODE=alidcscom835
-    export DIM_DNS_NODE=aldaqecs
-    #export DIM_DNS_NODE=alidcscom188
+    #export DIM_DNS_NODE=aldaqecs
+    #export DIM_DNS_NODE=alidcscom835
+    #export DIM_DNS_NODE=alitriwn001
+    export DIM_DNS_NODE=alidcsdimdns
   elif [ "$hname" = "altri1" ] ;then   # development
     export SMAQ_C=$LABSERVER
     export VMESITE=SERVER
@@ -117,7 +119,9 @@ else               #------------------------------ server
   elif [ "$hname" = 'alidcscom835' -o "$hname" = 'alidcscom707' ] ;then
     export VMESITE=ALICE
     export SMAQ_C=alidcscom707
-    export DIM_DNS_NODE=aldaqecs
+    #export DIM_DNS_NODE=aldaqecs
+    export DIM_DNS_NODE=alidcsdimdns
+    #export DIM_DNS_NODE=alidcscom835
     export MI_NODE=alidcsvme017
     if [ -d /opt/act ] ;then   # needed only on server
       export ACT_DB=acttrg:dppDFFIO@aldaqdb/ACT   # was CBNRR@be in run1

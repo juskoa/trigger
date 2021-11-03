@@ -1,0 +1,4 @@
+Sep 30 03:38:40 alidcscom835 kernel: Status code returned 0xc000006d NT_STATUS_LOGON_FAILURE
+Sep 30 03:38:40 alidcscom835 kernel: CIFS VFS: Send error in SessSetup = -13
+Sep 30 19:40:04 alidcscom835 abrt: detected unhandled Python exception in './monitor.py'
+

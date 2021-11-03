@@ -24,7 +24,8 @@ def signal_handler(signal, stack):
   os.remove(pidpath)
   #sys.exit(8)
 
-def send_mail(text, subject='', to='41754112090@mail2sms.cern.ch'):
+#def send_mail(text, subject='', to='41754112090@mail2sms.cern.ch'):
+def send_mail(text, subject='', to='anton.jusko@cern.ch'):
   """
   Usage:
   send_mail('This is a test', 'subj')
@@ -194,6 +195,7 @@ class Daemon:
 /dev/sda: ST3250310AS: 37oC
                          \xc2
     "shscript"  -only one application (mnt521), i.e. not tested thoroughly
+                 checkdimdns
     "fileage"
 
     rc: ON: on, msg
@@ -250,8 +252,10 @@ class Daemon:
         else:
           rc= [self.OFF]
       elif self.scb=="shscript":
-        line= self.iopipe(self.name+".sh", "drwxrwxrwx 1 root root")
+        #line= self.iopipe(self.name+".sh", "drwxrwxrwx 1 root root")   # mnt521
+        line= self.iopipe(self.name+".sh")
         #self.logm("getpid:pidline:"+pidline+":")
+        #print "line:", self.name, line
         if line:
           #pid= string.split(pidline)[1]
           rc= [self.ON, line]
@@ -344,6 +348,8 @@ class Daemon:
       if lookfor:
         ix= string.find(line, lookfor)
         if ix>=0: rc= line[ix:]   # remaining test from 'pid:' returned
+      else:
+        rc= line
     iop[0].close()
     iop[1].close()
     return rc
@@ -379,7 +385,7 @@ monitor.py stop
       return
   mypid= str(os.getpid())
   pidf=open(pidpath,"w"); pid= pidf.write(mypid); pidf.close()
-  log=pylog.Pylog("monitor") #, tty="tty")
+  log=pylog.Pylog("monitor", tty="tty")
   log.logm("mypid: "+mypid+ " ALARMhddtemp: %d"%ALARMhddtemp)
   htmlfn= os.path.join(os.environ['VMEWORKDIR'], "WORK","monitor.html")
   signal.signal(signal.SIGUSR1, signal_handler)  # 10
@@ -402,29 +408,34 @@ monitor.py stop
   # p2:
   inputsfn= os.path.join(os.environ['VMEWORKDIR'], "WORK","MONSCAL","inputs.png")
   if os.environ['VMESITE'] == "ALICE":
-    allds={"xcounters":Daemon("xcounters", autor="n"), 
-      "ctpwsgi":Daemon("ctpwsgi"), 
-      "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
-      "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
-      "gcalib":Daemon("gcalib"),
-      "mnt521":Daemon("mnt521",scb="shscript", autor="n"),
-      "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122)
-    }
-    log.logm("Udp used.")
-    udpmsg=Udp(allds)   
+    # run2:
+    #allds={"xcounters":Daemon("xcounters", autor="n"), 
+    #  "ctpwsgi":Daemon("ctpwsgi"), 
+    #  "ttcmidim":Daemon("ttcmidim"), "html":Daemon("html"),
+    #  "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
+    #  "gcalib":Daemon("gcalib"),
+    #  "mnt521":Daemon("mnt521",scb="shscript", autor="n"),
+    #  "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122)
+    #}
+    # run3:
+    allds={"checkdns":Daemon("checkdimdns",scb="shscript", autor="n") }
+    log.logm("Udp NOT used.")
+    #udpmsg=Udp(allds)   
   else:
     # bhm10:
     # allds={"gcalib":Daemon("gcalib"), "ctpdim":Daemon("ctpdim")}
     # adls: ttcmidim problematic (runs on altri2 which is on bhm10)
     # "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122),
-    allds={"xcounters":Daemon("xcounters", autor="n"), 
-      "ctpwsgi":Daemon("ctpwsgi"), 
-      "html":Daemon("html"),
-      "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
-      "gcalib":Daemon("gcalib"),
-      "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122)
-    }
-    # test in lab:
+    # run2:
+    #allds={"xcounters":Daemon("xcounters", autor="n"), 
+    #  "ctpwsgi":Daemon("ctpwsgi"), 
+    #  "html":Daemon("html"),
+    #  "miclock":Daemon("miclock", scb="udp", onfunc=miclock_onfunc, autor="n"),
+    #  "gcalib":Daemon("gcalib"),
+    #  "gmonscal":Daemon("gmonscal", scb="fileage", filename=inputsfn, age= 122)
+    #}
+    # run3:
+    allds={"checkdns":Daemon("checkdimdns",scb="shscript", autor="n") }
     log.logm("Udp used...")
     udpmsg=Udp(allds)   
   lin=""
@@ -480,7 +491,7 @@ monitor.py stop
       htmlf.write(htm)
     htmlf.close()
     log.flush()
-    time.sleep(30)   # was 5 before 11.7.2013
+    time.sleep(60)   # was 5 before 11.7.2013
     if quit:
       #for dm in allds: no need (a1,a2 are logged in the time of their creation)
       #  dm.flush()

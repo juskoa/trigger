@@ -53,7 +53,7 @@ typedef struct {
 Tfanin fanis[Nfanios]= {
   {"ssd",  "0xe00000", 0x6cf00, 0, 'i'},
   {"daq",  "0x980000", 0x1, 0, 'i'},
-  {"fmd",  "0xa80000", 0, 0, 'i'},
+  //{"fmd",  "0xa80000", 0, 0, 'i'},
   {"hmpid","0x200000", 0x03fff, 0, 'i'},
   {"ssd",  "0xf00000", 0, 0, 'o'},
   {"fmd",  "0x680000", 0, 0, 'o'},

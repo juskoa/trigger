@@ -255,18 +255,18 @@ while(clocktran>=0) {
       } else {
         strcpy(server, "adls");
       };
-      infolog_trgboth(LOG_WARNING, "ALICE clock changed, restaring ctpproxy (25s)...");
+      infolog_trgboth(LOG_WARNING, "ALICE clock changed, restaring ctpproxy (25s)...NOT DONE");
       sprintf(cmd, "ssh trigger@%s ctpproxy.py restart nomasks", server);
       setbcorbit(*(int *)tag); 
       nclients= dis_update_service(MICLOCKid);
       printf("updated MICLOCK clients:%d\n", nclients);
       //printf("updated MICLOCK clients:%d, now ctpproxy.py restart nomasks...\n", nclients);
-      rc= popenread(cmd, result, reslen);
+      /* rc= popenread(cmd, result, reslen);
       if(rc==EXIT_FAILURE) { 
         printf("ERROR cmd:%s rc:%d\n", cmd, rc);
       } else {
         printf("result(len:%d):%s\n", strlen(result), result);
-      };  
+      }; */ 
     };
   };
   if(quit==1) clocktran=0;
@@ -294,8 +294,12 @@ for(ix=0; ix<80; ix++) {
     break;
   };
 };
-if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
-   ( strncmp(hname,"ALIDCSCOM779.cern.ch",20)==0)) {
+/*if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
+   ( strncmp(hname,"ALIDCSCOM779.cern.ch",20)==0)) { */
+if(( strncmp(hname,"ALIDCSSRV031",12)==0) ||
+   ( strncmp(hname,"alidcssrv031.cern.ch",20)==0) ||
+   ( strncmp(hname,"alidcssrv066.cern.ch",20)==0) ||
+   ( strncmp(hname,"ALIDCSSRV031.cern.ch",20)==0)) {
   rc=0; goto OK;
 }; 
 // do not check when debug or lab:
@@ -573,8 +577,9 @@ if((freqs[0] != rfrx1[2].freq) ||
 //stat=qpllstat+1; //simulate change
 if(stat != qpllstat) {
   char msg[100];
-  if((stat | REF_MASK) != (qpllstat | REF_MASK)) {
-    sprintf(msg, "QPLL update (ref ignored here) rc:%d qpllstat:0x%x",
+  //if((stat | REF_MASK) != (qpllstat | REF_MASK)) { //changed 6.1.2021
+  if((stat | R21_MASK) != (qpllstat | R21_MASK)) {
+    sprintf(msg, "QPLL update (ref/bc2/bc1 ignored) rc:%d qpllstat:0x%x",
       rc,stat);
     prtLog(msg);
   };
@@ -735,7 +740,7 @@ while(1)  {
   //printf("sleteping 10secs...\n"); fflush(stdout);
   //sleep(1) ; 
   //msleep(1000);
-  dtq_sleep(2);
+  dtq_sleep(60);   // 2->60 cahnge on 6.1.2021
   //printf("slept 10secs...\n"); fflush(stdout);
 };  
 ds_stop();

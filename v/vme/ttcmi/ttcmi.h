@@ -129,6 +129,7 @@ C. localBC/
 */
 void setbcorbitMain(int maino);
 #define REF_MASK 0x0c
+#define R21_MASK 0xfc
 /*FGROUP
 read QPLL* and TTCrx status bits.
 RC: 0xTAB

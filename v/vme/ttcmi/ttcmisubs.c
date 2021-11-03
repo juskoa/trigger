@@ -61,8 +61,9 @@ if( (strlen(title)+strlen(msg)) > 500) {
   printf("Error: com2daq: too long msg: %d %s %s\n", run,title,msg);
 } else {
   sprintf(cmd, "%d \"%s\" \"%s\"", run, title, msg);
-  rc= dic_cmnd_service((char *)"CTPRCFG/COM2DAQ", cmd, strlen(cmd)+1);
-  printf("com2daq: rc:%d title:%s\n", rc, title);
+  rc= 0;  // dic_cmnd_service((char *)"CTPRCFG/COM2DAQ", cmd, strlen(cmd)+1);
+  printf("com2daq, CTPRCFG/COM2DAQ dic_cmd, skipped");
+  //printf("com2daq: rc:%d title:%s\n", rc, title);
 };
 }
 

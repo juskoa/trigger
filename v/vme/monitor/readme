@@ -3,7 +3,7 @@ General notes
 goal: SMS to be sent in case of (to be checked):
 - something crashed, i.e.:
 
-- not to be sent is something was started by human intervention
+- not to be sent if something was started by human intervention
 
 files
 -----
@@ -134,3 +134,4 @@ may 2016 udp expected/monitored from miclock 1/min!
 summer 2017 mnt521 added
 7.11.2017 fileage added monitoring gmonscal through the age if its inputs.png
 
+autumn 2020 checkdns added. See checkdimdns.sh script in bin
