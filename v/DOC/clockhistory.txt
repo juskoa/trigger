@@ -35,4 +35,46 @@ printBC_DELAYS()
      ORBOUT_DELAY25_ORB2 0x7d044:140
   ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
       ORBOUT_DELAY25_GCR 0x7d054:100
+=== 27.10.2021
+readall()
+PROGRAM_ID:25062009
+readall: not calling printRFRX... (to be replaced by gerRFRX?)
+ORB1_DAC:0xaa ORB2_DAC:0xaa
+polarity0: 0x7fae0:0x1   0x7fad8 0x26 delay:dec
+polarity1: 0x7fb20:0x1   0x7fb18 0x26 delay:0
+polarity2: 0x7fb60:0x1   0x7fb58 0x26 delay:dec
+WORKING_MODE (bits 0..6 (0:man,1:auto)for: BC1/2/r/main Orb1/2/m:0 
+BST_Machine_Mode:b
+   BC_DELAY25_BCMAIN/BC1 0x15b=27/0x15b=27 halfsns 
+
+ORBmain_COARSE_DELAY/ORB1_ 3564/3564 bcs 
+
+BC 1/2/ref selection (Int/Ext):EEE
+BC/ORB main_MAN_SELECT: 3 0
+BCmain_MAN_SELECT:
+0:40.078MHz int clock, 1: BCref, 2: BC2in, 3: BC1in
+ORBmain_MAN_SELECT:
+0:Orbit1, 1:Orbit2, 2:int BCmain sync. orbit generator
+CORDE reg7: 374(0x176)
+
+printBC_DELAYS()
+          BC_DELAY25_BC1 0x7d000:15b
+          BC_DELAY25_BC2 0x7d004:140
+        BC_DELAY25_BCREF 0x7d008:140
+       BC_DELAY25_BCMAIN 0x7d00c:15b
+          BC_DELAY25_GCR 0x7d014:100
+      ORBIN_DELAY25_ORB1 0x7d020:152
+      ORBIN_DELAY25_ORB2 0x7d024:151
+       ORBIN_DELAY25_GCR 0x7d034:100
+     ORBOUT_DELAY25_ORB1 0x7d040:14b
+     ORBOUT_DELAY25_ORB2 0x7d044:140
+  ORBOUT_DELAY25_ORBMAIN 0x7d048:14b
+      ORBOUT_DELAY25_GCR 0x7d054:100
+
+=== ~9:45
+374 -> 40 4 -> 400
+- 450
+10:57 450
+10:59 500
+11:06 200
 
