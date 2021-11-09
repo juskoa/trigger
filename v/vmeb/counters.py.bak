@@ -1,18 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # 18.9. byoutT now ok, byin1-24 now OK (were shifted by 1)
 # 18.9. INT counters added (previous int is now l0int)
 # 24.11. CGT addded in findAddr 
-from __future__ import division
-from __future__ import print_function
-from past.builtins import execfile
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from tkinter import *
-import os, types, time,threading #, os.path, glob
+from Tkinter import *
+import string,os, types, time,threading #, os.path, glob
 import myw
 
 #following definition must agree with ctp/ctpcounters.h
@@ -62,7 +53,7 @@ L0200SH=NCOUNTERS_L0+NCOUNTERS_L1+NCOUNTERS_L2+6*NCOUNTERS_FO+\
 shmext=None
 cntsactive=0
 
-class CTPboards(object):
+class CTPboards:
   def __init__(self, printnames=None):
     #self.bicname= os.environ['VMEWORKDIR'] +"/WORK/default.counters"
     #print "CTPboards:printnames:",printnames
@@ -78,7 +69,7 @@ class CTPboards(object):
     self.boards={}
     ltuix=1; ttcviix=1
     for line in cf.readlines():
-      nb= line.split("=")
+      nb= string.split(line,"=")
       if nb[0]=="l0": self.boards["l0"]= nb[1]
       elif nb[0]=="l1": self.boards["l1"]= nb[1]
       elif nb[0]=="l2": self.boards["l2"]= nb[1]
@@ -93,10 +84,10 @@ class CTPboards(object):
         self.boards["ttcvi"+str(ttcviix)]= nb[1]
         ttcviix= ttcviix+1
       else:
-        print("Error in %s:%s"%(self.bicname,line))       
+        print "Error in %s:%s"%(self.bicname,line)       
     cf.close()
   def getBase(self,brd):
-    if brd in self.boards:
+    if self.boards.has_key(brd):
       return self.boards[brd]
     else:
       return None
@@ -108,18 +99,18 @@ class CTPboards(object):
     if brd=='fo':
       for ix in (1,2,3,4,5,6):
         bn= 'fo'+ str(ix)
-        if brd in self.boards:
+        if self.boards.has_key(brd):
           rc.append[bn]
-    elif brd in self.boards:
+    elif self.boards.has_key(brd):
       rc.append[bn]
     if rc==[]: rc=None
     return rc
 
-class SHMCounter(object):
+class SHMCounter:
   pxwidth=500
   pxheight=46
   xresolution=2
-  nmax= old_div(pxwidth,xresolution)-1
+  nmax= pxwidth/xresolution-1
   canvasbg="#ccffcc"
   COLDYNAMIC=canvasbg
   maxcounter=0x7fffffff
@@ -210,7 +201,7 @@ number   to set 'FIXED limit' -i.e. the limit won't be adjusted.
       self.maxvalfound=self.value
     self.doLine(self.nx, self.value)
     if self.nx != self.ctpcnts.nx:
-      print("SHMCounter: error ns != ctpcnts.nx")
+      print "SHMCounter: error ns != ctpcnts.nx"
     self.nx= self.nx+1
   def redraw(self):
     """ 0: first, self.nx: last point to be drawn
@@ -246,7 +237,7 @@ number   to set 'FIXED limit' -i.e. the limit won't be adjusted.
       self.redraw()
     x1,y1= self.c2pix(xax, val)
     if xax<1:
-      print("doLine: drawing point")
+      print "doLine: drawing point"
       x0= x1
       y0= y1
     else:
@@ -317,7 +308,7 @@ number   to set 'FIXED limit' -i.e. the limit won't be adjusted.
     #print "removing:", self.cntname
     self.f1.destroy()
 
-class VMECounter(object):
+class VMECounter:
   def __init__(self, ctpcnts, cntname, cntaddr, color, val=None, helptext="VME counter"):
     self.cntname=cntname
     self.cntaddr=cntaddr
@@ -393,7 +384,7 @@ LVDSTcnts={
 "PatternRate":(10,"C","Number of '1' BCs (BCs where data==1)"),
 "SeqStrobes":(11,"C","Number of sequence strobes")}
 
-class CTPcnts(object):
+class CTPcnts:
   COLSIZE=10
   c150=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50")
   c1100=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49",\
@@ -501,20 +492,20 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
           self.addReg(line[:-1])
         cf.close()
     else:
-      for lc in list(ctpltu.keys()):
+      for lc in ctpltu.keys():
         self.addLTUReg(lc)
     self.init()
   def printSPEC(self):
-    print("epochsecs %d ctp G ctp"%SPECSH)
-    print("epochmics %d ctp G ctp"%(SPECSH+1))
-    print("l2orbit %d l2 G ctp"%(SPECSH+2))
+    print "epochsecs %d ctp G ctp"%SPECSH
+    print "epochmics %d ctp G ctp"%(SPECSH+1)
+    print "l2orbit %d l2 G ctp"%(SPECSH+2)
     specix=SPECSH+3
     for bn in ['busy','l0','l1','l2','int','fo1','fo2','fo3','fo4','fo5','fo6']:
-      print("%stemp %d %s G ctp"%(bn, specix, bn)) ; specix=specix+1
-      print("%svolts %d %s G ctp"%(bn, specix, bn)) ; specix=specix+1
+      print "%stemp %d %s G ctp"%(bn, specix, bn) ; specix=specix+1
+      print "%svolts %d %s G ctp"%(bn, specix, bn) ; specix=specix+1
     for ltuix in range(24):
       ltun= self.findLTUdetnum(ltuix)
-      print("ltuvolts%d %d ltu G %s"%(ltuix+1, specix, ltun))
+      print "ltuvolts%d %d ltu G %s"%(ltuix+1, specix, ltun)
       specix=specix+1
     #spares:
     # see: v/DOC/CTPreadme
@@ -533,24 +524,24 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     lix= L1SH+NCOUNTERS_L1_SP1
     # 2 spares
     for irp in range(lix,lix+2):
-      print("spare%d %d l1 S N"%(irp, irp))
+      print "spare%d %d l1 S N"%(irp, irp)
     lix= L1SH+NCOUNTERS_L1_SP2
     hix= L1SH+NCOUNTERS_L1
     # run2: 50 spares
     for irp in range(lix,hix):
-      print("spare%d %d l1 S N"%(irp, irp))
+      print "spare%d %d l1 S N"%(irp, irp)
     lix= L2SH+NCOUNTERS_L2_SP1
     for irp in range(lix,lix+1):   # 1 spare
-      print("spare%d %d l2 S N"%(irp, irp))
+      print "spare%d %d l2 S N"%(irp, irp)
     lix= L2SH+NCOUNTERS_L2_SP2
     for irp in range(lix,lix+64):   # 64 spares
-      print("spare%d %d l2 S N"%(irp, irp))
+      print "spare%d %d l2 S N"%(irp, irp)
     #for irp in range(763, 812):
     lix= BYSH+NCOUNTERS_BUSY_SP1
     #hix= BYSH+NCOUNTERS_BUSY_L2RS in run1
     hix= BYSH+NCOUNTERS_BUSY_TSGROUP
     for irp in range(lix, hix):
-      print("spare%d %d busy S N"%(irp, irp))
+      print "spare%d %d busy S N"%(irp, irp)
     # 6x4 FO counters:
     #irp= BYSH+NCOUNTERS_BUSY_L2RS
     #for fon in range(1, 7):
@@ -559,23 +550,23 @@ Add/remove     -add new/remove shown counter field (only for ctp counters)
     #    irp= irp + 1
     #
     hix= BYSH+NCOUNTERS_BUSY_TSGROUP
-    print("spare%dTSGROUP %d busy G N"%(hix, hix))
+    print "spare%dTSGROUP %d busy G N"%(hix, hix)
     # 6 counters reserved for 'RUNX COUNTERS' (see:
     # ctp_proxy/dimservices.c:#define RUNXCOUNTERSSTART 812
     lix= BYSH+NCOUNTERS_BUSY_RUNX1
     for irp in range(lix, lix+6):
-      print("spare%drunx %d busy S N"%(irp, irp))
+      print "spare%drunx %d busy S N"%(irp, irp)
     #
     for foix in range(NFOS):
       fosh= FOSH + foix*NCOUNTERS_FO
       lix= fosh+NCOUNTERS_FO_SP1
       for irp in range(lix,lix+3):   # 3 spares
-        print("spare%d %d fo%d S N"%(irp, irp, foix+1))
+        print "spare%d %d fo%d S N"%(irp, irp, foix+1)
       lix= fosh+NCOUNTERS_FO_SP2
       hix= fosh+NCOUNTERS_FO
       # run2: 10 spares
       for irp in range(lix,hix):
-        print("spare%d %d fo%d S N"%(irp, irp, foix+1))
+        print "spare%d %d fo%d S N"%(irp, irp, foix+1)
   def addnewcnt(self):
     if self.addw:
       #return
@@ -669,7 +660,7 @@ X     -l1clstt.     L1 test cluster (before vetos)
       fona = ["zero","fo1","fo2","fo3","fo4","fo5","fo6"][foix]
       # if printing all counter names to stdout, do it for ALL boards
       if self.printnames==None:
-        if fona not in self.ctpboards.boards: continue  #FO not in crate
+        if not self.ctpboards.boards.has_key(fona): continue  #FO not in crate
       self.boardfs[fona]= myw.MywFrame(self.addw,side=LEFT); 
       folabel= myw.MywLabel(self.boardfs[fona],label="FO%d counters"%foix,
         bg=myw.VmeBoard.CTPcolors[fona[:2]], side=TOP)
@@ -793,11 +784,11 @@ orc_error  -Orbit record with error
     CGT='C'   # Counter (default), Gauge or Timer
     #print "findAddr:",cntlabel
     #------------------------------------------------------ L0
-    if cntlabel.find("l0byclst")==0:
+    if string.find(cntlabel,"l0byclst")==0:
       board="l0"; c= cntlabel[8]; CGT='T';
       if c=="T": n= 0
       else: n= int(c)
-    elif cntlabel.find("l0pf")==0:
+    elif string.find(cntlabel,"l0pf")==0:
       board="l0"; 
       c= cntlabel[4]+cntlabel[5]; 
       CGT='T';
@@ -810,17 +801,17 @@ orc_error  -Orbit record with error
       elif c=="m2": n= 18
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
-    elif cntlabel.find("allrare")==0:
+    elif string.find(cntlabel,"allrare")==0:
       board="l0"; n= 14; CGT='T';
-    elif cntlabel.find("l0time")==0:
+    elif string.find(cntlabel,"l0time")==0:
       board="l0"; n= 15; CGT='T';
-    elif cntlabel.find("l0rate28")==0:
+    elif string.find(cntlabel,"l0rate28")==0:
       board="l0"; n= 16; CGT='T';
-    elif cntlabel.find("l0classB")==0:
+    elif string.find(cntlabel,"l0classB")==0:
       board="l0"; n= (19-1)+ int(cntlabel[8:])
-    elif cntlabel.find("l0inp")==0:   #l0inp1: 116
+    elif string.find(cntlabel,"l0inp")==0:   #l0inp1: 116
       board="l0"; n= (119-1)+ int(cntlabel[5:])
-    elif cntlabel.find("l0ifun")==0:  # l0ifun1: 140
+    elif string.find(cntlabel,"l0ifun")==0:  # l0ifun1: 140
       board="l0"; 
       c1234= cntlabel[6]
       if c1234>="1" and c1234<="4":   # 140..141
@@ -829,7 +820,7 @@ orc_error  -Orbit record with error
         n=299
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
-    elif cntlabel.find("l0int")==0:
+    elif string.find(cntlabel,"l0int")==0:
       board="l0"; c= cntlabel[5]+cntlabel[6];
       if   c=="m1": n= 172 #
       elif c=="m2": n= 173 #
@@ -839,7 +830,7 @@ orc_error  -Orbit record with error
       elif c=="0B": n= 177 #
       else: 
         myw.errorprint(self,"Bad int counter name:"+cntlabel)
-    elif cntlabel.find("lmclst")==0:
+    elif string.find(cntlabel,"lmclst")==0:
       board="l0"; c= cntlabel[6];
       if c>="1" and c<="8":   # 178..185
         n= (178-1)+ int(c)
@@ -847,34 +838,34 @@ orc_error  -Orbit record with error
         n=298
       else: 
         myw.errorprint(self,"Bad l0 counter name:"+cntlabel)
-    elif cntlabel.find("lm_out")==0:
+    elif string.find(cntlabel,"lm_out")==0:
       board="l0"; n= 186
-    elif cntlabel.find("l0strobe0")==0:   # 148
+    elif string.find(cntlabel,"l0strobe0")==0:   # 148
       board="l0"; n= 171
-    elif cntlabel.find("l0classA")==0:    # run2: l0classA1: 152
+    elif string.find(cntlabel,"l0classA")==0:    # run2: l0classA1: 152
       board="l0"; n= (187-1)+ int(cntlabel[8:])   # run1: 99
-    elif cntlabel.find("s_soft")==0:
+    elif string.find(cntlabel,"s_soft")==0:
       board="l0"; n= 287 #102+150
-    elif cntlabel.find("prepulse")==0:
+    elif string.find(cntlabel,"prepulse")==0:
       board="l0"; n= 288 #102+151
-    elif cntlabel.find("l0clst")==0:
+    elif string.find(cntlabel,"l0clst")==0:
       board="l0"; c= cntlabel[6];
       if c=="T": n= 289 # 102+152
       else: n= (290-1) + int(c)  #102+152+int(c)
-    elif cntlabel.find("lmclassB")==0:
+    elif string.find(cntlabel,"lmclassB")==0:
       board="l0"; n= int(cntlabel[8:]) - 1 + L0200SH
-    elif cntlabel.find("lmclassA")==0:
+    elif string.find(cntlabel,"lmclassA")==0:
       board="l0"; n= 100 + int(cntlabel[8:]) - 1 + L0200SH
     #------------------------------------------------------ L1
-    elif cntlabel.find("l1pf")==0:
+    elif string.find(cntlabel,"l1pf")==0:
       board="l1"; c= cntlabel[4]; CGT='T';
       if c=="T": n= 0 +L1SH
       else: n= int(c) +L1SH
-    elif cntlabel.find("l1time")==0:
+    elif string.find(cntlabel,"l1time")==0:
       board="l1"; n= 5+L1SH; CGT='T';
-    elif cntlabel.find("l1inp")==0:
+    elif string.find(cntlabel,"l1inp")==0:
       board="l1"; n= 5+L1SH+ int(cntlabel[5:])
-    elif cntlabel.find("l1int")==0:
+    elif string.find(cntlabel,"l1int")==0:
       board="l1"; c= cntlabel[5];
       if c=="1": n= 30+L1SH
       elif c=="2": n= 31+L1SH
@@ -883,31 +874,31 @@ orc_error  -Orbit record with error
       elif c=="D": n=34+L1SH
       else: 
         myw.errorprint(self,"Bad l1int counter name:"+cntlabel)
-    elif cntlabel.find("l0strobeIN")==0:
+    elif string.find(cntlabel,"l0strobeIN")==0:
       board="l1"; n= 35+L1SH
-    elif cntlabel.find("l1strobeOUT")==0:
+    elif string.find(cntlabel,"l1strobeOUT")==0:
       board="l1"; n= 36+L1SH
-    elif cntlabel.find("esrflag")==0:
+    elif string.find(cntlabel,"esrflag")==0:
       board="l1"; n= 37+L1SH
-    elif cntlabel.find("l1classB")==0:
+    elif string.find(cntlabel,"l1classB")==0:
       board="l1"; n= 39+L1SH+ int(cntlabel[8:])
-    elif cntlabel.find("l1classA")==0:
+    elif string.find(cntlabel,"l1classA")==0:
       board="l1"; n= 139+L1SH+ int(cntlabel[8:])   #run1:89
-    elif cntlabel.find("l1clst")==0:
+    elif string.find(cntlabel,"l1clst")==0:
       board="l1"; c= cntlabel[6];
       if   c=="T": n= 241+L1SH   #141
       elif c=="0": n= 240+L1SH   #140
       else: n= 241+L1SH+int(c)   #141/6 or run2:241/8
     #------------------------------------------------------ L2
-    elif cntlabel.find("l2pf")==0:
+    elif string.find(cntlabel,"l2pf")==0:
       board="l2"; c= cntlabel[4]; CGT='T';
       if c=="T": n= 0 +L2SH
       else: n= int(c) +L2SH
-    elif cntlabel.find("l2time")==0:
+    elif string.find(cntlabel,"l2time")==0:
       board="l2"; n= 5+L2SH; CGT='T';
-    elif cntlabel.find("l2inp")==0:
+    elif string.find(cntlabel,"l2inp")==0:
       board="l2"; n= 5+L2SH+ int(cntlabel[5:])
-    elif cntlabel.find("l2int")==0:
+    elif string.find(cntlabel,"l2int")==0:
       board="l2"; c= cntlabel[5];
       if c=="1": n= 18+L2SH
       elif c=="2": n= 19+L2SH
@@ -916,62 +907,62 @@ orc_error  -Orbit record with error
       elif c=="D": n=22+L2SH
       else: 
         myw.errorprint(self,"Bad l2int counter name:"+cntlabel)
-    elif cntlabel.find("l1strobeIN")==0:
+    elif string.find(cntlabel,"l1strobeIN")==0:
       board="l2"; n= 23+L2SH
-    elif cntlabel.find("l2strobeOUT")==0:
+    elif string.find(cntlabel,"l2strobeOUT")==0:
       board="l2"; n= 24+L2SH
-    elif cntlabel.find("l2classB")==0:
+    elif string.find(cntlabel,"l2classB")==0:
       board="l2"; n= 25+L2SH+ int(cntlabel[8:])
-    elif cntlabel.find("l2classA")==0:
+    elif string.find(cntlabel,"l2classA")==0:
       board="l2"; n= 125+L2SH+ int(cntlabel[8:])   # run1:75
-    elif cntlabel.find("l2clst")==0:
+    elif string.find(cntlabel,"l2clst")==0:
       board="l2"; c= cntlabel[6];
       if   c=="T": n= 227+L2SH   # 127
       elif c=="X": n= 226+L2SH   # l1clstt. run1:126
       else: n= 227+L2SH+int(c)   # 127
     #------------------------------------------------------ BUSY
     # have to be in this order (byin_last checked before byin)
-    elif cntlabel.find("byin_end")==0:
+    elif string.find(cntlabel,"byin_end")==0:
       board="busy"; bsyin= int(cntlabel[8:])
       n= 63+ BYSH+bsyin-1; CGT='C';  #run1:55
       if col5: det5c= self.findLTUbusy(bsyin) 
-    elif cntlabel.find("byin_last")==0:
+    elif string.find(cntlabel,"byin_last")==0:
       board="busy"; bsyin= int(cntlabel[9:])
       n= 87+ BYSH+bsyin-1; CGT='C';  #run1:79
       if col5: det5c= self.findLTUbusy(bsyin) 
-    elif cntlabel.find("byin")==0:
+    elif string.find(cntlabel,"byin")==0:
       board="busy"; bsyin=int(cntlabel[4:])
       n= 0 + BYSH+bsyin-1; CGT='T';
       if col5: det5c= self.findLTUbusy(bsyin) 
-    elif cntlabel.find("byout_end")==0:
+    elif string.find(cntlabel,"byout_end")==0:
       board="busy"; CGT='C';
       if cntlabel[9]=='T':
         n= 62+ BYSH  #run1: 54
       else:
         n= 53+ BYSH+int(cntlabel[9])  #run1: 47
-    elif cntlabel.find("byout")==0:
+    elif string.find(cntlabel,"byout")==0:
       board="busy"; CGT='T';
       if cntlabel[5]=='T':
         n= 32+ BYSH   #run1: 30
       else:
         n= 23+ BYSH+int(cntlabel[5])   #run1/2:23
-    elif cntlabel.find("bydaq")==0:
+    elif string.find(cntlabel,"bydaq")==0:
       board="busy"; n= 32+ BYSH+int(cntlabel[5:]); CGT='T';   #run1 30
-    elif cntlabel.find("CTPdeadtime")==0:
+    elif string.find(cntlabel,"CTPdeadtime")==0:
       board="busy"; n= 41+ BYSH; CGT='T';   #run1: 37
-    elif cntlabel.find("CTPbusy")==0:
+    elif string.find(cntlabel,"CTPbusy")==0:
       board="busy"; n= 42+ BYSH; CGT='T';   #run1: 38
-    elif cntlabel.find("bytime")==0:
+    elif string.find(cntlabel,"bytime")==0:
       board="busy"; n= 43+ BYSH; CGT='T';   #run1: 39
-    elif cntlabel.find("byanyclu")==0:
+    elif string.find(cntlabel,"byanyclu")==0:
       board="busy"; n= 44+ BYSH   #run1: 40
-    elif cntlabel.find("byclu")==0:
+    elif string.find(cntlabel,"byclu")==0:
       board="busy"; n= 44+ BYSH+ int(cntlabel[5:])   #run1: 40
-    elif cntlabel.find("bytestclass")==0:
+    elif string.find(cntlabel,"bytestclass")==0:
       board="busy"; n= 53+ BYSH   #run1: 47
-    elif cntlabel.find("byendCTPbusy")==0:
+    elif string.find(cntlabel,"byendCTPbusy")==0:
       board="busy"; n= 111+ BYSH   #run1: 103
-    elif cntlabel.find("bylongbusy")==0:
+    elif string.find(cntlabel,"bylongbusy")==0:
       board="busy"; n= 112+ BYSH   #run1: 104
     #------------------------------------------------------ FO
     elif self.findFO(cntlabel,"time"):
@@ -1039,43 +1030,43 @@ orc_error  -Orbit record with error
       n= 58 + int(c) +FOSH+(foix-1)*NCOUNTERS_FO
       if col5: det5c= self.findLTUfo(foix, int(c)) 
     #------------------------------------------------------ INT
-    elif cntlabel.find("intCTPbusy")==0:
+    elif string.find(cntlabel,"intCTPbusy")==0:
       board="int"; n= 0+ INTSH; CGT='T';
-    elif cntlabel.find("fiLF")==0:
+    elif string.find(cntlabel,"fiLF")==0:
       board="int"; n= 1+ INTSH; CGT='T';
-    elif cntlabel.find("inttime")==0:
+    elif string.find(cntlabel,"inttime")==0:
       board="int"; n= 2+ INTSH; CGT='T';
-    elif cntlabel.find("int1")==0:
+    elif string.find(cntlabel,"int1")==0:
       board="int"; n= 3+ INTSH
-    elif cntlabel.find("int2")==0:
+    elif string.find(cntlabel,"int2")==0:
       board="int"; n= 4+ INTSH
-    elif cntlabel.find("intL1S")==0:
+    elif string.find(cntlabel,"intL1S")==0:
       board="int"; n= 5+ INTSH
-    elif cntlabel.find("intL2S")==0:
+    elif string.find(cntlabel,"intL2S")==0:
       board="int"; n= 6+ INTSH
-    elif cntlabel.find("L2rseq")==0:
+    elif string.find(cntlabel,"L2rseq")==0:
       board="int"; n= 7+ INTSH
-    elif cntlabel.find("L2aseq")==0:
+    elif string.find(cntlabel,"L2aseq")==0:
       board="int"; n= 8+ INTSH
-    elif cntlabel.find("rd_block")==0:
+    elif string.find(cntlabel,"rd_block")==0:
       board="int"; n= 9+ INTSH
-    elif cntlabel.find("rc_block")==0:
+    elif string.find(cntlabel,"rc_block")==0:
       board="int"; n= 10+ INTSH
-    elif cntlabel.find("orbit_err")==0:
+    elif string.find(cntlabel,"orbit_err")==0:
       board="int"; n= 11+ INTSH
-    elif cntlabel.find("ctpbusy_pulse")==0:
+    elif string.find(cntlabel,"ctpbusy_pulse")==0:
       board="int"; n= 12+ INTSH
-    elif cntlabel.find("lf_pulse")==0:
+    elif string.find(cntlabel,"lf_pulse")==0:
       board="int"; n= 13+ INTSH
-    elif cntlabel.find("L2a_tc")==0:
+    elif string.find(cntlabel,"L2a_tc")==0:
       board="int"; n= 14+ INTSH
-    elif cntlabel.find("tc_input1")==0:
+    elif string.find(cntlabel,"tc_input1")==0:
       board="int"; n= 15+ INTSH
-    elif cntlabel.find("tc_input2")==0:
+    elif string.find(cntlabel,"tc_input2")==0:
       board="int"; n= 16+ INTSH
-    elif cntlabel.find("incomplete")==0:
+    elif string.find(cntlabel,"incomplete")==0:
       board="int"; n= 17+ INTSH
-    elif cntlabel.find("orc_error")==0:
+    elif string.find(cntlabel,"orc_error")==0:
       board="int"; n= 18+ INTSH
     else:
       myw.errorprint(self, "unknown counter name:"+cntlabel)
@@ -1108,7 +1099,7 @@ orc_error  -Orbit record with error
       cntaddr,bname,cgt,col5=self.findAddr(cname, "Give_Column5")
       #ibname vs. board explanation: e.g.: bname: fo board: fo5
       #print cname, cntaddr, bname
-      print(cname, cntaddr, board, cgt, col5)
+      print cname, cntaddr, board, cgt, col5
   def findLTUAddr(self, cntlabel):
     """
     rc: Counter address,"ltu",CGT
@@ -1116,7 +1107,7 @@ orc_error  -Orbit record with error
     Counter address is position in shared memory (0,...)
     CGT: Counter, Gauge, Timer
     """
-    if cntlabel in self.ctpltu:
+    if self.ctpltu.has_key(cntlabel):
       rc= self.ctpltu[cntlabel][0], "ltu", self.ctpltu[cntlabel][1],\
         self.ctpltu[cntlabel][2]
     else:
@@ -1181,7 +1172,7 @@ orc_error  -Orbit record with error
     cntname= inst.getLabel()
     newvalue= inst.getEntry(ix)
     #print "indexmod:",cntname,'<',ix,':', newvalue
-    cntgroup= cntname.split(":")
+    cntgroup= string.split(cntname,":")
     # use cntgroup[0], ix to find out:
     # cntname -name of the counter (as it appears in 'CTP counters' widget)
     # address of the counter
@@ -1297,7 +1288,7 @@ orc_error  -Orbit record with error
           cf.write(cntlabel+'\n')
         cf.close()
       if self.addw:
-        print("destroying addreg-widget:",self.addw)
+        print "destroying addreg-widget:",self.addw
         self.addw.destroy()
   def changeacc(self):
     self.showaccrual=1-self.showaccrual
@@ -1340,7 +1331,7 @@ class VMEcnts(CTPcnts):
     #print "allread finished"
   def doout(self,allvals):
     #print "allread3:",allvals,':'
-    vlist=allvals.split('\n'); vll= len(vlist)-1
+    vlist=string.split(allvals,'\n'); vll= len(vlist)-1
     if vll != len(self.allregs):
       myw.errorprint(self, "doout: %d != %d"%(vll,len(self.allregs)))
       myw.errorprint(self, allvals)
@@ -1403,10 +1394,10 @@ class SHMcnts(CTPcnts):
     if self.historythd: self.historythd.join()
     #myw.vbexec.vbinst.io.thds[thdrn].waitcmdw()
   def changeacc(self):
-    print("no effect for shared memory counters (always accruals)")
+    print "no effect for shared memory counters (always accruals)"
   def checkShift(self):
     if self.nx>=SHMCounter.nmax:
-      ixmaxdel=old_div(SHMCounter.nmax,2)
+      ixmaxdel=SHMCounter.nmax/2
       for i in range(len(self.regs)):
         self.regs[i].updateShift(ixmaxdel)
       self.nx=SHMCounter.nmax-ixmaxdel
@@ -1420,7 +1411,7 @@ class SHMcnts(CTPcnts):
       self.regs[i].update()
     self.nx= self.nx+1
   def repeatRead(self, cancel=None):
-    print("shmrepeatRead.cancel:",cancel)
+    print "shmrepeatRead.cancel:",cancel
     if cancel:
       self.stophistorygram=1   # thread stopping
       #n=shmext.startstopfw(0)
@@ -1439,7 +1430,7 @@ class SHMcnts(CTPcnts):
       myw.errorprint(self,"Cannot open shm")
       self.setColor()
       return
-    print("Opening", SHMcnts.FIFONAME)   #, "(is hwreader started?)"
+    print "Opening", SHMcnts.FIFONAME   #, "(is hwreader started?)"
     try:
       self.fifo= open(SHMcnts.FIFONAME,"r")
     except:
@@ -1453,18 +1444,18 @@ class SHMcnts(CTPcnts):
       line= self.fifo.readline()
       if line=='':
          emptylines= emptylines+1
-         print("got empty line (max. 10x)")
+         print "got empty line (max. 10x)"
          if emptylines<10: continue
       if line=='' or self.stophistorygram:
         n=shmext.startstopfw(0)
-        print("RC from stopping fifo:",n," closing fifo...")
+        print "RC from stopping fifo:",n," closing fifo..."
         self.fifo.close()
         self.perrep=0
         if line=='':
-          print("got empty line")
+          print "got empty line"
           #time.sleep(0.3)
         break
-      print("hg:", line[:-1])
+      print "hg:", line[:-1]
       self.perrep= self.perrep+1
       self.checkShift()
       for i in range(len(self.regs)):
@@ -1473,9 +1464,9 @@ class SHMcnts(CTPcnts):
         try:
           execfile(CTPcnts.specfname, globals(), locals())
         except:
-          print("exception caught executing:",CTPcnts.specfname)
+          print "exception caught executing:",CTPcnts.specfname
       self.nx= self.nx+1
-    print("hg: finishing")
+    print "hg: finishing"
     self.setColor() # nedobre?
 
 def main():
@@ -1494,14 +1485,14 @@ def main():
       #VMEcnts(f)
       f.mainloop()
   else:
-    print("""Usage:
+    print """Usage:
 ./counters.py shmcnts           -to get 'counters over time' graph (abandoned, needs to be finished...)
 ./counters.py printnames        -print counter names to stdout
 Usually:
 ./counters.py printnames >~/cnames
 sort -n -k 2 -t ' ' ~/cnames >~/cnames.sorted2
 
-""")
+"""
 
 if __name__ == "__main__":
   main()

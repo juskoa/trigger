@@ -1,10 +1,6 @@
-#!/usr/bin/env python
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from tkinter import *
-import os, sys
+#!/usr/bin/env python2
+from Tkinter import *
+import os, sys,string
 import myw
 
 def DimServerOn(basead):
@@ -20,9 +16,9 @@ aj       /home/alice/aj/v/vme/ltudim/linux/ltuserver hmpid 0x811000
   rc=None
   while(1):
     lsf.readline()
-    line= lsf.readline().rstrip()
+    line= string.rstrip(lsf.readline())
     if line==None or line=='': break
-    line= line.split()
+    line= string.split(line)
     #print line
     if len(line)==4:
       if line[3][-8:]==basead:
@@ -45,13 +41,13 @@ def main():
   #f1= myw.VmeCrate(f)
   f1= myw.getCrate(f)
   if len(sys.argv) < 2 or (len(sys.argv)==2 and sys.argv[1]=="nbi"):
-    print("""Usage: crate.py [nbi] boardName[=base]
+    print """Usage: crate.py [nbi] boardName[=base]
 boardName   -board name 
 base        -base address (default taken from /*BOARD line in board.cf file)
 nbi         -if parameter nbi supplied, the board won't be initialised
              i.e. boardInit() won't be called at the time of the start of
              the command line interface
-""")
+"""
     return
     #bnbase=[]; initboard="nbi"; args= ["ltu=0x812000"]
   else:
@@ -65,17 +61,17 @@ nbi         -if parameter nbi supplied, the board won't be initialised
   for p in args:
     if p == "nbi": initboard= "nbi" ; continue
     if len(bnbase)==1:
-      print("Only 1 board allowed")
+      print "Only 1 board allowed"
       break
-    bnbase.append(p.split('='))
+    bnbase.append(string.split(p,'='))
     board= bnbase[-1]
     #print 'p:',p, board
     if len(board) == 2:         # base address given too
-      basead= board[1].strip()
+      basead=string.strip(board[1])
     else:       #default base addr.
       basead=''
     #print board,basead
-    if board[0] in myw.DimLTUservers:     #over DIM
+    if myw.DimLTUservers.has_key(board[0]):     #over DIM
       #try:
       vmeboard= myw.VmeBoard(f1, boardName=board[0])
       #except:
@@ -88,15 +84,15 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       #rtxt=DimServerOn(basead)
       rtxt=None
       if rtxt:
-        print(rtxt,"\n")
-        print("Try: vmecrate YourDetectorName          from the same login!\n")
+        print rtxt,"\n"
+        print "Try: vmecrate YourDetectorName          from the same login!\n"
         return #sys.exit(0)
       try:
         vmeboard= myw.VmeBoard(f1, boardName=board[0], \
                 baseAddr=basead, initboard=initboard)
       except:
-        print("crate.py:", sys.exc_info())
-        print("""Board name ['ltu', 'ttcvi',...], or detector name """ +str(list(myw.DimLTUservers.keys())) + " expected.")
+        print "crate.py:", sys.exc_info()[0]
+        print """Board name ['ltu', 'ttcvi',...], or detector name """ +str(myw.DimLTUservers.keys()) + " expected."
         sys.exit(0)
       f1.addBoard(vmeboard)
       syspadd= os.path.join(cfdir, board[0])
@@ -106,7 +102,7 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       try:
         vmeboard.openCmd(); myw.vbinit(vmeboard)
       except:
-        print(sys.exc_info()[0])
+        print sys.exc_info()[0]
         sys.exit(0)
     #print "crate.py2: myw.vbexec:", myw.vbexec
     if board[0]=='ctp': 

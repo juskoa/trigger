@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #9.11.2002 threading/Lock added (i.e. 
 #          - if more commands for 1 exe than thay are queued
 #          - if more boards (more exes), they run parallely
@@ -8,13 +8,8 @@
 #6.5. 2004 -rewritten for 'paralle multiple pipes'
 #13.5.2004 - parallel thread1,2... windows are iconified when
 #            initialised 
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import object
-from tkinter import *
-import os, subprocess, sys, signal, time
+from Tkinter import *
+import os, subprocess, sys, string, signal, time
 from threading import *
 
 #sys.path.append("/home/juskoa/ALICE/vmeb")
@@ -31,7 +26,7 @@ import myw
 ##  def getUptime(self):
 ##    return self._uptime
 
-class ioWindow(object):
+class ioWindow:
   def write(self, text, tag=None):
     #print "text",text,tag
     self.w.insert(END, text, tag); self.w.see(END)
@@ -52,12 +47,11 @@ class ioWindow(object):
     no (any) getOutput returns None
     """
     lastOutput=''; self.lineNumber=0; msg2all=0; self.ignoreall=0
-    #try:
+    try:
       #print "getOutput:",self.io
-    while 1:
+      while 1:
         line= self.io[0].readline()
-        #print('cmdlin2>'+str(self.ixthds)+'>',line,'<<')
-        line= line.decode()
+        #print '>'+str(self.ixthds)+'>',line,'<<'
         #print "cmdlint:",line,"eol"
         ##if buf and buf!="wait":
         if line ==':\n':   #don't take last '\n:\n'
@@ -95,17 +89,16 @@ class ioWindow(object):
           self.w.insert(END, line); self.w.see(END)
           self.logit(line)
         if applout =="out" or applout=="<>":
-          #lastOutput=lastOutput+str(line)
           lastOutput=lastOutput+line
           self.lineNumber= self.lineNumber+1
         if line =='':
           line="pipe from cmdline interface closed/broken (server down)\n"
           self.w.insert(END, line); self.w.see(END)
           break
-    #except:
-    #  print('problem processing pipe output')
-    #  print(sys.exc_info())
-    #  #print('exc_value:',etype,evalue,etrace)
+    except:
+      print 'problem processing pipe output'
+      etype,evalue,etrace= sys.exc_info()
+      print 'exc_value:',evalue
     if applout =="out":
       return lastOutput
     elif applout=="<>":
@@ -126,10 +119,10 @@ class ioWindow(object):
     #print 'outfilter:',text
     for s in text:
         if(s=='>'):
-          if(len(out) == i):print("Wrong syntax ><");break;
+          if(len(out) == i):print "Wrong syntax ><";break;
           i=i+1
         if(len(out) != i ):
-          if(s == '<'):print("Wrong syntax <<");break;
+          if(s == '<'):print "Wrong syntax <<";break;
           out[i]=out[i]+s
         if(s=='<'): out.append('')
     #print "out=",out," i=",i
@@ -151,7 +144,7 @@ class ioWindow(object):
         time.sleep(0.1)
         ix= ix+1
         if ix>9:
-          print('cmdlint: too long wait in waitcmdw')
+          print 'cmdlint: too long wait in waitcmdw'
       else: break
   def executet(self, cmd=None, ff=None, log='out', applout='out'): 
     #if ff==None:
@@ -159,7 +152,7 @@ class ioWindow(object):
     #  return
     #print "cmdlin2.executet.cmd:",cmd
     self.cli.lockexe.acquire()
-    #print("cmdlin2.executet.cmdNOTHREAD:",cmd)
+    #print "cmdlin2.executet.cmdNOTHREAD:",cmd
     # no thread:
     self.threadedexe(cmd,log,ff,applout) ; return
     ##self.busy2=1
@@ -169,9 +162,9 @@ class ioWindow(object):
   def threadedexe(self, cmdte, buf, ff, applout):
     self.busy=1 #;print "busy-1"
     self.cli.lockexe.release()
-    #print("ioWindow.threadedexe:",cmdte,buf,ff,applout)
+    #print "ioWindow.threadedexe:",cmdte,buf,ff,applout
     if self.io == None:
-      print("Error in cmdlin2.threadedexe: can't execute ",cmdte)
+      print "Error in cmdlin2.threadedexe: can't execute ",cmdte
       #raise "Error: can't execute: "+cmdte
       return
     if buf!="NO":  #don't even log the command
@@ -181,12 +174,11 @@ class ioWindow(object):
     #CCTOPEN
     try:
       #self.io[1].write("cctopen()\n"); self.getOutput(buf,applout)
-      self.io[1].write((cmdte+"\n").encode())
-      self.io[1].flush()   # the must with py3
+      self.io[1].write(cmdte+"\n")
     except:
-      print('cmdlint:cannot write to cmdline interface')
+      print 'cmdlint:cannot write to cmdline interface'
       etype,evalue,etrace= sys.exc_info()
-      print('exc_value:',evalue)
+      print 'exc_value:',evalue
     self.busy2=0
     if ff:
       ff(self.getOutput(buf,applout))
@@ -218,7 +210,7 @@ class ioWindow(object):
       else:
         pass
     except:
-      print("Error: problems when closing popen pipe")
+      print "Error: problems when closing popen pipe"
     if self.lofi != None:
       self.lofi.close()
       self.lofi=None
@@ -296,7 +288,7 @@ class ioWindow(object):
     #---------------------------------- popen2 way
     self.io=None
     #print "ioWindow.init: cmdlin2:cmd:",cli.cmd
-    exep=cli.cmd.split(None,1)[0]
+    exep=string.split(cli.cmd,None,1)[0]
     #print "cmdlin2:exep:",exep
     if not os.path.exists(exep):
       #print "Where is ",exep,"?"
@@ -310,49 +302,46 @@ class ioWindow(object):
       #iow self.lockexe= Lock()
       #von self.lockexe.acquire()
       if (sys.platform == "win32"):
-        print("popen2 win32 not in...")
+        print "popen2 win32 not in..."
         #self.io= popen2.popen2(nbcmd, -1)
         #self.io= os.popen2(nbcmd, -1)
       else:    # linux, cygwin:
         #self.io= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
-        #print("cmdlin2 nbcmd:",nbcmd)
-        p= subprocess.Popen(nbcmd.split(), bufsize=1,
+        p= subprocess.Popen(string.split(nbcmd), bufsize=1,
           stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
         self.io= (p.stdout, p.stdin)
       #print "cmdlin2:",nbcmd,":",os.getcwd(),":"
       #print "cmdlin2:self.io:",self.io
       #pidline=string.split(self.getOutput('out','out'),'\n',1)[0]
-      #self.io[1].flush()   # necessarey after io[1].write
-      #print("cmdlin2.popen ok")
       sgot=self.getOutput('out','out')
-      #print("cmdlin2.sgot:",sgot,'<')
-      pidline=sgot.split('\n',1)[0]
+      #print "cmdlin2.sgot:",sgot,'<'
+      pidline=string.split(sgot,'\n',1)[0]
       #print ":",pidline,":"
       #pidline="PID 234"
       self.pidexe=None
       #print "pidline:",pidline
       ##clm,pid,restofline= string.split(pidline, None, 2) 
-      clmpid= pidline.split( None, 2) 
+      clmpid= string.split(pidline, None, 2) 
       if len(clmpid) < 2:
-        print("can't open ioWindow interface (instead PID got:",clmpid,"):")
-        print(sgot)
+        print "can't open ioWindow interface (instead PID got:",clmpid,"):"
+        print sgot
         self.io[1].close(); self.io[0].close(); self.io=None
       elif clmpid[0] != "PID":
-        print("can't open ioWindow interface (instead :PID got:",clmpid[0],"):")
-        #print(sgot)
+        print "can't open ioWindow interface (instead :PID got:",clmpid[0],"):"
+        print sgot
         self.io[1].close(); self.io[0].close(); self.io=None
       else:
         try:
           ipid= int(clmpid[1])
         except:
-          print("cannot open ioWindow interface(instead pid got:",clmpid[1],")")
+          print "cannot open ioWindow interface(instead pid got:",clmpid[1],")"
           self.io[1].close(); self.io[0].close(); self.io=None
         else:
           self.pidexe=ipid
     self.busy=0
       #von self.lockexe.release()
 
-class cmdlint(object):
+class cmdlint:
   """
   Usage:
   1. start:
@@ -405,13 +394,12 @@ class cmdlint(object):
     #iow self.lastOutput=''; self.lineNumber=0
     self.thds=[None,None,None,None]   #allow 4 parallel pipes
     self.thds[0]= ioWindow(self,0)
-    print("cmdlin2:thds:",self.thds)
+    #print "cmdlin2:thds:",self.thds
     if self.thds[0].pidexe==None:
       self.thds[0].write("exiting...\n","MSG")
       #raise "cmdlint exiting"
     else:  
       self.thds[0].write("+3 parallel pipes allowed...\n")
-    #print("cmdlin2:init ok")
   def delthds(self,ix):
     #print "delthds:",ix
     self.thds[ix]= None; 
@@ -474,29 +462,24 @@ class cmdlint(object):
         t.stop()
 
 def emptyfun(out):
-  print('emptyfun:',out)
+  print 'emptyfun:',out
   #pass
 def main():
   f=Tk()
-  f1= myw.getCrate(f)
   if len(sys.argv)>1:
-    vmeboard= myw.VmeBoard(f1, boardName="ltu", \
-                baseAddr="0x810000") #, initboard=initboard)
-    f1.addBoard(vmeboard)
-    #syspadd= os.path.join(cfdir, "ltu")
-    #vmeboard.openCmd(); myw.vbnit(vmeboard)
-    c= cmdlint(sys.argv[1], board=vmeboard)
+    c= cmdlint(cmd=sys.argv[1])
   else:
-    print("Usage: cmdlin2.py executable_path pars")
+    print "Usage: cmdlin2.py executable_path pars"
     sys.exit(8)
   #print "c.io:",c.io,"c:",c
-  #if c.thds[0] !=None:
-  #  #c.cmd.setEntry("blabla"); c.execute()
-  #  c.execute("loop(8)",ff=emptyfun,applout='<>')
-  #  c.execute("loop(10)")
-  #  c.execute("loop(12)",ff=emptyfun,applout='<>')
-  #  c.execute("loop(3)")
+  if c.thds[0] !=None:
+    #c.cmd.setEntry("blabla"); c.execute()
+    c.execute("loop(8)",ff=emptyfun,applout='<>')
+    c.execute("loop(10)")
+    c.execute("loop(12)",ff=emptyfun,applout='<>')
+    c.execute("loop(3)")
   f.mainloop()
 
 if __name__ == "__main__":
     main()
+

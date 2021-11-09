@@ -1,30 +1,21 @@
-from __future__ import division
-from __future__ import print_function
 #30.6. CtpEmulator -only 1 window allowed
 #12.10.2005 loadseq: .seq file (old way) or .slm file -> compile
 #           to /tmp/slmseq.seq and then load it
 #examineslm: getfile added for dim-operation
 #16.12.2013 lturun2 added
-from future import standard_library
-standard_library.install_aliases()
-from builtins import hex
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from tkinter import *
-import tkinter.filedialog
-import os, os.path, glob, types, time
+from Tkinter import *
+import tkFileDialog
+import os, os.path, glob, string, types, time
 import myw,counters
 
 def ffdummy(txtlines='ffdummy'):
   pass
-  print("ff:", txtlines)
+  print "ff:", txtlines
 #--------------------------- start CTP emulator
 # 
 ctpemuact=0   # 1->CtpEmulator window active, 0-> CtpEmulator w. not active
 def CTP_Emulator(vb):
-  class CtpEmulator(object):
+  class CtpEmulator:
     slmhelptext="""
 Trigger sequences can be coded as text files with suffix .slm -
 see v/vme/CFG/ltu/SLM/all.slm file for an example.
@@ -345,14 +336,14 @@ i.e. 'enable choosen START SIGNAL' """,
           l1formatdefix= i
           break;
       if l1formatdefix==-1:
-        print("bad value read:",l1formatdef,":",items)
+        print "bad value read:",l1formatdef,":",items
       return l1formatdefix
     def doSeqNames(self):
       #cwd= os.getcwd(); os.chdir(self.slmdir); 
       #names= glob.glob("*.seq") + glob.glob("*.slm");
       #os.chdir(cwd);
-      names= self.vb.io.execute('prtfnames("'+self.slmdir+'",".seq")',"no").split()
-      names= names+ self.vb.io.execute('prtfnames("'+self.slmdir+'",".slm")',"no").split()
+      names= string.split(self.vb.io.execute('prtfnames("'+self.slmdir+'",".seq")',"no"))
+      names= names+ string.split(self.vb.io.execute('prtfnames("'+self.slmdir+'",".slm")',"no"))
       #print "doSeqNames:",names
       if len(names)>0:
         self.itn=[[self.CLICKHERE,'']]
@@ -376,9 +367,9 @@ Press 'Load sequence' button to load it into the sequence memory, or
       self.sfile.destroy()
       self.doSeqNames()
     def filedownload(self, inst, ix):
-      if ix>0 and self.vb.boardName in myw.DimLTUservers:
-        print('Downloading from DIM server:'+self.vb.boardName,' file:',\
-          self.itn[ix][0], ix)
+      if ix>0 and myw.DimLTUservers.has_key(self.vb.boardName):
+        print 'Downloading from DIM server:'+self.vb.boardName,' file:',\
+          self.itn[ix][0], ix
         fnbase= self.itn[ix][0]
         #self.vb.io.write('Downloading: '+fnbase+'\n')
         fn= os.path.join(self.slmdir,fnbase)
@@ -553,11 +544,11 @@ interval""")
       import slmcomp,time
       fnbase= self.sfile.getEntry()
       #print "loadseq:fnbase:",fnbase
-      if fnbase=='' or fnbase==' ' or fnbase==self.CLICKHERE or len(fnbase.split('.'))<2:
+      if fnbase=='' or fnbase==' ' or fnbase==self.CLICKHERE or len(string.split(fnbase,'.'))<2:
         self.vb.io.write('Choose right sequence to be loaded first...\n')
         return
       fn= os.path.join(self.slmdir,fnbase)
-      if fnbase.split('.')[1]=='slm':   # new format, compile first
+      if string.split(fnbase,'.')[1]=='slm':   # new format, compile first
         import slmcmp
         if self.vb.lturun2:
           run="-run2"
@@ -573,7 +564,7 @@ interval""")
           return
         sqbin.savefile(slmcmp.slmseqpath)
         fn= slmcmp.slmseqpath
-        if self.vb.boardName in myw.DimLTUservers:
+        if myw.DimLTUservers.has_key(self.vb.boardName):
           self.vb.io.execute('putfile("'+fn+'")')
           time.sleep(1)
       #check sequence file:
@@ -597,7 +588,7 @@ interval""")
       #print "examineslm:",rc
       if len(rc)>0 and rc[0] == "0":
         fnasci= "WORK/slmasci.seq"
-        if self.vb.boardName in myw.DimLTUservers:
+        if myw.DimLTUservers.has_key(self.vb.boardName):
           self.vb.io.execute('getfile("'+fnasci+'")')
         if self.vb.lturun2:
           run="-run2"
@@ -614,14 +605,14 @@ interval""")
     def seqeditor(self):
       fnbase= self.sfile.getEntry()
       #print "seqeditor:",fnbase
-      if len(fnbase.split('.'))==1:   # new format
+      if len(string.split(fnbase,'.'))==1:   # new format
         # .slm default:
         #os.system("cp -u CFG/ltu/SLM/all.slm CFG/ltu/SLM/newslm.slm")
         #fnbase='newslm.slm'
         # .seq default:
         fnbase='blabla.seq'
-      fname=fnbase.split('.')[0]
-      if fnbase.split('.')[-1]=='slm':   # slm format
+      fname=string.split(fnbase,'.')[0]
+      if string.split(fnbase,'.')[-1]=='slm':   # slm format
         if fname=='sod' or fname=='eod' or fname=='L2a':
           self.vb.io.thds[0].write(
             "Warning: If you are going to use sod.slm,eod.slm or L2a.slm with DAQ, do not modify class2 pattern!\n")
@@ -649,20 +640,20 @@ interval""")
       if snbix==0:
         snb=''
       else:
-        snb= self.itn[snbix][0].split('.')[0]
+        snb= string.split(self.itn[snbix][0],'.')[0]
       cmd= "(cd "+self.slmdir+"; "+ltu6path+" "+snb+")"
       #print cmd
       #os.system(cmd+' &')
       popio= os.popen(cmd, "r")
       while 1:
-        wfn= popio.readline().rstrip()
+        wfn= string.rstrip(popio.readline())
         #print "popio:",wfn
         if wfn=="": break
-        fn=wfn.split(":")
+        fn=string.split(wfn,":")
         if len(fn)==2:
           if fn[0]=="written":
             putfn= os.path.join("CFG/ltu/SLM/", fn[1])
-            if self.vb.boardName in myw.DimLTUservers:
+            if myw.DimLTUservers.has_key(self.vb.boardName):
               self.vb.io.execute('putfile("'+putfn+'")')
       popio.close()
     def checkemuCmd(self):
@@ -684,13 +675,13 @@ interval""")
       rc= self.vb.io.execute("SLMstart()",applout="<>")
       #print "rc[]:",rc
       if len(rc)<1:
-        print("startCmd rc:", rc) 
+        print "startCmd rc:", rc 
         return
       else:
         if rc[0] == "0":   #self.checkemuCmd()
           afterid=self.f1.after(100, self.checkemuCmd)
         else:
-          print("startCmd rc:", rc) 
+          print "startCmd rc:", rc 
           return
       # Break loop:
       irs= self.repbreaks.getEntryBin(0)
@@ -763,7 +754,7 @@ interval""")
       self.start1.disable()
       self.butbreak.disable()
     def breakCmd(self):
-      print('breakCmd:')
+      print 'breakCmd:'
       rcl= self.vb.io.execute("SLMbreak()")
       self.checkemuCmd()
     def quitCmd(self):
@@ -778,14 +769,14 @@ interval""")
       #print "errOnDemand",tx
       self.vb.io.execute("ERdemand("+tx+")")
     def hereiam(self):
-      print("ltu6 hereiam")
+      print "ltu6 hereiam"
       #ps -o pid,ppid,cmd
       #kill -SIGHUP 1954
   return(CtpEmulator(vb))
 
 #--------------------------- Master interface test with TMX
 def CheckWithTMX(vb):
-  class st(object):
+  class st:
     def __init__(self, vb):
       self.vb=vb
       # check the presence of the TMX board:
@@ -835,24 +826,24 @@ def setDefaults(vb):
   helptext="""Default values saved in database, loaded only once -when the
 crate is powered on.
 """
-  if vb.boardName in myw.DimLTUservers:
+  if myw.DimLTUservers.has_key(vb.boardName):
     vb.io.execute('getfile("'+fn+'")')
   e=DefaultsEditor(fn,helptext,vb,initialdir="CFG/ltu",suffix="*.cfg")
   return
 def setGLOBAL(vb):
-  class setGLOBAL(object):
+  class setGLOBAL:
     def __init__(self, vb):
       vb.io.execute("setglobalmode()")
       vb.setColor(myw.COLOR_WARNING)
   return(setGLOBAL(vb))
 def setSTDALONE(vb):
-  class setSTDALONE(object):
+  class setSTDALONE:
     def __init__(self, vb):
       vb.io.execute("setstdalonemode(1)")
       vb.setColor("original")
   return(setSTDALONE(vb))
 
-class SOFTLEDS(object):
+class SOFTLEDS:
   SWLEDS=(("R","VME read"), ("W","VME write"), ("A","SCOPE-A"), 
           ("B","SCOPE-B"),
           (".","""'continuous update' indication, i.e. there is 
@@ -910,7 +901,7 @@ is changing during update.
 
 #--------------------------- Scope outputs selection:
 def ScopeAB(vb):
-  class st(object):
+  class st:
     def __init__(self, vb):
       self.vb=vb
       ltuver= self.vb.io.execute("getgltuver()",applout="<>")[0]
@@ -1050,7 +1041,7 @@ def ScopeAB(vb):
 
 #--------------------------- Snapshot memory
 def Snapshot_memory(vb):
-  class st(object):
+  class st:
     def __init__(self, vb):
       self.wrkdir=os.path.join(os.environ['VMEWORKDIR'],"WORK")
       self.vb=vb
@@ -1145,7 +1136,7 @@ and create human readable file""", state=NORMAL,
     def CafterTTCrxreset(self):
       rcl= self.vb.io.execute("SSMstartrec(0x102)")
     def CL0after(self):
-      print('CL0after:')
+      print 'CL0after:'
       self.vb.io.execute("SSMstartrec(0x12)",ff=ffdummy)
       #self.quitCmdButs()
     def Cbefore(self):
@@ -1175,7 +1166,7 @@ and create human readable file""", state=NORMAL,
       if len(rcl)==1 and rcl[0]=='1':
         #log= ssman.makelst()
         fnasci= "WORK/SSM.dump"
-        if self.vb.boardName in myw.DimLTUservers:
+        if myw.DimLTUservers.has_key(self.vb.boardName):
           self.vb.io.execute('getfile("'+fnasci+'")')
         #get ltu version
         output=self.vb.io.execute("getgltuver()",applout='<>')
@@ -1195,7 +1186,7 @@ and create human readable file""", state=NORMAL,
       #fe= Editor(self.vb.master,"WORK/SSMa.txt",self.vb)
       fe= Editor("WORK/SSMa.txt",vb=self.vb)
   return(st(vb))
-class Editor(object):
+class Editor:
   """
   Usage:
   fe= Editor("WORK/SSMa.txt", helptext)
@@ -1206,7 +1197,7 @@ class Editor(object):
     try:
       f= open(filename);
     except:
-      print("File %s cannot be opened"%filename)  
+      print "File %s cannot be opened"%filename  
       return
     self.filename= filename
     self.vb= vb
@@ -1233,7 +1224,7 @@ class Editor(object):
     )
   def save(self):
     #f= open(self.filename,"w");
-    OpenSave=tkinter.filedialog.SaveAs(
+    OpenSave=tkFileDialog.SaveAs(
       #initialdir= os.environ['VMEWORKDIR'] +"/CFG/ltu/SLM/",
       initialdir= self.initialdir,
       initialfile=os.path.basename(self.filename),
@@ -1241,14 +1232,14 @@ class Editor(object):
     f2save= OpenSave.show()
     #print "Editor:",f2save,type(f2save)
     # Editor: /ram/home/alice/trigger/v/vme/CFG/ltu/SLM/zzz.slm <type 'unicode'>
-    if (type(f2save)==bytes) or (type(f2save)==str):
+    if (type(f2save)==types.StringType) or (type(f2save)==types.UnicodeType):
       cfgltuslmName=os.path.join(self.initialdir,os.path.basename(f2save))
       f= open(f2save,"w")
       #txt=self.textview.get("1.0","end")
       #print "Editor:saving:%s:%s:\n"%(f2save, txt)
       f.write(self.textview.get("1.0","end"))
       f.close()
-      if self.vb.boardName in myw.DimLTUservers:
+      if myw.DimLTUservers.has_key(self.vb.boardName):
         self.vb.io.execute('putfile("'+cfgltuslmName+'")')
       self.vb.io.write('File '+cfgltuslmName+' was saved.\n')
   def quit(self):
@@ -1265,7 +1256,7 @@ class DefaultsEditor(Editor):
     f.write(self.textview.get("1.0","end"))
     f.close()
     cfgltuslmName=os.path.join(self.initialdir,os.path.basename(f2save))
-    if self.vb.boardName in myw.DimLTUservers:
+    if myw.DimLTUservers.has_key(self.vb.boardName):
       self.vb.io.execute('putfile("'+cfgltuslmName+'")')
     self.vb.io.write('File '+cfgltuslmName+' saved.\n')
     self.quit()
@@ -1295,7 +1286,6 @@ def Counters(vb):
 #      cnts= Counts(vb); cnts.addCCB()
 #      for i in range(50,62):   # ! L1FIFO_COUNTER is 50
 #        cnts.addReg(i)
-  print(vb.io.execute("getgltuver()",applout="<>"))
   ltuver= vb.io.execute("getgltuver()",applout="<>")[0]
   if (int(ltuver) & 0xf0)==0xb0:
     st=counters.VMEcnts(counters.LTUvicnts) 
@@ -1304,7 +1294,7 @@ def Counters(vb):
   return
 
 def ADC_Scan(vb):
-  class st(object):
+  class st:
    def __init__(self,vb):
     import mywrl
     self.vb=vb
@@ -1377,7 +1367,7 @@ to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
     rc=self.c1.postscript(file=fn)
     if rc is not '':
      myw.MywError(errmsg="Directory WORK does not exist.")
-     print("rc=",rc,len(rc))
+     print "rc=",rc,len(rc)
     else:
      lt= time.localtime()
        #ltim= "%2d.%2d. %2d:%2d"%(lt[2], lt[1], lt[3], lt[4])
@@ -1470,10 +1460,10 @@ to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
       delay=[]
       n=len(listx)
       for i in range(1,n,1):
-        der=old_div((listy[i][0]-listy[i-1][0]),(listx[i]-listx[i-1]))
+        der=(listy[i][0]-listy[i-1][0])/(listx[i]-listx[i-1])
         if(abs(der)>30.):
           delay.append(int(listx[i]-1))
-      print("delay=",delay)
+      print "delay=",delay
       if (delay==[]): delay=None
       return delay
      else:
@@ -1539,7 +1529,7 @@ to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
   return None
 
 def CheckBusy(vb):
-  class Cb(object):
+  class Cb:
     def __init__(self, vb):
       self.vb=vb
       self.getbs()
@@ -1608,7 +1598,7 @@ side=LEFT,cmd=self.checkbs)
   return None
 
 def CheckRateLimit(vb):
-  class rl(object):
+  class rl:
     def __init__(self, vb):
       self.vb=vb
       self.tl=myw.NewToplevel("Check/set rate limit in LTU")
@@ -1685,7 +1675,7 @@ setting in Deafults editor window.
        pars= interval+','+trigs+','+enadis
        outs= self.vb.io.execute("RateLimit(%s)"%pars)
        #print outs,"<<"
-       o= outs.split("\n")[-2].split()
+       o= string.split(string.split(outs,"\n")[-2])
        if len(o) != 3: o=["Internal","error", "0"]
        #print o,"<<"
        return o

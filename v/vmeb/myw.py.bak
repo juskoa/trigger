@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 '''
 29.12.2002 -tear off menus now working (class FunStart)
            -funcs without pars are started directly 
@@ -29,20 +29,8 @@ vmeread modified (now a[-3])
 16.12  bug fixed in MywBits (was incorret for bits=[(name,1),...
 16. 1. MywMenuList -tear off implemented now
 '''
-from __future__ import division
-from __future__ import print_function
-from past.builtins import execfile
-from future import standard_library
-from functools import reduce
-standard_library.install_aliases()
-from builtins import hex
-from builtins import str
-from builtins import map
-from builtins import range
-from builtins import object
-from past.utils import old_div
-import sys, os, os.path, types, time
-from tkinter import *
+import sys, os, os.path, string, types, time
+from Tkinter import *
 
 COLOR_RUNNING="#ff6666"
 COLOR_VALCHANGED="#ff00ff"
@@ -80,10 +68,10 @@ def dbgprint(o, *pars):
   #dbgclss={"MultRegs":1}
   dbgclss={}
   cnam=o.__class__.__name__
-  if cnam in dbgclss:
-    print(o.__class__.__name__,":",pars)
+  if dbgclss.has_key(cnam):
+    print o.__class__.__name__,":",pars
 def errorprint(o, *pars):
-  print("ERROR in ", o.__class__.__name__,":",pars)
+  print "ERROR in ", o.__class__.__name__,":",pars
   #print "sys:",sys._getframe(1).f_code.co_name    see inspect
 def gt(x,y):
   if(x>y):
@@ -117,27 +105,27 @@ def fromms(oldval, newval):
   """
   bcfrekv=40.
   try:
-    if newval[-1].lower()=='s':   # period given in s,ms, or us
+    if string.lower(newval[-1])=='s':   # period given in s,ms, or us
       #  n= period*BC-1  n->VMEwrite, period[micsecs], BC[MHz]
       retval= newval[:-1]
       mult=1000000
-      if retval[-1].lower()=='m':     # milisecs
+      if string.lower(retval[-1])=='m':     # milisecs
         retval= retval[:-1]
         mult=1000
-      elif retval[-1].lower()=='u':   # micsecs
+      elif string.lower(retval[-1])=='u':   # micsecs
         retval= retval[:-1]
         mult=1
       retval=str(int(int(retval)*mult*bcfrekv-1))
-    elif newval[-2:].lower()=='hz':   # rate given: hz khz or mhz
+    elif string.lower(newval[-2:])=='hz':   # rate given: hz khz or mhz
       retval= newval[:-2]
       mult=1000000
-      if retval[-1].lower()=='m':     # mhz
+      if string.lower(retval[-1])=='m':     # mhz
         retval= retval[:-1]
         mult=1
-      elif retval[-1].lower()=='k':   # micsecs
+      elif string.lower(retval[-1])=='k':   # micsecs
         retval= retval[:-1]
         mult=1000
-      retval=str(int(old_div(bcfrekv*mult,int(retval))-1))
+      retval=str(int(bcfrekv*mult/int(retval)-1))
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=newval
     else:     # n given directly as int
@@ -183,36 +171,36 @@ def frommsL0pr(oldval, newval):
   """return: None if syntax error
   """
   try:
-    if newval[-1].lower()=='s':   # period given in s,ms, or us
+    if string.lower(newval[-1])=='s':   # period given in s,ms, or us
       #  n= period*BC-1  n->VMEwrite, period[micsecs], BC[MHz]
       retval= newval[:-1]
       mult=1000000
-      if retval[-1].lower()=='m':     # milisecs
+      if string.lower(retval[-1])=='m':     # milisecs
         retval= retval[:-1]
         mult=1000
-      elif retval[-1].lower()=='u':   # micsecs
+      elif string.lower(retval[-1])=='u':   # micsecs
         retval= retval[:-1]
         mult=1
       retval=str(0x80000000 | int(int(retval)*mult/10.))
-    elif newval[-2:].lower()=='hz':   # rate given: hz khz or mhz
+    elif string.lower(newval[-2:])=='hz':   # rate given: hz khz or mhz
       retval= newval[:-2]
       mult=1000000
-      if retval[-1].lower()=='k':     # khz
+      if string.lower(retval[-1])=='k':     # khz
         retval= retval[:-1]
         mult=1000
-      retval=str(0x80000000 | int(old_div(mult,int(retval))/10.))
-    elif newval[-1].lower()=='%':   # downscaling in %
+      retval=str(0x80000000 | int(mult/int(retval)/10.))
+    elif string.lower(newval[-1])=='%':   # downscaling in %
       pr= newval[:-1]
       fpr= float(pr)
       if (fpr<0.0) or (fpr>100.0):
         retval=None
       else:
-        retval= str(int(round(old_div((100-fpr)*0x1fffff,100))))
+        retval= str(int(round((100-fpr)*0x1fffff/100)))
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=str(eval(newval))
     else:     # n given directly as int
       #intrep= int(newval)
-      intrep= newval.atoi()
+      intrep= string.atoi(newval)
       retval= str(newval)
   except:
     retval=None
@@ -237,25 +225,25 @@ def frommsRandom(oldval, newval):
   """return: None if syntax error
   """
   try:
-    if newval[-1].lower()=='s':   # period given in s,ms, or us
+    if string.lower(newval[-1])=='s':   # period given in s,ms, or us
       retval= newval[:-1]
       mult=1000000
-      if retval[-1].lower()=='m':     # milisecs
+      if string.lower(retval[-1])=='m':     # milisecs
         retval= retval[:-1]
         mult=1000
-      elif retval[-1].lower()=='u':   # micsecs
+      elif string.lower(retval[-1])=='u':   # micsecs
         retval= retval[:-1]
         mult=1
       rate= 1000000./(mult*int(retval))
       #print "frommsRandom:", rate, retval
       retval= str(int(0x7fffffff/40./10**6 * rate))
-    elif newval[-2:].lower()=="hz":
+    elif string.lower(newval[-2:])=="hz":
       retval= newval[:-2]
       mult=1
-      if retval[-1].lower()=='m':     # mhz
+      if string.lower(retval[-1])=='m':     # mhz
         retval= retval[:-1]
         mult=1000000
-      elif retval[-1].lower()=='k':   # khz
+      elif string.lower(retval[-1])=='k':   # khz
         retval= retval[:-1]
         mult=1000
       rate= mult*int(retval)
@@ -269,7 +257,7 @@ def frommsRandom(oldval, newval):
     retval=None
   return retval
 
-class curry(object):
+class curry:
   '''
   def __init__(self, fun, *args, **kwargs):
     self.fun = fun
@@ -288,9 +276,9 @@ class curry(object):
     self.args = args
     self.kwargs = kwargs
   def __call__(self):
-    return self.callback(*self.args, **self.kwargs)
+    return apply(self.callback, self.args, self.kwargs)
 
-class MywError(object):
+class MywError:
  """Usage:
  myw.MywError("error message")
  """
@@ -318,11 +306,11 @@ class MywError(object):
    self.repeatErrorfocus()
  def repeatErrorfocus(self,cancel=None):
     if self.reps >= 10 or cancel:
-      print("MywError: cancelling red error widget")
+      print "MywError: cancelling red error widget"
       self.tlm.after_cancel(self.afterid)
       self.reps=0
     else:
-      print("MywError: starting 10x 1000ms")
+      print "MywError: starting 10x 1000ms"
       if self.fw:
         #von self.fw.lift(); 
         self.fw.event_generate("<Button-1>"); 
@@ -349,7 +337,7 @@ class Kanvas(Canvas):
     self.ctpcfg=ctpcfg   # to get help window over L0 scaler entries
     self.scalerpos= scalerpos
     selfargs=(self,self.tlw)
-    Canvas.__init__(*selfargs, **kw)
+    apply(Canvas.__init__,selfargs, kw)
     #self.pack(fill='y', side=RIGHT)
     #self.pack(expand='yes', fill='y', side=RIGHT)
     #self.pack(side=RIGHT)
@@ -426,12 +414,12 @@ class Kanvas(Canvas):
     #if x>canw/2:    # tooltip on right side
     if not (((x>self.scalerpos[0]) and (x<(self.scalerpos[0]+Kanvas.scalwidth))) or\
             ((x>self.scalerpos[1]) and (x<(self.scalerpos[1]+Kanvas.scalwidth)))):
-      if y<old_div(canh,2):   #NE
+      if y<canh/2:   #NE
         x= event.x-cursd-txtw; y=event.y+cursd
       else:          #SE
         x= event.x-cursd-txtw; y=event.y-cursd-txth
     else:            # tooltip on left side
-      if y<old_div(canh,2):   #NW
+      if y<canh/2:   #NW
         x= event.x+cursd; y=event.y+cursd; #recreate=0
       else:          #SW
         x= event.x+cursd; y=event.y-cursd-txth
@@ -457,7 +445,7 @@ class Kanvas(Canvas):
       self.ovalhelp= self.create_rectangle(t1,t2,t3,t4,
         tags="TAGhlptemp", fill=Kanvas.colHelpBg)
     except:
-      print("Kanvas.enterbit:", t1, t2, t3, t4)
+      print "Kanvas.enterbit:", t1, t2, t3, t4
     #self.tag_raise(self.ovalhelp, "TAGl0pr")  not working
     self.toliftback=[]
     if self.ctpcfg: 
@@ -496,9 +484,9 @@ class Kanvas(Canvas):
   def pf3help(self, event, hlptext="helppf3",dynhelp=None):
     if dynhelp: hlptext= dynhelp(hlptext)
     #blbina MywHelp(None, hlptext)
-    print("Kanvas.pf3help:",hlptext)
+    print "Kanvas.pf3help:",hlptext
 
-class MultRegs(object):
+class MultRegs:
   def __init__(self, board):
     self.mrmaster=NewToplevel("multireg "+ board.boardName)
     self.regsframe= MywFrame(self.mrmaster)
@@ -555,7 +543,7 @@ class MultRegs(object):
     entrywidget.destroy()
   def doout(self,allvals):
     #print "allread3:",allvals,':'
-    vlist=allvals.split(); vll= len(vlist)
+    vlist=string.split(allvals); vll= len(vlist)
     if vll != len(self.regs):
       errorprint(self, "%d != %d"%(vll,len(self.regs)))
     #dbgprint(self,"allread2:",vlist)
@@ -612,7 +600,7 @@ class MultRegs(object):
     else:                  # request to stop periodic read
       self.repeatRead(cancel='yes')
 
-class VmeRW(object):
+class VmeRW:
   def __init__(self,vboard):
     #print "here VmeRW"
     self.vboard=vboard
@@ -702,7 +690,7 @@ Use RIGHT mouse button for decimal <-> hexadecimal conversion.
     bits= self.v81632menu.posval.get()
     cmd= "vmeopr"+bits+"("+self.addrent.getEntry()+")" 
     if self.vboard.io==None: self.vboard.openCmd()
-    alllines= self.vboard.io.execute(cmd).split('\n')
+    alllines=string.split(self.vboard.io.execute(cmd),'\n')
     #print 'alllines:',alllines,'---'
     if len(alllines)>=2:
       a=alllines[-2]
@@ -722,7 +710,7 @@ Use RIGHT mouse button for decimal <-> hexadecimal conversion.
       self.v81632menu.posval.set(tx[1:])
       self.v81632menu.radiobut['text']= tx
 
-class MywHelp(object):
+class MywHelp:
   """Usage:
   1. For classes inheriting MywHelp (see MywButton for example):
   myw.MywHelp(self.topfr,"help text")
@@ -785,7 +773,7 @@ class MywHelp(object):
     screenwidth= self.hw.winfo_screenwidth()
     #print "screen height,width:",screenheight,screenwidth
     #x
-    if cratex<old_div(screenwidth,2): x= cratex+cratew
+    if cratex<screenwidth/2: x= cratex+cratew
     else: x= cratex-helpwidth
     if x<0 or x>screenwidth: x=0
     #y
@@ -803,15 +791,15 @@ class MywHelp(object):
     self.helptext=helptext
   def finwh(self,s):
     #print "finwh:",s
-    ss=s.split('\n')
+    ss=string.split(s,'\n')
     h=len(ss)
-    return(reduce(gt,list(map(len, ss))),h)
+    return(reduce(gt,map(len, ss)),h)
   def entercb(self,event):
-    print("entercb", event.x, event.y, self.baloonfun)
+    print "entercb", event.x, event.y, self.baloonfun
     self.baloonfun2()
     self.afterid=self.after(1000, self.help)
   def leavecb(self,event):
-    print("leave", event.x, event.y) 
+    print "leave", event.x, event.y 
     if self.hw:
       #self.MywHelp.hw.destroy() -nedobre
       if self.he<=self.maxheight:
@@ -823,7 +811,7 @@ class MywHelp(object):
     #print "dest here"
     self.hw=None
 
-class MywRadio(object):
+class MywRadio:
   """
   Creates more Radiobuttons in 1 frame, together with a common Label
   button describing their purpose.
@@ -847,7 +835,7 @@ class MywRadio(object):
     return(self.posval.get()) 
 #  def config(self, state=NORMAL):
   def printEntry(self, text='printEntry:'):
-    print(text,self.getEntry())
+    print text,self.getEntry()
 #
 """
 class MywEntry(Frame, MywHelp):
@@ -899,10 +887,10 @@ class MywEntry(Frame,MywHelp):
     if helptext: 
       MywHelp.__init__(self,master, helptext, baloon=self.printEntry)
     if label!='':
-      if type(label) is list:
+      if type(label) is types.ListType:
         self.label= MywxMenu(self, items=label,side=LEFT,
         helptext=helptext, delaction=delaction,defaultinx=defaultinx)
-      if type(label) is bytes:
+      if type(label) is types.StringType:
         self.labelname=label
         if self.cmdlabel and bind==None:
           self.label=MywButton(self,label=label,helptext=helptext, 
@@ -953,7 +941,7 @@ class MywEntry(Frame,MywHelp):
       if self.cmdlabel: self.cmdlabel(ne)
   def setEntry(self, text):
     if self.entry==None:
-      print("myw.setEntry None...?")
+      print "myw.setEntry None...?"
       return
     self.entry.delete(0, 'end')
     if self.conv2dec==1:
@@ -974,7 +962,7 @@ class MywEntry(Frame,MywHelp):
     try:
       txbin= eval(tx)
     except:
-      print("Bad value (int or 0x... expected). Using: 0xdeadbed")
+      print "Bad value (int or 0x... expected). Using: 0xdeadbed"
       txbin= defbin
     return(txbin)
   def getEntryHex(self):
@@ -1045,11 +1033,11 @@ class MywEntry(Frame,MywHelp):
         d=eval(text)
         text= "0x%x"%(d)
     except:
-      print('except')
+      print 'except'
       pass
     return text
   def printEntry(self, text='MywEntry.printEntry:'):
-    print(text,self.getEntry())
+    print text,self.getEntry()
   #def destroyEntry(self):
   def destroy(self):
     if self.label: self.label.destroy()
@@ -1082,7 +1070,7 @@ class MywVMEEntry(MywEntry):
     if self.vb:
       self.vmeval= self.vb.io.execute("vmeopr32("+self.vmeaddr+")")[:-1]
     else:
-      print("MywVMEEntry.getvme(): vb not supplied, returning 0x55aa")
+      print "MywVMEEntry.getvme(): vb not supplied, returning 0x55aa"
       self.vmeval="0x55aa"
   def updateentry(self, event=None):
     newentry= self.getEntry()
@@ -1099,7 +1087,7 @@ class MywVMEEntry(MywEntry):
       self.vb.io.execute("vmeopw32("+self.vmeaddr+", "+
         strforvme+")")
     else:
-      print("MywVMEEntry.updateentry(): vb not supplied, writing ", self.vmeval)
+      print "MywVMEEntry.updateentry(): vb not supplied, writing ", self.vmeval
     
 class MywButton(Button, MywHelp):
   """
@@ -1223,13 +1211,13 @@ class MywMenu(Menu, MywHelp):
   def enable(self, iix):
     self.enabdisa(iix, NORMAL)
   def enabdisa(self, iix, state):
-    if type(iix) is int:
+    if type(iix) is types.IntType:
       self.entryconfigure(iix,state=state)
-    elif type(iix) is list:
+    elif type(iix) is types.ListType:
       for x in iix:
-        if type(x) is int:
+        if type(x) is types.IntType:
           indx= x
-        elif type(x) is bytes:
+        elif type(x) is types.StringType:
           indx= self.findLabel(x)
         else: continue
         if indx: self.entryconfigure(indx,state=state)
@@ -1237,7 +1225,7 @@ class MywMenu(Menu, MywHelp):
 #class MywMBar(Menu, MywHelp):
 #  def __init__(self, master=None
 
-class MywBits(object):
+class MywBits:
   """
   bits[] -array of items corresponding to bits 0,1,2,...,31
           1 item is:
@@ -1272,7 +1260,7 @@ class MywBits(object):
       self.cv.append(IntVar())
       chb= self.bits[bitn]
       endistate= None; shown=1
-      if type(chb) is tuple:
+      if type(chb) is types.TupleType:
         if chb[1]==0: endistate= DISABLED
         if chb[1]==1: shown=None
         chb= chb[0]
@@ -1305,13 +1293,13 @@ class MywBits(object):
     for bitn in range(0,len(self.bits)):
       chb= self.bits[bitn]
       #endistate= None
-      if type(chb) is tuple:
+      if type(chb) is types.TupleType:
         #if chb[1]==0: endistate= DISABLED
         if chb[1]==1: continue   #not shown
         chb= chb[0]
       #if self.value & (1<<bitn):
       if  self.cv[bitn].get():
-        lbl= lbl+' '+chb.split(None,2)[0]
+        lbl= lbl+' '+string.split(chb,None,2)[0]
       #print "dolabel:",bitn,self.cv[bitn].get(),lbl
     self.mb.config(text=lbl)
   def setEntry(self, val):
@@ -1339,7 +1327,7 @@ class MywBits(object):
     self.mb.configure(bg=color)
     #self.label.configure(bg=color)
 
-class MywMenuList(object):
+class MywMenuList:
   '''
   Button expanding to checkbutton list of buttons.
   label: optional. The label of this menu. If showactive==1, label
@@ -1369,7 +1357,7 @@ class MywMenuList(object):
     for i in range(len(self.items)):
       self.onoff.append(0)
     if defaults:
-      if (type(defaults) is list) or (type(defaults) is tuple):
+      if (type(defaults) is types.ListType) or (type(defaults) is types.TupleType):
         for i in range(len(defaults)):
           if defaults[i]!=0:
             self.onoff[i]= 1
@@ -1396,7 +1384,7 @@ class MywMenuList(object):
       else:
         cbreak=None
       #print 'onoff:',self.onoff,ixitem
-      if type(ch) is bytes:
+      if type(ch) is types.StringType:
         chname=ch
       else:
         chname=ch[0]
@@ -1431,7 +1419,7 @@ class MywMenuList(object):
           inx=ix-1; ndiff= ndiff+1
           self.onoff[ix-1]= cvar
           if ndiff>1:
-            print("Interror in torn off MywMenuList (ndiff:%d ix:%d)"%(ndiff,ix))
+            print "Interror in torn off MywMenuList (ndiff:%d ix:%d)"%(ndiff,ix)
       if ndiff != 1:
         raise "Internal error in torn off MywMenuList (ndiff:%d ix:%d)"%(ndiff,ix)
     #if self.getEntry(inx)==1:
@@ -1441,7 +1429,7 @@ class MywMenuList(object):
     pvg= self.posval[inx].get()
     #print 'pvg:',pvg
     #self.checkbut['text']= self.items[inx][0]
-    if type(self.items[inx]) is bytes:
+    if type(self.items[inx]) is types.StringType:
       pass
     else:
       #print "calling action for ",self.items[inx][0]
@@ -1455,7 +1443,7 @@ class MywMenuList(object):
     lbl= self.name+':'
     for ich in range(len(self.items)) :
       if self.posval[ich].get():
-        if type(self.items[ich]) is bytes:
+        if type(self.items[ich]) is types.StringType:
           chname=self.items[ich]
         else:
           chname=self.items[ich][0]
@@ -1500,7 +1488,7 @@ class MywMenuList(object):
   def destroy(self):
     self.checkbut.destroy()   # garbage collector does the rest...
 
-class MywxMenu(object):
+class MywxMenu:
   '''
   Button expanding to radio-type menu.
   label: optional. The label of this menu
@@ -1526,7 +1514,7 @@ class MywxMenu(object):
     self.label=label   # None (was until 15.1.2006)
     self.items=[]
     for itm in items:
-      if type(itm) is bytes:
+      if type(itm) is types.StringType:
         self.items.append((itm,itm))
       else:
         self.items.append(itm)
@@ -1534,7 +1522,7 @@ class MywxMenu(object):
     self.cmd= cmd
     self.delaction= delaction
     if defaultinx>=len(items):
-      print("myw.MywxMenu: deafaultinx too high:",defaultinx, "setting 0")
+      print "myw.MywxMenu: deafaultinx too high:",defaultinx, "setting 0"
       defaultinx=0
     self.index=defaultinx
     #print "MywxMenu:items:", items, defaultinx
@@ -1605,7 +1593,7 @@ class MywxMenu(object):
     return
   def backEntry(self):
     self.posval.set(self.posvalbefore)
-    print("backEntry:",self.posval.get(), self.posinx)
+    print "backEntry:",self.posval.get(), self.posinx
     self.radiobut['text']= self.items[self.posinx][0]
     #still makeactive:
   def enable(self):
@@ -1626,7 +1614,7 @@ class MywxMenu(object):
     """
     return(self.index)
   def printEntry(self, text='MywxMenu.printEntry:'):
-    print(text,'ix:',self.index,'Entry:',self.getEntry())
+    print text,'ix:',self.index,'Entry:',self.getEntry()
   #def popup(self, event):
   #  self.rbm.post(event.x_root, event.y_root)
   #def unpopup(self, event):
@@ -1661,7 +1649,7 @@ class MywLabel(Label,MywHelp):
     #self.color=color
     self.configure(bg=color)
 
-class FunStart(object):
+class FunStart:
   def fcallstart(self):
     cmdline=self.fn+"("
     #print "fcallstart:"
@@ -1745,7 +1733,7 @@ class MywMenu81632(MywxMenu):
     #self.radiobut['text']= self.rbm.entrycget(
     #  self.rbm.index(ACTIVE),'label')
 
-class VmeBoard(object):
+class VmeBoard:
   NGUINAME=5
   NPARDESC=4
   NFNAME=3
@@ -1875,7 +1863,7 @@ class VmeBoard(object):
     #---------------------- GROUP functions:
     self.gmbs=[]
     for gn in self.groups:
-      if self.hiddenfuncs.find(" "+gn)!=-1: continue
+      if string.find(self.hiddenfuncs," "+gn)!=-1: continue
       # funchelp -for just this group (see comp.py, self.groups)
       self.grouphelp={}
       self.grouphelp[gn]=''
@@ -1911,7 +1899,7 @@ class VmeBoard(object):
           cmdh= lambda s=self,x=ix:s.startFun(x)
           self.gmbs[-1].add_command(label=labname, command=cmdh)
           gix=gix+1
-          self.funcsm[ix]= (old_div(len(self.gmbs),2)-1, gix)
+          self.funcsm[ix]= (len(self.gmbs)/2-1, gix)
           #print "funbuts3:",fn,"self.funcm[",ix,"]=",self.funcsm[ix]
   def getcf(self):
     self.funcs=[]
@@ -1948,7 +1936,7 @@ class VmeBoard(object):
     hmpid           -    True
     blbina          -    ZDOCHNE
     """
-    if self.boardName in DimLTUservers: 
+    if DimLTUservers.has_key(self.boardName): 
       return True
     elif self.boardName=='ltu':
       if dim=='dim':
@@ -1972,7 +1960,7 @@ class VmeBoard(object):
     if color==None:
       if self.iamltu(): color=VmeBoard.LTUcolor
       elif boardName=='ttcvi': color="#66cc00"
-      elif boardName in VmeBoard.CTPcolors:
+      elif VmeBoard.CTPcolors.has_key(boardName):
         color= VmeBoard.CTPcolors[boardName]
       else: color="#ff9900"
       
@@ -1989,8 +1977,8 @@ class VmeBoard(object):
         try:
           os.mkdir(self.workdir) 
         except:
-          print("Cannot create work directory:", self.workdir)
-          print("exception:", sys.exc_info()[0])
+          print "Cannot create work directory:", self.workdir
+          print "exception:", sys.exc_info()[0]
     #self.vmefuns= {}
     self.vmebf= Frame(self.master, borderwidth=4, relief="raised",bg=color)
     self.vmebf.pack(side="left", expand='yes', fill='y')
@@ -2031,7 +2019,7 @@ Main log/cmd window is started by itself if necessary.
       if rc == '-2':
         self.setColor(COLOR_WARNING)
         errmsg="rc:-2, cannot contact server"
-        print(errmsg)
+        print errmsg
         return
       elif rc == '-1':
         self.setColor(COLOR_WARNING)
@@ -2041,7 +2029,7 @@ Main log/cmd window is started by itself if necessary.
 - obsolete FPGA in LTU or
 - unsuccessfull FPGA load from Flash memory on the board after power off/on"""
         self.io.write(errmsg)
-        print(errmsg)
+        print errmsg
         return
       elif rc=='0':
         self.io.write("LTU in global mode !\n")
@@ -2049,8 +2037,8 @@ Main log/cmd window is started by itself if necessary.
       #rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)",applout='<>')
     #
     if self.iamltu():
-      rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)").strip()
-      print("VmeBoard:",rcs)
+      rcs= string.strip(self.io.execute("vmeopr32(LTUVERSION_ADD)"))
+      print "VmeBoard:",rcs
       rc= eval(rcs)
       if rc>=0xb7:
         self.io.write("LTU version %s, (i.e. run2)\n"%rcs)
@@ -2071,13 +2059,13 @@ Main log/cmd window is started by itself if necessary.
     """
     #print "myw.VmeBoard:", boardName
 
-class VmeCrate(object):
+class VmeCrate:
   _instance= None
   def __init__(self, master=None):
     self.boards=[]
     self.autohelps=None
     if self.autohelps==None:
-      print("Use right mouse button to get help")
+      print "Use right mouse button to get help"
     self.master=master
     self.crframe= Frame(master)
     self.crframe.pack(side="top")
@@ -2117,7 +2105,7 @@ def vbinit(vb):
     else:
       vbexec= Vbexecvoid()
 
-class Vbexec(object):
+class Vbexec:
   """
   Access to popened ctp.exe + 2 command buttons Readhw, Write2hw
   """
@@ -2167,17 +2155,17 @@ class Vbexec(object):
     for ixfg in range(len(self.vbinst.gmbs)):
       fg= self.vbinst.gmbs[ixfg]
       if ixfg%2 ==0: 
-        print("Vbexec:groupname:type:",type(fg))
+        print "Vbexec:groupname:type:",type(fg)
         grpname= fg.cget("text")
-        print("Vbexec:groupname:",grpname)
+        print "Vbexec:groupname:",grpname
         continue
-      print("Vbexec.fg:",type(fg), fg.type(0),"\n",dir(fg))
+      print "Vbexec.fg:",type(fg), fg.type(0),"\n",dir(fg)
       ixfunmax =fg.index(END)+1
-      print("Vbexec.ixfunmax>",ixfunmax)
+      print "Vbexec.ixfunmax>",ixfunmax
       for ixfun in range(1, ixfunmax):   # 0 -is tearoff type
         entype= fg.type(ixfun)
         enlabel= fg.entrycget(ixfun,"label")
-        print("Vbexec:ix",ixfun,"entype:",entype,"name:",enlabel)
+        print "Vbexec:ix",ixfun,"entype:",entype,"name:",enlabel
   def printmsg(self, msg):
     try:
       self.vbinst.io.write(msg)
@@ -2198,7 +2186,7 @@ class Vbexec(object):
     return l
   def get1(self, cmd):
     """ return list of strings (printed to stdout by cmd as 1 line)"""
-    return self.vbinst.io.execute(cmd).split()
+    return string.split(self.vbinst.io.execute(cmd))
   def get2(self, cmd, log="out"):
     """ return list of strings (items were found in <> 
     printed to stdout by cmd)"""
@@ -2209,27 +2197,27 @@ class Vbexec(object):
     #return self.vbinst.io.execute(cmd, log, "<>")
   def getsl(self, cmd):
     """ return list of strings -string/line (printed to stdout by cmd as more lines)"""
-    return self.vbinst.io.execute(cmd).split('\n')
+    return string.split(self.vbinst.io.execute(cmd),'\n')
 
-class Vbexecvoid(object):
+class Vbexecvoid:
   def printmsg(self,msg):
-    print(msg)
+    print msg
 
 def checklabel(arg1=None):
-  print("here checklabel. arg1:", arg1)
+  print "here checklabel. arg1:", arg1
 def checklabel2():
-  print("here checklabel2")
+  print "here checklabel2"
   #print event,b
 def prerror():
   global butsFrame
   xy=butsFrame.winfo_rootx(),butsFrame.winfo_rooty()
   MywError("this error message\n overlaps button Frame",xy)
 def efdestroy(event):
-  print("efdestroy:",event)
+  print "efdestroy:",event
 def fdestroy(event):
-  print("fdestroy:",event)
+  print "fdestroy:",event
 
-class Testcfg(object):
+class Testcfg:
   def __init__(self):
     self.caclstl= NewToplevel("CTP classes",self.k_destroyed)
     self.canvas= Kanvas(self.caclstl,self.canvasDestroyed, ctpcfg=self,
@@ -2242,9 +2230,9 @@ class Testcfg(object):
       self.canvas.doHelp(id0, """Class number and Cluster it belongs to
 help text %d"""%ixl)
   def k_destroyed():
-    print("k_destroyed:")
+    print "k_destroyed:"
   def canvasDestroyed(self,event):
-    print("canvasDestroyed:",event)
+    print "canvasDestroyed:",event
     self.canvas=None
 
 def Test_Kanvas():
