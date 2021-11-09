@@ -37,7 +37,7 @@ export VMEGCC=g++ #export VMEGCC=gcc
 # cd trgdist (where v is) ; . bin/vmebse.bash ; cd
 if [ "$hname" = 'pcalicebhm10' ] ;then
   ult=/home/dl6/local/trigger
-elif [ "$hname" = 'altri22' ] ;then
+elif [ "$hname" = 'altri24' -o  "$hname" = 'altri23' -o  "$hname" = 'altri22' ] ;then
   ult=/home/alice/trigger/git/trigger
 elif [ "$hname" = "$LABSERVER" ] ;then
   ult=/home/dl6/local/trigger
@@ -71,7 +71,6 @@ fi
 if [ -e /dev/vme_rcc ] ;then           #------------------------ VME CPU
   export VMEDRIVER=VMERCC     # VMERCC, SIMVME
   if [[ -z $VMELIBS ]] ;then
-    #if [ "$hname" = "altri22" ] ;then   # development
     if [[ -e "/ATLAS/tdaq_drivers" ]] ;then
       export VMELIBS=/ATLAS/lib
       export VMEINCS=/ATLAS/tdaq_drivers
