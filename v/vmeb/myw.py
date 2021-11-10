@@ -902,7 +902,7 @@ class MywEntry(Frame,MywHelp):
       if type(label) is list:
         self.label= MywxMenu(self, items=label,side=LEFT,
         helptext=helptext, delaction=delaction,defaultinx=defaultinx)
-      if type(label) is bytes:
+      if type(label) is type('bytes'):
         self.labelname=label
         if self.cmdlabel and bind==None:
           self.label=MywButton(self,label=label,helptext=helptext, 
@@ -1229,7 +1229,7 @@ class MywMenu(Menu, MywHelp):
       for x in iix:
         if type(x) is int:
           indx= x
-        elif type(x) is bytes:
+        elif type(x) is type('bytes'):
           indx= self.findLabel(x)
         else: continue
         if indx: self.entryconfigure(indx,state=state)
@@ -1396,7 +1396,7 @@ class MywMenuList(object):
       else:
         cbreak=None
       #print 'onoff:',self.onoff,ixitem
-      if type(ch) is bytes:
+      if type(ch) is type('bytes'):
         chname=ch
       else:
         chname=ch[0]
@@ -1441,7 +1441,7 @@ class MywMenuList(object):
     pvg= self.posval[inx].get()
     #print 'pvg:',pvg
     #self.checkbut['text']= self.items[inx][0]
-    if type(self.items[inx]) is bytes:
+    if type(self.items[inx]) is type('bytes'):
       pass
     else:
       #print "calling action for ",self.items[inx][0]
@@ -1455,7 +1455,7 @@ class MywMenuList(object):
     lbl= self.name+':'
     for ich in range(len(self.items)) :
       if self.posval[ich].get():
-        if type(self.items[ich]) is bytes:
+        if type(self.items[ich]) is type('bytes'):
           chname=self.items[ich]
         else:
           chname=self.items[ich][0]
@@ -1526,7 +1526,7 @@ class MywxMenu(object):
     self.label=label   # None (was until 15.1.2006)
     self.items=[]
     for itm in items:
-      if type(itm) is bytes:
+      if type(itm) is type('bytes'):
         self.items.append((itm,itm))
       else:
         self.items.append(itm)
@@ -2264,7 +2264,7 @@ def main():
   entriesFrame.bind("<Destroy>", efdestroy)
   entriesFrame.config(bg="blue")
   lb=MywEntry(entriesFrame,label="MywEntry with help/cmd:",
-    side=TOP, defvalue='abc',cmdlabel=checklabel,helptext="abc\n\
+    side=TOP, defvalue='abc1',cmdlabel=checklabel,helptext="abc\n\
   2 riadok\ntreti\n\
   stvrty\n\
 piaty")

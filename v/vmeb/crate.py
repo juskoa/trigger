@@ -91,10 +91,10 @@ nbi         -if parameter nbi supplied, the board won't be initialised
         print(rtxt,"\n")
         print("Try: vmecrate YourDetectorName          from the same login!\n")
         return #sys.exit(0)
-      try:
+      if True: #try:
         vmeboard= myw.VmeBoard(f1, boardName=board[0], \
                 baseAddr=basead, initboard=initboard)
-      except:
+      else:  #except:
         print("crate.py:", sys.exc_info())
         print("""Board name ['ltu', 'ttcvi',...], or detector name """ +str(list(myw.DimLTUservers.keys())) + " expected.")
         sys.exit(0)

@@ -1241,7 +1241,8 @@ class Editor(object):
     f2save= OpenSave.show()
     #print "Editor:",f2save,type(f2save)
     # Editor: /ram/home/alice/trigger/v/vme/CFG/ltu/SLM/zzz.slm <type 'unicode'>
-    if (type(f2save)==bytes) or (type(f2save)==str):
+    #if (type(f2save)==bytes) or (type(f2save)==str):
+    if (type(f2save)==str):
       cfgltuslmName=os.path.join(self.initialdir,os.path.basename(f2save))
       f= open(f2save,"w")
       #txt=self.textview.get("1.0","end")
