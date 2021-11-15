@@ -76,13 +76,14 @@ nbi         -if parameter nbi supplied, the board won't be initialised
       basead=''
     #print board,basead
     if board[0] in myw.DimLTUservers:     #over DIM
-      #try:
-      vmeboard= myw.VmeBoard(f1, boardName=board[0])
-      #except:
-      #  print "overDIM except:",sys.exc_info()[0]
-      #lse:
-      f1.addBoard(vmeboard)
-      syspadd= os.path.join(cfdir,"ltu")
+      try:
+        vmeboard= myw.VmeBoard(f1, boardName=board[0])
+      except:
+        print("overDIM except:",sys.exc_info()[0])
+        sys.exit(8)
+      else:
+        f1.addBoard(vmeboard)
+        syspadd= os.path.join(cfdir,"ltu")
     else:                                       #direct VME
       # Prevent direct VME, if DIM server is on:
       #rtxt=DimServerOn(basead)
@@ -91,15 +92,19 @@ nbi         -if parameter nbi supplied, the board won't be initialised
         print(rtxt,"\n")
         print("Try: vmecrate YourDetectorName          from the same login!\n")
         return #sys.exit(0)
-      if True: #try:
+      try:
         vmeboard= myw.VmeBoard(f1, boardName=board[0], \
                 baseAddr=basead, initboard=initboard)
-      else:  #except:
+      except:
         print("crate.py:", sys.exc_info())
         print("""Board name ['ltu', 'ttcvi',...], or detector name """ +str(list(myw.DimLTUservers.keys())) + " expected.")
-        sys.exit(0)
-      f1.addBoard(vmeboard)
-      syspadd= os.path.join(cfdir, board[0])
+        sys.exit(8)
+      else:
+        f1.addBoard(vmeboard)
+        syspadd= os.path.join(cfdir, board[0])
+    if vmeboard.errmsg!=None:
+      print(vmeboard.errmsg)
+      sys.exit(8)
     sys.path.append(syspadd)   # to find user gui routines
     #print "crate.py: myw.vbexec:", myw.vbexec
     if myw.vbexec==None:   # nbi LTU could open it

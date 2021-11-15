@@ -1968,7 +1968,7 @@ class VmeBoard(object):
     self.baseAddr= baseAddr   # has to be after getcf()
     #if baseAddr != "": self.baseAddr= baseAddr   # has to be after getcf()
     self.fungrps=[]
-
+    self.errmsg= None
     if color==None:
       if self.iamltu(): color=VmeBoard.LTUcolor
       elif boardName=='ttcvi': color="#66cc00"
@@ -2030,18 +2030,18 @@ Main log/cmd window is started by itself if necessary.
         rc= '-2'
       if rc == '-2':
         self.setColor(COLOR_WARNING)
-        errmsg="rc:-2, cannot contact server"
-        print(errmsg)
+        self.errmsg="rc:-2, cannot contact server"
+        print(self.errmsg)
         return
       elif rc == '-1':
         self.setColor(COLOR_WARNING)
-        errmsg="""
+        self.errmsg="""
 - LTU not in the crate or 
 - bad LTU base address given or
 - obsolete FPGA in LTU or
 - unsuccessfull FPGA load from Flash memory on the board after power off/on"""
-        self.io.write(errmsg)
-        print(errmsg)
+        self.io.write(self.errmsg)
+        print(self.errmsg)
         return
       elif rc=='0':
         self.io.write("LTU in global mode !\n")
@@ -2051,6 +2051,9 @@ Main log/cmd window is started by itself if necessary.
     if self.iamltu():
       rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)").strip()
       print("VmeBoard:",rcs)
+      if len(rcs)<2:
+        self.errmsg= "Cannot read LTU version"
+        return
       rc= eval(rcs)
       if rc>=0xb7:
         self.io.write("LTU version %s, (i.e. run2)\n"%rcs)
