@@ -261,9 +261,10 @@ while(clocktran>=0) {
       nclients= dis_update_service(MICLOCKid);
       printf("updated MICLOCK clients:%d\n", nclients);
       //printf("updated MICLOCK clients:%d, now ctpproxy.py restart nomasks...\n", nclients);
-      rc= popenread(cmd, result, reslen);
+      //rc= popenread(cmd, result, reslen);
+      rc= EXIT_FAILURE;
       if(rc==EXIT_FAILURE) { 
-        printf("ERROR cmd:%s rc:%d\n", cmd, rc);
+        printf("ERROR cmd NOT DONE:%s rc:%d\n", cmd, rc);
       } else {
         printf("result(len:%d):%s\n", strlen(result), result);
       };  
@@ -302,7 +303,7 @@ if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
 vmesite= getenv("VMESITE"); if(strcmp(vmesite,"PRIVATE")==0) { rc=0; goto OK; };
 if( (strncmp(hname,"alidcscom835",12)==0) ||
     (strncmp(hname,"adls",4)==0) ||
-    (strncmp(hname,"pcalicebhm10",12)==0)) {
+    (strncmp(hname,"altri2",6)==0)) {   // altri2[234]
   rc=0; goto OK;
 };
 rc=3;
@@ -543,9 +544,10 @@ sprintf(msg, "FREQScaba freqs now:%s size:%d", freqstxt, *size); prtLog(msg);
 int update_qpll() {
 int rc,rcret=0; w32 stat; 
 //int mainerr,mainlck,bc1err,bc1lck; char buffer[50];
-if(envcmp("VMESITE", "ALICE")==0) {
+if(1==1) { //envcmp("VMESITE", "ALICE")==0) {
   if(micratepresent()& 0x2) {
     stat= readstatus();
+    //printf("update_qpll stat:0x%x\n",stat);
   } else { stat=0xfff; };
   // update freqs:
   if(micratepresent()& 0x1) {
@@ -590,7 +592,7 @@ if(stat != qpllstat) {
   prtLog(buffer); */
 };
 nlogqpll++;
-if((nlogqpll % 3600)==0) {    // 3600:log 1 per 2 hours
+if((nlogqpll % 60)==0) {    // 3600:log 1 per 2 hours
   char msg[100];
   sprintf(msg, "qpllstat%d:0x%x", nlogqpll, qpllstat);
   prtLog(msg);
@@ -735,7 +737,7 @@ while(1)  {
   //printf("sleteping 10secs...\n"); fflush(stdout);
   //sleep(1) ; 
   //msleep(1000);
-  dtq_sleep(2);
+  dtq_sleep(60);
   //printf("slept 10secs...\n"); fflush(stdout);
 };  
 ds_stop();
