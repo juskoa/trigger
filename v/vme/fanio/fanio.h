@@ -1,4 +1,5 @@
 #define DUMMY 0xff
+/* http://mkrivda.web.cern.ch/Faninout_ug_v3.pdf */
 /*REGSTART32 */
 #define VME_RESET 0x10  /* DUMMY write: */
 /*clear L0_COUNTER and start STATUS_CLOCK measurement */

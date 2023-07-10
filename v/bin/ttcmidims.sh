@@ -10,7 +10,7 @@ if [ ! -e /dev/vme_rcc ] ;then           #-------------------- not VME CPU
 fi
 
 #if [ "$VMESITE" != "PRIVATE" -a "$hname" != 'alidcsvme017' -a "$hname" != 'altri2' ] ;then
-if [ "$hname" != 'altri23' -a "$hname" != 'altri22' ] ;then
+if [ "$hname" != 'altri23' -a "$hname" != 'altri22' -a "$hname" != 'alidcsvme018' ] ;then
   #echo 'Debug? ttcmi boards available only on alidcsvme017 (or altri2 for test)'
   echo 'Debug? ttcmi control available only from new C8 VP-E24 CPUs'
   exit
@@ -19,7 +19,9 @@ getpid 'linux/ttcmidims'
 if [ "$1" == 'stop' ] ;then   #-------------------------- stop
   if [ -n "$spid" ] ;then
     kill -s QUIT $spid
-    echo "killing: $spid/$user"
+    echo
+    echo
+    echo "killing: $spid/$user    wait a minute until killed, resp. CHECK ttcmidims.sh."
     ps
   else
     echo "ttcmidim server is not running"

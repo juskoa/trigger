@@ -1,0 +1,73 @@
+=== 28.6.2023 files copied from P2 are in ~/aj/p2_28jun
+- changes(gvimdiff) in git v/vme applied from p2 see trigger@altri23:bin/gvdiff:
+Archive:  modfilesp2.zip
+  inflating: v/bin/ttcmidims.sh      ok
+  inflating: v/bin/vmebse.bash       ok (was not changed)
+  inflating: v/vme/corde/corde.c     ok (was not changed)
+  inflating: v/vme/ttcmi/ttcmi.c     ok
+  inflating: v/vme/ttcmi/ttcmi.h     ok
+  inflating: v/vme/ttcmi/ttcmisubs.c ok 
+  inflating: v/vme/ttcmidaemons/gendimclient.py  ok (was not changed)
+  inflating: v/vme/ttcmidaemons/miclock_shift.py  ok (was not hcanged)
+  inflating: v/vme/ttcmidaemons/monshiftclock2.py  ok (was not hcanged)
+  inflating: v/vme/ttcmidaemons/ttcmidims.c  ok
+  inflating: v/vmeb/pylog.py   ok
+
+=== changes in ~aj/p2_28jun/ctp3root (cmdpy  pywrap  scripts) incorporated in ctp3-ipbus distrib
+in python/
+del: not needed in dcs
+
+10:15 $ diff -qr cmdpy /tmp/ctp3root/cmdpy
+Only in /tmp/ctp3root/cmdpy/bmdim: bcmserver.log
+ok Files cmdpy/bmdim/bcmserver.py and /tmp/ctp3root/cmdpy/bmdim/bcmserver.py differ
+ok Files cmdpy/bmdim/beammodes.py and /tmp/ctp3root/cmdpy/bmdim/beammodes.py differ
+ok Files cmdpy/bmdim/client_ex.py and /tmp/ctp3root/cmdpy/bmdim/client_ex.py differ
+del Files cmdpy/bmdim/clocktransition.py and /tmp/ctp3root/cmdpy/bmdim/clocktransition.py differ
+ok Files cmdpy/bmdim/common.py and /tmp/ctp3root/cmdpy/bmdim/common.py differ
+ok Files cmdpy/bmdim/cordesetcmd.py and /tmp/ctp3root/cmdpy/bmdim/cordesetcmd.py differ
+ok Files cmdpy/bmdim/fsclient.py and /tmp/ctp3root/cmdpy/bmdim/fsclient.py differ
+ok Files cmdpy/bmdim/lhc2ctp_beforezdc.py and /tmp/ctp3root/cmdpy/bmdim/lhc2ctp_beforezdc.py differ
+ok Files cmdpy/bmdim/lhc2ctp.py and /tmp/ctp3root/cmdpy/bmdim/lhc2ctp.py differ
+ok Files cmdpy/bmdim/readme and /tmp/ctp3root/cmdpy/bmdim/readme differ
+ok Files cmdpy/bmdim/server_ex.py and /tmp/ctp3root/cmdpy/bmdim/server_ex.py differ
+ok Files cmdpy/bmdim/simpleClient.py and /tmp/ctp3root/cmdpy/bmdim/simpleClient.py differ
+
+p2dif cmdpy/bmdim/bcmserver.py
+
+
+10:16 $ diff -qr pywrap /tmp/ctp3root/pywrap
+Only in pywrap: atb
+ok Files pywrap/atbwrap.py and /tmp/ctp3root/pywrap/atbwrap.py differ
+ok Files pywrap/auxfuns.py and /tmp/ctp3root/pywrap/auxfuns.py differ
+ok Files pywrap/checkboards.py and /tmp/ctp3root/pywrap/checkboards.py differ
+ok Files pywrap/cmdlhistory.py and /tmp/ctp3root/pywrap/cmdlhistory.py differ
+ok Files pywrap/colors.py and /tmp/ctp3root/pywrap/colors.py differ
+ok Files pywrap/CommonComponents.py and /tmp/ctp3root/pywrap/CommonComponents.py differ
+ok Files pywrap/dbltus.py and /tmp/ctp3root/pywrap/dbltus.py differ
+ok Files pywrap/dumpssm.py and /tmp/ctp3root/pywrap/dumpssm.py differ
+ok Files pywrap/extinput.py and /tmp/ctp3root/pywrap/extinput.py differ
+ok Files pywrap/fcntlflock.py and /tmp/ctp3root/pywrap/fcntlflock.py differ
+Only in pywrap: getMonCycle.py
+ok Files pywrap/hexdump.py and /tmp/ctp3root/pywrap/hexdump.py differ
+ok Files pywrap/i2c.py and /tmp/ctp3root/pywrap/i2c.py differ
+ok Files pywrap/ibw.py and /tmp/ctp3root/pywrap/ibw.py differ
+ok Files pywrap/ilogger.py and /tmp/ctp3root/pywrap/ilogger.py differ
+ok Files pywrap/ipbuswrap.py and /tmp/ctp3root/pywrap/ipbuswrap.py differ
+ok Files pywrap/ltu_grpcs.py and /tmp/ctp3root/pywrap/ltu_grpcs.py differ
+ok Files pywrap/pylog.py and /tmp/ctp3root/pywrap/pylog.py differ
+ok Files pywrap/saxipbus.py and /tmp/ctp3root/pywrap/saxipbus.py differ
+ok Files pywrap/setsyspath.py and /tmp/ctp3root/pywrap/setsyspath.py differ
+ok Files pywrap/specdevs.py and /tmp/ctp3root/pywrap/specdevs.py differ
+ok Files pywrap/spiatlas.py and /tmp/ctp3root/pywrap/spiatlas.py differ
+ok Files pywrap/spi.py and /tmp/ctp3root/pywrap/spi.py differ
+ok Files pywrap/symbreg.py and /tmp/ctp3root/pywrap/symbreg.py differ
+ok Files pywrap/trigdb.py and /tmp/ctp3root/pywrap/trigdb.py differ
+ok Files pywrap/tri_grpcs.py and /tmp/ctp3root/pywrap/tri_grpcs.py differ
+ok Files pywrap/tri_ws.py and /tmp/ctp3root/pywrap/tri_ws.py differ
+
+=== changes in ~aj/p2_28jun/ctp3root (cmdpy  pywrap  scripts) incorporated in ctp3-ipbus distrib
+in scripts/
+$ diff -qr ../scripts /tmp/ctp3root/scripts
+ok Files ../scripts/bin/bcmserver and /tmp/ctp3root/scripts/bin/bcmserver differ
+ok Files ../scripts/bin/bmd and /tmp/ctp3root/scripts/bin/bmd differ
+

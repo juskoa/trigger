@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # 2.2.2012 and 20.1.2013 (DLL_RESYNC removed):
 # look for #CJI -Clock Jitter Invetsigation modifications (no DLL_RESYNC)
 #
@@ -8,7 +8,13 @@
 # 26.5. 2017 FLAT TOP instead of SQUEEZE time forclock adjustment
 # 26.5. 2017 FLAT TOP + 60 secs bug
 #  1.6. 2017 FLAT TOP + 50 secs check +30s, tested in lab (using pydim/simpleClient.py )
-import sys,os,os.path,string,pylog
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import str
+from past.utils import old_div
+from builtins import object
+import sys,os,os.path,pylog
 import signal,time,subprocess,threading,socket
 
 # Import the pydim module
@@ -17,10 +23,10 @@ import pydim
 mylog= None
 VMECFDIR= os.environ["VMECFDIR"]
 if os.environ['VMESITE']=='ALICE':
-  #MICLOCKID="/data/dl/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
-  MICLOCKID="/home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+  #MICLOCKID="/home/dl6/snapshot/alidcsvme017/home/alice/trigger/v/vme/WORK/miclockid"
+  MICLOCKID="/home/alice/trigger/v/vme/WORK/miclockid"
 elif os.environ['VMESITE']=='SERVER':
-  MICLOCKID="/home/dl6/snapshot/altri1/home/alice/trigger/v/vme/WORK/miclockid"
+  MICLOCKID="/home/alice/trigger/v/vme/WORK/miclockid"
 else:
   #print "VMESITE:", os.environ['VMESITE']
   if os.environ["USER"]=="oerjan":
@@ -79,12 +85,14 @@ class myThread (threading.Thread):
           break
       time.sleep(self.delay)
       message="miclock %s %d"%(WEB.lastbmname, udpcount)
-      sentrc= sock.sendto(message, addr)
+      #sentrc= sock.sendto(message, addr)
+      sentrc= sock.sendto(bytes(message,'utf-8'), addr)
+      #sentrc= sock.sendto(message.encode('utf-8'), addr))   also ok
       udpcount= udpcount+1
       #print "%s: %s sentrc:" % (time.ctime(time.time()), message), sentrc
       #if udpcount<4:   # log only first few msgs
       #  mylog.logm("%s: %s sentrc:%d" % (time.ctime(time.time()), message, sentrc))
-class web:
+class web(object):
   def __init__(self):
     self.miclock='none'
     self.transition='none'
@@ -167,14 +175,17 @@ def callback_manauto(auma):
 def getShift(what="s"):
   mcmd= os.path.join(VMECFDIR,"ttcmidaemons/monshiftclock2.py")
   #iop= popen2.popen2(mcmd+" "+what, 1) #0- unbuffered, 1-line buffered
-  p= subprocess.Popen(string.split(mcmd+" "+what), bufsize=1,
+  postr= mcmd+" "+what
+  p= subprocess.Popen(postr.split(), bufsize=1,
     stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
   iop= (p.stdout, p.stdin)
   line= iop[0].readline()
   iop[0].close()
   iop[1].close()
   #print "getShift",line,":"
-  return line[:-1]
+  #return line[:-1]
+  strline= line[:-1].decode('utf-8')
+  return strline
 def checkandsave(csf_string, fineshift="None", force=None):
   """csf_string: clock shift (float string:  e.g.: '0.923819' )
   fineshift: 
@@ -216,14 +227,14 @@ def checkandsave(csf_string, fineshift="None", force=None):
           mylog.logm("db (%s %d %s) not changed, already applied. "%\
             (ttcmi_hns, corde_10ps, last_applied))
         else:
-          newcorde= corde_10ps - csps/10
+          newcorde= corde_10ps - old_div(csps,10)
           #f= open(fn,"w")   -written in .c (CORDE_SET)
           #line= "%s %d %s"%(ttcmi_hns,newcorde, csps_applied_new); f.write(line)
           #f.close()
           if fineshift != "None":
             f= open(fn,"r"); line= f.readline(); f.close()
             mylog.logm("Clock shift in db before SET: %s"%line)
-            corde_shift= "%d"%(-csps/10)
+            corde_shift= "%d"%(old_div(-csps,10))
             arg= (corde_shift,)
             res= pydim.dic_cmnd_service("TTCMI/CORDE_SET", arg, "C")
             mylog.logm("dim TTCMI/CORDE_SET "+corde_shift, 1)
@@ -247,7 +258,7 @@ def callback_bmold(bm):
   #print "callback_bmold: '%s' (%s)" % (bm, type(bm))
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
-  if bm2clock.has_key(bm):
+  if bm in bm2clock:
     i01= bm2clock[bm][0]
     if i01==0:
       expclock= "LOCAL"
@@ -267,10 +278,11 @@ def callback_fsn(fnum_name):
 def callback_bm(ecsbm):
   #print "callback_bm: '%s' (%s)" % (p2, type(p2))
   #WEB.miclock= rmzero(now) ; WEB.save()
+  #print("callback_bm: '%s' (%s)" % (ecsbm, type(ecsbm)))
   bmname= rmzero(ecsbm)
-  #print "callback_bm: '%s' (%s)" % (bmname, type(bmname))
+  #print("callback_bm: '%s' (%s)" % (bmname, type(bmname)))
   bm= bm2clocknames[bmname]
-  if bm2clock.has_key(bm):
+  if bm in bm2clock:
     i01= bm2clock[bm][0]
     if i01==0:
       expclock= "LOCAL"
@@ -285,14 +297,15 @@ def callback_bm(ecsbm):
   prev_bmname= WEB.lastbmname
   WEB.lastbmname= bmname
   arg= ("%d %s"%(bm, bmname),)
-  res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")
-  mylog.logm("callback_bm:" + arg[0] + " " + str(res))
+  #res= pydim.dic_cmnd_service("CTPRCFG/SETBM", arg, "C")
+  #mylog.logm("callback_bm:" + arg[0] + " " + str(res))
+  mylog.logm("callback_bm:" + arg[0])
   ## 
   #mylog.logm("callback_bm: "+bmname)
   #if (prev_bmname=="RAMP") or (bmname=="FLAT TOP"):
   if (bmname=="PREPARE RAMP") or (bmname=="RAMP"):
     sys.path.append(os.path.join(os.environ['VMECFDIR'],"filling"))
-    if os.environ['VMESITE'] != "ALICE":
+    if True:   #os.environ['VMESITE'] != "ALICE":
       mylog.logm("lab env, 'getfsdip.py act' call skipped")
     else:
       import getfsdip
@@ -379,17 +392,17 @@ def cbtran(now):
 def main():
   global WEB,mylog
   if not pydim.dis_get_dns_node():
-    print "Please set the environment variable DIM_DNS_NODE (aldaqecs)"
+    print("Please set the environment variable DIM_DNS_NODE (alidcsdimdns)")
     sys.exit(1)
   #signal.signal(signal.SIGKILL, signal_handler)
   #signal.signal(signal.SIGUSR1, signal_handler)
-  for bmix in bm2clock.keys():
+  for bmix in list(bm2clock.keys()):
     bmnamx= bm2clock[bmix][1]
     bm2clocknames[bmnamx]= bmix
   if os.path.exists(MICLOCKID):
     lsf= open(MICLOCKID,"r"); pid=lsf.read(); lsf.close; 
-    pid= string.strip(pid,"\n")
-    print """
+    pid= pid.strip("\n")
+    print("""
 It seems, miclock process already started, pid:%s
 If you cannot locate window, where %s is started, please
 remove file and kill miclock process, i.e.:
@@ -397,7 +410,7 @@ kill %s
 rm %s
 
 Than start miclock again.
-"""%(pid,pid,pid,MICLOCKID)
+"""%(pid,pid,pid,MICLOCKID))
     sys.exit(1)
   mylog= pylog.Pylog("miclock","ttyYES")
   pid= str(os.getpid())
@@ -405,7 +418,7 @@ Than start miclock again.
   f= open(MICLOCKID, "w"); f.write(pid+'\n'); f.close()
   # authenticate:
   if os.environ['USER']!="trigger" and os.environ['USER']!="oerjan":
-    print "Warning: not trigger account:",os.environ['USER']
+    print("Warning: not trigger account:",os.environ['USER'])
   ##mylog.logm("## vesion -i.e. miclock_shift.py")
   mylog.logm("miclock.py started...")
   time.sleep(2)   # 1sec was enough
@@ -413,16 +426,17 @@ Than start miclock again.
   res = pydim.dic_info_service("TTCMI/MICLOCK", "C", callback1)
   restran = pydim.dic_info_service("TTCMI/MICLOCK_TRANSITION", "C", cbtran)
   # next line after res service (i.e. current clock retrieved already)
-  resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
+  ##resbmold = pydim.dic_info_service("CTPDIM/BEAMMODE", "L:1", callback_bmold)
   if os.environ['VMESITE']=='ALICE':
     maid = pydim.dic_info_service("ALICE/LHC/TTCMI/CLOCK_MODE", "C", callback_manauto)
     # following returns '' between fills
-    resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
+    ##resbm = pydim.dic_info_service("ALICEDAQ_LHCBeamMode", "C:100", callback_bm)
+    resbm = pydim.dic_info_service("ALICE/LHC/STATUS/BEAM_MODE", "C", callback_bm)
     # following commented, when not available (between fills) message:
     # DIM Wrapper: src/dimmodule.cpp:1588 :: dic_ino_service_dummy: ERROR: Could not get new data to update service
     #resfn = pydim.dic_info_service("ALICEDAQ_LHCFillNumber", "C:100", callback_fsn)
   # ALICEDAQ_LHCFillNumber not available after dump (availablebe after INJECTION PROBE...)
-    resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
+    ##resfsn= pydim.dic_info_service("ALICEDAQ_LHCFillingSchemeName", "C:100", callback_fsn)
     #print "res...:", resbm, res, restran
     if not res or not restran or not resbm:
       mylog.logm("Error registering with info_services: "+str((resbm, res, restran)))
@@ -437,7 +451,7 @@ Than start miclock again.
     #             auto is forbidden from 28.4.2015
     try:
       #a= raw_input(  enter BEAM1 BEAM2 REF LOCAL man auto (now:%s)
-      a= raw_input("""
+      a= input("""
    enter:
    BEAM1       	-change the ALICE clock to BEAM1
    LOCAL       	-change the ALICE clock to LOCAL
@@ -449,14 +463,15 @@ Than start miclock again.
     except:
       a='q'
       mylog.logm("exception:"+str(sys.exc_info()[0]))
-    if string.find("getshift",a)==0: a="getshift"
+    #if string.find("getshift",a)==0: a="getshift"
+    if "getshift".find(a)==0: a="getshift"
     if (a!='q') and (a!='') and \
       (a!='BEAM1') and (a!='BEAM2') and (a!='LOCAL') and \
       (a!='getshift') and (a!='reset') and (a!='resetforce') and \
       (a!='REF') and (a!='man') and (a!='auto') and (a!='show') and (a!='dllresync') :
       mylog.logm('bad input:%s'%a) ; continue
     if a=='q': 
-      print "wait a minute until stop done properly..."
+      print("wait a minute until stop done properly...")
       break
     if a=='': continue
     if a=='auto':

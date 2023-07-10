@@ -1,6 +1,7 @@
 /*
-g++ -g -c -Wall -I/local/trigger/v/vmeb/vmeblib -I/usr/local/include -I$VMECFDIR/ttcmi rf2ttc.c
-g++ rf2ttc.o -L/local/trigger/v/vmeb/vmeblib/linux_c -lvmeb -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lDFDebug -lm -o rf2ttc
+ g++ -g -c -Wall -I/home/alice/trigger/git/trigger/v/vmeb/vmeblib -I/usr/local/include -I$VMECFDIR/ttcmi rf2ttc.c
+
+g++ rf2ttc.o -L/home/alice/trigger/git/trigger/v/vmeb/vmeblib/linux_c -lvmeb -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lDFDebug -lm -o rf2ttc
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +42,11 @@ if(maino==1) {
   vmew32(ORBmain_MAN_SELECT, 0); /* 0: ORB1 input */
   sprintf(msg, "Global clock: %x/%x -> BEAM1/ORB1",bcmain,orbmain);
   strcpy(daqlog,"BEAM1");
+} else if(maino==13) {
+  vmew32(BCmain_MAN_SELECT, 3);  /* 3: BC1 input */
+  vmew32(ORBmain_MAN_SELECT, 2); /* 2: internal BCmain synchronized orbit gen */
+  sprintf(msg, "Global clock: %x/%x -> BEAM1/ORBmain",bcmain,orbmain);
+  strcpy(daqlog,"BEAM1/Orbmain");
 } else if(maino==2) {
   vmew32(BCmain_MAN_SELECT, 2);  /* 2: BC2 input */
   vmew32(ORBmain_MAN_SELECT, 1); /* 1: ORB2 input */
@@ -98,6 +104,8 @@ if(strcmp(argv[1], "local")==0) {
   setbcorbitMain(4);
 } else if(strcmp(argv[1], "beam1")==0) {
   setbcorbitMain(1);
+} else if(strcmp(argv[1], "beam1lab")==0) {
+  setbcorbitMain(13);
 } else if(strcmp(argv[1], "ref")==0) {
   setbcorbitMain(3);
 } else if((strcmp(argv[1], "switch")==0) ||

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Translate .slm (mnemonic SLM instructions) to .seq (binary-like) file.
 .seq can be than processed by ltu6.tcl (gui) or loaded into LTU-SLM
@@ -10,7 +10,11 @@ Translate .slm (mnemonic SLM instructions) to .seq (binary-like) file.
 11.12.2013 run2 support added (with slmdefs.py)
 16.12. run2 32-bits SLM memory (L2data in parallel with L1data)
 """
-import os.path, os, string, slmdefs
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from builtins import object
+import os.path, os, slmdefs
 
 sdf= slmdefs.Slmdefs_run2
 slmseqpath='WORK/slmseq.seq'
@@ -28,7 +32,7 @@ def Err(text=None, warn=None, line=None):
       if line: errtext= errtext+line+'\n'
       errtext= errtext+"Error:"+text+'\n'
 
-class Sequence:
+class Sequence(object):
   def __init__(self, line):
     #print line
     self.s=[]   # 8 or 15 words of 1 trg. sequence
@@ -36,7 +40,7 @@ class Sequence:
       self.s.append(0)
     self.noswc=0               # NOSWC flag not present
     self.line=line
-    atms= string.split(line)
+    atms= line.split()
     code=None
     if atms[0]=='L0': code=1
     if atms[0]=='L2A': code=2
@@ -189,7 +193,7 @@ class Sequence:
         l= l+c
       of.write( l+'\n')
      
-class Cmpslm:
+class Cmpslm(object):
   def __init__(self, slmfile, run="lturun2"):
     global sdf
     if run=="-run1":
@@ -207,7 +211,8 @@ class Cmpslm:
     for line in sf.readlines():
       #print "Cmpslm:",line
       if line[:7]== 'Errors:':
-        for er in string.split(line[7: -1]):
+        #for er in string.split(line[7: -1]):
+        for er in line[7: -1].split():
           if er=='PP': self.allowederrs[0]=1
           elif er=='L0': self.allowederrs[1]=1
           elif er=='L1': self.allowederrs[2]=1
@@ -229,7 +234,8 @@ class Cmpslm:
     sf.close()
   def savefile(self, fn):
     of= open(fn, "w")
-    of.write( string.split(os.path.basename(fn),'.')[0]+'\n')
+    #of.write( string.split(os.path.basename(fn),'.')[0]+'\n')
+    of.write(os.path.basename(fn).split('.')[0]+'\n')
     of.write( str(len(self.slm))+'\n')
     l=''
     for i7 in range(7):
@@ -246,7 +252,7 @@ def main():
   global errtext, wartext
   import sys
   if len(sys.argv) < 2:
-    print """
+    print("""
 Convert .slm file to .seq file.
 See CFG/ltu/SLM/all.slm file for example of .slm file
 
@@ -262,7 +268,7 @@ File WORK/slmseq.seq is created, which can be than:
  -loaded to LTU seq. memory (see ltu.c SLMload()) or
  -reverse-compiled by slmcomp.py ->which should return
   on the output original .slm file
-"""
+""")
     #a= disslm("all.slm")
     #print a.getlist()
   else:
@@ -277,12 +283,12 @@ File WORK/slmseq.seq is created, which can be than:
         continue
       a= Cmpslm(bn, run)
       if wartext:
-        print wartext
+        print(wartext)
       if errtext:
-        print errtext
+        print(errtext)
       else:
         a.savefile(slmseqpath)
-        print "See %s %s fomat"%(slmseqpath, run)
+        print("See %s %s fomat"%(slmseqpath, run))
 if __name__ == "__main__":
   main()
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 usage:
   import cfgedit
@@ -10,9 +10,15 @@ cd $VMEWORKDIR
 $VMECFDIR/ltu/cfgedit.py 
 
 """
-import sys, string, os.path
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+import sys, os.path
 import myw
-from Tkinter import *
+from tkinter import *
 vb=None
 
 def err(errmsg, warning=None):
@@ -24,16 +30,16 @@ def err(errmsg, warning=None):
   if vb:
     vb.io.write(errwarn+errmsg+"\n")
   else:
-    print errwarn, errmsg
+    print(errwarn, errmsg)
 
-class Comment:
+class Comment(object):
   """ Comment line starts with '#' 
   """
   def __init__(self, text, error=None):
     self.text=text
     self.error=error
   def prt(self):
-    print self.text
+    print(self.text)
   def line(self):
     if self.error: text= "#ERROR: "+self.text
     else: text=self.text
@@ -46,7 +52,7 @@ class Comment:
     else: tag= None
     if self.text=='\n': return
     tw.insert("end", str(self.text), tag)
-class Variable:
+class Variable(object):
   """ if variable name starts with '!', it is
   SYSTEM variable, not visible in defaults editor -i.e.
   we do not want users to control it, but processed in readltuttcdb()
@@ -69,7 +75,7 @@ class Variable:
     else:
       return False
   def prt(self):
-    print self.name+"="+str(self.defvalue), str(self.curvalue)
+    print(self.name+"="+str(self.defvalue), str(self.curvalue))
   def line(self):
     rs= str(self.name) + '\t' + str(self.curvalue) + '\t' + str(self.text)
     return rs
@@ -92,9 +98,11 @@ class Variable:
     self.setcv(None)
     if vb:
       # get it from (shared) memory:
-      nvr=string.split(vb.io.execute("setOption(\"%s\", \"printvalue\")"%(self.name), log="NO"))[0]
+      #nvr=string.split(vb.io.execute("setOption(\"%s\", \"printvalue\")"%(self.name), log="NO"))[0]
+      nvr=vb.io.execute("setOption(\"%s\", \"printvalue\")"%(self.name), log="NO").split()[0]
       #print "vb: not None nvr:%s:"%nvr
-      self.setcv(string.rstrip(nvr))
+      #self.setcv(string.rstrip(nvr))
+      self.setcv(nvr.rstrip())
     else:
       if not os.path.exists(Variables.HWNAME):
         err(Variables.HWNAME+" does not exist")
@@ -103,13 +111,14 @@ class Variable:
       while 1:
         l= f.readline()
         if l=='': break
-        nvr= string.split(l,None,1)
-        if nvr[0]==self.name: self.setcv(string.rstrip(nvr[1]))
+        #nvr= string.split(l,None,1)
+        nvr= l.split(None,1)
+        if nvr[0]==self.name: self.setcv(nvr[1].rstrip())
       f.close()
   def writehw(self):
     global vb
     if vb:
-      cval= string.strip(self.curvalue,'"')
+      cval= self.curvalue.strip('"')
       rc=vb.io.execute("setOption(\"%s\", \"%s\")"%\
         (self.name, cval),log="NO",applout="<>")
       #print "writehw: not None rc:",rc,type(rc)
@@ -120,7 +129,7 @@ class Variable:
       err("Variable.writehw() should not be called with vb=None")
   def setcv(self, curvalue):
     self.curvalue= curvalue
-class Variables:
+class Variables(object):
   DBNAME="CFG/ltu/ltuttc.cfg"
   HWNAME="CFG/ltu/ltuttc.hw"
   def __init__(self, cfgname=DBNAME, vmeb=None):
@@ -137,7 +146,7 @@ class Variables:
     global vb
     if vb!=None:
       if rw=="r":
-        if myw.DimLTUservers.has_key(vb.boardName):
+        if vb.boardName in myw.DimLTUservers:
           vb.io.execute('getfile("'+self.cfgname+'")')
     self.f= open(self.cfgname, rw);
   def myclose(self, rw="r"):
@@ -146,18 +155,19 @@ class Variables:
       self.f.close()
       if vb!=None:
         if rw=="w":
-          if myw.DimLTUservers.has_key(vb.boardName):
+          if vb.boardName in myw.DimLTUservers:
             vb.io.execute('putfile("'+self.cfgname+'")')
   def mygetline(self):
     if self.f:
-      l=string.lstrip(self.f.readline(),' \t')   #not NL
+      #l=string.lstrip(self.f.readline(),' \t')   #not NL
+      l=self.f.readline().lstrip(' \t')   #not NL
     else:
       l=None
     return l
   def procLine(self, line):
     nvr=[] ; name=value=None ; rest='\n'
     try:
-      nvr= string.split(line,None,2)
+      nvr= line.split(None,2)
     except:
       #print "except:",name,":",value,":",rest,":"
       err("except:"+str(nvr))
@@ -189,10 +199,11 @@ class Variables:
     lines2=[]
     #f.write(self.textview.get("1.0","end"))
     endix= self.textview.index("end")
-    ilineend= eval(string.split(endix,'.')[0])
+    ilineend= eval(endix.split('.')[0])
     #print "end:", endix, ilineend
     for iline in range(ilineend)[1:]:
-      l= string.rstrip(self.textview.get("%d.0"%iline, "%d.end"%iline))+'\n'
+      #l= string.rstrip(self.textview.get("%d.0"%iline, "%d.end"%iline))+'\n'
+      l= self.textview.get("%d.0"%iline, "%d.end"%iline).rstrip()+'\n'
       #print "l:",l,":"
       if l[0]=='#' or l[0]=='\n':
         lines2.append(Comment(l)) ; continue
@@ -329,7 +340,7 @@ class Variables:
     self.reDisplay(1)
   def prt(self):
     nvar= len(self.lines)
-    print "----------------------------------------Variables:%d"%nvar
+    print("----------------------------------------Variables:%d"%nvar)
     for i in range(nvar):
       self.lines[i].prt()
   def setLastAction(self, button=None):
@@ -412,7 +423,7 @@ i.e. class 48 is in class pattern.
     #print "quit...",ev
       
 def fdestroy(event):
-  print "fdestroy:",event
+  print("fdestroy:",event)
 def main():
   f = Tk()
   f.bind("<Destroy>", fdestroy)

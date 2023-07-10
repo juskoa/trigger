@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """slm backward compiler
 Usage: 
 slmcomp.py file.seq
@@ -45,10 +45,14 @@ word bits
 11.5.2006 spare3 4.13 is now ESR (i.e. should == 0.9)
 11.12.2013 run2 data is default
 """
+from __future__ import print_function
 #import os.path, os, string, sys, glob
-import os.path, os, string, slmdefs
+from builtins import str
+from builtins import range
+from builtins import object
+import os.path, os, slmdefs
 sdf= slmdefs.Slmdefs_run2
-class Seq:
+class Seq(object):
   SNAME=['ZERO', 'L0  ', 'L2A ', 'L2R ', 'CPP ', 'CL0 ', 'CL2A', 'CL2R']
   def __init__(self, swidth):
     self.swidth= swidth      # 16 or 32
@@ -150,7 +154,7 @@ class Seq:
                 self.l2c[cn-2-16*ix+(bit-16)]=1
                 # 7[30..16] -spare bits in slm
               else:
-                print "Error: ix:%d"%ix
+                print("Error: ix:%d"%ix)
       elif line[i]!='0':
         return 1
       bit= bit+1
@@ -244,7 +248,7 @@ class Seq:
     if self.warns:
       instrline= instrline+"Warnings: "+ self.warns+"\n"
     return instrline,seqok
-class Disslm:
+class Disslm(object):
   ALERRS= ["PP", "L0", "L1", "L1M", "L1&L1M", "L2aM", "L2rWord"]
   def __init__(self, seqfile, run="-run2"):
     global sdf
@@ -360,7 +364,7 @@ class Disslm:
 def main():
   import sys
   if len(sys.argv) < 2:
-    print """
+    print("""
 
 Reverse compilation of .seq file (text file consisting from 0,1
 representing bits in LTU-sequencer memory). The format of .seq
@@ -372,7 +376,7 @@ Usage: slmcomp.py [-run2] name.seq
 Expected abs. path or relative path. name  to VMECFDIR 
 (e.g. CFG/ltu/SLM/all.seq)
 Operation: .slm file printed to stdout
-"""
+""")
     #a= Disslm("all.slm")
     #print a.getlist()
   else:
@@ -389,7 +393,7 @@ Operation: .slm file printed to stdout
         run= "-run2a"
         continue
       a= Disslm(bn, run)
-      print a.getlist()
+      print(a.getlist())
 
 if __name__ == "__main__":
   main()

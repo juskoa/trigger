@@ -77,12 +77,12 @@ void i2cset_delay(w32 delayadd, int halfns);
 void DLL_RESYNC(int msg);
 
 /*FGROUP calib
-orb:
+orb: -we do 0 and 2 (1 for BC2 ?)
 0: ORB1/BC1 -BPTX monitoring
 1: ORB2/BC2 -
 2: ORBmain=ORB1 BCmain= BC1   ALICE clock BEAM1
 4: ORBmain=ORB2 BCmain= BC2   ALICE clock BEAM2
-fromdel: 0  to 63 (6 bits) 
+fromdel,todel: 0  to 63 (6 bits) 
 Set BC_DELAY25_BC1/2/MAIN to their final values before using this!
 16.3.2011:
 all 3 Set to 29,28,27 - ORB1/BC1 calibration is not working
@@ -108,16 +108,20 @@ w32 adr,adrDEL,valDEL;
 // BC1_MAN_SELECT=1
 // ORB1_MAN_SELECT=1
 // 
-adrDEL= ORBIN_DELAY25_ORB1 + 4*orb;
-adr= ORB1_PERIOD_FIFO_RD - 0x40*orb;
+//adrDEL= ORBIN_DELAY25_ORB1 + 4*orb;
+//adr= ORB1_PERIOD_FIFO_RD - 0x40*orb;
 if(orb==2) {
   adrDEL= ORBIN_DELAY25_ORB1;
   adr= ORBmain_PERIOD_FIFO_RD;
-} else if(orb==3) {
-  printf("bad option (only 0 1 2 4 allowed)\n"); return;
+} else if((orb==0) || (orb==1)) {
+  adrDEL= ORBIN_DELAY25_ORB1 + 4*orb;
+  adr= ORB1_PERIOD_FIFO_RD - 0x40*orb;
 } else if(orb==4) {
   adrDEL= ORBIN_DELAY25_ORB2;
   adr= ORBmain_PERIOD_FIFO_RD;
+} else {
+  printf("bad option (only 0 1 2 4 allowed)\n"); return;
+  return;
 };
 valDEL= fromdel;
 while(1) {

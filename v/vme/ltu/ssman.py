@@ -1,12 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # history:
 # 22.5.2004 'unexpected strob' warning added
 # export PYTHONPATH=~/FTP/psyco-1.2 (improves to 1:45->37 sec)
 # 1.6. ACTIVESa - no improvement 37-> 38 with psyco
 # Jun/2004 -this way abandoned, -much more slower than C version, which
 #           is in VMECFDIR/SSMANA directory.
+from __future__ import print_function
+from builtins import hex
+from builtins import range
+from builtins import object
 import sys,os
-class tBC:
+class tBC(object):
   """Pulse. Duration: 1BC
   """
   def __init__(self, ssmbit, name):
@@ -167,7 +171,7 @@ class tDATA(tBC):
   def bighexra(self,mi,ma):   # right aligned
     """ get hexa mi-ma (mi,ma included)
     """
-    l1c=0L
+    l1c=0
     for i in range(mi,ma+1):
       l1c= l1c<<1
       l1c= l1c + self.data[i]
@@ -220,7 +224,7 @@ class tSIGNAL(tBC):
         ##ACTIVESa[self.ssmbit]=0
     return rettxt
 
-class tSSM:
+class tSSM(object):
   bithx=[1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072]
   def __init__(self, fname):
     self.cols=[]   # now keeping the order of bits
@@ -267,7 +271,7 @@ class tSSM:
       w=wimega[bc]
       if w==None:
         if n!= 0:
-          print "unexpected EOF:",self.fname
+          print("unexpected EOF:",self.fname)
         break
       ##w=struct.unpack('i',w)[0]
       #print bc,':',"%x"% w,':',type(w)
@@ -329,7 +333,7 @@ def main():
     #print "usage: ssman ssm.dump ->creates ssm.lst file in current directory"
   else:
     fn=sys.argv[1]
-  print makelst(fn)
+  print(makelst(fn))
 
 if __name__ == "__main__":
     main()

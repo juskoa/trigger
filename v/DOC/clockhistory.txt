@@ -77,4 +77,33 @@ printBC_DELAYS()
 10:57 450
 10:59 500
 11:06 200
+=== 4.5.2022
+problem: clock shift -12.9ns (Ombretta):
+Vistart LHC RF Timing
+https://op-webtools.web.cern.ch/Vistar/vistars.php?usr=LHCRFTiming
+Actions:
+018:
+cd corde ; vmecomp corde
+cd ttcmidaemons ; futurize -w monshiftclock2.py
 
+mkdir ~/v/vme/CFG cd;
+cat - >clockshift
+27 400 200
+change clock LOCAL BEAM1  -> new values were loaded, see
+mails/clock/corde.png and clock2022.png
+-still shift cca -1ns
+
+835: miclock -> getshift  too old
+
+Note ./monshiftclock2.py: always -12.9 and time stamp 17h 
+explanation: updated only in BEAM MODES
+Ah, the value PHASE_SHIFT_BPTX1 is refreshed when BEAM_MODE is "FLAT TOP",
+"SQUEEZE", "ADJUST", "STABLE BEAMS".
+
+=== adjusting by 100ns:
+ps: value changed from to 5000 (i.e. + 1000 ps (was 400)).
+and 
+alidcsvme018:~/v/vme/CFG/clockshift
+edited to 27 500 400
+
+see afs: mails/clock from 24.5.2022

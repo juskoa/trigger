@@ -1,5 +1,6 @@
-#!/usr/bin/python
-class Slmdefs:
+#!/usr/bin/env python
+from builtins import object
+class Slmdefs(object):
   version=1
   wordseq=8
   L1cls= (3,0,50)   # (word, start bit,length)
@@ -11,7 +12,7 @@ class Slmdefs:
   esr2= (4, 0x2000)
   l2swc= (4, 0x800)
   spare23w= (4, 0x4000, 0x2000)
-class Slmdefs_run2a:
+class Slmdefs_run2a(object):
   # obsolete (replaced in jan2014 by Slmdefs_run2.
   version=2
   wordseq=16
@@ -24,7 +25,7 @@ class Slmdefs_run2a:
   esr2= (8, 0x2000)
   l2swc= (8, 0x800)
   spare23w= (8, 0x4000, 0x2000)
-class Slmdefs_run2:
+class Slmdefs_run2(object):
   # the same as version=2, but L2Cluster,L2class bits+esr,CIT
   # L2SwC are placed
   # in words 0..7, bits 31..16

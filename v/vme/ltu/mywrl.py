@@ -1,10 +1,17 @@
+from __future__ import division
+from __future__ import print_function
 #File: rl.py
 
-from Tkinter import *
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
+from builtins import object
+from tkinter import *
 from myw import *
 
 #--------------------------------------------------------------
-class Body:
+class Body(object):
  """ 
     Basic class for graph.
 
@@ -83,8 +90,8 @@ class Mycanvas(Canvas):
   self.y0win=yoffset+ysizewin
 # xscal - scaling between window and graph frame
 # yscal
-  self.xscal=xsizewin/xgraph
-  self.yscal=ysizewin/ygraph
+  self.xscal=old_div(xsizewin,xgraph)
+  self.yscal=old_div(ysizewin,ygraph)
  def grf2win(self,bod=None):
   """
      Transform the graph coordinates to window coordinates
@@ -140,7 +147,7 @@ class Graph(Body,Mycanvas):
    Body.__init__(self,xy=xy)
    if(xgraph == None):
     xgraph = self.getmaxx()-self.getminx()
-    print "xgraph=",xgraph
+    print("xgraph=",xgraph)
    if(ygraph == None):
     ygraph = self.getmaxy()-self.getminy()
    if(x0 == None):
@@ -165,25 +172,25 @@ class Graph(Body,Mycanvas):
   """
      Draw the ticks and numbers. Tick length and number size fixed.
   """
-  dielik=xgraph/nxtick
+  dielik=old_div(xgraph,nxtick)
   for i in range(x0,x0+xgraph+dielik,dielik):
    b1=(i,y0)
    b2=(i,y0-ygraph/50.)   # tick length
    self.create_l(b1,b2)
    b1=(i,y0-ygraph/20.)   # number size
-   self.create_txt(b1,text=`i`)
+   self.create_txt(b1,text=repr(i))
  def yticks(self,x0,y0,xgraph,ygraph,nytick):
   """
     Draw the ticks and numbers. Tick length and number size fixed.
   """
-  dielik=ygraph/nytick
+  dielik=old_div(ygraph,nytick)
   #print "yticks:",y0,ygraph,dielik
   for i in range(int(y0),int(y0+ygraph+dielik),int(dielik)):
    b1=(x0,i)
    b2=(x0-xgraph/50.,i)   # tick length
    self.create_l(b1,b2)
    b1=(x0-xgraph/20.,i)   # number size
-   self.create_txt(b1,text=`i`)   
+   self.create_txt(b1,text=repr(i))   
  def plot(self,xy):
   """
      Plot the points.
@@ -219,7 +226,7 @@ class MywRadio2(Radiobutton,MywHelp):
       Radiobutton.pack(self)
       if helptext: MywHelp.__init__(self,master, helptext)
 
-class MywRadioMany:
+class MywRadioMany(object):
   def __init__(self, master=None,
     text="txt",variable="0",value="0",
     items=(("text1","1"),("text2","2")),

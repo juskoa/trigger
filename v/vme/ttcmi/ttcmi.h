@@ -128,7 +128,8 @@ B. BCREF/
 C. localBC/
 */
 void setbcorbitMain(int maino);
-#define REF_MASK 0x0c
+//#define REF_MASK 0x0c   // ignore BCref
+#define REF_MASK 0x3c   // ignore BC2 BCref
 /*FGROUP
 read QPLL* and TTCrx status bits.
 RC: 0xTAB

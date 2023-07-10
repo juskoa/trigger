@@ -125,7 +125,7 @@ if(rcv==0) {
     base= cordevalvme;
   };
   *origval= base;
-  if((shift <-150) || shift>150) {
+  if((shift <-500) || shift>500) {   // was 150 till 25.6.2023
       sig=0; rc=0xfffffffe;
   } else if(shift<0) {
     sig=-1;
@@ -260,7 +260,8 @@ if(micratepresent()&2 ) {          //----------------------- RF2TTC
   //i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.12.2014 (rf2ttcscope)
   //i2cset_delay(ORBIN_DELAY25_ORB1, 0x14);   // from 4.07.2016
   //i2cset_delay(ORBIN_DELAY25_ORB1, 0x18);   // from 4.08.2018 bad direction?) -CDH errors
-  i2cset_delay(ORBIN_DELAY25_ORB1, 0x12);   // from 5.08.2018
+  //i2cset_delay(ORBIN_DELAY25_ORB1, 0x12);   // from 5.08.2018
+  i2cset_delay(ORBIN_DELAY25_ORB1, 0x2c);   // from 12.08.2022
   i2cset_delay(ORBIN_DELAY25_ORB2, 0x11);   // not used anyhow
   //vmew32(ORBmain_COARSE_DELAY,2);
   vmew32(ORBmain_COARSE_DELAY,3564);

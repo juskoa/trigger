@@ -249,25 +249,27 @@ while(clocktran>=0) {
       DLL_RESYNC(DLL_info);
     } else {
 #define reslen 3200
-      int rc; char server[24]; char cmd[80]; char result[reslen];
+      //int rc; char result[reslen];
+      char server[24]; char cmd[80];
       if(envcmp("VMESITE", "ALICE")==0) {
         strcpy(server, getenv("SERVER_NODE"));
       } else {
         strcpy(server, "adls");
       };
-      infolog_trgboth(LOG_WARNING, "ALICE clock changed, restaring ctpproxy (25s)...");
+      //infolog_trgboth(LOG_WARNING, "ALICE clock changed, restaring ctpproxy (25s)...");
+      infolog_trgboth(LOG_WARNING, "ALICE clock changed.");
       sprintf(cmd, "ssh trigger@%s ctpproxy.py restart nomasks", server);
       setbcorbit(*(int *)tag); 
       nclients= dis_update_service(MICLOCKid);
       printf("updated MICLOCK clients:%d\n", nclients);
       //printf("updated MICLOCK clients:%d, now ctpproxy.py restart nomasks...\n", nclients);
-      //rc= popenread(cmd, result, reslen);
+      /*rc= popenread(cmd, result, reslen);
       rc= EXIT_FAILURE;
       if(rc==EXIT_FAILURE) { 
         printf("ERROR cmd NOT DONE:%s rc:%d\n", cmd, rc);
       } else {
         printf("result(len:%d):%s\n", strlen(result), result);
-      };  
+      };  */
     };
   };
   if(quit==1) clocktran=0;
@@ -295,6 +297,7 @@ for(ix=0; ix<80; ix++) {
     break;
   };
 };
+rc=0; goto OK;  // do not check the origin of the request
 if(( strncmp(hname,"ALIDCSCOM779",12)==0) ||
    ( strncmp(hname,"ALIDCSCOM779.cern.ch",20)==0)) {
   rc=0; goto OK;
@@ -498,8 +501,8 @@ getclocknow();
 rc= getclientid(clientid);
 *msgp= clocknow;
 *size= strlen(clocknow)+1;
-sprintf(msg, "MICLOCKcaba clocknow:%s size:%d clientid:%s rc:%d",
-  clocknow, *size, clientid, rc); prtLog(msg); 
+/* sprintf(msg, "MICLOCKcaba clocknow:%s size:%d clientid:%s rc:%d",
+  clocknow, *size, clientid, rc); prtLog(msg); */ 
 }
 /*----------------------------------------------------------- SHIFTcaba
 */
@@ -576,8 +579,8 @@ if((freqs[0] != rfrx1[2].freq) ||
 if(stat != qpllstat) {
   char msg[100];
   if((stat | REF_MASK) != (qpllstat | REF_MASK)) {
-    sprintf(msg, "QPLL update (ref ignored here) rc:%d qpllstat:0x%x",
-      rc,stat);
+    sprintf(msg, "QPLL:0x%x (ref/bc2 bits 0x%x ignored) rc:%d",
+      stat,REF_MASK, rc);
     prtLog(msg);
   };
   qpllstat= stat;
@@ -738,7 +741,7 @@ while(1)  {
   //sleep(1) ; 
   //msleep(1000);
   dtq_sleep(60);
-  //printf("slept 10secs...\n"); fflush(stdout);
+  //printf("slept 60secs...\n"); fflush(stdout);
 };  
 ds_stop();
 exit(0);
