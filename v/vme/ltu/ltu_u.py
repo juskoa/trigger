@@ -1,16 +1,16 @@
-from __future__ import division
-from __future__ import print_function
+#from __future__ import division
+#from __future__ import print_function
 #30.6. CtpEmulator -only 1 window allowed
 #12.10.2005 loadseq: .seq file (old way) or .slm file -> compile
 #           to /tmp/slmseq.seq and then load it
 #examineslm: getfile added for dim-operation
 #16.12.2013 lturun2 added
-from future import standard_library
-standard_library.install_aliases()
+#from future import standard_library
+#standard_library.install_aliases()
 from builtins import hex
 from builtins import str
 from builtins import range
-from past.utils import old_div
+#from past.utils import old_div
 from builtins import object
 from tkinter import *
 import tkinter.filedialog
@@ -1376,7 +1376,7 @@ to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
     fn=os.path.join(os.environ['VMEWORKDIR'],
         "WORK","adc.ps")
     rc=self.c1.postscript(file=fn)
-    if rc is not '':
+    if rc != '':
      myw.MywError(errmsg="Directory WORK does not exist.")
      print("rc=",rc,len(rc))
     else:
@@ -1471,7 +1471,8 @@ to close this widget, and then set it in stdfuncs->BC_DELAY_ADD->write.
       delay=[]
       n=len(listx)
       for i in range(1,n,1):
-        der=old_div((listy[i][0]-listy[i-1][0]),(listx[i]-listx[i-1]))
+        #der=old_div((listy[i][0]-listy[i-1][0]),(listx[i]-listx[i-1]))
+        der=(listy[i][0]-listy[i-1][0])/(listx[i]-listx[i-1])   # float/float
         if(abs(der)>30.):
           delay.append(int(listx[i]-1))
       print("delay=",delay)

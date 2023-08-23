@@ -2,7 +2,7 @@
 """doseq.py
 Prepare special .seq files
 """
-from __future__ import print_function
+#from __future__ import print_function
 #import os.path, os, string, sys, glob
 from builtins import str
 from builtins import range

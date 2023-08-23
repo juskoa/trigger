@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #9.11.2002 threading/Lock added (i.e. 
-#          - if more commands for 1 exe than thay are queued
+#          - if more commands for 1 exe than they are queued
 #          - if more boards (more exes), they run parallely
 #4.1.2003  -scrollbar added for cmdlint log area
 #5.1.      -logfile option added
@@ -8,10 +8,10 @@
 #6.5. 2004 -rewritten for 'paralle multiple pipes'
 #13.5.2004 - parallel thread1,2... windows are iconified when
 #            initialised 
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
+#from __future__ import print_function
+#from future import standard_library
+#standard_library.install_aliases()
+#from builtins import str
 from builtins import object
 from tkinter import *
 import os, subprocess, sys, signal, time
@@ -57,7 +57,7 @@ class ioWindow(object):
     while 1:
         line= self.io[0].readline()
         #print('cmdlin2>'+str(self.ixthds)+'>',line,'<<')
-        line= line.decode()
+        #line= line.decode()  # no need for alma (text=True)
         #print "cmdlint:",line,"eol"
         ##if buf and buf!="wait":
         if line ==':\n':   #don't take last '\n:\n'
@@ -181,7 +181,8 @@ class ioWindow(object):
     #CCTOPEN
     try:
       #self.io[1].write("cctopen()\n"); self.getOutput(buf,applout)
-      self.io[1].write((cmdte+"\n").encode())
+      #self.io[1].write((cmdte+"\n").encode())   # not on alma (text=True)
+      self.io[1].write((cmdte+"\n"))
       self.io[1].flush()   # the must with py3
     except:
       print('cmdlint:cannot write to cmdline interface')
@@ -246,7 +247,7 @@ class ioWindow(object):
     cli    -the parent cmdlint class
     ixthds -pointer to thds[] to myself (0 -special 1st thread)
     """
-    #print "ioWindow:",cli.cfdir
+    #print("ioWindow:",cli.cfdir)
     #iow self.cfdir=os.environ['VMECFDIR']
     self.cli=cli
     self.ixthds=ixthds
@@ -315,8 +316,8 @@ class ioWindow(object):
         #self.io= os.popen2(nbcmd, -1)
       else:    # linux, cygwin:
         #self.io= popen2.popen2(nbcmd, 1) #0- unbuffered, 1-line buffered
-        #print("cmdlin2 nbcmd:",nbcmd)
-        p= subprocess.Popen(nbcmd.split(), bufsize=1,
+        #print("cmdlin2 nbcmd:",nbcmd)   # text=True: on alma
+        p= subprocess.Popen(nbcmd.split(), bufsize=1, text=True,
           stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
         self.io= (p.stdout, p.stdin)
       #print "cmdlin2:",nbcmd,":",os.getcwd(),":"
@@ -405,7 +406,7 @@ class cmdlint(object):
     #iow self.lastOutput=''; self.lineNumber=0
     self.thds=[None,None,None,None]   #allow 4 parallel pipes
     self.thds[0]= ioWindow(self,0)
-    print("cmdlin2:thds:",self.thds)
+    #print("cmdlin2:thds:",cmd,self.thds)
     if self.thds[0].pidexe==None:
       self.thds[0].write("exiting...\n","MSG")
       #raise "cmdlint exiting"

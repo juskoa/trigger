@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
+#standard_library.install_aliases()
+#from builtins import str
 from tkinter import *
-import os, sys
+import os, sys, traceback
 import myw
 
 def DimServerOn(basead):
@@ -92,16 +90,16 @@ nbi         -if parameter nbi supplied, the board won't be initialised
         print(rtxt,"\n")
         print("Try: vmecrate YourDetectorName          from the same login!\n")
         return #sys.exit(0)
-      try:
-        vmeboard= myw.VmeBoard(f1, boardName=board[0], \
-                baseAddr=basead, initboard=initboard)
-      except:
-        print("crate.py:", sys.exc_info())
-        print("""Board name ['ltu', 'ttcvi',...], or detector name """ +str(list(myw.DimLTUservers.keys())) + " expected.")
-        sys.exit(8)
-      else:
-        f1.addBoard(vmeboard)
-        syspadd= os.path.join(cfdir, board[0])
+      #try:
+      vmeboard= myw.VmeBoard(f1, boardName=board[0], baseAddr=basead, initboard=initboard)
+      #except:
+      #  print("crate.py:", sys.exc_info())
+      #  print("crate.py:tb:", traceback.print_stack())
+      #  print("""Board name ['ltu', 'ttcvi',...], or detector name """ +str(list(myw.DimLTUservers.keys())) + " expected.")
+      #  sys.exit(8)
+      #else:
+      f1.addBoard(vmeboard)
+      syspadd= os.path.join(cfdir, board[0])
     if vmeboard.errmsg!=None:
       print(vmeboard.errmsg)
       sys.exit(8)

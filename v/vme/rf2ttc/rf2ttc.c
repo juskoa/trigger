@@ -1,7 +1,7 @@
 /*
- g++ -g -c -Wall -I/home/alice/trigger/git/trigger/v/vmeb/vmeblib -I/usr/local/include -I$VMECFDIR/ttcmi rf2ttc.c
+g++ -g -c -Wall -I$VMEBDIR/vmeblib -I/usr/local/include -I$VMECFDIR/ttcmi rf2ttc.c
 
-g++ rf2ttc.o -L/home/alice/trigger/git/trigger/v/vmeb/vmeblib/linux_c -lvmeb -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lDFDebug -lm -o rf2ttc
+g++ rf2ttc.o -L$VMEBDIR/vmeblib/linux_c -lvmeb -lpthread -L/lib/modules/daq -lvme_rcc -lrcc_error -lio_rcc -lcmem_rcc -lDFDebug -lm -o rf2ttc
 */
 #include <stdio.h>
 #include <stdlib.h>

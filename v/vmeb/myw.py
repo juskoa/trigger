@@ -29,18 +29,18 @@ vmeread modified (now a[-3])
 16.12  bug fixed in MywBits (was incorret for bits=[(name,1),...
 16. 1. MywMenuList -tear off implemented now
 '''
-from __future__ import division
-from __future__ import print_function
-from past.builtins import execfile
-from future import standard_library
+#from __future__ import division
+#from __future__ import print_function
+#from past.builtins import execfile
+#from future import standard_library
 from functools import reduce
-standard_library.install_aliases()
-from builtins import hex
-from builtins import str
-from builtins import map
-from builtins import range
-from builtins import object
-from past.utils import old_div
+#standard_library.install_aliases()
+#from builtins import hex
+#from builtins import str
+#from builtins import map
+#from builtins import range
+#from builtins import object
+#from past.utils import old_div
 import sys, os, os.path, types, time
 from tkinter import *
 
@@ -137,7 +137,8 @@ def fromms(oldval, newval):
       elif retval[-1].lower()=='k':   # micsecs
         retval= retval[:-1]
         mult=1000
-      retval=str(int(old_div(bcfrekv*mult,int(retval))-1))
+      #retval=str(int(old_div(bcfrekv*mult,int(retval))-1))
+      retval=str(bcfrekv*mult//int(retval)-1)
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=newval
     else:     # n given directly as int
@@ -200,14 +201,16 @@ def frommsL0pr(oldval, newval):
       if retval[-1].lower()=='k':     # khz
         retval= retval[:-1]
         mult=1000
-      retval=str(0x80000000 | int(old_div(mult,int(retval))/10.))
+      #retval=str(0x80000000 | int(old_div(mult,int(retval))/10.))
+      retval=str(0x80000000 | int((mult//int(retval))/10.))
     elif newval[-1].lower()=='%':   # downscaling in %
       pr= newval[:-1]
       fpr= float(pr)
       if (fpr<0.0) or (fpr>100.0):
         retval=None
       else:
-        retval= str(int(round(old_div((100-fpr)*0x1fffff,100))))
+        #retval= str(int(round(old_div((100-fpr)*0x1fffff,100))))
+        retval= str(int(round((100-fpr)*0x1fffff/100)))
     elif (len(newval)>2) and (newval[:2]=='0x'):  # direct hexa
       retval=str(eval(newval))
     else:     # n given directly as int
@@ -426,12 +429,14 @@ class Kanvas(Canvas):
     #if x>canw/2:    # tooltip on right side
     if not (((x>self.scalerpos[0]) and (x<(self.scalerpos[0]+Kanvas.scalwidth))) or\
             ((x>self.scalerpos[1]) and (x<(self.scalerpos[1]+Kanvas.scalwidth)))):
-      if y<old_div(canh,2):   #NE
+      #if y<old_div(canh,2):   #NE
+      if y<(canh//2):   #NE
         x= event.x-cursd-txtw; y=event.y+cursd
       else:          #SE
         x= event.x-cursd-txtw; y=event.y-cursd-txth
     else:            # tooltip on left side
-      if y<old_div(canh,2):   #NW
+      #if y<old_div(canh,2):   #NW
+      if y<(canh//2):   #NW
         x= event.x+cursd; y=event.y+cursd; #recreate=0
       else:          #SW
         x= event.x+cursd; y=event.y-cursd-txth
@@ -785,7 +790,8 @@ class MywHelp(object):
     screenwidth= self.hw.winfo_screenwidth()
     #print "screen height,width:",screenheight,screenwidth
     #x
-    if cratex<old_div(screenwidth,2): x= cratex+cratew
+    #if cratex<old_div(screenwidth,2): x= cratex+cratew
+    if cratex<(screenwidth//2): x= cratex+cratew
     else: x= cratex-helpwidth
     if x<0 or x>screenwidth: x=0
     #y
@@ -1833,7 +1839,7 @@ class VmeBoard(object):
         modname= "ltu_u"
       else:
         modname= self.boardName+"_u"
-      #print modname
+      #print("myw modname:", modname)
       #__import__(modname)
       exec('import '+modname)
       #print 'cmdeval:',modname,':',fn
@@ -1911,7 +1917,8 @@ class VmeBoard(object):
           cmdh= lambda s=self,x=ix:s.startFun(x)
           self.gmbs[-1].add_command(label=labname, command=cmdh)
           gix=gix+1
-          self.funcsm[ix]= (old_div(len(self.gmbs),2)-1, gix)
+          #self.funcsm[ix]= (old_div(len(self.gmbs),2)-1, gix)
+          self.funcsm[ix]= (len(self.gmbs)//2-1, gix)
           #print "funbuts3:",fn,"self.funcm[",ix,"]=",self.funcsm[ix]
   def getcf(self):
     self.funcs=[]
@@ -1923,7 +1930,8 @@ class VmeBoard(object):
       bdir= os.path.join( os.environ['VMECFDIR'],
         usedir, usedir)
       cff= bdir+'_cf.py'
-      execfile(cff)
+      #execfile(cff)
+      exec(open(cff).read())
       # self.baseAddr,spaceLength,vmeregs,funcs,hiddenfuncs
     except:
       raise usedir+'_cf.py'+" doesn't exist or incorrect"
@@ -2050,7 +2058,7 @@ Main log/cmd window is started by itself if necessary.
     #
     if self.iamltu():
       rcs= self.io.execute("vmeopr32(LTUVERSION_ADD)").strip()
-      print("VmeBoard:",rcs)
+      #print("VmeBoard LTUVERSION_ADD:",rcs)
       if len(rcs)<2:
         self.errmsg= "Cannot read LTU version"
         return

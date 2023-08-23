@@ -2,15 +2,15 @@
 # 18.9. byoutT now ok, byin1-24 now OK (were shifted by 1)
 # 18.9. INT counters added (previous int is now l0int)
 # 24.11. CGT addded in findAddr 
-from __future__ import division
-from __future__ import print_function
-from past.builtins import execfile
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
+#from __future__ import division
+#from __future__ import print_function
+#from past.builtins import execfile
+#from future import standard_library
+#standard_library.install_aliases()
+#from builtins import str
+#from builtins import range
+#from past.utils import old_div
+#from builtins import object
 from tkinter import *
 import os, types, time,threading #, os.path, glob
 import myw
@@ -119,7 +119,8 @@ class SHMCounter(object):
   pxwidth=500
   pxheight=46
   xresolution=2
-  nmax= old_div(pxwidth,xresolution)-1
+  #nmax= old_div(pxwidth,xresolution)-1
+  nmax= pxwidth//xresolution-1
   canvasbg="#ccffcc"
   COLDYNAMIC=canvasbg
   maxcounter=0x7fffffff
@@ -1406,7 +1407,8 @@ class SHMcnts(CTPcnts):
     print("no effect for shared memory counters (always accruals)")
   def checkShift(self):
     if self.nx>=SHMCounter.nmax:
-      ixmaxdel=old_div(SHMCounter.nmax,2)
+      #ixmaxdel=old_div(SHMCounter.nmax,2)
+      ixmaxdel=SHMCounter.nmax//2
       for i in range(len(self.regs)):
         self.regs[i].updateShift(ixmaxdel)
       self.nx=SHMCounter.nmax-ixmaxdel
@@ -1471,7 +1473,8 @@ class SHMcnts(CTPcnts):
         self.regs[i].update()
       if os.path.exists(CTPcnts.specfname):
         try:
-          execfile(CTPcnts.specfname, globals(), locals())
+          #execfile(CTPcnts.specfname, globals(), locals())
+          exec(open(CTPcnts.specfname).read())
         except:
           print("exception caught executing:",CTPcnts.specfname)
       self.nx= self.nx+1
