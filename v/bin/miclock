@@ -1,0 +1,40 @@
+#!/bin/bash
+# miclock: follows beam modes and resets the clock shift 50s aftr FLAT TOP declared
+#usage: miclock
+#
+. $VMECFDIR/../bin/auxfunctions
+logdir=$VMEWORKDIR/WORK
+#getpid '.miclock' nebavi
+spid=`pgrep -f miclock.py`
+if [ "$1" == 'stop' ] ;then   #-------------------------- stop
+  if [ -n "$spid" ] ;then
+    #kill -s QUIT $spid
+    kill -s 9 $spid
+    echo "kill -9 $spid"
+    #echo "killing: $spid    wait until killed, resp. CHECK $logdir/miclockid."
+    rm $logdir/miclockid
+  else
+    echo "miclock is not running"
+  fi
+elif [ "$1" == 'start' ] ;then    #----------------------- start
+ if [ -n "$spid" ] ;then
+  echo "miclock server is running already! pid: $spid miclockid:"
+  ls -l $logdir/miclockid
+  ls -l $logdir/miclock.alive
+ else
+  cd $logdir
+  savelog miclock
+  nohup $VMECFDIR/ttcmidaemons/miclock.py >miclock.nohup &
+  echo miclock started  # `cat $logdir/miclockid`
+ fi
+else
+ if [ -z "$spid" ] ;then
+  echo "miclock server is not running"
+  ls -l $logdir/miclockid
+  echo "Start: miclock start"
+ else
+  echo "miclock server is running, pid: $spid"
+  ls -l $logdir/miclock.alive
+  echo "Stop: miclock stop"
+ fi
+fi
